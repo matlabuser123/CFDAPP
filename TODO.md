@@ -6,12 +6,11 @@
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
 (`TransientSolver` orchestration) done; PISO-A through PISO-I (the full
 transient pressure-velocity path, `PISO` wired into `TransientSolver`)
-done; **restart capability done** (state contract, deterministic mesh
-fingerprint, file writer/reader, resume integration, and a bit-identical
-continuous-vs-split-run regression), 526/526 tests pass. Next: transient
-validation cases (startup Poiseuille, impulsively-started cavity,
-temporal refinement, steady-limit equivalence -- not started yet; see
-"P2 -- Transient CFD" below)
+done; restart capability done; **transient validation cases done**
+(startup Poiseuille, impulsively-started cavity, temporal refinement,
+steady-limit equivalence for both cases), 531/531 tests pass -- **P2
+Transient CFD is now functionally complete.** Next phase not yet scoped
+(see "P2 -- Transient CFD" below for full status)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -791,7 +790,7 @@ Only after P0/P1 validation is complete.
 * [x] `TransientSolver`.
 * [x] PISO.
 * [x] Restart capability.
-* [ ] Transient validation cases.
+* [x] Transient validation cases.
 
 **Status (2026-09-09): TASK P2-001 done.**
 [TimeController.hpp](include/cfd/solver/TimeController.hpp) /
@@ -1574,6 +1573,102 @@ a continuous one. CLI/case-system integration is explicitly out of scope
   CLI `--restart`, case-system JSON dispatch for a restart path, VTK/CSV
   snapshot export beyond what already exists, and everything Part 2
   (transient validation) covers.
+
+**Transient validation cases done: P2 Transient CFD is now functionally
+complete.** Four cases, reusing the already-validated steady SIMPLE
+infrastructure's own geometry/boundary-condition helpers and validation
+utilities directly (`PoiseuilleValidationUtils.hpp`,
+`CavityValidationUtils.hpp`/`GhiaRe100.hpp`) -- no new numerical
+formulas, no PISO mathematics changed, only case-appropriate
+`PISOSettings` (matching the steady suite's own precedent of varying
+solver settings, never frozen numerics, per grid/case).
+
+* **Startup planar Poiseuille**
+  ([test_transient_poiseuille.cpp](tests/integration/poiseuille/test_transient_poiseuille.cpp)):
+  the same 64x8 channel (H=1, L=8H, rho=1, mu=0.1, Uavg=1, Re=10) as the
+  steady suite's own smallest grid, started from `U=0` and run through
+  real `PISO`/`TransientSolver`. Verifies: `Completed` status is itself
+  evidence every accepted step passed `TransientSolver`'s own
+  independent finite check throughout (not just checked once at the
+  end, though the final state is checked explicitly too); zero wall
+  flux; inlet/outlet mass conservation from the authoritative corrected
+  `F`; the velocity profile at `t=4` has already developed toward the
+  analytical parabola (L2 < 0.05, looser than steady SIMPLE's own
+  converged 0.02 gate, since a finite startup time is not the same as
+  iterated-to-convergence); and a repeated run is bit-identical
+  (state and timestep history).
+* **Impulsively-started lid-driven cavity**
+  ([test_transient_cavity.cpp](tests/integration/cavity/test_transient_cavity.cpp)):
+  the same 20x20 cavity (Re=100) as the steady suite's own smallest
+  grid, lid instantaneously set to `U_lid=1` at `t=0` from rest. Same
+  structure as the Poiseuille case: finite/conservative/deterministic,
+  plus the developing primary recirculation compared against Ghia,
+  Ghia & Shin (1982)'s Re=100 reference at `t=6` (u/v centerline L2 <
+  0.15 each).
+* **Steady-limit equivalence** (explicit regression, one per case, not
+  folded silently into the cases above): a long-time transient `PISO`
+  run (`t=8` channel / `t=15` cavity) compared against the
+  already-validated steady `SIMPLE` solution for the *identical*
+  geometry/BCs/physics -- velocity (relative L2 < 0.05 channel / < 0.1
+  cavity), the channel's axial pressure *gradient* (gauge-invariant,
+  avoiding reconciling `SIMPLE`/`PISO`'s independent pressure reference
+  conventions on an open boundary) within 5% for the channel, raw
+  pressure (both solves share the same forced `referenceCell=0`, so
+  comparable directly, unlike the open-boundary channel) within a
+  relative L2 of 0.2 for the cavity, and the authoritative face flux
+  within a small absolute tolerance for both -- plus both solutions'
+  own global mass imbalance independently near machine zero.
+* **Temporal refinement**
+  ([test_temporal_refinement.cpp](tests/integration/poiseuille/test_temporal_refinement.cpp)):
+  `dt`, `dt/2`, `dt/4`, and a `dt/8` "sufficiently fine" reference (this
+  task's own allowance for either an analytical transient solution or a
+  fine independently-computed one), all on the *identical* mesh/
+  physics/initial-condition/final-time (the startup channel, at an
+  early `t=0.32` chosen so the flow is still genuinely developing, not
+  yet steady -- verified this mattered: an `EXPECT_GT(errorDt, 0.0)`
+  guard explicitly checks the dt-vs-reference difference is nonzero,
+  not merely a token band around zero). Only `dt` varies between runs,
+  so spatial discretization error stays frozen and does not dominate
+  the observed temporal order (this task's own explicit requirement).
+  Observed order between consecutive halvings: **1.15** and **1.22** --
+  genuinely close to implicit Euler's expected first-order accuracy,
+  not merely inside a wide token tolerance band (asserted in
+  [0.8, 1.4], not [0.6, 1.5]) -- on a real multi-cell 2D `PISO` solve,
+  not the single-cell ODE
+  (`ImplicitEulerOdeConvergesAtFirstOrder`,
+  [test_time_derivative.cpp](tests/unit/discretization/test_time_derivative.cpp))
+  this task's own instructions explicitly flagged as insufficient
+  evidence on its own for this gate.
+* **One solver-settings-tuning finding, not a numerics defect**: the
+  steady suite's own tight `pressureSolver` tolerance (matching its
+  20x20/64x8 grid settings) made `PISO`'s pressure-correction solve fail
+  to converge (`PressureCorrectionFailure`) within a few time steps on
+  both the transient channel and cavity, at those same grid sizes.
+  Root-caused to solver-tolerance/iteration-budget, not a correctness
+  bug (same category of finding `test_cavity_ghia.cpp`'s own header
+  comment already documents for its 40x40 grid) -- resolved by loosening
+  `pressureSolver` to `(maxIterations=3000, absolute=1e-8,
+  relative=1e-6)`, comfortably inside `PISO`'s own already-established
+  discretization/algorithm correctness, and the numerics themselves were
+  never touched.
+* Full project suite: 531/531 (526 + these 5) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format` clean repo-wide, `clang-tidy` clean on every file this
+  work touched. Fresh evidence (`startup_profile.csv`,
+  `u_centerline.csv`/`v_centerline.csv`) committed under
+  `results/validation/transient_poiseuille/` and
+  `results/validation/transient_cavity/`, matching this project's own
+  established fresh-evidence convention (`results/validation/
+  cavity_re100/`, `results/validation/poiseuille_flow/`).
+* **P2 Transient CFD is now functionally complete**: `TimeController`,
+  implicit Euler, CFL monitoring, `TransientSolver`, the full `PISO`
+  algorithm (predictor through both pressure corrections and their
+  application), restart capability, and physical transient validation
+  against both the analytical Poiseuille solution and the published
+  Ghia cavity benchmark, all independently tested and gated through
+  Debug/Release/ASan+UBSan at every increment. Explicitly out of scope,
+  not started: PIMPLE, thermal CFD, turbulence, moving mesh, and
+  anything else P3+ -- no next P2 sub-phase has been scoped yet.
 
 ---
 

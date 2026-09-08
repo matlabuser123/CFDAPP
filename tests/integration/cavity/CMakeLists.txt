@@ -6,6 +6,7 @@
 add_executable(CFDCavityValidationTests
   CavityValidationUtils.cpp
   test_cavity_ghia.cpp
+  test_transient_cavity.cpp
 )
 
 target_link_libraries(CFDCavityValidationTests

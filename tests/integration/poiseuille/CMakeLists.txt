@@ -7,6 +7,8 @@
 add_executable(CFDPoiseuilleValidationTests
   PoiseuilleValidationUtils.cpp
   test_poiseuille_validation.cpp
+  test_transient_poiseuille.cpp
+  test_temporal_refinement.cpp
 )
 
 target_link_libraries(CFDPoiseuilleValidationTests
