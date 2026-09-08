@@ -121,7 +121,7 @@ ctest --preset debug --output-on-failure
 * [x] Implement diffusion.
 * [x] Implement first-order upwind convection.
 * [x] Test operators against analytical fields.
-* [ ] Run grid-refinement tests. (2 of 3 still fail -- see note below)
+* [ ] Run grid-refinement tests. (1 of 3 still fails -- see note below)
 
 Test fields should include:
 
@@ -133,26 +133,32 @@ Test fields should include:
 
 **Gate:** expected accuracy and grid-convergence behavior demonstrated.
 
-**Status (2026-09-08):** 25/27 `CFDDiscretizationTests` pass. All analytical-exactness
+**Status (2026-09-08):** 26/27 `CFDDiscretizationTests` pass. All analytical-exactness
 tests pass, including `φ=x²+y²` for gradient/Laplacian/diffusion at *every*
-cell (boundary and interior). Two grid-refinement tests still fail:
+cell (boundary and interior). One grid-refinement test still fails:
 
-* `GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder` -- observed
-  order plateaus around 1.5 instead of >1.7. Root-caused: at a boundary cell,
-  distance-to-boundary-face (h1) and distance-to-interior-neighbor (h2) are
-  unequal (h1=h2/2 on a uniform grid), and a second-derivative estimate from
-  only 3 points (boundary, owner, opposite neighbor) is mathematically capped
-  at first-order accuracy whenever the two spacings differ (confirmed by
-  Taylor expansion and cross-checked numerically). Genuine second order here
-  needs a 4-point stencil (two cells deep into the interior from the
-  boundary) -- a bigger change than the fix already applied to `Gradient.cpp`
-  (which only needed 3 points because first-derivative estimates don't have
-  this limitation). Diffusion/Laplacian's boundary flux (`Diffusion.cpp`)
-  already uses the 3-point formula, which is exact for quadratics and
-  correctly fixed the analytical-exactness tests -- the remaining gap is
-  specifically the smooth (non-polynomial) refinement order.
+* ~~`GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder`~~ --
+  **fixed** (P1 Quality Gate pass). Root cause was as described below (a
+  3-point boundary derivative combined with a plain 2-point interior
+  central difference is capped at first order for the *Laplacian*
+  whenever h1≠h2, even though the 3-point formula is itself second-order
+  accurate for the gradient alone). Fix: `Diffusion.cpp`'s boundary
+  treatment now reaches one further cell (4 points: boundary, owner, and
+  2 interior neighbors), fits a cubic via Newton divided differences, and
+  uses its *exact* second derivative at the owner cell directly -- solved
+  algebraically for what the boundary face's own flux would have to be
+  to reproduce that when combined with the (unchanged) interior face's
+  central-difference flux, so the interior face's flux (shared with its
+  other owner, negated) is untouched and pairwise conservation there is
+  unaffected. Observed order now climbs 1.76 → 1.90 → 1.95 with
+  refinement (was capped at ~1.5). See
+  [Diffusion.cpp](src/discretization/Diffusion.cpp)'s `ownerOrientedFlux`
+  boundary branch and `nextInteriorFaceAwayFrom` for the derivation and a
+  worked hand-check (including the first-derivative sign-convention bug
+  that produced huge wrong answers on the first attempt, before the
+  final negation was added).
 * `GridRefinementTest.UpwindConvectionConvergesAtFirstOrder` -- observed order
-  ~0.5, not yet root-caused (deferred).
+  ~0.5, not yet root-caused (deferred; out of scope for this pass).
 
 See [Gradient.cpp](src/discretization/Gradient.cpp) and
 [Diffusion.cpp](src/discretization/Diffusion.cpp) for the fixed boundary
@@ -692,8 +698,8 @@ never reimplements any solver mathematics.
 # P1 — Quality Gate
 
 * [x] Full clean build.
-* [ ] Full CTest suite. (369/371 -- 2 pre-existing GridRefinementTest
-      order-of-accuracy failures remain, see note below)
+* [ ] Full CTest suite. (370/371 -- 1 pre-existing GridRefinementTest
+      order-of-accuracy failure remains, see note below)
 * [x] Address compiler warnings.
 * [x] Run sanitizers.
 * [x] Run `clang-format`.
@@ -721,17 +727,19 @@ including `metadata.json`. `.github/workflows/ci.yml` added (build-test
 matrix + format + clang-tidy + sanitizers + python jobs), config-only --
 not pushed (no GitHub remote exists for this repo yet).
 
-**Not fully green:** `GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder`
-and `.UpwindConvectionConvergesAtFirstOrder` still fail (in debug, release,
-*and* under ASan+UBSan -- confirmed not a memory/UB defect). Both were
-already failing and already root-caused/documented before this pass (see
-"P0 -- Finite Volume Operators" above); this pass did not attempt the
-underlying discretization fix (a 4-point boundary stencil for Laplacian;
-convection's cause is still undetermined) as it is a larger numerical-
-methods change than a quality-gate pass. **P1 should not be marked fully
-closed, and P2 should not start, until this is either fixed or explicitly
-accepted as a known limitation** -- see QUALITY_GATE.md for the full
-root-cause writeup.
+A follow-up pass fixed
+`GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder` -- see
+"P0 -- Finite Volume Operators" above and
+[Diffusion.cpp](src/discretization/Diffusion.cpp) for the fix.
+
+**Not fully green:** `GridRefinementTest.UpwindConvectionConvergesAtFirstOrder`
+still fails (in debug, release, *and* under ASan+UBSan -- confirmed not a
+memory/UB defect). Already failing and already documented before this pass
+(see "P0 -- Finite Volume Operators" above); its root cause is still
+undetermined, and fixing it was explicitly left out of scope for this pass
+(unlike the Laplacian fix above). **P1 should not be marked fully closed,
+and P2 should not start, until this is either fixed or explicitly accepted
+as a known limitation** -- see QUALITY_GATE.md for the full writeup.
 
 ---
 

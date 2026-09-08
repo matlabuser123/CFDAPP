@@ -3,7 +3,9 @@
 Run 2026-09-08, WSL Ubuntu-22.04 (GCC 11.4.0 / Clang 14.0.0, CMake 3.22.1,
 Ninja 1.10.1, Python 3.11.0rc1), against a repository initialized fresh for
 this pass (see "Git" below). Every case/test run in this record was executed
-after the fixes noted under "Fixes applied", not before.
+after the fixes noted under "Fixes applied", not before -- including a
+second pass that fixed the Laplacian order-of-accuracy failure originally
+left open (see "Follow-up: Laplacian order-of-accuracy fix" below).
 
 ```text
 Debug build (GCC):    PASS -- 0 warnings
@@ -11,10 +13,10 @@ Release build (GCC):  PASS -- 0 warnings
 Debug build (Clang):  not run as a full preset build this pass; see CI's
                        ubuntu-clang-debug matrix leg for that coverage
 
-CTest (debug):    369/371 PASS, 2 FAILED, 7 DISABLED (documented below)
-CTest (release):  369/371 PASS, 2 FAILED, 7 DISABLED (same 2/7)
+CTest (debug):    370/371 PASS, 1 FAILED, 7 DISABLED (documented below)
+CTest (release):  370/371 PASS, 1 FAILED, 7 DISABLED (same 1/7)
 
-ASan+UBSan (debug, GCC): 369/371 PASS, 2 FAILED (same 2 as above)
+ASan+UBSan (debug, GCC): 370/371 PASS, 1 FAILED (same 1 as above)
                          0 AddressSanitizer reports
                          0 UndefinedBehaviorSanitizer reports
 
@@ -51,37 +53,79 @@ CI:       .github/workflows/ci.yml added (config-only, not pushed/run --
 
 ---
 
-## Known gap: 2 pre-existing GridRefinementTest failures
+## Remaining gap: 1 pre-existing GridRefinementTest failure
 
-`GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder` and
-`GridRefinementTest.UpwindConvectionConvergesAtFirstOrder` fail under every
+`GridRefinementTest.UpwindConvectionConvergesAtFirstOrder` fails under every
 configuration exercised in this pass (debug, release, ASan+UBSan) — this is
-**not new**: both were already failing and already root-caused/documented in
-[TODO.md](TODO.md) (P0 — Finite Volume Operators, "Status (2026-09-08)")
-before this quality-gate pass began, and neither failure produces a
-sanitizer report (confirmed above) — they are `EXPECT_GT` assertions on
-observed convergence order, not memory/UB defects.
+**not new**: it was already failing and already documented in
+[TODO.md](TODO.md) (P0 — Finite Volume Operators) before this quality-gate
+pass began, and it does not produce a sanitizer report (confirmed above) —
+it is an `EXPECT_GT` assertion on observed convergence order, not a
+memory/UB defect.
 
-* **Laplacian**: observed order plateaus at ~1.5 instead of >1.7. Root
-  cause per TODO.md: the boundary flux's 3-point one-sided derivative
-  estimate is exact for the *gradient* at a boundary face, but a genuinely
-  second-order *Laplacian* (a second derivative) at a boundary-adjacent
-  cell needs a 4-point stencil when the spacing to the boundary (h1) and to
-  the far interior neighbor (h2) differ, as they do here (h1 = h2/2 on a
-  uniform grid) — confirmed by Taylor expansion in TODO.md. Fixing this
-  means extending `Diffusion.cpp`'s boundary treatment to a 4-point
-  stencil, a larger change than this gate pass is scoped for.
-* **Upwind convection**: observed order ~0.55-0.63 instead of >0.8, not yet
-  root-caused (TODO.md marks it "deferred").
+* **Upwind convection**: observed order ~0.55–0.63 instead of >0.8, not yet
+  root-caused (TODO.md marks it "deferred"). Fixing this was explicitly left
+  out of scope for this pass (see "Follow-up" below for what *was* fixed).
 
 Per this gate's own section 43 ("do not mask failures... fix or explicitly
-document the underlying defect"), the tests are left failing rather than
+document the underlying defect"), the test is left failing rather than
 loosened, disabled, or filtered out of CI — `ctest`, `ctest --preset asan`,
-and the CI `build-test` job all surface them honestly. **This means the
+and the CI `build-test` job all surface it honestly. **This means the
 gate's own "100% tests passed" criterion (section 2) is not met by this
 pass**, and P1 should not be marked fully closed until either the
 discretization fix lands or the project explicitly accepts this as a known,
 documented limitation.
+
+---
+
+## Follow-up: Laplacian order-of-accuracy fix
+
+After the first pass of this gate (which left both grid-refinement failures
+open, documented below the line for historical reference), a second pass
+fixed `GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder`.
+
+**Root cause** (already identified in TODO.md before this fix): at a
+boundary-adjacent cell, the boundary face sits half a cell short of a full
+interior spacing (h1 = h2/2 on a uniform grid). The existing 3-point
+one-sided formula there is second-order accurate for the *gradient* at the
+boundary face itself, but combining it with the (unchanged) 2-point central
+difference at the opposite interior face to get the *Laplacian* (a second
+derivative) is mathematically capped at first order whenever the two
+spacings differ, regardless of how accurate each individual flux is.
+
+**Fix** (`src/discretization/Diffusion.cpp`): reach one cell further (a
+second interior neighbor, "N2", found via a new `nextInteriorFaceAwayFrom`
+helper) to get 4 points total (boundary, owner, N1, N2), fit a cubic
+through them via Newton divided differences, and take *its* second
+derivative at the owner cell directly — exact for the true second
+derivative up to O(h²), and exact with zero error whenever phi is itself
+cubic or lower (so it also preserves/generalizes the existing quadratic-
+exactness tests). That value is then solved back algebraically for what
+the boundary face's *own* flux would have to be, given the interior face's
+flux is left untouched — so the interior face's flux (shared with N1's own
+sum, sign-flipped) is unaffected, and `DiffusionTest.
+ZeroFluxBoundaryConservesGlobally`'s pairwise conservation still holds.
+
+**A real bug found and fixed along the way**: the first attempt at this fix
+produced huge, refinement-*growing* errors (order ≈ −0.5) rather than an
+improvement. Cause: the new derivation naturally works in a local "into the
+domain" coordinate (increasing away from the boundary), but this function's
+established contract — confirmed by hand-checking the pre-existing 3-point
+formula against `phi=x` at a west boundary, which returns `-1` (not `+1`) —
+is to return `dphi/dn` in the *outward-normal* sense. The second derivative
+term is unaffected (sign-invariant under reflection), but the final
+first-derivative-like term needed an explicit negation, which was missing
+on the first attempt. Added, with a hand-derivation comment in the source
+so the reasoning doesn't need re-deriving again.
+
+**Result**: observed order now climbs 1.76 → 1.90 → 1.95 with refinement
+(grids 8×8 → 16×16 → 32×32 → 64×64), comfortably clearing the test's `>1.7`
+threshold at every step, versus the previous plateau at ~1.5. All 4
+`DiffusionTest`/3 `LaplacianTest` analytical-exactness cases still pass
+(including the quadratic-exactness ones, floating-point exact). Full debug
+and release CTest, and ASan+UBSan, all rerun clean afterward (370/371,
+same lone convection failure). `clang-format`/`clang-tidy` both still clean
+on the changed file.
 
 ---
 
@@ -109,6 +153,7 @@ documented limitation.
 * Two stray IDE/tool scratch files at the repo root
   (`tidy_output.txt`, `cmake_test_discovery_*.json`) were excluded from the
   baseline commit and added to `.gitignore` rather than committed.
+* **Laplacian boundary order-of-accuracy fix** — see "Follow-up" above.
 
 ## Git
 
@@ -125,5 +170,5 @@ the final commit of this pass.
 `.github/workflows/ci.yml` was authored and reviewed but deliberately not
 pushed or executed (no GitHub remote exists for this repository yet). Its
 expected first real run: every job green **except** `build-test`, which
-will fail on the same 2 known `GridRefinementTest` cases documented above,
-in every one of its three matrix legs.
+will fail on the one remaining known `GridRefinementTest` case documented
+above, in every one of its three matrix legs.
