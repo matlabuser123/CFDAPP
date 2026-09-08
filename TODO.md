@@ -4,11 +4,10 @@
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
-(`TransientSolver` orchestration) done; PISO-A through PISO-D (transient
-predictor + pressure correction #1, assembled and solved, not yet
-applied) also done, 434/434 tests pass. Next: PISO-E (apply the p'/U/flux
-correction) -- no `PISO` class exists yet (see "P2 -- Transient CFD"
-below)
+(`TransientSolver` orchestration) done; PISO-A through PISO-E (transient
+predictor through applying pressure correction #1) also done, 441/441
+tests pass. Next: PISO-F (assemble + solve pressure correction #2) -- no
+`PISO` class exists yet (see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -1049,6 +1048,54 @@ once a genuine `PISO` class exists to own it (PISO-H).
   applying the pressure/velocity/face-flux correction from this `p'1`,
   the second pressure correction, continuity diagnostics, the actual
   `PISO` class, and `TransientSolver` integration.
+
+**PISO-E done: pressure, velocity, and the authoritative face-flux
+corrected from `p'1` -- correction #1 fully applied, then stop.** No new
+production code either: `correctVelocity`/`correctFaceMassFlux` (both
+already exhaustively validated by SIMPLE's own
+[test_velocity_correction.cpp](tests/solver/simple/test_velocity_correction.cpp)/
+[test_flux_correction.cpp](tests/solver/simple/test_flux_correction.cpp))
+are reused unmodified. `p1 = p* + p'1` with deliberately no SIMPLE-style
+pressure under-relaxation (PISO corrects, it does not iterate a steady
+outer loop). Velocity correction uses the *same* `dU`/`dV` the pressure-
+correction matrix was assembled with; face-flux correction uses the
+*same* `faceCoefficient` from that same assembly -- never a separately
+interpolated approximation, satisfying TODO.md section 30/31's
+consistency invariant.
+[test_correction_application.cpp](tests/solver/piso/test_correction_application.cpp)
+extends PISO-D's pipeline pattern (a test-local helper, still not
+production API -- that's PISO-H) through correction and continuity
+evaluation.
+
+* **7/7 new `CFDPisoTests` pass**: a two-cell hand-derived probe (reusing
+  PISO-D's exact `d=0.25`/`p'1=-1.6` numbers) where the corrected internal
+  flux (`1.0`), corrected pressure (`p1 = [0, -1.6]`), and corrected
+  continuity (both cells exactly `0`, driven down from the predictor's
+  `[-0.4, +0.4]`) all match hand arithmetic exactly -- confirming this 2x2
+  system's correction genuinely zeroes its own imbalance, not just
+  improves it; `p'=0` leaves pressure, velocity, and flux all bit-for-bit
+  unchanged; a full predictor-through-correction pipeline from rest on a
+  4x4 closed cavity returns finite pressure/velocity/flux everywhere;
+  the same pipeline shows corrected continuity RMS strictly below
+  predictor continuity RMS (`Rc1 < Rc*`) and the corrected global mass
+  imbalance at essentially machine zero (closed domain, reference-cell
+  forced, matching the invariant `SIMPLEContinuityTest`'s own converged-
+  solve check rests on -- here after a single correction, not many SIMPLE
+  outer iterations); every wall/moving-wall boundary face's corrected
+  flux is exactly `0` (impermeability survives correction, not just the
+  predictor); the predictor and corrected fields are provably retained as
+  distinct, independently-inspectable quantities (never overwritten in
+  place) while every true input (`previousU`/`previousV`) is provably
+  unmutated; and a repeated identical run is bit-identical.
+* Full project suite: 441/441 (434 + these 7) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean. (Python suite unaffected by this
+  C++-only change; its 3 pre-existing `numpy.trapezoid` environment
+  failures predate and are unrelated to this task.)
+* **Not done yet, deliberately** (PISO-F onward, a separate pass):
+  assembling/solving a second pressure correction, applying it, final
+  continuity diagnostics, the actual `PISO` class, and `TransientSolver`
+  integration.
 
 ---
 
