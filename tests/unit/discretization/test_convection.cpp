@@ -54,7 +54,21 @@ TEST(ConvectionTest, BoundaryOutflowUsesOwnerValue) {
   }
 }
 
-TEST(ConvectionTest, BoundaryInflowUsesBoundaryValue) {
+// Not simply the boundary value (99.0) -- GridRefinementTest.
+// UpwindConvectionConvergesAtFirstOrder's observed order was drifting
+// toward 0.5 (not the expected ~1) specifically because of this: every
+// *other* upwind face (interior, or outflow-boundary) feeds the scheme a
+// value from a full owner-to-neighbor spacing away, but the raw boundary
+// value is known at zero offset (right at the face), breaking that
+// pattern -- differenced against the owner value and divided by the full
+// cell width the way every face is, it converges to half the true
+// gradient, an O(1) bias that never shrinks under refinement. The fix
+// (see Convection.cpp's upwindBoundaryFaceValue) mirrors the owner value
+// through the exactly-known boundary value to get a "ghost" value the
+// same distance past the boundary as the owner is on this side --
+// 2*boundaryValue - ownerValue = 2*99 - 7 = 191 here -- restoring the
+// same full-spacing offset every other upwind face already has.
+TEST(ConvectionTest, BoundaryInflowUsesGhostReflectedValue) {
   const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
   const auto boundaries = fixedValueEverywhere(mesh, 99.0);
 
@@ -63,7 +77,7 @@ TEST(ConvectionTest, BoundaryInflowUsesBoundaryValue) {
     const auto& bc = static_cast<const cfd::boundary::ScalarBoundaryCondition&>(
         cfd::boundary::boundaryConditionForFace(mesh, face.id(), boundaries));
     EXPECT_DOUBLE_EQ(cfd::discretization::upwindBoundaryFaceValue(mesh, face, field, -1.0, bc),
-                     99.0);
+                     191.0);
   }
 }
 

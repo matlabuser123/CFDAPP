@@ -30,7 +30,40 @@ Real upwindBoundaryFaceValue(const Mesh& mesh, const Face& face, const ScalarFie
     return field[face.owner()];  // outflow: carries the interior value
   }
   const Real distance = MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
-  return bc.boundaryValue(field[face.owner()], distance);  // inflow: carries the boundary value
+  const Real phiOwner = field[face.owner()];
+  const Real phiBoundary = bc.boundaryValue(phiOwner, distance);
+
+  // inflow: NOT simply phiBoundary. Every *interior* upwind face feeds the
+  // scheme an upstream value from a cell one full owner-to-neighbor
+  // spacing away -- e.g. an outflow boundary face uses phiOwner itself,
+  // representing the flux at a point ~`distance` *past* the owner
+  // centroid, the same half-cell offset every internal upwind face has
+  // from its own upstream cell. An inflow face's boundary condition,
+  // though, is known exactly *at the face* (zero offset, not a
+  // half-cell/full-cell upstream offset) -- using it directly breaks that
+  // pattern: differenced against phiOwner and divided by the full cell
+  // width (as convection()'s flux-sum/volume does for every face
+  // uniformly), the result converges to phi'/2 at the boundary, not phi',
+  // an O(1) bias that does not shrink under refinement (confirmed via
+  // Taylor expansion and cross-checked numerically --
+  // GridRefinementTest.UpwindConvectionConvergesAtFirstOrder's observed
+  // order drifted toward 0.5, not the expected ~1, specifically on
+  // inflow-boundary-adjacent cells; outflow/tangential-boundary-adjacent
+  // and interior cells were already converging correctly).
+  //
+  // Fix: extrapolate a *ghost* value the same `distance` past the
+  // boundary as the owner cell is on this side -- i.e. mirror phiOwner
+  // through the exactly-known boundary value, since the boundary sits at
+  // the midpoint of [owner, ghost] by construction:
+  //   phiBoundary = (phiOwner + phiGhost) / 2  =>  phiGhost = 2*phiBoundary - phiOwner.
+  // Using phiGhost (not phiBoundary) as the upwind value restores the
+  // same full-spacing offset structure every other face already has, so
+  // the boundary flux computed from it is no longer the exact physical
+  // flux through this face (that would be faceFlux * phiBoundary) -- it
+  // is deliberately the *scheme-consistent* first-order upwind value
+  // instead, exactly as every other upwind face in this function returns
+  // a cell value standing in for (not equal to) the true face value.
+  return (2.0 * phiBoundary) - phiOwner;
 }
 
 namespace {

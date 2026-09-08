@@ -1,7 +1,10 @@
 # CFDApp — TODO
 
-**Current milestone:** v0.1 Numerical Foundation
-**Current phase:** Build system and core foundation
+**Current milestone:** v0.1 Numerical Foundation (P0/P1 complete -- CTest
+371/371, see "P1 -- Quality Gate" below)
+**Current phase:** P2 Transient CFD, not yet started -- entry gate now met;
+first task is `TimeController` (see "P2 -- Transient CFD" section 2), not
+PISO
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -121,7 +124,7 @@ ctest --preset debug --output-on-failure
 * [x] Implement diffusion.
 * [x] Implement first-order upwind convection.
 * [x] Test operators against analytical fields.
-* [ ] Run grid-refinement tests. (1 of 3 still fails -- see note below)
+* [x] Run grid-refinement tests.
 
 Test fields should include:
 
@@ -133,35 +136,64 @@ Test fields should include:
 
 **Gate:** expected accuracy and grid-convergence behavior demonstrated.
 
-**Status (2026-09-08):** 26/27 `CFDDiscretizationTests` pass. All analytical-exactness
+**Status (2026-09-08):** 27/27 `CFDDiscretizationTests` pass. All analytical-exactness
 tests pass, including `φ=x²+y²` for gradient/Laplacian/diffusion at *every*
-cell (boundary and interior). One grid-refinement test still fails:
+cell (boundary and interior), and all three grid-refinement tests now pass:
 
 * ~~`GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder`~~ --
-  **fixed** (P1 Quality Gate pass). Root cause was as described below (a
-  3-point boundary derivative combined with a plain 2-point interior
-  central difference is capped at first order for the *Laplacian*
-  whenever h1≠h2, even though the 3-point formula is itself second-order
-  accurate for the gradient alone). Fix: `Diffusion.cpp`'s boundary
-  treatment now reaches one further cell (4 points: boundary, owner, and
-  2 interior neighbors), fits a cubic via Newton divided differences, and
-  uses its *exact* second derivative at the owner cell directly -- solved
-  algebraically for what the boundary face's own flux would have to be
-  to reproduce that when combined with the (unchanged) interior face's
-  central-difference flux, so the interior face's flux (shared with its
-  other owner, negated) is untouched and pairwise conservation there is
-  unaffected. Observed order now climbs 1.76 → 1.90 → 1.95 with
-  refinement (was capped at ~1.5). See
+  **fixed** (P1 Quality Gate pass). Root cause: a 3-point boundary
+  derivative combined with a plain 2-point interior central difference is
+  capped at first order for the *Laplacian* whenever h1≠h2, even though
+  the 3-point formula is itself second-order accurate for the gradient
+  alone. Fix: `Diffusion.cpp`'s boundary treatment now reaches one further
+  cell (4 points: boundary, owner, and 2 interior neighbors), fits a
+  cubic via Newton divided differences, and uses its *exact* second
+  derivative at the owner cell directly -- solved algebraically for what
+  the boundary face's own flux would have to be to reproduce that when
+  combined with the (unchanged) interior face's central-difference flux,
+  so the interior face's flux (shared with its other owner, negated) is
+  untouched and pairwise conservation there is unaffected. Observed order
+  now climbs 1.76 → 1.90 → 1.95 with refinement (was capped at ~1.5). See
   [Diffusion.cpp](src/discretization/Diffusion.cpp)'s `ownerOrientedFlux`
   boundary branch and `nextInteriorFaceAwayFrom` for the derivation and a
   worked hand-check (including the first-derivative sign-convention bug
   that produced huge wrong answers on the first attempt, before the
   final negation was added).
-* `GridRefinementTest.UpwindConvectionConvergesAtFirstOrder` -- observed order
-  ~0.5, not yet root-caused (deferred; out of scope for this pass).
+* ~~`GridRefinementTest.UpwindConvectionConvergesAtFirstOrder`~~ --
+  **fixed** (P1 Quality Gate pass, follow-up). Root-caused by
+  instrumenting the test to break error down by which boundary (if any)
+  each cell touches: interior, outflow-boundary, and tangential-boundary
+  cells were all already converging at order ≈1, but inflow-boundary
+  cells had an O(1) error that did not shrink under refinement at all,
+  and dominated the global L2 norm as the grid refined (explaining the
+  observed order drifting *toward* 0.5, not just falling short of 1).
+  Cause: every other upwind face (interior, or outflow-boundary) feeds
+  the scheme an upstream value one full owner-to-neighbor spacing away,
+  but the previous inflow treatment used the boundary condition's value
+  directly -- known exactly, but at *zero* offset from the face, not the
+  matching half-cell/full-cell offset every other face implicitly has.
+  Differenced against the owner value and divided by the full cell width
+  (as the flux-sum/volume formula does uniformly for every face), that
+  asymmetry converges to half the true gradient at inflow-adjacent cells,
+  not the true value -- confirmed by Taylor expansion and matching the
+  exact 2x discrepancy measured. Fix: `Convection.cpp`'s inflow treatment
+  now mirrors the owner value through the exactly-known boundary value to
+  get a "ghost" value the same distance past the boundary as the owner
+  cell is on this side (boundaryValue = (owner+ghost)/2, so ghost =
+  2*boundaryValue - owner), restoring the same full-spacing offset every
+  other upwind face already has. Observed order is now 0.995 → 0.999 →
+  1.000 with refinement (was drifting toward ~0.5). This changes
+  `upwindBoundaryFaceValue`'s public contract (it no longer returns the
+  raw boundary value for inflow) -- updated its doc comment and the one
+  existing unit test that asserted the old value
+  (`ConvectionTest.BoundaryInflowUsesGhostReflectedValue`, was
+  `BoundaryInflowUsesBoundaryValue`). See
+  [Convection.cpp](src/discretization/Convection.cpp)'s
+  `upwindBoundaryFaceValue` for the full derivation.
 
-See [Gradient.cpp](src/discretization/Gradient.cpp) and
-[Diffusion.cpp](src/discretization/Diffusion.cpp) for the fixed boundary
+See [Gradient.cpp](src/discretization/Gradient.cpp),
+[Diffusion.cpp](src/discretization/Diffusion.cpp), and
+[Convection.cpp](src/discretization/Convection.cpp) for the fixed boundary
 treatments and their reasoning comments.
 
 ---
@@ -460,9 +492,10 @@ themselves on every run.
   on every run.
 
 **Gate:** numerical correctness supported by fresh validation evidence.
-Met for the Lid-Driven Cavity; **not yet met for Poiseuille** (deferred,
-see above) -- the overall P0 -- Physical Validation gate stays open until
-Poiseuille is unblocked and run.
+Met for both the Lid-Driven Cavity and Poiseuille Flow -- see each
+subsection's own status note above for the evidence. (This line previously
+read "not yet met for Poiseuille" from before that subsection above was
+completed; left uncorrected until now.)
 
 ---
 
@@ -619,9 +652,9 @@ paths.
   tests: headers, ordering, coordinates, precision, field values,
   connectivity, error handling, byte-identical repeats),
   `tests/integration/io/test_result_export.cpp` (5 tests, above). Full
-  suite: 369/371 non-disabled tests pass; the 2 pre-existing
-  `GridRefinementTest` failures (unrelated discretization convergence-order
-  tests) are the same ones already noted in the P1 -- Case System status.
+  suite: 371/371 non-disabled tests pass (see "P1 -- Quality Gate" for the
+  full pass history -- 369/371 when this note was first written, before
+  that gate's two discretization fixes).
 
 ---
 
@@ -698,8 +731,7 @@ never reimplements any solver mathematics.
 # P1 — Quality Gate
 
 * [x] Full clean build.
-* [ ] Full CTest suite. (370/371 -- 1 pre-existing GridRefinementTest
-      order-of-accuracy failure remains, see note below)
+* [x] Full CTest suite. (371/371)
 * [x] Address compiler warnings.
 * [x] Run sanitizers.
 * [x] Run `clang-format`.
@@ -712,34 +744,33 @@ never reimplements any solver mathematics.
 
 **Gate:** every item green, CTest 100%, before P2 starts.
 
-**Status (2026-09-08):** See [QUALITY_GATE.md](QUALITY_GATE.md) for the full
-evidence record (toolchain versions, per-item results, fresh cavity/
-Poiseuille runs). Summary: this repository had no `.git` before this pass
-(initialized fresh, see QUALITY_GATE.md's "Git" section for what "clean
-working tree" means here). Debug and Release both build with 0 warnings
-under GCC 11.4 (WSL Ubuntu-22.04) after fixing 10 `-Wshadow` warnings in
-`JsonUtil.cpp`/`.hpp`. ASan+UBSan: 0 sanitizer reports across the whole
-suite. `clang-format`/`clang-tidy`: both clean (2 format violations fixed
-in this pass; clang-tidy had 0 findings already). Python: pytest/
-compileall/ruff all clean. Cavity and Poiseuille cases both converge,
-finite, mass-conserving, and bit-identical (sha256) across repeated runs
-including `metadata.json`. `.github/workflows/ci.yml` added (build-test
-matrix + format + clang-tidy + sanitizers + python jobs), config-only --
-not pushed (no GitHub remote exists for this repo yet).
+**Status (2026-09-08): all items green, CTest 371/371.** See
+[QUALITY_GATE.md](QUALITY_GATE.md) for the full evidence record (toolchain
+versions, per-item results, fresh cavity/Poiseuille runs). This repository
+had no `.git` before this pass (initialized fresh, see QUALITY_GATE.md's
+"Git" section for what "clean working tree" means here). Debug and Release
+both build with 0 warnings under GCC 11.4 (WSL Ubuntu-22.04) after fixing
+10 `-Wshadow` warnings in `JsonUtil.cpp`/`.hpp`. ASan+UBSan: 0 sanitizer
+reports across the whole suite, both before and after the two
+discretization fixes below. `clang-format`/`clang-tidy`: both clean.
+Python: pytest/compileall/ruff all clean. Cavity and Poiseuille cases both
+converge, finite, mass-conserving, and bit-identical (sha256) across
+repeated runs including `metadata.json`. `.github/workflows/ci.yml` added
+(build-test matrix + format + clang-tidy + sanitizers + python jobs),
+config-only -- not pushed (no GitHub remote exists for this repo yet).
 
-A follow-up pass fixed
-`GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder` -- see
-"P0 -- Finite Volume Operators" above and
-[Diffusion.cpp](src/discretization/Diffusion.cpp) for the fix.
+Two follow-up passes fixed the two `GridRefinementTest` failures this gate
+started with -- see "P0 -- Finite Volume Operators" above for both:
 
-**Not fully green:** `GridRefinementTest.UpwindConvectionConvergesAtFirstOrder`
-still fails (in debug, release, *and* under ASan+UBSan -- confirmed not a
-memory/UB defect). Already failing and already documented before this pass
-(see "P0 -- Finite Volume Operators" above); its root cause is still
-undetermined, and fixing it was explicitly left out of scope for this pass
-(unlike the Laplacian fix above). **P1 should not be marked fully closed,
-and P2 should not start, until this is either fixed or explicitly accepted
-as a known limitation** -- see QUALITY_GATE.md for the full writeup.
+* `GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder` --
+  [Diffusion.cpp](src/discretization/Diffusion.cpp).
+* `GridRefinementTest.UpwindConvectionConvergesAtFirstOrder` --
+  [Convection.cpp](src/discretization/Convection.cpp).
+
+CTest is genuinely 100% now -- P1 is closed, nothing left masked, disabled,
+or deferred. The "P1 -- Result Export" section's one remaining unchecked
+item (manual ParaView visual inspection) is a separate, already-documented
+gap needing a human with ParaView installed, not a P1 Quality Gate item.
 
 ---
 
