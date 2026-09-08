@@ -2,9 +2,10 @@
 
 **Current milestone:** v0.1 Numerical Foundation (P0/P1 complete -- CTest
 371/371, see "P1 -- Quality Gate" below)
-**Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`) and
-P2-002 (`TimeDerivative`, implicit Euler) done, 394/394 tests pass; next is
-CFL monitoring, not PISO (see "P2 -- Transient CFD" below)
+**Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
+P2-002 (`TimeDerivative`, implicit Euler), and P2-003 (`CFL`) done, 404/404
+tests pass; next is `TransientSolver` state/result ownership, not PISO yet
+(see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -780,7 +781,7 @@ Only after P0/P1 validation is complete.
 
 * [x] Time controller.
 * [x] Implicit Euler.
-* [ ] CFL monitoring.
+* [x] CFL monitoring.
 * [ ] `TransientSolver`.
 * [ ] PISO.
 * [ ] Restart capability.
@@ -863,6 +864,40 @@ Convection's "evaluate-style" shape (a `ScalarField`-pair result, not a
   halving; exact figures computed independently in Python and cross-
   checked against the C++ test's own pass, not read off the test alone).
 * Full project suite: 394/394 (386 + these 8) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean.
+
+**Status (2026-09-09): TASK P2-003 done.** [CFL.hpp](include/cfd/solver/CFL.hpp)
+/ [CFL.cpp](src/solver/CFL.cpp): `calculateCFL(mesh, faceMassFlux, density,
+dt)` reads the *authoritative* face mass flux (the same `SurfaceField`
+`calculateMassFlux` produces -- section 25's "estimated from face
+volumetric fluxes", not a separately re-interpolated face velocity) and
+returns `{maxCFL, meanCFL, maxCFLCell}`. Diagnostic only, as this section
+asks -- it does not modify `dt` or suggest one.
+
+* **Convention documented once, in the header, and matched by every
+  test**: `Co_P = (dt / (2*V_P)) * sum_over_faces(|massFlux_f|) / rho` --
+  half the sum of *absolute* face flux magnitudes (not just outgoing
+  ones), scaled by `dt/V_P`. The half factor is what keeps this reducing
+  to the textbook 1D form `Co = U*dt/dx` for a uniform flow (a locally
+  mass-conserving cell's outgoing total equals its incoming total, so half
+  the combined absolute total equals either alone) -- verified exactly,
+  not just approximately: `U=1, dx=dy=0.1, dt=0.02` on a 1x1 mesh gives
+  `Co = 0.2` to `1e-12` (`CFLTest.ExactValueForOneDEquivalentCase`). No
+  boundary conditions needed at all (unlike convection/diffusion): CFL
+  reads raw face flux magnitudes regardless of whether a face is a domain
+  boundary, so even a 1x1 mesh (every face a boundary face) is a valid
+  probe.
+* **10/10 new `CFDSolverTests` pass** --
+  [test_cfl.cpp](tests/unit/solver/test_cfl.cpp): the exact 1D-equivalent
+  value above, `U=0 -> CFL=0`, halving `dt` halves CFL, doubling velocity
+  doubles CFL, a hand-built non-uniform flux (not from a single global
+  velocity) verifying `maxCFL`/`meanCFL`/`maxCFLCell` are independently
+  correct (not just trivially equal, as they would be for any uniform
+  flow), every rejection (face-flux-size mismatch, non-positive/non-finite
+  `dt`, non-positive/non-finite density), and bit-identical repeated
+  calls.
+* Full project suite: 404/404 (394 + these 10) in debug, release, and
   under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
   `clang-format`/`clang-tidy` clean.
 
