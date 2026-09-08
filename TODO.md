@@ -4,8 +4,10 @@
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
-(`TransientSolver` orchestration) done, 416/416 tests pass; next is PISO
-itself (see "P2 -- Transient CFD" below)
+(`TransientSolver` orchestration) done; PISO-A/B/C (transient momentum
+predictor building block) also done, 428/428 tests pass. Next: PISO-D
+(pressure correction #1) -- no `PISO` class exists yet (see "P2 --
+Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -957,6 +959,59 @@ itself (section 14).
   `TimeController` tests) in debug, release, and under ASan+UBSan -- 0
   sanitizer reports, 0 new compiler warnings, `clang-format`/`clang-tidy`
   clean.
+
+**Status (2026-09-09): PISO-A through PISO-C done -- the transient
+momentum predictor building block, independently tested. No `PISO` class
+yet** (deliberately -- see below), so the checkbox above stays unchecked.
+[TransientMomentum.hpp](include/cfd/pressure_velocity/TransientMomentum.hpp)
+/ [TransientMomentum.cpp](src/pressure_velocity/TransientMomentum.cpp):
+`assembleTransientMomentumComponent` reuses the same verified
+`assembleDiffusionContribution`/`assembleConvectionContribution`/
+`assemblePressureSourceContribution` contributions
+[RelaxedMomentum.hpp](include/cfd/pressure_velocity/RelaxedMomentum.hpp)
+already establishes for SIMPLE, plus the implicit-Euler transient term
+(P2-002's `implicitEulerTimeDerivative`) via a new pure-algebra
+`applyTransientTerm` (mirrors `applyImplicitUnderRelaxation`'s own
+shape/tests exactly) -- deliberately with **no** implicit under-relaxation
+applied: "PISO should not simply be SIMPLE + dt" -- the transient diagonal
+(`rho*V/dt`) already provides the diagonal dominance SIMPLE's
+`alphaU`/`alphaP` provide for its own steady outer loop.
+
+* **PISO-A (API/result model): reused, not reinvented.** `TransientState`/
+  `TransientStepStatus`/`TransientStepResult` (P2-004) already cover
+  everything the user's suggested `PISOStepResult` sketch needed except
+  per-component residuals and pressure-correction-specific diagnostics
+  (`pressureCorrections`, `initialContinuity`/`finalContinuity`,
+  `pressureResidual`) -- deferred to the pressure-correction milestones
+  (PISO-D onward), since populating them meaningfully needs pressure
+  correction to exist. No separate `PISOStatus` enum: `TransientStepStatus`
+  already has the same 5 values.
+* **12/12 new `CFDPisoTests` pass** --
+  [test_transient_momentum.cpp](tests/solver/piso/test_transient_momentum.cpp):
+  `applyTransientTerm`'s pure algebra (diagonal/rhs additions exact,
+  off-diagonal untouched, size-mismatch rejected -- mirrors
+  `MomentumPredictorRelaxationTest`'s own style exactly), the full
+  assembler (previous state not mutated, diagonal equals the base-physics
+  diagonal plus the exact `rho*V/dt` per cell, every size/`dt` rejection),
+  and a controlled predictor probe on a tiny impulsively-started cavity
+  (Wall x3 + `MovingWall` top, at rest, section 45's eventual full
+  scenario): predictor velocity finite from rest, predictor face flux
+  (via the same authoritative `calculateMassFlux` SIMPLE already uses --
+  "do not introduce an independent PISO flux convention") finite
+  everywhere and exactly 0 at every wall/moving-wall boundary face (the
+  same structural impermeability invariant
+  `SIMPLEContinuityTest`/`FluxCorrectionTest` rest on, holding for a
+  single predictor step just as it does for a converged SIMPLE solve),
+  and a repeated predictor solve bit-identical.
+* Full project suite: 428/428 (416 + these 12) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean.
+* **Not done yet, deliberately** (PISO-D onward, a separate pass): the
+  actual `PISO` class implementing `cfd::solver::TransientStepSolver`,
+  pressure correction (both of them), U/p/flux correction, continuity
+  diagnostics, and `TransientSolver` integration. "Only after those pass
+  should `TransientSolver` call the real PISO implementation" -- until
+  then this stays a tested building block, not a usable stepper.
 
 ---
 
