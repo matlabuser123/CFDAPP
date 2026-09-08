@@ -4,11 +4,11 @@
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
-(`TransientSolver` orchestration) done; PISO-A through PISO-F (transient
-predictor through solving pressure correction #2, not yet applied) also
-done, 449/449 tests pass. Next: PISO-G (apply correction #2 + final
-continuity diagnostics) -- no `PISO` class exists yet (see "P2 --
-Transient CFD" below)
+(`TransientSolver` orchestration) done; PISO-A through PISO-G (transient
+predictor through applying pressure correction #2 and evaluating final
+continuity) also done, 460/460 tests pass. Next: PISO-H (the actual
+one-timestep `PISO` interface, mostly orchestration of already-verified
+pieces) (see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -1158,6 +1158,76 @@ before applying `p'2` to anything (that's PISO-G).
   either (matching PISO-D/E's own precedent) -- convergence is asserted,
   not silently tolerated, at every step of the pipeline helpers, so an
   unexpected solver failure fails the test loudly rather than masking it.
+
+**PISO-G done: `p'2`/velocity/face-flux correction #2 applied, final
+continuity evaluated from `F2` -- no `PISO` class yet.** Still no new
+production code: `correctVelocity`/`correctFaceMassFlux` are called a
+second time (same as PISO-E), and `evaluateContinuity` is called a third
+time (predictor, after correction #1, after correction #2), all reused
+unmodified. `p2 = p1 + p'2`, no under-relaxation, same `dU`/`dV`/
+`faceCoefficient` from correction #2's own assembly (PISO-F) -- the same
+"never regenerate `F2` by interpolating corrected cell velocities"
+invariant PISO-E established for `F1`.
+[test_final_correction.cpp](tests/solver/piso/test_final_correction.cpp)
+extends the PISO-D/E/F pipeline pattern through both corrections and all
+three continuity evaluations, still a test-local helper (PISO-H owns the
+real one).
+
+* **Followed the project's own continuity-diagnostic conventions
+  directly** (`ContinuityResult.globalNetFlux`/`totalAbsoluteImbalance`/
+  `maxCellImbalance` from
+  [ContinuityEquation.hpp](include/cfd/physics/ContinuityEquation.hpp)),
+  rather than inventing a PISO-specific metric -- PISO-E's own test file
+  had computed an ad hoc RMS by hand; this task uses the library's
+  already-established fields instead.
+* **The general "partial correction #1 + correction #2 reconstructs a
+  single full correction" property, proven both by hand and numerically.**
+  Because the pressure-correction equation is linear (same matrix/`d`
+  both times, only the RHS changes) and correction #2's RHS is built from
+  whatever imbalance correction #1 left behind, applying a fraction `t`
+  of the solved `p'1` and then solving+applying correction #2 gives
+  `p'1(t) + p'2(t) = p'1_full` for *any* `t`, not just the `t=0.5` case
+  PISO-F happened to use -- verified exactly by hand on the two-cell
+  probe (`t=1`: correction #2 is exactly idempotent, `Rc2=0`; `t=0.5`:
+  the chained result matches a single full correction bit-for-bit to
+  solver tolerance) and then numerically on a real 4x4 cavity pipeline at
+  `t=0.5`, comparing pressure, velocity, *and* authoritative face flux
+  (not pressure alone) between the two-correction chain and a single full
+  correction -- matching to `1e-6` on every cell/face.
+* **11/11 new `CFDPisoTests` pass**: a direct zero-`p'2` no-op check
+  (pressure/velocity/flux all bit-identical, mirroring PISO-E's own
+  zero-`p'` test); the exact two-cell idempotence probe above (`Rc1=0`
+  forces `p'2=0` exactly, so `p2==p1`/`F2==F1` bit-for-bit and
+  `Rc2==Rc1==0`); the exact two-cell chain-reconstruction probe above;
+  a full real predictor-through-correction-#2 pipeline from rest on a 4x4
+  cavity converges and every final field is finite (including all three
+  `ContinuityResult` diagnostics); every wall/moving-wall boundary face's
+  final flux is exactly `0`; final continuity is verifiably recomputed
+  from `F2` (not left over from `Rc1`) by comparing against a direct
+  `evaluateContinuity(F2)` call and confirming `Rc2 != Rc1` on a probe
+  where they're known to differ; a controlled half-applied-correction-#1
+  probe shows a genuinely nonzero `Rc1` (not solver noise, `>1e-4`) that
+  correction #2 reduces to near machine zero (`Rc2 < Rc1`, `Rc2 <~ 1e-6`)
+  -- the "controlled partial correction" case; the real chain-
+  reconstruction probe above; every true previous-time-level input
+  (`previousU`/`previousV`) is provably unmutated, and correction-#1
+  state (`p1`/`F1`) is confirmed to be distinct, separately-preserved
+  storage from correction-#2 state (`p2`/`F2`) on a probe where they're
+  known to genuinely differ; and a repeated full pipeline run is
+  bit-identical. Deliberately did **not** assert `Rc2 < Rc1` universally
+  (the already-converged case can leave nothing left to improve, matching
+  PISO-F's own finding) -- tested as two distinct cases instead, exactly
+  as this task specified.
+* Full project suite: 460/460 (449 + these 11) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean. Python suite unaffected (0 `python/`
+  files touched).
+* **All numerical building blocks for one complete PISO timestep now
+  exist independently: predictor, both pressure corrections, both
+  applications, and continuity diagnostics at every stage.** Not done
+  yet, deliberately (PISO-H onward): the actual `PISO` class/one-
+  timestep interface (should be orchestration of these already-verified
+  pieces, not new CFD mathematics), and `TransientSolver` integration.
 
 ---
 

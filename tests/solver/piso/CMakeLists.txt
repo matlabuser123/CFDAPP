@@ -3,6 +3,7 @@ add_executable(CFDPisoTests
   test_pressure_correction.cpp
   test_correction_application.cpp
   test_second_pressure_correction.cpp
+  test_final_correction.cpp
 )
 
 target_link_libraries(CFDPisoTests
