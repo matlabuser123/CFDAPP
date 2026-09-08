@@ -1,0 +1,19 @@
+# TODO.md "P1 -- Quality Gate" section 11-12: one repository style,
+# applied to .cpp/.hpp/.h/.cu/.cuh only. Based on Google style (attached
+# braces, 2-space indent, left-aligned pointers/references) because
+# that's what the codebase was already hand-written to follow throughout
+# every earlier phase -- this file formalizes the existing convention
+# rather than introducing a new one, keeping the first `clang-format -i`
+# pass's diff to genuine inconsistencies instead of a wholesale rewrite.
+BasedOnStyle: Google
+ColumnLimit: 100
+
+# Google's default is IncludeBlocks: Regroup, which merges every include
+# block and re-sorts by a fixed category regex regardless of existing
+# blank-line separation. This codebase's own convention (standard
+# library / third-party / project headers as three blank-line-separated
+# groups, each alphabetized) predates this file and is more informative
+# than the regrouped result -- Preserve keeps that grouping, only
+# alphabetizing within each existing block.
+IncludeBlocks: Preserve
+SortIncludes: true

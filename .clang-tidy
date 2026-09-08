@@ -1,0 +1,19 @@
+# TODO.md "P1 -- Quality Gate" section 13-14: a focused check set rather
+# than every category at once (which would bury real defects under
+# hundreds of low-value findings). Applies to production headers/sources
+# only -- see the Checks list below and CMakeLists.txt's own exclusion of
+# _deps/ (fetched dependencies) via compile_commands.json's contents.
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  modernize-*,
+  cppcoreguidelines-init-variables,
+  cppcoreguidelines-pro-bounds-constant-array-index,
+  readability-const-return-type,
+  -modernize-use-trailing-return-type,
+  -bugprone-easily-swappable-parameters
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '(include|src|apps)[\\/]cfd.*'
+FormatStyle: file

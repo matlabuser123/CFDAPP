@@ -1,0 +1,25 @@
+#pragma once
+
+#include <string>
+#include <string_view>
+
+// Generated from this .in template by CMake (see src/CMakeLists.txt),
+// using the version declared once in the root CMakeLists.txt project()
+// call. Do not edit the generated header directly.
+
+namespace cfd::core {
+
+inline constexpr std::string_view kProjectName = "@PROJECT_NAME@";
+
+inline constexpr int kVersionMajor = @PROJECT_VERSION_MAJOR@;
+inline constexpr int kVersionMinor = @PROJECT_VERSION_MINOR@;
+inline constexpr int kVersionPatch = @PROJECT_VERSION_PATCH@;
+inline constexpr std::string_view kVersionSuffix = "@CFDAPP_VERSION_SUFFIX@";
+
+// Defined in src/core/Version.cpp (the cfdcore library) rather than
+// header-only, so that anything calling these must actually link against
+// cfdcore -- this is the "proof of linking" for the P0 build.
+[[nodiscard]] std::string_view projectName() noexcept;
+[[nodiscard]] std::string versionString();
+
+}  // namespace cfd::core

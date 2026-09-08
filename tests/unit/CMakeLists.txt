@@ -1,0 +1,8 @@
+add_subdirectory(core)
+add_subdirectory(mesh)
+add_subdirectory(fields)
+add_subdirectory(algebra)
+add_subdirectory(boundary)
+add_subdirectory(discretization)
+add_subdirectory(physics)
+add_subdirectory(io)
