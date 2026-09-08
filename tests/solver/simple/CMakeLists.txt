@@ -18,4 +18,4 @@ target_link_libraries(CFDSimpleTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDSimpleTests)
+gtest_discover_tests(CFDSimpleTests PROPERTIES LABELS "solver")

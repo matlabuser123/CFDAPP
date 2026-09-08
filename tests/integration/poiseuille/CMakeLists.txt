@@ -23,4 +23,5 @@ target_include_directories(CFDPoiseuilleValidationTests
 
 gtest_discover_tests(CFDPoiseuilleValidationTests
   WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+  PROPERTIES LABELS "validation"
 )

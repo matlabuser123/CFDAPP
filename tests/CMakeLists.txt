@@ -9,6 +9,7 @@ add_test(
 
 set_tests_properties(CFDAppSmokeTest PROPERTIES
   PASS_REGULAR_EXPRESSION "CFDApp"
+  LABELS "unit"
 )
 
 # --- P1 -- Case System CLI integration (TODO.md P1 section 49) -------------
@@ -23,6 +24,7 @@ add_test(
 )
 set_tests_properties(CFDAppCliValidCase PROPERTIES
   PASS_REGULAR_EXPRESSION "Converged: yes"
+  LABELS "integration"
 )
 
 # Each of these fixtures is invalid in one specific way (TODO.md P1
@@ -41,7 +43,7 @@ foreach(invalid_case IN ITEMS missing_mesh bad_physics bad_boundary bad_solver m
     COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/${invalid_case}
     WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
   )
-  set_tests_properties(CFDAppCli_${invalid_case} PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(CFDAppCli_${invalid_case} PROPERTIES WILL_FAIL TRUE LABELS "integration")
 endforeach()
 
 # --- GoogleTest -------------------------------------------------------------

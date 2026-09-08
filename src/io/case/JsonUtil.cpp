@@ -50,16 +50,16 @@ std::string describeJsonValue(const nlohmann::json& value) {
   return value.is_null() ? std::string("missing") : value.dump();
 }
 
-void requireObject(const nlohmann::json& json, const std::filesystem::path& path,
+void requireObject(const nlohmann::json& node, const std::filesystem::path& path,
                    std::string_view field) {
-  if (!json.is_object()) {
-    throwConfigError(path, field, "be a JSON object", describeJsonValue(json));
+  if (!node.is_object()) {
+    throwConfigError(path, field, "be a JSON object", describeJsonValue(node));
   }
 }
 
-void rejectUnknownKeys(const nlohmann::json& json, const std::filesystem::path& path,
+void rejectUnknownKeys(const nlohmann::json& node, const std::filesystem::path& path,
                        std::string_view context, const std::vector<std::string_view>& allowed) {
-  for (const auto& [key, value] : json.items()) {
+  for (const auto& [key, value] : node.items()) {
     const bool known = std::any_of(allowed.begin(), allowed.end(),
                                    [&key](std::string_view name) { return name == key; });
     if (!known) {
@@ -75,28 +75,28 @@ std::string_view resolveLabel(std::string_view field, std::string_view label) {
 }
 }  // namespace
 
-void requireField(const nlohmann::json& json, const std::filesystem::path& path,
+void requireField(const nlohmann::json& node, const std::filesystem::path& path,
                   std::string_view field, std::string_view label) {
-  if (!json.contains(field)) {
+  if (!node.contains(field)) {
     throwConfigError(path, resolveLabel(field, label), "be present",
                      describeJsonValue(nlohmann::json()));
   }
 }
 
-std::string getRequiredString(const nlohmann::json& json, const std::filesystem::path& path,
+std::string getRequiredString(const nlohmann::json& node, const std::filesystem::path& path,
                               std::string_view field, std::string_view label) {
-  requireField(json, path, field, label);
-  const auto& value = json.at(field);
+  requireField(node, path, field, label);
+  const auto& value = node.at(field);
   if (!value.is_string()) {
     throwConfigError(path, resolveLabel(field, label), "be a string", describeJsonValue(value));
   }
   return value.get<std::string>();
 }
 
-Real getRequiredReal(const nlohmann::json& json, const std::filesystem::path& path,
+Real getRequiredReal(const nlohmann::json& node, const std::filesystem::path& path,
                      std::string_view field, std::string_view label) {
-  requireField(json, path, field, label);
-  const auto& value = json.at(field);
+  requireField(node, path, field, label);
+  const auto& value = node.at(field);
   // Reject "1.0" (string), true/false, arrays, etc. -- only a JSON number
   // is an acceptable Real (TODO.md P1 section 40).
   if (!value.is_number()) {
@@ -109,10 +109,10 @@ Real getRequiredReal(const nlohmann::json& json, const std::filesystem::path& pa
   return real;
 }
 
-Index getRequiredIndex(const nlohmann::json& json, const std::filesystem::path& path,
+Index getRequiredIndex(const nlohmann::json& node, const std::filesystem::path& path,
                        std::string_view field, std::string_view label) {
-  requireField(json, path, field, label);
-  const auto& value = json.at(field);
+  requireField(node, path, field, label);
+  const auto& value = node.at(field);
   // is_number_integer() is false for 20.5 (a JSON real), so this rejects
   // fractional grid dimensions rather than silently truncating them
   // (section 40).
@@ -123,34 +123,34 @@ Index getRequiredIndex(const nlohmann::json& json, const std::filesystem::path& 
   return value.get<Index>();
 }
 
-std::string getOptionalString(const nlohmann::json& json, const std::filesystem::path& path,
+std::string getOptionalString(const nlohmann::json& node, const std::filesystem::path& path,
                               std::string_view field, std::string fallback,
                               std::string_view label) {
-  if (!json.contains(field)) return fallback;
-  return getRequiredString(json, path, field, label);
+  if (!node.contains(field)) return fallback;
+  return getRequiredString(node, path, field, label);
 }
 
-Real getOptionalReal(const nlohmann::json& json, const std::filesystem::path& path,
+Real getOptionalReal(const nlohmann::json& node, const std::filesystem::path& path,
                      std::string_view field, Real fallback, std::string_view label) {
-  if (!json.contains(field)) return fallback;
-  return getRequiredReal(json, path, field, label);
+  if (!node.contains(field)) return fallback;
+  return getRequiredReal(node, path, field, label);
 }
 
-int getOptionalInt(const nlohmann::json& json, const std::filesystem::path& path,
+int getOptionalInt(const nlohmann::json& node, const std::filesystem::path& path,
                    std::string_view field, int fallback, std::string_view label) {
-  if (!json.contains(field)) return fallback;
-  const auto& value = json.at(field);
+  if (!node.contains(field)) return fallback;
+  const auto& value = node.at(field);
   if (!value.is_number_integer()) {
     throwConfigError(path, resolveLabel(field, label), "be an integer", describeJsonValue(value));
   }
   return value.get<int>();
 }
 
-std::array<Real, 2> getRequiredVector2(const nlohmann::json& json,
+std::array<Real, 2> getRequiredVector2(const nlohmann::json& node,
                                        const std::filesystem::path& path, std::string_view field,
                                        std::string_view label) {
-  requireField(json, path, field, label);
-  const auto& value = json.at(field);
+  requireField(node, path, field, label);
+  const auto& value = node.at(field);
   if (!value.is_array() || value.size() != 2) {
     throwConfigError(path, resolveLabel(field, label), "be an array of exactly 2 numbers",
                      describeJsonValue(value));

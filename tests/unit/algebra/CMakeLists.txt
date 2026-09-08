@@ -16,4 +16,4 @@ target_link_libraries(CFDAlgebraTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDAlgebraTests)
+gtest_discover_tests(CFDAlgebraTests PROPERTIES LABELS "unit")

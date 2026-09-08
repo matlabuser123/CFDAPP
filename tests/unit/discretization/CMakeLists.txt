@@ -15,4 +15,4 @@ target_link_libraries(CFDDiscretizationTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDDiscretizationTests)
+gtest_discover_tests(CFDDiscretizationTests PROPERTIES LABELS "numerical")

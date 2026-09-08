@@ -14,4 +14,4 @@ target_link_libraries(CFDResultExportIntegrationTests
     nlohmann_json::nlohmann_json
 )
 
-gtest_discover_tests(CFDResultExportIntegrationTests)
+gtest_discover_tests(CFDResultExportIntegrationTests PROPERTIES LABELS "integration")

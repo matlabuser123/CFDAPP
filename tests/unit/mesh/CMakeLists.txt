@@ -15,4 +15,4 @@ target_link_libraries(CFDMeshTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDMeshTests)
+gtest_discover_tests(CFDMeshTests PROPERTIES LABELS "unit")

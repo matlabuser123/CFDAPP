@@ -1,0 +1,133 @@
+name: CI
+
+# TODO.md "P1 -- Quality Gate" sections 30-39: every pull request proves
+# configure/build/test, format, static analysis, sanitizers, and Python
+# quality, as separate jobs so a failure is obvious at a glance (section
+# 32) rather than buried inside one monolithic job.
+#
+# Intentionally NOT run here (section 38): the 20-40 minute
+# 40x40/80x80/256x32 Ghia/Poiseuille grid-refinement validation cases.
+# Those stay DISABLED_ (see tests/integration/cavity/test_cavity_ghia.cpp
+# and tests/integration/poiseuille/test_poiseuille_validation.cpp) and are
+# therefore already excluded from a plain `ctest` run in every job below
+# -- CI stays fast without needing a separate slow/fast CTest label
+# filter for that split. `ctest -L validation` (see cmake/Testing.cmake)
+# is for selecting a *tier* on demand, not this split.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: CFDApp
+
+jobs:
+  # --- section 33: build-test, matrixed per section 31 --------------------
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc
+            build_type: debug
+          - compiler: gcc
+            build_type: release
+          - compiler: clang
+            build_type: debug
+    runs-on: ubuntu-latest
+    env:
+      CC: ${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
+      CXX: ${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build
+
+      - name: Configure (${{ matrix.compiler }}, ${{ matrix.build_type }})
+        run: cmake --preset ${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.build_type }} -- -j$(nproc)
+
+      - name: Test
+        run: ctest --preset ${{ matrix.build_type }} --output-on-failure
+
+  # --- section 34: format ---------------------------------------------------
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: clang-format --dry-run --Werror
+        run: |
+          find include src apps tests \
+            \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) -print0 |
+          xargs -0 clang-format --dry-run --Werror
+
+  # --- section 35: clang-tidy ------------------------------------------------
+  clang-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build clang-tools
+
+      - name: Configure (generates compile_commands.json)
+        run: cmake --preset debug
+
+      - name: Build (so fetched deps like nlohmann_json/googletest exist)
+        run: cmake --build --preset debug -- -j$(nproc)
+
+      - name: clang-tidy (production include/ + src/ only)
+        run: run-clang-tidy -p build/debug -j$(nproc) '^(include|src)/.*\.(cpp|hpp)$'
+
+  # --- section 36: sanitizers -------------------------------------------------
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build
+
+      - name: Configure (ASan + UBSan)
+        run: cmake --preset asan
+
+      - name: Build
+        run: cmake --build --preset asan -- -j$(nproc)
+
+      - name: Test under ASan+UBSan
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=0
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=0
+        run: ctest --preset asan --output-on-failure
+
+  # --- section 37: python ------------------------------------------------------
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package + dev/lint tools
+        run: python -m pip install -e "./python[dev]" ruff
+
+      - name: pytest
+        run: python -m pytest python/tests
+
+      - name: compileall
+        run: python -m compileall python/cfdapp
+
+      - name: ruff check
+        run: python -m ruff check python
+
+      - name: ruff format --check
+        run: python -m ruff format --check python

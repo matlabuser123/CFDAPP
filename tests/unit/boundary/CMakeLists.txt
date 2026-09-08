@@ -16,4 +16,4 @@ target_link_libraries(CFDBoundaryTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDBoundaryTests)
+gtest_discover_tests(CFDBoundaryTests PROPERTIES LABELS "unit")

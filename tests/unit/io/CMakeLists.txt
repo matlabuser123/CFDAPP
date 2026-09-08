@@ -23,4 +23,4 @@ target_include_directories(CFDIoTests
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-gtest_discover_tests(CFDIoTests)
+gtest_discover_tests(CFDIoTests PROPERTIES LABELS "unit")

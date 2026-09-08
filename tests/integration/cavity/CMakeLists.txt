@@ -22,4 +22,5 @@ target_include_directories(CFDCavityValidationTests
 
 gtest_discover_tests(CFDCavityValidationTests
   WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+  PROPERTIES LABELS "validation"
 )

@@ -14,4 +14,5 @@ target_link_libraries(CFDCaseIntegrationTests
 
 gtest_discover_tests(CFDCaseIntegrationTests
   WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+  PROPERTIES LABELS "validation"
 )

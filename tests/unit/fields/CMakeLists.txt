@@ -13,4 +13,4 @@ target_link_libraries(CFDFieldTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDFieldTests)
+gtest_discover_tests(CFDFieldTests PROPERTIES LABELS "unit")

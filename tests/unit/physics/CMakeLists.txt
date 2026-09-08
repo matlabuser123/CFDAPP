@@ -15,4 +15,4 @@ target_link_libraries(CFDPhysicsTests
     GTest::gtest_main
 )
 
-gtest_discover_tests(CFDPhysicsTests)
+gtest_discover_tests(CFDPhysicsTests PROPERTIES LABELS "numerical")
