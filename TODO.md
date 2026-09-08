@@ -4,11 +4,11 @@
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
-(`TransientSolver` orchestration) done; PISO-A through PISO-G (transient
-predictor through applying pressure correction #2 and evaluating final
-continuity) also done, 460/460 tests pass. Next: PISO-H (the actual
-one-timestep `PISO` interface, mostly orchestration of already-verified
-pieces) (see "P2 -- Transient CFD" below)
+(`TransientSolver` orchestration) done; PISO-A through PISO-H (transient
+predictor through the actual one-timestep `PISO` class) also done,
+474/474 tests pass. Next: PISO-I (`TransientSolver` integration -- wire
+`PISO` in as a real `TransientStepSolver`) (see "P2 -- Transient CFD"
+below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -1228,6 +1228,91 @@ real one).
   yet, deliberately (PISO-H onward): the actual `PISO` class/one-
   timestep interface (should be orchestration of these already-verified
   pieces, not new CFD mathematics), and `TransientSolver` integration.
+
+**PISO-H done: the actual one-timestep `PISO` class exists** --
+[PISO.hpp](include/cfd/pressure_velocity/PISO.hpp) /
+[PISO.cpp](src/pressure_velocity/PISO.cpp), implementing
+`cfd::solver::TransientStepSolver` so `TransientSolver` can eventually
+drive it without knowing anything CFD-specific (PISO-I). Pure
+orchestration, as this task required: `solveTimeStep` composes PISO-B
+through PISO-G's independently-verified building blocks
+(`assembleTransientMomentumComponent`,
+`computeMomentumResponseCoefficient`, `assemblePressureCorrection`,
+`correctVelocity`, `correctFaceMassFlux`, `evaluateContinuity`,
+`calculateCFL`) in the documented order -- predictor -> F\* -> solve p'1
+-> apply correction #1 -> solve p'2 from F1 (never F\*) -> apply
+correction #2 -> final continuity from F2 -- with **zero new numerical
+formulas** in `PISO.cpp`. `PISOSettings` holds only the two
+`LinearSolverSettings` PISO's linear solves need -- deliberately *not*
+shaped like `SIMPLESettings` (no `maxIterations`/relaxation/tolerances):
+PISO has no outer iteration of its own, its "convergence" per step is
+always exactly two pressure corrections. Reuses `TransientStepStatus`/
+`TransientStepResult` unchanged, as directed -- no new `PISOStatus`
+hierarchy. `continuityResidual`/`massImbalance` (already-existing,
+previously-unpopulated `TransientStepResult` fields) are now populated
+meaningfully from `F2`'s `ContinuityResult` (`maxCellImbalance`/
+`|globalNetFlux|`) rather than left as placeholders -- no new fields
+were added to the public result model, per this task's explicit
+"don't expose every intermediate variable" instruction. On any failure,
+`result.state` is a deterministic copy of `previousState` (never a
+default-constructed empty state), and finiteness is checked after each
+major stage (predictor, both pressure solves, both corrections' applied
+output), not only once at the end -- a failure can never masquerade as a
+successful step.
+
+* **The strongest regression: an independent, from-scratch manual
+  reimplementation of the same A-through-G chain (built without reusing
+  any of `PISO.cpp`'s own code) matches `PISO::solveTimeStep`'s output
+  bit-for-bit** -- pressure, velocity, authoritative face flux,
+  `continuityResidual`, and `massImbalance` all compared with `EXPECT_EQ`
+  (not a tolerance), since both paths solve the identical linear systems
+  with identical solver settings. This is a genuine cross-check, not a
+  tautology: the manual chain lives entirely in
+  [test_piso.cpp](tests/solver/piso/test_piso.cpp), never calling into
+  `PISO.hpp` for anything but the class under test itself.
+* **14/14 new `CFDPisoTests` pass**: the bit-identical manual-chain
+  equivalence test above; `previousState` provably unmutated;
+  a repeated identical time step is bit-identical; a full one-step result
+  on a 4x4 cavity is finite in every field including all three
+  diagnostics; every wall/moving-wall boundary face's final flux is
+  exactly `0`; a fully closed, unforced 2-cell box (mirroring the D/E/F/G
+  hand-probe topology, now driven end-to-end through the real class)
+  stays exactly at rest with exactly zero mass imbalance; a tiny 2x2
+  lid-driven cavity's one-step mass imbalance is near machine zero;
+  every invalid-`dt` case (zero, negative, NaN, +Inf) returns
+  `InvalidConfiguration`; a mismatched `previousState` size and an
+  out-of-range `referenceCell` each return `InvalidConfiguration`; a
+  non-finite input velocity component returns `NonFiniteState`; an
+  intentionally-impossible momentum solve (mirrors
+  `SIMPLEFailureTest.MomentumSolverTooFewIterationsReportsMomentumFailure`
+  exactly) returns `MomentumFailure` with `result.state` exactly equal to
+  `previousState`; an intentionally-impossible pressure solve (same
+  mirror, for `PressureCorrectionFailure`) returns
+  `PressureCorrectionFailure`; and the `settings()`/`referenceCell()`
+  accessors return exactly what was constructed.
+* **Consciously did not force a "correction #1 succeeds, correction #2
+  fails" scenario as a *separate* case from the general
+  `PressureCorrectionFailure` test.** Correction #2 reuses the *exact
+  same* coefficient matrix as correction #1 (same `dU`/`dV`/mesh/density
+  -- only the RHS differs), and BiCGSTAB's iterations-to-converge for a
+  fixed relative tolerance is essentially independent of RHS magnitude
+  for an identical matrix -- so "#1 converges under this iteration
+  budget but #2 doesn't, under the very same budget" is not a
+  meaningfully distinct, non-fragile scenario to construct here (as
+  opposed to a genuinely different bug class the general test already
+  covers, since both failure branches in `PISO.cpp` are structurally
+  identical code). Documented in
+  [test_piso.cpp](tests/solver/piso/test_piso.cpp) rather than forcing
+  a test that would only be checking a box.
+* Full project suite: 474/474 (460 + these 14) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean.
+* **Not done yet, deliberately** (PISO-I): wiring `PISO` into an actual
+  `TransientSolver` run (`TransientSolver` still only exercised against
+  `test_transient_solver.cpp`'s stub), `TimeController` advancement using
+  a real PISO time step, a CFL acceptance policy beyond what
+  `TransientSolver` already enforces, restart, case-system PISO dispatch,
+  transient Poiseuille/cavity validation cases, adaptive `dt`, and PIMPLE.
 
 ---
 

@@ -98,10 +98,12 @@ target_sources(cfdcore
     pressure_velocity/PressureCorrectionEquation.cpp
     pressure_velocity/RelaxedMomentum.cpp
     pressure_velocity/SIMPLE.cpp
-    # P2 -- Transient CFD, TASK P2-005 (PISO-A/B/C): the transient
-    # momentum predictor building block only so far -- no PISO class, no
-    # pressure correction wiring, yet.
+    # P2 -- Transient CFD, TASK P2-005: the transient momentum predictor
+    # building block (PISO-A/B/C), plus the actual one-timestep PISO
+    # class (PISO-H) composing it with the already-validated pressure-
+    # correction machinery -- no TransientSolver wiring yet (PISO-I).
     pressure_velocity/TransientMomentum.cpp
+    pressure_velocity/PISO.cpp
 )
 
 # P2 -- Transient CFD: TimeController (P2-001), CFL (P2-003), and
