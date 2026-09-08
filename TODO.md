@@ -4,11 +4,11 @@
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
-(`TransientSolver` orchestration) done; PISO-A through PISO-H (transient
-predictor through the actual one-timestep `PISO` class) also done,
-474/474 tests pass. Next: PISO-I (`TransientSolver` integration -- wire
-`PISO` in as a real `TransientStepSolver`) (see "P2 -- Transient CFD"
-below)
+(`TransientSolver` orchestration) done; PISO-A through PISO-I (the full
+transient pressure-velocity path, `PISO` wired into `TransientSolver`)
+also done, 482/482 tests pass -- the core transient PISO algorithm is
+now functionally complete. Next: restart capability, then transient
+validation cases (neither started yet; see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -1313,6 +1313,72 @@ successful step.
   a real PISO time step, a CFL acceptance policy beyond what
   `TransientSolver` already enforces, restart, case-system PISO dispatch,
   transient Poiseuille/cavity validation cases, adaptive `dt`, and PIMPLE.
+
+**PISO-I done: `PISO` wired into `TransientSolver` -- the core transient
+pressure-velocity path is functionally connected.** No production code
+changes were needed: `TransientSolver` was already designed against the
+CFD-agnostic `TransientStepSolver` interface exactly so a concrete
+stepper could plug in without modification (P2-004's own design intent),
+and `PISO` (PISO-H) already implements that interface -- this task is
+entirely
+[test_transient_integration.cpp](tests/solver/piso/test_transient_integration.cpp),
+proving the already-independently-verified pieces (`TransientSolver`'s
+state-acceptance/time-advancement loop, `PISO`'s one-timestep solve)
+compose correctly together, exactly as this task's central invariant
+requires: "PISO owns one timestep's numerical solve, TransientSolver
+owns timestep acceptance and physical time."
+
+* **The strongest regression: a direct sequence of `PISO::solveTimeStep`
+  calls (this test threading state itself, no `TransientSolver`
+  involved) matches the same sequence driven through `TransientSolver`,
+  bit-for-bit** -- pressure, velocity, authoritative face flux, and every
+  recorded `TimeStepRecord` diagnostic (`time`/`deltaT`/`maxCFL`/
+  `continuityResidual`/`massImbalance`) all compared with `EXPECT_EQ`.
+  Caught a genuine, subtle pitfall while writing this: naively reusing a
+  literal `dt=0.01` for the "direct" sequence is **not** bit-identical to
+  `TimeController::deltaT()`'s own output, even though both equal 0.01 to
+  ~15 significant digits -- `deltaT()` is computed as a *subtraction* of
+  two independently-rounded `timeAtStep()` values (P2-001's own
+  deliberate, already-validated floating-point design), not the nominal
+  `deltaT` repeated verbatim, so the two can differ by 1 ULP. Fixed by
+  driving the "direct" sequence's `dt` from a second, independently-
+  constructed (but identically-parameterized) `TimeController` instance
+  instead of a hardcoded literal -- `TimeController`'s own determinism
+  (already established elsewhere) then guarantees the two dt sequences
+  are genuinely bit-identical, making the comparison meaningful rather
+  than silently loosened with a tolerance that would have masked the
+  same class of bug a real regression might introduce.
+* **8/8 new `CFDPisoTests` pass**: the bit-identical direct-sequence-vs-
+  `TransientSolver` equivalence test above (3 steps on a 4x4 cavity); a
+  forced `MomentumFailure` (mirroring PISO-H's own forced-failure
+  technique) is rejected with `result.history` empty and `finalState`
+  exactly the untouched initial state -- failure never advances
+  `TimeController` or mutates the accepted state; a shortened final `dt`
+  (0.01, 0.01, 0.005 to land exactly on `end=0.025`) is respected with a
+  real `PISO` stepper, landing exactly on `endTime`; `MaxTimeSteps`
+  termination stops a real-`PISO`-driven run short of `endTime` exactly
+  as expected; every recorded `maxCFL` across a run is finite and `>= 0`
+  under a generous `cflFailAbove` (CFL stays diagnostic-only, never
+  changing `dt` or being silently used to reject on its own); a
+  *genuinely computed* CFL value (read back from one run) is shown to
+  trigger `CFLViolation` when a second run's `cflFailAbove` is set below
+  it -- proving the CFL flowing into `TransientSolver` is real physics,
+  not a stub constant, while `PISO` itself never makes that
+  accept/reject decision; a repeated identical multi-step run is
+  bit-identical; and the caller's `initialState` argument is provably
+  unmutated by `TransientSolver::solve()`.
+* Full project suite: 482/482 (474 + these 8) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean.
+* **The core transient PISO algorithm is now functionally complete: a
+  real `TransientSolver` run, driven by a real `PISO` stepper, correctly
+  accepts/rejects steps, advances physical time, and records history.**
+  Not done yet, deliberately: restart (read/write), case-system PISO
+  dispatch, CLI transient cases, `time_history.csv`/VTK export beyond
+  what already exists, transient Poiseuille/cavity validation cases,
+  adaptive `dt`, CFL-triggered rejection as a *policy* decision (only its
+  mechanism exists so far, exercised here with a deliberately low
+  `cflFailAbove` -- no case/CLI surface chooses one yet), and PIMPLE.
 
 ---
 
