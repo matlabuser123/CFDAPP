@@ -3,9 +3,9 @@
 **Current milestone:** v0.1 Numerical Foundation (P0/P1 complete -- CTest
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
-P2-002 (`TimeDerivative`, implicit Euler), and P2-003 (`CFL`) done, 404/404
-tests pass; next is `TransientSolver` state/result ownership, not PISO yet
-(see "P2 -- Transient CFD" below)
+P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
+(`TransientSolver` orchestration) done, 416/416 tests pass; next is PISO
+itself (see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -782,7 +782,7 @@ Only after P0/P1 validation is complete.
 * [x] Time controller.
 * [x] Implicit Euler.
 * [x] CFL monitoring.
-* [ ] `TransientSolver`.
+* [x] `TransientSolver`.
 * [ ] PISO.
 * [ ] Restart capability.
 * [ ] Transient validation cases.
@@ -900,6 +900,63 @@ asks -- it does not modify `dt` or suggest one.
 * Full project suite: 404/404 (394 + these 10) in debug, release, and
   under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
   `clang-format`/`clang-tidy` clean.
+
+**Status (2026-09-09): TASK P2-004 done -- orchestration only, no PISO
+exists yet.** [TransientSolver.hpp](include/cfd/solver/TransientSolver.hpp)
+/ [TransientSolver.cpp](src/solver/TransientSolver.cpp): owns the time
+loop and the accepted `TransientState` (velocity/pressure/massFlux at one
+time level -- section 12), invokes an injected `TransientStepSolver` once
+per step, checks its result independently rather than trusting it blindly,
+enforces a hard `cflFailAbove`, and records `TimeStepRecord` history --
+deliberately contains no pressure-correction/momentum-assembly equation
+itself (section 14).
+
+* **`TransientStepSolver` is an abstract interface, not a concrete PISO**
+  -- mirrors this project's existing `PressureVelocitySolver` pattern
+  (SIMPLE implements that; a future PISO implements this one) rather than
+  section 13's literal `solveTimeStep(state, previousState, deltaT)`
+  sketch. Deliberately takes no mesh/fluid/boundary-condition parameters:
+  those belong to a concrete stepper's own construction (the same way
+  SIMPLE is constructed with its settings once, not passed them every
+  call), which keeps `TransientSolver` itself entirely CFD-agnostic -- it
+  never needs a `Mesh` or `FluidProperties` to do its job. CFL is
+  likewise never computed *by* `TransientSolver` (it has no mesh/density
+  to compute it with); the stepper reports its own pre-step
+  `solver::calculateCFL` result back via `TransientStepResult.maxCFL`,
+  and `TransientSolver` only compares that against `cflFailAbove`.
+* **A failed or out-of-range step is never accepted** (section 15): on
+  `TransientStepStatus != Converged`, on an independent finite-value scan
+  of the returned state (even when the stepper itself claims `Converged`
+  -- section 15/51's "verify finite state" is its own check, not trust),
+  or on `maxCFL > cflFailAbove`, the run stops immediately and
+  `finalState` is the *last accepted* state, never the failing/rejected
+  step's own (discarded) output.
+* **`TimeController::reachedEndTime()` added** (small, targeted extension,
+  not scope creep): distinguishes "ran to completion" from "hit the
+  iteration cap" once `finished()` is true, exactly the way
+  `SIMPLEStatus::Converged` is distinct from `::MaxIterations` rather than
+  one generic "stopped" flag -- `TransientStatus::Completed` vs
+  `::MaxTimeSteps` needs this. 2 new/extended `CFDSolverTests` cover it
+  directly.
+* **11/11 new `CFDSolverTests` pass** --
+  [test_transient_solver.cpp](tests/unit/solver/test_transient_solver.cpp),
+  exercised entirely against a test-only, mesh/physics-free
+  `StubStepSolver` (doubles pressure and advances velocity.x by `dt` each
+  call -- an arbitrary but easily-checked rule, so state actually being
+  *threaded* through correctly, not stale or repeated, is directly
+  verifiable): state threads correctly across every step to `Completed`,
+  the `dt` sequence a stepper receives matches `TimeController` exactly
+  including the shortened final step, `MaxTimeSteps` stops short of
+  `endTime`, a failed step (`MomentumFailure`/`PressureCorrectionFailure`/
+  `NonFiniteState`/`InvalidConfiguration`) is not accepted and its own
+  state is discarded, a stepper-claimed-`Converged`-but-actually-non-finite
+  state is still caught, a `maxCFL` over `cflFailAbove` is rejected,
+  invalid `cflFailAbove` is rejected at construction, and repeated runs
+  are deterministic.
+* Full project suite: 416/416 (404 + these 11 + 1 new/2 extended
+  `TimeController` tests) in debug, release, and under ASan+UBSan -- 0
+  sanitizer reports, 0 new compiler warnings, `clang-format`/`clang-tidy`
+  clean.
 
 ---
 

@@ -55,6 +55,8 @@ bool TimeController::finished() const noexcept {
   return (step_ >= maxSteps_) || (currentTime_ >= endTime_);
 }
 
+bool TimeController::reachedEndTime() const noexcept { return currentTime_ >= endTime_; }
+
 Real TimeController::deltaT() const noexcept {
   if (finished()) {
     return 0.0;

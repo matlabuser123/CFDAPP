@@ -92,12 +92,14 @@ TEST(TimeControllerTest, SingleStepCaseReachesEndExactly) {
   EXPECT_DOUBLE_EQ(tc.time(), 1.0);
   EXPECT_EQ(tc.step(), 1u);
   EXPECT_TRUE(tc.finished());
+  EXPECT_TRUE(tc.reachedEndTime());
 }
 
 TEST(TimeControllerTest, StartEqualsEndIsImmediatelyFinished) {
   const TimeController tc(5.0, 5.0, 0.1, 10);
   EXPECT_DOUBLE_EQ(tc.time(), 5.0);
   EXPECT_TRUE(tc.finished());
+  EXPECT_TRUE(tc.reachedEndTime());
   EXPECT_DOUBLE_EQ(tc.deltaT(), 0.0);
 }
 
@@ -111,6 +113,23 @@ TEST(TimeControllerTest, MaximumStepTerminationStopsBeforeEndTime) {
   EXPECT_EQ(tc.step(), 5u);
   EXPECT_DOUBLE_EQ(tc.time(), 5.0);  // far short of endTime=100
   EXPECT_DOUBLE_EQ(tc.deltaT(), 0.0);
+  EXPECT_FALSE(tc.reachedEndTime());  // finished() only because maxSteps was hit
+}
+
+TEST(TimeControllerTest, ReachedEndTimeDistinguishesCompletionFromMaxSteps) {
+  TimeController ranToEnd(0.0, 1.0, 0.25, 100);
+  while (!ranToEnd.finished()) {
+    ranToEnd.advance();
+  }
+  EXPECT_TRUE(ranToEnd.finished());
+  EXPECT_TRUE(ranToEnd.reachedEndTime());
+
+  TimeController hitMaxSteps(0.0, 1.0, 0.25, 2);  // needs 4 steps to reach end, only 2 allowed
+  while (!hitMaxSteps.finished()) {
+    hitMaxSteps.advance();
+  }
+  EXPECT_TRUE(hitMaxSteps.finished());
+  EXPECT_FALSE(hitMaxSteps.reachedEndTime());
 }
 
 TEST(TimeControllerTest, AdvanceAfterFinishedThrows) {

@@ -1,6 +1,7 @@
 add_executable(CFDSolverTests
   test_time_controller.cpp
   test_cfl.cpp
+  test_transient_solver.cpp
 )
 
 target_link_libraries(CFDSolverTests

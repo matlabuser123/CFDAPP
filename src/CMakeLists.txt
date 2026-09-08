@@ -100,12 +100,14 @@ target_sources(cfdcore
     pressure_velocity/SIMPLE.cpp
 )
 
-# P2 -- Transient CFD: TimeController (P2-001) and CFL (P2-003) so far --
-# no TransientSolver/PISO yet.
+# P2 -- Transient CFD: TimeController (P2-001), CFL (P2-003), and
+# TransientSolver (P2-004, orchestration only -- no PISO exists yet) so
+# far.
 target_sources(cfdcore
   PRIVATE
     solver/TimeController.cpp
     solver/CFL.cpp
+    solver/TransientSolver.cpp
 )
 
 # io/case/*Parser.cpp and io/case/JsonUtil.cpp are compiled into cfdcore

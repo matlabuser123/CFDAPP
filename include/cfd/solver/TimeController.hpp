@@ -46,6 +46,14 @@ class TimeController {
   // maxSteps have been taken, whichever comes first.
   [[nodiscard]] bool finished() const noexcept;
 
+  // True once time() has actually reached endTime, as opposed to
+  // finished() being true only because maxSteps was hit first -- lets a
+  // caller (e.g. TransientSolver, TODO.md P2 section 16) distinguish
+  // "ran to completion" from "hit the iteration cap" once finished(),
+  // matching how SIMPLEStatus::Converged is distinct from
+  // ::MaxIterations rather than one generic "stopped" flag.
+  [[nodiscard]] bool reachedEndTime() const noexcept;
+
   // Applies deltaT() to advance one time step and increments step().
   // Throws InvalidArgumentError if already finished() -- callers are
   // expected to check finished() first (the natural `while (!finished())`
