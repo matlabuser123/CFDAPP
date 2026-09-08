@@ -691,17 +691,47 @@ never reimplements any solver mathematics.
 
 # P1 — Quality Gate
 
-* [ ] Full clean build.
-* [ ] Full CTest suite.
-* [ ] Address compiler warnings.
-* [ ] Run sanitizers.
-* [ ] Run `clang-format`.
-* [ ] Run `clang-tidy`.
-* [ ] Verify no NaN/Inf.
-* [ ] Verify conservation.
-* [ ] Verify determinism.
-* [ ] Verify clean Git working tree.
-* [ ] Configure CI.
+* [x] Full clean build.
+* [ ] Full CTest suite. (369/371 -- 2 pre-existing GridRefinementTest
+      order-of-accuracy failures remain, see note below)
+* [x] Address compiler warnings.
+* [x] Run sanitizers.
+* [x] Run `clang-format`.
+* [x] Run `clang-tidy`.
+* [x] Verify no NaN/Inf.
+* [x] Verify conservation.
+* [x] Verify determinism.
+* [x] Verify clean Git working tree.
+* [x] Configure CI.
+
+**Gate:** every item green, CTest 100%, before P2 starts.
+
+**Status (2026-09-08):** See [QUALITY_GATE.md](QUALITY_GATE.md) for the full
+evidence record (toolchain versions, per-item results, fresh cavity/
+Poiseuille runs). Summary: this repository had no `.git` before this pass
+(initialized fresh, see QUALITY_GATE.md's "Git" section for what "clean
+working tree" means here). Debug and Release both build with 0 warnings
+under GCC 11.4 (WSL Ubuntu-22.04) after fixing 10 `-Wshadow` warnings in
+`JsonUtil.cpp`/`.hpp`. ASan+UBSan: 0 sanitizer reports across the whole
+suite. `clang-format`/`clang-tidy`: both clean (2 format violations fixed
+in this pass; clang-tidy had 0 findings already). Python: pytest/
+compileall/ruff all clean. Cavity and Poiseuille cases both converge,
+finite, mass-conserving, and bit-identical (sha256) across repeated runs
+including `metadata.json`. `.github/workflows/ci.yml` added (build-test
+matrix + format + clang-tidy + sanitizers + python jobs), config-only --
+not pushed (no GitHub remote exists for this repo yet).
+
+**Not fully green:** `GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder`
+and `.UpwindConvectionConvergesAtFirstOrder` still fail (in debug, release,
+*and* under ASan+UBSan -- confirmed not a memory/UB defect). Both were
+already failing and already root-caused/documented before this pass (see
+"P0 -- Finite Volume Operators" above); this pass did not attempt the
+underlying discretization fix (a 4-point boundary stencil for Laplacian;
+convection's cause is still undetermined) as it is a larger numerical-
+methods change than a quality-gate pass. **P1 should not be marked fully
+closed, and P2 should not start, until this is either fixed or explicitly
+accepted as a known limitation** -- see QUALITY_GATE.md for the full
+root-cause writeup.
 
 ---
 
