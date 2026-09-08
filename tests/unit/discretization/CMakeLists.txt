@@ -6,6 +6,7 @@ add_executable(CFDDiscretizationTests
   test_diffusion.cpp
   test_convection.cpp
   test_grid_refinement.cpp
+  test_time_derivative.cpp
 )
 
 target_link_libraries(CFDDiscretizationTests

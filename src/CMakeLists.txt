@@ -6,10 +6,13 @@
 # src/physics (P0 -- Incompressible Physics: FluidProperties, MassFlux,
 # ContinuityEquation, MomentumEquation -- EnergyEquation/
 # TransportProperties are deferred to the thermal phase) are wired up
-# here. The remaining subdirectories are pre-scaffolded per
-# PROJECT_STRUCTURE.md but intentionally not added as sources yet -- most
-# are still empty placeholders and compiling them now would create linker
-# noise for no benefit.
+# here, along with src/pressure_velocity (P0 -- SIMPLE) and src/io (P1 --
+# Case System / Result Export). src/solver (P2 -- Transient CFD) has only
+# TimeController.cpp so far (TASK P2-001) -- the rest of that phase's
+# subdirectories are still pre-scaffolded per PROJECT_STRUCTURE.md but
+# intentionally not added as sources yet -- most are still empty
+# placeholders and compiling them now would create linker noise for no
+# benefit.
 
 configure_file(
   "${CMAKE_SOURCE_DIR}/include/cfd/core/Version.hpp.in"
@@ -76,6 +79,8 @@ target_sources(cfdcore
     discretization/Diffusion.cpp
     discretization/Laplacian.cpp
     discretization/Convection.cpp
+    # P2 -- Transient CFD, TASK P2-002: implicit Euler time derivative.
+    discretization/TimeDerivative.cpp
 )
 
 target_sources(cfdcore
@@ -93,6 +98,13 @@ target_sources(cfdcore
     pressure_velocity/PressureCorrectionEquation.cpp
     pressure_velocity/RelaxedMomentum.cpp
     pressure_velocity/SIMPLE.cpp
+)
+
+# P2 -- Transient CFD, TASK P2-001: TimeController only so far -- no CFD
+# equations yet (see include/cfd/solver/TimeController.hpp).
+target_sources(cfdcore
+  PRIVATE
+    solver/TimeController.cpp
 )
 
 # io/case/*Parser.cpp and io/case/JsonUtil.cpp are compiled into cfdcore

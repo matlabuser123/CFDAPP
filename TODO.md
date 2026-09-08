@@ -2,9 +2,9 @@
 
 **Current milestone:** v0.1 Numerical Foundation (P0/P1 complete -- CTest
 371/371, see "P1 -- Quality Gate" below)
-**Current phase:** P2 Transient CFD, not yet started -- entry gate now met;
-first task is `TimeController` (see "P2 -- Transient CFD" section 2), not
-PISO
+**Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`) and
+P2-002 (`TimeDerivative`, implicit Euler) done, 394/394 tests pass; next is
+CFL monitoring, not PISO (see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -778,13 +778,93 @@ gap needing a human with ParaView installed, not a P1 Quality Gate item.
 
 Only after P0/P1 validation is complete.
 
-* [ ] Time controller.
-* [ ] Implicit Euler.
+* [x] Time controller.
+* [x] Implicit Euler.
 * [ ] CFL monitoring.
 * [ ] `TransientSolver`.
 * [ ] PISO.
 * [ ] Restart capability.
 * [ ] Transient validation cases.
+
+**Status (2026-09-09): TASK P2-001 done.**
+[TimeController.hpp](include/cfd/solver/TimeController.hpp) /
+[TimeController.cpp](src/solver/TimeController.cpp): owns start/current/end
+time, the nominal `deltaT`, and the step index -- nothing about what is
+being time-stepped (no CFD equations added, deliberately, per this task's
+scope). `time()`/`deltaT()`/`step()`/`finished()` are queries; `advance()`
+is the only mutator, and throws if called after `finished()` rather than
+silently no-op'ing (a caller logic error worth failing loudly on, matching
+the natural `while (!finished())` loop shape this and the eventual
+`TransientSolver` are meant to share).
+
+* **Deterministic termination without relying on floating-point
+  equality**: time is never accumulated by repeated addition (`current +=
+  deltaT` drifts after enough steps -- 0.1 is not exactly representable in
+  binary floating point). Every query instead recomputes time from the
+  step index directly (`startTime + step*deltaT`), and the final step is
+  snapped to `endTime` once within a tolerance scaled to `deltaT`, rather
+  than checking `raw >= endTime` exactly -- verified this actually matters,
+  not just defensive: `start=0, end=1, deltaT=0.1` takes exactly 10 steps
+  (`TimeControllerTest.InexactDeltaTDoesNotProduceAnExtraTinyStep`), not an
+  11th, near-zero-length step from `10*0.1` landing one ULP short of `1.0`.
+* **15/15 `CFDSolverTests` pass** --
+  [test_time_controller.cpp](tests/unit/solver/test_time_controller.cpp):
+  normal stepping, step-counter increment, the worked shortened-final-step
+  example from this file's own section 4 (`start=0.9, deltaT=0.2, end=1.0`
+  -> final `deltaT=0.1`), the user-facing `start=0, end=1, deltaT=0.3`
+  sequence, the inexact-`deltaT` case above, single-step, `start==end`,
+  max-step termination (stopping short of `endTime`), `advance()` after
+  `finished()` throwing, every construction-time rejection (non-positive
+  `deltaT`, `endTime < startTime`, zero `maxSteps`, non-finite inputs), and
+  bit-identical repeated runs.
+* Full project suite: 386/386 (371 + these 15) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean.
+
+**Status (2026-09-09): TASK P2-002 done.**
+[TimeDerivative.hpp](include/cfd/discretization/TimeDerivative.hpp) /
+[TimeDerivative.cpp](src/discretization/TimeDerivative.cpp):
+`implicitEulerTimeDerivative(mesh, phiOld, density, dt)` returns per-cell
+`{diagonal, source}` = `{rho*V/dt, (rho*V/dt)*phiOld}` -- the reusable
+component this section asks for, deliberately independent of `SIMPLE`,
+`PISO`, and `TransientSolver` (knows only the mesh, the previous field, a
+density/coefficient, and `dt`; does not manage physical time itself, does
+not know how its output gets combined with any other equation term). Put
+under `discretization/`, not `physics/`, matching Diffusion/Laplacian/
+Convection's "evaluate-style" shape (a `ScalarField`-pair result, not a
+`SparseMatrixBuilder`-mutating assembler like `MomentumEquation`'s
+`assemble*Contribution` family) -- a future momentum/PISO assembler adds
+`diagonal`/`source` into its own matrix/RHS directly.
+
+* **8/8 new `CFDDiscretizationTests` pass** --
+  [test_time_derivative.cpp](tests/unit/discretization/test_time_derivative.cpp):
+  the exact `rho=2, V=0.5, dt=0.1, phiOld=3 -> aP=10, b=30` coefficient
+  check, independently-scaling diagonal/source across cells with different
+  volumes (via a small local mesh-rebuilding helper --
+  `MeshGeometry::createCartesian2D` only ever generates uniform-volume
+  cells, so a genuinely heterogeneous-volume mesh needed constructing by
+  hand), `phiOld` left unmutated, and every rejection (field-size
+  mismatch, non-positive `dt`, non-finite/non-positive density, non-finite
+  `dt`).
+* **Independent first-order temporal validation**, not just coefficient
+  checks -- the same file's `ImplicitEulerOdeConvergesAtFirstOrder`: the
+  decay ODE `dphi/dt = -lambda*phi`, `phi(0)=phi0`, integrated on a
+  trivial unit-volume/unit-density single-cell mesh by combining this
+  task's `implicitEulerTimeDerivative` output with the ODE's own reaction
+  term each step (`aP,time*phi_new + lambda*V*phi_new = b_time`) --
+  algebraically identical to (but not hand-derived as) the textbook
+  closed-form update `phi_new = phi_old/(1+lambda*dt)`, so this genuinely
+  exercises the operator's own coefficients rather than re-deriving the
+  same formula separately. Steps physical time via P2-001's
+  `TimeController`, deliberately still without `SIMPLE`/`PISO`/
+  `TransientSolver`. `deltaT` in `{0.1, 0.05, 0.025, 0.0125}` at fixed
+  `finalTime=1.0` gives observed order 0.971 -> 0.985 -> 0.993, cleanly
+  approaching the expected p~=1 (test asserts `0.8 < p < 1.3` at each
+  halving; exact figures computed independently in Python and cross-
+  checked against the C++ test's own pass, not read off the test alone).
+* Full project suite: 394/394 (386 + these 8) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean.
 
 ---
 
