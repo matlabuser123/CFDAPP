@@ -4,10 +4,11 @@
 371/371, see "P1 -- Quality Gate" below)
 **Current phase:** P2 Transient CFD -- TASK P2-001 (`TimeController`),
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
-(`TransientSolver` orchestration) done; PISO-A through PISO-E (transient
-predictor through applying pressure correction #1) also done, 441/441
-tests pass. Next: PISO-F (assemble + solve pressure correction #2) -- no
-`PISO` class exists yet (see "P2 -- Transient CFD" below)
+(`TransientSolver` orchestration) done; PISO-A through PISO-F (transient
+predictor through solving pressure correction #2, not yet applied) also
+done, 449/449 tests pass. Next: PISO-G (apply correction #2 + final
+continuity diagnostics) -- no `PISO` class exists yet (see "P2 --
+Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -1096,6 +1097,67 @@ evaluation.
   assembling/solving a second pressure correction, applying it, final
   continuity diagnostics, the actual `PISO` class, and `TransientSolver`
   integration.
+
+**PISO-F done: pressure correction #2 assembled and solved from `F1`
+(the corrected flux from PISO-E), not `F*` -- not applied, no `PISO`
+class yet.** Still no new production assembly code:
+`assemblePressureCorrection` is called a second time with the *same*
+`dU`/`dV` PISO-D/E's correction #1 used (hence the same `faceCoefficient`
+-- verified directly, not just assumed) -- no momentum reassembly between
+correctors, matching this task's explicit constraint that this initial
+PISO formulation has no second momentum predictor between pressure
+corrections.
+[test_second_pressure_correction.cpp](tests/solver/piso/test_second_pressure_correction.cpp)
+extends PISO-E's pipeline pattern (test-local helper, still not
+production API) through a second assembly + solve, deliberately stopping
+before applying `p'2` to anything (that's PISO-G).
+
+* **A real, converged correction #1 leaves essentially zero local
+  continuity error everywhere, not just a globally-cancelling one** --
+  confirmed empirically on the 4x4 cavity probe (max |Rc1| ~1e-15 per
+  cell, not just the global sum) before designing this task's tests: a
+  single *exactly-solved* linear pressure-correction equation zeroes
+  every cell's imbalance by construction (`sum_f D_f(p'_P-p'_N) = -R_P*`
+  is exactly what the matrix row encodes), so a mesh-size-only probe
+  cannot produce a "correction #1 improves but doesn't eliminate"
+  scenario without relying on solver-iteration-count fragility. Used a
+  **hand-derived partial correction** instead (apply only half of PISO-
+  D's converged `p'1 = [0,-1.6]`, i.e. `p'1_half = [0,-0.8]`, to the same
+  two-cell probe) to get a deterministic, non-solver-dependent nonzero
+  `Rc1 = [-0.2, +0.2]` (exactly half of `Rc* = [-0.4,+0.4]`, as expected)
+  -- correction #2 assembled from this hand-known `F1` solves to exactly
+  `p'2 = [0,-0.8]`, and `p'1_half + p'2` exactly reconstructs PISO-D's
+  original full `p'1 = [0,-1.6]`, confirming sign/scale.
+* **8/8 new `CFDPisoTests` pass**: the hand-derived partial-correction
+  probe above, bit-exact against hand arithmetic, with `RHS2` (`[0,-0.2]`)
+  explicitly shown to differ from `RHS1` (`[0,-0.4]`) and to equal
+  `-Rc1`, not `-Rc*`; the same probe with the *full* converged `p'1`
+  applied instead (`Rc1` exactly `0`) gives `RHS2` and `p'2` both exactly
+  `0` -- "if correction #1 makes continuity exactly zero, correction #2
+  has nothing left to do"; the reference-cell row stays pinned to `p'2 =
+  0` exactly regardless of source; a full real predictor-through-
+  correction-#2 pipeline from rest on a 4x4 cavity returns finite `p'2`
+  everywhere and converges; that same real (not hand-derived) pipeline's
+  `p'2` sits at the solver-noise floor (~1e-6), the real-pipeline
+  analogue of the exact-zero hand probe; correction #2's `faceCoefficient`
+  is bit-identical to correction #1's, cell-by-cell -- direct proof no
+  momentum reassembly happened; every input from the accepted first-
+  correction state (`correctedPressure`/`correctedFlux`) and every true
+  previous-time-level input (`previousU`/`previousV`) is provably
+  unmutated by assembling/solving correction #2; and a repeated identical
+  assembly+solve is bit-identical.
+* Full project suite: 449/449 (441 + these 8) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean. (Python suite unaffected; its 3
+  pre-existing `numpy.trapezoid` environment failures predate and are
+  unrelated to this task.)
+* **Not done yet, deliberately** (PISO-G onward, a separate pass):
+  applying `p'2`/velocity/face-flux correction #2, final continuity
+  diagnostics, the actual `PISO` class, and `TransientSolver` integration.
+  No explicit forced-non-convergence failure-path test was added here
+  either (matching PISO-D/E's own precedent) -- convergence is asserted,
+  not silently tolerated, at every step of the pipeline helpers, so an
+  unexpected solver failure fails the test loudly rather than masking it.
 
 ---
 
