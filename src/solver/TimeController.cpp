@@ -6,8 +6,13 @@
 
 namespace cfd::solver {
 
-TimeController::TimeController(Real startTime, Real endTime, Real deltaT, Index maxSteps)
-    : startTime_(startTime), endTime_(endTime), nominalDeltaT_(deltaT), maxSteps_(maxSteps) {
+TimeController::TimeController(Real startTime, Real endTime, Real deltaT, Index maxSteps,
+                               Index startingStep)
+    : startTime_(startTime),
+      endTime_(endTime),
+      nominalDeltaT_(deltaT),
+      maxSteps_(maxSteps),
+      step_(startingStep) {
   if (!std::isfinite(startTime_)) {
     throw InvalidArgumentError("TimeController: startTime must be finite");
   }
@@ -23,7 +28,7 @@ TimeController::TimeController(Real startTime, Real endTime, Real deltaT, Index 
   if (maxSteps_ == 0) {
     throw InvalidArgumentError("TimeController: maxSteps must be > 0");
   }
-  currentTime_ = timeAtStep(0);
+  currentTime_ = timeAtStep(step_);
 }
 
 Real TimeController::timeAtStep(Index step) const noexcept {

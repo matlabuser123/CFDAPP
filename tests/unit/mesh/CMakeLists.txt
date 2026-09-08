@@ -6,6 +6,7 @@ add_executable(CFDMeshTests
   test_mesh_geometry.cpp
   test_mesh_quality.cpp
   test_cartesian_mesh.cpp
+  test_mesh_fingerprint.cpp
 )
 
 target_link_libraries(CFDMeshTests

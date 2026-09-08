@@ -22,14 +22,33 @@ namespace cfd::solver {
 // a tolerance is needed at all even with the step-index approach.
 class TimeController {
  public:
+  // `startingStep` (Restart-E, TODO.md P2 -- Restart capability):
+  // resuming a run from an accepted RestartSnapshot passes the
+  // *original* run's own startTime/endTime/deltaT/maxSteps here
+  // (never a recomputed/derived startTime -- see below) plus
+  // `startingStep = snapshot.step`, so step() reports the same absolute
+  // step count a single, uninterrupted run would have -- and, critically,
+  // timeAtStep() (and therefore deltaT()/time()) evaluates the *exact
+  // same deterministic formula at the exact same step index* a
+  // continuous run's own TimeController would have, bit-for-bit -- not
+  // a startTime shifted to the resume point, which would introduce a
+  // different floating-point computation path (this project's own
+  // PISO-I regression already found two dt sequences that were
+  // mathematically equal but not bit-identical for exactly this reason).
+  // Defaults to 0, so every existing caller's behavior is completely
+  // unchanged.
+  //
   // Throws InvalidArgumentError if:
   //   - startTime, endTime, or deltaT is not finite
   //   - deltaT <= 0
   //   - endTime < startTime
   //   - maxSteps == 0
   // startTime == endTime is accepted (a valid, immediately-finished,
-  // zero-duration run) rather than rejected as degenerate.
-  TimeController(Real startTime, Real endTime, Real deltaT, Index maxSteps);
+  // zero-duration run) rather than rejected as degenerate. A
+  // startingStep >= maxSteps is likewise accepted -- an immediately-
+  // finished TimeController is meaningful (a restart resumed at or past
+  // its own original step cap), not a construction-time error.
+  TimeController(Real startTime, Real endTime, Real deltaT, Index maxSteps, Index startingStep = 0);
 
   [[nodiscard]] Real time() const noexcept;
 
@@ -69,7 +88,7 @@ class TimeController {
   Real endTime_;
   Real nominalDeltaT_;
   Index maxSteps_;
-  Index step_{0};
+  Index step_;
   Real currentTime_;
 };
 

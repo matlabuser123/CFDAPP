@@ -38,6 +38,7 @@ target_sources(cfdcore
     mesh/Mesh.cpp
     mesh/MeshGeometry.cpp
     mesh/MeshQuality.cpp
+    mesh/MeshFingerprint.cpp
 )
 
 target_sources(cfdcore
@@ -149,6 +150,15 @@ target_sources(cfdcore
     io/JSONWriter.cpp
     io/VTKWriter.cpp
     io/ResultExporter.cpp
+)
+
+# P2 -- Restart capability, Restart-C/D: the restart file writer/reader.
+# RestartReader.cpp reuses io/case/JsonUtil.cpp's parsing helpers (same
+# "case/JsonUtil.hpp" relative include CaseReader.cpp itself uses).
+target_sources(cfdcore
+  PRIVATE
+    io/RestartWriter.cpp
+    io/RestartReader.cpp
 )
 
 target_include_directories(cfdcore

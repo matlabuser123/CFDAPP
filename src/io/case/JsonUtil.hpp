@@ -25,9 +25,12 @@
 namespace cfd::io::detail {
 
 // Reads and parses `path` as JSON. Throws IOError if the file does not
-// exist or cannot be opened, or if it is not well-formed JSON (the
-// underlying nlohmann::json::parse_error is caught and rewrapped rather
-// than left to propagate as a raw third-party exception -- section 22).
+// exist or cannot be opened, or if nlohmann::json cannot parse it for
+// any reason -- every nlohmann::json::exception (parse_error for
+// syntactically malformed JSON, out_of_range for a syntactically valid
+// but numerically out-of-range literal such as "1e400", ...) is caught
+// and rewrapped rather than left to propagate as a raw third-party
+// exception (section 22).
 [[nodiscard]] nlohmann::json readJsonFile(const std::filesystem::path& path);
 
 // field is "" for a whole-document constraint (e.g. "must be a JSON

@@ -11,6 +11,7 @@
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
+#include "cfd/mesh/MeshFingerprint.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/physics/MassFlux.hpp"
@@ -101,7 +102,7 @@ TEST(RestartSnapshotTest, ValidStateProducesValidSnapshot) {
   EXPECT_EQ(snapshot.formatVersion, kRestartFormatVersion);
   EXPECT_EQ(snapshot.cellCount, mesh.numberOfCells());
   EXPECT_EQ(snapshot.faceCount, mesh.numberOfFaces());
-  EXPECT_TRUE(snapshot.meshFingerprint.empty());  // deliberately unpopulated -- Restart-B.
+  EXPECT_EQ(snapshot.meshFingerprint, cfd::mesh::computeMeshFingerprint(mesh));
   EXPECT_NO_THROW(validateRestartSnapshot(snapshot, mesh));
 }
 
@@ -214,16 +215,29 @@ TEST(RestartSnapshotTest, WrongFaceCountIsRejected) {
 
 TEST(RestartSnapshotTest, MismatchedMeshCellCountIsRejectedEvenWithConsistentFieldSizes) {
   // A snapshot that is internally self-consistent (fields match its own
-  // cellCount/faceCount) but was taken against a *different* mesh --
-  // count-only mesh-identity check (this file's own documented, explicit
-  // limitation: two different meshes sharing both counts are not caught
-  // until Restart-B's fingerprint exists).
+  // cellCount/faceCount) but was taken against a *different* mesh.
   const Mesh smallMesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
   const Mesh bigMesh = MeshGeometry::createCartesian2D(4, 4, 1.0, 1.0);
   const TransientState smallState = makeValidState(smallMesh);
   const RestartSnapshot snapshot = makeRestartSnapshot(smallMesh, smallState, 0.1, 0.01, 1);
 
   EXPECT_THROW(validateRestartSnapshot(snapshot, bigMesh), cfd::InvalidArgumentError);
+}
+
+TEST(RestartSnapshotTest, DifferentMeshWithSameCellAndFaceCountIsRejectedByFingerprint) {
+  // The case count-only checking cannot catch: two meshes sharing both
+  // cellCount and faceCount (same nx*ny topology) but differing in
+  // geometry (a wider domain -> different cell volumes/face area
+  // vectors/centroids) -- Restart-B's whole reason to exist.
+  const Mesh meshA = MeshGeometry::createCartesian2D(4, 4, 1.0, 1.0);
+  const Mesh meshB = MeshGeometry::createCartesian2D(4, 4, 2.0, 1.0);
+  ASSERT_EQ(meshA.numberOfCells(), meshB.numberOfCells());
+  ASSERT_EQ(meshA.numberOfFaces(), meshB.numberOfFaces());
+
+  const TransientState stateA = makeValidState(meshA);
+  const RestartSnapshot snapshot = makeRestartSnapshot(meshA, stateA, 0.1, 0.01, 1);
+
+  EXPECT_THROW(validateRestartSnapshot(snapshot, meshB), cfd::InvalidArgumentError);
 }
 
 TEST(RestartSnapshotTest, NonFiniteVelocityIsRejected) {

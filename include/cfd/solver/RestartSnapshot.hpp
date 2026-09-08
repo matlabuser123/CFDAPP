@@ -60,17 +60,12 @@ struct RestartSnapshot {
 
   // Enough information to reject a restart belonging to a different
   // mesh. cellCount/faceCount alone are a necessary but not sufficient
-  // check (two different meshes can share both counts) -- meshFingerprint
-  // is reserved for a deterministic hash of the numerical topology/
-  // geometry (cell centers/volumes, face owner-neighbor ids, face
-  // centers/area vectors, boundary patch membership -- never pointer
-  // addresses, container iteration order, or timestamps). Restart-A
-  // deliberately does not populate or compare it yet (left empty on
-  // every snapshot this file produces) -- generating it is Restart-B's
-  // own scope; validateRestartSnapshot below only checks
-  // cellCount/faceCount for now, documented as the explicitly weaker,
-  // temporary check it is, not silently treated as complete mesh-
-  // identity validation.
+  // check (two different meshes can share both counts); meshFingerprint
+  // (Restart-B: cfd::mesh::computeMeshFingerprint, see
+  // MeshFingerprint.hpp) is a deterministic hash of the numerical
+  // topology/geometry that distinguishes those cases too -- populated by
+  // makeRestartSnapshot and checked (exact match) by
+  // validateRestartSnapshot below.
   Index cellCount = 0;
   Index faceCount = 0;
   std::string meshFingerprint;
@@ -107,8 +102,8 @@ struct RestartSnapshot {
 //   - massFlux.size() != faceCount
 //   - any value in velocity, pressure, or massFlux is non-finite
 //   - cellCount != mesh.numberOfCells() or faceCount != mesh.numberOfFaces()
-//     (mesh-identity check -- count-only for now, see meshFingerprint's
-//     own doc comment above for why this is explicitly incomplete)
+//   - meshFingerprint != cfd::mesh::computeMeshFingerprint(mesh) (catches
+//     a different mesh that happens to share both counts -- Restart-B)
 // step has no invalid values of its own: Index is unsigned, so there is
 // no negative-step or non-finite-step case to reject beyond what the
 // type system already rules out.

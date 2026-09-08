@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "cfd/core/Exception.hpp"
+#include "cfd/mesh/MeshFingerprint.hpp"
 
 namespace cfd::solver {
 
@@ -43,8 +44,7 @@ RestartSnapshot makeRestartSnapshot(const cfd::mesh::Mesh& mesh, const Transient
   snapshot.massFlux = state.massFlux;
   snapshot.cellCount = mesh.numberOfCells();
   snapshot.faceCount = mesh.numberOfFaces();
-  // meshFingerprint deliberately left empty -- Restart-B's own scope,
-  // see this struct's own doc comment.
+  snapshot.meshFingerprint = cfd::mesh::computeMeshFingerprint(mesh);
 
   validateRestartSnapshot(snapshot, mesh);
   return snapshot;
@@ -73,10 +73,13 @@ void validateRestartSnapshot(const RestartSnapshot& snapshot, const cfd::mesh::M
     throw InvalidArgumentError(
         "validateRestartSnapshot: non-finite value in velocity/pressure/massFlux");
   }
-  // Mesh-identity check -- count-only for now (meshFingerprint is not
-  // yet populated or compared, see RestartSnapshot's own doc comment).
   if (snapshot.cellCount != mesh.numberOfCells() || snapshot.faceCount != mesh.numberOfFaces()) {
-    throw InvalidArgumentError("validateRestartSnapshot: mesh identity mismatch");
+    throw InvalidArgumentError("validateRestartSnapshot: mesh identity mismatch (cell/face count)");
+  }
+  // Catches a different mesh that happens to share both counts --
+  // Restart-B's own deterministic fingerprint, see MeshFingerprint.hpp.
+  if (snapshot.meshFingerprint != cfd::mesh::computeMeshFingerprint(mesh)) {
+    throw InvalidArgumentError("validateRestartSnapshot: mesh identity mismatch (fingerprint)");
   }
 }
 

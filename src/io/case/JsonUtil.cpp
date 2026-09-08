@@ -22,10 +22,16 @@ nlohmann::json readJsonFile(const std::filesystem::path& path) {
     json parsed;
     in >> parsed;
     return parsed;
-  } catch (const json::parse_error& e) {
+  } catch (const json::exception& e) {
     // Rewrap rather than let a raw nlohmann::json exception (with its own
-    // "[json.exception.parse_error.101] ..." formatting) reach the CLI
-    // user (TODO.md P1 section 22).
+    // "[json.exception.*] ..." formatting) reach the CLI user (TODO.md
+    // P1 section 22). Catches json::exception -- nlohmann::json's common
+    // base for every exception its own parser can throw -- not just
+    // parse_error: a syntactically well-formed but numerically
+    // out-of-range literal (e.g. "1e400", which overflows a double)
+    // throws json::out_of_range during parsing itself, a sibling of
+    // parse_error, not a subtype of it (discovered via Restart-D's own
+    // "reject a non-finite value" testing -- P2 -- Restart capability).
     throw IOError("malformed JSON in " + path.string() + ": " + e.what());
   }
 }
@@ -60,8 +66,14 @@ void requireObject(const nlohmann::json& node, const std::filesystem::path& path
 void rejectUnknownKeys(const nlohmann::json& node, const std::filesystem::path& path,
                        std::string_view context, const std::vector<std::string_view>& allowed) {
   for (const auto& [key, value] : node.items()) {
+    // Bind a named reference to the structured-binding element before
+    // capturing it -- some compilers still reject capturing a structured
+    // binding itself by reference even under C++20 (CWG 2352's
+    // relaxation is unevenly supported), so this is the portable idiom
+    // rather than relying on it.
+    const std::string& keyRef = key;
     const bool known = std::any_of(allowed.begin(), allowed.end(),
-                                   [&key](std::string_view name) { return name == key; });
+                                   [&keyRef](std::string_view name) { return name == keyRef; });
     if (!known) {
       throwConfigError(path, key, std::string("be a recognized field of ") + std::string(context),
                        std::string("unknown field"));
@@ -161,8 +173,8 @@ std::array<Real, 2> getRequiredVector2(const nlohmann::json& node,
       throwConfigError(path, resolveLabel(field, label), "have numeric components",
                        describeJsonValue(value));
     }
-    result[i] = value[i].get<Real>();
-    if (!std::isfinite(result[i])) {
+    result.at(i) = value[i].get<Real>();
+    if (!std::isfinite(result.at(i))) {
       throwConfigError(path, resolveLabel(field, label), "have finite components",
                        describeJsonValue(value));
     }

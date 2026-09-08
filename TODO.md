@@ -6,10 +6,12 @@
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
 (`TransientSolver` orchestration) done; PISO-A through PISO-I (the full
 transient pressure-velocity path, `PISO` wired into `TransientSolver`)
-done; Restart-A (`RestartSnapshot` data model + validation, no file I/O
-yet) also done, 498/498 tests pass. Next: Restart-B (deterministic mesh
-fingerprint), then Restart-C onward (file format/writer/reader/resume)
-(see "P2 -- Transient CFD" below)
+done; **restart capability done** (state contract, deterministic mesh
+fingerprint, file writer/reader, resume integration, and a bit-identical
+continuous-vs-split-run regression), 526/526 tests pass. Next: transient
+validation cases (startup Poiseuille, impulsively-started cavity,
+temporal refinement, steady-limit equivalence -- not started yet; see
+"P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -788,7 +790,7 @@ Only after P0/P1 validation is complete.
 * [x] CFL monitoring.
 * [x] `TransientSolver`.
 * [x] PISO.
-* [ ] Restart capability.
+* [x] Restart capability.
 * [ ] Transient validation cases.
 
 **Status (2026-09-09): TASK P2-001 done.**
@@ -1454,6 +1456,124 @@ concerns stay entirely out of the solver-state model.
   CLI `--restart`, case-system dispatch, resuming a simulation from a
   loaded snapshot, split-run-vs-continuous-run equivalence, and no disk
   I/O was introduced anywhere in this task.
+
+**Restart-B through F done: restart capability is complete** -- a
+deterministic mesh fingerprint, the file writer/reader, resuming
+`TransientSolver` from a loaded snapshot, and (the decisive test) a
+save/destroy/reload split run reaching bit-identical final state against
+a continuous one. CLI/case-system integration is explicitly out of scope
+(never requested for this pass).
+
+* **Restart-B: deterministic mesh fingerprint.**
+  [MeshFingerprint.hpp](include/cfd/mesh/MeshFingerprint.hpp) /
+  [MeshFingerprint.cpp](src/mesh/MeshFingerprint.cpp):
+  `computeMeshFingerprint(mesh)` -- FNV-1a over every cell's centroid/
+  volume, every face's owner/neighbor/centroid/area-vector, and every
+  boundary patch's name/face-id list, all iterated in the mesh's own
+  (already-deterministic, insertion-ordered `std::vector`) order, hashing
+  each `Real`'s raw IEEE-754 bit pattern rather than a text
+  representation. `RestartSnapshot.meshFingerprint` (declared but
+  deliberately left empty in Restart-A) is now populated by
+  `makeRestartSnapshot` and checked (exact match, in addition to the
+  existing cellCount/faceCount check) by `validateRestartSnapshot` --
+  catches a different mesh sharing both counts, which count-only
+  checking cannot. 7 new tests (1 `RestartSnapshotTest` + 6
+  `MeshFingerprintTest`): identical/repeated-call determinism, and three
+  "same counts, different mesh" cases (wider domain, finer resolution,
+  different aspect ratio) all produce different fingerprints.
+* **Restart-C/D: the file writer/reader.**
+  [RestartWriter.hpp](include/cfd/io/RestartWriter.hpp)/[.cpp](src/io/RestartWriter.cpp),
+  [RestartReader.hpp](include/cfd/io/RestartReader.hpp)/[.cpp](src/io/RestartReader.cpp):
+  a single self-contained JSON file (`format_version`, `state` {time/
+  step/delta_t}, `mesh` {cell_count/face_count/fingerprint}, `fields`
+  {pressure/velocity_x/velocity_y/mass_flux}), matching JSONWriter.cpp's
+  own snake_case/nested-object/2-space-indent convention exactly.
+  `RestartReader::read` reuses `io/case/JsonUtil.hpp`'s existing parsing
+  helpers (same `"case/JsonUtil.hpp"` relative include `CaseReader.cpp`
+  itself uses -- no parallel JSON-validation machinery invented) and
+  funnels every parsed field through `validateRestartSnapshot` before
+  returning, so a caller never receives an invalid snapshot: no partial
+  acceptance of a corrupt file.
+  * **A genuine, pre-existing defect found and fixed along the way**:
+    `readJsonFile` (`JsonUtil.cpp`, used by `RestartReader` *and* the
+    pre-existing `CaseReader` pipeline) only caught
+    `nlohmann::json::parse_error`, not `nlohmann::json::out_of_range` --
+    a syntactically valid JSON number that overflows a double (e.g.
+    `1e400`) throws the latter *during parsing itself*, a sibling
+    exception type, not a subtype of the former. Discovered while
+    designing this task's own "reject a non-finite value" test (standard
+    JSON has no way to encode IEEE NaN/Infinity directly, and nlohmann
+    does not silently overflow such a literal to Infinity either -- it
+    throws). Fixed by catching the common `json::exception` base instead
+    -- verified the entire pre-existing `CaseReaderTest`/
+    `CaseLidDrivenCavityIntegrationTest` suites still pass unchanged
+    afterward. Also fixed 2 real, pre-existing `clang-tidy` findings
+    surfaced by checking this file directly for the first time this
+    session (a structured-binding lambda-capture portability issue in
+    `rejectUnknownKeys`, and a `cppcoreguidelines-pro-bounds-constant-array-index`
+    finding in `getRequiredVector2`) -- both unrelated to this task's own
+    changes, fixed because they now block a clean `clang-tidy` pass on a
+    file this task modifies.
+  * 15 new tests (1 `RestartWriter`/`RestartReader` doc-comment-only
+    change + 14 `RestartIOTest`): round-trip is exact (every field
+    bit-for-bit); repeated write is byte-identical; and every failure
+    path this task's checklist named -- missing file, malformed JSON
+    syntax, truncated file, missing required field, wrong format
+    version, a different mesh sharing cell/face counts (via the new
+    fingerprint), cell-count mismatch, an incompatible field-array
+    length, an out-of-range JSON number (`1e400`, the real mechanism for
+    "non-finite value in file" -- see above), a non-numeric field value,
+    invalid `delta_t`, and mismatched `velocity_x`/`velocity_y` array
+    lengths -- each asserted against the exact exception type
+    (`IOError` for anything readJsonFile itself rejects,
+    `CaseConfigurationError` for a schema violation,
+    `InvalidArgumentError` for anything `validateRestartSnapshot`
+    rejects).
+* **Restart-E: resuming `TransientSolver`.** The *only* production
+  change needed was one additive, backward-compatible
+  [TimeController.hpp](include/cfd/solver/TimeController.hpp) parameter:
+  `startingStep` (default `0`, so every existing caller is completely
+  unaffected -- confirmed by the full, unchanged pre-existing
+  `TimeControllerTest` suite still passing verbatim). A resumed
+  `TimeController` is constructed with the *original* run's own
+  `startTime`/`endTime`/`deltaT`/`maxSteps` (never a startTime shifted to
+  the resume point) plus `startingStep = snapshot.step`, so `step()`
+  reports the same absolute count a continuous run would have, *and*
+  `timeAtStep()` evaluates the exact same deterministic formula at the
+  exact same step index a continuous run's own controller would --
+  deliberately avoiding a second, different floating-point computation
+  path. **This was a real, non-obvious design decision, not a formality**:
+  a startTime-shifted resume would still be numerically correct to ~15
+  digits but not bit-identical, for the identical reason the PISO-I
+  regression already found a 1-ULP `dt` mismatch (`TimeController::
+  deltaT()` is a *subtraction* of two independently-rounded times, not
+  the nominal value repeated). No new `RestartIO`-specific "resume" class
+  was introduced -- resuming composes entirely from existing public API
+  (`TransientState`'s fields, the extended `TimeController` constructor,
+  `TransientSolver::solve`), per this task's own "don't introduce
+  parallel abstractions" instruction. 5 new `TimeControllerTest` cases,
+  including the bit-identical resumed-vs-continuous property directly.
+* **Restart-F: the decisive regression.**
+  [test_restart_resume.cpp](tests/integration/restart/test_restart_resume.cpp)'s
+  `ContinuousVsSplitRunIsBitIdentical`: Run A solves t=0->0.05 in one
+  `TransientSolver::solve` call; Run B solves to a t=0.02 checkpoint,
+  saves it via `RestartWriter`, lets every runtime object from that first
+  half (state, snapshot, solver) go out of scope entirely, then
+  reconstructs everything from the file alone (`RestartReader::read` ->
+  `TransientState` -> a resumed `TimeController`) and solves onward to
+  t=0.05. Final velocity/pressure/authoritative mass flux, final time,
+  final step, and every overlapping `TimeStepRecord` (steps 3-5, not
+  merely the last one) all compared with `EXPECT_EQ` -- bit-for-bit, not
+  a tolerance -- and all pass.
+* Full project suite: 526/526 (498 + these 27) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format` clean repo-wide, `clang-tidy` clean on every file this
+  work touched (including the 3 pre-existing findings fixed along the
+  way, see above).
+* **Not done, deliberately, and explicitly out of scope for this pass**:
+  CLI `--restart`, case-system JSON dispatch for a restart path, VTK/CSV
+  snapshot export beyond what already exists, and everything Part 2
+  (transient validation) covers.
 
 ---
 

@@ -181,3 +181,69 @@ TEST(TimeControllerTest, RepeatedRunsAreBitIdentical) {
   EXPECT_EQ(a.time(), b.time());
   EXPECT_EQ(a.step(), b.step());
 }
+
+// --- startingStep (Restart-E: resuming from an accepted RestartSnapshot) ---
+
+TEST(TimeControllerTest, DefaultStartingStepIsZeroAndBehaviorIsUnchanged) {
+  // The default parameter value reproduces exactly today's behavior --
+  // this is the same assertion InitialStateIsStartTimeAndStepZero makes,
+  // repeated here explicitly against the 5-argument constructor to
+  // pin the default.
+  const TimeController tc(0.0, 1.0, 0.3, 100);
+  EXPECT_EQ(tc.step(), 0u);
+  EXPECT_DOUBLE_EQ(tc.time(), 0.0);
+}
+
+TEST(TimeControllerTest, StartingStepIsReflectedImmediately) {
+  const TimeController tc(0.0, 10.0, 1.0, 100, /*startingStep=*/3);
+  EXPECT_EQ(tc.step(), 3u);
+  EXPECT_DOUBLE_EQ(tc.time(), 3.0);  // startTime + 3*deltaT
+  EXPECT_FALSE(tc.finished());
+}
+
+TEST(TimeControllerTest, AdvanceFromStartingStepContinuesTheAbsoluteStepCount) {
+  TimeController tc(0.0, 10.0, 1.0, 100, /*startingStep=*/3);
+  tc.advance();
+  EXPECT_EQ(tc.step(), 4u);
+  EXPECT_DOUBLE_EQ(tc.time(), 4.0);
+}
+
+TEST(TimeControllerTest, StartingStepAtOrAboveMaxStepsIsImmediatelyFinished) {
+  const TimeController tc(0.0, 10.0, 1.0, 5, /*startingStep=*/5);
+  EXPECT_TRUE(tc.finished());
+  EXPECT_DOUBLE_EQ(tc.deltaT(), 0.0);
+}
+
+// The decisive property Restart-E/F rely on: a TimeController resumed
+// with the *same* startTime/endTime/deltaT/maxSteps as a hypothetical
+// continuous run, but startingStep = N, produces bit-identical
+// time()/deltaT() to what stepping a single continuous TimeController N
+// times would have produced -- not merely numerically close. This is
+// what makes a split (save-then-resume) run comparable bit-for-bit
+// against an uninterrupted one.
+TEST(TimeControllerTest, ResumedControllerMatchesContinuousControllerBitIdentically) {
+  TimeController continuous(0.0, 1.0, 0.13, 1000);
+  for (int i = 0; i < 4; ++i) continuous.advance();  // now at step 4
+
+  TimeController resumed(0.0, 1.0, 0.13, 1000, /*startingStep=*/4);
+
+  ASSERT_EQ(continuous.step(), resumed.step());
+  EXPECT_EQ(continuous.time(), resumed.time());
+  EXPECT_EQ(continuous.deltaT(), resumed.deltaT());
+
+  // And continuing to step both in lockstep from here stays bit-identical
+  // all the way to completion, including the shortened final step.
+  while (!continuous.finished()) {
+    ASSERT_FALSE(resumed.finished());
+    ASSERT_EQ(continuous.step(), resumed.step());
+    ASSERT_EQ(continuous.time(), resumed.time());
+    ASSERT_EQ(continuous.deltaT(), resumed.deltaT());
+    continuous.advance();
+    resumed.advance();
+  }
+  EXPECT_TRUE(resumed.finished());
+  EXPECT_EQ(continuous.time(), resumed.time());
+  EXPECT_EQ(continuous.step(), resumed.step());
+  EXPECT_TRUE(continuous.reachedEndTime());
+  EXPECT_TRUE(resumed.reachedEndTime());
+}
