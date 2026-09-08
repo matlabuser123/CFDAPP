@@ -6,9 +6,10 @@
 P2-002 (`TimeDerivative`, implicit Euler), P2-003 (`CFL`), and P2-004
 (`TransientSolver` orchestration) done; PISO-A through PISO-I (the full
 transient pressure-velocity path, `PISO` wired into `TransientSolver`)
-also done, 482/482 tests pass -- the core transient PISO algorithm is
-now functionally complete. Next: restart capability, then transient
-validation cases (neither started yet; see "P2 -- Transient CFD" below)
+done; Restart-A (`RestartSnapshot` data model + validation, no file I/O
+yet) also done, 498/498 tests pass. Next: Restart-B (deterministic mesh
+fingerprint), then Restart-C onward (file format/writer/reader/resume)
+(see "P2 -- Transient CFD" below)
 **Priority:** Numerical correctness before optimisation or advanced features
 
 ---
@@ -1379,6 +1380,80 @@ owns timestep acceptance and physical time."
   adaptive `dt`, CFL-triggered rejection as a *policy* decision (only its
   mechanism exists so far, exercised here with a deliberately low
   `cflFailAbove` -- no case/CLI surface chooses one yet), and PIMPLE.
+
+**Restart-A done: the restart data model + full validation, no file I/O
+yet.**
+[RestartSnapshot.hpp](include/cfd/solver/RestartSnapshot.hpp) /
+[RestartSnapshot.cpp](src/solver/RestartSnapshot.cpp): `RestartSnapshot`
+is "a complete accepted transient state from which the next time step
+can continue without reconstructing numerical state approximately" --
+`formatVersion`/`time`/`step`/`deltaT` plus `velocity`/`pressure`/
+`massFlux` copied verbatim from an accepted `TransientState`, plus
+`cellCount`/`faceCount`/`meshFingerprint` for mesh-identity checking.
+Deliberately layered as `TransientState` -> `RestartSnapshot` (this
+file) -> `RestartIO` (Restart-C/D) -> disk format, so JSON/binary/file
+concerns stay entirely out of the solver-state model.
+
+* **Saves the authoritative corrected `F`, never `U`+`p` alone.**
+  `RestartSnapshot.massFlux` is `TransientState.massFlux` copied
+  directly -- PISO-E through PISO-G's own "never regenerate `F` by
+  interpolating corrected cell velocities" invariant would otherwise be
+  silently reintroduced by any restart that only saved `U`/`p` and
+  rebuilt flux after loading.
+* **`deltaT`'s semantics are pinned down and explicitly tested**: "the
+  dt used to advance *into* this state" -- matching `TimeStepRecord.
+  deltaT`'s own already-established convention exactly (both read
+  `TimeController::deltaT()` *before* `advance()`), not "the nominal/
+  next-step dt a resumed run would separately configure." Those two
+  coincide for every step except a shortened final one -- exactly the
+  case worth being unambiguous about now, before adaptive time stepping
+  makes the distinction unavoidable. Verified two ways: a direct
+  unit-level check, and (the strongest test) a real `TransientSolver`+
+  `PISO` run's `RestartSnapshot.deltaT` compared bit-for-bit against
+  that same run's own `TimeStepRecord.deltaT` -- proving the two
+  conventions genuinely agree in practice, not merely by shared
+  definition.
+* **`meshFingerprint` is deliberately deferred to Restart-B, not faked.**
+  The field/API exists now (an empty `std::string` on every snapshot
+  this file produces); `validateRestartSnapshot` only checks
+  `cellCount`/`faceCount` for now, documented in the header as the
+  explicitly incomplete check it is (two different meshes can share both
+  counts) rather than silently treated as complete mesh-identity
+  validation -- per this task's own explicit "don't fake safety with a
+  weak hash and call it complete" instruction. `validateRestartSnapshot`
+  is exposed as the single validation entry point both construction
+  (`makeRestartSnapshot`) and a future reader (Restart-D, loading a
+  snapshot whose fields were never guaranteed valid to begin with) will
+  share, so "what makes a restart valid" is defined exactly once.
+* **16/16 new `CFDSolverTests` pass**: a valid state produces a valid
+  snapshot; velocity/pressure/flux and time/step/deltaT all copied
+  exactly; the source `TransientState` is provably unmutated; repeated
+  construction from an identical state is deterministic; a wrong
+  cell/face count is rejected; a snapshot that is internally self-
+  consistent but taken against a *different* mesh sharing both counts is
+  explicitly documented as **not** caught (Restart-B's own scope, not
+  silently pretended otherwise); non-finite velocity/pressure/massFlux
+  are each rejected; non-finite `time` is rejected but a *negative*
+  `time` is explicitly **not** rejected (`TimeController` itself does
+  not forbid a negative `startTime`, so this file does not invent a
+  stricter contract than the class that actually owns physical time);
+  every invalid `deltaT` (zero, negative, NaN, +Inf) is rejected; an
+  unsupported format version is rejected; and the strongest test --
+  `TransientSolver` + `PISO` run -> accepted state -> `RestartSnapshot`
+  -- compares every numerical value bit-for-bit (`U == U_restart`, `p ==
+  p_restart`, `F == F_restart`) plus `time`/`step`/`deltaT` against that
+  same run's own recorded `TimeStepRecord`.
+* Full project suite: 498/498 (482 + these 16) in debug, release, and
+  under ASan+UBSan -- 0 sanitizer reports, 0 new compiler warnings,
+  `clang-format`/`clang-tidy` clean (caught and fixed 2 real
+  `bugprone-argument-comment` findings: two call sites' `/*deltaT=*/`
+  comments didn't match the parameter's actual name,
+  `deltaTUsedToReachThisState`).
+* **Not done yet, deliberately** (Restart-B onward): a real deterministic
+  mesh fingerprint, the actual file writer/reader, JSON/binary schema,
+  CLI `--restart`, case-system dispatch, resuming a simulation from a
+  loaded snapshot, split-run-vs-continuous-run equivalence, and no disk
+  I/O was introduced anywhere in this task.
 
 ---
 

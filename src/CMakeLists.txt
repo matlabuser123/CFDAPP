@@ -107,13 +107,15 @@ target_sources(cfdcore
 )
 
 # P2 -- Transient CFD: TimeController (P2-001), CFL (P2-003), and
-# TransientSolver (P2-004, orchestration only -- no PISO exists yet) so
-# far.
+# TransientSolver (P2-004) -- the full PISO algorithm now lives under
+# pressure_velocity/ (see PISO.cpp above). RestartSnapshot (Restart-A):
+# the restart data model + validation only -- no file I/O yet.
 target_sources(cfdcore
   PRIVATE
     solver/TimeController.cpp
     solver/CFL.cpp
     solver/TransientSolver.cpp
+    solver/RestartSnapshot.cpp
 )
 
 # io/case/*Parser.cpp and io/case/JsonUtil.cpp are compiled into cfdcore
