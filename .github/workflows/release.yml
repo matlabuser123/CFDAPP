@@ -26,6 +26,10 @@ defaults:
 jobs:
   release:
     runs-on: windows-latest
+    # Publishing a GitHub Release (below) needs write access to contents;
+    # the default GITHUB_TOKEN is otherwise read-only on some repos.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -168,3 +172,21 @@ jobs:
             build/CFDApp-*-Windows-x64.zip
             build/CFDApp-*-Windows-x64.exe
             build/SHA256SUMS.txt
+
+      # A real gap: every prior step in this workflow (build, test,
+      # package, smoke-test, checksum, upload-artifact) had run
+      # successfully with nothing actually creating a GitHub Release --
+      # `actions/upload-artifact` only attaches files to the *workflow
+      # run*, not to a Release object (`gh release list` stayed empty
+      # through every attempt). This is the step that was missing.
+      # body_path picks up this project's own RELEASE_NOTES_vX.Y.Z.md
+      # naming convention directly from the tag name.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/CFDApp-*-Windows-x64.zip
+            build/CFDApp-*-Windows-x64.exe
+            build/SHA256SUMS.txt
+          body_path: RELEASE_NOTES_${{ github.ref_name }}.md
+          fail_on_unmatched_files: true
