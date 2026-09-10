@@ -29,6 +29,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A real CI run found this genuinely necessary: windows-latest
+      # carries MinGW's g++/ld.exe on PATH by default, and -G Ninja below
+      # has no compiler of its own preference -- without this step,
+      # CMake silently configured the whole project against MinGW
+      # instead of MSVC (everything except the GUI happened to compile
+      # anyway, since it's self-contained C++; only linking cfdapp_gui
+      # against Qt's MSVC-ABI import libraries failed, with the classic
+      # MinGW-vs-MSVC symptom: "undefined reference to `__imp_...'").
+      # This project's own local build recipe (scripts/windows-release/)
+      # always imported vcvars64.bat first for exactly this reason --
+      # this action is the CI equivalent.
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       # Provides a full Qt6 (Core/Gui/Qml/Quick/QuickControls2) Windows
       # SDK, including windeployqt -- see cmake/QtDeploy.cmake, which
       # looks for windeployqt next to qmake on PATH. 6.9.3/win64_msvc2022_64
