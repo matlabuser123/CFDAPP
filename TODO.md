@@ -1,7 +1,7 @@
 # CFDApp — TODO
 
 **Current phase:** P5 — Application / Release
-**Priority:** correctness → validation → release → future features
+**Priority:** correctness → validation → CI → release → future features
 
 ---
 
@@ -28,10 +28,10 @@
 * [x] CSV / JSON / VTK output
 * [x] Python validation tooling
 * [x] Regression suite
-* [x] CI
-* [x] Sanitizers
-* [x] clang-format / clang-tidy
-* [x] Quality gate
+* [x] CI infrastructure
+* [x] Sanitizers infrastructure
+* [x] clang-format / clang-tidy infrastructure
+* [x] Quality gate framework
 
 ---
 
@@ -59,7 +59,7 @@
 * [x] Boussinesq buoyancy
 * [x] Natural-convection validation
 * [x] Variable properties
-* [x] Species transport
+* [x] Species transport foundation
 * [x] Multiphase foundation
 * [x] Compressible foundation
 * [x] Low-Mach / conservation validation
@@ -73,8 +73,8 @@
 * [x] Linear-solver investigation
 * [x] OpenMP
 * [x] Memory/layout investigation
-* [x] CUDA integration
-* [x] CPU/GPU equivalence
+* [x] CUDA foundation/integration
+* [x] CPU/GPU equivalence tests
 * [x] Large-grid benchmarks
 
 ---
@@ -91,84 +91,85 @@
 * [x] ParaView workflow
 * [x] User documentation
 * [x] Windows packaging
+* [x] Fixed a real Windows-only runtime defect: `CFDGuiControllerTests.exe`
+  (links `Qt6::Test`) had no `windeployqt` step of its own, so it had no
+  local `Qt6Test.dll`; Windows' loader then fell through to PATH and
+  could load an unrelated/older Qt6Test.dll (reproduced with both a
+  Miniconda-bundled Qt 6.7.3 and a leftover Qt 6.5.3 SDK on this
+  machine), crashing with `STATUS_ENTRYPOINT_NOT_FOUND` ("Entry Point
+  Not Found" on `QSignalSpy::wait(chrono::duration<...>)`, an overload
+  only exported by Qt >= ~6.8) instead of running. Fixed by refactoring
+  `cmake/QtDeploy.cmake` into a reusable `cfdapp_deploy_qt_runtime()`
+  function and calling it for `CFDGuiControllerTests` too, not just
+  `cfdapp_gui`. Verified: full reconfigure+rebuild of
+  `build/windows-release` via `scripts/windows-release/
+  1-configure-and-build.ps1`; `Qt6Test.dll` (6.9.3.0, matching the
+  compile kit) now present next to the test exe; the exe and the
+  `SimulationControllerTest.*` ctest suite (13/13) both pass even with
+  the stale Qt 6.5.3 SDK and conda's Qt 6.7.3 deliberately placed ahead
+  on PATH (the exact failure condition). No solver code changed, no
+  test weakened.
 * [ ] Release automation
 
-## CI gate (checked separately from the release gate -- ci.yml, not release.yml)
+## CI Gate
 
+* [x] clang-format configuration fixed and pinned
 * [x] clang-tidy clean
-* [x] python suite clean
-* [x] clang-format clean -- was genuinely failing (all P3-P5 code added this
-  session was never run through it); fixed in `cfe6606` (repo-wide
-  `clang-format -i`, verified 0 violations, full local rebuild + regression
-  1162/1162 unaffected), pushed to `main`. That fix alone was still
-  insufficient: GitHub's `ubuntu-latest` runner had moved from 22.04 to
-  24.04 mid-session, shipping a newer default `clang-format` that
-  disagrees with clang-format-14/15 on short-lambda-in-function-call
-  wrapping (2 pre-existing files affected: `test_divergence.cpp`,
-  `test_continuity_equation.cpp`) -- confirmed the two tool versions are
-  mutually incompatible (clang-format-18's output has 45 violations under
-  clang-format-14). Fixed by (1) reformatting those 2 files with
-  clang-format-18 and (2) pinning `ci.yml`'s `format` job to install and
-  use clang-format-18 explicitly (via apt.llvm.org's script) instead of
-  the runner image's drifting default. Verified 0 violations locally
-  under clang-format-18; full local rebuild + regression 1161/1162 passed
-  (1 known transient parallel-fixture-race failure,
-  `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`,
-  reconfirmed passing in isolation). Not yet reconfirmed by an actual
-  completed GitHub Actions `format` job on this fix.
-* [ ] build-test (gcc/debug, gcc/release, clang/debug) all green in CI
-* [ ] sanitizers green in CI (every observed run has taken 35-45+ minutes
-  with no completion seen this session -- genuinely slow or stuck, not
-  yet distinguished)
+* [x] Python suite clean
+* [ ] gcc/debug build-test green
+* [ ] gcc/release build-test green
+* [ ] clang/debug build-test green
+* [ ] sanitizers green
+* [ ] Full CI workflow green on `main`
 
-## Release gate
+**Known issue:** one transient parallel-fixture race has been observed in `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`; it passes in isolation but should not be treated as a fully clean local regression result until the race is resolved or eliminated.
 
-* [x] Keep existing published tags immutable (v0.1.0/v0.1.1/v0.1.2 untouched)
-* [x] Update project version before the next release tag (0.1.2, matches `v0.1.2`)
-* [x] Push version/release fixes to `main` (version bump `ccab01d`; MSVC
-  dev-env activation fix `1195a6c`; clang-format fix `cfe6606`)
-* [ ] Create the next clean release tag -- awaiting go-ahead on a name
-  (e.g. `v0.1.3`) for `cfe6606`; not created without explicit confirmation
-* [ ] Run GitHub Actions Release workflow end to end -- **5/5 attempts
-  failed so far** (v0.1.0 x3, v0.1.1 x1, v0.1.2 x1), each exposing a real,
-  previously-invisible defect, each fixed on `main`: invalid Qt module ->
-  stale checkout working-directory -> missing `#include <algorithm>` ->
-  tag/project-version mismatch -> MinGW-vs-MSVC linker mismatch (just
-  fixed, unverified)
-* [ ] Confirm build succeeds on GitHub Windows runner
-* [ ] Confirm full tests pass in CI
-* [ ] Confirm ZIP / installer artifacts are produced in CI
-* [ ] Smoke-test generated release artifacts in CI
-* [ ] Confirm GitHub Release is published (none exists yet -- `gh release
-  list` is empty)
+## Release Gate
+
+* [x] Keep existing tags immutable
+* [x] Version/release fixes pushed to `main`
+* [ ] CI Gate fully green
+* [ ] Bump project version for the next clean release
+* [ ] Create a new release tag
+* [ ] Release workflow green end to end
+* [ ] Windows build succeeds on GitHub runner
+* [ ] Full release test suite passes
+* [ ] ZIP artifact produced
+* [ ] Installer artifact produced
+* [ ] CI smoke tests pass on packaged artifacts
+* [ ] Downloaded release artifact retested
+* [ ] GitHub Release published with assets
+* [ ] Mark release automation complete
 * [ ] Mark P5 complete
 
 ---
 
 # Next Backlog
 
-## Production physics integration
+## Production Physics Integration
 
-* [ ] Add `physics.json` parsing for species
-* [ ] Add multiphase case configuration
-* [ ] Add compressible case configuration
-* [ ] Wire species into `ProjectRunner`
-* [ ] Wire multiphase into `ProjectRunner`
-* [ ] Wire compressible solver path into `ProjectRunner`
-* [ ] Add output/export support for new physics
+* [ ] Species `physics.json` parsing
+* [ ] Species `ProjectRunner` dispatch
+* [ ] Multiphase `physics.json` parsing
+* [ ] Multiphase `ProjectRunner` dispatch
+* [ ] Compressible `physics.json` parsing
+* [ ] Compressible `ProjectRunner` dispatch
+* [ ] Export/output wiring for new physics
 
-## GUI improvements
+## GUI Improvements
 
-* [ ] Mesh editing
-* [ ] Physics-property editing
-* [ ] Boundary-condition editing
-* [ ] Case creation entirely from GUI
+* [ ] Mesh editor
+* [ ] Physics editor
+* [ ] Boundary-condition editor
+* [ ] Solver-settings editor
+* [ ] Full case creation from GUI
 
-## Performance follow-up
+## Performance Follow-up
 
 * [ ] Persistent GPU-resident field/matrix pipeline
-* [ ] Integrate GPU CG/BiCGSTAB into production solve path
+* [ ] Production GPU CG/BiCGSTAB integration
 * [ ] Improve preconditioning
+* [ ] Measure true CUDA end-to-end benefit
 * [ ] Revisit OpenMP scaling
 * [ ] Larger CPU/GPU benchmarks
 
@@ -176,6 +177,4 @@
 
 # Immediate Next Task
 
-Finish the release gate.
-
-Do not begin another major solver-development phase until the GitHub release workflow passes end to end and the generated release artifacts are verified.
+**Finish the CI Gate on commit `1b6d350`; do not create another release tag until all required CI jobs are green.**

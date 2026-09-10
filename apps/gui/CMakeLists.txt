@@ -46,6 +46,9 @@ target_link_libraries(cfdapp_gui
 # useful -- a Windows developer can run the build-tree executable
 # standalone without CFDAPP_ENABLE_PACKAGING at all.
 include(${CFDApp_SOURCE_DIR}/cmake/QtDeploy.cmake)
+if(COMMAND cfdapp_deploy_qt_runtime)
+  cfdapp_deploy_qt_runtime(cfdapp_gui --qmldir "${CFDApp_SOURCE_DIR}/apps/gui/qml")
+endif()
 
 # P5-B section 59: controller-level tests -- plain QObject logic under a
 # bare QCoreApplication, no display/offscreen platform plugin needed.
@@ -63,6 +66,20 @@ target_link_libraries(CFDGuiControllerTests
     Qt6::Test
     GTest::gtest_main
 )
+
+# Real Windows-only bug fixed here: CFDGuiControllerTests links Qt6::Test
+# but previously had no windeployqt step of its own, so it had no local
+# Qt6Test.dll. Windows' loader then fell through to PATH and could pick
+# up an unrelated/older Qt6Test.dll (observed: a Miniconda environment's
+# bundled Qt 6.7.3, and separately a leftover Qt 6.5.3 SDK -- neither
+# exports the QSignalSpy::wait(chrono::duration<...>) overload this Qt
+# 6.9.3 build actually needs), crashing with "Entry Point Not Found"
+# (STATUS_ENTRYPOINT_NOT_FOUND) instead of running. Deploying this
+# target's own Qt runtime locally makes the exe-directory DLL search
+# (which always wins over PATH) resolve to the correct Qt kit.
+if(COMMAND cfdapp_deploy_qt_runtime)
+  cfdapp_deploy_qt_runtime(CFDGuiControllerTests)
+endif()
 
 include(GoogleTest)  # idempotent -- harmless even though tests/ (add_subdirectory()'d before apps/gui, root CMakeLists.txt) already includes this.
 gtest_discover_tests(CFDGuiControllerTests
