@@ -13,16 +13,19 @@ name: CI
 # -- CI stays fast without needing a separate slow/fast CTest label
 # filter for that split. `ctest -L validation` (see cmake/Testing.cmake)
 # is for selecting a *tier* on demand, not this split.
+#
+# No defaults.run.working-directory -- a real run found the previous
+# `working-directory: CFDApp` assumed a nested CFDApp/ checkout
+# subdirectory that does not exist in how this repository actually lays
+# out (project files sit at the repo root; $GITHUB_WORKSPACE already *is*
+# the project root), failing every step with "directory name is
+# invalid"/"No such file or directory" before it could run anything.
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: CFDApp
 
 jobs:
   # --- section 33: build-test, matrixed per section 31 --------------------

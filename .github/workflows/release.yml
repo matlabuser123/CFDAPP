@@ -4,11 +4,15 @@ name: Release
 # package -> smoke-test-the-*packaged*-artifact -> checksum -> upload,
 # failing the whole release if any step fails (section 54's own "the
 # release workflow must fail if tests fail"). See
-# docs/developer_guide/packaging.md -- **this workflow has never
-# actually been run**; it needs a Windows runner it was never executed
-# on from this (Linux/WSL) development environment. Treat it as a
-# reviewable starting point, not a verified release pipeline, until it
-# has actually run once.
+# docs/developer_guide/packaging.md and results/release/0.1.0/ for the
+# real run history this workflow has now actually had, including two
+# genuine CI-only defects a real run exposed and this file no longer
+# has: an invalid Qt "qtdeclarative" module (not an installable addon,
+# it's part of the base desktop install) and a stale
+# working-directory: CFDApp default -- inherited from ci.yml's own
+# assumption of a nested CFDApp/ checkout subdirectory that does not
+# exist in how this repository actually lays out (project files sit at
+# the repo root; $GITHUB_WORKSPACE already *is* the project root).
 
 on:
   push:
@@ -17,7 +21,6 @@ on:
 
 defaults:
   run:
-    working-directory: CFDApp
     shell: pwsh
 
 jobs:
@@ -126,6 +129,6 @@ jobs:
           # (confirmed against a real local build: CFDApp-0.1.0-Windows-
           # x64.exe, not ...-Setup.exe -- see results/release/0.1.0/).
           path: |
-            CFDApp/build/CFDApp-*-Windows-x64.zip
-            CFDApp/build/CFDApp-*-Windows-x64.exe
-            CFDApp/build/SHA256SUMS.txt
+            build/CFDApp-*-Windows-x64.zip
+            build/CFDApp-*-Windows-x64.exe
+            build/SHA256SUMS.txt
