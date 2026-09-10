@@ -26,16 +26,25 @@ Index pointIndex(Index i, Index j, Index nx) { return (j * (nx + 1)) + i; }
 }  // namespace
 
 void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mesh,
-                              const SIMPLEResult& result) {
+                              const SIMPLEResult& result,
+                              const std::optional<cfd::fields::ScalarField>& temperature) {
   const Index n = mesh.numberOfCells();
   if (result.velocity.size() != n || result.pressure.size() != n) {
     throw InvalidArgumentError(
         "VTKWriter::writeSolution: result field size does not match mesh cell count");
   }
+  if (temperature.has_value() && temperature->size() != n) {
+    throw InvalidArgumentError(
+        "VTKWriter::writeSolution: temperature size does not match mesh cell count");
+  }
   for (Index id = 0; id < n; ++id) {
     if (!std::isfinite(result.velocity[id].x) || !std::isfinite(result.velocity[id].y) ||
         !std::isfinite(result.pressure[id])) {
       throw NumericalError("VTKWriter::writeSolution: non-finite value at cell " +
+                           std::to_string(id));
+    }
+    if (temperature.has_value() && !std::isfinite((*temperature)[id])) {
+      throw NumericalError("VTKWriter::writeSolution: non-finite temperature at cell " +
                            std::to_string(id));
     }
   }
@@ -92,6 +101,11 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
 
   out << "SCALARS velocity_magnitude double 1\nLOOKUP_TABLE default\n";
   for (Index id = 0; id < n; ++id) out << magnitude(result.velocity[id]) << '\n';
+
+  if (temperature.has_value()) {
+    out << "SCALARS temperature double 1\nLOOKUP_TABLE default\n";
+    for (Index id = 0; id < n; ++id) out << (*temperature)[id] << '\n';
+  }
 }
 
 }  // namespace cfd::io

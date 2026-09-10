@@ -14,15 +14,22 @@ using cfd::mesh::Mesh;
 using cfd::pressure_velocity::SIMPLEResult;
 
 void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
-                            const SIMPLEResult& result) {
+                            const SIMPLEResult& result,
+                            const std::optional<cfd::fields::ScalarField>& temperature) {
   const Index n = mesh.numberOfCells();
   if (result.velocity.size() != n || result.pressure.size() != n) {
     throw InvalidArgumentError(
         "CSVWriter::writeFields: result field size does not match mesh cell count");
   }
+  if (temperature.has_value() && temperature->size() != n) {
+    throw InvalidArgumentError(
+        "CSVWriter::writeFields: temperature size does not match mesh cell count");
+  }
 
   auto out = detail::openDeterministicOutput(path);
-  out << "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure\n";
+  out << "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure";
+  if (temperature.has_value()) out << ",temperature";
+  out << '\n';
   for (Index id = 0; id < n; ++id) {
     const Vector2& centroid = mesh.cell(id).centroid();
     const Vector2& velocity = result.velocity[id];
@@ -31,8 +38,14 @@ void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
       throw NumericalError("CSVWriter::writeFields: non-finite value at cell " +
                            std::to_string(id));
     }
+    if (temperature.has_value() && !std::isfinite((*temperature)[id])) {
+      throw NumericalError("CSVWriter::writeFields: non-finite temperature at cell " +
+                           std::to_string(id));
+    }
     out << id << ',' << centroid.x << ',' << centroid.y << ',' << velocity.x << ',' << velocity.y
-        << ',' << magnitude(velocity) << ',' << pressure << '\n';
+        << ',' << magnitude(velocity) << ',' << pressure;
+    if (temperature.has_value()) out << ',' << (*temperature)[id];
+    out << '\n';
   }
 }
 

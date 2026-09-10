@@ -20,6 +20,21 @@ enum class BoundaryConditionType {
   Inlet,
   Outlet,
   Symmetry,
+  // Thermal-specific scalar conditions (P2 -- Thermal, P2-THERMAL-003):
+  // mathematically FixedTemperature==FixedValue and HeatFlux/Adiabatic
+  // are Neumann conditions like FixedGradient, but each gets its own
+  // type/name here rather than reusing the generic ones -- same
+  // precedent as Outlet (a named, physically-meaningful zero-gradient
+  // condition distinct from a bare FixedGradient(0.0), see Outlet.hpp).
+  FixedTemperature,
+  HeatFlux,
+  Adiabatic,
+  // P2-TURB-006: SST's near-wall omega Dirichlet value (Wilcox's
+  // asymptotic formula, evaluated at the owner cell's own distance to
+  // the wall face) -- see WallOmega.hpp. Its own named type for the same
+  // reason as the thermal conditions above: physically meaningful and
+  // distinct from a bare FixedValue/FixedGradient.
+  WallOmega,
 };
 
 // Minimal common interface: identity only. Deliberately does not force a

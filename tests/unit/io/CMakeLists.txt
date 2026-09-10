@@ -1,7 +1,11 @@
 add_executable(CFDIoTests
   test_case_reader.cpp
+  test_case_writer.cpp
   test_case_validation.cpp
   test_case_builder.cpp
+  test_thermal_case.cpp
+  test_turbulence_case.cpp
+  test_boussinesq_case.cpp
   test_csv_writer.cpp
   test_json_writer.cpp
   test_vtk_writer.cpp

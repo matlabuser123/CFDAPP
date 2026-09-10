@@ -192,6 +192,39 @@ TEST(JSONWriterTest, FormatVersionIsOne) {
   EXPECT_EQ(readJson(path)["format_version"], 1);
 }
 
+// --- P2-THERMAL-004: optional "thermal" section ----------------------------
+
+TEST(JSONWriterTest, ThermalEnabledIsFalseByDefault) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeConvergedResultFor2x2();
+  const auto path = tempFile("thermal_absent.json");
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, result);
+  const auto doc = readJson(path);
+
+  ASSERT_TRUE(doc.contains("thermal"));
+  EXPECT_FALSE(doc["thermal"]["enabled"].get<bool>());
+  EXPECT_FALSE(doc["thermal"].contains("conductivity"));
+}
+
+TEST(JSONWriterTest, WritesThermalMetadataWhenProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeConvergedResultFor2x2();
+  const auto path = tempFile("thermal_present.json");
+  const cfd::io::ThermalRunMetadata thermal{
+      /*conductivity=*/0.6,   /*specificHeat=*/4180.0, /*status=*/"Converged",
+      /*converged=*/true,     /*iterations=*/57,       /*finalResidual=*/1.2e-9};
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, result, thermal);
+  const auto doc = readJson(path);
+
+  EXPECT_TRUE(doc["thermal"]["enabled"].get<bool>());
+  EXPECT_DOUBLE_EQ(doc["thermal"]["conductivity"].get<double>(), 0.6);
+  EXPECT_DOUBLE_EQ(doc["thermal"]["specific_heat"].get<double>(), 4180.0);
+  EXPECT_EQ(doc["thermal"]["status"], "Converged");
+  EXPECT_TRUE(doc["thermal"]["converged"].get<bool>());
+  EXPECT_EQ(doc["thermal"]["iterations"], 57);
+  EXPECT_DOUBLE_EQ(doc["thermal"]["final_residual"].get<double>(), 1.2e-9);
+}
+
 TEST(JSONWriterTest, RepeatedWriteIsByteIdentical) {
   const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
   const auto result = makeConvergedResultFor2x2();

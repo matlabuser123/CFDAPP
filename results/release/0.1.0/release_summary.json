@@ -1,0 +1,23 @@
+{
+  "version": "0.1.0",
+  "date": "2026-09-10",
+  "what_was_actually_verified": {
+    "method": "real local Windows build (this machine's own PowerShell/MSVC/Qt), not GitHub Actions",
+    "windows_release_build": "PASS -- MSVC 19.51.36256.0, CMake 4.3.1, Ninja 1.13.2, Qt 6.9.3 win64_msvc2022_64",
+    "ctest_full_suite": "PASS -- 1162/1162 (100%), 13 pre-existing disabled tests unaffected; see ctest.txt",
+    "known_flaky_finding_disclosed_not_hidden": "one single run under -j4 saw SimulationControllerTest.OpeningACaseWithExistingResultsAutoLoadsThem fail once, reproducibly passed both isolated and in two subsequent full-suite reruns -- a parallel-execution race on the shared tests/data/cases/valid_cavity fixture directory (multiple test binaries writing results/ to the same path concurrently), not a logic defect. Not fixed this task (a shared-fixture-directory test-isolation improvement, out of scope for a packaging/release task) -- disclosed as a real, minor robustness gap for a future task.",
+    "zip_package": "PASS -- CFDApp-0.1.0-Windows-x64.zip, built via CPack ZIP generator",
+    "nsis_installer": "PASS -- CFDApp-0.1.0-Windows-x64.exe, built via CPack NSIS generator (NSIS 3.12, installed via winget)",
+    "qt_runtime_deployment": "PASS, after a real defect was found and fixed -- windeployqt's own output (Qt DLLs, platforms/qml/iconengines/imageformats/networkinformation/tls plugin dirs, translations) was NOT captured by the original install(TARGETS) rule; the first package built was only ~440KB (2 exes, no Qt runtime) and would not have run on a machine without Qt already installed. Fixed with an explicit install(DIRECTORY $<TARGET_FILE_DIR:cfdapp_gui>/ ...) rule -- see cmake/Packaging.cmake's own comment. The corrected package is ~50-61MB.",
+    "packaged_cli_smoke_test": "PASS -- --version and a full lid_driven_cavity run (converged, 3036 iterations, exit 0) from the extracted package",
+    "packaged_gui_smoke_test": "PASS -- launched from the extracted package, stayed alive for 3s (a real Qt event loop running, native \"windows\" platform plugin, not offscreen), stopped cleanly",
+    "clean_machine_dependency_test": "PASS, approximated -- no separate physical/VM machine was available; instead the packaged executables were launched from a fresh PowerShell process whose PATH was confirmed to contain neither C:\\Qt nor the Visual Studio toolchain (the only two dev-only components on this machine a genuinely clean machine would also lack). This is a real, meaningful proxy for the same question a separate clean VM would answer, but it is not literally a second machine -- disclosed honestly rather than claimed as identical to section 13's own stronger form.",
+    "cpu_only_fallback": "PASS, trivially -- CFDAPP_ENABLE_CUDA was never turned on for this build; the package has no CUDA dependency to begin with.",
+    "version_metadata_consistency": "PASS, after a real gap was found and fixed -- the GUI originally had no version display anywhere (no About dialog existed). Added SimulationController::applicationVersion/applicationName (read from the same cfd::core::versionString() the CLI and CPack already use) plus a window-title binding and an About dialog in Main.qml. See version.txt.",
+    "checksums": "PASS -- SHA256SUMS.txt generated from the final package files (see that file in this same directory)."
+  },
+  "what_was_not_verified": {
+    "github_actions_release_workflow": "NOT RUN. This repository has no git remote configured and no `gh` CLI available in this environment -- there was no way to push a tag and trigger .github/workflows/release.yml, or to inspect its result, from here. Everything the workflow itself would do (configure, build, full ctest, package, packaged-artifact smoke test including the GUI, checksums) was instead performed directly and manually on this real Windows machine, with real evidence saved alongside this file -- but that is not the same as the actual GitHub Actions workflow having executed successfully. release.yml was corrected to match what was actually verified (Qt 6.9.3/msvc2022_64 instead of the untested 6.5.*/msvc2019_64 original guess, the real NSIS output filename, and a packaged-GUI smoke-test step that did not exist before) so that whoever next has push/CI access has the best available starting point, but it remains genuinely unexecuted.",
+    "downloaded_artifact_retest": "NOT APPLICABLE -- no GitHub release exists yet to download from (depends on the item above)."
+  }
+}

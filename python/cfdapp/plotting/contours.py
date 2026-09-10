@@ -55,3 +55,14 @@ def plot_v_velocity_contour(
     fields: pd.DataFrame, output_path: str | Path, *, title: str = "V velocity"
 ) -> Path:
     return _plot_scalar_contour(fields, "velocity_y", output_path, title=title, colorbar_label="v")
+
+
+def plot_temperature_contour(
+    fields: pd.DataFrame, output_path: str | Path, *, title: str = "Temperature"
+) -> Path:
+    """P2-THERMAL-004: fields["temperature"] must already be present --
+    raises KeyError (via pandas) rather than silently plotting nothing if
+    called on a nonthermal result's fields.csv, matching this module's
+    own precedent of never guessing at a missing column.
+    """
+    return _plot_scalar_contour(fields, "temperature", output_path, title=title, colorbar_label="T")

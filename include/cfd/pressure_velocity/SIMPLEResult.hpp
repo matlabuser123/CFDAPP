@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include "cfd/core/Types.hpp"
@@ -21,6 +22,17 @@ enum class SIMPLEStatus {
   PressureCorrectionFailure,
   NonFiniteState,
   InvalidConfiguration,
+  // P5-B -- GUI Solver Workflow, section 13: a solve stopped early by an
+  // external cancellation request (see SIMPLE's own optional
+  // SIMPLECancellationCheck constructor parameter), checked only at the
+  // top of an outer iteration -- never mid-iteration -- so the fields
+  // returned alongside this status are always the last *complete*
+  // converged-or-not outer iterate, never a partially-updated one. Never
+  // produced by any pre-P5 call site (the cancellation check defaults to
+  // null, i.e. "never cancelled"), so this is purely additive: every
+  // existing exhaustive switch over SIMPLEStatus needed a new case added
+  // once this value existed, but no prior *behavior* changed.
+  Cancelled,
 };
 
 // residualHistory[k] (all four histories, plus continuityHistory) is the
@@ -62,6 +74,16 @@ struct SIMPLEResult {
   Real finalPressureResidual{};
   Real finalContinuityResidual{};
   Real globalMassImbalance{};
+
+  // P2-TURB-004 section 23: the active TurbulenceModel's own
+  // convergenceResidual() after the final iteration -- std::nullopt for
+  // laminar (or any model that does not report one), populated (and
+  // gated on, via SIMPLESettings::turbulenceTolerance) once a transport-
+  // equation model like KEpsilonModel is active. Not folded into
+  // finalContinuityResidual or any velocity/pressure residual -- a
+  // distinct physical quantity gets its own field (TODO.md P0 section 7
+  // precedent).
+  std::optional<Real> finalTurbulenceResidual;
 
   std::vector<Real> uResidualHistory;
   std::vector<Real> vResidualHistory;

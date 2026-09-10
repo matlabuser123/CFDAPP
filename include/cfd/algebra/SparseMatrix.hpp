@@ -35,6 +35,17 @@ class SparseMatrix {
 
   [[nodiscard]] bool allFinite() const noexcept;
 
+  // P4 -- Performance/GPU: raw CSR array access, needed to copy this
+  // matrix's storage to a device buffer (cuda/kernels/CsrSpmvKernel.cu)
+  // without exposing the private std::vectors themselves or letting a
+  // caller mutate CSR data in place (this class stays immutable once
+  // built -- see its own class-level comment). Any other caller wanting
+  // read-only bulk access (e.g. a future non-CUDA SpMV backend) can use
+  // these too; nothing here is CUDA-specific.
+  [[nodiscard]] const Real* valuesData() const noexcept;
+  [[nodiscard]] const Index* columnIndicesData() const noexcept;
+  [[nodiscard]] const Index* rowOffsetsData() const noexcept;
+
  private:
   Index rows_{};
   Index columns_{};
@@ -59,6 +70,19 @@ struct Triplet {
 class SparseMatrixBuilder {
  public:
   SparseMatrixBuilder(Index rows, Index columns);
+
+  // P4 -- Performance, matrix-assembly optimization: reserves capacity
+  // for at least `expectedTripletCount` (row, column, value)
+  // contributions up front, avoiding the repeated reallocation/copy a
+  // growing std::vector otherwise pays for during assembly (measured
+  // hotspot -- see TODO.md's own P4 status note for the benchmark
+  // evidence). Purely a capacity hint: never changes which triplets get
+  // added, their order, or the resulting matrix -- calling add() more or
+  // fewer times than reserved for is always still correct, just without
+  // the reservation's benefit. Safe to skip entirely (the default
+  // constructor behavior, an empty vector that grows on demand, is
+  // unchanged for any caller that does not call this).
+  void reserve(Index expectedTripletCount);
 
   void add(Index row, Index column, Real value);
 

@@ -94,4 +94,62 @@ MomentumAssembly assembleTransientMomentumComponent(
   return MomentumAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs), std::move(diagonal)};
 }
 
+MomentumAssembly assembleTransientMomentumComponent(
+    const Mesh& mesh, const VectorField& velocity, const ScalarField& pressure,
+    const SurfaceField& massFlux, const FluidProperties& fluid,
+    const ScalarField& effectiveViscosity, const BoundaryConditionSet& velocityBoundaries,
+    const BoundaryConditionSet& pressureBoundaries, VelocityComponent component,
+    const ScalarField& previousComponentValue, Real dt) {
+  const Index n = mesh.numberOfCells();
+  if (velocity.size() != n || pressure.size() != n) {
+    throw InvalidArgumentError(
+        "assembleTransientMomentumComponent: velocity/pressure size does not match mesh cell "
+        "count");
+  }
+  if (massFlux.size() != mesh.numberOfFaces()) {
+    throw InvalidArgumentError(
+        "assembleTransientMomentumComponent: massFlux size does not match mesh face count");
+  }
+  if (effectiveViscosity.size() != n) {
+    throw InvalidArgumentError(
+        "assembleTransientMomentumComponent: effectiveViscosity size does not match mesh cell "
+        "count");
+  }
+  if (!std::isfinite(dt) || !(dt > 0.0)) {
+    throw InvalidArgumentError("assembleTransientMomentumComponent: dt must be finite and > 0");
+  }
+
+  SparseMatrixBuilder builder(n, n);
+  Vector rhs(n, 0.0);
+
+  assembleDiffusionContribution(mesh, effectiveViscosity, velocity, velocityBoundaries, component,
+                                builder, rhs);
+  assembleConvectionContribution(mesh, massFlux, velocity, velocityBoundaries, component, builder,
+                                 rhs);
+  assemblePressureSourceContribution(mesh, pressure, pressureBoundaries, component, rhs);
+
+  const auto timeCoefficients =
+      implicitEulerTimeDerivative(mesh, previousComponentValue, fluid.density(), dt);
+  Vector diagonalContribution(n);
+  Vector sourceContribution(n);
+  for (Index i = 0; i < n; ++i) {
+    diagonalContribution[i] = timeCoefficients.diagonal[i];
+    sourceContribution[i] = timeCoefficients.source[i];
+  }
+  applyTransientTerm(builder, rhs, diagonalContribution, sourceContribution);
+
+  SparseMatrix matrix = builder.build();
+  Vector diagonal(n);
+  for (Index row = 0; row < n; ++row) {
+    diagonal[row] = matrix.diagonal(row);
+  }
+
+  if (!matrix.allFinite() || !rhs.allFinite()) {
+    throw NumericalError(
+        "assembleTransientMomentumComponent: assembled system contains a non-finite value");
+  }
+
+  return MomentumAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs), std::move(diagonal)};
+}
+
 }  // namespace cfd::pressure_velocity

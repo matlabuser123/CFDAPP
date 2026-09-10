@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <optional>
 
+#include "cfd/fields/ScalarField.hpp"
 #include "cfd/io/JSONWriter.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
@@ -43,10 +44,20 @@ class ResultExporter {
   //    converged (section 29's closing rule) since `solver.status`/
   //    `solver.converged` come directly from SIMPLEResult, not from
   //    whether files happened to be written.
-  [[nodiscard]] static ResultExportSummary write(const std::filesystem::path& outputDirectory,
-                                                 const cfd::mesh::Mesh& mesh,
-                                                 const cfd::pressure_velocity::SIMPLEResult& result,
-                                                 const RunMetadata& metadata);
+  //
+  //  - `temperature`/`thermalMetadata` (P2-THERMAL-004): both present iff
+  //    the case is thermal-enabled -- metadata.json's "thermal.enabled"
+  //    always reflects whether `thermalMetadata` was given; the
+  //    temperature column/SCALARS block in fields.csv/solution.vtk is
+  //    included only when `temperature` is *also* given AND every
+  //    velocity/pressure value is finite AND every temperature value is
+  //    finite -- the same "only a fully-finite solution gets field files"
+  //    policy extended to temperature, never a partially-finite export.
+  [[nodiscard]] static ResultExportSummary write(
+      const std::filesystem::path& outputDirectory, const cfd::mesh::Mesh& mesh,
+      const cfd::pressure_velocity::SIMPLEResult& result, const RunMetadata& metadata,
+      const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt,
+      const std::optional<ThermalRunMetadata>& thermalMetadata = std::nullopt);
 };
 
 }  // namespace cfd::io

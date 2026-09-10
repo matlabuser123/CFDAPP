@@ -1,6 +1,7 @@
 import pandas as pd
 
 from cfdapp.plotting.contours import (
+    plot_temperature_contour,
     plot_u_velocity_contour,
     plot_v_velocity_contour,
     plot_velocity_magnitude_contour,
@@ -104,3 +105,13 @@ def test_contour_plots_write_nonempty_files(tiny_results_dir, tmp_path):
     ]
     for output in outputs:
         _assert_nonempty_file(output)
+
+
+def test_plot_temperature_contour_writes_nonempty_file(tiny_thermal_results_dir, tmp_path):
+    result = load_case_results(tiny_thermal_results_dir)
+    assert result.has_temperature
+    fields_before = result.fields.copy()
+
+    output = plot_temperature_contour(result.fields, tmp_path / "temperature.png")
+    _assert_nonempty_file(output)
+    pd.testing.assert_frame_equal(result.fields, fields_before)

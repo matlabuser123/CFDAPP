@@ -10,6 +10,7 @@
 #include "cfd/physics/MassFlux.hpp"
 #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
 #include "cfd/pressure_velocity/RelaxedMomentum.hpp"
+#include "cfd/turbulence/LaminarModel.hpp"
 
 namespace cfd::pressure_velocity {
 
@@ -20,11 +21,14 @@ using cfd::fields::ScalarField;
 using cfd::fields::SurfaceField;
 using cfd::fields::VectorField;
 using cfd::mesh::Mesh;
+using cfd::physics::BoussinesqBuoyancy;
 using cfd::physics::calculateMassFlux;
 using cfd::physics::evaluateContinuity;
 using cfd::physics::FluidProperties;
 using cfd::physics::MomentumAssembly;
 using cfd::physics::VelocityComponent;
+using cfd::turbulence::LaminarModel;
+using cfd::turbulence::TurbulenceModel;
 
 namespace {
 
@@ -87,8 +91,16 @@ VectorField combineComponents(const Vector& u, const Vector& v) {
 
 }  // namespace
 
-SIMPLE::SIMPLE(SIMPLESettings settings, Index referenceCell)
-    : settings_(std::move(settings)), referenceCell_(referenceCell) {}
+SIMPLE::SIMPLE(SIMPLESettings settings, Index referenceCell, TurbulenceModel* turbulenceModel,
+              const ScalarField* temperature, const BoussinesqBuoyancy* buoyancy,
+              SIMPLEProgressCallback progressCallback, SIMPLECancellationCheck cancellationCheck)
+    : settings_(std::move(settings)),
+      referenceCell_(referenceCell),
+      turbulenceModel_(turbulenceModel),
+      temperature_(temperature),
+      buoyancy_(buoyancy),
+      progressCallback_(std::move(progressCallback)),
+      cancellationCheck_(std::move(cancellationCheck)) {}
 
 const SIMPLESettings& SIMPLE::settings() const noexcept { return settings_; }
 Index SIMPLE::referenceCell() const noexcept { return referenceCell_; }
@@ -119,6 +131,18 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     if (referenceCell_ >= mesh.numberOfCells()) {
       throw InvalidArgumentError("SIMPLE::solve: referenceCell out of range");
     }
+    // P3-PHYS-001: temperature_/buoyancy_ must be both null or both
+    // non-null (constructor-time invariant, re-checked here rather than
+    // in the constructor -- same "solve()-time InvalidConfiguration, not
+    // a throwing constructor" convention as referenceCell above), and
+    // temperature_ (when present) must match this mesh's cell count.
+    if ((temperature_ == nullptr) != (buoyancy_ == nullptr)) {
+      throw InvalidArgumentError(
+          "SIMPLE::solve: temperature and buoyancy must be both null or both non-null");
+    }
+    if (temperature_ != nullptr && temperature_->size() != mesh.numberOfCells()) {
+      throw InvalidArgumentError("SIMPLE::solve: temperature size does not match mesh cell count");
+    }
     momentumSolver.emplace(settings_.momentumSolver);
     pressureSolver.emplace(settings_.pressureSolver);
   } catch (const InvalidArgumentError&) {
@@ -144,23 +168,75 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     return result;
   }
 
+  // P2-TURB-003: `turbulenceModel_` is optional (defaults to null) --
+  // when unset, this solve() call uses a local LaminarModel, scoped to
+  // this call and this mesh, so mu_t = 0 everywhere and mu_eff reduces to
+  // exactly fluid.dynamicViscosity() in every cell (see
+  // LaminarModelTest.EffectiveViscosityEqualsMolecularViscosity). This
+  // keeps the pre-P2-TURB-003 two-argument SIMPLE(settings, referenceCell)
+  // construction path laminar, exactly as before.
+  std::optional<LaminarModel> defaultTurbulenceModel;
+  TurbulenceModel* activeModel = turbulenceModel_;
+  if (activeModel == nullptr) {
+    defaultTurbulenceModel.emplace(mesh);
+    activeModel = &(*defaultTurbulenceModel);
+  }
+
   SIMPLEStatus finalStatus = SIMPLEStatus::MaxIterations;
 
   for (Index iteration = 0; iteration < settings_.maxIterations; ++iteration) {
+    // P5-B section 13: checked at the top of the outer loop only, before
+    // this iteration touches velocity/pressure/massFlux at all -- so a
+    // cancellation always leaves `result` (assembled below from the last
+    // *completed* iteration's fields) a valid, non-corrupted state, never
+    // a partially-updated one.
+    if (cancellationCheck_ && cancellationCheck_()) {
+      finalStatus = SIMPLEStatus::Cancelled;
+      break;
+    }
+
     const ScalarField previousU = selectComponent(velocity, VelocityComponent::U);
     const ScalarField previousV = selectComponent(velocity, VelocityComponent::V);
 
     std::optional<MomentumAssembly> uAssembly;
     std::optional<MomentumAssembly> vAssembly;
+    std::optional<ScalarField> effectiveViscosity;
     try {
+      // Correct the turbulence model against the current (previous-
+      // iteration) velocity/pressure before assembling momentum with it
+      // -- the same lagged-current-state convention this loop already
+      // applies to boundary conditions like Outlet/Symmetry (see
+      // MomentumEquation's boundaryVelocity()). For LaminarModel this is
+      // a documented no-op; for a transport-equation model (e.g.
+      // P2-TURB-004's KEpsilonModel) this can legitimately fail (a k/
+      // epsilon linear solve that does not converge, or a non-finite
+      // result) -- caught by the same try/catch as momentum assembly
+      // below, not left to propagate out of solve() uncaught.
+      activeModel->correct(mesh, velocity, pressure);
+      effectiveViscosity = activeModel->effectiveViscosity(fluid.dynamicViscosity());
+      // P3-PHYS-001: temperature_/buoyancy_ are passed through unchanged
+      // every iteration (held fixed for the whole solve() call -- see
+      // this class's own header comment on the deliberate one-way-
+      // coupling scope); both null for every pre-existing call site,
+      // which is a structurally-identical assembly (see
+      // assembleRelaxedMomentumComponent's own header comment), not
+      // merely a numerically-zero source.
       uAssembly = assembleRelaxedMomentumComponent(
-          mesh, velocity, pressure, massFlux, fluid, velocityBoundaries, pressureBoundaries,
-          VelocityComponent::U, previousU, settings_.velocityRelaxation);
+          mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+          pressureBoundaries, VelocityComponent::U, previousU, settings_.velocityRelaxation,
+          temperature_, buoyancy_);
       vAssembly = assembleRelaxedMomentumComponent(
-          mesh, velocity, pressure, massFlux, fluid, velocityBoundaries, pressureBoundaries,
-          VelocityComponent::V, previousV, settings_.velocityRelaxation);
+          mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+          pressureBoundaries, VelocityComponent::V, previousV, settings_.velocityRelaxation,
+          temperature_, buoyancy_);
     } catch (const NumericalError&) {
       // uAssembly/vAssembly left empty -- fall through to the check below.
+    } catch (const InvalidArgumentError&) {
+      // P2-TURB-003: a turbulence model that has produced a non-finite or
+      // non-positive mu_eff (rejected by assembleDiffusionContribution's
+      // own field-based overload) is a runtime-invalid state, not a
+      // configuration error -- treated the same as NonFiniteState below,
+      // not left to propagate out of solve() uncaught.
     }
     if (!uAssembly.has_value() || !vAssembly.has_value()) {
       finalStatus = SIMPLEStatus::NonFiniteState;
@@ -275,11 +351,31 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     result.finalContinuityResidual = continuityResidual;
     result.globalMassImbalance = globalImbalance;
 
-    const bool converged = (uResidual <= settings_.velocityTolerance) &&
-                           (vResidual <= settings_.velocityTolerance) &&
-                           (pResidual <= settings_.pressureTolerance) &&
-                           (continuityResidual <= settings_.continuityTolerance) &&
-                           (globalImbalance <= settings_.continuityTolerance);
+    // P5-B section 14: fired once per completed outer iteration, with
+    // exactly the residuals just pushed into result's own history above
+    // -- a live view of the same canonical data the final SIMPLEResult
+    // carries, not a second computation.
+    if (progressCallback_) {
+      progressCallback_(SIMPLEIterationProgress{result.iterations, settings_.maxIterations,
+                                                uResidual, vResidual, pResidual,
+                                                continuityResidual, globalImbalance});
+    }
+
+    // P2-TURB-004 section 24: gate on the active turbulence model's own
+    // convergence residual too, when it reports one -- laminar/
+    // LaminarModel report std::nullopt, so this is a no-op unaffecting
+    // condition for every pre-P2-TURB-004 case (`turbulenceConverged`
+    // reduces to `true`, exactly the prior behavior).
+    const std::optional<Real> turbulenceResidual = activeModel->convergenceResidual();
+    result.finalTurbulenceResidual = turbulenceResidual;
+    const bool turbulenceConverged =
+        !turbulenceResidual.has_value() || (*turbulenceResidual <= settings_.turbulenceTolerance);
+
+    const bool converged =
+        (uResidual <= settings_.velocityTolerance) && (vResidual <= settings_.velocityTolerance) &&
+        (pResidual <= settings_.pressureTolerance) &&
+        (continuityResidual <= settings_.continuityTolerance) &&
+        (globalImbalance <= settings_.continuityTolerance) && turbulenceConverged;
     if (converged) {
       finalStatus = SIMPLEStatus::Converged;
       break;

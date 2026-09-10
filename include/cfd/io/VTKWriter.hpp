@@ -9,7 +9,9 @@
 // first time that happens.
 
 #include <filesystem>
+#include <optional>
 
+#include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 
@@ -24,13 +26,18 @@ class VTKWriter {
   // (section 23). Fields are written as CELL_DATA (section 20 -- this
   // solver's data is cell-centered; POINT_DATA would misrepresent that),
   // always in the fixed order pressure, velocity, velocity_magnitude
-  // (section 24). 2D coordinates get an explicit z=0 (section 19).
+  // (section 24), plus a trailing "SCALARS temperature" block iff
+  // `temperature` is present (P2-THERMAL-004) -- omitted entirely for a
+  // nonthermal export. 2D coordinates get an explicit z=0 (section 19).
   // Throws InvalidArgumentError if result.velocity/result.pressure size
-  // does not match mesh.numberOfCells(), or if mesh does not fit the
-  // structured layout this exporter assumes; NumericalError if any
-  // exported value is non-finite; IOError if `path` cannot be opened.
-  static void writeSolution(const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
-                            const cfd::pressure_velocity::SIMPLEResult& result);
+  // (or temperature's, when present) does not match mesh.numberOfCells(),
+  // or if mesh does not fit the structured layout this exporter assumes;
+  // NumericalError if any exported value is non-finite; IOError if `path`
+  // cannot be opened.
+  static void writeSolution(
+      const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
+      const cfd::pressure_velocity::SIMPLEResult& result,
+      const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt);
 };
 
 }  // namespace cfd::io

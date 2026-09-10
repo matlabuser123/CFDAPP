@@ -1,0 +1,29 @@
+P4-B -- Matrix assembly optimization: SparseMatrixBuilder::reserve()
+
+Isolated microbenchmark (not the full SIMPLE solve -- see
+benchmarks/cpu/benchmark_runner.cpp for that): assembling a 250000-cell
+5-point-stencil matrix's triplet list (749998 nonzeros), with and
+without a builder.reserve(5*n) call before the add() loop. Compiled
+-O3 -DNDEBUG, same compiler as the project's own Release build.
+
+Run 1: without reserve(): 0.048773 s | with reserve(): 0.034198 s
+Run 2: without reserve(): 0.048051 s | with reserve(): 0.036649 s
+Run 3: without reserve(): 0.044783 s | with reserve(): 0.035505 s
+
+Median without: 0.048051 s
+Median with:    0.035505 s
+Speedup:        1.35x
+Runtime reduction: ~26%
+
+Applied to SIMPLE's own two per-outer-iteration assembly call sites
+(pressure_velocity/RelaxedMomentum.cpp, pressure_velocity/
+PressureCorrectionEquation.cpp) with builder.reserve(5*n) -- a safe,
+purely-additive capacity hint (SparseMatrixBuilder.hpp's own header
+comment: never changes which triplets get added, their order, or the
+resulting matrix). Verified behavior-preserving by:
+  - SparseMatrixBuilderTest.ReserveDoesNotChangeTheAssembledMatrix
+    (tests/unit/algebra/test_sparse_matrix.cpp): same matrix assembled
+    with/without/various reserve() hints, compared exactly.
+  - Full regression suite (1091/1091 tests passing on the default
+    CPU-only build, including every existing bit-identical-determinism
+    test in this codebase) after applying the change.

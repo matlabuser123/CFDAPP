@@ -6,6 +6,7 @@
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/solver/TransientSolver.hpp"
+#include "cfd/turbulence/TurbulenceModel.hpp"
 
 namespace cfd::pressure_velocity {
 
@@ -47,10 +48,21 @@ class PISO final : public cfd::solver::TransientStepSolver {
   // construction so it never moves between time steps or between
   // repeated calls for the same problem (determinism). Both corrections
   // within one time step reuse this same referenceCell.
+  //
+  // turbulenceModel (P2-TURB-003) is an optional, non-owning pointer to
+  // the cfd::turbulence::TurbulenceModel each solveTimeStep() call should
+  // query for mu_eff -- correct()ed against previousState's velocity/
+  // pressure before the transient momentum predictor is assembled. Left
+  // null (the default), solveTimeStep() constructs and uses its own
+  // local cfd::turbulence::LaminarModel internally, so every existing
+  // five-argument PISO(...) construction keeps its exact prior laminar
+  // behavior unchanged. Not owned; the caller must keep a non-null model
+  // alive for the lifetime of this object (same convention as
+  // mesh/fluid/velocityBoundaries/pressureBoundaries above).
   PISO(const cfd::mesh::Mesh& mesh, const cfd::physics::FluidProperties& fluid,
        const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
        const cfd::boundary::BoundaryConditionSet& pressureBoundaries, PISOSettings settings,
-       Index referenceCell = 0);
+       Index referenceCell = 0, cfd::turbulence::TurbulenceModel* turbulenceModel = nullptr);
 
   // On success (status == Converged): result.state holds {U2, p2, F2} --
   // the fully corrected velocity/pressure/authoritative face flux after
@@ -87,6 +99,7 @@ class PISO final : public cfd::solver::TransientStepSolver {
   const cfd::boundary::BoundaryConditionSet& pressureBoundaries_;
   PISOSettings settings_;
   Index referenceCell_;
+  cfd::turbulence::TurbulenceModel* turbulenceModel_;
 };
 
 }  // namespace cfd::pressure_velocity

@@ -7,6 +7,10 @@ add_executable(CFDBoundaryTests
   test_outlet.cpp
   test_symmetry.cpp
   test_boundary_validation.cpp
+  test_fixed_temperature.cpp
+  test_heat_flux.cpp
+  test_adiabatic.cpp
+  test_wall_omega.cpp
 )
 
 target_link_libraries(CFDBoundaryTests

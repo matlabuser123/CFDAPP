@@ -43,9 +43,15 @@ namespace cfd::io::detail {
 // structural validation happens here (known BC type, required
 // parameters, no unknown fields) -- checking that the configured patch
 // set matches the mesh's actual patches is cross-file validation, done by
-// CaseReader after this returns (TODO.md P1 section 42).
+// CaseReader after this returns (TODO.md P1 section 42). thermalEnabled
+// (P2-THERMAL-004, sourced from physics.json's "thermal" presence,
+// already parsed by the time CaseReader reaches this file) decides
+// whether each patch's "temperature" key is required or forbidden -- an
+// existing nonthermal case has no such key today and must continue to
+// parse identically, so this is not an optional/ignored field either way.
 [[nodiscard]] cfd::io::BoundaryConfig parseBoundaryConfig(const nlohmann::json& json,
-                                                          const std::filesystem::path& path);
+                                                          const std::filesystem::path& path,
+                                                          bool thermalEnabled);
 
 [[nodiscard]] cfd::io::SolverConfig parseSolverConfig(const nlohmann::json& json,
                                                       const std::filesystem::path& path);

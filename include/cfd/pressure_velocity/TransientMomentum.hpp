@@ -59,4 +59,25 @@ void applyTransientTerm(cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra
     cfd::physics::VelocityComponent component,
     const cfd::fields::ScalarField& previousComponentValue, Real dt);
 
+// P2-TURB-003: same as the overload above, but the diffusion term uses a
+// per-cell `effectiveViscosity` field (mu_eff = mu + mu_t, from
+// cfd::turbulence::TurbulenceModel::effectiveViscosity()) instead of the
+// single constant FluidProperties::dynamicViscosity() -- `fluid` is still
+// needed here (unlike RelaxedMomentum.hpp's equivalent change) because
+// the implicit-Euler time-derivative term still uses fluid.density().
+// This is a separate overload, not a replacement, so every existing
+// caller of the constant-viscosity overload above (PISO's own extensive
+// test suite included) keeps its exact prior behavior untouched; PISO
+// itself calls this overload instead once a turbulence model is wired in.
+// Same throwing behavior as the overload above, plus InvalidArgumentError
+// if effectiveViscosity.size() != mesh.numberOfCells().
+[[nodiscard]] cfd::physics::MomentumAssembly assembleTransientMomentumComponent(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
+    const cfd::fields::ScalarField& pressure, const cfd::fields::SurfaceField& massFlux,
+    const cfd::physics::FluidProperties& fluid, const cfd::fields::ScalarField& effectiveViscosity,
+    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
+    const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
+    cfd::physics::VelocityComponent component,
+    const cfd::fields::ScalarField& previousComponentValue, Real dt);
+
 }  // namespace cfd::pressure_velocity

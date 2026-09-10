@@ -1,0 +1,8 @@
+cfd_benchmark_gpu_spmv -- end-to-end GPU time includes this wrapper's own fresh cudaMalloc+H2D-transfer+kernel+D2H-transfer *every call* (no persistent device residency yet -- section 31's own deferred optimization, see TODO.md's own P4 status note).
+grid      | n      | cpu_seconds(30 reps) | gpu_seconds(30 reps, incl. transfer) | speedup
+20x20  | 400 | 0.0402989 | 0.0965954 | 0.417193
+50x50  | 2500 | 0.00825444 | 0.0216824 | 0.380697
+100x100  | 10000 | 0.000715432 | 0.0245064 | 0.0291937
+200x200  | 40000 | 0.0107273 | 0.0501707 | 0.213815
+400x400  | 160000 | 0.016183 | 0.103924 | 0.15572
+800x800  | 640000 | 0.0295097 | 0.277985 | 0.106156

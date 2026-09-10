@@ -5,7 +5,9 @@
 // reinterprets, or renormalizes anything the solver produced (section 3).
 
 #include <filesystem>
+#include <optional>
 
+#include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 
@@ -17,15 +19,21 @@ class CSVWriter {
   // filesystem/container iteration order), with the stable header
   // (section 41):
   //   cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure
-  // Cell-center coordinates come from Mesh (section 4: never
+  // plus a trailing ",temperature" column iff `temperature` is present
+  // (P2-THERMAL-004) -- omitted entirely for a nonthermal export, so
+  // every existing nonthermal fields.csv (and every reader of it) is
+  // unaffected. Cell-center coordinates come from Mesh (section 4: never
   // reconstructed from nx/ny when the mesh already owns geometry).
   // Throws InvalidArgumentError if result.velocity/result.pressure size
-  // does not match mesh.numberOfCells(); NumericalError if any exported
-  // value is non-finite (section 40 -- the failed-solve export policy
-  // deciding *whether* to call this at all for a non-finite result lives
-  // in ResultExporter, not here); IOError if `path` cannot be opened.
-  static void writeFields(const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
-                          const cfd::pressure_velocity::SIMPLEResult& result);
+  // (or temperature's, when present) does not match mesh.numberOfCells();
+  // NumericalError if any exported value is non-finite (section 40 -- the
+  // failed-solve export policy deciding *whether* to call this at all for
+  // a non-finite result lives in ResultExporter, not here); IOError if
+  // `path` cannot be opened.
+  static void writeFields(
+      const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
+      const cfd::pressure_velocity::SIMPLEResult& result,
+      const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt);
 
   // Writes one row per completed SIMPLE iteration, in iteration order
   // 1..N, with the stable header (section 8/41):

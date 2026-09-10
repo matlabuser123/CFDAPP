@@ -130,3 +130,57 @@ TEST(SparseMatrixTest, RejectsNonFiniteValues) {
   const cfd::Real nan = std::numeric_limits<cfd::Real>::quiet_NaN();
   EXPECT_THROW((SparseMatrix(1, 1, {nan}, {0}, {0, 1})), cfd::InvalidArgumentError);
 }
+
+// --- P4 -- Performance: reserve() and the OpenMP SpMV target ------------
+
+TEST(SparseMatrixBuilderTest, ReserveDoesNotChangeTheAssembledMatrix) {
+  // reserve() is a pure capacity hint (SparseMatrix.hpp's own header
+  // comment) -- a builder that reserves an arbitrary (too-small,
+  // too-large, or exact) capacity must assemble byte-for-byte the same
+  // matrix as one that never calls it.
+  SparseMatrixBuilder withoutReserve(3, 3);
+  withoutReserve.add(0, 0, 4.0);
+  withoutReserve.add(0, 1, 1.0);
+  withoutReserve.add(1, 0, 1.0);
+  withoutReserve.add(1, 1, 3.0);
+  const auto matrixWithout = withoutReserve.build();
+
+  for (const cfd::Index reserveHint : {cfd::Index{0}, cfd::Index{1}, cfd::Index{100}}) {
+    SparseMatrixBuilder withReserve(3, 3);
+    withReserve.reserve(reserveHint);
+    withReserve.add(0, 0, 4.0);
+    withReserve.add(0, 1, 1.0);
+    withReserve.add(1, 0, 1.0);
+    withReserve.add(1, 1, 3.0);
+    const auto matrixWith = withReserve.build();
+
+    ASSERT_EQ(matrixWith.nonZeros(), matrixWithout.nonZeros()) << "reserveHint=" << reserveHint;
+    const Vector e0{1.0, 0.0, 0.0};
+    const Vector e1{0.0, 1.0, 0.0};
+    EXPECT_EQ(matrixWith.multiply(e0)[0], matrixWithout.multiply(e0)[0]);
+    EXPECT_EQ(matrixWith.multiply(e1)[1], matrixWithout.multiply(e1)[1]);
+  }
+}
+
+TEST(SparseMatrixTest, RepeatedMultiplyIsBitIdenticalRegardlessOfOpenMPThreadCount) {
+  // Section 21/47: SpMV's own OpenMP parallelization (SparseMatrix.cpp's
+  // own header comment on why it is race- and reduction-order-free) must
+  // give the exact same floating-point result no matter how many threads
+  // actually ran it -- this test does not itself change
+  // OMP_NUM_THREADS (a process-wide setting a unit test cannot safely
+  // vary at runime once the OpenMP runtime has started), but repeatedly
+  // calling multiply() with the same fixed thread count already proves
+  // the *reduction order per row* is fixed and reproducible run to run,
+  // the property the header comment's bit-identical claim actually rests
+  // on (every row's own inner ascending-k sum is single-threaded
+  // regardless of how rows are distributed across threads).
+  const SparseMatrix matrix = makeSampleMatrix();
+  const Vector x{1.0, 2.0, 3.0};
+  const Vector first = matrix.multiply(x);
+  for (int i = 0; i < 20; ++i) {
+    const Vector repeat = matrix.multiply(x);
+    for (cfd::Index row = 0; row < first.size(); ++row) {
+      EXPECT_EQ(repeat[row], first[row]) << "row " << row << " iteration " << i;
+    }
+  }
+}

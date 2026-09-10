@@ -6,6 +6,9 @@ add_executable(CFDPhysicsTests
   test_momentum_convection.cpp
   test_momentum_pressure.cpp
   test_momentum_assembly.cpp
+  test_boussinesq_buoyancy.cpp
+  test_temperature_property.cpp
+  test_momentum_variable_viscosity.cpp
 )
 
 target_link_libraries(CFDPhysicsTests

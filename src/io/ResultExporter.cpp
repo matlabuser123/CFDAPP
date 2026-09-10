@@ -25,11 +25,19 @@ bool allFieldsFinite(const SIMPLEResult& result) {
   return true;
 }
 
+bool allFinite(const cfd::fields::ScalarField& field) {
+  for (Index i = 0; i < field.size(); ++i) {
+    if (!std::isfinite(field[i])) return false;
+  }
+  return true;
+}
+
 }  // namespace
 
-ResultExportSummary ResultExporter::write(const std::filesystem::path& outputDirectory,
-                                          const Mesh& mesh, const SIMPLEResult& result,
-                                          const RunMetadata& metadata) {
+ResultExportSummary ResultExporter::write(
+    const std::filesystem::path& outputDirectory, const Mesh& mesh, const SIMPLEResult& result,
+    const RunMetadata& metadata, const std::optional<cfd::fields::ScalarField>& temperature,
+    const std::optional<ThermalRunMetadata>& thermalMetadata) {
   std::error_code createError;
   std::filesystem::create_directories(outputDirectory, createError);
   if (createError) {
@@ -40,18 +48,26 @@ ResultExportSummary ResultExporter::write(const std::filesystem::path& outputDir
   ResultExportSummary summary;
 
   summary.metadataPath = outputDirectory / "metadata.json";
-  JSONWriter::writeMetadata(summary.metadataPath, metadata, mesh, result);
+  JSONWriter::writeMetadata(summary.metadataPath, metadata, mesh, result, thermalMetadata);
 
   summary.residualsCsvPath = outputDirectory / "residuals.csv";
   CSVWriter::writeResiduals(summary.residualsCsvPath, result);
 
   if (allFieldsFinite(result)) {
+    // Only include temperature in the field files once it is itself
+    // fully finite too -- the same "a partially-finite result never
+    // produces a corrupt field file" policy extended to temperature
+    // (P2-THERMAL-004), not a separate rule.
+    const bool includeTemperature = temperature.has_value() && allFinite(*temperature);
+    const std::optional<cfd::fields::ScalarField> temperatureForFields =
+        includeTemperature ? temperature : std::nullopt;
+
     const std::filesystem::path fieldsPath = outputDirectory / "fields.csv";
-    CSVWriter::writeFields(fieldsPath, mesh, result);
+    CSVWriter::writeFields(fieldsPath, mesh, result, temperatureForFields);
     summary.fieldsCsvPath = fieldsPath;
 
     const std::filesystem::path vtkPath = outputDirectory / "solution.vtk";
-    VTKWriter::writeSolution(vtkPath, mesh, result);
+    VTKWriter::writeSolution(vtkPath, mesh, result, temperatureForFields);
     summary.vtkPath = vtkPath;
   }
 

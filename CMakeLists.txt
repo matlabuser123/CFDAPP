@@ -35,6 +35,11 @@ option(CFDAPP_BUILD_GUI     "Build the Qt GUI application (apps/gui)" OFF)
 option(CFDAPP_ENABLE_OPENMP "Enable OpenMP acceleration"              OFF)
 option(CFDAPP_ENABLE_MPI    "Enable MPI domain decomposition"         OFF)
 option(CFDAPP_ENABLE_CUDA   "Enable the CUDA GPU backend"             OFF)
+# P5-J -- Packaging: CPack config for a Windows ZIP/NSIS package of the
+# GUI build (cmake/Packaging.cmake) -- see
+# docs/developer_guide/packaging.md for this configuration's own
+# disclosed, unverified-on-Windows status before relying on it.
+option(CFDAPP_ENABLE_PACKAGING "Enable CPack packaging (cmake/Packaging.cmake)" OFF)
 
 # TODO.md "P1 -- Quality Gate" section 7-9: a build-wide switch, off by
 # default (a sanitized build is markedly slower and is a deliberate
@@ -59,15 +64,37 @@ if(CFDAPP_ENABLE_CUDA)
   include(cmake/CUDA.cmake)
 endif()
 
+if(CFDAPP_ENABLE_CUDA)
+  add_subdirectory(cuda)
+endif()
+
 add_subdirectory(src)
 add_subdirectory(apps/cli)
-
-if(CFDAPP_BUILD_GUI)
-  message(WARNING
-    "CFDAPP_BUILD_GUI is ON, but apps/gui has no build rules yet (GUI is "
-    "out of scope for the current build-system phase). Skipping.")
-endif()
 
 include(CTest)
 enable_testing()
 add_subdirectory(tests)
+
+# apps/gui is added only after enable_testing() (immediately above) --
+# gtest_discover_tests() calls inside apps/gui/CMakeLists.txt (P5-B
+# section 59's own controller-level tests) are otherwise silently never
+# registered with CTest: a subdirectory add_subdirectory()'d *before*
+# enable_testing() never gets its CTestTestfile.cmake included in the
+# aggregate one ctest actually reads, even though the test binary itself
+# still builds and passes fine when run directly -- caught by exactly
+# that discrepancy (`ctest -N` not listing SimulationControllerTest.*
+# despite the binary passing standalone) while finishing P5.
+if(CFDAPP_BUILD_GUI)
+  add_subdirectory(apps/gui)
+endif()
+
+if(CFDAPP_ENABLE_PACKAGING)
+  include(cmake/Packaging.cmake)
+endif()
+
+# P4 -- Performance: standalone benchmark tooling (not part of the CTest
+# suite -- see benchmarks/CMakeLists.txt's own header comment).
+option(CFDAPP_BUILD_BENCHMARKS "Build the standalone performance-benchmark executables" ON)
+if(CFDAPP_BUILD_BENCHMARKS)
+  add_subdirectory(benchmarks)
+endif()

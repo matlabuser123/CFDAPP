@@ -1,0 +1,125 @@
+name: Release
+
+# TODO.md P5 section 54: tag-triggered (v*.*.*) build -> full test ->
+# package -> smoke-test-the-*packaged*-artifact -> checksum -> upload,
+# failing the whole release if any step fails (section 54's own "the
+# release workflow must fail if tests fail"). See
+# docs/developer_guide/packaging.md -- **this workflow has never
+# actually been run**; it needs a Windows runner it was never executed
+# on from this (Linux/WSL) development environment. Treat it as a
+# reviewable starting point, not a verified release pipeline, until it
+# has actually run once.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+defaults:
+  run:
+    working-directory: CFDApp
+    shell: pwsh
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Provides a full Qt6 (Core/Gui/Qml/Quick/QuickControls2) Windows
+      # SDK, including windeployqt -- see cmake/QtDeploy.cmake, which
+      # looks for windeployqt next to qmake on PATH. 6.9.3/win64_msvc2022_64
+      # (not the originally-planned 6.5.*/msvc2019_64) -- a real local
+      # Windows build with this project's own MSVC toolset (19.51, VS
+      # 2026) found Qt 6.5.3's win64_msvc2019_64 kit fails to compile
+      # (`error C3861: 'stdext': identifier not found` in Qt's own
+      # qvarlengtharray.h, a genuine Qt/MSVC-toolset incompatibility --
+      # see docs/developer_guide/packaging.md); 6.9.3/msvc2022_64 is the
+      # version actually verified working, see
+      # results/release/0.1.0/environment.txt. windows-latest's own
+      # preinstalled MSVC toolset may differ from this development
+      # machine's; if a future run hits the same error, matching
+      # windows-latest's own MSVC version bracket (or picking an
+      # even-newer Qt release) is the fix, not reverting to 6.5.
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.9.3"
+          arch: "win64_msvc2022_64"
+          modules: "qtdeclarative"
+
+      # windows-latest already carries MSVC + CMake + Ninja.
+      - name: Configure (Release, GUI + packaging)
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCFDAPP_BUILD_GUI=ON
+          -DCFDAPP_ENABLE_PACKAGING=ON
+
+      - name: Verify tag matches project version
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $cmakeVersion = (Select-String -Path CMakeLists.txt -Pattern 'VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)').Matches[0].Groups[1].Value
+          if ($version -ne $cmakeVersion) {
+            Write-Error "Tag v$version does not match project(CFDApp VERSION $cmakeVersion) -- refusing to release a mismatched version."
+            exit 1
+          }
+
+      - name: Build
+        run: cmake --build build --config Release -j
+
+      # section 54: "must fail if tests fail" -- this step is not
+      # allowed to be skipped or made non-fatal.
+      - name: Full regression suite
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Package (CPack -- ZIP + NSIS installer)
+        run: |
+          cd build
+          cpack -C Release -G "ZIP;NSIS"
+
+      # section 46/52: never publish an artifact that was never
+      # executed after packaging -- extract the ZIP (not the build
+      # directory) and run the *packaged* cfdapp.exe against a real
+      # example case.
+      - name: Smoke-test the packaged artifact
+        run: |
+          $zip = Get-ChildItem build\CFDApp-*-Windows-x64.zip | Select-Object -First 1
+          Expand-Archive -Path $zip.FullName -DestinationPath smoke_test_extract
+          $exe = Get-ChildItem smoke_test_extract -Recurse -Filter cfdapp.exe | Select-Object -First 1
+          & $exe.FullName --version
+          if ($LASTEXITCODE -ne 0) { throw "packaged cfdapp.exe --version failed" }
+          $caseDir = Join-Path (Split-Path $exe.FullName -Parent) "..\examples\lid_driven_cavity"
+          & $exe.FullName --case $caseDir
+          if ($LASTEXITCODE -ne 0) { throw "packaged cfdapp.exe failed to run the lid_driven_cavity example (exit $LASTEXITCODE)" }
+
+          # section 12: the packaged GUI too, not just the CLI -- launch
+          # it (its own bundled Qt runtime, not this runner's Qt install)
+          # and confirm the process stays alive (a real Qt event loop
+          # running) rather than immediately exiting on a missing-DLL or
+          # missing-platform-plugin error.
+          $guiExe = Get-ChildItem smoke_test_extract -Recurse -Filter cfdapp_gui.exe | Select-Object -First 1
+          $guiProc = Start-Process -FilePath $guiExe.FullName -PassThru
+          Start-Sleep -Seconds 3
+          if ($guiProc.HasExited) { throw "packaged cfdapp_gui.exe exited early (code $($guiProc.ExitCode)) -- likely a missing Qt runtime/plugin dependency" }
+          Stop-Process -Id $guiProc.Id -Force
+
+      - name: Checksums
+        run: |
+          Get-ChildItem build\CFDApp-*-Windows-x64* | ForEach-Object {
+            (Get-FileHash $_.FullName -Algorithm SHA256).Hash + "  " + $_.Name
+          } | Out-File -Encoding utf8 build\SHA256SUMS.txt
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: CFDApp-${{ github.ref_name }}-Windows-x64
+          # CPACK_PACKAGE_FILE_NAME (cmake/Packaging.cmake) is shared by
+          # both generators -- CPack appends .zip/.exe itself, it does
+          # not add a "-Setup" suffix to the NSIS installer's own name
+          # (confirmed against a real local build: CFDApp-0.1.0-Windows-
+          # x64.exe, not ...-Setup.exe -- see results/release/0.1.0/).
+          path: |
+            CFDApp/build/CFDApp-*-Windows-x64.zip
+            CFDApp/build/CFDApp-*-Windows-x64.exe
+            CFDApp/build/SHA256SUMS.txt

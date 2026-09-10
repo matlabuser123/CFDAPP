@@ -8,6 +8,7 @@
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 
 namespace cfd::physics {
@@ -59,6 +60,33 @@ void assembleDiffusionContribution(const cfd::mesh::Mesh& mesh, Real dynamicVisc
                                    cfd::algebra::SparseMatrixBuilder& builder,
                                    cfd::algebra::Vector& rhs);
 
+// P2-TURB-003: same physics as the constant-viscosity overload above, but
+// with a per-cell effective viscosity field (mu_eff = mu + mu_t, from
+// cfd::turbulence::TurbulenceModel::effectiveViscosity()) instead of one
+// scalar -- this is the site that generalizes to support a turbulence
+// model without any RANS-specific formula living here. Internal faces use
+// the project's already-established distance-weighted linear face
+// interpolation (cfd::discretization::interpolateInternalFace) to get
+// mu_eff at the face, the same convention every other cell-centered field
+// is already interpolated to a face with -- no new averaging scheme is
+// invented for this. A boundary face has no neighbor cell to interpolate
+// against, so it uses the owner cell's own effective viscosity directly,
+// matching how the scalar overload already applies one value uniformly
+// including at boundaries.
+//
+// The scalar overload above is intentionally left as a separate,
+// untouched code path (not reimplemented in terms of this one) -- callers
+// that only ever pass a single constant viscosity keep their existing,
+// exact floating-point behavior. Throws InvalidArgumentError if
+// velocity.size() or effectiveViscosity.size() != mesh.numberOfCells().
+void assembleDiffusionContribution(const cfd::mesh::Mesh& mesh,
+                                   const cfd::fields::ScalarField& effectiveViscosity,
+                                   const cfd::fields::VectorField& velocity,
+                                   const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
+                                   VelocityComponent component,
+                                   cfd::algebra::SparseMatrixBuilder& builder,
+                                   cfd::algebra::Vector& rhs);
+
 // First-order upwind convection contribution using the already-computed
 // face mass flux (see MassFlux.hpp) -- TODO.md section 11/25/53. Throws
 // InvalidArgumentError if velocity.size() != mesh.numberOfCells() or
@@ -79,6 +107,23 @@ void assemblePressureSourceContribution(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& pressure,
     const cfd::boundary::BoundaryConditionSet& pressureBoundaries, VelocityComponent component,
     cfd::algebra::Vector& rhs);
+
+// P3-PHYS-001: Boussinesq buoyancy body-force contribution -- a pure
+// source, same shape as assemblePressureSourceContribution above (adds
+// to rhs only, no matrix/diagonal contribution -- temperature is not an
+// unknown of this equation). For each cell, `buoyancy.source(T)` (force
+// per unit volume -- see BoussinesqBuoyancy.hpp's own header comment for
+// the full derivation and sign convention) is integrated over the cell's
+// volume, the same "per-volume source times cellVolume" convention
+// assemblePressureSourceContribution already establishes for
+// -V_P*grad(p) (verified directly from that existing contribution's own
+// implementation, not assumed -- P3-PHYS-001 Phase 3's own explicit
+// instruction). Throws InvalidArgumentError if temperature.size() !=
+// mesh.numberOfCells().
+void assembleBuoyancySourceContribution(const cfd::mesh::Mesh& mesh,
+                                        const cfd::fields::ScalarField& temperature,
+                                        const BoussinesqBuoyancy& buoyancy,
+                                        VelocityComponent component, cfd::algebra::Vector& rhs);
 
 // Combines the three contributions above into the full u- and v-momentum
 // systems for steady, incompressible, constant-property, laminar flow:

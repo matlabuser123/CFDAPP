@@ -1,1021 +1,582 @@
-# CFDApp — Development Roadmap
+# CFDApp — Roadmap
 
-## Project Goal
+## Project Status
 
-Build a professional, modular CFD application in modern C++ with:
+**Current state:** P0/P1/P2/P3/P4 complete; P5 in final release-validation stage.
 
-* Finite Volume Method discretization
-* SIMPLE / PISO / PIMPLE pressure–velocity coupling
-* Robust sparse linear solvers
-* Validation against analytical and published benchmark solutions
-* OpenMP and MPI CPU parallelism
-* CUDA GPU acceleration
-* Python validation, automation, plotting, optimisation, and ML tooling
-* CLI and GUI front ends
-* Deterministic, testable, production-quality numerical behavior
-
----
-
-# Phase 0 — Repository and Build Foundation
-
-Status: 🔵 CURRENT
-
-## Goals
-
-Create a clean buildable development foundation before implementing CFD physics.
-
-## Tasks
-
-* [ ] Finalize root `CMakeLists.txt`
-* [ ] Finalize `CMakePresets.json`
-* [ ] Configure C++20 or newer
-* [ ] Configure Debug and Release builds
-* [ ] Add compiler warnings
-* [ ] Add sanitizers for development builds
-* [ ] Configure CTest
-* [ ] Add OpenMP detection
-* [ ] Add optional MPI support
-* [ ] Add optional CUDA support
-* [ ] Configure CLI target
-* [ ] Configure GUI target as optional
-* [ ] Configure install/package rules
-* [ ] Confirm clean WSL build
-
-## Acceptance Criteria
-
-```bash
-cmake --preset debug
-cmake --build --preset debug
-ctest --preset debug --output-on-failure
-```
-
-All commands complete successfully.
-
----
-
-# Phase 1 — Core Infrastructure
-
-Status: ⏳
-
-## Goals
-
-Implement reusable low-level infrastructure required by every CFD component.
-
-## Modules
-
-### Core
-
-* [ ] `Types`
-* [ ] `Constants`
-* [ ] `Exception`
-* [ ] `Logger`
-* [ ] `Timer`
-* [ ] Basic parallel abstraction
-
-### Required Quality
-
-* [ ] No raw owning pointers
-* [ ] RAII throughout
-* [ ] Clear ownership rules
-* [ ] Const-correct interfaces
-* [ ] Unit tests
-* [ ] No numerical logic inside UI code
-
-## Completion Gate
-
-Core unit tests pass with no warnings or sanitizer failures.
-
----
-
-# Phase 2 — Mesh System
-
-Status: ⏳
-
-## Goals
-
-Build the geometric foundation for finite-volume calculations.
-
-## Implement
-
-* [ ] `Cell`
-* [ ] `Face`
-* [ ] `BoundaryPatch`
-* [ ] `Mesh`
-* [ ] `MeshGeometry`
-* [ ] `MeshQuality`
-
-## Geometry Data
-
-Each cell should support:
-
-* centroid
-* volume
-* neighboring faces
-* neighboring cells
-
-Each face should support:
-
-* owner cell
-* neighbor cell
-* face center
-* face area
-* face normal
-* boundary patch
-
-## Initial Scope
-
-Start with structured Cartesian 2D meshes.
-
-Do not implement full arbitrary unstructured meshes yet.
-
-## Tests
-
-* [ ] Correct cell count
-* [ ] Correct face count
-* [ ] Positive cell volumes
-* [ ] Correct face normals
-* [ ] Correct owner/neighbour topology
-* [ ] Boundary patch classification
-* [ ] Conservation of geometric face areas
-
----
-
-# Phase 3 — Field System
-
-Status: ⏳
-
-## Goals
-
-Create safe field containers for CFD variables.
-
-## Implement
-
-* [ ] Generic `Field`
-* [ ] `ScalarField`
-* [ ] `VectorField`
-* [ ] `TensorField`
-* [ ] `SurfaceField`
-
-## Primary CFD Variables
-
-Support:
-
-* pressure
-* velocity
-* density
-* viscosity
-* temperature
-* mass flux
-* turbulence quantities
-
-## Tests
-
-* [ ] Correct sizing
-* [ ] Access safety
-* [ ] Copy/move behavior
-* [ ] Arithmetic operations
-* [ ] Cell and face field distinction
-
----
-
-# Phase 4 — Sparse Linear Algebra
-
-Status: ⏳
-
-## Goals
-
-Create the numerical backbone for discretized PDE systems.
-
-## Implement
-
-* [ ] Vector
-* [ ] Sparse matrix
-* [ ] Linear system
-* [ ] Linear solver interface
-* [ ] CG solver
-* [ ] BiCGSTAB solver
-* [ ] Basic preconditioner
-
-## Later
-
-* [ ] Jacobi
-* [ ] ILU
-* [ ] AMG integration
-
-## Numerical Tests
-
-Test against systems with known solutions.
-
-Required checks:
-
-* [ ] solution accuracy
-* [ ] residual reduction
-* [ ] maximum iteration behavior
-* [ ] zero RHS behavior
-* [ ] singular-system detection where possible
-* [ ] deterministic solutions
-
----
-
-# Phase 5 — Boundary Conditions
-
-Status: ⏳
-
-## Goals
-
-Implement reusable finite-volume boundary conditions.
-
-## Implement
-
-* [ ] Base `BoundaryCondition`
-* [ ] Fixed value
-* [ ] Fixed gradient
-* [ ] Wall
-* [ ] Moving wall
-* [ ] Inlet
-* [ ] Outlet
-* [ ] Symmetry
-
-## Tests
-
-Use reduced analytical problems wherever possible.
-
----
-
-# Phase 6 — Finite Volume Operators
-
-Status: ⏳
-
-## Goals
-
-Implement independently testable spatial discretization operators.
-
-## Implement
-
-* [ ] Interpolation
-* [ ] Gradient
-* [ ] Divergence
-* [ ] Laplacian
-* [ ] Diffusion
-* [ ] Convection
-
-## Initial Schemes
-
-### Diffusion
-
-* central differencing
-
-### Convection
-
-* first-order upwind
-
-## Later Schemes
-
-* second-order upwind
-* central differencing
-* QUICK
-* TVD schemes
-* limiter-based schemes
-
-## Numerical Verification
-
-Every operator must be tested against known analytical fields.
-
-Examples:
+**Current priority:**
 
 ```text
-phi = x
-phi = y
-phi = x² + y²
-phi = sin(x)
+Numerical correctness
+    ↓
+Validation
+    ↓
+Performance
+    ↓
+Application
+    ↓
+Release
+    ↓
+Production physics integration
 ```
 
-Check convergence under grid refinement.
+---
+
+# P0 — Numerical Foundation ✅
+
+* [x] Structured mesh
+* [x] Scalar/vector fields
+* [x] Boundary conditions
+* [x] Sparse linear algebra
+* [x] Finite-volume operators
+* [x] Incompressible momentum equation
+* [x] Continuity equation
+* [x] SIMPLE
+* [x] Pressure correction
+* [x] Canonical mass-flux treatment
+* [x] Convergence criteria
+* [x] Mass conservation
+* [x] Deterministic execution
 
 ---
 
-# Phase 7 — Governing Equations
+# P1 — Validation & Quality ✅
 
-Status: ⏳
-
-## Goals
-
-Build finite-volume equation assembly independently of solver algorithms.
-
-## Implement
-
-* [ ] Fluid properties
-* [ ] Momentum equation
-* [ ] Continuity equation
-* [ ] Transport properties
-
-## Initial Physics
-
-Support:
-
-* incompressible
-* Newtonian
-* laminar
-* constant density
-* constant viscosity
-* steady state
-* 2D
-
-Avoid adding turbulence or compressibility yet.
+* [x] Poiseuille validation
+* [x] Lid-driven cavity validation
+* [x] Grid refinement
+* [x] Analytical comparison tooling
+* [x] CSV export
+* [x] JSON metadata
+* [x] VTK export
+* [x] Regression suite
+* [x] Continuous integration
+* [x] ASan / UBSan
+* [x] clang-format
+* [x] clang-tidy
+* [x] Quality gates
 
 ---
 
-# Phase 8 — SIMPLE Solver
+# P2 — Transient CFD ✅
 
-Status: ⏳
-
-## Goals
-
-Implement the first complete Navier–Stokes solver.
-
-## SIMPLE Algorithm
-
-Each iteration should perform:
-
-1. Apply boundary conditions
-2. Assemble X-momentum equation
-3. Solve X velocity
-4. Assemble Y-momentum equation
-5. Solve Y velocity
-6. Calculate face fluxes
-7. Assemble pressure-correction equation
-8. Solve pressure correction
-9. Correct pressure
-10. Correct velocity
-11. Correct mass flux
-12. Reapply required boundary conditions
-13. Calculate residuals
-14. Calculate global mass imbalance
-15. Test convergence
-
-## Implement
-
-* [ ] `PressureVelocitySolver`
-* [ ] `SIMPLE`
-* [ ] Residual calculation
-* [ ] Under-relaxation
-* [ ] Convergence criteria
-* [ ] Finite-value checks
-* [ ] Mass conservation validation
+* [x] Time controller
+* [x] Implicit Euler
+* [x] CFL monitoring
+* [x] `TransientSolver`
+* [x] PISO
+* [x] Restart capability
+* [x] Transient validation
+* [x] Deterministic restart behaviour
 
 ---
 
-# Phase 9 — First Production Validation Case
+# P2 — Thermal ✅
 
-Status: ⏳
-
-## Case
-
-Lid-driven cavity.
-
-## Required Grids
-
-* [ ] 20 × 20
-* [ ] 40 × 40
-* [ ] 80 × 80
-
-## Validation
-
-Compare against published Ghia cavity data.
-
-Check:
-
-* [ ] centerline U velocity
-* [ ] centerline V velocity
-* [ ] vortex location
-* [ ] residual convergence
-* [ ] global mass conservation
-* [ ] grid refinement
-* [ ] deterministic repetition
-
-## Acceptance
-
-The solver must converge for realistic tolerances without NaN or Inf values.
+* [x] Thermal properties
+* [x] Energy equation
+* [x] Thermal boundary conditions
+* [x] Heated-cavity conduction
+* [x] Conjugate heat-transfer foundation
+* [x] Thermal validation
 
 ---
 
-# Phase 10 — Analytical Validation Cases
+# P2 — Turbulence ✅
 
-Status: ⏳
-
-## Poiseuille Flow
-
-Validate:
-
-* velocity profile
-* pressure gradient
-* mass flow rate
-
-## Additional Cases
-
-* [ ] Couette flow
-* [ ] diffusion problem
-* [ ] manufactured solution
-* [ ] channel flow
-
-These cases should detect errors before more complex CFD features are added.
+* [x] Turbulence-model interface
+* [x] Laminar model
+* [x] RANS framework
+* [x] k-ε
+* [x] k-ω
+* [x] SST
+* [x] Turbulence benchmark validation
 
 ---
 
-# Phase 11 — Case System and CLI
+# P3 — Advanced Physics ✅
 
-Status: ⏳
+## P3-PHYS-001 — Boussinesq Buoyancy ✅
 
-## Goals
+* [x] Thermal-expansion coefficient
+* [x] Reference temperature
+* [x] Gravity vector
+* [x] Boussinesq density variation
+* [x] Buoyancy source in momentum
+* [x] Temperature → momentum coupling
+* [x] Zero-buoyancy equivalence
+* [x] Sign/source validation
+* [x] Deterministic coupling
 
-Run CFD simulations entirely from case files.
+## P3-PHYS-002 — Natural Convection ✅
 
-## Implement
+* [x] Natural-convection cavity
+* [x] Rayleigh number
+* [x] Prandtl number
+* [x] Multi-grid validation
+* [x] Velocity validation
+* [x] Temperature validation
+* [x] Nusselt-number validation
+* [x] Heat balance
+* [x] Mass conservation
+* [x] Grid refinement
+* [x] Determinism
 
-Schema-backed:
+## P3-PHYS-003 — Variable Properties ✅
 
-* `case.json`
-* `geometry.json`
-* `mesh.json`
-* `physics.json`
-* `boundaries.json`
-* `solver.json`
+* [x] Temperature-dependent viscosity
+* [x] Temperature-dependent conductivity
+* [x] Temperature-dependent heat capacity
+* [x] Temperature-dependent density where appropriate
+* [x] Property interpolation
+* [x] Validation tests
+* [x] Constant-property equivalence
 
-## CLI
+## P3-PHYS-004 — Species Transport ✅
 
-Target command:
+* [x] Species-field infrastructure
+* [x] Advection-diffusion equation
+* [x] Species boundary conditions
+* [x] Diffusivity models
+* [x] Conservation checks
+* [x] Analytical validation
 
-```bash
-./cfdapp --case cases/lid_driven_cavity
-```
+## P3-PHYS-005 — Multiphase Foundation ✅
 
-## Required Output
+* [x] Two-phase representation
+* [x] Volume-fraction field
+* [x] Mixture properties
+* [x] Conservative interface transport
+* [x] Conservation tests
+* [x] Boundedness monitoring
+* [x] Single-phase equivalence
+* [x] Minimal validation case
 
-* convergence status
-* iteration count
-* residuals
-* mass imbalance
-* runtime
-* output directory
+## P3-PHYS-006 — Compressible Foundation ✅
 
----
-
-# Phase 12 — Result Export
-
-Status: ⏳
-
-## Implement
-
-* [ ] CSV
-* [ ] JSON metadata
-* [ ] VTK
-* [ ] Restart files
-
-## ParaView Compatibility
-
-VTK output should contain:
-
-* coordinates
-* pressure
-* velocity
-* velocity magnitude
-* cell metadata
-
----
-
-# Phase 13 — Python Tooling
-
-Status: ⏳
-
-Python supports the C++ solver rather than replacing it.
-
-## Validation
-
-* [ ] cavity comparison
-* [ ] Poiseuille comparison
-* [ ] analytical solutions
-
-## Plotting
-
-* [ ] residual histories
-* [ ] velocity profiles
-* [ ] pressure fields
-* [ ] contour plots
-
-## Automation
-
-* [ ] case runner
-* [ ] parameter sweeps
-* [ ] benchmark runner
+* [x] Compressible fluid properties
+* [x] Ideal-gas equation of state
+* [x] Density coupling
+* [x] Compressible continuity
+* [x] Compressible momentum foundation
+* [x] Pressure-density coupling
+* [x] Energy coupling
+* [x] Mach-number diagnostics
+* [x] Low-Mach regression
+* [x] Compressible validation case
 
 ---
 
-# Phase 14 — Transient Solver
+# P4 — Performance ✅
 
-Status: ⏳
+## P4-A — Profiling ✅
 
-## Implement
+* [x] Reproducible profiling baseline
+* [x] Runtime breakdown
+* [x] Hardware/build metadata
+* [x] Representative benchmark cases
 
-* [ ] Time management
-* [ ] transient momentum terms
-* [ ] time-step controls
-* [ ] CFL calculation
-* [ ] restart support
+## P4-B — CPU Optimization ✅
 
-## Time Integration
+* [x] Matrix-assembly profiling
+* [x] Matrix-assembly optimization
+* [x] Linear-solver investigation
+* [x] Solver-workspace investigation
+* [x] Performance regression checks
+* [x] Numerical-equivalence checks
 
-Start with:
+## P4-C — Parallel Performance ✅
 
-* first-order implicit Euler
+* [x] OpenMP baseline
+* [x] Thread scaling
+* [x] Scaling efficiency
+* [x] Determinism/equivalence checks
 
-Later:
+## P4-D — Memory/Layout ✅
 
-* second-order backward
-* Crank–Nicolson
+* [x] Memory/layout investigation
+* [x] Allocation analysis
+* [x] Data-layout review
+* [x] Geometry/connectivity reuse where appropriate
 
----
+## P4-E — CUDA ✅
 
-# Phase 15 — PISO
+* [x] Optional CUDA backend
+* [x] CUDA context/backend foundation
+* [x] GPU sparse operations
+* [x] GPU linear algebra
+* [x] CPU fallback
+* [x] CPU/GPU equivalence
 
-Status: ⏳
+## P4-F — Large-Grid Benchmarks ✅
 
-Implement PISO for transient incompressible CFD.
-
-## Requirements
-
-* [ ] predictor
-* [ ] pressure correction
-* [ ] multiple correction loops
-* [ ] transient regression cases
-* [ ] conservation checks
-
----
-
-# Phase 16 — PIMPLE
-
-Status: ⏳
-
-Combine SIMPLE-style outer loops with PISO corrections.
-
-Only begin once both SIMPLE and PISO have strong validation evidence.
-
----
-
-# Phase 17 — Thermal Physics
-
-Status: ⏳
-
-## Implement
-
-* [ ] Energy equation
-* [ ] Thermal properties
-* [ ] Heat-transfer boundary conditions
-* [ ] Heated cavity validation
-* [ ] Conjugate heat-transfer foundation
+* [x] Multi-grid benchmark suite
+* [x] Runtime scaling
+* [x] Iteration scaling
+* [x] Memory scaling
+* [x] CPU/OpenMP/GPU comparison where supported
 
 ---
 
-# Phase 18 — Turbulence
+# P5 — Application 🚧
 
-Status: ⏳
+## P5-A — Production Case Manager ✅
 
-Do not begin until laminar CFD is fully validated.
+* [x] New case
+* [x] Open case
+* [x] Save
+* [x] Save As
+* [x] Reload
+* [x] Validate
+* [x] Run
+* [x] Cancel
+* [x] Explicit case lifecycle
+* [x] CLI/GUI case-format compatibility
 
-## Models
+## P5-B — GUI Solver Workflow ✅
 
-### Foundation
+* [x] Qt/QML application
+* [x] Shared production solver backend
+* [x] Worker-thread execution
+* [x] Responsive GUI
+* [x] Run/Stop workflow
+* [x] Progress reporting
+* [x] Failure handling
+* [x] Controller-level tests
+* [x] Headless QML smoke test
 
-* [ ] turbulence model interface
-* [ ] laminar model
+## P5-C — Field Visualization ✅
 
-### RANS
+* [x] Scalar-field map
+* [x] Field selector
+* [x] Legend
+* [x] Mesh/domain rendering
+* [x] Completed-run result loading
 
-* [ ] k-epsilon
-* [ ] k-omega
-* [ ] SST k-omega
+## P5-D — Contours ✅
 
-## Validation Cases
+* [x] Marching-squares extraction
+* [x] Automatic contour levels
+* [x] GUI contour overlay
+* [x] Synthetic analytical tests
 
-* turbulent channel flow
-* backward-facing step
-* benchmark aerodynamic cases
+## P5-E — Vector Plots ✅
 
----
+* [x] Velocity-vector sampling
+* [x] GUI vector glyphs
+* [x] Sampling controls
+* [x] Display scaling
 
-# Phase 19 — OpenMP Optimisation
+## P5-F — Residual Monitoring ✅
 
-Status: ⏳
+* [x] Live residual monitoring
+* [x] Full multi-series history
+* [x] Residual-history plotting
+* [x] Reload from `residuals.csv`
 
-## Parallelize
+## P5-G — Post-Processing ✅
 
-Only measured hotspots.
+* [x] Field statistics
+* [x] Probe tool
+* [x] Line sampling
+* [x] CSV export
+* [x] Derived-field support
 
-Likely candidates:
+## P5-H — ParaView ✅
 
-* matrix assembly
-* field operations
-* flux calculations
-* residual calculations
+* [x] VTK output
+* [x] Velocity vector export
+* [x] Scalar field export
+* [x] Automated VTK smoke test
+* [x] ParaView user workflow documentation
 
-## Rule
+## P5-I — Documentation ✅
 
-No optimisation without profiling evidence.
+* [x] Getting started
+* [x] Installation
+* [x] CLI guide
+* [x] GUI guide
+* [x] Visualization guide
+* [x] Case-format documentation
+* [x] ParaView guide
+* [x] Troubleshooting
 
-## Required Checks
+## P5-J — Packaging 🚧
 
-* [ ] serial result unchanged
-* [ ] deterministic behavior where required
-* [ ] benchmark speedup measured
+* [x] CPack configuration written
+* [x] Qt deployment configuration written
+* [ ] Build Windows production package
+* [ ] Run `windeployqt`
+* [ ] Generate portable ZIP
+* [ ] Generate Windows installer
+* [ ] Smoke-test packaged CLI
+* [ ] Smoke-test packaged GUI
+* [ ] Verify clean-machine execution
+* [ ] Verify CPU-only fallback
+* [ ] Generate release checksums
 
----
+## P5-K — Release Automation 🚧
 
-# Phase 20 — MPI Distributed CFD
-
-Status: ⏳
-
-## Implement
-
-* [ ] domain decomposition
-* [ ] local/global cell indexing
-* [ ] processor boundaries
-* [ ] halo exchange
-* [ ] distributed residual reductions
-* [ ] distributed convergence logic
-
-## Validation
-
-Compare:
-
-```text
-1 MPI rank
-2 MPI ranks
-4 MPI ranks
-```
-
-Solutions must agree within defined numerical tolerances.
-
----
-
-# Phase 21 — CUDA GPU Backend
-
-Status: ⏳
-
-Do not port the whole application directly to CUDA.
-
-Start with measured hotspots.
-
-## Initial GPU Work
-
-* [ ] device arrays
-* [ ] vector kernels
-* [ ] sparse matrix operations
-* [ ] residual calculation
-* [ ] CG
-* [ ] BiCGSTAB
-
-## Later
-
-* flux kernels
-* matrix assembly
-* pressure correction operations
-
-## Required Evidence
-
-Measure:
-
-```text
-CPU serial
-CPU OpenMP
-GPU CUDA
-```
-
-for identical numerical problems.
+* [x] GitHub release workflow written
+* [ ] Execute workflow on Windows
+* [ ] Run full Windows Release test suite
+* [ ] Package inside CI
+* [ ] Smoke-test packaged binaries
+* [ ] Generate checksums
+* [ ] Upload release assets
+* [ ] Download and retest published artifact
 
 ---
 
-# Phase 22 — Performance Engineering
+# P6 — Production Physics Integration
 
-Status: ⏳
+Begin only after P5 release is complete.
 
-## Benchmark Grids
+The advanced-physics modules exist, but some are not yet fully available through the production case/configuration/dispatch path.
 
-* 20 × 20
-* 40 × 40
-* 80 × 80
-* 160 × 160
-* larger cases when practical
+## P6-APP-001 — Species Production Integration
 
-## Measure
+* [ ] Add/complete `physics.json` species configuration parsing
+* [ ] Wire species configuration into `CaseBuilder`
+* [ ] Dispatch species transport through `ProjectRunner`
+* [ ] Add production example case
+* [ ] Verify CLI execution
+* [ ] Verify GUI execution
+* [ ] Export species fields
+* [ ] Add end-to-end regression
 
-* mesh generation
-* equation assembly
-* linear solve
-* flux calculation
-* pressure correction
-* residual calculation
-* I/O
-* total runtime
+## P6-APP-002 — Multiphase Production Integration
 
-## Tools
+* [ ] Add/complete multiphase configuration parsing
+* [ ] Build phase definitions from case configuration
+* [ ] Wire volume-fraction transport into production runner
+* [ ] Expose mixture fields
+* [ ] Add production example
+* [ ] Verify CLI execution
+* [ ] Verify GUI execution
+* [ ] Verify restart/export
+* [ ] Add end-to-end regression
 
-Use:
+## P6-APP-003 — Compressible Production Integration
 
-* timers
-* profiler
-* CPU profiling
-* CUDA profiling
+* [ ] Add/complete compressible configuration parsing
+* [ ] Add EOS configuration
+* [ ] Define pressure/reference-pressure configuration
+* [ ] Wire compressible solver dispatch into `ProjectRunner`
+* [ ] Wire compressible BCs
+* [ ] Wire compressible energy coupling
+* [ ] Export density/Mach/absolute pressure
+* [ ] Add production low-Mach example
+* [ ] Verify CLI execution
+* [ ] Verify GUI execution
+* [ ] Add end-to-end regression
 
-Optimisation must never change validated physics silently.
+## P6-APP-004 — Production Physics Matrix
 
----
-
-# Phase 23 — GUI
-
-Status: ⏳
-
-The GUI comes after the solver API is stable.
-
-## Features
-
-* open case
-* edit mesh
-* edit fluid properties
-* edit BCs
-* configure solver
-* run simulation
-* stop simulation
-* display convergence
-* view results
-* export results
-
-## Architecture Rule
-
-```text
-GUI
- ↓
-Application Controller
- ↓
-CFD Solver API
-```
-
-The GUI must never contain solver mathematics.
+* [ ] Define supported physics combinations
+* [ ] Reject unsupported combinations cleanly
+* [ ] Document compatibility matrix
+* [ ] Add production-dispatch tests
+* [ ] Add representative integrated validation cases
 
 ---
 
-# Phase 24 — Advanced Mesh Support
+# P7 — GUI Case Authoring
 
-Status: ⏳
+Current GUI can open, save, validate, run and post-process cases, but ordinary configuration still depends heavily on existing JSON case files.
 
-## Expand Beyond Cartesian Meshes
+## P7-GUI-001 — Mesh Editor
 
-* [ ] nonuniform structured mesh
-* [ ] general 2D unstructured mesh
-* [ ] triangular cells
-* [ ] quadrilateral cells
-* [ ] 3D mesh foundation
-* [ ] tetrahedral cells
-* [ ] hexahedral cells
+* [ ] Mesh size controls
+* [ ] Domain dimensions
+* [ ] Mesh preview
+* [ ] Validation
 
-## Mesh Quality
+## P7-GUI-002 — Physics Editor
 
-Track:
+* [ ] Flow-regime selection
+* [ ] Material properties
+* [ ] Thermal controls
+* [ ] Turbulence selection
+* [ ] Species controls
+* [ ] Multiphase controls
+* [ ] Compressible controls
 
-* skewness
-* orthogonality
-* aspect ratio
-* minimum volume
-* face quality
+## P7-GUI-003 — Boundary-Condition Editor
 
----
+* [ ] Select boundary
+* [ ] Select BC type
+* [ ] Edit velocity
+* [ ] Edit pressure
+* [ ] Edit temperature
+* [ ] Edit species
+* [ ] Edit volume fraction
+* [ ] Validation/error reporting
 
-# Phase 25 — Advanced Physics
+## P7-GUI-004 — Solver Settings Editor
 
-Status: ⏳
+* [ ] SIMPLE/PISO configuration
+* [ ] Linear-solver selection
+* [ ] Tolerances
+* [ ] Relaxation factors
+* [ ] Time-step controls
+* [ ] CFL controls
+* [ ] Backend selection
+* [ ] CPU/OpenMP/GPU controls
 
-Potential future modules:
+## P7-GUI-005 — Case Creation Wizard
 
-* compressible flow
-* species transport
-* multiphase
-* rotating reference frames
-* porous media
-* buoyancy
-* radiation
-* reacting flow
-* conjugate heat transfer
-
-Each should be introduced as an independent validated capability.
-
----
-
-# Phase 26 — Optimisation and ML
-
-Status: ⏳
-
-Python-side tooling may support:
-
-* design optimisation
-* parameter sweeps
-* surrogate modelling
-* reduced-order modelling
-* ML-assisted turbulence research
-
-ML must remain optional and must not replace baseline validated numerical methods.
+* [ ] Create new case without manual JSON editing
+* [ ] Template selection
+* [ ] Guided setup
+* [ ] Validate before save
+* [ ] CLI-compatible output
 
 ---
 
-# Phase 27 — Production Quality
+# P8 — Solver & Physics Expansion
 
-Status: ⏳
+Only after production integration is stable.
 
-## Required
+Potential future work:
 
-* [ ] full unit-test suite
-* [ ] numerical verification tests
-* [ ] regression tests
-* [ ] deterministic tests
-* [ ] conservation tests
-* [ ] sanitizers
-* [ ] static analysis
-* [ ] formatting
-* [ ] CI
-* [ ] release builds
-* [ ] documentation
-* [ ] packaging
+* [ ] Higher-order convection schemes
+* [ ] Additional preconditioners
+* [ ] Multigrid
+* [ ] Fully coupled pressure-based solver
+* [ ] Advanced compressible-energy formulation
+* [ ] Higher-Mach compressible capability
+* [ ] Advanced turbulence validation
+* [ ] Additional species models
+* [ ] Reaction/source-term framework
+* [ ] Advanced multiphase interface methods
+* [ ] Surface tension
+* [ ] Interface reconstruction
+* [ ] Moving/deforming meshes
+* [ ] 3D foundation
+
+These are future capabilities, not current commitments.
 
 ---
 
-# Phase 28 — Release Milestones
+# P9 — Production Maturity
 
-## v0.1 — Numerical Foundation
+Long-term application hardening.
 
-Target:
-
-* mesh
-* fields
-* algebra
-* FVM operators
-* boundary conditions
-* SIMPLE
-* cavity solver
-* Poiseuille validation
-* CLI
-* CSV/JSON/VTK
-* deterministic regression tests
-
-## v0.2 — Transient CFD
-
-Target:
-
-* transient solver
-* PISO
-* restart
-* transient validation
-
-## v0.3 — Thermal
-
-Target:
-
-* energy equation
-* heat transfer
-* thermal validation
-
-## v0.4 — Turbulence
-
-Target:
-
-* RANS framework
-* k-epsilon
-* k-omega
-* SST
-* turbulent validation
-
-## v0.5 — Parallel CPU
-
-Target:
-
-* OpenMP optimisation
-* MPI decomposition
-* distributed solver validation
-
-## v0.6 — GPU
-
-Target:
-
-* CUDA backend
-* GPU linear algebra
-* measured CPU/GPU speedup
-
-## v0.7 — GUI
-
-Target:
-
-* Qt-based desktop interface
-* case editing
-* solver execution
-* result visualization
-
-## v1.0 — Professional CFDApp
-
-Required before 1.0:
-
-* validated steady and transient incompressible flow
-* laminar and RANS turbulence
-* thermal transport
-* robust case format
-* CLI and GUI
-* OpenMP
-* MPI
-* optional CUDA
-* VTK/ParaView export
-* deterministic regression suite
-* documented validation evidence
-* reproducible release builds
+* [ ] Crash reporting
+* [ ] Structured diagnostic logs
+* [ ] Result comparison tools
+* [ ] Automated benchmark dashboard
+* [ ] Backward-compatible case-schema migration
+* [ ] Plugin/model extension architecture
+* [ ] Cross-platform packaging
+* [ ] Linux release
+* [ ] Automated installer testing
+* [ ] Long-duration stability tests
+* [ ] Large-case stress tests
+* [ ] Release-candidate qualification process
 
 ---
 
 # Current Priority
 
-The current development path is:
+## NOW — Finish P5 Release Gate
 
-```text
-CMake/build system
-        ↓
-Core types
-        ↓
-Mesh
-        ↓
-Fields
-        ↓
-Sparse algebra
-        ↓
-Boundary conditions
-        ↓
-Finite-volume operators
-        ↓
-Momentum + continuity
-        ↓
-SIMPLE
-        ↓
-20×20 cavity
-        ↓
-Poiseuille validation
-        ↓
-40×40 / 80×80 validation
-        ↓
-CLI + export
+Complete:
+
+```text id="p2mgxx"
+P5-J — Packaging
+P5-K — Release Automation
 ```
 
-Everything below that line is secondary until the laminar SIMPLE solver is numerically correct.
+Immediate requirement:
+
+```text id="jnktmg"
+Windows + Qt 6
+      ↓
+Release build
+      ↓
+Full CTest
+      ↓
+windeployqt
+      ↓
+CPack
+      ↓
+Packaged CLI smoke test
+      ↓
+Packaged GUI smoke test
+      ↓
+Checksums
+      ↓
+GitHub release workflow
+      ↓
+Download + retest published artifact
+```
+
+Only then mark:
+
+```text id="xehd74"
+P5 — Application ✅
+```
 
 ---
 
-# Immediate Next Work Queue
+# Next After Release
 
-* [ ] Implement root `CMakeLists.txt`
-* [ ] Implement `CMakePresets.json`
-* [ ] Make a minimal CLI executable compile
-* [ ] Add first CTest test
-* [ ] Implement core types
-* [ ] Implement Cartesian mesh
-* [ ] Implement scalar/vector fields
-* [ ] Implement sparse matrix and vector
-* [ ] Implement CG
-* [ ] Implement BiCGSTAB
-* [ ] Verify linear solvers against known systems
-* [ ] Implement finite-volume diffusion
-* [ ] Implement gradient
-* [ ] Implement divergence
-* [ ] Implement convection
-* [ ] Implement boundary-condition framework
-* [ ] Implement momentum equation
-* [ ] Implement continuity equation
-* [ ] Implement SIMPLE
-* [ ] Run lid-driven cavity
-* [ ] Validate Poiseuille flow
+Begin:
+
+```text id="980bxa"
+P6 — Production Physics Integration
+```
+
+Priority:
+
+```text id="sd3qn5"
+1. Species production dispatch
+2. Multiphase production dispatch
+3. Compressible production dispatch
+4. Supported-physics compatibility matrix
+```
+
+After P6:
+
+```text id="21d4yu"
+P7 — GUI Case Authoring
+```
+
+This will remove the remaining need for ordinary users to edit case JSON manually.
 
 ---
 
 # Development Rule
 
-Do not advance to a new major capability because the previous one merely compiles.
+Every new roadmap item must follow:
 
-A phase is complete only when it is:
-
-```text
-Implemented
-    +
-Unit tested
-    +
-Numerically verified
-    +
-Integrated
-    +
-Regression protected
-    +
-Documented
+```text id="imrd7b"
+Implementation
+    ↓
+Focused tests
+    ↓
+Numerical/physical validation
+    ↓
+Regression
+    ↓
+Determinism/equivalence
+    ↓
+Documentation
+    ↓
+Only then mark complete
 ```
 
-The central principle of CFDApp development is:
+Never mark a feature complete because code merely exists.
 
-> Numerical correctness first, architecture second, performance third, advanced features last.
+A feature is complete only when it is:
+
+```text id="kqnqu5"
+implemented
+tested
+validated
+integrated
+documented
+and usable through the production application
+```

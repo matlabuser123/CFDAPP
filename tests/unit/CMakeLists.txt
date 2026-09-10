@@ -7,3 +7,16 @@ add_subdirectory(discretization)
 add_subdirectory(physics)
 add_subdirectory(io)
 add_subdirectory(solver)
+add_subdirectory(thermal)
+add_subdirectory(turbulence)
+add_subdirectory(species)
+add_subdirectory(multiphase)
+add_subdirectory(compressible)
+add_subdirectory(app)
+add_subdirectory(viz)
+
+# P4 -- Performance: only when CFDAPP_ENABLE_CUDA=ON (section 29 -- "No
+# GPU should be required to run normal CFDApp tests").
+if(CFDAPP_ENABLE_CUDA)
+  add_subdirectory(gpu)
+endif()

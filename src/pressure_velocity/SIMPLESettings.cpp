@@ -34,6 +34,7 @@ void validateSIMPLESettings(const SIMPLESettings& settings) {
   validateTolerance(settings.velocityTolerance, "velocityTolerance");
   validateTolerance(settings.pressureTolerance, "pressureTolerance");
   validateTolerance(settings.continuityTolerance, "continuityTolerance");
+  validateTolerance(settings.turbulenceTolerance, "turbulenceTolerance");
 }
 
 }  // namespace cfd::pressure_velocity

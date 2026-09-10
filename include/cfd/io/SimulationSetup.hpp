@@ -1,11 +1,18 @@
 #pragma once
 
+#include <optional>
+
 #include "cfd/boundary/BoundaryCondition.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/pressure_velocity/SIMPLESettings.hpp"
+#include "cfd/thermal/ThermalProperties.hpp"
+#include "cfd/turbulence/KEpsilonModel.hpp"
+#include "cfd/turbulence/KOmegaModel.hpp"
+#include "cfd/turbulence/SSTModel.hpp"
 
 namespace cfd::io {
 
@@ -16,6 +23,16 @@ namespace cfd::io {
 // already-running solver). The reference cell (pressure null-space gauge)
 // is deliberately not part of this -- it stays the deterministic default
 // 0 a caller passes directly to SIMPLE's constructor (section 43).
+//
+// thermal/temperatureBoundaries/initialTemperature (P2-THERMAL-004) are
+// all std::optional together, present iff physics.json configured a
+// "thermal" block -- CaseBuilder either sets all three or leaves all
+// three empty, never a mix (CaseReader's own per-patch "temperature key
+// required iff thermal enabled" validation guarantees there is always
+// enough configuration to build all three once thermal is enabled at
+// all). Check thermal.has_value() to decide whether to run
+// thermal::ThermalSolver at all -- there is no separate "thermal
+// enabled" bool to keep in sync with it.
 struct SimulationSetup {
   cfd::mesh::Mesh mesh;
   cfd::physics::FluidProperties fluid;
@@ -24,6 +41,78 @@ struct SimulationSetup {
   cfd::pressure_velocity::SIMPLESettings solverSettings;
   cfd::fields::VectorField initialVelocity;
   cfd::fields::ScalarField initialPressure;
+
+  std::optional<cfd::thermal::ThermalProperties> thermal;
+  std::optional<cfd::boundary::BoundaryConditionSet> temperatureBoundaries;
+  std::optional<cfd::fields::ScalarField> initialTemperature;
+
+  // P3-PHYS-001: present iff physics.json configured a "buoyancy" block
+  // (which itself requires "thermal" to also be present -- see
+  // PhysicsConfigParser.cpp's own cross-block check). Unlike the
+  // turbulence configs below, BoussinesqBuoyancy holds no mesh/boundary
+  // references (just plain reference-density/beta/referenceTemperature/
+  // gravity values), so CaseBuilder constructs the real object directly
+  // here rather than leaving that to the caller -- there is no memory-
+  // safety trap to avoid the way there is for a TurbulenceModel. A
+  // caller passes `&setup.initialTemperature.value()` (or its own
+  // live-updated temperature field, once one exists) and
+  // `&setup.buoyancy.value()` straight into `SIMPLE`'s own optional
+  // temperature/buoyancy constructor pair. **Not yet wired into
+  // `apps/cli/main.cpp`'s one-shot `runCase()` orchestration** -- a
+  // real coupled natural-convection CLI run needs an outer Picard loop
+  // alternating `SIMPLE`/`cfd::thermal::ThermalSolver` (see
+  // `cfd::pressure_velocity::SIMPLE`'s own header comment and
+  // `tests/integration/thermal/test_boussinesq_coupling.cpp` for a
+  // worked example of that loop), which is a deliberate, documented
+  // scope decision for this task, not an oversight -- same "foundation
+  // now, CLI integration later" precedent P2-THERMAL-005 already
+  // established for conjugate heat transfer.
+  std::optional<cfd::physics::BoussinesqBuoyancy> buoyancy;
+
+  // P2-TURB-004 (extended by P2-TURB-005 and P2-TURB-006): at most one of
+  // kEpsilonConfig/kOmegaConfig/sstConfig is present, matching
+  // physics.json's "turbulence.model" ("k_epsilon", "k_omega", or "sst"
+  // respectively); all three are absent for laminar (an absent
+  // "turbulence" block and an explicit "model": "laminar" both collapse
+  // to this same all-nullopt state, since both mean "SIMPLE/PISO use
+  // their own null-turbulenceModel default", which is already exactly
+  // laminar -- TODO.md P2-TURB-003).
+  //
+  // Deliberately data only, NOT a constructed
+  // cfd::turbulence::TurbulenceModel -- this struct's own header comment
+  // above ("not a pre-constructed SIMPLE itself") applies equally to a
+  // turbulence model: it is solver-facing runtime state, not
+  // configuration, so CaseBuilder does not construct one. A caller
+  // builds `cfd::turbulence::KEpsilonModel(setup.mesh, setup.fluid,
+  // setup.velocityBoundaries, *setup.kBoundaries, *setup.epsilonBoundaries,
+  // *setup.kEpsilonConfig)` (or the KOmegaModel/kOmegaConfig/
+  // omegaBoundaries, or SSTModel/sstConfig/omegaBoundaries, equivalent)
+  // itself, exactly the same "CaseBuilder builds data, the caller builds
+  // SIMPLE" split already used for solverSettings/SIMPLE. This also
+  // sidesteps a real memory-safety trap a stored TurbulenceModel would
+  // create: KEpsilonModel/KOmegaModel/SSTModel hold mesh/boundary-set
+  // members *by reference*, so they can only safely reference fields
+  // that have already reached their final, stable address -- never a
+  // field of the same SimulationSetup that might still be relocated by
+  // its own return-by-value construction.
+  //
+  // kBoundaries is populated whenever *any* config is present (all three
+  // models transport a k equation against the same derived boundary
+  // set); epsilonBoundaries is populated only alongside kEpsilonConfig.
+  // omegaBoundaries is shared by kOmegaConfig and sstConfig (both
+  // transport an omega equation) but built differently per model: for
+  // "k_omega" it is a zero-gradient wall approximation (KOmegaModel's
+  // own documented simplification -- see CaseBuilder.cpp); for "sst" it
+  // is the real Wilcox near-wall omega Dirichlet value via
+  // cfd::boundary::WallOmega, since SST already computes a real wall
+  // distance field and KOmegaModel's simplification is not silently
+  // reused (see WallOmega.hpp's own header comment).
+  std::optional<cfd::turbulence::KEpsilonConfig> kEpsilonConfig;
+  std::optional<cfd::turbulence::KOmegaConfig> kOmegaConfig;
+  std::optional<cfd::turbulence::SSTConfig> sstConfig;
+  std::optional<cfd::boundary::BoundaryConditionSet> kBoundaries;
+  std::optional<cfd::boundary::BoundaryConditionSet> epsilonBoundaries;
+  std::optional<cfd::boundary::BoundaryConditionSet> omegaBoundaries;
 };
 
 }  // namespace cfd::io

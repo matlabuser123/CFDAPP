@@ -171,3 +171,50 @@ TEST(VTKWriterTest, RepeatedWriteIsByteIdentical) {
   VTKWriter::writeSolution(pathB, mesh, result);
   EXPECT_EQ(readLines(pathA), readLines(pathB));
 }
+
+// --- P2-THERMAL-004: optional temperature SCALARS block -------------------
+
+TEST(VTKWriterTest, OmitsTemperatureBlockWhenNotProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto path = tempFile("no_temperature.vtk");
+  VTKWriter::writeSolution(path, mesh, makeResult(1));
+  const auto lines = readLines(path);
+  for (const auto& line : lines) {
+    EXPECT_EQ(line.find("temperature"), std::string::npos);
+  }
+}
+
+TEST(VTKWriterTest, AppendsTemperatureBlockAfterVelocityMagnitudeWhenProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto result = makeResult(1);
+  ScalarField temperature(1);
+  temperature[0] = 273.15;
+  const auto path = tempFile("with_temperature.vtk");
+  VTKWriter::writeSolution(path, mesh, result, temperature);
+  const auto lines = readLines(path);
+
+  const auto magnitudeLine = findLine(lines, "SCALARS velocity_magnitude");
+  // LOOKUP_TABLE + one value row for velocity_magnitude, then the
+  // temperature block starts.
+  EXPECT_EQ(lines[magnitudeLine + 3], "SCALARS temperature double 1");
+  EXPECT_EQ(lines[magnitudeLine + 4], "LOOKUP_TABLE default");
+  EXPECT_DOUBLE_EQ(std::stod(lines[magnitudeLine + 5]), 273.15);
+}
+
+TEST(VTKWriterTest, MismatchedTemperatureSizeThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResult(4);
+  const ScalarField temperature(3);  // wrong size.
+  const auto path = tempFile("bad_temperature_size.vtk");
+  EXPECT_THROW((void)VTKWriter::writeSolution(path, mesh, result, temperature),
+              InvalidArgumentError);
+}
+
+TEST(VTKWriterTest, NonFiniteTemperatureThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto result = makeResult(1);
+  ScalarField temperature(1);
+  temperature[0] = std::numeric_limits<cfd::Real>::infinity();
+  const auto path = tempFile("nonfinite_temperature.vtk");
+  EXPECT_THROW((void)VTKWriter::writeSolution(path, mesh, result, temperature), NumericalError);
+}

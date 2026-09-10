@@ -8,8 +8,12 @@ check_language(CUDA)
 
 if(CMAKE_CUDA_COMPILER)
   enable_language(CUDA)
-  set(CMAKE_CUDA_STANDARD 20)
+  # nvcc 11.5 (this project's own development toolchain) does not support
+  # C++20 -- 17 is both the highest this toolchain accepts and enough for
+  # the CSR SpMV kernel's own needs (P4 -- Performance, section 32).
+  set(CMAKE_CUDA_STANDARD 17)
   set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+  find_package(CUDAToolkit REQUIRED)
 else()
   message(WARNING
     "CFDAPP_ENABLE_CUDA is ON but no CUDA compiler was found; continuing "

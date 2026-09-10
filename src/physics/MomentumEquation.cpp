@@ -1,9 +1,11 @@
 #include "cfd/physics/MomentumEquation.hpp"
 
+#include <cmath>
 #include <utility>
 
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/Gradient.hpp"
+#include "cfd/discretization/Interpolation.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::physics {
@@ -93,6 +95,71 @@ void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
   }
 }
 
+void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiveViscosity,
+                                   const VectorField& velocity,
+                                   const BoundaryConditionSet& velocityBoundaries,
+                                   VelocityComponent component, SparseMatrixBuilder& builder,
+                                   Vector& rhs) {
+  if (velocity.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleDiffusionContribution: velocity size does not match mesh cell count");
+  }
+  if (effectiveViscosity.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleDiffusionContribution: effectiveViscosity size does not match mesh cell count");
+  }
+  // A diffusion coefficient built from a non-finite or non-positive
+  // mu_eff would either corrupt the assembled system with a NaN/Inf (only
+  // sometimes caught downstream by matrix.allFinite()) or silently flip
+  // the sign of a diffusion term for a negative-but-finite value (never
+  // caught downstream at all) -- reject it here, at the one point mu_eff
+  // enters momentum assembly, the same "validate at the entry point"
+  // convention FluidProperties's own constructor already applies to
+  // molecular viscosity.
+  for (Index i = 0; i < effectiveViscosity.size(); ++i) {
+    if (!std::isfinite(effectiveViscosity[i]) || !(effectiveViscosity[i] > 0.0)) {
+      throw InvalidArgumentError(
+          "assembleDiffusionContribution: effectiveViscosity must be finite and > 0 in every "
+          "cell");
+    }
+  }
+
+  for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
+    const Face& face = mesh.face(faceId);
+
+    if (face.isBoundary()) {
+      const Index ownerId = face.owner();
+      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
+      // No neighbor cell to interpolate against at a boundary face -- use
+      // the owner cell's own effective viscosity (see this overload's
+      // header comment).
+      const Real muFace = effectiveViscosity[ownerId];
+      const Real diffusionCoefficient = muFace * face.area() / distance;
+
+      const Vector2 uB = boundaryVelocity(mesh, face, velocity, velocityBoundaries);
+      const Real phiB = selectComponent(uB, component);
+
+      builder.add(ownerId, ownerId, diffusionCoefficient);
+      rhs[ownerId] += diffusionCoefficient * phiB;
+      continue;
+    }
+
+    const Index ownerId = face.owner();
+    const Index neighborId = *face.neighbor();
+    const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
+    const Real muFace =
+        cfd::discretization::interpolateInternalFace(mesh, face, effectiveViscosity);
+    const Real diffusionCoefficient = muFace * face.area() / dPN;
+
+    // Face-once assembly: both rows' equal/opposite contributions are
+    // added right here, from a single face visit (TODO.md section 51).
+    builder.add(ownerId, ownerId, diffusionCoefficient);
+    builder.add(ownerId, neighborId, -diffusionCoefficient);
+    builder.add(neighborId, neighborId, diffusionCoefficient);
+    builder.add(neighborId, ownerId, -diffusionCoefficient);
+  }
+}
+
 void assembleConvectionContribution(const Mesh& mesh, const SurfaceField& massFlux,
                                     const VectorField& velocity,
                                     const BoundaryConditionSet& velocityBoundaries,
@@ -151,6 +218,19 @@ void assemblePressureSourceContribution(const Mesh& mesh, const ScalarField& pre
   for (const auto& cell : mesh.cells()) {
     const Real gradComponent = selectComponent(gradP[cell.id()], component);
     rhs[cell.id()] += -cell.volume() * gradComponent;
+  }
+}
+
+void assembleBuoyancySourceContribution(const Mesh& mesh, const ScalarField& temperature,
+                                        const BoussinesqBuoyancy& buoyancy,
+                                        VelocityComponent component, Vector& rhs) {
+  if (temperature.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleBuoyancySourceContribution: temperature size does not match mesh cell count");
+  }
+  for (const auto& cell : mesh.cells()) {
+    const Vector2 sourcePerVolume = buoyancy.source(temperature[cell.id()]);
+    rhs[cell.id()] += cell.volume() * selectComponent(sourcePerVolume, component);
   }
 }
 

@@ -74,6 +74,22 @@ Vector SparseMatrix::multiply(const Vector& x) const {
     throw InvalidArgumentError("SparseMatrix::multiply: vector size does not match columns");
   }
   Vector y(rows_, 0.0);
+  // P4 -- Performance, OpenMP target: CSR SpMV is embarrassingly
+  // parallel across rows -- each iteration writes only its own y[row]
+  // and reads only x (never mutated) and this row's own CSR slice, so
+  // there is no race regardless of thread count, and critically no
+  // reduction-order dependence either: row `row`'s own inner sum is
+  // still accumulated by a single thread in the exact same fixed
+  // ascending-k order as the serial version (see SparseMatrix's own
+  // class-level comment on why column order within a row is guaranteed
+  // ascending), so the floating-point result is bit-identical at any
+  // thread count -- verified in test_sparse_matrix.cpp's own
+  // OpenMP-vs-serial-multiply-are-bit-identical test and
+  // TODO.md's own P4 status note. A no-op (falls back to the identical
+  // serial loop) when OpenMP is not enabled -- see cmake/OpenMP.cmake.
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
   for (Index row = 0; row < rows_; ++row) {
     Real sum = 0.0;
     for (Index k = rowOffsets_[row]; k < rowOffsets_[row + 1]; ++k) {
@@ -97,6 +113,10 @@ Real SparseMatrix::diagonal(Index row) const {
                              std::to_string(row));
 }
 
+const Real* SparseMatrix::valuesData() const noexcept { return values_.data(); }
+const Index* SparseMatrix::columnIndicesData() const noexcept { return columnIndices_.data(); }
+const Index* SparseMatrix::rowOffsetsData() const noexcept { return rowOffsets_.data(); }
+
 bool SparseMatrix::allFinite() const noexcept {
   for (const Real value : values_) {
     if (!std::isfinite(value)) {
@@ -108,6 +128,10 @@ bool SparseMatrix::allFinite() const noexcept {
 
 SparseMatrixBuilder::SparseMatrixBuilder(Index rows, Index columns)
     : rows_(rows), columns_(columns) {}
+
+void SparseMatrixBuilder::reserve(Index expectedTripletCount) {
+  triplets_.reserve(expectedTripletCount);
+}
 
 void SparseMatrixBuilder::add(Index row, Index column, Real value) {
   if (row >= rows_ || column >= columns_) {

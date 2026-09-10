@@ -32,6 +32,8 @@ std::string_view statusName(SIMPLEStatus status) {
       return "NonFiniteState";
     case SIMPLEStatus::InvalidConfiguration:
       return "InvalidConfiguration";
+    case SIMPLEStatus::Cancelled:
+      return "Cancelled";
   }
   return "Unknown";
 }
@@ -49,7 +51,8 @@ bool allFieldsFinite(const SIMPLEResult& result) {
 }  // namespace
 
 void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetadata& metadata,
-                               const Mesh& mesh, const SIMPLEResult& result) {
+                               const Mesh& mesh, const SIMPLEResult& result,
+                               const std::optional<ThermalRunMetadata>& thermal) {
   const auto structured = detail::inferStructuredMeshInfo(mesh);
 
   nlohmann::json doc;
@@ -72,6 +75,19 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
   doc["residuals"]["continuity"] = result.finalContinuityResidual;
   doc["conservation"]["global_mass_imbalance"] = result.globalMassImbalance;
   doc["numerics"]["finite"] = allFieldsFinite(result);
+
+  // P2-THERMAL-004: "thermal.enabled" is always present (a documented
+  // default for every nonthermal case, matching every other field here --
+  // never a silently-absent key), the rest only when thermal is enabled.
+  doc["thermal"]["enabled"] = thermal.has_value();
+  if (thermal.has_value()) {
+    doc["thermal"]["conductivity"] = thermal->conductivity;
+    doc["thermal"]["specific_heat"] = thermal->specificHeat;
+    doc["thermal"]["status"] = thermal->status;
+    doc["thermal"]["converged"] = thermal->converged;
+    doc["thermal"]["iterations"] = thermal->iterations;
+    doc["thermal"]["final_residual"] = thermal->finalResidual;
+  }
 
   std::ofstream out(path);
   if (!out) {

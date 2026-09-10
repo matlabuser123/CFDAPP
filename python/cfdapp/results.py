@@ -93,6 +93,26 @@ class ResultData:
     def ny(self) -> int:
         return int(self.metadata["mesh"]["ny"])
 
+    @property
+    def thermal_enabled(self) -> bool:
+        """P2-THERMAL-004: metadata.json's "thermal.enabled". Defaults to
+        False for a results/ directory written before this field existed
+        (older exported metadata.json files), not just for a genuinely
+        nonthermal case -- both read the same way here.
+        """
+        return bool(self.metadata.get("thermal", {}).get("enabled", False))
+
+    @property
+    def has_temperature(self) -> bool:
+        """Whether fields.csv actually has a "temperature" column --
+        distinct from thermal_enabled, which can be True while fields is
+        None (non-finite flow solve) or fields lacks the column (thermal
+        solve itself didn't produce a finite result -- see
+        ResultExporter's own "only a fully-finite solution gets a
+        temperature column" policy).
+        """
+        return self.fields is not None and "temperature" in self.fields.columns
+
 
 def _require_columns(frame: pd.DataFrame, required: tuple[str, ...], file_label: str) -> None:
     missing = [c for c in required if c not in frame.columns]

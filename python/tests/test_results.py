@@ -35,6 +35,33 @@ def test_load_case_results_missing_directory():
         load_case_results("this/directory/does/not/exist")
 
 
+# --- P2-THERMAL-004: thermal_enabled / has_temperature --------------------
+
+
+def test_nonthermal_fixture_reports_thermal_disabled(tiny_results_dir: Path):
+    result = load_case_results(tiny_results_dir)
+    assert result.thermal_enabled is False
+    assert result.has_temperature is False
+
+
+def test_thermal_fixture_reports_thermal_enabled(tiny_thermal_results_dir: Path):
+    result = load_case_results(tiny_thermal_results_dir)
+    assert result.thermal_enabled is True
+    assert result.has_temperature is True
+    assert "temperature" in result.fields.columns
+
+
+def test_thermal_enabled_defaults_false_for_metadata_without_thermal_key(working_copy: Path):
+    # An older results/ directory written before "thermal" existed in
+    # metadata.json at all -- must not raise, must read as disabled.
+    metadata_path = working_copy / "metadata.json"
+    with metadata_path.open() as handle:
+        metadata = json.load(handle)
+    assert "thermal" not in metadata  # sanity: the base fixture predates this field.
+    result = load_case_results(working_copy)
+    assert result.thermal_enabled is False
+
+
 def test_load_case_results_missing_metadata(working_copy: Path):
     (working_copy / "metadata.json").unlink()
     with pytest.raises(ResultLoadError):

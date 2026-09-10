@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -10,6 +12,7 @@
 #include "cfd/algebra/Vector.hpp"
 #include "cfd/boundary/MovingWall.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/MomentumEquation.hpp"
 
@@ -21,6 +24,7 @@ using cfd::algebra::SparseMatrixBuilder;
 using cfd::algebra::Vector;
 using cfd::boundary::BoundaryConditionSet;
 using cfd::boundary::MovingWall;
+using cfd::fields::ScalarField;
 using cfd::fields::VectorField;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
@@ -176,5 +180,156 @@ TEST(MomentumDiffusionTest, MismatchedVelocitySizeThrows) {
 
   EXPECT_THROW(assembleDiffusionContribution(mesh, 1.0, velocity, boundaries, VelocityComponent::U,
                                              builder, rhs),
+               InvalidArgumentError);
+}
+
+// --- P2-TURB-003: field-based (per-cell effective viscosity) overload ------
+
+TEST(MomentumDiffusionTest, UniformEffectiveViscosityFieldMatchesConstantOverload) {
+  // The "reduces to the old laminar result" proof required by P2-TURB-003:
+  // a uniform effectiveViscosity field equal to a constant mu must give
+  // the same assembled system as the plain scalar overload, to within
+  // floating-point associativity noise -- not necessarily bit-identical,
+  // because the field overload's internal faces go through
+  // cfd::discretization::interpolateInternalFace's
+  // ((dNf*phiP + dPf*phiN) / (dPf+dNf)) formula, which is not guaranteed
+  // to collapse to exactly `mu` bit-for-bit when phiP == phiN == mu (two
+  // separate multiplications can each round differently than one), unlike
+  // the scalar overload's direct `mu * area / distance`. TODO.md P2-TURB-003
+  // accepts "bit-identical or strict numerical equality" for exactly this
+  // reason -- checked here to 1e-12 relative, many orders tighter than any
+  // physical tolerance elsewhere in this codebase.
+  const Mesh mesh = MeshGeometry::createCartesian2D(5, 4, 1.0, 1.0);
+  const Real mu = 0.0173;
+  const auto boundaries = makeConstantVelocityBoundaries(mesh, Vector2{3.0, -2.0});
+  const Index n = mesh.numberOfCells();
+  const VectorField velocity(n, Vector2{1.0, 0.5});
+
+  SparseMatrixBuilder scalarBuilder(n, n);
+  Vector scalarRhs(n, 0.0);
+  assembleDiffusionContribution(mesh, mu, velocity, boundaries, VelocityComponent::U, scalarBuilder,
+                                scalarRhs);
+  const auto scalarMatrix = scalarBuilder.build();
+
+  const ScalarField uniformMu(n, mu);
+  SparseMatrixBuilder fieldBuilder(n, n);
+  Vector fieldRhs(n, 0.0);
+  assembleDiffusionContribution(mesh, uniformMu, velocity, boundaries, VelocityComponent::U,
+                                fieldBuilder, fieldRhs);
+  const auto fieldMatrix = fieldBuilder.build();
+
+  for (Index row = 0; row < n; ++row) {
+    EXPECT_NEAR(fieldMatrix.diagonal(row), scalarMatrix.diagonal(row), 1e-12 * mu) << "row " << row;
+    EXPECT_NEAR(fieldRhs[row], scalarRhs[row],
+                1e-12 * std::max<Real>(1.0, std::abs(scalarRhs[row])))
+        << "row " << row;
+  }
+  // Off-diagonal entries too, probed via matrix-vector products the same
+  // way InternalFaceCoefficientsAreSymmetric above does.
+  for (Index i = 0; i < n; ++i) {
+    Vector e(n, 0.0);
+    e[i] = 1.0;
+    const Vector scalarColumn = scalarMatrix.multiply(e);
+    const Vector fieldColumn = fieldMatrix.multiply(e);
+    for (Index row = 0; row < n; ++row) {
+      EXPECT_NEAR(fieldColumn[row], scalarColumn[row], 1e-12 * mu) << "col " << i << " row " << row;
+    }
+  }
+}
+
+TEST(MomentumDiffusionTest, NonUniformEffectiveViscosityChangesDiffusionCoefficients) {
+  // The "critical" proof (TODO.md P2-TURB-003) that mu_eff genuinely
+  // drives the assembled diffusion coefficients rather than being
+  // silently ignored: giving cell 0 a much larger effective viscosity
+  // than the rest of a uniform field must strictly increase the
+  // face-interpolated diffusion coefficient on every face touching cell
+  // 0, relative to the all-uniform baseline, and must leave faces that do
+  // not touch cell 0 completely unchanged (mu_eff is a genuinely local,
+  // per-cell quantity, not some global scalar in disguise).
+  const Mesh mesh = MeshGeometry::createCartesian2D(3, 3, 1.0, 1.0);
+  const Real muBase = 0.01;
+  const auto boundaries = makeConstantVelocityBoundaries(mesh, Vector2{0.0, 0.0});
+  const Index n = mesh.numberOfCells();
+  const VectorField velocity(n, Vector2{0.0, 0.0});
+
+  ScalarField uniformMu(n, muBase);
+  SparseMatrixBuilder baselineBuilder(n, n);
+  Vector baselineRhs(n, 0.0);
+  assembleDiffusionContribution(mesh, uniformMu, velocity, boundaries, VelocityComponent::U,
+                                baselineBuilder, baselineRhs);
+  const auto baselineMatrix = baselineBuilder.build();
+
+  ScalarField perturbedMu(n, muBase);
+  perturbedMu[0] = muBase * 50.0;  // cell 0 only -- a strong, unmistakable perturbation.
+  SparseMatrixBuilder perturbedBuilder(n, n);
+  Vector perturbedRhs(n, 0.0);
+  assembleDiffusionContribution(mesh, perturbedMu, velocity, boundaries, VelocityComponent::U,
+                                perturbedBuilder, perturbedRhs);
+  const auto perturbedMatrix = perturbedBuilder.build();
+
+  // Cell 0's own diagonal (sum of face conductances touching cell 0) must
+  // have strictly increased.
+  EXPECT_GT(perturbedMatrix.diagonal(0), baselineMatrix.diagonal(0));
+
+  // Cell 0's off-diagonal coupling to its mesh neighbors (cells 1 and 3 on
+  // this 3x3 Cartesian mesh: right and above) must have strictly
+  // increased in magnitude too.
+  Vector e0(n, 0.0);
+  e0[0] = 1.0;
+  const Vector baselineColumn0 = baselineMatrix.multiply(e0);
+  const Vector perturbedColumn0 = perturbedMatrix.multiply(e0);
+  EXPECT_LT(perturbedColumn0[1], baselineColumn0[1]);  // more negative -- see A(1,0) < 0.
+  EXPECT_LT(perturbedColumn0[3], baselineColumn0[3]);
+
+  // Cell 8 (the mesh's opposite corner) never shares a face with cell 0,
+  // so its diagonal must be completely unaffected -- proves mu_eff is
+  // applied per-cell/per-face, not folded into some global scalar.
+  EXPECT_DOUBLE_EQ(perturbedMatrix.diagonal(8), baselineMatrix.diagonal(8));
+}
+
+TEST(MomentumDiffusionTest, MismatchedEffectiveViscosityFieldSizeThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto boundaries = makeConstantVelocityBoundaries(mesh, Vector2{0.0, 0.0});
+  const Index n = mesh.numberOfCells();
+  const VectorField velocity(n, Vector2{0.0, 0.0});
+  const ScalarField wrongSizeMu(n + 1, 0.01);
+  SparseMatrixBuilder builder(n, n);
+  Vector rhs(n, 0.0);
+
+  EXPECT_THROW((void)assembleDiffusionContribution(mesh, wrongSizeMu, velocity, boundaries,
+                                                   VelocityComponent::U, builder, rhs),
+               InvalidArgumentError);
+}
+
+TEST(MomentumDiffusionTest, NonFiniteOrNonPositiveEffectiveViscosityFieldThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto boundaries = makeConstantVelocityBoundaries(mesh, Vector2{0.0, 0.0});
+  const Index n = mesh.numberOfCells();
+  const VectorField velocity(n, Vector2{0.0, 0.0});
+  SparseMatrixBuilder builder(n, n);
+  Vector rhs(n, 0.0);
+
+  ScalarField nanMu(n, 0.01);
+  nanMu[1] = std::nan("");
+  EXPECT_THROW((void)assembleDiffusionContribution(mesh, nanMu, velocity, boundaries,
+                                                   VelocityComponent::U, builder, rhs),
+               InvalidArgumentError);
+
+  ScalarField infMu(n, 0.01);
+  infMu[2] = std::numeric_limits<Real>::infinity();
+  EXPECT_THROW((void)assembleDiffusionContribution(mesh, infMu, velocity, boundaries,
+                                                   VelocityComponent::U, builder, rhs),
+               InvalidArgumentError);
+
+  ScalarField zeroMu(n, 0.01);
+  zeroMu[3] = 0.0;
+  EXPECT_THROW((void)assembleDiffusionContribution(mesh, zeroMu, velocity, boundaries,
+                                                   VelocityComponent::U, builder, rhs),
+               InvalidArgumentError);
+
+  ScalarField negativeMu(n, 0.01);
+  negativeMu[0] = -0.001;
+  EXPECT_THROW((void)assembleDiffusionContribution(mesh, negativeMu, velocity, boundaries,
+                                                   VelocityComponent::U, builder, rhs),
                InvalidArgumentError);
 }

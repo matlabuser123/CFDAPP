@@ -118,6 +118,10 @@ PressureCorrectionAssembly assemblePressureCorrection(
   const bool pinReferenceCell = !hasOpenBoundary;
 
   SparseMatrixBuilder builder(n, n);
+  // P4 -- Performance: same reservation rationale as
+  // RelaxedMomentum.cpp's own -- this is SIMPLE's other per-outer-
+  // iteration assembly call.
+  builder.reserve(5 * n);
   SurfaceField faceCoefficient(mesh.numberOfFaces(), 0.0);
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {

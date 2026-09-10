@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string>
 
 #include "cfd/core/Types.hpp"
@@ -34,9 +35,26 @@ struct PressureBoundarySpec {
   Real value{};
 };
 
+// P2-THERMAL-004: temperature's thermal-specific BC types
+// (boundary::FixedTemperature/HeatFlux/Adiabatic -- P2-THERMAL-003).
+// "value" is the prescribed temperature for "fixed_temperature", the
+// heat flux q'' for "heat_flux" (see boundary::HeatFlux's own sign-
+// convention header comment), and unused/must-not-be-present for
+// "adiabatic" -- same "only some types take a value" shape as
+// VelocityBoundarySpec above, not PressureBoundarySpec's always-required
+// value (adiabatic structurally has none, unlike either pressure type).
+struct TemperatureBoundarySpec {
+  std::string type;
+  Real value{};
+};
+
 struct PatchBoundaryConfig {
   VelocityBoundarySpec velocity;
   PressureBoundarySpec pressure;
+  // Present iff physics.json configured a "thermal" block -- CaseReader
+  // enforces this per patch during parsing (P2-THERMAL-004), not as a
+  // separate cross-file check.
+  std::optional<TemperatureBoundarySpec> temperature;
 };
 
 // Keyed by patch name ("left"/"right"/"bottom"/"top" for the only

@@ -235,3 +235,55 @@ TEST(CSVWriterTest, RepeatedWriteFieldsIsByteIdentical) {
   CSVWriter::writeFields(pathB, mesh, result);
   EXPECT_EQ(readLines(pathA), readLines(pathB));
 }
+
+// --- P2-THERMAL-004: optional temperature column -------------------------
+
+TEST(CSVWriterTest, OmitsTemperatureColumnWhenNotProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  const auto path = tempFile("fields_no_temperature.csv");
+
+  CSVWriter::writeFields(path, mesh, result);
+  const auto lines = readLines(path);
+  EXPECT_EQ(lines.front(), "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure");
+}
+
+TEST(CSVWriterTest, AppendsTemperatureColumnWhenProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  ScalarField temperature(4);
+  temperature[0] = 310.0;
+  temperature[1] = 305.0;
+  temperature[2] = 300.0;
+  temperature[3] = 295.0;
+  const auto path = tempFile("fields_with_temperature.csv");
+
+  CSVWriter::writeFields(path, mesh, result, temperature);
+  const auto lines = readLines(path);
+  EXPECT_EQ(lines.front(),
+           "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,temperature");
+  std::istringstream row(lines[2]);  // cell 1.
+  std::string field;
+  for (int i = 0; i < 7; ++i) std::getline(row, field, ',');  // skip through pressure.
+  std::getline(row, field, ',');
+  EXPECT_DOUBLE_EQ(std::stod(field), 305.0);
+}
+
+TEST(CSVWriterTest, MismatchedTemperatureSizeThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  const ScalarField temperature(5);  // one too many.
+  const auto path = tempFile("fields_bad_temperature_size.csv");
+
+  EXPECT_THROW(CSVWriter::writeFields(path, mesh, result, temperature), InvalidArgumentError);
+}
+
+TEST(CSVWriterTest, NonFiniteTemperatureThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  ScalarField temperature(4, 300.0);
+  temperature[2] = std::numeric_limits<cfd::Real>::quiet_NaN();
+  const auto path = tempFile("fields_nan_temperature.csv");
+
+  EXPECT_THROW(CSVWriter::writeFields(path, mesh, result, temperature), NumericalError);
+}

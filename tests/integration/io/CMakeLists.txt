@@ -3,6 +3,7 @@
 # determinism.
 add_executable(CFDResultExportIntegrationTests
   test_result_export.cpp
+  test_paraview_smoke.cpp
 )
 
 target_link_libraries(CFDResultExportIntegrationTests
@@ -14,4 +15,8 @@ target_link_libraries(CFDResultExportIntegrationTests
     nlohmann_json::nlohmann_json
 )
 
-gtest_discover_tests(CFDResultExportIntegrationTests PROPERTIES LABELS "integration")
+gtest_discover_tests(CFDResultExportIntegrationTests
+  PROPERTIES
+    LABELS "integration"
+    WORKING_DIRECTORY ${CFDApp_SOURCE_DIR}
+)

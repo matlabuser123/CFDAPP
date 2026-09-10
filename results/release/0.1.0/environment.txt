@@ -1,0 +1,24 @@
+Windows Release build/package evidence -- CFDApp 0.1.0
+
+Date: 2026-09-10
+Machine: real Windows 11 Pro host (10.0.26200), local PowerShell (not a VM,
+         not GitHub Actions -- see release_summary.json for what that means
+         for "GitHub release workflow" specifically)
+
+Compiler:    MSVC 19.51.36256.0 (Visual Studio 2026 Community "18", VC++ Tools 14.51.36231)
+CMake:       4.3.1-msvc1 (bundled with Visual Studio)
+Ninja:       1.13.2 (bundled with Visual Studio)
+Qt:          6.9.3, win64_msvc2022_64 kit, installed via aqtinstall to C:\Qt
+NSIS:        3.12, installed via winget (NSIS.NSIS)
+Build type:  Release
+CMake options: -DCFDAPP_BUILD_GUI=ON -DCFDAPP_ENABLE_PACKAGING=ON
+              -DCMAKE_PREFIX_PATH=C:\Qt\6.9.3\msvc2022_64
+
+Note on Qt version: the release.yml workflow (never executed, see
+release_summary.json) and earlier local attempts targeted Qt 6.5.3 with the
+win64_msvc2019_64 kit -- that combination failed to compile against this
+machine's very new MSVC 19.51 toolset (`error C3861: 'stdext': identifier not
+found` in Qt's own qvarlengtharray.h, a genuine Qt/MSVC-toolset-version
+incompatibility). Qt 6.9.3 win64_msvc2022_64 (a kit built against a newer,
+compatible MSVC baseline) resolved this. release.yml has not yet been updated
+to match (see release_summary.json's own disclosed gap list).

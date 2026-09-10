@@ -9,6 +9,12 @@ add_executable(CFDSimpleTests
   test_simple_failure.cpp
   test_simple_nonfinite.cpp
   test_simple_determinism.cpp
+  test_simple_turbulence.cpp
+  test_simple_kepsilon.cpp
+  test_simple_komega.cpp
+  test_simple_sst.cpp
+  test_simple_turbulence_models.cpp
+  test_simple_buoyancy.cpp
 )
 
 target_link_libraries(CFDSimpleTests

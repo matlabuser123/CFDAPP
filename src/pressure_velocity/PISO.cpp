@@ -11,6 +11,7 @@
 #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
 #include "cfd/pressure_velocity/TransientMomentum.hpp"
 #include "cfd/solver/CFL.hpp"
+#include "cfd/turbulence/LaminarModel.hpp"
 
 namespace cfd::pressure_velocity {
 
@@ -30,6 +31,8 @@ using cfd::solver::calculateCFL;
 using cfd::solver::TransientState;
 using cfd::solver::TransientStepResult;
 using cfd::solver::TransientStepStatus;
+using cfd::turbulence::LaminarModel;
+using cfd::turbulence::TurbulenceModel;
 
 namespace {
 
@@ -94,13 +97,14 @@ TransientStepResult failureResult(TransientStepStatus status, const TransientSta
 PISO::PISO(const Mesh& mesh, const FluidProperties& fluid,
            const BoundaryConditionSet& velocityBoundaries,
            const BoundaryConditionSet& pressureBoundaries, PISOSettings settings,
-           Index referenceCell)
+           Index referenceCell, TurbulenceModel* turbulenceModel)
     : mesh_(mesh),
       fluid_(fluid),
       velocityBoundaries_(velocityBoundaries),
       pressureBoundaries_(pressureBoundaries),
       settings_(settings),
-      referenceCell_(referenceCell) {}
+      referenceCell_(referenceCell),
+      turbulenceModel_(turbulenceModel) {}
 
 const PISOSettings& PISO::settings() const noexcept { return settings_; }
 Index PISO::referenceCell() const noexcept { return referenceCell_; }
@@ -155,17 +159,43 @@ TransientStepResult PISO::solveTimeStep(const TransientState& previousState, Rea
   const ScalarField previousU = selectComponent(previousState.velocity, VelocityComponent::U);
   const ScalarField previousV = selectComponent(previousState.velocity, VelocityComponent::V);
 
+  // P2-TURB-003: same optional-model/local-LaminarModel-fallback pattern
+  // as SIMPLE::solve() -- see this class's own constructor comment. mu_t
+  // is corrected against previousState's velocity/pressure (the state
+  // this step's own predictor is about to be built from), then mu_eff is
+  // used for the transient momentum predictor's diffusion term below.
+  std::optional<LaminarModel> defaultTurbulenceModel;
+  TurbulenceModel* activeModel = turbulenceModel_;
+  if (activeModel == nullptr) {
+    defaultTurbulenceModel.emplace(mesh_);
+    activeModel = &(*defaultTurbulenceModel);
+  }
   std::optional<MomentumAssembly> uAssembly;
   std::optional<MomentumAssembly> vAssembly;
+  std::optional<ScalarField> effectiveViscosity;
   try {
+    // See SIMPLE::solve()'s identical comment: correct() can legitimately
+    // fail for a transport-equation model (e.g. P2-TURB-004's
+    // KEpsilonModel), so it runs inside this same try/catch rather than
+    // before it.
+    activeModel->correct(mesh_, previousState.velocity, previousState.pressure);
+    effectiveViscosity = activeModel->effectiveViscosity(fluid_.dynamicViscosity());
     uAssembly = assembleTransientMomentumComponent(
         mesh_, previousState.velocity, previousState.pressure, previousState.massFlux, fluid_,
-        velocityBoundaries_, pressureBoundaries_, VelocityComponent::U, previousU, dt);
+        *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::U,
+        previousU, dt);
     vAssembly = assembleTransientMomentumComponent(
         mesh_, previousState.velocity, previousState.pressure, previousState.massFlux, fluid_,
-        velocityBoundaries_, pressureBoundaries_, VelocityComponent::V, previousV, dt);
+        *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::V,
+        previousV, dt);
   } catch (const NumericalError&) {
     // uAssembly/vAssembly left empty -- fall through to the check below.
+  } catch (const InvalidArgumentError&) {
+    // P2-TURB-003: a turbulence model that has produced a non-finite or
+    // non-positive mu_eff (rejected by assembleDiffusionContribution's
+    // own field-based overload) is a runtime-invalid state, not a
+    // configuration error -- treated the same as NonFiniteState below,
+    // not left to propagate out of solveTimeStep() uncaught.
   }
   if (!uAssembly.has_value() || !vAssembly.has_value()) {
     return failureResult(TransientStepStatus::NonFiniteState, previousState);
