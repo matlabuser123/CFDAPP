@@ -204,13 +204,34 @@
 
 ## Production Physics Integration
 
-* [ ] Species `physics.json` parsing
-* [ ] Species `ProjectRunner` dispatch
+* [x] Species `physics.json` parsing -- physics.json's "species" array
+  (name/diffusivity/initial_concentration per entry) and boundaries.json's
+  per-patch "species" object (fixed_value/fixed_gradient concentration
+  BCs, keyed by species name); full parse-time validation (unique names,
+  diffusivity >= 0, exactly the declared name set required on every
+  patch). Committed `19e2300`.
+* [x] Species `ProjectRunner` dispatch -- `SimulationSetup::species` built
+  by `CaseBuilder`, solved by `ProjectRunner::run()` (one
+  `SpeciesSolver::solve()` per declared species, same one-way
+  best-available policy as thermal), exported to CSV/VTK/JSON
+  (`concentration_NAME` columns/SCALARS blocks, a "species" metadata
+  array), and reported by the CLI. New case `cases/species_diffusion`
+  (`cfdapp --case cases/species_diffusion` runs it end to end). Verified
+  with a real production-integration test suite
+  (`tests/integration/case/test_species_production_case.cpp`, 7 tests):
+  convergence, the analytical 1D slab profile (L2/Linf < 1e-6),
+  independently-computed global diffusive-flux conservation, CSV/VTK/JSON
+  export content, InvalidCase handling, nonspecies-case non-interference,
+  and determinism -- all passing. Full local regression 1195/1195
+  (1162 pre-existing + 33 new), clang-format-18 clean, clang-tidy clean
+  (0 findings on every changed production file). Committed `19e2300`,
+  pushed to `main`.
 * [ ] Multiphase `physics.json` parsing
 * [ ] Multiphase `ProjectRunner` dispatch
 * [ ] Compressible `physics.json` parsing
 * [ ] Compressible `ProjectRunner` dispatch
-* [ ] Export/output wiring for new physics
+* [ ] Export/output wiring for new physics (species' own share of this is
+  done -- see above; multiphase/compressible still need theirs)
 
 ## GUI Improvements
 
@@ -233,6 +254,6 @@
 
 # Immediate Next Task
 
-**CI Gate and Release Gate are both fully closed. `v0.1.5` is genuinely released: GitHub Release published (draft: false) with 3 verified assets, downloaded and retested outside CI (checksums matched, CLI/GUI/installer all work). P5 is complete.**
+**CI Gate and Release Gate are both fully closed (`v0.1.5` genuinely released). P5 is complete. Species production integration is done (physics.json/boundaries.json parsing, `CaseBuilder`/`ProjectRunner` dispatch, CSV/VTK/JSON export, CLI report, `cases/species_diffusion` example, 33 new passing tests, full regression 1195/1195 -- committed `19e2300`).**
 
-**Next up, per the user's own stated priority order (Production integration -> GUI backlog -> Performance), starting with Production Physics Integration:** wire species/multiphase/compressible physics into `physics.json` parsing and `ProjectRunner`'s production dispatch (see "Next Backlog" above) -- these are currently validated at the equation level only, not reachable from a real case file. Not started; awaiting user direction on which to tackle first, or confirmation to proceed in the order already listed.
+**Next: Multiphase `physics.json` parsing + `ProjectRunner` dispatch** (see "Production Physics Integration" above) -- follow the same architecture species just established (CaseBuilder builds a runtime setup struct, ProjectRunner dispatches one-way/best-available, ResultExporter gets a new optional/list field, a real case under `cases/` exercises it end to end with a production-integration test). Not started.
