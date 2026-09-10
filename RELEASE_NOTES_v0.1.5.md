@@ -1,10 +1,12 @@
-# CFDApp v0.1.4 — Release Notes
+# CFDApp v0.1.5 — Release Notes
 
-First published release (v0.1.0 through v0.1.3 were tagged during
-release-automation debugging but never completed a passing Release
-workflow — see Known limitations). A 2D finite-volume CFD solver core
-plus a case-manager and Qt6/QML application layer, built around one
-shared production solver backend used by both the CLI and the GUI.
+First published GitHub Release (v0.1.0 through v0.1.4 were tagged during
+release-automation debugging; v0.1.4 was the first to pass every build/
+test/package/smoke-test step of the Release workflow end to end, but the
+workflow itself never actually published a GitHub Release object — see
+Known limitations). A 2D finite-volume CFD solver core plus a
+case-manager and Qt6/QML application layer, built around one shared
+production solver backend used by both the CLI and the GUI.
 
 ## Major implemented features
 
@@ -105,8 +107,8 @@ The default build has CUDA off and needs no GPU.
   ROADMAP.md P7.
 - CUDA accelerates one kernel (SpMV), not the solver loop.
 - 2D only; structured/Cartesian mesh only.
-- `v0.1.0` through `v0.1.3` exist as git tags but were never published as
-  GitHub Releases — all four were superseded during release-workflow
+- `v0.1.0` through `v0.1.4` exist as git tags but were never published as
+  GitHub Releases — all five were superseded during release-workflow
   debugging (an invalid Qt module name, a stale CI working-directory
   assumption, a missing `#include <algorithm>` that only failed under
   MSVC, a tag/project-version mismatch, a MinGW-vs-MSVC linker mismatch
@@ -114,16 +116,17 @@ The default build has CUDA off and needs no GPU.
   the `ubuntu-latest` runner image silently moving from 22.04 to 24.04,
   a Windows-only "Entry Point Not Found" crash in
   `CFDGuiControllerTests.exe` caused by a missing local `Qt6Test.dll`
-  deployment step, and (on `v0.1.3`, the first attempt to reach the
-  packaging step at all) a missing NSIS installer on the GitHub Windows
-  runner — all found and fixed along the way; see `TODO.md`'s CI/Release
-  Gate sections for the full history). `v0.1.4` is the first tag
-  expected to actually publish.
+  deployment step, a missing NSIS installer on the GitHub Windows
+  runner, and finally (on `v0.1.4`, the first run to pass every other
+  step) a workflow that never actually created a GitHub Release object
+  in the first place — all found and fixed along the way; see
+  `TODO.md`'s CI/Release Gate sections for the full history). `v0.1.5`
+  is the first tag expected to actually publish.
 
 ## Major next steps
 
-1. Finish verifying the GitHub Actions release workflow end-to-end and
-   publish the v0.1.4 GitHub Release.
+1. Confirm this GitHub Release (v0.1.5) is genuinely published with its
+   ZIP, NSIS installer, and checksums attached.
 2. ROADMAP.md P6: wire species/multiphase/compressible physics into
    `physics.json` parsing and `ProjectRunner`'s production dispatch.
 3. ROADMAP.md P7: GUI case authoring (mesh/physics/BC/solver editors), so
