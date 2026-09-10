@@ -10,13 +10,18 @@
 #include <fstream>
 #include <sstream>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 
 using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunStatus;
+using cfd::testutil::CaseFixtureCopy;
 
 TEST(ParaviewSmokeTest, SolutionVtkExistsIsNonEmptyAndHasExpectedStructureAndFields) {
-  const auto run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  // P7-TEST-001: a private copy -- see CaseFixtureCopy.hpp's own header
+  // comment.
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.exportSummary.has_value());
   ASSERT_TRUE(run.exportSummary->vtkPath.has_value());

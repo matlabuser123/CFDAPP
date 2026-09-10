@@ -3,11 +3,13 @@
 
 #include "JsonUtil.hpp"
 #include "Parsers.hpp"
+#include "cfd/io/case/PhysicsVocabulary.hpp"
 
 namespace cfd::io::detail {
 
 using cfd::io::BuoyancyPhysicsConfig;
 using cfd::io::CompressiblePhysicsConfig;
+using cfd::io::kTurbulenceModels;
 using cfd::io::MultiphasePhysicsConfig;
 using cfd::io::PhasePhysicsConfig;
 using cfd::io::PhysicsConfig;
@@ -134,8 +136,7 @@ TurbulencePhysicsConfig parseTurbulencePhysicsConfig(const nlohmann::json& json,
 
   TurbulencePhysicsConfig turbulence;
   turbulence.model = getRequiredString(json, path, "model", context + ".model");
-  if (turbulence.model != "laminar" && turbulence.model != "k_epsilon" &&
-      turbulence.model != "k_omega" && turbulence.model != "sst") {
+  if (std::ranges::find(kTurbulenceModels, turbulence.model) == kTurbulenceModels.end()) {
     throwConfigError(path, context + ".model", "be one of: laminar, k_epsilon, k_omega, sst",
                      turbulence.model);
   }

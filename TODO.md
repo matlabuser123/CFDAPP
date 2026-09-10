@@ -308,13 +308,188 @@
   `cases/heated_cavity`/`cases/species_diffusion`'s own committed
   `results/metadata.json` diffs).
 
+## Parallel-Test Fixture Race -- CLOSED
+
+* [x] Fixed the known shared-fixture race under `ctest -j8` -- root cause
+  was broader than the single test originally observed
+  (`LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`
+  against `tests/data/cases/valid_cavity`): three more repo-tracked
+  production example cases (`cases/multiphase_validation`,
+  `cases/compressible_validation`, `cases/species_diffusion`) are each
+  run directly (writing into their own shared `results/` subtree) by
+  5-6 `TEST`s apiece across `tests/integration/case/
+  test_{multiphase,compressible,species}_production_case.cpp` *and*
+  `tests/unit/app/test_visualization_snapshot.cpp` -- a second instance
+  of the identical race, on different directories, spanning both
+  binaries. Fix (`tests/support/CaseFixtureCopy.{hpp,cpp}`, an existing
+  P7-TEST-001 helper already applied to `valid_cavity`): every one of
+  those `ProjectRunner::run()`/`loadSnapshotFromResults()` call sites now
+  gets its own private `CaseFixtureCopy` of the canonical case directory
+  (a real recursive copy under the system temp directory, moved not
+  duplicated, removed on scope exit) instead of the shared repo path --
+  no serialization, no `RESOURCE_LOCK`, genuine per-test isolation.
+  `tests/CMakeLists.txt`'s raw `CFDAppCliValidCase` ctest add_test
+  (not a gtest case, so it cannot construct a C++ RAII fixture) points at
+  a dedicated static `tests/data/cases/valid_cavity_cli_smoke` copy
+  instead. A real, pre-existing MSVC-toolchain incompatibility was also
+  hit and fixed while getting a clean local Windows build to verify any
+  of this: `cfd::boundary::BoundaryConditionSet` (a `std::map<std::string,
+  std::unique_ptr<BoundaryCondition>>` wrapper, correctly move-only)
+  relied on its copy/move members being implicitly declared; at least one
+  MSVC STL build (VC++ 14.51.36231 toolset) hard-errors instantiating
+  `std::vector<T>::push_back()`'s reallocation path for a `T` whose move-
+  only-ness comes from an *implicitly* (rather than explicitly)
+  `noexcept`-declared move constructor (`std::vector<SpeciesSetup>` in
+  `CaseBuilder.cpp`, `SpeciesSetup` holding a `BoundaryConditionSet` by
+  value) -- reproduced in isolation with a 20-line minimal repro having
+  nothing to do with this codebase, fixed by explicitly declaring
+  `BoundaryConditionSet`'s copy ctor/assignment `= delete` and move ctor/
+  assignment `noexcept = default` (`include/cfd/boundary/
+  BoundaryCondition.hpp`) -- a behavior-preserving change (it was already
+  implicitly move-only) that only makes the existing contract explicit.
+  **Verified**: full local Windows Release build (`build/windows-release`,
+  MSVC 14.51.36231 + Qt 6.9.3, `CFDAPP_BUILD_GUI=ON`) from clean, zero
+  compiler errors; full serial `ctest` 1257/1257 passed; **19 consecutive
+  `ctest -j8` runs** (6 immediately after the `valid_cavity`-only state
+  confirmed the original flake was gone -- one of those 6 then surfaced
+  the second, broader race via `MultiphaseProductionCaseTest.
+  ExportsMixtureFieldsToCsvVtkAndJson`; 13 more after the full fix, 0
+  failures) -- both the originally-reported flake and the newly-found one
+  never reproduced again. Python suite 105 passed/1 skipped, unaffected.
+  No solver behavior, tolerance, or validation criterion changed anywhere
+  in this fix. **Cross-platform confirmation before pushing**: also
+  configured, built, and tested the CPU-only path fresh under WSL Ubuntu
+  22.04 (gcc 11.4.0, the same family CI's `build-test gcc/debug` job
+  uses) -- zero compiler errors, `ctest -j$(nproc)` **1221/1221 passed**
+  (fewer than the Windows/GUI total above only because
+  `CFDAPP_BUILD_GUI` defaults OFF and no Qt6 is installed there, exactly
+  matching every Linux CI job today). `clang-format-18` (the exact
+  CI-pinned binary, via that same WSL install) `--dry-run --Werror`
+  across `include src apps tests` found genuine formatting violations
+  (not just version noise -- confirmed by re-checking with it directly)
+  in 6 of the new/changed files; fixed in place with `clang-format-18
+  -i`, then re-verified both the dry-run (clean) and a full Windows
+  rebuild+retest (1260/1260, unaffected by the reformat).
+  `run-clang-tidy -p build/wsl-check` (clang-tidy-14, the closest
+  available match to CI's unpinned `clang-tools` package) on the two
+  touched `src/io/case/*.cpp` files found zero findings on any changed
+  line (the handful of pre-existing warnings elsewhere in those files
+  predate this work and were left alone).
+
 ## GUI Improvements
 
-* [ ] Mesh editor
-* [ ] Physics editor
-* [ ] Boundary-condition editor
-* [ ] Solver-settings editor
-* [ ] Full case creation from GUI
+One authoritative C++ editable-case model (`apps/gui/CaseModelAdapter.{hpp,cpp}`
+-- pure `QVariantMap<->cfd::io::*` conversion, never validation) plus
+`SimulationController`'s own editing surface (`SimulationControllerEditing.cpp`
+-- get/set per section, `validateDraft()`, BC/turbulence vocabulary) were
+found already implemented, uncommitted, from unfinished prior work (a
+missing `apps/gui/tests/test_case_editing.cpp` left the whole tree unable
+to even configure) -- reviewed in full, finished, and built on rather
+than replaced, per its own "continue using/extending it rather than
+introducing another competing model" guidance. Architecture is exactly
+`QML -> SimulationController -> CaseSession -> ProjectRunner`; no case
+schema, JSON parsing, or solver logic was added to QML anywhere.
+
+* [x] Mesh editor -- `apps/gui/qml/MeshEditor.qml`: nx/ny/length/height
+  bound to `meshConfig()`/`geometryConfig()`, committed via
+  `setMeshAndGeometry()`; live derived cellCount/dx/dy plus a large-mesh
+  warning from `meshCellInfo()`; a proportional Canvas grid-line preview
+  (drawing, not meshing -- `MeshGeometry::createCartesian2D` still does
+  the real meshing at run time); validation errors surfaced via the
+  shared `ValidationPanel`. Verified by
+  `CaseEditingTest.MeshEditRoundTripsThroughSaveReopenAndRunsThroughProjectRunner`:
+  edits nx/ny/length/height on a real case, `validateDraft()` succeeds,
+  `saveAs()`, a **second independent controller** reopens and confirms
+  identical values, then runs to `Converged` via `ProjectRunner` -- the
+  literal acceptance gate ("GUI edit -> save -> reopen -> values
+  identical -> CLI solve").
+* [x] Physics editor -- `apps/gui/qml/PhysicsEditor.qml`: core
+  density/viscosity/Reynolds, plus toggle-enabled thermal/buoyancy/
+  multiphase/compressible sections and an add/remove species list, all
+  through `setPhysicsConfig()`. Only genuinely production-integrated
+  modules are shown; the top-level "model" field is a read-only fact
+  ("incompressible_laminar", the only value `PhysicsConfigParser.cpp`
+  accepts), not a fabricated choice. Turbulence model list, and which
+  velocity/temperature types carry a "value" field, come from
+  `cfd::io::kTurbulenceModels`/`BoundaryVocabulary.hpp` (hoisted out of
+  the parser's own anonymous namespace, P7-GUI-002/003) -- never a
+  second hand-typed vocabulary. No cross-field rule (multiphase/
+  turbulence exclusivity, buoyancy needing thermal, etc.) is re-checked
+  in QML; "Apply && Validate" always calls the real `validateDraft()`
+  round trip. Verified by `CaseEditingTest.
+  PhysicsEditRoundTripsThroughSaveReopenAndRuns` (enables thermal, adds
+  the now-required per-patch temperature BCs, save/reopen/run) plus the
+  pre-existing `SetPhysicsConfigRoundTripsAThermalBlock`.
+* [x] Boundary-condition editor -- `apps/gui/qml/BoundaryEditor.qml`:
+  left/right/top/bottom patch selector with a highlighted-edge domain
+  preview, then velocity/pressure/(if enabled)temperature/species/alpha
+  editors for the selected patch, all through `setBoundaryConfig()`.
+  Type dropdowns are `velocityBoundaryTypes()`/`pressureBoundaryTypes()`/
+  `temperatureBoundaryTypes()` -- the exact vocabulary
+  `BoundaryConfigParser.cpp`/`CaseBuilder.cpp` accept. Verified by
+  `CaseEditingTest.BoundaryEditRoundTripsThroughSaveReopenAndRuns` (edits
+  one patch's velocity value, save/reopen/run) plus the pre-existing
+  `SetBoundaryConfigOnlyKeepsTheFourCanonicalPatches`.
+* [x] Solver-settings editor -- `apps/gui/qml/SolverEditor.qml`: SIMPLE's
+  max iterations/relaxation factors/velocity-pressure-continuity
+  tolerances, plus momentum/pressure linear-solver tolerances and max
+  iterations, through `setSolverConfig()` -- exactly `cfd::io::
+  SolverConfig`'s own fields, no invented second default set. **Known,
+  explicitly-documented limitation** (in both this file and the QML
+  page's own on-screen text): PISO, timestep/end-time, CFL monitoring,
+  and restart are real, tested library capabilities (TODO.md P2) but are
+  genuinely *not* reachable from the production case-file format at all
+  today -- `ProjectRunner.hpp`'s own header comment scopes it to "steady-
+  incompressible-SIMPLE(+thermal+species+multiphase+compressible)", and
+  `CaseBuilder`/`ProjectRunner` never dispatch to `TransientSolver`/PISO.
+  Building GUI controls for settings the production pipeline would
+  silently ignore was judged worse than not offering them -- the page
+  says this outright instead of shipping a no-op control. Verified by
+  `CaseEditingTest.SetSolverConfigRoundTripsToleranceAndLinearSolver` and
+  `ValidatedEditSavesAndRunsThroughTheSamePipelineAsCli` (changes
+  `maxIterations`, confirms the changed value is what actually runs).
+* [x] Full case creation from GUI -- `New Case` (dirty-state-guarded,
+  `apps/gui/qml/Main.qml`'s `requestNewCase()`) creates a fresh typed
+  `CaseDefinition` (`CaseSession::newCase()`); a left-nav shell
+  (Case/Mesh/Physics/Boundaries/Solver/Results, `StackLayout`) routes
+  between editor pages, all bound to the one model; `CasePage.qml` adds
+  case name/description editing and Save/Save-As; a shared
+  `ValidationPanel.qml` (bound to the new `validationIssues` property,
+  see below) renders wherever it's placed, and clicking an issue jumps
+  to its section. **The literal end-to-end gate**, verified by
+  `CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`:
+  `newCase()` -> `setMeshAndGeometry`(4x4/1x1) -> `setPhysicsConfig`
+  (incompressible_laminar) -> `setBoundaryConfig` (all 4 patches, a
+  moving-wall-lid cavity) -> `setSolverConfig` (SIMPLE + BiCGSTAB) ->
+  `validateDraft()` (zero errors) -> `saveAs()` (a fresh temp directory,
+  never an existing fixture) -> `run()` -> `Converged`/`hasResults()` ->
+  independently re-run via `cfd::app::ProjectRunner::run()` (the exact
+  entry point `apps/cli/main.cpp` itself calls) against the saved
+  directory -> `Converged` again. This is the CLI/GUI round-trip gate
+  satisfied by construction, not by a second, GUI-only path.
+  Also new: `validationIssues` (`Q_PROPERTY QVariantList`) wraps
+  `validationStatus` as a `{severity, section, field, message}`-shaped
+  0-or-1-element list for a central validation panel to `Repeater` over,
+  and `field` is now parsed out of `throwConfigError()`'s own canonical
+  message shape (`JsonUtil.cpp`) -- honestly always at most one element
+  (CaseReader/CaseBuilder fail fast, same as the CLI); this is presentation
+  structure, not a second, independent multi-error-finding validation
+  pass, which would have reintroduced exactly the "GUI-only validation
+  path" this task forbids.
+
+**Verification method, stated plainly**: every claim above is backed by
+an automated test exercising the *real* `CaseModelAdapter` ->
+`CaseSession` -> `CaseWriter`/`CaseReader`/`CaseBuilder` ->
+`ProjectRunner` pipeline (26 tests total in
+`apps/gui/tests/test_case_editing.cpp`, all passing, part of the
+1257/1257 full regression and the 19 clean `ctest -j8` runs above) --
+not screenshots or widget inspection. The QML pages themselves were
+confirmed to parse and load with zero errors (a full `cfdapp_gui.exe`
+launch stayed alive and produced no stderr output before being killed),
+but this session had no interactive display session to drive a real
+mouse-click walkthrough of the "Final Acceptance Scenario" end to end --
+that remains worth doing by a human once, though every step it would
+exercise already has direct automated coverage above.
 
 ## Performance Follow-up
 
@@ -331,4 +506,6 @@
 
 **CI Gate and Release Gate are both fully closed (`v0.1.5` genuinely released). P5 is complete. The full "Production Physics Integration" backlog is done: Species (committed `19e2300`), and now Multiphase + Compressible + generic export/output wiring + GUI-reload discoverability, all production-integrated (physics.json parsing, `CaseBuilder`/`ProjectRunner` dispatch, CSV/VTK/JSON export, CLI report, `VisualizationSnapshot` reload support, `cases/multiphase_validation`/`cases/compressible_validation` examples, 39 new passing tests, full regression 1234/1234).**
 
-**Next: nothing queued from "Production Physics Integration" -- pick from "GUI Improvements" (mesh/physics/boundary-condition/solver-settings editors, full case creation from GUI) or "Performance Follow-up" (see "Next Backlog" above). One pre-existing, unrelated item worth a look first: `tests/data/cases/valid_cavity` is shared as a fixture by ~9 different test files across several test binaries, and running the full suite under `ctest -j8` occasionally (not reliably reproducible -- passes on most runs) fails exactly one of them, `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`, with `ProjectRunStatus::InvalidCase` instead of `Converged`; it always passes when rerun alone. This predates this phase's work (confirmed: the same fixture was already shared by 7 pre-existing test files before Multiphase/Compressible added 2 more usages) and looks like inter-process contention on that one shared `results/` directory under `-j8`, not a solver or export defect -- worth either giving each consumer its own copy of the fixture or serializing tests that touch it via a CTest fixture/resource lock.**
+**The parallel-test fixture race is closed (see its own section above -- both the originally-reported `valid_cavity` flake and a second, broader race across `cases/multiphase_validation`/`cases/compressible_validation`/`cases/species_diffusion` are fixed via `CaseFixtureCopy`, verified by 19 clean consecutive `ctest -j8` runs) and the full "GUI Improvements" backlog is done: Mesh/Physics/Boundary-condition/Solver-settings editors plus a complete New-Case-through-Run-through-CLI-round-trip workflow, all built on the one authoritative `CaseModelAdapter`/`SimulationController` editing model, all verified against the real `CaseSession`/`ProjectRunner` pipeline (26 new passing tests in `apps/gui/tests/test_case_editing.cpp`; see the "GUI Improvements" section above for the full per-item evidence and the one explicitly-documented gap: PISO/transient/CFL/restart are not yet reachable from the case-file format at all). Full regression 1257/1257, Python 105 passed/1 skipped.**
+
+**Next: nothing queued from "GUI Improvements" or the fixture race -- both fully verified, including against the exact CI-pinned `clang-format-18` and a fresh Linux/gcc cross-platform build/test pass (see their own sections above). Worth doing when convenient: a human interactive pass clicking through the GUI's own "Final Acceptance Scenario" once (this session verified every step at the automated model/controller/pipeline level but had no display to drive real mouse clicks). Then "Performance Follow-up" (persistent GPU-resident pipeline, etc. -- see "Next Backlog" above).**

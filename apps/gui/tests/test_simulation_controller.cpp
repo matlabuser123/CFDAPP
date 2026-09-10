@@ -13,11 +13,24 @@
 #include <QIODevice>
 #include <QSignalSpy>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/core/Version.hpp"
 
 #include "../SimulationController.hpp"
 
+using cfd::testutil::CaseFixtureCopy;
+
 namespace {
+
+// P7-TEST-001: QString wrapper around CaseFixtureCopy::path() -- every
+// controller.openCase()/producer.openCase() call below that goes on to
+// run() needs its own private copy (see CaseFixtureCopy.hpp's own
+// header comment); OpenValidCaseSucceeds is the one exception (a pure
+// read, see its own comment) that still opens the shared canonical
+// fixture directly.
+QString fixtureQString(const CaseFixtureCopy& fixture) {
+  return QString::fromStdString(fixture.path().string());
+}
 
 // A single process-wide QCoreApplication -- Qt requires exactly one,
 // constructed before any QObject with signals/slots is used, and it
@@ -67,6 +80,13 @@ TEST(SimulationControllerTest, NewCaseEmitsCaseChangedAndBecomesLoaded) {
   EXPECT_TRUE(controller.canRun());
 }
 
+// P7-TEST-001: intentionally left on the shared canonical fixture path,
+// not a private copy -- openCase() alone never writes anything (it only
+// reads case.json/etc. and, if present, an already-written results/;
+// see SimulationController::openCase()'s own implementation), and every
+// test in this file that *does* write (every one that calls run())
+// below now uses its own CaseFixtureCopy, so nothing ever mutates
+// "tests/data/cases/valid_cavity" concurrently with this read anymore.
 TEST(SimulationControllerTest, OpenValidCaseSucceeds) {
   SimulationController controller;
   EXPECT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
@@ -86,8 +106,9 @@ TEST(SimulationControllerTest, OpenMissingCaseFailsAndReportsError) {
 // progress/completion signals are delivered to this (main) thread's
 // event loop, which QSignalSpy::wait() pumps.
 TEST(SimulationControllerTest, RunOnAValidCaseEmitsStartedThenCompleted) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController controller;
-  ASSERT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
 
   QSignalSpy startedSpy(&controller, &SimulationController::started);
   QSignalSpy completedSpy(&controller, &SimulationController::completed);
@@ -115,8 +136,9 @@ TEST(SimulationControllerTest, NoResultsBeforeAnyRunOrLoad) {
 }
 
 TEST(SimulationControllerTest, RunPublishesAUsableResultSnapshot) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController controller;
-  ASSERT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
 
   QSignalSpy resultsSpy(&controller, &SimulationController::resultsChanged);
   QSignalSpy completedSpy(&controller, &SimulationController::completed);
@@ -145,8 +167,9 @@ TEST(SimulationControllerTest, RunPublishesAUsableResultSnapshot) {
 }
 
 TEST(SimulationControllerTest, ContoursVectorsProbeAndLineSampleWorkAfterARun) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController controller;
-  ASSERT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
   QSignalSpy completedSpy(&controller, &SimulationController::completed);
   controller.run();
   ASSERT_TRUE(completedSpy.wait(15000));
@@ -181,14 +204,15 @@ TEST(SimulationControllerTest, ContoursVectorsProbeAndLineSampleWorkAfterARun) {
 }
 
 TEST(SimulationControllerTest, ExportLineSampleCsvWritesAReadableFile) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController controller;
-  ASSERT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
   QSignalSpy completedSpy(&controller, &SimulationController::completed);
   controller.run();
   ASSERT_TRUE(completedSpy.wait(15000));
 
   const QString path =
-      QStringLiteral("tests/data/cases/valid_cavity/results/probe_export_test.csv");
+      QString::fromStdString((fixture.path() / "results" / "probe_export_test.csv").string());
   ASSERT_TRUE(
       controller.exportLineSampleCsv(path, QStringLiteral("pressure"), 0.0, 0.5, 1.0, 0.5, 5));
 
@@ -198,11 +222,15 @@ TEST(SimulationControllerTest, ExportLineSampleCsvWritesAReadableFile) {
   EXPECT_TRUE(content.startsWith(QStringLiteral("x,y,value\n")));
   EXPECT_EQ(content.count('\n'), 6);  // header + 5 samples.
   file.remove();
+  // fixture's own destructor removes the whole private directory anyway
+  // -- this explicit remove() just keeps the intent ("this test cleans
+  // up the file it wrote") readable at the point of use.
 }
 
 TEST(SimulationControllerTest, ResidualHistoryIsAvailableAfterARun) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController controller;
-  ASSERT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
   QSignalSpy completedSpy(&controller, &SimulationController::completed);
   controller.run();
   ASSERT_TRUE(completedSpy.wait(15000));
@@ -218,25 +246,31 @@ TEST(SimulationControllerTest, ResidualHistoryIsAvailableAfterARun) {
 }
 
 TEST(SimulationControllerTest, OpeningACaseWithExistingResultsAutoLoadsThem) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController producer;
-  ASSERT_TRUE(producer.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(producer.openCase(fixtureQString(fixture)));
   QSignalSpy completedSpy(&producer, &SimulationController::completed);
   producer.run();
-  ASSERT_TRUE(completedSpy.wait(15000));  // writes tests/data/cases/valid_cavity/results/.
+  ASSERT_TRUE(completedSpy.wait(15000));  // writes <fixture>/results/.
 
   // A second, independent controller opening the same (now-solved) case
   // directory sees its results immediately, without running anything --
-  // section 9's own "without rerunning the solver".
+  // section 9's own "without rerunning the solver". Deliberately the
+  // same `fixture` instance as `producer` above (not a second
+  // CaseFixtureCopy) -- this test's own point is two controllers sharing
+  // one directory, just never concurrently with any *other* test's own
+  // directory.
   SimulationController viewer;
-  ASSERT_TRUE(viewer.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(viewer.openCase(fixtureQString(fixture)));
   EXPECT_TRUE(viewer.hasResults());
   EXPECT_FALSE(viewer.canStop());  // never entered Running.
   EXPECT_TRUE(viewer.availableFields().contains(QStringLiteral("pressure")));
 }
 
 TEST(SimulationControllerTest, StopDuringARunLeadsToCancelledState) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   SimulationController controller;
-  ASSERT_TRUE(controller.openCase(QStringLiteral("tests/data/cases/valid_cavity")));
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
 
   QSignalSpy progressSpy(&controller, &SimulationController::progressChanged);
   QSignalSpy stateSpy(&controller, &SimulationController::stateChanged);

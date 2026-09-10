@@ -8,10 +8,12 @@
 #include <cstdint>
 #include <fstream>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/CaseSession.hpp"
 
 using cfd::app::CaseSession;
 using cfd::app::CaseState;
+using cfd::testutil::CaseFixtureCopy;
 
 namespace {
 
@@ -62,8 +64,9 @@ TEST(CaseSessionTest, NewCaseMovesToLoadedWithNoDirectory) {
 }
 
 TEST(CaseSessionTest, OpenValidCaseMovesToLoaded) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   CaseSession session;
-  ASSERT_TRUE(session.open("tests/data/cases/valid_cavity"));
+  ASSERT_TRUE(session.open(fixture.path()));
   EXPECT_EQ(session.state(), CaseState::Loaded);
   ASSERT_TRUE(session.caseDefinition().has_value());
   EXPECT_EQ(session.caseDefinition()->mesh.nx, 4u);
@@ -91,9 +94,10 @@ TEST(CaseSessionTest, SetCaseDefinitionMarksModified) {
 }
 
 TEST(CaseSessionTest, SaveAsWritesARoundTripLoadableCase) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   TempDir target;
   CaseSession source;
-  ASSERT_TRUE(source.open("tests/data/cases/valid_cavity"));
+  ASSERT_TRUE(source.open(fixture.path()));
 
   ASSERT_TRUE(source.saveAs(target.path()));
   EXPECT_EQ(source.directory(), target.path());
@@ -115,9 +119,10 @@ TEST(CaseSessionTest, SaveWithoutADirectorySetFails) {
 }
 
 TEST(CaseSessionTest, ReloadDiscardsInMemoryEdits) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   TempDir target;
   CaseSession session;
-  ASSERT_TRUE(session.open("tests/data/cases/valid_cavity"));
+  ASSERT_TRUE(session.open(fixture.path()));
   ASSERT_TRUE(session.saveAs(target.path()));
 
   cfd::io::CaseDefinition edited = *session.caseDefinition();
@@ -131,8 +136,9 @@ TEST(CaseSessionTest, ReloadDiscardsInMemoryEdits) {
 }
 
 TEST(CaseSessionTest, ValidateValidCaseMovesToValidated) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   CaseSession session;
-  ASSERT_TRUE(session.open("tests/data/cases/valid_cavity"));
+  ASSERT_TRUE(session.open(fixture.path()));
   ASSERT_TRUE(session.validate());
   EXPECT_EQ(session.state(), CaseState::Validated);
 }
@@ -146,8 +152,9 @@ TEST(CaseSessionTest, ValidateInvalidCaseLeavesStateAndReportsError) {
 }
 
 TEST(CaseSessionTest, RunConvergingCaseMovesToCompleted) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   CaseSession session;
-  ASSERT_TRUE(session.open("tests/data/cases/valid_cavity"));
+  ASSERT_TRUE(session.open(fixture.path()));
   const auto result = session.run();
 
   EXPECT_EQ(session.state(), CaseState::Completed);
@@ -165,8 +172,9 @@ TEST(CaseSessionTest, RunWithoutADirectoryFails) {
 }
 
 TEST(CaseSessionTest, RequestCancelStopsARunEarly) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
   CaseSession session;
-  ASSERT_TRUE(session.open("tests/data/cases/valid_cavity"));
+  ASSERT_TRUE(session.open(fixture.path()));
 
   int progressCalls = 0;
   cfd::app::ProjectRunOptions options;

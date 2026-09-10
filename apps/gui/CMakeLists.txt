@@ -20,6 +20,9 @@ add_executable(cfdapp_gui
   main.cpp
   SimulationController.hpp
   SimulationController.cpp
+  SimulationControllerEditing.cpp
+  CaseModelAdapter.hpp
+  CaseModelAdapter.cpp
   ${CFDAPP_GUI_QML_RESOURCES}
 )
 
@@ -54,8 +57,13 @@ endif()
 # bare QCoreApplication, no display/offscreen platform plugin needed.
 add_executable(CFDGuiControllerTests
   tests/test_simulation_controller.cpp
+  tests/test_case_editing.cpp
   SimulationController.hpp
   SimulationController.cpp
+  SimulationControllerEditing.cpp
+  CaseModelAdapter.hpp
+  CaseModelAdapter.cpp
+  ${CFDApp_SOURCE_DIR}/tests/support/CaseFixtureCopy.cpp
 )
 
 target_link_libraries(CFDGuiControllerTests
@@ -66,6 +74,9 @@ target_link_libraries(CFDGuiControllerTests
     Qt6::Test
     GTest::gtest_main
 )
+
+# P7-TEST-001: CaseFixtureCopy.hpp -- see its own header comment.
+target_include_directories(CFDGuiControllerTests PRIVATE "${CFDApp_SOURCE_DIR}/tests/support")
 
 # Real Windows-only bug fixed here: CFDGuiControllerTests links Qt6::Test
 # but previously had no windeployqt step of its own, so it had no local

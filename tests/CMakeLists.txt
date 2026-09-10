@@ -17,9 +17,18 @@ set_tests_properties(CFDAppSmokeTest PROPERTIES
 # CaseReader/CaseBuilder API), against the fixtures in
 # tests/data/cases/. WORKING_DIRECTORY is the source tree root so these
 # relative case paths resolve the same way a user's own invocation would.
+#
+# P7-TEST-001: points at tests/data/cases/valid_cavity_cli_smoke, a
+# dedicated static copy of valid_cavity's own six input files -- this is
+# a raw ctest add_test (a real `cfdapp` process, not a C++ gtest case),
+# so it cannot construct a tests/support/CaseFixtureCopy the way every
+# gtest-based consumer of valid_cavity now does; a permanent, private
+# fixture directory nothing else ever touches achieves the same
+# isolation with no moving parts (see tests/support/CaseFixtureCopy.hpp's
+# own header comment for the race this closes).
 add_test(
   NAME CFDAppCliValidCase
-  COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/valid_cavity
+  COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/valid_cavity_cli_smoke
   WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
 )
 set_tests_properties(CFDAppCliValidCase PROPERTIES

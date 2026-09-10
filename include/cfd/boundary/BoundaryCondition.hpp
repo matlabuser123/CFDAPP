@@ -77,6 +77,22 @@ class VectorBoundaryCondition : public BoundaryCondition {
 // configuration, validated against the mesh's actual patches.
 class BoundaryConditionSet {
  public:
+  BoundaryConditionSet() = default;
+  // Move-only (conditions_ holds std::unique_ptr) -- previously left
+  // implicit, made explicit because at least one MSVC STL build
+  // instantiates std::vector<T>'s reallocation path (e.g.
+  // std::vector<SpeciesSetup>::push_back(), SpeciesSetup holding a
+  // BoundaryConditionSet by value -- see SimulationSetup.hpp) by
+  // attempting the copy constructor rather than consulting
+  // is_nothrow_move_constructible when a class's move members are only
+  // implicitly declared; explicit noexcept move + deleted copy sidesteps
+  // it without changing this type's behavior at all (it was already
+  // move-only, just implicitly).
+  BoundaryConditionSet(const BoundaryConditionSet&) = delete;
+  BoundaryConditionSet& operator=(const BoundaryConditionSet&) = delete;
+  BoundaryConditionSet(BoundaryConditionSet&&) noexcept = default;
+  BoundaryConditionSet& operator=(BoundaryConditionSet&&) noexcept = default;
+
   // Throws InvalidArgumentError if patchName does not name a patch on
   // mesh, or if patchName already has a condition assigned -- call
   // replace() to change an existing assignment intentionally.

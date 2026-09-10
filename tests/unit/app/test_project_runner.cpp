@@ -7,14 +7,22 @@
 // relative fixture path below resolves against the repository root.
 #include <gtest/gtest.h>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 
 using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunResult;
 using cfd::app::ProjectRunStatus;
+using cfd::testutil::CaseFixtureCopy;
 
 TEST(ProjectRunnerTest, ValidCaseConvergesAndExportsResults) {
-  const ProjectRunResult run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  // P7-TEST-001: a private copy -- every ProjectRunner::run() call in
+  // this file writes results/ into whatever directory it's given, and
+  // "tests/data/cases/valid_cavity" is also read/written by several
+  // other test binaries ctest -j8 can run concurrently (see
+  // CaseFixtureCopy.hpp's own header comment).
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
 
   EXPECT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.caseDefinition.has_value());
@@ -36,8 +44,9 @@ TEST(ProjectRunnerTest, MissingCaseDirectoryReportsInvalidCase) {
 }
 
 TEST(ProjectRunnerTest, RepeatedRunsAreDeterministic) {
-  const ProjectRunResult first = ProjectRunner::run("tests/data/cases/valid_cavity");
-  const ProjectRunResult second = ProjectRunner::run("tests/data/cases/valid_cavity");
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult first = ProjectRunner::run(fixture.path());
+  const ProjectRunResult second = ProjectRunner::run(fixture.path());
 
   ASSERT_TRUE(first.simpleResult.has_value());
   ASSERT_TRUE(second.simpleResult.has_value());
@@ -56,7 +65,8 @@ TEST(ProjectRunnerTest, CancellationStopsEarlyWithCancelledStatus) {
       [&progressCalls](const cfd::pressure_velocity::SIMPLEIterationProgress&) { ++progressCalls; };
   options.cancellationCheck = [&progressCalls]() { return progressCalls >= 2; };
 
-  const ProjectRunResult run = ProjectRunner::run("tests/data/cases/valid_cavity", options);
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path(), options);
 
   EXPECT_EQ(run.status, ProjectRunStatus::Cancelled);
   ASSERT_TRUE(run.simpleResult.has_value());

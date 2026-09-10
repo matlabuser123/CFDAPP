@@ -124,6 +124,12 @@ QString SimulationController::lastError() const {
 
 bool SimulationController::openCase(const QString& caseDirectory) {
   const bool ok = session_.open(caseDirectory.toStdString());
+  // P7-GUI: a freshly opened/created case has no validation history of
+  // its own yet -- a stale error from whatever case was open before
+  // would be actively misleading here.
+  validationStatus_ = QVariantMap{
+      {"valid", true}, {"section", QString()}, {"field", QString()}, {"message", QString()}};
+  emit validationChanged();
   emit caseChanged();
   emit stateChanged();
   if (!ok) {
@@ -141,6 +147,9 @@ bool SimulationController::openCase(const QString& caseDirectory) {
 
 void SimulationController::newCase() {
   session_.newCase();
+  validationStatus_ = QVariantMap{
+      {"valid", true}, {"section", QString()}, {"field", QString()}, {"message", QString()}};
+  emit validationChanged();
   emit caseChanged();
   emit stateChanged();
   setSnapshot(VisualizationSnapshot{});
@@ -164,6 +173,21 @@ bool SimulationController::saveAs(const QString& caseDirectory) {
 bool SimulationController::validateCase() {
   const bool ok = session_.validate();
   emit stateChanged();
+  // P7-GUI: keeps validationStatus() in sync with this pre-existing
+  // entry point too, not only the newer validateDraft() (see its own
+  // header comment) -- session_.validate() alone only ever reaches
+  // CaseBuilder::build(), so a failure here never names a *.json file
+  // (sectionForMessage()'s own fallback, "Case", is exactly right for
+  // it) -- SimulationControllerEditing.cpp.
+  validationStatus_ = ok ? QVariantMap{{"valid", true},
+                                       {"section", QString()},
+                                       {"field", QString()},
+                                       {"message", QString()}}
+                         : QVariantMap{{"valid", false},
+                                       {"section", QStringLiteral("Case")},
+                                       {"field", QString()},
+                                       {"message", lastError()}};
+  emit validationChanged();
   if (!ok) emit errorChanged();
   return ok;
 }

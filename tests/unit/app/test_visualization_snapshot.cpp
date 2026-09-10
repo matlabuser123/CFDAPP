@@ -7,6 +7,7 @@
 
 #include <algorithm>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 #include "cfd/app/VisualizationSnapshot.hpp"
 
@@ -15,9 +16,11 @@ using cfd::app::loadSnapshotFromResults;
 using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunStatus;
 using cfd::app::VisualizationSnapshot;
+using cfd::testutil::CaseFixtureCopy;
 
 TEST(BuildSnapshotTest, ValidRunProducesAUsableSnapshot) {
-  const auto run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
 
   const VisualizationSnapshot snapshot = buildSnapshot(run);
@@ -56,14 +59,17 @@ TEST(BuildSnapshotTest, IncompleteRunProducesAnInvalidSnapshot) {
 TEST(LoadSnapshotFromResultsTest, ReloadsAPreviouslyWrittenResultsDirectory) {
   // Produce a real results/ directory first (this is the same
   // production pipeline the CLI uses), then reload it independently --
-  // exactly the "open a completed case without rerunning" workflow.
-  const auto run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  // exactly the "open a completed case without rerunning" workflow. A
+  // private fixture copy (P7-TEST-001) -- this is the exact test that
+  // was observed intermittently returning InvalidCase under `ctest -j8`
+  // before the shared-fixture race was closed.
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.exportSummary.has_value());
 
   const VisualizationSnapshot live = buildSnapshot(run);
-  const VisualizationSnapshot reloaded =
-      loadSnapshotFromResults(std::filesystem::path("tests/data/cases/valid_cavity") / "results");
+  const VisualizationSnapshot reloaded = loadSnapshotFromResults(fixture.path() / "results");
 
   ASSERT_TRUE(reloaded.valid);
   EXPECT_EQ(reloaded.nx, live.nx);
@@ -103,11 +109,15 @@ TEST(LoadSnapshotFromResultsTest, ThermalCaseExposesTemperatureField) {
 // module because both paths already go through availableScalarFields()/
 // scalarField() generically.
 TEST(VisualizationSnapshotTest, SpeciesCaseExposesConcentrationFieldLiveAndReloaded) {
-  const auto run = ProjectRunner::run("cases/species_diffusion");
+  // P7-TEST-001: a private copy -- "cases/species_diffusion" is also run
+  // directly by test_species_production_case.cpp (a different test
+  // binary), and both write into its results/ subtree (see
+  // CaseFixtureCopy.hpp's own header comment).
+  const CaseFixtureCopy fixture("cases/species_diffusion");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   const VisualizationSnapshot live = buildSnapshot(run);
-  const auto reloaded =
-      loadSnapshotFromResults(std::filesystem::path("cases/species_diffusion") / "results");
+  const auto reloaded = loadSnapshotFromResults(fixture.path() / "results");
 
   ASSERT_TRUE(live.valid);
   ASSERT_TRUE(reloaded.valid);
@@ -125,11 +135,14 @@ TEST(VisualizationSnapshotTest, SpeciesCaseExposesConcentrationFieldLiveAndReloa
 }
 
 TEST(VisualizationSnapshotTest, MultiphaseCaseExposesMixtureFieldsLiveAndReloaded) {
-  const auto run = ProjectRunner::run("cases/multiphase_validation");
+  // P7-TEST-001: a private copy -- "cases/multiphase_validation" is also
+  // run directly by test_multiphase_production_case.cpp (a different
+  // test binary), and both write into its results/ subtree.
+  const CaseFixtureCopy fixture("cases/multiphase_validation");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   const VisualizationSnapshot live = buildSnapshot(run);
-  const auto reloaded =
-      loadSnapshotFromResults(std::filesystem::path("cases/multiphase_validation") / "results");
+  const auto reloaded = loadSnapshotFromResults(fixture.path() / "results");
 
   ASSERT_TRUE(live.valid);
   ASSERT_TRUE(reloaded.valid);
@@ -142,11 +155,14 @@ TEST(VisualizationSnapshotTest, MultiphaseCaseExposesMixtureFieldsLiveAndReloade
 }
 
 TEST(VisualizationSnapshotTest, CompressibleCaseExposesThermodynamicFieldsLiveAndReloaded) {
-  const auto run = ProjectRunner::run("cases/compressible_validation");
+  // P7-TEST-001: a private copy -- "cases/compressible_validation" is
+  // also run directly by test_compressible_production_case.cpp (a
+  // different test binary), and both write into its results/ subtree.
+  const CaseFixtureCopy fixture("cases/compressible_validation");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   const VisualizationSnapshot live = buildSnapshot(run);
-  const auto reloaded =
-      loadSnapshotFromResults(std::filesystem::path("cases/compressible_validation") / "results");
+  const auto reloaded = loadSnapshotFromResults(fixture.path() / "results");
 
   ASSERT_TRUE(live.valid);
   ASSERT_TRUE(reloaded.valid);

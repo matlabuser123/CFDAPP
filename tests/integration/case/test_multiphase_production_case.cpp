@@ -20,6 +20,7 @@
 #include <cmath>
 #include <fstream>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 
 using cfd::Index;
@@ -28,6 +29,7 @@ using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunResult;
 using cfd::app::ProjectRunStatus;
 using cfd::multiphase::VolumeFractionStatus;
+using cfd::testutil::CaseFixtureCopy;
 
 namespace {
 
@@ -45,7 +47,8 @@ constexpr const char* kCaseDirectory = "cases/multiphase_validation";
 }  // namespace
 
 TEST(MultiphaseProductionCaseTest, RunsEndToEndAndConverges) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged)
       << "flow did not converge: " << run.errorMessage;
   ASSERT_TRUE(run.multiphaseResult.has_value());
@@ -58,7 +61,8 @@ TEST(MultiphaseProductionCaseTest, RunsEndToEndAndConverges) {
 // with an exact (not just bounded) expected outcome for this quiescent
 // case.
 TEST(MultiphaseProductionCaseTest, AlphaAndMixturePropertiesMatchExactExpectedValues) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.multiphaseResult.has_value());
   const auto& mp = *run.multiphaseResult;
@@ -79,7 +83,8 @@ TEST(MultiphaseProductionCaseTest, AlphaAndMixturePropertiesMatchExactExpectedVa
 // uniform, unchanged alpha, phase1's own volume must equal
 // alpha*domainVolume exactly.
 TEST(MultiphaseProductionCaseTest, Phase1VolumeIsConserved) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.multiphaseResult.has_value());
   ASSERT_TRUE(run.caseDefinition.has_value());
@@ -90,7 +95,8 @@ TEST(MultiphaseProductionCaseTest, Phase1VolumeIsConserved) {
 }
 
 TEST(MultiphaseProductionCaseTest, ExportsMixtureFieldsToCsvVtkAndJson) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.exportSummary.has_value());
   ASSERT_TRUE(run.exportSummary->fieldsCsvPath.has_value());
@@ -132,7 +138,10 @@ TEST(MultiphaseProductionCaseTest, MissingCaseDirectoryReportsInvalidCase) {
 
 // Existing single-phase cases remain unaffected.
 TEST(MultiphaseProductionCaseTest, NonMultiphaseCaseStillRunsWithNoMultiphaseResult) {
-  const ProjectRunResult run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  // P7-TEST-001: a private copy -- see CaseFixtureCopy.hpp's own header
+  // comment.
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   EXPECT_FALSE(run.multiphaseResult.has_value());
   ASSERT_TRUE(run.exportSummary.has_value());
@@ -144,8 +153,9 @@ TEST(MultiphaseProductionCaseTest, NonMultiphaseCaseStillRunsWithNoMultiphaseRes
 }
 
 TEST(MultiphaseProductionCaseTest, RepeatedRunsAreDeterministic) {
-  const ProjectRunResult first = ProjectRunner::run(kCaseDirectory);
-  const ProjectRunResult second = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult first = ProjectRunner::run(fixture.path());
+  const ProjectRunResult second = ProjectRunner::run(fixture.path());
   ASSERT_TRUE(first.multiphaseResult.has_value());
   ASSERT_TRUE(second.multiphaseResult.has_value());
   for (Index i = 0; i < first.multiphaseResult->alphaStep.alpha.size(); ++i) {

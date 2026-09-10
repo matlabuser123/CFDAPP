@@ -23,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 
@@ -36,6 +37,7 @@ using cfd::fields::ScalarField;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
 using cfd::species::SpeciesStatus;
+using cfd::testutil::CaseFixtureCopy;
 
 namespace {
 
@@ -57,7 +59,8 @@ constexpr const char* kCaseDirectory = "cases/species_diffusion";
 }  // namespace
 
 TEST(SpeciesProductionCaseTest, RunsEndToEndAndConverges) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
 
   ASSERT_EQ(run.status, ProjectRunStatus::Converged)
       << "flow did not converge: " << run.errorMessage;
@@ -85,7 +88,8 @@ TEST(SpeciesProductionCaseTest, RunsEndToEndAndConverges) {
 // achieves (FVM is exact for an affine field on an orthogonal mesh, so
 // this is a tight tolerance, not a loose approximation).
 TEST(SpeciesProductionCaseTest, ConcentrationMatchesAnalyticalProfile) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_EQ(run.speciesResults.size(), 1u);
   ASSERT_TRUE(run.mesh.has_value());
@@ -117,7 +121,8 @@ TEST(SpeciesProductionCaseTest, ConcentrationMatchesAnalyticalProfile) {
 // patchHeatLeaving() uses, generalized to species: flux = density *
 // diffusivity * (Y_owner - Y_boundary) / distance * faceArea).
 TEST(SpeciesProductionCaseTest, GlobalDiffusiveFluxBalanceIsConserved) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_EQ(run.speciesResults.size(), 1u);
   ASSERT_TRUE(run.mesh.has_value());
@@ -168,7 +173,8 @@ TEST(SpeciesProductionCaseTest, MissingCaseDirectoryReportsInvalidCase) {
 // ResultExporter::write() call the way tests/unit/io/test_csv_writer.cpp
 // etc. already cover the writers themselves in isolation).
 TEST(SpeciesProductionCaseTest, ExportsSpeciesFieldToCsvVtkAndJson) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.exportSummary.has_value());
   ASSERT_TRUE(run.exportSummary->fieldsCsvPath.has_value());
@@ -205,7 +211,10 @@ TEST(SpeciesProductionCaseTest, ExportsSpeciesFieldToCsvVtkAndJson) {
 // speciesResults, never a species-shaped export artifact leaking into a
 // nonspecies case's output.
 TEST(SpeciesProductionCaseTest, NonSpeciesCaseStillRunsWithEmptySpeciesResults) {
-  const ProjectRunResult run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  // P7-TEST-001: a private copy -- see CaseFixtureCopy.hpp's own header
+  // comment.
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   EXPECT_TRUE(run.speciesResults.empty());
   ASSERT_TRUE(run.exportSummary.has_value());
@@ -220,8 +229,9 @@ TEST(SpeciesProductionCaseTest, NonSpeciesCaseStillRunsWithEmptySpeciesResults) 
 // production solve path -- see e.g. test_project_runner.cpp's own
 // RepeatedRunsAreDeterministic).
 TEST(SpeciesProductionCaseTest, RepeatedRunsAreDeterministic) {
-  const ProjectRunResult first = ProjectRunner::run(kCaseDirectory);
-  const ProjectRunResult second = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult first = ProjectRunner::run(fixture.path());
+  const ProjectRunResult second = ProjectRunner::run(fixture.path());
   ASSERT_EQ(first.speciesResults.size(), 1u);
   ASSERT_EQ(second.speciesResults.size(), 1u);
   EXPECT_EQ(first.speciesResults[0].result.iterations, second.speciesResults[0].result.iterations);

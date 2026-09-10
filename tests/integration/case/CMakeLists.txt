@@ -6,6 +6,7 @@ add_executable(CFDCaseIntegrationTests
   test_species_production_case.cpp
   test_multiphase_production_case.cpp
   test_compressible_production_case.cpp
+  ${CFDApp_SOURCE_DIR}/tests/support/CaseFixtureCopy.cpp
 )
 
 target_link_libraries(CFDCaseIntegrationTests
@@ -14,6 +15,9 @@ target_link_libraries(CFDCaseIntegrationTests
     cfdapp::compiler_warnings
     GTest::gtest_main
 )
+
+# P7-TEST-001: CaseFixtureCopy.hpp -- see its own header comment.
+target_include_directories(CFDCaseIntegrationTests PRIVATE "${CFDApp_SOURCE_DIR}/tests/support")
 
 gtest_discover_tests(CFDCaseIntegrationTests
   WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"

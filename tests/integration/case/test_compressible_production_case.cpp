@@ -15,6 +15,7 @@
 #include <cmath>
 #include <fstream>
 
+#include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 
 using cfd::Index;
@@ -22,6 +23,7 @@ using cfd::Real;
 using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunResult;
 using cfd::app::ProjectRunStatus;
+using cfd::testutil::CaseFixtureCopy;
 
 namespace {
 
@@ -37,7 +39,8 @@ constexpr const char* kCaseDirectory = "cases/compressible_validation";
 }  // namespace
 
 TEST(CompressibleProductionCaseTest, RunsEndToEndAndConverges) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged)
       << "flow did not converge: " << run.errorMessage;
   ASSERT_TRUE(run.compressibleResult.has_value());
@@ -47,7 +50,8 @@ TEST(CompressibleProductionCaseTest, RunsEndToEndAndConverges) {
 // the low-Mach assumption genuinely holds -- same thresholds
 // test_low_mach_regression.cpp's own Mach/EOS-consistency tests use.
 TEST(CompressibleProductionCaseTest, MachNumberStaysWellBelowPointOneAndEosIsConsistent) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.compressibleResult.has_value());
   const auto& c = *run.compressibleResult;
@@ -73,7 +77,8 @@ TEST(CompressibleProductionCaseTest, MachNumberStaysWellBelowPointOneAndEosIsCon
 // imbalance is reported here; the normalized check mirrors that file's
 // own reasoning without duplicating its exact private helper).
 TEST(CompressibleProductionCaseTest, ContinuityImbalanceIsSmall) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.compressibleResult.has_value());
   // Reference mass-flow scale: rho * meanVelocity * height (same
@@ -85,7 +90,8 @@ TEST(CompressibleProductionCaseTest, ContinuityImbalanceIsSmall) {
 }
 
 TEST(CompressibleProductionCaseTest, ExportsCompressibleFieldsToCsvVtkAndJson) {
-  const ProjectRunResult run = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   ASSERT_TRUE(run.exportSummary.has_value());
   ASSERT_TRUE(run.exportSummary->fieldsCsvPath.has_value());
@@ -127,7 +133,12 @@ TEST(CompressibleProductionCaseTest, MissingCaseDirectoryReportsInvalidCase) {
 
 // Existing incompressible cases remain unaffected.
 TEST(CompressibleProductionCaseTest, NonCompressibleCaseStillRunsWithNoCompressibleResult) {
-  const ProjectRunResult run = ProjectRunner::run("tests/data/cases/valid_cavity");
+  // P7-TEST-001: a private copy -- see CaseFixtureCopy.hpp's own header
+  // comment; "tests/data/cases/valid_cavity" is shared by several other
+  // test binaries this one can run concurrently against under `ctest
+  // -j8`, and this test writes into its results/ subtree.
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
   ASSERT_EQ(run.status, ProjectRunStatus::Converged);
   EXPECT_FALSE(run.compressibleResult.has_value());
   ASSERT_TRUE(run.exportSummary.has_value());
@@ -139,8 +150,9 @@ TEST(CompressibleProductionCaseTest, NonCompressibleCaseStillRunsWithNoCompressi
 }
 
 TEST(CompressibleProductionCaseTest, RepeatedRunsAreDeterministic) {
-  const ProjectRunResult first = ProjectRunner::run(kCaseDirectory);
-  const ProjectRunResult second = ProjectRunner::run(kCaseDirectory);
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult first = ProjectRunner::run(fixture.path());
+  const ProjectRunResult second = ProjectRunner::run(fixture.path());
   ASSERT_TRUE(first.compressibleResult.has_value());
   ASSERT_TRUE(second.compressibleResult.has_value());
   EXPECT_EQ(first.compressibleResult->machMax, second.compressibleResult->machMax);

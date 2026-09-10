@@ -4,6 +4,7 @@
 add_executable(CFDResultExportIntegrationTests
   test_result_export.cpp
   test_paraview_smoke.cpp
+  ${CFDApp_SOURCE_DIR}/tests/support/CaseFixtureCopy.cpp
 )
 
 target_link_libraries(CFDResultExportIntegrationTests
@@ -14,6 +15,9 @@ target_link_libraries(CFDResultExportIntegrationTests
     # Test-only, same rationale as tests/unit/io/test_json_writer.cpp.
     nlohmann_json::nlohmann_json
 )
+
+# P7-TEST-001: CaseFixtureCopy.hpp -- see its own header comment.
+target_include_directories(CFDResultExportIntegrationTests PRIVATE "${CFDApp_SOURCE_DIR}/tests/support")
 
 gtest_discover_tests(CFDResultExportIntegrationTests
   PROPERTIES
