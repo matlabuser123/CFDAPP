@@ -27,7 +27,8 @@ Index pointIndex(Index i, Index j, Index nx) { return (j * (nx + 1)) + i; }
 
 void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mesh,
                               const SIMPLEResult& result,
-                              const std::optional<cfd::fields::ScalarField>& temperature) {
+                              const std::optional<cfd::fields::ScalarField>& temperature,
+                              const std::vector<NamedScalarField>& species) {
   const Index n = mesh.numberOfCells();
   if (result.velocity.size() != n || result.pressure.size() != n) {
     throw InvalidArgumentError(
@@ -36,6 +37,12 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
   if (temperature.has_value() && temperature->size() != n) {
     throw InvalidArgumentError(
         "VTKWriter::writeSolution: temperature size does not match mesh cell count");
+  }
+  for (const auto& [name, field] : species) {
+    if (field.size() != n) {
+      throw InvalidArgumentError("VTKWriter::writeSolution: species \"" + name +
+                                 "\" field size does not match mesh cell count");
+    }
   }
   for (Index id = 0; id < n; ++id) {
     if (!std::isfinite(result.velocity[id].x) || !std::isfinite(result.velocity[id].y) ||
@@ -46,6 +53,12 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
     if (temperature.has_value() && !std::isfinite((*temperature)[id])) {
       throw NumericalError("VTKWriter::writeSolution: non-finite temperature at cell " +
                            std::to_string(id));
+    }
+    for (const auto& [name, field] : species) {
+      if (!std::isfinite(field[id])) {
+        throw NumericalError("VTKWriter::writeSolution: non-finite species \"" + name +
+                             "\" value at cell " + std::to_string(id));
+      }
     }
   }
 
@@ -105,6 +118,11 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
   if (temperature.has_value()) {
     out << "SCALARS temperature double 1\nLOOKUP_TABLE default\n";
     for (Index id = 0; id < n; ++id) out << (*temperature)[id] << '\n';
+  }
+
+  for (const auto& [name, field] : species) {
+    out << "SCALARS concentration_" << name << " double 1\nLOOKUP_TABLE default\n";
+    for (Index id = 0; id < n; ++id) out << field[id] << '\n';
   }
 }
 

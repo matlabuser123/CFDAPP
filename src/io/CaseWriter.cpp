@@ -109,6 +109,19 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
         {"gravity", json::array({b.gravity.x, b.gravity.y})},
     };
   }
+  // P6-PHYS-001: written whenever non-empty -- an empty vector (no
+  // species configured) writes no "species" key at all, so every
+  // existing nonspecies case round-trips byte-for-byte identically (same
+  // "absent key" as before this field existed).
+  if (!d.physics.species.empty()) {
+    json speciesJson = json::array();
+    for (const auto& s : d.physics.species) {
+      speciesJson.push_back(json{{"name", s.name},
+                                 {"diffusivity", s.diffusivity},
+                                 {"initial_concentration", s.initialConcentration}});
+    }
+    physicsJson["species"] = std::move(speciesJson);
+  }
   writeJsonFile(caseDirectory / "physics.json", physicsJson);
 
   // --- boundaries.json --------------------------------------------------
@@ -126,6 +139,20 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
         temperatureJson["value"] = patch.temperature->value;
       }
       patchJson["temperature"] = std::move(temperatureJson);
+    }
+    // P6-PHYS-001: same "written only when non-empty" reasoning as
+    // physics.json's own "species" key above -- both types
+    // (fixed_value/fixed_gradient) always carry "value" (see
+    // ConcentrationBoundarySpec's own header comment), so no per-type
+    // has-value check is needed the way temperature's three-type set
+    // above needs one.
+    if (!patch.concentration.empty()) {
+      json speciesJson = json::object();
+      for (const auto& [speciesName, concentrationSpec] : patch.concentration) {
+        speciesJson[speciesName] =
+            json{{"type", concentrationSpec.type}, {"value", concentrationSpec.value}};
+      }
+      patchJson["species"] = std::move(speciesJson);
     }
     patchesJson[patchName] = std::move(patchJson);
   }

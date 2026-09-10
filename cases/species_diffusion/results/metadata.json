@@ -1,24 +1,24 @@
 {
   "application": "CFDApp",
   "case": {
-    "name": "Heated Cavity (Conduction) 20x20"
+    "name": "Species Diffusion Slab 20x4"
   },
   "conservation": {
     "global_mass_imbalance": 0.0
   },
   "format_version": 1,
   "mesh": {
-    "cells": 400,
-    "faces": 840,
+    "cells": 80,
+    "faces": 184,
     "nx": 20,
-    "ny": 20
+    "ny": 4
   },
   "numerics": {
     "finite": true
   },
   "physics": {
-    "density": 1000.0,
-    "dynamic_viscosity": 0.001
+    "density": 1.0,
+    "dynamic_viscosity": 0.01
   },
   "residuals": {
     "continuity": 0.0,
@@ -32,14 +32,17 @@
     "status": "Converged",
     "type": "SIMPLE"
   },
-  "species": [],
+  "species": [
+    {
+      "converged": true,
+      "diffusivity": 0.002,
+      "final_residual": 5.232709177314215e-13,
+      "iterations": 593,
+      "name": "CO2",
+      "status": "Converged"
+    }
+  ],
   "thermal": {
-    "conductivity": 0.6,
-    "converged": true,
-    "enabled": true,
-    "final_residual": 8.810119224822173e-13,
-    "iterations": 112,
-    "specific_heat": 4180.0,
-    "status": "Converged"
+    "enabled": false
   }
 }

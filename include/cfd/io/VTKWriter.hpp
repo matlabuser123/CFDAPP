@@ -10,8 +10,10 @@
 
 #include <filesystem>
 #include <optional>
+#include <vector>
 
 #include "cfd/fields/ScalarField.hpp"
+#include "cfd/io/CSVWriter.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 
@@ -29,15 +31,24 @@ class VTKWriter {
   // (section 24), plus a trailing "SCALARS temperature" block iff
   // `temperature` is present (P2-THERMAL-004) -- omitted entirely for a
   // nonthermal export. 2D coordinates get an explicit z=0 (section 19).
+  //
+  // `species` (P6-PHYS-001): appends one further "SCALARS
+  // concentration_<name>" block per entry, in the given order, after the
+  // optional temperature block -- omitted entirely (no blocks at all)
+  // for an empty `species`, so every existing nonspecies solution.vtk is
+  // unaffected. Reuses CSVWriter.hpp's NamedScalarField (a plain {name,
+  // field} pair) rather than a second, VTK-only alias.
+  //
   // Throws InvalidArgumentError if result.velocity/result.pressure size
-  // (or temperature's, when present) does not match mesh.numberOfCells(),
-  // or if mesh does not fit the structured layout this exporter assumes;
-  // NumericalError if any exported value is non-finite; IOError if `path`
-  // cannot be opened.
+  // (or temperature's/any species field's, when present) does not match
+  // mesh.numberOfCells(), or if mesh does not fit the structured layout
+  // this exporter assumes; NumericalError if any exported value is
+  // non-finite; IOError if `path` cannot be opened.
   static void writeSolution(
       const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
       const cfd::pressure_velocity::SIMPLEResult& result,
-      const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt);
+      const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt,
+      const std::vector<NamedScalarField>& species = {});
 };
 
 }  // namespace cfd::io

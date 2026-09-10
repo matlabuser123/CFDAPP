@@ -8,6 +8,7 @@
 namespace cfd::io::detail {
 
 using cfd::io::BoundaryConfig;
+using cfd::io::ConcentrationBoundarySpec;
 using cfd::io::PatchBoundaryConfig;
 using cfd::io::PressureBoundarySpec;
 using cfd::io::TemperatureBoundarySpec;
@@ -76,6 +77,27 @@ PressureBoundarySpec parsePressureSpec(const nlohmann::json& json,
   return spec;
 }
 
+// P6-PHYS-001: one species's concentration BC on one patch -- same two
+// types, same always-required "value", as parsePressureSpec above (see
+// ConcentrationBoundarySpec's own header comment for why); deliberately
+// reuses kPressureTypes rather than a byte-identical second constant.
+ConcentrationBoundarySpec parseConcentrationSpec(const nlohmann::json& json,
+                                                 const std::filesystem::path& path,
+                                                 const std::string& patchName,
+                                                 const std::string& speciesName) {
+  const std::string context = "patches." + patchName + ".species." + speciesName;
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context, {"type", "value"});
+
+  ConcentrationBoundarySpec spec;
+  spec.type = getRequiredString(json, path, "type", context + ".type");
+  if (!isOneOf(spec.type, kPressureTypes)) {
+    throwConfigError(path, context + ".type", "be one of: fixed_value, fixed_gradient", spec.type);
+  }
+  spec.value = getRequiredReal(json, path, "value", context + ".value");
+  return spec;
+}
+
 TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
                                              const std::filesystem::path& path,
                                              const std::string& patchName) {
@@ -102,25 +124,31 @@ TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
 }  // namespace
 
 BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesystem::path& path,
-                                   bool thermalEnabled) {
+                                   bool thermalEnabled,
+                                   const std::vector<std::string>& speciesNames) {
   requireObject(json, path);
   rejectUnknownKeys(json, path, "boundaries.json", {"patches"});
   requireField(json, path, "patches");
   const auto& patches = json.at("patches");
   requireObject(patches, path, "patches");
 
+  const bool speciesEnabled = !speciesNames.empty();
+
   BoundaryConfig config;
   for (const auto& [patchName, patchJson] : patches.items()) {
     const std::string context = "boundaries.json patch \"" + patchName + "\"";
     requireObject(patchJson, path, context);
-    rejectUnknownKeys(patchJson, path, context,
-                      thermalEnabled
-                          ? std::vector<std::string_view>{"velocity", "pressure", "temperature"}
-                          : std::vector<std::string_view>{"velocity", "pressure"});
+    std::vector<std::string_view> allowedKeys{"velocity", "pressure"};
+    if (thermalEnabled) allowedKeys.push_back("temperature");
+    if (speciesEnabled) allowedKeys.push_back("species");
+    rejectUnknownKeys(patchJson, path, context, allowedKeys);
     requireField(patchJson, path, "velocity");
     requireField(patchJson, path, "pressure");
     if (thermalEnabled) {
       requireField(patchJson, path, "temperature");
+    }
+    if (speciesEnabled) {
+      requireField(patchJson, path, "species");
     }
 
     PatchBoundaryConfig patchConfig;
@@ -128,6 +156,34 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
     patchConfig.pressure = parsePressureSpec(patchJson.at("pressure"), path, patchName);
     if (thermalEnabled) {
       patchConfig.temperature = parseTemperatureSpec(patchJson.at("temperature"), path, patchName);
+    }
+    // P6-PHYS-001: "species" must supply exactly the declared name set --
+    // no fewer (an unconfigured species would otherwise reach
+    // SpeciesSolver with no BC at all), no more (a typo'd name that will
+    // never match a declared species) -- same reasoning as CaseReader.cpp's
+    // own "exactly the four mesh patches" cross-check, applied one level
+    // deeper.
+    if (speciesEnabled) {
+      const std::string speciesContext = context + ".species";
+      const auto& speciesJson = patchJson.at("species");
+      requireObject(speciesJson, path, speciesContext);
+      for (const std::string& speciesName : speciesNames) {
+        requireField(speciesJson, path, speciesName, speciesContext + "." + speciesName);
+        patchConfig.concentration.emplace(
+            speciesName,
+            parseConcentrationSpec(speciesJson.at(speciesName), path, patchName, speciesName));
+      }
+      if (speciesJson.size() != speciesNames.size()) {
+        for (const auto& [name, unused] : speciesJson.items()) {
+          (void)unused;
+          const bool known =
+              std::find(speciesNames.begin(), speciesNames.end(), name) != speciesNames.end();
+          if (!known) {
+            throwConfigError(path, speciesContext + "." + name,
+                             "name a species declared in physics.json's \"species\" array", name);
+          }
+        }
+      }
     }
     // A duplicate JSON key within one object is not representable once
     // parsed (the underlying library keeps only the last occurrence), so

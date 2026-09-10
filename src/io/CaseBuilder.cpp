@@ -34,6 +34,7 @@ using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
 using cfd::physics::FluidProperties;
 using cfd::pressure_velocity::SIMPLESettings;
+using cfd::species::SpeciesProperties;
 using cfd::thermal::ThermalProperties;
 using cfd::turbulence::KEpsilonConfig;
 using cfd::turbulence::KOmegaConfig;
@@ -63,6 +64,16 @@ std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildPressureBoundary(
   if (spec.type == "fixed_gradient") return std::make_unique<FixedGradient>(spec.value);
   throw CaseConfigurationError("CaseBuilder: unsupported pressure boundary type \"" + spec.type +
                                "\"");
+}
+
+// P6-PHYS-001: same two types as buildPressureBoundary above (see
+// ConcentrationBoundarySpec's own header comment for why).
+std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildConcentrationBoundary(
+    const ConcentrationBoundarySpec& spec) {
+  if (spec.type == "fixed_value") return std::make_unique<FixedValue>(spec.value);
+  if (spec.type == "fixed_gradient") return std::make_unique<FixedGradient>(spec.value);
+  throw CaseConfigurationError("CaseBuilder: unsupported concentration boundary type \"" +
+                               spec.type + "\"");
 }
 
 // P2-THERMAL-004: conductivity comes from the case's single
@@ -298,6 +309,28 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
     temperatureBoundaries.emplace();
   }
 
+  // P6-PHYS-001: built alongside thermal above -- one SpeciesSetup per
+  // physics.json-declared species, in declaration order. properties/
+  // initialConcentration come straight from physics.json (no per-patch
+  // dependency), so they are built here, before the per-patch loop;
+  // concentrationBoundaries is filled in during that loop below, same
+  // "built alongside velocity/pressure in one mesh-patch-order traversal"
+  // reasoning as temperatureBoundaries. CaseReader's own per-patch
+  // validation already guarantees patchConfig.concentration has an entry
+  // for every declared species name (BoundaryConfigParser.cpp's own
+  // "exactly the declared species-name set, on every patch" check), so
+  // .at() in the loop below cannot throw std::out_of_range because of
+  // that guarantee, not because of anything checked again here.
+  std::vector<SpeciesSetup> speciesSetups;
+  speciesSetups.reserve(definition.physics.species.size());
+  for (const auto& speciesConfig : definition.physics.species) {
+    speciesSetups.push_back(SpeciesSetup{
+        .properties = SpeciesProperties(speciesConfig.name, speciesConfig.diffusivity),
+        .initialConcentration =
+            cfd::fields::ScalarField(mesh.numberOfCells(), speciesConfig.initialConcentration),
+        .concentrationBoundaries = BoundaryConditionSet{}});
+  }
+
   // P2-TURB-004 (extended by P2-TURB-005 and P2-TURB-006):
   // "k_epsilon"/"k_omega"/"sst" are the only models that need anything
   // built here -- an absent "turbulence" block or an explicit "model":
@@ -333,6 +366,11 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
       temperatureBoundaries->set(
           mesh, patch.name(),
           buildTemperatureBoundary(patchConfig.temperature.value(), thermal->conductivity()));
+    }
+    for (SpeciesSetup& speciesSetup : speciesSetups) {
+      speciesSetup.concentrationBoundaries.set(
+          mesh, patch.name(),
+          buildConcentrationBoundary(patchConfig.concentration.at(speciesSetup.properties.name())));
     }
     if (kEpsilonEnabled) {
       kBoundaries->set(
@@ -385,13 +423,20 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                         .sstConfig = std::nullopt,
                         .kBoundaries = std::nullopt,
                         .epsilonBoundaries = std::nullopt,
-                        .omegaBoundaries = std::nullopt};
+                        .omegaBoundaries = std::nullopt,
+                        .species = {}};
   if (thermalEnabled) {
     setup.thermal = thermal;
     setup.temperatureBoundaries = std::move(temperatureBoundaries);
     setup.initialTemperature =
         cfd::fields::ScalarField(numberOfCells, definition.physics.thermal->initialTemperature);
   }
+  // P6-PHYS-001: unconditional (rather than an `if (!speciesSetups.empty())`
+  // guard like thermal's own `if (thermalEnabled)` above) -- an empty
+  // vector is already the correct "no species" representation (see
+  // SimulationSetup.hpp's own header comment on SpeciesSetup), so there is
+  // no separate empty/non-empty branch needed here.
+  setup.species = std::move(speciesSetups);
   // P3-PHYS-001: "buoyancy" requires "thermal" (PhysicsConfigParser.cpp's
   // own cross-block check), so thermalEnabled is always true whenever
   // this is -- referenceDensity comes from the same single-sourced

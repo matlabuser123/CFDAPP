@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <vector>
 
 #include "cfd/boundary/BoundaryCondition.hpp"
 #include "cfd/fields/ScalarField.hpp"
@@ -9,12 +10,26 @@
 #include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/pressure_velocity/SIMPLESettings.hpp"
+#include "cfd/species/SpeciesProperties.hpp"
 #include "cfd/thermal/ThermalProperties.hpp"
 #include "cfd/turbulence/KEpsilonModel.hpp"
 #include "cfd/turbulence/KOmegaModel.hpp"
 #include "cfd/turbulence/SSTModel.hpp"
 
 namespace cfd::io {
+
+// P6-PHYS-001: one runtime-ready species transport setup -- everything
+// `cfd::species::SpeciesSolver::solve()` needs for exactly one species
+// (see SpeciesSolver.hpp's own header comment: one instance transports
+// one species per call, multiple independent species means one
+// SpeciesSetup per species, never a dedicated multi-species solver
+// class), mirroring SimulationSetup's own "already the actual runtime
+// types the solver takes" convention.
+struct SpeciesSetup {
+  cfd::species::SpeciesProperties properties;
+  cfd::fields::ScalarField initialConcentration;
+  cfd::boundary::BoundaryConditionSet concentrationBoundaries;
+};
 
 // The bridge between configuration and CFD execution (TODO.md P1 section
 // 24): everything a solver needs, already built as the actual runtime
@@ -113,6 +128,18 @@ struct SimulationSetup {
   std::optional<cfd::boundary::BoundaryConditionSet> kBoundaries;
   std::optional<cfd::boundary::BoundaryConditionSet> epsilonBoundaries;
   std::optional<cfd::boundary::BoundaryConditionSet> omegaBoundaries;
+
+  // P6-PHYS-001: one entry per physics.json-declared species, in
+  // declaration order -- runtime-ready to hand straight to
+  // `cfd::species::SpeciesSolver::solve()` alongside a converged
+  // `massFlux` (see SpeciesSolver.hpp's own header comment: one
+  // `SpeciesSolver` instance transports exactly one species per call, so
+  // a caller loops over this vector calling `solve()` once per entry,
+  // never a dedicated multi-species solver class). Empty iff physics.json
+  // configured no species -- there is no separate "species enabled" bool
+  // to keep in sync with it, same convention as PhysicsConfig::species
+  // itself (see PhysicsConfig.hpp's own header comment).
+  std::vector<SpeciesSetup> species;
 };
 
 }  // namespace cfd::io

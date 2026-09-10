@@ -68,6 +68,24 @@ std::string_view thermalStatusLabel(cfd::thermal::ThermalStatus status) {
   return "no (unknown status)";
 }
 
+// P6-PHYS-001: the species counterpart of thermalStatusLabel above.
+std::string_view speciesStatusLabel(cfd::species::SpeciesStatus status) {
+  using cfd::species::SpeciesStatus;
+  switch (status) {
+    case SpeciesStatus::Converged:
+      return "yes";
+    case SpeciesStatus::MaxIterations:
+      return "no (max iterations reached)";
+    case SpeciesStatus::LinearSolveFailure:
+      return "no (linear solve failed)";
+    case SpeciesStatus::NonFiniteState:
+      return "no (non-finite state)";
+    case SpeciesStatus::InvalidConfiguration:
+      return "no (invalid solver configuration)";
+  }
+  return "no (unknown status)";
+}
+
 bool anyNonFinite(const cfd::pressure_velocity::SIMPLEResult& result) {
   for (cfd::Index i = 0; i < result.velocity.size(); ++i) {
     if (!std::isfinite(result.velocity[i].x) || !std::isfinite(result.velocity[i].y)) return true;
@@ -94,6 +112,15 @@ void printReport(std::ostream& out, const ProjectRunResult& run) {
   if (run.thermalResult.has_value()) {
     out << "Thermal converged: " << thermalStatusLabel(run.thermalResult->status) << "\n"
         << "Thermal iterations: " << run.thermalResult->iterations << "\n\n";
+  }
+  // P6-PHYS-001: one line pair per declared species, in declaration
+  // order -- same shape as the thermal block above, generalized from one
+  // optional field to a list.
+  for (const auto& speciesRun : run.speciesResults) {
+    out << "Species " << speciesRun.name
+        << " converged: " << speciesStatusLabel(speciesRun.result.status) << "\n"
+        << "Species " << speciesRun.name << " iterations: " << speciesRun.result.iterations
+        << "\n\n";
   }
   if (run.exportSummary.has_value()) {
     out << "Results:\n"

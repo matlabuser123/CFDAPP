@@ -6,12 +6,22 @@
 
 #include <filesystem>
 #include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 
 namespace cfd::io {
+
+// P6-PHYS-001: one named scalar field to append as a trailing CSV column
+// / VTK SCALARS block, e.g. {"CO2", concentrationField} -- generalizes
+// temperature's single optional field to the N independent
+// physics.json-declared species this codebase's field-per-species
+// convention produces (see SpeciesProperties.hpp's own header comment).
+using NamedScalarField = std::pair<std::string, cfd::fields::ScalarField>;
 
 class CSVWriter {
  public:
@@ -24,16 +34,23 @@ class CSVWriter {
   // every existing nonthermal fields.csv (and every reader of it) is
   // unaffected. Cell-center coordinates come from Mesh (section 4: never
   // reconstructed from nx/ny when the mesh already owns geometry).
+  //
+  // `species` (P6-PHYS-001): appends one further trailing
+  // ",concentration_<name>" column per entry, in the given order, after
+  // the optional temperature column -- omitted entirely (no columns at
+  // all) for an empty `species`, so every existing nonspecies fields.csv
+  // is unaffected.
+  //
   // Throws InvalidArgumentError if result.velocity/result.pressure size
-  // (or temperature's, when present) does not match mesh.numberOfCells();
-  // NumericalError if any exported value is non-finite (section 40 -- the
-  // failed-solve export policy deciding *whether* to call this at all for
-  // a non-finite result lives in ResultExporter, not here); IOError if
-  // `path` cannot be opened.
-  static void writeFields(
-      const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
-      const cfd::pressure_velocity::SIMPLEResult& result,
-      const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt);
+  // (or temperature's/any species field's, when present) does not match
+  // mesh.numberOfCells(); NumericalError if any exported value is
+  // non-finite (section 40 -- the failed-solve export policy deciding
+  // *whether* to call this at all for a non-finite result lives in
+  // ResultExporter, not here); IOError if `path` cannot be opened.
+  static void writeFields(const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
+                          const cfd::pressure_velocity::SIMPLEResult& result,
+                          const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt,
+                          const std::vector<NamedScalarField>& species = {});
 
   // Writes one row per completed SIMPLE iteration, in iteration order
   // 1..N, with the stable header (section 8/41):

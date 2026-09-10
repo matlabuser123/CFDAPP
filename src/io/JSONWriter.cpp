@@ -52,7 +52,8 @@ bool allFieldsFinite(const SIMPLEResult& result) {
 
 void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetadata& metadata,
                                const Mesh& mesh, const SIMPLEResult& result,
-                               const std::optional<ThermalRunMetadata>& thermal) {
+                               const std::optional<ThermalRunMetadata>& thermal,
+                               const std::vector<SpeciesRunMetadata>& species) {
   const auto structured = detail::inferStructuredMeshInfo(mesh);
 
   nlohmann::json doc;
@@ -87,6 +88,19 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
     doc["thermal"]["converged"] = thermal->converged;
     doc["thermal"]["iterations"] = thermal->iterations;
     doc["thermal"]["final_residual"] = thermal->finalResidual;
+  }
+
+  // P6-PHYS-001: always a JSON array (possibly empty) -- see
+  // writeMetadata's own header comment on why a list-shaped field needs
+  // no separate "enabled" flag.
+  doc["species"] = nlohmann::json::array();
+  for (const SpeciesRunMetadata& s : species) {
+    doc["species"].push_back({{"name", s.name},
+                              {"diffusivity", s.diffusivity},
+                              {"status", s.status},
+                              {"converged", s.converged},
+                              {"iterations", s.iterations},
+                              {"final_residual", s.finalResidual}});
   }
 
   std::ofstream out(path);

@@ -37,7 +37,9 @@ bool allFinite(const cfd::fields::ScalarField& field) {
 ResultExportSummary ResultExporter::write(
     const std::filesystem::path& outputDirectory, const Mesh& mesh, const SIMPLEResult& result,
     const RunMetadata& metadata, const std::optional<cfd::fields::ScalarField>& temperature,
-    const std::optional<ThermalRunMetadata>& thermalMetadata) {
+    const std::optional<ThermalRunMetadata>& thermalMetadata,
+    const std::vector<NamedScalarField>& species,
+    const std::vector<SpeciesRunMetadata>& speciesMetadata) {
   std::error_code createError;
   std::filesystem::create_directories(outputDirectory, createError);
   if (createError) {
@@ -48,7 +50,8 @@ ResultExportSummary ResultExporter::write(
   ResultExportSummary summary;
 
   summary.metadataPath = outputDirectory / "metadata.json";
-  JSONWriter::writeMetadata(summary.metadataPath, metadata, mesh, result, thermalMetadata);
+  JSONWriter::writeMetadata(summary.metadataPath, metadata, mesh, result, thermalMetadata,
+                            speciesMetadata);
 
   summary.residualsCsvPath = outputDirectory / "residuals.csv";
   CSVWriter::writeResiduals(summary.residualsCsvPath, result);
@@ -62,12 +65,21 @@ ResultExportSummary ResultExporter::write(
     const std::optional<cfd::fields::ScalarField> temperatureForFields =
         includeTemperature ? temperature : std::nullopt;
 
+    // P6-PHYS-001: each species filtered independently -- one non-finite
+    // species does not drop any other still-finite species (or
+    // temperature) from the export (see ResultExporter.hpp's own header
+    // comment).
+    std::vector<NamedScalarField> speciesForFields;
+    for (const auto& [name, field] : species) {
+      if (allFinite(field)) speciesForFields.emplace_back(name, field);
+    }
+
     const std::filesystem::path fieldsPath = outputDirectory / "fields.csv";
-    CSVWriter::writeFields(fieldsPath, mesh, result, temperatureForFields);
+    CSVWriter::writeFields(fieldsPath, mesh, result, temperatureForFields, speciesForFields);
     summary.fieldsCsvPath = fieldsPath;
 
     const std::filesystem::path vtkPath = outputDirectory / "solution.vtk";
-    VTKWriter::writeSolution(vtkPath, mesh, result, temperatureForFields);
+    VTKWriter::writeSolution(vtkPath, mesh, result, temperatureForFields, speciesForFields);
     summary.vtkPath = vtkPath;
   }
 

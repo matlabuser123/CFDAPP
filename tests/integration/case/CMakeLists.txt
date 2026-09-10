@@ -3,6 +3,7 @@
 # the real production case.
 add_executable(CFDCaseIntegrationTests
   test_case_lid_driven_cavity.cpp
+  test_species_production_case.cpp
 )
 
 target_link_libraries(CFDCaseIntegrationTests

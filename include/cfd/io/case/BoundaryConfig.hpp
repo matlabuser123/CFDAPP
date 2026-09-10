@@ -48,6 +48,20 @@ struct TemperatureBoundarySpec {
   Real value{};
 };
 
+// P6-PHYS-001: one species's concentration BC on one patch. Species
+// transport is a plain passive scalar with no structurally-valueless
+// type the way temperature's "adiabatic" is (see
+// cfd::species::SpeciesEquation.hpp's own header comment: only
+// FixedValue/FixedGradient are needed), so this has exactly
+// PressureBoundarySpec's shape (both types always take a "value") rather
+// than TemperatureBoundarySpec's "only some types take a value" one --
+// "fixed_gradient" with value 0.0 already expresses a zero-flux
+// impermeable wall, with no need for a separate no-value type.
+struct ConcentrationBoundarySpec {
+  std::string type;
+  Real value{};
+};
+
 struct PatchBoundaryConfig {
   VelocityBoundarySpec velocity;
   PressureBoundarySpec pressure;
@@ -55,6 +69,14 @@ struct PatchBoundaryConfig {
   // enforces this per patch during parsing (P2-THERMAL-004), not as a
   // separate cross-file check.
   std::optional<TemperatureBoundarySpec> temperature;
+  // P6-PHYS-001: keyed by species name, one entry per physics.json-
+  // declared species -- empty iff no species are configured. CaseReader
+  // enforces "exactly the declared species-name set, on every patch"
+  // during parsing (BoundaryConfigParser.cpp), the same "per-patch key
+  // required/forbidden based on physics.json" convention
+  // temperature/thermalEnabled already established, generalized from one
+  // boolean flag to a set of required keys.
+  std::map<std::string, ConcentrationBoundarySpec, std::less<>> concentration;
 };
 
 // Keyed by patch name ("left"/"right"/"bottom"/"top" for the only

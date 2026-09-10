@@ -6,6 +6,7 @@ add_executable(CFDIoTests
   test_thermal_case.cpp
   test_turbulence_case.cpp
   test_boussinesq_case.cpp
+  test_species_case.cpp
   test_csv_writer.cpp
   test_json_writer.cpp
   test_vtk_writer.cpp

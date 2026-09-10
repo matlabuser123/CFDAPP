@@ -225,6 +225,43 @@ TEST(JSONWriterTest, WritesThermalMetadataWhenProvided) {
   EXPECT_DOUBLE_EQ(doc["thermal"]["final_residual"].get<double>(), 1.2e-9);
 }
 
+// --- P6-PHYS-001: "species" array ------------------------------------------
+
+TEST(JSONWriterTest, SpeciesArrayIsEmptyByDefault) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeConvergedResultFor2x2();
+  const auto path = tempFile("species_absent.json");
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, result);
+  const auto doc = readJson(path);
+
+  ASSERT_TRUE(doc.contains("species"));
+  EXPECT_TRUE(doc["species"].is_array());
+  EXPECT_TRUE(doc["species"].empty());
+}
+
+TEST(JSONWriterTest, WritesSpeciesMetadataInOrderWhenProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeConvergedResultFor2x2();
+  const auto path = tempFile("species_present.json");
+  const std::vector<cfd::io::SpeciesRunMetadata> species{
+      {"CO2", 1.6e-5, "Converged", true, 12, 3.4e-9},
+      {"O2", 2.0e-5, "MaxIterations", false, 2000, 5.0e-3},
+  };
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, result, std::nullopt, species);
+  const auto doc = readJson(path);
+
+  ASSERT_EQ(doc["species"].size(), 2u);
+  EXPECT_EQ(doc["species"][0]["name"], "CO2");
+  EXPECT_DOUBLE_EQ(doc["species"][0]["diffusivity"].get<double>(), 1.6e-5);
+  EXPECT_EQ(doc["species"][0]["status"], "Converged");
+  EXPECT_TRUE(doc["species"][0]["converged"].get<bool>());
+  EXPECT_EQ(doc["species"][0]["iterations"], 12);
+  EXPECT_DOUBLE_EQ(doc["species"][0]["final_residual"].get<double>(), 3.4e-9);
+  EXPECT_EQ(doc["species"][1]["name"], "O2");
+  EXPECT_EQ(doc["species"][1]["status"], "MaxIterations");
+  EXPECT_FALSE(doc["species"][1]["converged"].get<bool>());
+}
+
 TEST(JSONWriterTest, RepeatedWriteIsByteIdentical) {
   const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
   const auto result = makeConvergedResultFor2x2();

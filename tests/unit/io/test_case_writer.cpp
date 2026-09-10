@@ -152,3 +152,37 @@ TEST(CaseWriterTest, ThermalTurbulenceBuoyancyRoundTrip) {
   EXPECT_EQ(reread.boundaries.patches.at("bottom").velocity.type, "outlet");
   EXPECT_EQ(reread.boundaries.patches.at("bottom").pressure.type, "fixed_value");
 }
+
+// P6-PHYS-001: physics.json's "species" array and each patch's
+// "species" concentration-BC object round-trip through CaseWriter --
+// none of these appear in CaseFixture's own default (nonspecies) case.
+TEST(CaseWriterTest, SpeciesRoundTrip) {
+  CaseFixture source;
+  CaseDefinition original = CaseReader{}.read(source.directory());
+
+  original.physics.species = {
+      {"CO2", 1.6e-5, 0.0},
+      {"O2", 2.0e-5, 0.21},
+  };
+  for (auto& [name, patch] : original.boundaries.patches) {
+    (void)name;
+    patch.concentration.emplace("CO2", cfd::io::ConcentrationBoundarySpec{"fixed_gradient", 0.0});
+    patch.concentration.emplace("O2", cfd::io::ConcentrationBoundarySpec{"fixed_gradient", 0.0});
+  }
+  original.boundaries.patches.at("left").concentration.at("CO2") =
+      cfd::io::ConcentrationBoundarySpec{"fixed_value", 1.0};
+
+  const CaseDefinition reread = roundTrip(original);
+
+  ASSERT_EQ(reread.physics.species.size(), 2u);
+  EXPECT_EQ(reread.physics.species[0].name, "CO2");
+  EXPECT_DOUBLE_EQ(reread.physics.species[0].diffusivity, 1.6e-5);
+  EXPECT_DOUBLE_EQ(reread.physics.species[0].initialConcentration, 0.0);
+  EXPECT_EQ(reread.physics.species[1].name, "O2");
+  EXPECT_DOUBLE_EQ(reread.physics.species[1].initialConcentration, 0.21);
+
+  ASSERT_EQ(reread.boundaries.patches.at("left").concentration.size(), 2u);
+  EXPECT_EQ(reread.boundaries.patches.at("left").concentration.at("CO2").type, "fixed_value");
+  EXPECT_DOUBLE_EQ(reread.boundaries.patches.at("left").concentration.at("CO2").value, 1.0);
+  EXPECT_EQ(reread.boundaries.patches.at("right").concentration.at("O2").type, "fixed_gradient");
+}

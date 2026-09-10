@@ -8,6 +8,8 @@
 
 #include <filesystem>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
 
 #include "cfd/io/case/BoundaryConfig.hpp"
 #include "cfd/io/case/CaseConfig.hpp"
@@ -49,9 +51,15 @@ namespace cfd::io::detail {
 // whether each patch's "temperature" key is required or forbidden -- an
 // existing nonthermal case has no such key today and must continue to
 // parse identically, so this is not an optional/ignored field either way.
-[[nodiscard]] cfd::io::BoundaryConfig parseBoundaryConfig(const nlohmann::json& json,
-                                                          const std::filesystem::path& path,
-                                                          bool thermalEnabled);
+// speciesNames (P6-PHYS-001, sourced from physics.json's "species" array,
+// already parsed by the time CaseReader reaches this file) is the exact
+// set of per-patch "species" object keys required -- empty means no
+// patch may have a "species" key at all (same "required/forbidden, never
+// silently ignored" convention as thermalEnabled, generalized from one
+// boolean to a required key set).
+[[nodiscard]] cfd::io::BoundaryConfig parseBoundaryConfig(
+    const nlohmann::json& json, const std::filesystem::path& path, bool thermalEnabled,
+    const std::vector<std::string>& speciesNames);
 
 [[nodiscard]] cfd::io::SolverConfig parseSolverConfig(const nlohmann::json& json,
                                                       const std::filesystem::path& path);

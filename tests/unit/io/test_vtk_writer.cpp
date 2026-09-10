@@ -218,3 +218,68 @@ TEST(VTKWriterTest, NonFiniteTemperatureThrows) {
   const auto path = tempFile("nonfinite_temperature.vtk");
   EXPECT_THROW((void)VTKWriter::writeSolution(path, mesh, result, temperature), NumericalError);
 }
+
+// --- P6-PHYS-001: optional species SCALARS blocks --------------------------
+
+TEST(VTKWriterTest, OmitsSpeciesBlocksWhenNotProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto path = tempFile("no_species.vtk");
+  VTKWriter::writeSolution(path, mesh, makeResult(1));
+  const auto lines = readLines(path);
+  for (const auto& line : lines) {
+    EXPECT_EQ(line.find("concentration_"), std::string::npos);
+  }
+}
+
+TEST(VTKWriterTest, AppendsOneSpeciesBlockAfterVelocityMagnitudeWhenProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto result = makeResult(1);
+  ScalarField co2(1);
+  co2[0] = 0.5;
+  const auto path = tempFile("with_one_species.vtk");
+  VTKWriter::writeSolution(path, mesh, result, std::nullopt, {{"CO2", co2}});
+  const auto lines = readLines(path);
+
+  const auto magnitudeLine = findLine(lines, "SCALARS velocity_magnitude");
+  EXPECT_EQ(lines[magnitudeLine + 3], "SCALARS concentration_CO2 double 1");
+  EXPECT_EQ(lines[magnitudeLine + 4], "LOOKUP_TABLE default");
+  EXPECT_DOUBLE_EQ(std::stod(lines[magnitudeLine + 5]), 0.5);
+}
+
+TEST(VTKWriterTest, MultipleSpeciesWrittenInOrderAfterTemperature) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto result = makeResult(1);
+  ScalarField temperature(1, 300.0);
+  ScalarField co2(1, 0.5);
+  ScalarField o2(1, 0.21);
+  const auto path = tempFile("with_temperature_and_species.vtk");
+  VTKWriter::writeSolution(path, mesh, result, temperature, {{"CO2", co2}, {"O2", o2}});
+  const auto lines = readLines(path);
+
+  const auto temperatureLine = findLine(lines, "SCALARS temperature");
+  // +0 "SCALARS temperature ...", +1 "LOOKUP_TABLE default", +2 the one
+  // temperature value row -- then the CO2 block starts.
+  EXPECT_EQ(lines[temperatureLine + 3], "SCALARS concentration_CO2 double 1");
+  EXPECT_DOUBLE_EQ(std::stod(lines[temperatureLine + 5]), 0.5);
+  EXPECT_EQ(lines[temperatureLine + 6], "SCALARS concentration_O2 double 1");
+  EXPECT_DOUBLE_EQ(std::stod(lines[temperatureLine + 8]), 0.21);
+}
+
+TEST(VTKWriterTest, MismatchedSpeciesSizeThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResult(4);
+  const ScalarField co2(3);  // wrong size.
+  const auto path = tempFile("bad_species_size.vtk");
+  EXPECT_THROW((void)VTKWriter::writeSolution(path, mesh, result, std::nullopt, {{"CO2", co2}}),
+               InvalidArgumentError);
+}
+
+TEST(VTKWriterTest, NonFiniteSpeciesThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
+  const auto result = makeResult(1);
+  ScalarField co2(1);
+  co2[0] = std::numeric_limits<cfd::Real>::quiet_NaN();
+  const auto path = tempFile("nonfinite_species.vtk");
+  EXPECT_THROW((void)VTKWriter::writeSolution(path, mesh, result, std::nullopt, {{"CO2", co2}}),
+               NumericalError);
+}

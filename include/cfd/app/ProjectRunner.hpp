@@ -14,21 +14,28 @@
 // "CLI/GUI execution equivalence" requirement is satisfied by
 // construction, not by comparison after the fact).
 //
-// Deliberately still steady-incompressible-SIMPLE(+thermal) scope only,
-// exactly matching what CaseReader/CaseBuilder support today -- species/
-// multiphase/compressible case-config parsing is a disclosed, separate,
-// not-yet-done prerequisite (see TODO.md's own P3-PHYS-006/P4 status
-// notes), not silently expanded here.
+// Steady-incompressible-SIMPLE(+thermal+species) scope, exactly matching
+// what CaseReader/CaseBuilder support today -- multiphase/compressible
+// case-config parsing is still a disclosed, separate, not-yet-done
+// prerequisite (see TODO.md's own P4 status notes), not silently
+// expanded here. Species (P6-PHYS-001) followed thermal's own precedent:
+// one-way, best-available, run only when the SIMPLE result is fully
+// finite (see this file's own "same one-way, best-available ... solve"
+// comment in ProjectRunner.cpp), never coupled back into the momentum
+// equation (this codebase's species are passive/non-reacting, so there
+// is no physical density/viscosity feedback to couple).
 
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "cfd/io/ResultExporter.hpp"
 #include "cfd/io/case/CaseDefinition.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEProgress.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
+#include "cfd/species/SpeciesSolver.hpp"
 #include "cfd/thermal/ThermalSolver.hpp"
 
 namespace cfd::app {
@@ -48,6 +55,15 @@ enum class ProjectRunStatus {
 };
 
 [[nodiscard]] int exitCodeFor(ProjectRunStatus status) noexcept;
+
+// P6-PHYS-001: one physics.json-declared species's solve outcome, in
+// declaration order -- `name` lets a caller (CLI report, GUI, export)
+// identify which species a given cfd::species::SpeciesResult belongs to
+// without re-deriving it from `caseDefinition->physics.species` by index.
+struct SpeciesRunResult {
+  std::string name;
+  cfd::species::SpeciesResult result;
+};
 
 // Both default-empty/no-op (SIMPLEProgress.hpp's own contract) -- an
 // options value with neither set reproduces the exact prior CLI
@@ -77,6 +93,14 @@ struct ProjectRunResult {
   std::optional<cfd::mesh::Mesh> mesh;
   std::optional<cfd::pressure_velocity::SIMPLEResult> simpleResult;
   std::optional<cfd::thermal::ThermalResult> thermalResult;
+  // P6-PHYS-001: one entry per physics.json-declared species, in
+  // declaration order -- always the full declared set once the SIMPLE
+  // result is fully finite (never partially populated the way a single
+  // optional field could leave ambiguous which species ran), empty
+  // otherwise (mirrors thermalResult staying unset when the case has no
+  // thermal block, generalized from "unset" to "empty vector" for a
+  // list-shaped field).
+  std::vector<SpeciesRunResult> speciesResults;
   std::optional<cfd::io::ResultExportSummary> exportSummary;
   // Populated for InvalidCase (CaseReader/CaseBuilder's own message) and
   // ApplicationError (a result-export I/O failure) -- empty otherwise,

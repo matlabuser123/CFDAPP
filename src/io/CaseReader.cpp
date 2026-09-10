@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <string>
+#include <vector>
 
 #include "case/JsonUtil.hpp"
 #include "case/Parsers.hpp"
@@ -88,9 +89,14 @@ CaseDefinition CaseReader::read(const std::filesystem::path& caseDirectory) cons
   const std::filesystem::path boundariesPath = loadReferenced("boundaries");
   // physics.json is already parsed above -- its "thermal" presence
   // decides whether boundaries.json's per-patch "temperature" key is
-  // required or forbidden (P2-THERMAL-004).
-  definition.boundaries = detail::parseBoundaryConfig(readJsonFile(boundariesPath), boundariesPath,
-                                                      definition.physics.thermal.has_value());
+  // required or forbidden (P2-THERMAL-004), and its "species" array
+  // (P6-PHYS-001) decides the exact per-patch "species" key set required.
+  std::vector<std::string> speciesNames;
+  speciesNames.reserve(definition.physics.species.size());
+  for (const auto& species : definition.physics.species) speciesNames.push_back(species.name);
+  definition.boundaries =
+      detail::parseBoundaryConfig(readJsonFile(boundariesPath), boundariesPath,
+                                  definition.physics.thermal.has_value(), speciesNames);
 
   const std::filesystem::path solverPath = loadReferenced("solver");
   definition.solver = detail::parseSolverConfig(readJsonFile(solverPath), solverPath);

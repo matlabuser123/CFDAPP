@@ -64,6 +64,24 @@ std::string thermalStatusName(cfd::thermal::ThermalStatus status) {
   return "Unknown";
 }
 
+// P6-PHYS-001: the species counterpart of thermalStatusName above.
+std::string speciesStatusName(cfd::species::SpeciesStatus status) {
+  using cfd::species::SpeciesStatus;
+  switch (status) {
+    case SpeciesStatus::Converged:
+      return "Converged";
+    case SpeciesStatus::MaxIterations:
+      return "MaxIterations";
+    case SpeciesStatus::LinearSolveFailure:
+      return "LinearSolveFailure";
+    case SpeciesStatus::NonFiniteState:
+      return "NonFiniteState";
+    case SpeciesStatus::InvalidConfiguration:
+      return "InvalidConfiguration";
+  }
+  return "Unknown";
+}
+
 ProjectRunStatus statusFor(SIMPLEStatus status) {
   switch (status) {
     case SIMPLEStatus::Converged:
@@ -131,15 +149,24 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
   out.simpleResult = result;
   out.status = statusFor(result.status);
 
+  // massFlux is needed by both thermal and species below (P6-PHYS-001:
+  // hoisted here, computed at most once, rather than each recomputing its
+  // own copy) -- a pure function of setup.mesh/result.velocity/setup.fluid/
+  // setup.velocityBoundaries, so sharing it changes nothing about either
+  // solve's result.
+  std::optional<cfd::fields::SurfaceField> massFlux;
+  if ((setup.thermal.has_value() || !setup.species.empty()) && !anyNonFinite(result)) {
+    massFlux = cfd::physics::calculateMassFlux(setup.mesh, result.velocity, setup.fluid,
+                                               setup.velocityBoundaries);
+  }
+
   // Same one-way, best-available thermal solve as the pre-P5 CLI (see
   // apps/cli/main.cpp's own comment on this policy -- unchanged here).
   std::optional<cfd::thermal::ThermalResult> thermalResult;
   std::optional<cfd::io::ThermalRunMetadata> thermalMetadata;
-  if (setup.thermal.has_value() && !anyNonFinite(result)) {
-    const cfd::fields::SurfaceField massFlux = cfd::physics::calculateMassFlux(
-        setup.mesh, result.velocity, setup.fluid, setup.velocityBoundaries);
+  if (setup.thermal.has_value() && massFlux.has_value()) {
     const cfd::thermal::ThermalSolver thermalSolver{};
-    thermalResult = thermalSolver.solve(setup.mesh, *setup.initialTemperature, massFlux,
+    thermalResult = thermalSolver.solve(setup.mesh, *setup.initialTemperature, *massFlux,
                                         *setup.thermal, *setup.temperatureBoundaries);
     thermalMetadata = cfd::io::ThermalRunMetadata{setup.thermal->conductivity(),
                                                   setup.thermal->specificHeat(),
@@ -157,15 +184,49 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
   }
   out.thermalResult = thermalResult;
 
+  // P6-PHYS-001: same one-way, best-available policy as thermal above --
+  // run only once the SIMPLE result is fully finite, one
+  // cfd::species::SpeciesSolver::solve() call per declared species (never
+  // a dedicated multi-species solver class, see SpeciesSolver.hpp's own
+  // header comment), each independent of the others (this codebase's
+  // species are passive/non-reacting -- no cross-species coupling term
+  // exists to solve). out.speciesResults stays empty (not partially
+  // populated) when massFlux was never computed; speciesMetadataForExport
+  // still gets one "NotRun" entry per declared species either way, the
+  // same "metadata always reflects the real outcome" policy thermal's
+  // own metadata already follows.
+  std::vector<cfd::io::SpeciesRunMetadata> speciesMetadataForExport;
+  std::vector<cfd::io::NamedScalarField> speciesForExport;
+  if (massFlux.has_value()) {
+    const cfd::species::SpeciesSolver speciesSolver{};
+    for (const cfd::io::SpeciesSetup& speciesSetup : setup.species) {
+      const cfd::species::SpeciesResult speciesResult =
+          speciesSolver.solve(setup.mesh, speciesSetup.initialConcentration, *massFlux, setup.fluid,
+                              speciesSetup.properties, speciesSetup.concentrationBoundaries);
+      out.speciesResults.push_back(SpeciesRunResult{speciesSetup.properties.name(), speciesResult});
+      speciesMetadataForExport.push_back(cfd::io::SpeciesRunMetadata{
+          speciesSetup.properties.name(), speciesSetup.properties.diffusivity(),
+          speciesStatusName(speciesResult.status), speciesResult.converged(),
+          speciesResult.iterations, speciesResult.finalResidual});
+      speciesForExport.emplace_back(speciesSetup.properties.name(), speciesResult.concentration);
+    }
+  } else {
+    for (const cfd::io::SpeciesSetup& speciesSetup : setup.species) {
+      speciesMetadataForExport.push_back(cfd::io::SpeciesRunMetadata{
+          speciesSetup.properties.name(), speciesSetup.properties.diffusivity(), "NotRun",
+          /*converged=*/false, /*iterations=*/0, /*finalResidual=*/0.0});
+    }
+  }
+
   const cfd::io::RunMetadata exportMetadata{
       caseDefinition->caseConfig.name, caseDefinition->physics.density,
       caseDefinition->physics.dynamicViscosity, caseDefinition->solver.type};
   try {
     const std::optional<cfd::fields::ScalarField> temperatureForExport =
         thermalResult.has_value() ? std::optional(thermalResult->temperature) : std::nullopt;
-    out.exportSummary =
-        cfd::io::ResultExporter::write(caseDirectory / "results", setup.mesh, result,
-                                       exportMetadata, temperatureForExport, thermalMetadata);
+    out.exportSummary = cfd::io::ResultExporter::write(
+        caseDirectory / "results", setup.mesh, result, exportMetadata, temperatureForExport,
+        thermalMetadata, speciesForExport, speciesMetadataForExport);
   } catch (const cfd::Error& e) {
     out.status = ProjectRunStatus::ApplicationError;
     out.errorMessage = e.what();

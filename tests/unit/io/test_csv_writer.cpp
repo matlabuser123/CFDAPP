@@ -287,3 +287,58 @@ TEST(CSVWriterTest, NonFiniteTemperatureThrows) {
 
   EXPECT_THROW(CSVWriter::writeFields(path, mesh, result, temperature), NumericalError);
 }
+
+// --- P6-PHYS-001: optional species columns --------------------------------
+
+TEST(CSVWriterTest, OmitsSpeciesColumnsWhenNotProvided) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  const auto path = tempFile("fields_no_species.csv");
+
+  CSVWriter::writeFields(path, mesh, result);
+  const auto lines = readLines(path);
+  EXPECT_EQ(lines.front(), "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure");
+}
+
+TEST(CSVWriterTest, AppendsSpeciesColumnsInOrderAfterTemperature) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  ScalarField temperature(4, 300.0);
+  ScalarField co2(4);
+  co2[0] = 1.0;
+  co2[1] = 0.5;
+  ScalarField o2(4, 0.21);
+  const auto path = tempFile("fields_with_species.csv");
+
+  CSVWriter::writeFields(path, mesh, result, temperature, {{"CO2", co2}, {"O2", o2}});
+  const auto lines = readLines(path);
+  EXPECT_EQ(lines.front(),
+            "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,"
+            "temperature,concentration_CO2,concentration_O2");
+  std::istringstream row(lines[2]);  // cell 1.
+  std::string field;
+  for (int i = 0; i < 8; ++i) std::getline(row, field, ',');  // skip through temperature.
+  std::getline(row, field, ',');
+  EXPECT_DOUBLE_EQ(std::stod(field), 0.5);  // CO2 at cell 1.
+}
+
+TEST(CSVWriterTest, MismatchedSpeciesSizeThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  const ScalarField co2(3);  // wrong size.
+  const auto path = tempFile("fields_bad_species_size.csv");
+
+  EXPECT_THROW(CSVWriter::writeFields(path, mesh, result, std::nullopt, {{"CO2", co2}}),
+               InvalidArgumentError);
+}
+
+TEST(CSVWriterTest, NonFiniteSpeciesThrows) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto result = makeResultFor2x2(false);
+  ScalarField co2(4, 0.5);
+  co2[2] = std::numeric_limits<cfd::Real>::infinity();
+  const auto path = tempFile("fields_nan_species.csv");
+
+  EXPECT_THROW(CSVWriter::writeFields(path, mesh, result, std::nullopt, {{"CO2", co2}}),
+               NumericalError);
+}

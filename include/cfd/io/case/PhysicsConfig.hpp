@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "cfd/core/Types.hpp"
 #include "cfd/core/Vector2.hpp"
@@ -67,6 +68,23 @@ struct BuoyancyPhysicsConfig {
   Vector2 gravity{};
 };
 
+// P6-PHYS-001: one entry of physics.json's optional "species" array --
+// identity + constant diffusivity + initial concentration for one
+// transported, passive, non-reacting scalar species, mirroring
+// `cfd::species::SpeciesProperties` exactly (diffusivity may be 0, "pure
+// advection intentionally supported" -- see SpeciesProperties.hpp's own
+// header comment; this codebase does not enforce 0<=Y<=1 or sum(Y)=1 at
+// this layer either, same reasoning). `name` also doubles as the key
+// boundaries.json's own per-patch "species" object must supply an entry
+// for (PhysicsConfigParser.cpp/BoundaryConfigParser.cpp's own
+// cross-check), and as the exported field/column name (species_<name> in
+// fields.csv/solution.vtk, "name" in metadata.json's "species" array).
+struct SpeciesConfig {
+  std::string name;
+  Real diffusivity{};
+  Real initialConcentration{};
+};
+
 // model is always "incompressible_laminar" for the current numerical
 // scope. reynoldsNumber is optional reporting-only metadata (TODO.md P1
 // section 10) -- it is never used to derive density/viscosity; those two
@@ -79,6 +97,17 @@ struct PhysicsConfig {
   std::optional<ThermalPhysicsConfig> thermal;
   std::optional<TurbulencePhysicsConfig> turbulence;
   std::optional<BuoyancyPhysicsConfig> buoyancy;
+  // P6-PHYS-001: physics.json's optional "species" array. Unlike
+  // thermal/turbulence/buoyancy above (each a single optional object),
+  // species is inherently a *list* of independent named fields (this
+  // codebase's own field-per-species convention -- see
+  // SpeciesProperties.hpp's own header comment), so an empty vector
+  // (rather than std::optional<vector>) already represents "no species
+  // configured" without a second wrapper -- both an absent "species" key
+  // and a present-but-empty "species": [] array parse to the same empty
+  // vector (PhysicsConfigParser.cpp accepts both; there is no meaningful
+  // difference between them worth rejecting).
+  std::vector<SpeciesConfig> species;
 };
 
 }  // namespace cfd::io

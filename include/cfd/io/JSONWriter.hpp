@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "cfd/core/Types.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -43,6 +44,23 @@ struct ThermalRunMetadata {
   cfd::Real finalResidual{};
 };
 
+// P6-PHYS-001: the small set of cfd::species::SpeciesResult-derived
+// fields metadata.json needs for one species, same "own lightweight
+// struct, not a direct species-module reference" reasoning as
+// ThermalRunMetadata above. One entry per physics.json-declared species,
+// in declaration order -- see JSONWriter::writeMetadata's own header
+// comment on why this is a plain vector (never std::optional-wrapped)
+// the same way PhysicsConfig::species/SimulationSetup::species already
+// are.
+struct SpeciesRunMetadata {
+  std::string name;
+  cfd::Real diffusivity{};
+  std::string status;  // the exact SpeciesStatus enum name (never just a boolean).
+  bool converged{};
+  cfd::Index iterations{};
+  cfd::Real finalResidual{};
+};
+
 class JSONWriter {
  public:
   // Writes metadata.json (section 11-16): format_version, case/mesh/
@@ -61,11 +79,19 @@ class JSONWriter {
   // `thermal` has a value) -- a documented default for every nonthermal
   // case, matching this file's own "no hidden defaults" convention,
   // rather than the whole "thermal" key being absent.
+  //
+  // `species` (P6-PHYS-001): a JSON array under "species", one object per
+  // entry (name/diffusivity/status/converged/iterations/final_residual),
+  // in the same declaration order as `species` itself -- always written
+  // (possibly empty), the same way a list-shaped field needs no separate
+  // "enabled" flag the way thermal's single-optional-object shape does
+  // (empty array already means "no species", unambiguously).
   // Throws IOError if `path` cannot be opened.
   static void writeMetadata(const std::filesystem::path& path, const RunMetadata& metadata,
                             const cfd::mesh::Mesh& mesh,
                             const cfd::pressure_velocity::SIMPLEResult& result,
-                            const std::optional<ThermalRunMetadata>& thermal = std::nullopt);
+                            const std::optional<ThermalRunMetadata>& thermal = std::nullopt,
+                            const std::vector<SpeciesRunMetadata>& species = {});
 };
 
 }  // namespace cfd::io

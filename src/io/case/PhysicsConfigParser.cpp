@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include "JsonUtil.hpp"
 #include "Parsers.hpp"
 
@@ -5,6 +7,7 @@ namespace cfd::io::detail {
 
 using cfd::io::BuoyancyPhysicsConfig;
 using cfd::io::PhysicsConfig;
+using cfd::io::SpeciesConfig;
 using cfd::io::ThermalPhysicsConfig;
 using cfd::io::TurbulencePhysicsConfig;
 
@@ -190,13 +193,45 @@ TurbulencePhysicsConfig parseTurbulencePhysicsConfig(const nlohmann::json& json,
   return turbulence;
 }
 
+// P6-PHYS-001: one entry of physics.json's optional "species" array.
+// diffusivity may be 0 (SpeciesProperties.hpp's own "pure advection
+// intentionally supported" allowance); initial_concentration is any
+// finite value (same "no 0<=Y<=1 enforcement at this layer" reasoning as
+// PhysicsConfig.hpp's own header comment on SpeciesConfig -- getRequiredReal
+// already enforces finiteness, nothing more is a structural requirement
+// here). "name" must be non-empty -- SpeciesProperties's own constructor
+// already rejects an empty name, so this is a parse-time-specific error
+// naming the exact array index rather than deferring to that generic
+// construction-time message (same "two independent, consistent
+// validation layers" precedent as parseThermalPhysicsConfig above).
+SpeciesConfig parseSpeciesConfig(const nlohmann::json& json, const std::filesystem::path& path,
+                                 std::size_t index) {
+  const std::string context = "physics.json species[" + std::to_string(index) + "]";
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context, {"name", "diffusivity", "initial_concentration"});
+
+  SpeciesConfig species;
+  species.name = getRequiredString(json, path, "name", context + ".name");
+  if (species.name.empty()) {
+    throwConfigError(path, context + ".name", "be non-empty", "\"\"");
+  }
+  species.diffusivity = getRequiredReal(json, path, "diffusivity", context + ".diffusivity");
+  if (!(species.diffusivity >= 0.0)) {
+    throwConfigError(path, context + ".diffusivity", "be >= 0",
+                     std::to_string(species.diffusivity));
+  }
+  species.initialConcentration =
+      getRequiredReal(json, path, "initial_concentration", context + ".initial_concentration");
+  return species;
+}
+
 }  // namespace
 
 PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesystem::path& path) {
   requireObject(json, path);
   rejectUnknownKeys(json, path, "physics.json",
                     {"model", "density", "dynamic_viscosity", "reynolds_number", "thermal",
-                     "turbulence", "buoyancy"});
+                     "turbulence", "buoyancy", "species"});
 
   PhysicsConfig config;
   config.model = getRequiredString(json, path, "model");
@@ -246,6 +281,27 @@ PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesyst
                        "no \"thermal\" block was given");
     }
     config.buoyancy = parseBuoyancyPhysicsConfig(json.at("buoyancy"), path);
+  }
+  // P6-PHYS-001: physics.json's optional "species" array (a JSON array,
+  // not an object -- see PhysicsConfig.hpp's own header comment on why
+  // an empty vector, not std::optional<vector>, represents "disabled").
+  // An absent key parses to the same empty vector requireObject/default-
+  // construction already gives every pre-P6 case, so every existing
+  // nonspecies case continues to parse identically.
+  if (json.contains("species")) {
+    const auto& speciesJson = json.at("species");
+    if (!speciesJson.is_array()) {
+      throwConfigError(path, "species", "be a JSON array", describeJsonValue(speciesJson));
+    }
+    std::unordered_set<std::string> seenNames;
+    for (std::size_t i = 0; i < speciesJson.size(); ++i) {
+      SpeciesConfig species = parseSpeciesConfig(speciesJson.at(i), path, i);
+      if (!seenNames.insert(species.name).second) {
+        throwConfigError(path, "species", "have unique names",
+                         "duplicate name \"" + species.name + "\"");
+      }
+      config.species.push_back(std::move(species));
+    }
   }
   return config;
 }
