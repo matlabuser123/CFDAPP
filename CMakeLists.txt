@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 project(CFDApp
-  VERSION 0.1.3
+  VERSION 0.1.4
   DESCRIPTION "CFDApp - a computational fluid dynamics solver"
   LANGUAGES CXX
 )
