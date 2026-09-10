@@ -79,7 +79,7 @@
 
 ---
 
-# P5 — Application 🚧
+# P5 — Application ✅ (v0.1.5 released)
 
 * [x] Production case manager
 * [x] GUI solver workflow
@@ -109,7 +109,8 @@
   the stale Qt 6.5.3 SDK and conda's Qt 6.7.3 deliberately placed ahead
   on PATH (the exact failure condition). No solver code changed, no
   test weakened.
-* [ ] Release automation
+* [x] Release automation -- `v0.1.5` genuinely released, see the
+  Release Gate section below for full evidence
 
 ## CI Gate
 
@@ -156,16 +157,18 @@
 * [x] Keep existing tags immutable (`v0.1.0`-`v0.1.4` all untouched)
 * [x] Version/release fixes pushed to `main`
 * [x] CI Gate fully green (see above -- verified via run 34444117973)
-* [x] Bump project version for the next clean release (currently 0.1.4,
-  `a3117f5`; another bump pending, see below)
-* [x] Create a new release tag (`v0.1.4`, pushed)
-* [x] Release workflow green end to end -- **attempt 7 (`v0.1.4`, run
-  [34461039922](https://github.com/matlabuser123/CFDAPP/actions/runs/34461039922)),
-  `conclusion: success`, all 16 steps passed**: tag-version check,
-  MSVC/Qt setup, Build, full regression suite, NSIS install, CPack
-  packaging (ZIP and NSIS installer both), the packaged-artifact smoke
-  test (CLI *and* GUI), checksums, and artifact upload. First fully
-  green Release run out of 7 attempts.
+* [x] Bump project version for the next clean release (0.1.5, `949ed32`)
+* [x] Create a new release tag (`v0.1.5`, pushed)
+* [x] Release workflow green end to end -- **attempt 8 (`v0.1.5`, run
+  [34462755608](https://github.com/matlabuser123/CFDAPP/actions/runs/34462755608)),
+  `conclusion: success`, all 17 steps passed**, including `Publish
+  GitHub Release`. 8/8 cumulative attempts across this session, each
+  exposing and fixing one genuine, previously-invisible defect: invalid
+  Qt module -> stale CI working-directory -> missing
+  `#include <algorithm>` -> tag/version mismatch -> MinGW-vs-MSVC linker
+  mismatch -> clang-format runner-image drift -> missing NSIS on
+  `windows-latest` -> missing GitHub-Release-publish step. This is the
+  first attempt with none left.
 * [x] Windows build succeeds on GitHub runner (confirmed)
 * [x] Full release test suite passes (confirmed, on the real GitHub
   Windows runner)
@@ -173,18 +176,27 @@
 * [x] Installer artifact produced (confirmed -- NSIS fix verified working)
 * [x] CI smoke tests pass on packaged artifacts (confirmed -- both CLI
   `--version`/`--case` and the GUI process-stays-alive check passed)
-* [ ] Downloaded release artifact retested -- not yet done outside CI
-* [ ] GitHub Release published with assets -- **a run with
-  `conclusion: success` still did NOT publish one**: `gh release list`
-  stayed empty after attempt 7. Root cause: `actions/upload-artifact`
-  only attaches files to the *workflow run*, not to a Release object --
-  nothing in `release.yml` ever created one. Fixed in `645aecb`
-  (`softprops/action-gh-release@v2` + job-level `contents: write`
-  permission), pushed to `main`. Awaiting user go-ahead on a new tag
-  (`v0.1.5`) to verify this actually publishes a Release -- `v0.1.4`
-  stays as-is per the "never move a pushed tag" rule.
-* [ ] Mark release automation complete
-* [ ] Mark P5 complete
+* [x] Downloaded release artifact retested -- **done outside CI, on the
+  local Windows machine**: `gh release download v0.1.5` (the actual
+  published assets, not a local or CI build), SHA256 recomputed locally
+  and matched `SHA256SUMS.txt` exactly for both the ZIP and the
+  installer. Extracted ZIP: `cfdapp.exe --version` reports "CFDApp
+  0.1.5", `cfdapp.exe --case <lid_driven_cavity>` converges cleanly
+  (mass imbalance 0, no NaN/Inf), `cfdapp_gui.exe` stays alive 3s.
+  Installer: real silent install (`/S /D=...`, genuine NSIS flags, not
+  simulated) produced the full expected layout (bin/docs/examples/
+  licenses/Uninstall.exe/Qt plugin dirs); the installed `cfdapp.exe
+  --version` also reports "CFDApp 0.1.5".
+* [x] GitHub Release published with assets -- **confirmed via
+  `gh release view v0.1.5`**: `draft: false`, `prerelease: false`,
+  published `2026-09-10T10:05:01Z`, url
+  <https://github.com/matlabuser123/CFDAPP/releases/tag/v0.1.5>, with
+  all 3 assets attached (`CFDApp-0.1.5-Windows-x64.zip`,
+  `CFDApp-0.1.5-Windows-x64.exe`, `SHA256SUMS.txt`).
+* [x] Mark release automation complete
+* [x] Mark P5 complete -- CFDApp v0.1.5 is genuinely released: CI Gate
+  and Release Gate are both fully green with real, independently
+  verified evidence (not assumed, not simulated).
 
 ---
 
@@ -221,4 +233,6 @@
 
 # Immediate Next Task
 
-**CI Gate is fully green (verified). Release Gate: `v0.1.4` (attempt 7) is the first fully green Release run end to end (build, tests, packaging, smoke test, checksums) -- but a `conclusion: success` run still did not publish an actual GitHub Release (`actions/upload-artifact` only attaches to the workflow run, not a Release object). Fixed in `645aecb` (`softprops/action-gh-release@v2`). Awaiting user go-ahead on a new tag (e.g. `v0.1.5`) to verify a Release actually gets published -- `v0.1.4` stays untouched per the "never move a pushed tag" rule.**
+**CI Gate and Release Gate are both fully closed. `v0.1.5` is genuinely released: GitHub Release published (draft: false) with 3 verified assets, downloaded and retested outside CI (checksums matched, CLI/GUI/installer all work). P5 is complete.**
+
+**Next up, per the user's own stated priority order (Production integration -> GUI backlog -> Performance), starting with Production Physics Integration:** wire species/multiphase/compressible physics into `physics.json` parsing and `ProjectRunner`'s production dispatch (see "Next Backlog" above) -- these are currently validated at the equation level only, not reachable from a real case file. Not started; awaiting user direction on which to tackle first, or confirmation to proceed in the order already listed.
