@@ -1,10 +1,10 @@
-# CFDApp v0.1.2 — Release Notes
+# CFDApp v0.1.3 — Release Notes
 
-First published release (v0.1.0 and v0.1.1 were tagged during release-
-automation debugging but never completed a passing workflow — see Known
-limitations). A 2D finite-volume CFD solver core plus a case-manager and
-Qt6/QML application layer, built around one shared production solver
-backend used by both the CLI and the GUI.
+First published release (v0.1.0, v0.1.1, and v0.1.2 were tagged during
+release-automation debugging but never completed a passing Release
+workflow — see Known limitations). A 2D finite-volume CFD solver core
+plus a case-manager and Qt6/QML application layer, built around one
+shared production solver backend used by both the CLI and the GUI.
 
 ## Major implemented features
 
@@ -39,11 +39,16 @@ Default (CPU-only) build:        1149 / 1149 passing
 GUI-enabled build (-DCFDAPP_BUILD_GUI=ON): 1162 / 1162 passing
 ```
 
-Confirmed on both Linux (GCC 11/Clang 14) and a real Windows machine (MSVC
-19.51, Visual Studio 2026). 13 pre-existing, deliberately `DISABLED_`
-slow grid-refinement cases are excluded from both counts (documented in
-`ci.yml`'s own comment) — they are not silently skipped, they are labeled
-and intentionally excluded from the default fast suite.
+Confirmed on Linux (GCC 11/Clang 14, including under AddressSanitizer +
+UndefinedBehaviorSanitizer: 1149/1149 passing, 0 sanitizer violations) and
+on a real Windows machine (MSVC 19.51, Visual Studio 2026). Verified green
+end-to-end in GitHub Actions CI across every job (build-test × 3 compiler/
+build-type combinations, sanitizers, clang-tidy, clang-format, Python
+suite) — see `TODO.md`'s CI Gate section for the exact run evidence. 13
+pre-existing, deliberately `DISABLED_` slow grid-refinement cases are
+excluded from both counts (documented in `ci.yml`'s own comment) — they
+are not silently skipped, they are labeled and intentionally excluded
+from the default fast suite.
 
 See [QUALITY_GATE.md](QUALITY_GATE.md) for a worked example of this
 project's own validation discipline (two real order-of-accuracy bugs,
@@ -100,17 +105,23 @@ The default build has CUDA off and needs no GPU.
   ROADMAP.md P7.
 - CUDA accelerates one kernel (SpMV), not the solver loop.
 - 2D only; structured/Cartesian mesh only.
-- `v0.1.0` and `v0.1.1` exist as git tags but were never published as
-  GitHub Releases — both were superseded during release-workflow
-  debugging (an invalid Qt module name, a stale CI working-directory
-  assumption, a missing `#include <algorithm>` that only failed under
-  MSVC, and a tag/project-version mismatch were found and fixed along
-  the way). `v0.1.2` is the first tag expected to actually publish.
+- `v0.1.0`, `v0.1.1`, and `v0.1.2` exist as git tags but were never
+  published as GitHub Releases — all three were superseded during
+  release-workflow debugging (an invalid Qt module name, a stale CI
+  working-directory assumption, a missing `#include <algorithm>` that
+  only failed under MSVC, a tag/project-version mismatch, a
+  MinGW-vs-MSVC linker mismatch on the GitHub Windows runner, a
+  clang-format version drift caused by the `ubuntu-latest` runner image
+  silently moving from 22.04 to 24.04, and a Windows-only "Entry Point
+  Not Found" crash in `CFDGuiControllerTests.exe` caused by a missing
+  local `Qt6Test.dll` deployment step — all found and fixed along the
+  way; see `TODO.md`'s CI/Release Gate sections for the full history).
+  `v0.1.3` is the first tag expected to actually publish.
 
 ## Major next steps
 
 1. Finish verifying the GitHub Actions release workflow end-to-end and
-   publish the v0.1.2 GitHub Release.
+   publish the v0.1.3 GitHub Release.
 2. ROADMAP.md P6: wire species/multiphase/compressible physics into
    `physics.json` parsing and `ProjectRunner`'s production dispatch.
 3. ROADMAP.md P7: GUI case authoring (mesh/physics/BC/solver editors), so
