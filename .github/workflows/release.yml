@@ -104,6 +104,20 @@ jobs:
       - name: Full regression suite
         run: ctest --test-dir build -C Release --output-on-failure
 
+      # A real release run found this genuinely necessary: windows-latest
+      # does not carry NSIS (makensis) preinstalled, so CPack's NSIS
+      # generator failed with "Cannot find NSIS compiler makensis" --
+      # the ZIP generator (built into CPack) succeeded fine on the very
+      # same run, isolating this as an NSIS-only gap, not a packaging
+      # config error. Chocolatey is preinstalled on GitHub-hosted Windows
+      # runners, so this is the standard fix -- this project's own local
+      # build recipe (scripts/windows-release/3-package.ps1) always
+      # assumed NSIS was already installed on the dev machine
+      # (C:\Program Files (x86)\NSIS on PATH), which is true there but
+      # was never true on a fresh CI runner until now.
+      - name: Install NSIS
+        run: choco install nsis -y --no-progress
+
       - name: Package (CPack -- ZIP + NSIS installer)
         run: |
           cd build
