@@ -4,6 +4,7 @@
 // (constant field, NaN, and repeatability/determinism).
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
 
 #include "cfd/core/Exception.hpp"
