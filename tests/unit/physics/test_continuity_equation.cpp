@@ -112,9 +112,8 @@ TEST(ContinuityEquationTest, UniformChannelHasLocalBalanceEverywhere) {
   // a uniform mesh -> continuity imbalance is exactly 0 in every cell,
   // and inlet/outlet mass flow cancel globally.
   const Mesh mesh = MeshGeometry::createCartesian2D(8, 4, 2.0, 1.0);
-  BoundaryConditionSet boundaries = makeExactVelocityBoundaries(mesh, [](const Vector2&) {
-    return Vector2{1.0, 0.0};
-  });
+  BoundaryConditionSet boundaries =
+      makeExactVelocityBoundaries(mesh, [](const Vector2&) { return Vector2{1.0, 0.0}; });
   const VectorField velocity(mesh.numberOfCells(), Vector2{1.0, 0.0});
   const FluidProperties fluid(1.0, 1.0);
   const SurfaceField massFlux = calculateMassFlux(mesh, velocity, fluid, boundaries);
@@ -134,9 +133,8 @@ TEST(ContinuityEquationTest, GlobalDivergenceTheoremIdentityHolds) {
   // this test cannot pass merely because every imbalance happens to be
   // zero already.
   const Mesh mesh = perFaceBoundaryMesh(6, 6, 1.0, 1.0);
-  const auto boundaries = makeExactVelocityBoundaries(mesh, [](const Vector2& p) {
-    return Vector2{p.x, p.y};
-  });
+  const auto boundaries =
+      makeExactVelocityBoundaries(mesh, [](const Vector2& p) { return Vector2{p.x, p.y}; });
   VectorField velocity(mesh.numberOfCells());
   for (const auto& cell : mesh.cells()) {
     velocity[cell.id()] = Vector2{cell.centroid().x, cell.centroid().y};
@@ -157,9 +155,8 @@ TEST(ContinuityEquationTest, DivergenceFreeRotationalFieldGivesNearZeroImbalance
   // x/y, so both the interior linear interpolation and the exact
   // per-face boundary values are exact) -> every cell imbalance is ~0.
   const Mesh mesh = perFaceBoundaryMesh(8, 8, 1.0, 1.0);
-  const auto boundaries = makeExactVelocityBoundaries(mesh, [](const Vector2& p) {
-    return Vector2{-p.y, p.x};
-  });
+  const auto boundaries =
+      makeExactVelocityBoundaries(mesh, [](const Vector2& p) { return Vector2{-p.y, p.x}; });
   VectorField velocity(mesh.numberOfCells());
   for (const auto& cell : mesh.cells()) {
     const Vector2& c = cell.centroid();
@@ -178,9 +175,8 @@ TEST(ContinuityEquationTest, NonSolenoidalFieldIsDetected) {
   // cell should be 2*rho*V_cell (not zero) -- this proves the evaluator
   // is not simply returning zero for every input.
   const Mesh mesh = perFaceBoundaryMesh(8, 8, 1.0, 1.0);
-  const auto boundaries = makeExactVelocityBoundaries(mesh, [](const Vector2& p) {
-    return Vector2{p.x, p.y};
-  });
+  const auto boundaries =
+      makeExactVelocityBoundaries(mesh, [](const Vector2& p) { return Vector2{p.x, p.y}; });
   VectorField velocity(mesh.numberOfCells());
   for (const auto& cell : mesh.cells()) {
     velocity[cell.id()] = Vector2{cell.centroid().x, cell.centroid().y};

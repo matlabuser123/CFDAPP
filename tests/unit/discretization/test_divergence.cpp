@@ -39,9 +39,8 @@ Vector2 uRotational(const Vector2& p) { return Vector2{-p.y, p.x}; }
 
 TEST(DivergenceTest, ConstantVectorFieldHasZeroDivergence) {
   const Mesh mesh = cfd::test::perFaceBoundaryMesh(4, 4, 1.0, 1.0);
-  const auto boundaries = makeExactVectorBoundaries(mesh, [](const Vector2&) {
-    return Vector2{2.0, -1.0};
-  });
+  const auto boundaries =
+      makeExactVectorBoundaries(mesh, [](const Vector2&) { return Vector2{2.0, -1.0}; });
   const VectorField field(mesh.numberOfCells(), Vector2{2.0, -1.0});
 
   const auto div = cfd::discretization::divergence(mesh, field, boundaries);
