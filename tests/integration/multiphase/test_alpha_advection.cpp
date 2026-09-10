@@ -89,8 +89,8 @@ Real leadingEdgeThickness(const Mesh& mesh, const ScalarField& alpha, Index ny) 
   for (const auto& cell : mesh.cells()) {
     // Identify the mid-row cells by y-centroid proximity (structured grid,
     // so a simple half-height comparison suffices).
-    if (std::abs(cell.centroid().y - (kHeight * (static_cast<Real>(midRow) + 0.5) /
-                                     static_cast<Real>(ny))) < 1e-9) {
+    if (std::abs(cell.centroid().y -
+                 (kHeight * (static_cast<Real>(midRow) + 0.5) / static_cast<Real>(ny))) < 1e-9) {
       rowValues.emplace_back(cell.centroid().x, alpha[cell.id()]);
     }
   }
@@ -137,8 +137,8 @@ AdvectionOutcome runAdvection(Index nx, Index ny, Index numSteps, Real dt) {
   for (Index step = 0; step < numSteps; ++step) {
     const auto result = solver.step(mesh, alpha, massFlux, alphaBoundaries, dt);
     if (result.status != VolumeFractionStatus::Converged) {
-      ADD_FAILURE() << "step " << step << " did not converge (status="
-                    << static_cast<int>(result.status) << ")";
+      ADD_FAILURE() << "step " << step
+                    << " did not converge (status=" << static_cast<int>(result.status) << ")";
       break;
     }
     alpha = result.alpha;
@@ -174,7 +174,7 @@ TEST(AlphaAdvectionValidation, SlugTranslatesDownstreamWithApproximatelyCorrectD
   // No unexpected source/sink: phase volume approximately conserved (the
   // slug is still fully inside the domain, away from both boundaries).
   EXPECT_NEAR(outcome.finalPhaseVolume, outcome.initialPhaseVolume,
-             0.1 * outcome.initialPhaseVolume);
+              0.1 * outcome.initialPhaseVolume);
 
   // Boundedness.
   EXPECT_GE(outcome.bounds.minimum, -1e-3);

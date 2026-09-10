@@ -41,9 +41,11 @@ struct DimensionlessNumbers {
 // derived independently in multiple tests/scripts). Throws
 // std::invalid_argument if nu or alpha is not finite and > 0, or if any
 // other input is not finite.
-[[nodiscard]] DimensionlessNumbers computeDimensionlessNumbers(
-    cfd::Real gravityMagnitude, cfd::Real beta, cfd::Real deltaT, cfd::Real length,
-    cfd::Real kinematicViscosity, cfd::Real thermalDiffusivity);
+[[nodiscard]] DimensionlessNumbers computeDimensionlessNumbers(cfd::Real gravityMagnitude,
+                                                               cfd::Real beta, cfd::Real deltaT,
+                                                               cfd::Real length,
+                                                               cfd::Real kinematicViscosity,
+                                                               cfd::Real thermalDiffusivity);
 
 struct ProfileSample {
   cfd::Real coordinate;
@@ -112,8 +114,9 @@ struct Extremum {
 [[nodiscard]] cfd::Real computeWallHeatFluxIntoFluid(const cfd::mesh::Mesh& mesh, cfd::Index nx,
                                                      cfd::Index ny,
                                                      const cfd::fields::ScalarField& temperature,
-                                                     cfd::Index wallColumn, cfd::Real wallTemperature,
-                                                     cfd::Real length, cfd::Real height);
+                                                     cfd::Index wallColumn,
+                                                     cfd::Real wallTemperature, cfd::Real length,
+                                                     cfd::Real height);
 
 // abs(computed - reference) / abs(reference). Throws std::invalid_argument
 // if reference is exactly 0.

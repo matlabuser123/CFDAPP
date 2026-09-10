@@ -598,15 +598,14 @@ TEST(EnergyEquationThermalBCIntegrationTest,
   EXPECT_NEAR(rhs[rightCell], boundaryConductance * tRight + commonRhs, 1e-9);
 }
 
-TEST(EnergyEquationThermalBCIntegrationTest,
-     HeatFluxAndAdiabaticBoundariesMatchHandDerivedRhs) {
+TEST(EnergyEquationThermalBCIntegrationTest, HeatFluxAndAdiabaticBoundariesMatchHandDerivedRhs) {
   // Single-cell mesh (1x1) so every one of the cell's 4 boundary faces
   // has known area=1.0/distance=0.5, and the whole diagonal/RHS is fully
   // hand-derivable: 3 Adiabatic faces (left/top/bottom) plus 1 HeatFlux
   // face (right), all sharing the same diffusion conductivity k=3.
   const Mesh mesh = MeshGeometry::createCartesian2D(1, 1, 1.0, 1.0);
   const Real k = 3.0;
-  const Real q = 6.0;                 // heat flux [W/m^2], leaving the domain.
+  const Real q = 6.0;                     // heat flux [W/m^2], leaving the domain.
   const Real heatFluxConductivity = 3.0;  // same material as the diffusion k above.
   BoundaryConditionSet boundaries;
   boundaries.set(mesh, "left", std::make_unique<Adiabatic>());

@@ -37,17 +37,17 @@ Real boundaryAlphaValue(const Mesh& mesh, const Face& face, const ScalarField& a
     throw InvalidArgumentError("VolumeFractionEquation: boundary condition is not scalar-valued");
   }
   const Real ownerValue = alpha[face.owner()];
-  const Real distance = cfd::mesh::MeshGeometry::distance(mesh.cell(face.owner()).centroid(),
-                                                          face.centroid());
+  const Real distance =
+      cfd::mesh::MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
   return scalarBc->boundaryValue(ownerValue, distance);
 }
 
 }  // namespace
 
 void assembleVolumeFractionConvectionContribution(const Mesh& mesh, const SurfaceField& massFlux,
-                                                   const ScalarField& alpha,
-                                                   const BoundaryConditionSet& alphaBoundaries,
-                                                   SparseMatrixBuilder& builder, Vector& rhs) {
+                                                  const ScalarField& alpha,
+                                                  const BoundaryConditionSet& alphaBoundaries,
+                                                  SparseMatrixBuilder& builder, Vector& rhs) {
   if (alpha.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleVolumeFractionConvectionContribution: alpha size does not match mesh cell count");

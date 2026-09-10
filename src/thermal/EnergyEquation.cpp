@@ -320,7 +320,8 @@ EnergyAssembly assembleEnergyEquation(const Mesh& mesh, const ScalarField& tempe
         "assembleEnergyEquation: temperature size does not match mesh cell count");
   }
   if (massFlux.size() != mesh.numberOfFaces()) {
-    throw InvalidArgumentError("assembleEnergyEquation: massFlux size does not match mesh face count");
+    throw InvalidArgumentError(
+        "assembleEnergyEquation: massFlux size does not match mesh face count");
   }
 
   const Index n = mesh.numberOfCells();

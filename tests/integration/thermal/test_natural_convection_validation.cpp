@@ -190,7 +190,7 @@ CoupledOutcome runNaturalConvectionCavity(const GridCase& grid, Real beta,
   const auto velocityBoundaries = makeVelocityBoundaries(mesh);
   const auto pressureBoundaries = makePressureBoundaries(mesh);
   const auto temperatureBoundaries = makeTemperatureBoundaries(mesh);
-  const FluidProperties fluid(1.0, kPrandtl);  // rho=1, mu=nu=Pr (since rho=1).
+  const FluidProperties fluid(1.0, kPrandtl);      // rho=1, mu=nu=Pr (since rho=1).
   const ThermalProperties thermalProps(1.0, 1.0);  // k=1, cp=1 -> alpha=1.
   // P3-PHYS-003 section 21: the exact same k=1/cp=1 physics, expressed
   // through the new TemperatureProperty-based ThermalSolver::solve()
@@ -224,12 +224,12 @@ CoupledOutcome runNaturalConvectionCavity(const GridCase& grid, Real beta,
     velocity = flowResult.velocity;
     pressure = flowResult.pressure;
 
-    thermalResult = useVariablePropertyThermalSolve
-                       ? thermalSolver.solve(mesh, temperature, flowResult.massFlux,
-                                             conductivityModel, specificHeatModel,
-                                             temperatureBoundaries)
-                       : thermalSolver.solve(mesh, temperature, flowResult.massFlux, thermalProps,
-                                             temperatureBoundaries);
+    thermalResult =
+        useVariablePropertyThermalSolve
+            ? thermalSolver.solve(mesh, temperature, flowResult.massFlux, conductivityModel,
+                                  specificHeatModel, temperatureBoundaries)
+            : thermalSolver.solve(mesh, temperature, flowResult.massFlux, thermalProps,
+                                  temperatureBoundaries);
     if (thermalResult.status != ThermalStatus::Converged) break;
 
     ScalarField blended(temperature.size());
@@ -273,12 +273,12 @@ CoupledOutcome runNaturalConvectionCavity(const GridCase& grid, Real beta,
   }
   record.maxWallNormalFlux = maxWallFlux;
 
-  record.qHot = computeWallHeatFluxIntoFluid(mesh, grid.n, grid.n, temperature, 0,
-                                             kHotTemperature, kLength, kHeight);
+  record.qHot = computeWallHeatFluxIntoFluid(mesh, grid.n, grid.n, temperature, 0, kHotTemperature,
+                                             kLength, kHeight);
   record.qCold = computeWallHeatFluxIntoFluid(mesh, grid.n, grid.n, temperature, grid.n - 1,
                                               kColdTemperature, kLength, kHeight);
-  record.heatImbalance =
-      std::abs(record.qHot + record.qCold) / std::max(std::abs(record.qHot), std::abs(record.qCold));
+  record.heatImbalance = std::abs(record.qHot + record.qCold) /
+                         std::max(std::abs(record.qHot), std::abs(record.qCold));
 
   const auto nusseltProfile =
       computeLocalNusseltAtHotWall(mesh, grid.n, grid.n, temperature, kHotTemperature, kLength);
@@ -369,8 +369,9 @@ TEST(NaturalConvectionValidation, Grid10x10MatchesDeVahlDavisRa1e3) {
 // ThermalSolverVariablePropertiesTest.ConstantModelsReproduceThermalPropertiesOverloadExactly)
 // but through this full nonlinear buoyancy-coupled solve too.
 TEST(NaturalConvectionValidation, Grid10x10ConstantPropertyModelsMatchDeVahlDavisRa1e3) {
-  const auto outcome = runNaturalConvectionCavity(kGrid10, kBeta, "10x10_variable_property_regression",
-                                                  /*useVariablePropertyThermalSolve=*/true);
+  const auto outcome =
+      runNaturalConvectionCavity(kGrid10, kBeta, "10x10_variable_property_regression",
+                                 /*useVariablePropertyThermalSolve=*/true);
   const auto& r = outcome.record;
   ASSERT_TRUE(r.flowConverged) << "flow did not converge";
   ASSERT_TRUE(r.thermalConverged) << "thermal did not converge";
@@ -453,8 +454,7 @@ TEST(NaturalConvectionValidation, HotFluidRisesNearHotWallColdFluidSinksNearCold
   const Index midRow = n / 2;
   // Column 0 (hot wall side): v > 0 (rising). Column n-1 (cold wall
   // side): v < 0 (sinking).
-  EXPECT_GT(outcome.flow.velocity[(midRow * n) + 0].y, 0.0)
-      << "fluid near the hot wall must rise";
+  EXPECT_GT(outcome.flow.velocity[(midRow * n) + 0].y, 0.0) << "fluid near the hot wall must rise";
   EXPECT_LT(outcome.flow.velocity[(midRow * n) + (n - 1)].y, 0.0)
       << "fluid near the cold wall must sink";
 }

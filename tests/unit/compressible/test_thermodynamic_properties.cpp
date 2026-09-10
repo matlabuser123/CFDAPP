@@ -13,12 +13,12 @@
 using cfd::Index;
 using cfd::InvalidArgumentError;
 using cfd::Real;
-using cfd::fields::ScalarField;
-using cfd::mesh::Mesh;
-using cfd::mesh::MeshGeometry;
 using cfd::compressible::evaluateDensityField;
 using cfd::compressible::machNumber;
 using cfd::compressible::ThermodynamicProperties;
+using cfd::fields::ScalarField;
+using cfd::mesh::Mesh;
+using cfd::mesh::MeshGeometry;
 
 namespace {
 // Dry air at ~300K: R=287.05, cp=1005.0 J/(kg K) -> cv=717.95,
@@ -36,7 +36,7 @@ TEST(ThermodynamicPropertiesTest, DerivesCvAndGammaFromRAndCp) {
 }
 
 TEST(ThermodynamicPropertiesTest, RejectsCpNotGreaterThanR) {
-  EXPECT_THROW(ThermodynamicProperties(kR, kR), InvalidArgumentError);       // cv = 0.
+  EXPECT_THROW(ThermodynamicProperties(kR, kR), InvalidArgumentError);         // cv = 0.
   EXPECT_THROW(ThermodynamicProperties(kR, kR - 10.0), InvalidArgumentError);  // cv < 0.
 }
 
@@ -77,9 +77,7 @@ TEST(ThermodynamicPropertiesTest, SpeedOfSoundRejectsNonPositiveTemperature) {
   EXPECT_THROW((void)thermo.speedOfSound(-1.0), InvalidArgumentError);
 }
 
-TEST(MachNumberTest, MatchesSpeedOverSoundSpeed) {
-  EXPECT_DOUBLE_EQ(machNumber(34.7, 347.0), 0.1);
-}
+TEST(MachNumberTest, MatchesSpeedOverSoundSpeed) { EXPECT_DOUBLE_EQ(machNumber(34.7, 347.0), 0.1); }
 
 TEST(MachNumberTest, RejectsNonPositiveSpeedOfSound) {
   EXPECT_THROW((void)machNumber(10.0, 0.0), InvalidArgumentError);

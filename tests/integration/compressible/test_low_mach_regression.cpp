@@ -60,6 +60,10 @@ using cfd::boundary::FixedValue;
 using cfd::boundary::Inlet;
 using cfd::boundary::Outlet;
 using cfd::boundary::Wall;
+using cfd::compressible::calculateCompressibleMassFlux;
+using cfd::compressible::evaluateCompressibleContinuity;
+using cfd::compressible::machNumber;
+using cfd::compressible::ThermodynamicProperties;
 using cfd::fields::ScalarField;
 using cfd::fields::VectorField;
 using cfd::mesh::Mesh;
@@ -70,10 +74,6 @@ using cfd::pressure_velocity::SIMPLE;
 using cfd::pressure_velocity::SIMPLEResult;
 using cfd::pressure_velocity::SIMPLESettings;
 using cfd::pressure_velocity::SIMPLEStatus;
-using cfd::compressible::calculateCompressibleMassFlux;
-using cfd::compressible::evaluateCompressibleContinuity;
-using cfd::compressible::machNumber;
-using cfd::compressible::ThermodynamicProperties;
 
 namespace {
 
@@ -87,7 +87,7 @@ constexpr Real kMeanVelocity = 1.0;
 // values).
 constexpr Real kGasConstant = 287.05;
 constexpr Real kSpecificHeatPressure = 1005.0;
-constexpr Real kTemperature = 300.0;         // isothermal (section 39).
+constexpr Real kTemperature = 300.0;           // isothermal (section 39).
 constexpr Real kReferencePressure = 101325.0;  // standard atmosphere.
 
 BoundaryConditionSet makeVelocityBoundaries(const Mesh& mesh) {
@@ -197,9 +197,9 @@ LowMachOutcome runLowMachCase(Index nx, Index ny) {
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Real incompressibleScaledByAvgRho = rhoAvg * flow.massFlux[faceId];
     const Real scale = fluxScale;
-    maxRelativeDifference = std::max(
-        maxRelativeDifference,
-        std::abs(compressibleMassFlux[faceId] - incompressibleScaledByAvgRho) / scale);
+    maxRelativeDifference =
+        std::max(maxRelativeDifference,
+                 std::abs(compressibleMassFlux[faceId] - incompressibleScaledByAvgRho) / scale);
   }
 
   const auto continuity = evaluateContinuity(mesh, compressibleMassFlux);

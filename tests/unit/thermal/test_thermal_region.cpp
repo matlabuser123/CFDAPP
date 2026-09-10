@@ -240,7 +240,7 @@ TEST(RegionAwareThermalDiffusionTest, MismatchedTemperatureSizeThrows) {
   cfd::algebra::Vector rhs(mesh.numberOfCells(), 0.0);
 
   EXPECT_THROW(assembleRegionAwareThermalDiffusionContribution(mesh, regions, temperature,
-                                                                boundaries, builder, rhs),
+                                                               boundaries, builder, rhs),
                InvalidArgumentError);
 }
 
@@ -256,7 +256,7 @@ TEST(RegionAwareThermalDiffusionTest, MismatchedRegionSizeThrows) {
   cfd::algebra::Vector rhs(mesh.numberOfCells(), 0.0);
 
   EXPECT_THROW(assembleRegionAwareThermalDiffusionContribution(mesh, regions, temperature,
-                                                                boundaries, builder, rhs),
+                                                               boundaries, builder, rhs),
                InvalidArgumentError);
 }
 
@@ -275,12 +275,12 @@ TEST(RegionAwareThermalDiffusionTest, RepeatedAssemblyIsDeterministic) {
 
   cfd::algebra::SparseMatrixBuilder builderA(n, n);
   cfd::algebra::Vector rhsA(n, 0.0);
-  assembleRegionAwareThermalDiffusionContribution(mesh, regions, temperature, boundaries,
-                                                  builderA, rhsA);
+  assembleRegionAwareThermalDiffusionContribution(mesh, regions, temperature, boundaries, builderA,
+                                                  rhsA);
   cfd::algebra::SparseMatrixBuilder builderB(n, n);
   cfd::algebra::Vector rhsB(n, 0.0);
-  assembleRegionAwareThermalDiffusionContribution(mesh, regions, temperature, boundaries,
-                                                  builderB, rhsB);
+  assembleRegionAwareThermalDiffusionContribution(mesh, regions, temperature, boundaries, builderB,
+                                                  rhsB);
 
   for (Index i = 0; i < n; ++i) {
     EXPECT_EQ(rhsA[i], rhsB[i]);

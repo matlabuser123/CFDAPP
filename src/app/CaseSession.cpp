@@ -98,7 +98,8 @@ bool CaseSession::reload() {
   const std::optional<std::filesystem::path> dir = directory();
   if (!dir.has_value()) {
     std::lock_guard<std::mutex> lock(dataMutex_);
-    lastError_ = "CaseSession::reload: no case directory is set (this case was never opened or saved)";
+    lastError_ =
+        "CaseSession::reload: no case directory is set (this case was never opened or saved)";
     return false;
   }
   return open(*dir);

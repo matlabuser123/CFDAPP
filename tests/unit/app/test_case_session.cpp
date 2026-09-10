@@ -22,9 +22,9 @@ class TempDir {
  public:
   TempDir() {
     path_ = std::filesystem::temp_directory_path() /
-           ("cfdapp_session_test_" +
-            std::to_string(::testing::UnitTest::GetInstance()->random_seed()) + "_" +
-            std::to_string(reinterpret_cast<std::uintptr_t>(this)));
+            ("cfdapp_session_test_" +
+             std::to_string(::testing::UnitTest::GetInstance()->random_seed()) + "_" +
+             std::to_string(reinterpret_cast<std::uintptr_t>(this)));
     std::filesystem::create_directories(path_);
   }
   ~TempDir() {
@@ -55,8 +55,10 @@ TEST(CaseSessionTest, NewCaseMovesToLoadedWithNoDirectory) {
   EXPECT_EQ(session.state(), CaseState::Loaded);
   EXPECT_FALSE(session.directory().has_value());
   ASSERT_TRUE(session.caseDefinition().has_value());
-  EXPECT_TRUE(session.canSave());  // save() itself will still fail (no directory) -- saveAs() works.
-  EXPECT_TRUE(session.canRun());  // canRun() does not require a directory (run() checks that itself).
+  EXPECT_TRUE(
+      session.canSave());  // save() itself will still fail (no directory) -- saveAs() works.
+  EXPECT_TRUE(
+      session.canRun());  // canRun() does not require a directory (run() checks that itself).
 }
 
 TEST(CaseSessionTest, OpenValidCaseMovesToLoaded) {

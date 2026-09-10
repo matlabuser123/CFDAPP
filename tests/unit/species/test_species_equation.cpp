@@ -371,8 +371,8 @@ TEST(SpeciesEquationAssemblyTest, CombinedAssemblyUsesDensityTimesDiffusivityAsC
   const auto& matrix = assembly.system.matrix();
   const auto& rhs = assembly.system.rhs();
 
-  const Real boundaryConductance = 6.0;   // (rho*D)*A/d = 3*1.0/0.5
-  const Real internalConductance = 3.0;   // (rho*D)*A/d = 3*1.0/1.0
+  const Real boundaryConductance = 6.0;  // (rho*D)*A/d = 3*1.0/0.5
+  const Real internalConductance = 3.0;  // (rho*D)*A/d = 3*1.0/1.0
   const Real diagonalBase = 3.0 * boundaryConductance + internalConductance;  // 21
 
   Vector eA(n, 0.0);
@@ -418,10 +418,9 @@ TEST(SpeciesEquationAssemblyTest, MismatchedConcentrationSizeThrows) {
   const FluidProperties fluid(1.0, 1.0);
   const SpeciesProperties species("tracer", 1.0e-5);
 
-  EXPECT_THROW(
-      (void)assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
-                                             boundaries),
-      InvalidArgumentError);
+  EXPECT_THROW((void)assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
+                                                      boundaries),
+               InvalidArgumentError);
 }
 
 TEST(SpeciesEquationAssemblyTest, MismatchedMassFluxSizeThrows) {
@@ -432,10 +431,9 @@ TEST(SpeciesEquationAssemblyTest, MismatchedMassFluxSizeThrows) {
   const FluidProperties fluid(1.0, 1.0);
   const SpeciesProperties species("tracer", 1.0e-5);
 
-  EXPECT_THROW(
-      (void)assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
-                                             boundaries),
-      InvalidArgumentError);
+  EXPECT_THROW((void)assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
+                                                      boundaries),
+               InvalidArgumentError);
 }
 
 TEST(SpeciesEquationAssemblyTest, NonFiniteConcentrationAtGradientBoundaryThrowsNumericalError) {
@@ -447,10 +445,9 @@ TEST(SpeciesEquationAssemblyTest, NonFiniteConcentrationAtGradientBoundaryThrows
   const FluidProperties fluid(1.0, 1.0);
   const SpeciesProperties species("tracer", 1.0e-5);
 
-  EXPECT_THROW(
-      (void)assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
-                                             boundaries),
-      NumericalError);
+  EXPECT_THROW((void)assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
+                                                      boundaries),
+               NumericalError);
 }
 
 TEST(SpeciesEquationAssemblyTest, RepeatedAssemblyIsDeterministic) {

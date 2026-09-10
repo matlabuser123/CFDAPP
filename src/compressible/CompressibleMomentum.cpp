@@ -54,8 +54,9 @@ CompressibleTimeDerivativeCoefficients compressibleMomentumTimeDerivative(
 MomentumAssembly assembleCompressibleMomentumComponent(
     const Mesh& mesh, const VectorField& velocity, const ScalarField& velocityOldComponent,
     const ScalarField& pressure, const SurfaceField& massFlux, const ScalarField& densityOld,
-    const ScalarField& densityNew, Real dynamicViscosity, const BoundaryConditionSet& velocityBoundaries,
-    const BoundaryConditionSet& pressureBoundaries, VelocityComponent component, Real dt) {
+    const ScalarField& densityNew, Real dynamicViscosity,
+    const BoundaryConditionSet& velocityBoundaries, const BoundaryConditionSet& pressureBoundaries,
+    VelocityComponent component, Real dt) {
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleCompressibleMomentumComponent: velocity size does not match mesh cell count");

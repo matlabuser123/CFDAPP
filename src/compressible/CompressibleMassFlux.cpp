@@ -29,9 +29,9 @@ SurfaceField calculateCompressibleMassFlux(const Mesh& mesh, const VectorField& 
     const Face& face = mesh.face(faceId);
     const Vector2 faceVelocity =
         cfd::discretization::interpolateFace(mesh, face, velocity, velocityBoundaries);
-    const Real faceDensity = face.isBoundary()
-                                 ? density[face.owner()]
-                                 : cfd::discretization::interpolateInternalFace(mesh, face, density);
+    const Real faceDensity =
+        face.isBoundary() ? density[face.owner()]
+                          : cfd::discretization::interpolateInternalFace(mesh, face, density);
     massFlux[faceId] = faceDensity * dot(faceVelocity, face.areaVector());
   }
   return massFlux;

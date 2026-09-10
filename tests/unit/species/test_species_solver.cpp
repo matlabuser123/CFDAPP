@@ -183,10 +183,10 @@ TEST(SpeciesSolverTest, RepeatedSolveIsDeterministic) {
   const SpeciesProperties species("tracer", 1.0e-3);
 
   const SpeciesSolver solver{};
-  const SpeciesResult a = solver.solve(mesh, initialConcentration, massFlux, fluid, species,
-                                       boundaries);
-  const SpeciesResult b = solver.solve(mesh, initialConcentration, massFlux, fluid, species,
-                                       boundaries);
+  const SpeciesResult a =
+      solver.solve(mesh, initialConcentration, massFlux, fluid, species, boundaries);
+  const SpeciesResult b =
+      solver.solve(mesh, initialConcentration, massFlux, fluid, species, boundaries);
 
   ASSERT_EQ(a.status, SpeciesStatus::Converged);
   ASSERT_EQ(b.status, SpeciesStatus::Converged);

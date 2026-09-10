@@ -80,7 +80,8 @@ TEST(ProbeScalarRawTest, MatchesMeshBasedProbeOnEquivalentData) {
   }
 
   EXPECT_NEAR(probeScalarRaw(points, values, Vector2{0.1, 0.9}), 0.125, 1e-9);
-  EXPECT_EQ(probeScalarRaw(points, values, Vector2{0.9, 0.1}), probeScalar(mesh, field, Vector2{0.9, 0.1}));
+  EXPECT_EQ(probeScalarRaw(points, values, Vector2{0.9, 0.1}),
+            probeScalar(mesh, field, Vector2{0.9, 0.1}));
 }
 
 TEST(ProbeScalarRawTest, RejectsMismatchedSizes) {
@@ -114,5 +115,5 @@ TEST(SampleLineTest, RejectsTooFewSamples) {
   const auto mesh = MeshGeometry::createCartesian2D(4, 4, 1.0, 1.0);
   const auto field = xCoordinateField(mesh);
   EXPECT_THROW((void)sampleLine(mesh, field, Vector2{0.0, 0.0}, Vector2{1.0, 0.0}, 1),
-              cfd::InvalidArgumentError);
+               cfd::InvalidArgumentError);
 }

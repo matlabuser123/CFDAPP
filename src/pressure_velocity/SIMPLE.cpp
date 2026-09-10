@@ -92,8 +92,8 @@ VectorField combineComponents(const Vector& u, const Vector& v) {
 }  // namespace
 
 SIMPLE::SIMPLE(SIMPLESettings settings, Index referenceCell, TurbulenceModel* turbulenceModel,
-              const ScalarField* temperature, const BoussinesqBuoyancy* buoyancy,
-              SIMPLEProgressCallback progressCallback, SIMPLECancellationCheck cancellationCheck)
+               const ScalarField* temperature, const BoussinesqBuoyancy* buoyancy,
+               SIMPLEProgressCallback progressCallback, SIMPLECancellationCheck cancellationCheck)
     : settings_(std::move(settings)),
       referenceCell_(referenceCell),
       turbulenceModel_(turbulenceModel),
@@ -357,8 +357,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     // carries, not a second computation.
     if (progressCallback_) {
       progressCallback_(SIMPLEIterationProgress{result.iterations, settings_.maxIterations,
-                                                uResidual, vResidual, pResidual,
-                                                continuityResidual, globalImbalance});
+                                                uResidual, vResidual, pResidual, continuityResidual,
+                                                globalImbalance});
     }
 
     // P2-TURB-004 section 24: gate on the active turbulence model's own

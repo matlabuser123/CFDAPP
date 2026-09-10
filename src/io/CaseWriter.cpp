@@ -60,20 +60,20 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
       {"physics", "physics.json"},
       {"boundaries", "boundaries.json"},
       {"solver", "solver.json"},
-      {"initial_conditions",
-       json{{"velocity", json::array({d.initialConditions.velocity.x, d.initialConditions.velocity.y})},
-            {"pressure", d.initialConditions.pressure}}},
+      {"initial_conditions", json{{"velocity", json::array({d.initialConditions.velocity.x,
+                                                            d.initialConditions.velocity.y})},
+                                  {"pressure", d.initialConditions.pressure}}},
   };
   writeJsonFile(caseDirectory / "case.json", caseJson);
 
   // --- geometry.json --------------------------------------------------------
-  writeJsonFile(caseDirectory / "geometry.json",
-               json{{"type", d.geometry.type}, {"length", d.geometry.length},
-                    {"height", d.geometry.height}});
+  writeJsonFile(caseDirectory / "geometry.json", json{{"type", d.geometry.type},
+                                                      {"length", d.geometry.length},
+                                                      {"height", d.geometry.height}});
 
   // --- mesh.json ------------------------------------------------------------
   writeJsonFile(caseDirectory / "mesh.json",
-               json{{"type", d.mesh.type}, {"nx", d.mesh.nx}, {"ny", d.mesh.ny}});
+                json{{"type", d.mesh.type}, {"nx", d.mesh.nx}, {"ny", d.mesh.ny}});
 
   // --- physics.json -----------------------------------------------------
   json physicsJson{
@@ -95,7 +95,8 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
     if (t.initialEpsilon.has_value()) turbulenceJson["initial_epsilon"] = *t.initialEpsilon;
     if (t.initialOmega.has_value()) turbulenceJson["initial_omega"] = *t.initialOmega;
     if (t.kRelaxation.has_value()) turbulenceJson["k_relaxation"] = *t.kRelaxation;
-    if (t.epsilonRelaxation.has_value()) turbulenceJson["epsilon_relaxation"] = *t.epsilonRelaxation;
+    if (t.epsilonRelaxation.has_value())
+      turbulenceJson["epsilon_relaxation"] = *t.epsilonRelaxation;
     if (t.omegaRelaxation.has_value()) turbulenceJson["omega_relaxation"] = *t.omegaRelaxation;
     physicsJson["turbulence"] = std::move(turbulenceJson);
   }
@@ -133,22 +134,22 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
   // --- solver.json --------------------------------------------------------
   auto linearSolverJson = [](const LinearSolverSpec& s) {
     return json{{"type", s.type},
-               {"absolute_tolerance", s.absoluteTolerance},
-               {"relative_tolerance", s.relativeTolerance},
-               {"max_iterations", s.maxIterations}};
+                {"absolute_tolerance", s.absoluteTolerance},
+                {"relative_tolerance", s.relativeTolerance},
+                {"max_iterations", s.maxIterations}};
   };
   writeJsonFile(caseDirectory / "solver.json",
-               json{
-                   {"type", d.solver.type},
-                   {"max_iterations", d.solver.maxIterations},
-                   {"velocity_relaxation", d.solver.velocityRelaxation},
-                   {"pressure_relaxation", d.solver.pressureRelaxation},
-                   {"velocity_tolerance", d.solver.velocityTolerance},
-                   {"pressure_tolerance", d.solver.pressureTolerance},
-                   {"continuity_tolerance", d.solver.continuityTolerance},
-                   {"momentum_linear_solver", linearSolverJson(d.solver.momentumSolver)},
-                   {"pressure_linear_solver", linearSolverJson(d.solver.pressureSolver)},
-               });
+                json{
+                    {"type", d.solver.type},
+                    {"max_iterations", d.solver.maxIterations},
+                    {"velocity_relaxation", d.solver.velocityRelaxation},
+                    {"pressure_relaxation", d.solver.pressureRelaxation},
+                    {"velocity_tolerance", d.solver.velocityTolerance},
+                    {"pressure_tolerance", d.solver.pressureTolerance},
+                    {"continuity_tolerance", d.solver.continuityTolerance},
+                    {"momentum_linear_solver", linearSolverJson(d.solver.momentumSolver)},
+                    {"pressure_linear_solver", linearSolverJson(d.solver.pressureSolver)},
+                });
 }
 
 }  // namespace cfd::io

@@ -128,9 +128,9 @@ struct CoupledResult {
 // with a known, bounded, deterministic cost, not a production natural-
 // convection solve (see this file's own header comment).
 CoupledResult runCoupledCavity(const Mesh& mesh, const FluidProperties& fluid,
-                               const ThermalProperties& thermalProps, Real beta,
-                               Vector2 gravity, Real hotWallTemperature,
-                               Real coldWallTemperature, Index outerIterations) {
+                               const ThermalProperties& thermalProps, Real beta, Vector2 gravity,
+                               Real hotWallTemperature, Real coldWallTemperature,
+                               Index outerIterations) {
   const auto velocityBoundaries = makeVelocityBoundaries(mesh);
   const auto pressureBoundaries = makePressureBoundaries(mesh);
   const auto temperatureBoundaries =
@@ -146,14 +146,14 @@ CoupledResult runCoupledCavity(const Mesh& mesh, const FluidProperties& fluid,
   for (Index outer = 0; outer < outerIterations; ++outer) {
     const BoussinesqBuoyancy buoyancy(fluid.density(), beta, kTRef, gravity);
     const SIMPLE simple(makeFlowSettings(), 0, nullptr, &temperature, &buoyancy);
-    flowResult = simple.solve(mesh, fluid, velocityBoundaries, pressureBoundaries, velocity,
-                              pressure);
+    flowResult =
+        simple.solve(mesh, fluid, velocityBoundaries, pressureBoundaries, velocity, pressure);
     if (flowResult.status != SIMPLEStatus::Converged) break;
     velocity = flowResult.velocity;
     pressure = flowResult.pressure;
 
-    const ThermalResult thermalResult = thermalSolver.solve(
-        mesh, temperature, flowResult.massFlux, thermalProps, temperatureBoundaries);
+    const ThermalResult thermalResult = thermalSolver.solve(mesh, temperature, flowResult.massFlux,
+                                                            thermalProps, temperatureBoundaries);
     if (thermalResult.status != ThermalStatus::Converged) break;
     temperature = thermalResult.temperature;
   }
@@ -185,8 +185,8 @@ TEST(BoussinesqCouplingTest, DifferentiallyHeatedCavityProducesNonzeroVelocity) 
   ASSERT_EQ(result.flow.status, SIMPLEStatus::Converged);
   EXPECT_GT(maxAbsVelocityComponent(result.flow.velocity), 1e-4)
       << "buoyancy in a fully closed (all-Wall) cavity is the *only* possible momentum "
-        "source here -- a near-zero velocity means the coupling never actually drove any "
-        "flow";
+         "source here -- a near-zero velocity means the coupling never actually drove any "
+         "flow";
   // The temperature field must have actually evolved away from the
   // uniform T_ref initial guess (proves ThermalSolver's own output fed
   // back into the loop, not silently ignored).
@@ -211,8 +211,8 @@ TEST(BoussinesqCouplingTest, EqualWallTemperaturesGiveZeroVelocity) {
   // then the uniform T_ref field everywhere (no gradient to drive
   // conduction), so buoyancy stays exactly zero every outer iteration --
   // the cavity must remain at rest.
-  const CoupledResult result = runCoupledCavity(mesh, fluid, thermalProps, kBeta,
-                                                Vector2{0.0, -9.81}, kTRef, kTRef, 6);
+  const CoupledResult result =
+      runCoupledCavity(mesh, fluid, thermalProps, kBeta, Vector2{0.0, -9.81}, kTRef, kTRef, 6);
 
   ASSERT_EQ(result.flow.status, SIMPLEStatus::Converged);
   for (Index i = 0; i < result.flow.velocity.size(); ++i) {
@@ -258,9 +258,8 @@ TEST(BoussinesqCouplingTest, ZeroBetaRecoversNonBuoyantAtRestSolution) {
   const FluidProperties fluid(1.0, 0.01);
   const ThermalProperties thermalProps(0.6, 4180.0);
 
-  const CoupledResult result =
-      runCoupledCavity(mesh, fluid, thermalProps, 0.0, Vector2{0.0, -9.81}, kHotWallTemperature,
-                       kColdWallTemperature, 6);
+  const CoupledResult result = runCoupledCavity(mesh, fluid, thermalProps, 0.0, Vector2{0.0, -9.81},
+                                                kHotWallTemperature, kColdWallTemperature, 6);
 
   ASSERT_EQ(result.flow.status, SIMPLEStatus::Converged);
   // No lid, no inlet/outlet, and now no buoyancy either -- momentum has
@@ -280,12 +279,10 @@ TEST(BoussinesqCouplingTest, RepeatedCoupledSolveIsBitIdentical) {
   const FluidProperties fluid(1.0, 0.01);
   const ThermalProperties thermalProps(0.6, 4180.0);
 
-  const CoupledResult a =
-      runCoupledCavity(mesh, fluid, thermalProps, kBeta, Vector2{0.0, -9.81}, kHotWallTemperature,
-                       kColdWallTemperature, 6);
-  const CoupledResult b =
-      runCoupledCavity(mesh, fluid, thermalProps, kBeta, Vector2{0.0, -9.81}, kHotWallTemperature,
-                       kColdWallTemperature, 6);
+  const CoupledResult a = runCoupledCavity(mesh, fluid, thermalProps, kBeta, Vector2{0.0, -9.81},
+                                           kHotWallTemperature, kColdWallTemperature, 6);
+  const CoupledResult b = runCoupledCavity(mesh, fluid, thermalProps, kBeta, Vector2{0.0, -9.81},
+                                           kHotWallTemperature, kColdWallTemperature, 6);
 
   ASSERT_EQ(a.flow.status, SIMPLEStatus::Converged);
   ASSERT_EQ(a.flow.status, b.flow.status);

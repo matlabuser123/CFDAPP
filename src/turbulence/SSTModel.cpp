@@ -28,9 +28,9 @@ using cfd::physics::FluidProperties;
 namespace {
 
 void validateCoefficients(const SSTCoefficients& c) {
-  const std::array<Real, 9> values = {c.betaStar,   c.a1,          c.kappa,
-                                      c.sigmaK1,    c.sigmaOmega1, c.beta1,
-                                      c.sigmaK2,    c.sigmaOmega2, c.beta2};
+  const std::array<Real, 9> values = {c.betaStar, c.a1,          c.kappa,
+                                      c.sigmaK1,  c.sigmaOmega1, c.beta1,
+                                      c.sigmaK2,  c.sigmaOmega2, c.beta2};
   for (const Real v : values) {
     if (!std::isfinite(v) || !(v > 0.0)) {
       throw InvalidArgumentError("SSTModel: every SSTCoefficients entry must be finite and > 0");
@@ -142,8 +142,8 @@ void SSTModel::correct(const Mesh& mesh, const VectorField& velocity,
 
   for (Index i = 0; i < n; ++i) {
     const Real gradKDotGradOmega = dot(gradK[i], gradOmega[i]);
-    const Real cdkw = computeCrossDiffusionCoefficient(rho, c.sigmaOmega2, omega_[i],
-                                                       gradKDotGradOmega);
+    const Real cdkw =
+        computeCrossDiffusionCoefficient(rho, c.sigmaOmega2, omega_[i], gradKDotGradOmega);
     const Real arg1 = computeF1Argument(k_[i], omega_[i], wallDistance_[i], nu, rho, c.betaStar,
                                         c.sigmaOmega2, cdkw);
     const Real f1 = computeF1(arg1);
@@ -201,8 +201,8 @@ void SSTModel::correct(const Mesh& mesh, const VectorField& velocity,
   // for their own end-of-call mu_t update.
   ScalarField newMuT(n);
   for (Index i = 0; i < n; ++i) {
-    newMuT[i] = computeSSTTurbulentViscosity(rho, c.a1, newK[i], newOmega[i], strainMagnitude[i],
-                                             newF2[i]);
+    newMuT[i] =
+        computeSSTTurbulentViscosity(rho, c.a1, newK[i], newOmega[i], strainMagnitude[i], newF2[i]);
   }
   validateTurbulentViscosityField(mesh, newMuT);
 

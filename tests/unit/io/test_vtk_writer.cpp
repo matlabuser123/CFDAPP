@@ -207,7 +207,7 @@ TEST(VTKWriterTest, MismatchedTemperatureSizeThrows) {
   const ScalarField temperature(3);  // wrong size.
   const auto path = tempFile("bad_temperature_size.vtk");
   EXPECT_THROW((void)VTKWriter::writeSolution(path, mesh, result, temperature),
-              InvalidArgumentError);
+               InvalidArgumentError);
 }
 
 TEST(VTKWriterTest, NonFiniteTemperatureThrows) {

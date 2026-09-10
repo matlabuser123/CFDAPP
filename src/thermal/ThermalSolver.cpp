@@ -266,8 +266,9 @@ ThermalResult ThermalSolver::solveConjugateConduction(
   std::optional<BiCGSTAB> linearSolver;
   try {
     if (settings_.maxIterations == 0) {
-      throw InvalidArgumentError("ThermalSolver::solveConjugateConduction: maxIterations must be "
-                                 ">= 1");
+      throw InvalidArgumentError(
+          "ThermalSolver::solveConjugateConduction: maxIterations must be "
+          ">= 1");
     }
     if (!std::isfinite(settings_.tolerance) || !(settings_.tolerance > 0.0)) {
       throw InvalidArgumentError(

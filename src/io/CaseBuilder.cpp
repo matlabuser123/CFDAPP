@@ -312,8 +312,8 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                                definition.physics.turbulence->model == "k_epsilon";
   const bool kOmegaEnabled = definition.physics.turbulence.has_value() &&
                              definition.physics.turbulence->model == "k_omega";
-  const bool sstEnabled = definition.physics.turbulence.has_value() &&
-                          definition.physics.turbulence->model == "sst";
+  const bool sstEnabled =
+      definition.physics.turbulence.has_value() && definition.physics.turbulence->model == "sst";
   std::optional<BoundaryConditionSet> kBoundaries;
   std::optional<BoundaryConditionSet> epsilonBoundaries;
   std::optional<BoundaryConditionSet> omegaBoundaries;
@@ -353,11 +353,10 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
       kBoundaries->set(
           mesh, patch.name(),
           buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK));
-      omegaBoundaries->set(
-          mesh, patch.name(),
-          buildTurbulenceOmegaBoundarySST(patchConfig.velocity,
-                                         *definition.physics.turbulence->initialOmega,
-                                         fluid.kinematicViscosity(), SSTConfig{}.coefficients.beta1));
+      omegaBoundaries->set(mesh, patch.name(),
+                           buildTurbulenceOmegaBoundarySST(
+                               patchConfig.velocity, *definition.physics.turbulence->initialOmega,
+                               fluid.kinematicViscosity(), SSTConfig{}.coefficients.beta1));
     }
   }
 
@@ -401,8 +400,8 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
   // PhysicsConfig.hpp's own header comment).
   if (definition.physics.buoyancy.has_value()) {
     setup.buoyancy.emplace(fluid.density(), definition.physics.buoyancy->beta,
-                          definition.physics.buoyancy->referenceTemperature,
-                          definition.physics.buoyancy->gravity);
+                           definition.physics.buoyancy->referenceTemperature,
+                           definition.physics.buoyancy->gravity);
   }
   if (kEpsilonEnabled) {
     setup.kEpsilonConfig = buildKEpsilonConfig(*definition.physics.turbulence, definition.solver);

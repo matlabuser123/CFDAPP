@@ -261,7 +261,7 @@ TEST(CSVWriterTest, AppendsTemperatureColumnWhenProvided) {
   CSVWriter::writeFields(path, mesh, result, temperature);
   const auto lines = readLines(path);
   EXPECT_EQ(lines.front(),
-           "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,temperature");
+            "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,temperature");
   std::istringstream row(lines[2]);  // cell 1.
   std::string field;
   for (int i = 0; i < 7; ++i) std::getline(row, field, ',');  // skip through pressure.

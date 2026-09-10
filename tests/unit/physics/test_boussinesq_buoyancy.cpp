@@ -72,8 +72,7 @@ TEST(BoussinesqBuoyancyTest, RejectsNonFiniteInputs) {
 
 TEST(BoussinesqBuoyancyTest, RejectsNonFiniteTemperature) {
   const BoussinesqBuoyancy buoyancy(1.0, 0.0034, 300.0, Vector2{0.0, -9.81});
-  EXPECT_THROW((void)buoyancy.source(std::numeric_limits<Real>::quiet_NaN()),
-              InvalidArgumentError);
+  EXPECT_THROW((void)buoyancy.source(std::numeric_limits<Real>::quiet_NaN()), InvalidArgumentError);
 }
 
 // --- Zero-buoyancy equivalence cases (Phase 5/6) --------------------------
@@ -140,8 +139,8 @@ TEST(BoussinesqBuoyancyTest, ReversingGravityReversesTheHotCellDirection) {
 
 TEST(BoussinesqBuoyancyTest, SourceIsLinearInTemperatureDeviation) {
   const BoussinesqBuoyancy buoyancy(1.2, 0.0034, 300.0, Vector2{0.0, -9.81});
-  const Vector2 sOneDelta = buoyancy.source(305.0);   // deltaT = 5.
-  const Vector2 sTwoDelta = buoyancy.source(310.0);   // deltaT = 10 = 2*5.
+  const Vector2 sOneDelta = buoyancy.source(305.0);  // deltaT = 5.
+  const Vector2 sTwoDelta = buoyancy.source(310.0);  // deltaT = 10 = 2*5.
   EXPECT_NEAR(sTwoDelta.y, 2.0 * sOneDelta.y, 1e-12);
   EXPECT_NEAR(sTwoDelta.x, 2.0 * sOneDelta.x, 1e-12);
 }
@@ -166,8 +165,8 @@ TEST(BoussinesqBuoyancyTest, MomentumContributionScalesWithCellVolume) {
   const Real temperatureValue = 310.0;  // uniform, deltaT = 10.
   const Vector2 expectedSourcePerVolume = buoyancy.source(temperatureValue);
 
-  for (const auto& grid : {std::pair<cfd::Index, cfd::Index>{4, 4},
-                          std::pair<cfd::Index, cfd::Index>{8, 8}}) {
+  for (const auto& grid :
+       {std::pair<cfd::Index, cfd::Index>{4, 4}, std::pair<cfd::Index, cfd::Index>{8, 8}}) {
     const Mesh mesh = MeshGeometry::createCartesian2D(grid.first, grid.second, 1.0, 1.0);
     const auto boundaries = makeZeroGradientBoundaries(mesh);
     const ScalarField temperature(mesh.numberOfCells(), temperatureValue);

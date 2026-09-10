@@ -56,8 +56,8 @@ std::unique_ptr<TurbulenceModel> createTurbulenceModel(
     return std::make_unique<LaminarModel>(mesh);
   }
   if (modelName == "sst") {
-    return std::make_unique<SSTModel>(mesh, fluid, velocityBoundaries, kBoundaries,
-                                      omegaBoundaries, std::move(config));
+    return std::make_unique<SSTModel>(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries,
+                                      std::move(config));
   }
   // "k_epsilon"/"k_omega"/anything else: explicitly unsupported through
   // *this* overload -- P2-TURB-006 section 36.

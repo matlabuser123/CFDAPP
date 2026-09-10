@@ -39,7 +39,8 @@ struct CompressibleTimeDerivativeCoefficients {
 // mesh.numberOfCells(), or dt is not finite or <= 0.
 [[nodiscard]] CompressibleTimeDerivativeCoefficients compressibleMomentumTimeDerivative(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& velocityOldComponent,
-    const cfd::fields::ScalarField& densityOld, const cfd::fields::ScalarField& densityNew, Real dt);
+    const cfd::fields::ScalarField& densityOld, const cfd::fields::ScalarField& densityNew,
+    Real dt);
 
 // Assembles one scalar compressible momentum component: diffusion +
 // convection + pressure source, reusing the *existing*, unmodified

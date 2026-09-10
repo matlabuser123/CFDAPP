@@ -52,9 +52,8 @@ TEST(ProjectRunnerTest, RepeatedRunsAreDeterministic) {
 TEST(ProjectRunnerTest, CancellationStopsEarlyWithCancelledStatus) {
   int progressCalls = 0;
   cfd::app::ProjectRunOptions options;
-  options.progressCallback = [&progressCalls](const cfd::pressure_velocity::SIMPLEIterationProgress&) {
-    ++progressCalls;
-  };
+  options.progressCallback =
+      [&progressCalls](const cfd::pressure_velocity::SIMPLEIterationProgress&) { ++progressCalls; };
   options.cancellationCheck = [&progressCalls]() { return progressCalls >= 2; };
 
   const ProjectRunResult run = ProjectRunner::run("tests/data/cases/valid_cavity", options);

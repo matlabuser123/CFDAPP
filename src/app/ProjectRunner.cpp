@@ -122,10 +122,9 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
     activeTurbulenceModel = &(*sstModel);
   }
 
-  const cfd::pressure_velocity::SIMPLE simple(setup.solverSettings, /*referenceCell=*/0,
-                                              activeTurbulenceModel, /*temperature=*/nullptr,
-                                              /*buoyancy=*/nullptr, options.progressCallback,
-                                              options.cancellationCheck);
+  const cfd::pressure_velocity::SIMPLE simple(
+      setup.solverSettings, /*referenceCell=*/0, activeTurbulenceModel, /*temperature=*/nullptr,
+      /*buoyancy=*/nullptr, options.progressCallback, options.cancellationCheck);
   const SIMPLEResult result =
       simple.solve(setup.mesh, setup.fluid, setup.velocityBoundaries, setup.pressureBoundaries,
                    setup.initialVelocity, setup.initialPressure);
@@ -150,16 +149,17 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
                                                   thermalResult->finalResidual};
   } else if (setup.thermal.has_value()) {
     thermalMetadata = cfd::io::ThermalRunMetadata{setup.thermal->conductivity(),
-                                                  setup.thermal->specificHeat(), "NotRun",
-                                                  /*converged=*/false, /*iterations=*/0,
+                                                  setup.thermal->specificHeat(),
+                                                  "NotRun",
+                                                  /*converged=*/false,
+                                                  /*iterations=*/0,
                                                   /*finalResidual=*/0.0};
   }
   out.thermalResult = thermalResult;
 
-  const cfd::io::RunMetadata exportMetadata{caseDefinition->caseConfig.name,
-                                            caseDefinition->physics.density,
-                                            caseDefinition->physics.dynamicViscosity,
-                                            caseDefinition->solver.type};
+  const cfd::io::RunMetadata exportMetadata{
+      caseDefinition->caseConfig.name, caseDefinition->physics.density,
+      caseDefinition->physics.dynamicViscosity, caseDefinition->solver.type};
   try {
     const std::optional<cfd::fields::ScalarField> temperatureForExport =
         thermalResult.has_value() ? std::optional(thermalResult->temperature) : std::nullopt;

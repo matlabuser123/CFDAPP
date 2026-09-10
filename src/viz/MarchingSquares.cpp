@@ -82,11 +82,13 @@ std::vector<EdgePair> edgePairsFor(int caseIndex, bool saddleAboveAverage) {
     case 8:
       return {{Edge::Left, Edge::Top}};
     case 5:
-      return saddleAboveAverage ? std::vector<EdgePair>{{Edge::Bottom, Edge::Right}, {Edge::Left, Edge::Top}}
-                                : std::vector<EdgePair>{{Edge::Left, Edge::Bottom}, {Edge::Right, Edge::Top}};
+      return saddleAboveAverage
+                 ? std::vector<EdgePair>{{Edge::Bottom, Edge::Right}, {Edge::Left, Edge::Top}}
+                 : std::vector<EdgePair>{{Edge::Left, Edge::Bottom}, {Edge::Right, Edge::Top}};
     case 10:
-      return saddleAboveAverage ? std::vector<EdgePair>{{Edge::Left, Edge::Bottom}, {Edge::Right, Edge::Top}}
-                                : std::vector<EdgePair>{{Edge::Bottom, Edge::Right}, {Edge::Left, Edge::Top}};
+      return saddleAboveAverage
+                 ? std::vector<EdgePair>{{Edge::Left, Edge::Bottom}, {Edge::Right, Edge::Top}}
+                 : std::vector<EdgePair>{{Edge::Bottom, Edge::Right}, {Edge::Left, Edge::Top}};
     default:
       return {};
   }
@@ -95,9 +97,9 @@ std::vector<EdgePair> edgePairsFor(int caseIndex, bool saddleAboveAverage) {
 }  // namespace
 
 std::vector<ContourSegment> extractContourSegments(Index nx, Index ny,
-                                                    const std::vector<Real>& values,
-                                                    const std::vector<GridPoint>& coordinates,
-                                                    Real level) {
+                                                   const std::vector<Real>& values,
+                                                   const std::vector<GridPoint>& coordinates,
+                                                   Real level) {
   if (nx < 2 || ny < 2) {
     throw InvalidArgumentError("extractContourSegments: nx and ny must both be >= 2");
   }
@@ -112,11 +114,12 @@ std::vector<ContourSegment> extractContourSegments(Index nx, Index ny,
     for (Index i = 0; i + 1 < nx; ++i) {
       const std::array<Real, 4> v{values[index(nx, i, j)], values[index(nx, i + 1, j)],
                                   values[index(nx, i + 1, j + 1)], values[index(nx, i, j + 1)]};
-      if (!allFinite(v)) continue;  // section 23: never a contour edge touching a non-finite sample.
+      if (!allFinite(v))
+        continue;  // section 23: never a contour edge touching a non-finite sample.
 
-      const std::array<GridPoint, 4> p{coordinates[index(nx, i, j)], coordinates[index(nx, i + 1, j)],
-                                       coordinates[index(nx, i + 1, j + 1)],
-                                       coordinates[index(nx, i, j + 1)]};
+      const std::array<GridPoint, 4> p{
+          coordinates[index(nx, i, j)], coordinates[index(nx, i + 1, j)],
+          coordinates[index(nx, i + 1, j + 1)], coordinates[index(nx, i, j + 1)]};
 
       int caseIndex = 0;
       if (v[0] > level) caseIndex |= 1;

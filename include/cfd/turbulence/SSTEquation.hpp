@@ -63,9 +63,9 @@ namespace cfd::turbulence {
 // floored; this is an independent, local safety net for this one
 // formula). Throws InvalidArgumentError if omega/y/crossDiffusionCoefficient
 // are not finite and > 0.
-[[nodiscard]] Real computeF1Argument(Real k, Real omega, Real wallDistance,
-                                     Real kinematicViscosity, Real rho, Real betaStar,
-                                     Real sigmaOmega2, Real crossDiffusionCoefficient);
+[[nodiscard]] Real computeF1Argument(Real k, Real omega, Real wallDistance, Real kinematicViscosity,
+                                     Real rho, Real betaStar, Real sigmaOmega2,
+                                     Real crossDiffusionCoefficient);
 
 // F1 = tanh(arg1^4) -- always in [0, 1] for any finite arg1 (tanh's own
 // range), so this never needs separate clamping.
@@ -77,8 +77,8 @@ namespace cfd::turbulence {
 // term entirely; substituting F1 for F2 or vice versa is exactly the
 // mistake section 12 warns against). Throws InvalidArgumentError if
 // omega/wallDistance are not finite and > 0.
-[[nodiscard]] Real computeF2Argument(Real k, Real omega, Real wallDistance,
-                                     Real kinematicViscosity, Real betaStar);
+[[nodiscard]] Real computeF2Argument(Real k, Real omega, Real wallDistance, Real kinematicViscosity,
+                                     Real betaStar);
 
 // F2 = tanh(arg2^2) -- always in [0, 1].
 [[nodiscard]] Real computeF2(Real arg2);

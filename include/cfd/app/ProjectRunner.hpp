@@ -24,8 +24,8 @@
 #include <optional>
 #include <string>
 
-#include "cfd/io/case/CaseDefinition.hpp"
 #include "cfd/io/ResultExporter.hpp"
+#include "cfd/io/case/CaseDefinition.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEProgress.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"

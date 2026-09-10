@@ -150,8 +150,7 @@ struct GridResult {
   Index thermalIterations{0};
 };
 
-GridResult runConductionCavity(Index nx, Index ny,
-                               ThermalSolverSettings thermalSettings = {}) {
+GridResult runConductionCavity(Index nx, Index ny, ThermalSolverSettings thermalSettings = {}) {
   const Mesh mesh = MeshGeometry::createCartesian2D(nx, ny, kLength, kLength);
   const auto velocityBoundaries = makeVelocityBoundaries(mesh);
   const auto pressureBoundaries = makePressureBoundaries(mesh);
@@ -175,8 +174,8 @@ GridResult runConductionCavity(Index nx, Index ny,
   const SurfaceField massFlux = calculateMassFlux(mesh, flow.velocity, fluid, velocityBoundaries);
   const ScalarField initialTemperature(n, 300.0);
   const ThermalSolver thermalSolver{thermalSettings};
-  const ThermalResult thermalResult = thermalSolver.solve(
-      mesh, initialTemperature, massFlux, thermal, temperatureBoundaries);
+  const ThermalResult thermalResult =
+      thermalSolver.solve(mesh, initialTemperature, massFlux, thermal, temperatureBoundaries);
 
   GridResult result;
   result.nx = nx;
@@ -188,18 +187,14 @@ GridResult runConductionCavity(Index nx, Index ny,
   }
 
   result.error = computeTemperatureErrors(mesh, thermalResult.temperature);
-  result.hotWallHeatLeaving =
-      patchHeatLeaving(mesh, thermalResult.temperature, temperatureBoundaries, "left",
-                       kConductivity);
-  result.coldWallHeatLeaving =
-      patchHeatLeaving(mesh, thermalResult.temperature, temperatureBoundaries, "right",
-                       kConductivity);
-  result.topWallHeatLeaving =
-      patchHeatLeaving(mesh, thermalResult.temperature, temperatureBoundaries, "top",
-                       kConductivity);
-  result.bottomWallHeatLeaving =
-      patchHeatLeaving(mesh, thermalResult.temperature, temperatureBoundaries, "bottom",
-                       kConductivity);
+  result.hotWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature,
+                                               temperatureBoundaries, "left", kConductivity);
+  result.coldWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature,
+                                                temperatureBoundaries, "right", kConductivity);
+  result.topWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature,
+                                               temperatureBoundaries, "top", kConductivity);
+  result.bottomWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature,
+                                                  temperatureBoundaries, "bottom", kConductivity);
   result.globalImbalance = std::abs(result.hotWallHeatLeaving + result.coldWallHeatLeaving +
                                     result.topWallHeatLeaving + result.bottomWallHeatLeaving);
   return result;
@@ -213,9 +208,8 @@ void writeValidationJson(const std::string& path, const GridResult& result) {
       << "  \"case\": \"heated_cavity_conduction\",\n"
       << "  \"mesh\": { \"nx\": " << result.nx << ", \"ny\": " << result.ny << " },\n"
       << "  \"thermal\": {\n"
-      << "    \"converged\": " << (result.thermalStatus == ThermalStatus::Converged ? "true"
-                                                                                    : "false")
-      << ",\n"
+      << "    \"converged\": "
+      << (result.thermalStatus == ThermalStatus::Converged ? "true" : "false") << ",\n"
       << "    \"iterations\": " << result.thermalIterations << "\n"
       << "  },\n"
       << "  \"validation\": {\n"
@@ -282,8 +276,8 @@ TEST(HeatedCavityConductionValidation, Grid20x20MatchesAnalyticalProfile) {
   const ScalarField initialTemperature(mesh.numberOfCells(), 300.0);
   const ThermalResult thermalResult = ThermalSolver{}.solve(
       mesh, initialTemperature, massFlux, thermal, makeTemperatureBoundaries(mesh));
-  writeTemperatureProfileCsv("results/validation/heated_cavity/20x20/temperature_profile.csv",
-                             mesh, thermalResult.temperature, 20);
+  writeTemperatureProfileCsv("results/validation/heated_cavity/20x20/temperature_profile.csv", mesh,
+                             thermalResult.temperature, 20);
 }
 
 TEST(HeatedCavityConductionValidation, Grid40x40MatchesAnalyticalProfile) {
@@ -356,10 +350,8 @@ TEST(HeatedCavityConductionValidation, RepeatedSolveIsDeterministic) {
   auto runOnce = [&]() {
     const SIMPLEResult flow = simple.solve(mesh, fluid, velocityBoundaries, pressureBoundaries,
                                            initialVelocity, initialPressure);
-    const SurfaceField massFlux =
-        calculateMassFlux(mesh, flow.velocity, fluid, velocityBoundaries);
-    return thermalSolver.solve(mesh, initialTemperature, massFlux, thermal,
-                               temperatureBoundaries);
+    const SurfaceField massFlux = calculateMassFlux(mesh, flow.velocity, fluid, velocityBoundaries);
+    return thermalSolver.solve(mesh, initialTemperature, massFlux, thermal, temperatureBoundaries);
   };
 
   const ThermalResult a = runOnce();

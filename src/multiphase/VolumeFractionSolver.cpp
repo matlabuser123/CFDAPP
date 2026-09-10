@@ -56,9 +56,9 @@ const VolumeFractionSolverSettings& VolumeFractionSolver::settings() const noexc
 }
 
 VolumeFractionStepResult VolumeFractionSolver::step(const Mesh& mesh, const ScalarField& alphaOld,
-                                                     const SurfaceField& massFlux,
-                                                     const BoundaryConditionSet& alphaBoundaries,
-                                                     Real dt) const {
+                                                    const SurfaceField& massFlux,
+                                                    const BoundaryConditionSet& alphaBoundaries,
+                                                    Real dt) const {
   VolumeFractionStepResult result;
   result.alpha = alphaOld;
 
@@ -92,8 +92,8 @@ VolumeFractionStepResult VolumeFractionSolver::step(const Mesh& mesh, const Scal
 
   std::optional<VolumeFractionAssembly> assembly;
   try {
-    assembly = assembleVolumeFractionTransportEquation(mesh, alphaOld, massFlux, alphaBoundaries,
-                                                        dt);
+    assembly =
+        assembleVolumeFractionTransportEquation(mesh, alphaOld, massFlux, alphaBoundaries, dt);
   } catch (const NumericalError&) {
     // assembly left empty -- fall through to the check below.
   }

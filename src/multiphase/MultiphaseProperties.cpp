@@ -40,8 +40,7 @@ namespace {
 ScalarField evaluateField(const Mesh& mesh, const ScalarField& alpha, const TwoPhaseSystem& system,
                           Real (TwoPhaseSystem::*evaluate)(Real) const) {
   if (alpha.size() != mesh.numberOfCells()) {
-    throw InvalidArgumentError(
-        "evaluateMixtureField: alpha size does not match mesh cell count");
+    throw InvalidArgumentError("evaluateMixtureField: alpha size does not match mesh cell count");
   }
   ScalarField result(mesh.numberOfCells());
   for (Index i = 0; i < mesh.numberOfCells(); ++i) {

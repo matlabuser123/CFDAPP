@@ -224,10 +224,8 @@ TEST(VolumeFractionSolverTest, RepeatedStepIsDeterministic) {
   const ScalarField alphaOld(n, 0.0);
 
   const VolumeFractionSolver solver{makeLoosenedSettings()};
-  const VolumeFractionStepResult a =
-      solver.step(mesh, alphaOld, massFlux, alphaBoundaries, 0.001);
-  const VolumeFractionStepResult b =
-      solver.step(mesh, alphaOld, massFlux, alphaBoundaries, 0.001);
+  const VolumeFractionStepResult a = solver.step(mesh, alphaOld, massFlux, alphaBoundaries, 0.001);
+  const VolumeFractionStepResult b = solver.step(mesh, alphaOld, massFlux, alphaBoundaries, 0.001);
   ASSERT_EQ(a.status, VolumeFractionStatus::Converged);
   ASSERT_EQ(b.status, VolumeFractionStatus::Converged);
   for (Index i = 0; i < n; ++i) {

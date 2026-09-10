@@ -44,8 +44,7 @@ Real boundaryTemperatureValue(const Mesh& mesh, const Face& face, const ScalarFi
     throw InvalidArgumentError("ThermalInterface: boundary condition is not scalar-valued");
   }
   const Real ownerValue = temperature[face.owner()];
-  const Real distance =
-      MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
+  const Real distance = MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
   return scalarBc->boundaryValue(ownerValue, distance);
 }
 
@@ -61,11 +60,9 @@ Real interfaceConductance(Real k1, Real d1, Real k2, Real d2, Real area) {
   return area / resistance;
 }
 
-void assembleRegionAwareThermalDiffusionContribution(const Mesh& mesh,
-                                                      const ThermalRegionMap& regions,
-                                                      const ScalarField& temperature,
-                                                      const BoundaryConditionSet& temperatureBoundaries,
-                                                      SparseMatrixBuilder& builder, Vector& rhs) {
+void assembleRegionAwareThermalDiffusionContribution(
+    const Mesh& mesh, const ThermalRegionMap& regions, const ScalarField& temperature,
+    const BoundaryConditionSet& temperatureBoundaries, SparseMatrixBuilder& builder, Vector& rhs) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleRegionAwareThermalDiffusionContribution: temperature size does not match mesh "
@@ -82,8 +79,7 @@ void assembleRegionAwareThermalDiffusionContribution(const Mesh& mesh,
 
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
-      const Real distance =
-          MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
+      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
       const Real conductivity = regions.regionForCell(ownerId).properties.conductivity();
       const Real diffusionCoefficient = conductivity * face.area() / distance;
 
@@ -125,10 +121,9 @@ void assembleRegionAwareThermalDiffusionContribution(const Mesh& mesh,
   }
 }
 
-EnergyAssembly assembleConjugateConductionEquation(const Mesh& mesh, const ScalarField& temperature,
-                                                    const ThermalRegionMap& regions,
-                                                    const BoundaryConditionSet& temperatureBoundaries,
-                                                    Real volumetricHeatSource) {
+EnergyAssembly assembleConjugateConductionEquation(
+    const Mesh& mesh, const ScalarField& temperature, const ThermalRegionMap& regions,
+    const BoundaryConditionSet& temperatureBoundaries, Real volumetricHeatSource) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleConjugateConductionEquation: temperature size does not match mesh cell count");

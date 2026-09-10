@@ -91,7 +91,8 @@ TEST(MomentumVariableViscosityTest, ConstantPropertyReproducesScalarOverloadExac
   for (Index row = 0; row < n; ++row) {
     EXPECT_NEAR(fieldMatrix.diagonal(row), scalarMatrix.diagonal(row), 1e-12 * mu0)
         << "row " << row;
-    EXPECT_NEAR(fieldRhs[row], scalarRhs[row], 1e-12 * std::max<Real>(1.0, std::abs(scalarRhs[row])))
+    EXPECT_NEAR(fieldRhs[row], scalarRhs[row],
+                1e-12 * std::max<Real>(1.0, std::abs(scalarRhs[row])))
         << "row " << row;
   }
 }
@@ -180,7 +181,8 @@ TEST(MomentumVariableViscosityTest, TabulatedMuGivesTheExpectedFaceValue) {
   EXPECT_NEAR(-a10, internalCoefficientExpected, 1e-12);
 }
 
-TEST(MomentumVariableViscosityTest, StrongTemperatureContrastIncreasesLocalDiffusionAsymmetrically) {
+TEST(MomentumVariableViscosityTest,
+     StrongTemperatureContrastIncreasesLocalDiffusionAsymmetrically) {
   // A strong hot spot at one cell drives mu(T) sharply up there via a
   // linear law -- the resulting diagonal/off-diagonal changes must follow
   // exactly the same "local, per-cell, not global" signature already

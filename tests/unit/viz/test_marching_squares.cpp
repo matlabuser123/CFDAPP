@@ -33,8 +33,8 @@ SyntheticGrid makeGrid(cfd::Index nx, cfd::Index ny, Fn fn) {
     for (cfd::Index i = 0; i < nx; ++i) {
       const cfd::Real x = static_cast<cfd::Real>(i) / static_cast<cfd::Real>(nx - 1);
       const cfd::Real y = static_cast<cfd::Real>(j) / static_cast<cfd::Real>(ny - 1);
-      const std::size_t idx = static_cast<std::size_t>(j) * static_cast<std::size_t>(nx) +
-                              static_cast<std::size_t>(i);
+      const std::size_t idx =
+          static_cast<std::size_t>(j) * static_cast<std::size_t>(nx) + static_cast<std::size_t>(i);
       grid.values[idx] = fn(x, y);
       grid.coordinates[idx] = GridPoint{x, y};
     }
@@ -46,7 +46,8 @@ SyntheticGrid makeGrid(cfd::Index nx, cfd::Index ny, Fn fn) {
 
 TEST(MarchingSquaresTest, LinearFieldPhiEqualsXProducesAVerticalLineAtTheLevel) {
   const auto grid = makeGrid(5, 5, [](cfd::Real x, cfd::Real) { return x; });
-  const auto segments = extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 0.5);
+  const auto segments =
+      extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 0.5);
 
   ASSERT_FALSE(segments.empty());
   for (const ContourSegment& segment : segments) {
@@ -68,7 +69,8 @@ TEST(MarchingSquaresTest, LinearFieldPhiEqualsXProducesAVerticalLineAtTheLevel) 
 
 TEST(MarchingSquaresTest, LinearFieldPhiEqualsYProducesAHorizontalLine) {
   const auto grid = makeGrid(4, 4, [](cfd::Real, cfd::Real y) { return y; });
-  const auto segments = extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 0.5);
+  const auto segments =
+      extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 0.5);
 
   ASSERT_FALSE(segments.empty());
   for (const ContourSegment& segment : segments) {
@@ -79,20 +81,23 @@ TEST(MarchingSquaresTest, LinearFieldPhiEqualsYProducesAHorizontalLine) {
 
 TEST(MarchingSquaresTest, ConstantFieldProducesNoSegments) {
   const auto grid = makeGrid(4, 4, [](cfd::Real, cfd::Real) { return 3.0; });
-  const auto segments = extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 3.0);
+  const auto segments =
+      extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 3.0);
   EXPECT_TRUE(segments.empty());
 }
 
 TEST(MarchingSquaresTest, LevelOutsideRangeProducesNoSegments) {
   const auto grid = makeGrid(4, 4, [](cfd::Real x, cfd::Real) { return x; });
-  const auto segments = extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 5.0);
+  const auto segments =
+      extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 5.0);
   EXPECT_TRUE(segments.empty());
 }
 
 TEST(MarchingSquaresTest, NonFiniteCellsContributeNoSegments) {
   auto grid = makeGrid(3, 3, [](cfd::Real x, cfd::Real) { return x; });
   grid.values[4] = std::nan("");  // center cell.
-  const auto segments = extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 0.5);
+  const auto segments =
+      extractContourSegments(grid.nx, grid.ny, grid.values, grid.coordinates, 0.5);
   for (const auto& segment : segments) {
     EXPECT_TRUE(std::isfinite(segment.start.x));
     EXPECT_TRUE(std::isfinite(segment.start.y));
@@ -118,13 +123,15 @@ TEST(MarchingSquaresTest, RepeatedCallsAreDeterministic) {
 TEST(MarchingSquaresTest, RejectsGridTooSmall) {
   std::vector<cfd::Real> values{1.0};
   std::vector<GridPoint> coordinates{GridPoint{0.0, 0.0}};
-  EXPECT_THROW((void)extractContourSegments(1, 1, values, coordinates, 0.5), cfd::InvalidArgumentError);
+  EXPECT_THROW((void)extractContourSegments(1, 1, values, coordinates, 0.5),
+               cfd::InvalidArgumentError);
 }
 
 TEST(MarchingSquaresTest, RejectsMismatchedSizes) {
   std::vector<cfd::Real> values{1.0, 2.0};
   std::vector<GridPoint> coordinates{GridPoint{0.0, 0.0}, GridPoint{1.0, 0.0}};
-  EXPECT_THROW((void)extractContourSegments(2, 2, values, coordinates, 0.5), cfd::InvalidArgumentError);
+  EXPECT_THROW((void)extractContourSegments(2, 2, values, coordinates, 0.5),
+               cfd::InvalidArgumentError);
 }
 
 TEST(AutomaticContourLevelsTest, ProducesEvenlySpacedInteriorLevels) {

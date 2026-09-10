@@ -21,7 +21,8 @@ ScalarField computeWallDistance(const Mesh& mesh, const BoundaryConditionSet& ve
   std::vector<Index> wallFaceIds;
   for (const auto& patch : mesh.boundaryPatches()) {
     const auto& bc = velocityBoundaries.get(patch.name());
-    if (bc.type() == BoundaryConditionType::Wall || bc.type() == BoundaryConditionType::MovingWall) {
+    if (bc.type() == BoundaryConditionType::Wall ||
+        bc.type() == BoundaryConditionType::MovingWall) {
       for (const Index faceId : patch.faceIds()) {
         wallFaceIds.push_back(faceId);
       }
@@ -41,9 +42,10 @@ ScalarField computeWallDistance(const Mesh& mesh, const BoundaryConditionSet& ve
       minDistance = std::min(minDistance, d);
     }
     if (!std::isfinite(minDistance) || !(minDistance > 0.0)) {
-      throw InvalidArgumentError("computeWallDistance: computed a non-finite or non-positive "
-                                 "distance for cell " +
-                                 std::to_string(cell.id()));
+      throw InvalidArgumentError(
+          "computeWallDistance: computed a non-finite or non-positive "
+          "distance for cell " +
+          std::to_string(cell.id()));
     }
     distance[cell.id()] = minDistance;
   }

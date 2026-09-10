@@ -211,8 +211,8 @@ TEST(JSONWriterTest, WritesThermalMetadataWhenProvided) {
   const auto result = makeConvergedResultFor2x2();
   const auto path = tempFile("thermal_present.json");
   const cfd::io::ThermalRunMetadata thermal{
-      /*conductivity=*/0.6,   /*specificHeat=*/4180.0, /*status=*/"Converged",
-      /*converged=*/true,     /*iterations=*/57,       /*finalResidual=*/1.2e-9};
+      /*conductivity=*/0.6, /*specificHeat=*/4180.0, /*status=*/"Converged",
+      /*converged=*/true,   /*iterations=*/57,       /*finalResidual=*/1.2e-9};
   JSONWriter::writeMetadata(path, makeMetadata(), mesh, result, thermal);
   const auto doc = readJson(path);
 

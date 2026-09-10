@@ -128,7 +128,8 @@ TEST(SimulationControllerTest, RunPublishesAUsableResultSnapshot) {
   const QStringList fields = controller.availableFields();
   EXPECT_TRUE(fields.contains(QStringLiteral("pressure")));
   EXPECT_TRUE(fields.contains(QStringLiteral("velocity_magnitude")));
-  EXPECT_FALSE(fields.contains(QStringLiteral("temperature")));  // valid_cavity has no thermal block.
+  EXPECT_FALSE(
+      fields.contains(QStringLiteral("temperature")));  // valid_cavity has no thermal block.
 
   const QVariantMap grid = controller.scalarFieldGrid(QStringLiteral("pressure"));
   ASSERT_FALSE(grid.isEmpty());
@@ -173,8 +174,9 @@ TEST(SimulationControllerTest, ContoursVectorsProbeAndLineSampleWorkAfterARun) {
   EXPECT_TRUE(probe.contains("speed"));
   EXPECT_FALSE(probe.contains("temperature"));  // not a thermal case.
 
-  const QVariantList line = controller.sampleLine(QStringLiteral("pressure"), bounds["minX"].toDouble(),
-                                                  midY, bounds["maxX"].toDouble(), midY, 5);
+  const QVariantList line =
+      controller.sampleLine(QStringLiteral("pressure"), bounds["minX"].toDouble(), midY,
+                            bounds["maxX"].toDouble(), midY, 5);
   EXPECT_EQ(line.size(), 5);
 }
 
@@ -185,8 +187,10 @@ TEST(SimulationControllerTest, ExportLineSampleCsvWritesAReadableFile) {
   controller.run();
   ASSERT_TRUE(completedSpy.wait(15000));
 
-  const QString path = QStringLiteral("tests/data/cases/valid_cavity/results/probe_export_test.csv");
-  ASSERT_TRUE(controller.exportLineSampleCsv(path, QStringLiteral("pressure"), 0.0, 0.5, 1.0, 0.5, 5));
+  const QString path =
+      QStringLiteral("tests/data/cases/valid_cavity/results/probe_export_test.csv");
+  ASSERT_TRUE(
+      controller.exportLineSampleCsv(path, QStringLiteral("pressure"), 0.0, 0.5, 1.0, 0.5, 5));
 
   QFile file(path);
   ASSERT_TRUE(file.open(QIODevice::ReadOnly | QIODevice::Text));

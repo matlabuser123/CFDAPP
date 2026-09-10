@@ -155,13 +155,12 @@ TEST(SSTModelTest, RejectsInvalidInitialK) {
   const auto kBoundaries = makeScalarBoundaries(mesh, 0.0, 0.01);
   const auto omegaBoundaries = makeScalarBoundaries(mesh, 1e-6, 10.0);
 
-  for (const Real badK : {0.0, -1.0, std::numeric_limits<Real>::quiet_NaN(),
-                          std::numeric_limits<Real>::infinity()}) {
+  for (const Real badK :
+       {0.0, -1.0, std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::infinity()}) {
     SSTConfig config;
     config.initialK = badK;
-    EXPECT_THROW(
-        (SSTModel(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config)),
-        InvalidArgumentError)
+    EXPECT_THROW((SSTModel(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config)),
+                 InvalidArgumentError)
         << "initialK = " << badK;
   }
 }
@@ -173,13 +172,12 @@ TEST(SSTModelTest, RejectsInvalidInitialOmega) {
   const auto kBoundaries = makeScalarBoundaries(mesh, 0.0, 0.01);
   const auto omegaBoundaries = makeScalarBoundaries(mesh, 1e-6, 10.0);
 
-  for (const Real badOmega : {0.0, -1.0, std::numeric_limits<Real>::quiet_NaN(),
-                              std::numeric_limits<Real>::infinity()}) {
+  for (const Real badOmega :
+       {0.0, -1.0, std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::infinity()}) {
     SSTConfig config;
     config.initialOmega = badOmega;
-    EXPECT_THROW(
-        (SSTModel(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config)),
-        InvalidArgumentError)
+    EXPECT_THROW((SSTModel(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config)),
+                 InvalidArgumentError)
         << "initialOmega = " << badOmega;
   }
 }
@@ -194,7 +192,7 @@ TEST(SSTModelTest, RejectsInvalidCoefficients) {
   SSTConfig config;
   config.coefficients.a1 = -0.31;
   EXPECT_THROW((SSTModel(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config)),
-              InvalidArgumentError);
+               InvalidArgumentError);
 }
 
 TEST(SSTModelTest, RejectsNoWallPatches) {

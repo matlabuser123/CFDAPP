@@ -21,7 +21,8 @@ namespace {
 
 TwoPhaseSystem makeExampleSystem() {
   // Section 23's own example values.
-  return TwoPhaseSystem(PhaseProperties("phase1", 1000.0, 1.0), PhaseProperties("phase2", 100.0, 0.1));
+  return TwoPhaseSystem(PhaseProperties("phase1", 1000.0, 1.0),
+                        PhaseProperties("phase2", 100.0, 0.1));
 }
 
 }  // namespace
@@ -36,9 +37,9 @@ TEST(TwoPhaseSystemTest, MixtureDensityAtCanonicalAlphaValues) {
   const TwoPhaseSystem system = makeExampleSystem();
   EXPECT_DOUBLE_EQ(system.mixtureDensity(0.0), 100.0);
   EXPECT_DOUBLE_EQ(system.mixtureDensity(1.0), 1000.0);
-  EXPECT_DOUBLE_EQ(system.mixtureDensity(0.25), 0.25 * 1000.0 + 0.75 * 100.0);   // 325
-  EXPECT_DOUBLE_EQ(system.mixtureDensity(0.5), 0.5 * 1000.0 + 0.5 * 100.0);      // 550
-  EXPECT_DOUBLE_EQ(system.mixtureDensity(0.75), 0.75 * 1000.0 + 0.25 * 100.0);   // 775
+  EXPECT_DOUBLE_EQ(system.mixtureDensity(0.25), 0.25 * 1000.0 + 0.75 * 100.0);  // 325
+  EXPECT_DOUBLE_EQ(system.mixtureDensity(0.5), 0.5 * 1000.0 + 0.5 * 100.0);     // 550
+  EXPECT_DOUBLE_EQ(system.mixtureDensity(0.75), 0.75 * 1000.0 + 0.25 * 100.0);  // 775
 }
 
 TEST(TwoPhaseSystemTest, MixtureViscosityAtCanonicalAlphaValues) {

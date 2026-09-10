@@ -103,7 +103,7 @@ TEST(ThermalCaseTest, BuilderConstructsThermalRuntimeObjects) {
 
   ASSERT_TRUE(setup.temperatureBoundaries.has_value());
   EXPECT_EQ(setup.temperatureBoundaries->get("left").type(),
-           BoundaryConditionType::FixedTemperature);
+            BoundaryConditionType::FixedTemperature);
   EXPECT_EQ(setup.temperatureBoundaries->get("bottom").type(), BoundaryConditionType::Adiabatic);
   const auto& leftBc =
       static_cast<const FixedTemperature&>(setup.temperatureBoundaries->get("left"));
@@ -147,7 +147,7 @@ TEST(ThermalCaseTest, BuilderConstructsHeatFluxWithCaseConductivity) {
 TEST(ThermalCaseTest, RejectsNonPositiveConductivity) {
   CaseFixture fixture;
   fixture.write("physics.json",
-               R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
                     "thermal": {"conductivity": 0.0, "specific_heat": 1000.0,
                                 "initial_temperature": 300.0}})");
   fixture.write("boundaries.json", kThermalBoundaries);
@@ -157,7 +157,7 @@ TEST(ThermalCaseTest, RejectsNonPositiveConductivity) {
 TEST(ThermalCaseTest, RejectsNegativeSpecificHeat) {
   CaseFixture fixture;
   fixture.write("physics.json",
-               R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
                     "thermal": {"conductivity": 0.6, "specific_heat": -1.0,
                                 "initial_temperature": 300.0}})");
   fixture.write("boundaries.json", kThermalBoundaries);
@@ -167,7 +167,7 @@ TEST(ThermalCaseTest, RejectsNegativeSpecificHeat) {
 TEST(ThermalCaseTest, RejectsMissingThermalField) {
   CaseFixture fixture;
   fixture.write("physics.json",
-               R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
                     "thermal": {"conductivity": 0.6, "initial_temperature": 300.0}})");
   fixture.write("boundaries.json", kThermalBoundaries);
   expectRejected(fixture);
@@ -176,7 +176,7 @@ TEST(ThermalCaseTest, RejectsMissingThermalField) {
 TEST(ThermalCaseTest, RejectsUnknownThermalKey) {
   CaseFixture fixture;
   fixture.write("physics.json",
-               R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
                     "thermal": {"conductivity": 0.6, "specific_heat": 1000.0,
                                 "initial_temperature": 300.0, "density": 1000.0}})");
   fixture.write("boundaries.json", kThermalBoundaries);

@@ -150,7 +150,7 @@ TEST(SIMPLETurbulenceModelsTest, LaminarKEpsilonKOmegaAndSSTProduceDistinctModel
   kEpsilonConfig.initialK = 0.01;
   kEpsilonConfig.initialEpsilon = 0.001;
   KEpsilonModel kEpsilon(mesh, fluid, velocityBoundaries, kBoundaries, secondScalarBoundaries,
-                        kEpsilonConfig);
+                         kEpsilonConfig);
   KOmegaConfig kOmegaConfig;
   kOmegaConfig.initialK = 0.01;
   kOmegaConfig.initialOmega = 10.0;

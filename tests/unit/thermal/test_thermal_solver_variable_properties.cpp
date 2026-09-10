@@ -136,7 +136,8 @@ Real maxInteriorError(const VariableConductivityCase& problem, Index nx) {
   const Real dx = problem.length / static_cast<Real>(nx);
   Real maxError = 0.0;
   for (const auto& cell : mesh.cells()) {
-    if (cell.centroid().x < dx || cell.centroid().x > problem.length - dx) continue;  // boundary layer.
+    if (cell.centroid().x < dx || cell.centroid().x > problem.length - dx)
+      continue;  // boundary layer.
     const Real exact = problem.analyticalTemperature(cell.centroid().x);
     maxError = std::max(maxError, std::abs(result.temperature[cell.id()] - exact));
   }
@@ -236,8 +237,8 @@ TEST(ThermalSolverVariablePropertiesTest, RepeatedSolveIsDeterministic) {
 
 TEST(ThermalSolverVariablePropertiesTest,
      VariableConductivityMatchesManufacturedAnalyticalProfile) {
-  const VariableConductivityCase problem{/*kRef=*/0.6,  /*tRef=*/300.0, /*slope=*/0.001,
-                                         /*th=*/400.0,  /*tc=*/300.0,   /*length=*/1.0};
+  const VariableConductivityCase problem{/*kRef=*/0.6, /*tRef=*/300.0, /*slope=*/0.001,
+                                         /*th=*/400.0, /*tc=*/300.0,   /*length=*/1.0};
   const Real errorCoarse = maxInteriorError(problem, /*nx=*/20);
   const Real errorFine = maxInteriorError(problem, /*nx=*/80);
 

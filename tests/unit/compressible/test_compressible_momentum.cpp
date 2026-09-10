@@ -23,6 +23,9 @@ using cfd::Vector2;
 using cfd::boundary::BoundaryConditionSet;
 using cfd::boundary::FixedGradient;
 using cfd::boundary::MovingWall;
+using cfd::compressible::assembleCompressibleMomentumComponent;
+using cfd::compressible::compressibleMomentumTimeDerivative;
+using cfd::compressible::CompressibleTimeDerivativeCoefficients;
 using cfd::fields::ScalarField;
 using cfd::fields::SurfaceField;
 using cfd::fields::VectorField;
@@ -31,9 +34,6 @@ using cfd::mesh::MeshGeometry;
 using cfd::physics::FluidProperties;
 using cfd::physics::MomentumAssembly;
 using cfd::physics::VelocityComponent;
-using cfd::compressible::assembleCompressibleMomentumComponent;
-using cfd::compressible::compressibleMomentumTimeDerivative;
-using cfd::compressible::CompressibleTimeDerivativeCoefficients;
 using cfd::pressure_velocity::assembleTransientMomentumComponent;
 
 namespace {
@@ -116,9 +116,8 @@ TEST(CompressibleMomentumTimeDerivativeTest, MismatchedSizeThrows) {
   const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
   const ScalarField velocityOld(mesh.numberOfCells() + 1, 1.0);
   const ScalarField density(mesh.numberOfCells(), 1.0);
-  EXPECT_THROW(
-      (void)compressibleMomentumTimeDerivative(mesh, velocityOld, density, density, 0.1),
-      InvalidArgumentError);
+  EXPECT_THROW((void)compressibleMomentumTimeDerivative(mesh, velocityOld, density, density, 0.1),
+               InvalidArgumentError);
 }
 
 TEST(CompressibleMomentumTimeDerivativeTest, RejectsNonPositiveDt) {

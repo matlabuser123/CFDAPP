@@ -114,7 +114,7 @@ RegimeErrors runAdvectionDiffusionCase(Real u, Real diffusivity) {
   const Index n = mesh.numberOfCells();
 
   const VectorField velocity(n, Vector2{u, 0.0});  // manufactured, uniform.
-  const FluidProperties fluid(1.0, 1.0);            // rho=1: Pe=u*L/D is unaffected either way.
+  const FluidProperties fluid(1.0, 1.0);           // rho=1: Pe=u*L/D is unaffected either way.
   const SurfaceField massFlux = calculateMassFlux(mesh, velocity, fluid, velocityBoundaries);
 
   const ScalarField initialConcentration(n, 0.5 * (kY0 + kY1));
@@ -132,8 +132,8 @@ RegimeErrors runAdvectionDiffusionCase(Real u, Real diffusivity) {
   settings.linearSolver.absoluteTolerance = 1e-9;
   settings.linearSolver.relativeTolerance = 1e-8;
   const SpeciesSolver solver{settings};
-  const SpeciesResult result = solver.solve(mesh, initialConcentration, massFlux, fluid, species,
-                                            concentrationBoundaries);
+  const SpeciesResult result =
+      solver.solve(mesh, initialConcentration, massFlux, fluid, species, concentrationBoundaries);
   EXPECT_EQ(result.status, SpeciesStatus::Converged) << "u=" << u << " D=" << diffusivity;
 
   const Real peclet = u * kLength / diffusivity;
@@ -173,7 +173,8 @@ TEST(SpeciesAdvectionDiffusionValidation, MixedRegimePe5MatchesAnalytical) {
   EXPECT_LE(errors.bounds.maximum, 1.0 + 1e-6);
 }
 
-TEST(SpeciesAdvectionDiffusionValidation, AdvectionDominatedRegimePe50MatchesAnalyticalWithinUpwindDiffusion) {
+TEST(SpeciesAdvectionDiffusionValidation,
+     AdvectionDominatedRegimePe50MatchesAnalyticalWithinUpwindDiffusion) {
   // High Pe: first-order upwind's own numerical diffusion is a
   // significant fraction of the (small) physical D here -- this task's
   // own section 22 explicitly anticipates this, so the tolerance is
@@ -188,7 +189,8 @@ TEST(SpeciesAdvectionDiffusionValidation, AdvectionDominatedRegimePe50MatchesAna
 
 // --- Pure advection (section 22, D=0) ----------------------------------
 
-TEST(SpeciesAdvectionDiffusionValidation, PureAdvectionTransportsInletValueDownstreamWithoutSourceOrSink) {
+TEST(SpeciesAdvectionDiffusionValidation,
+     PureAdvectionTransportsInletValueDownstreamWithoutSourceOrSink) {
   // Section 14's own warning: an outlet is *not* simply Y=0 -- it must
   // use a genuine zero-gradient (let-it-leave) treatment, unlike the
   // Dirichlet-both-ends setup the advection-diffusion regime tests above
@@ -226,7 +228,8 @@ TEST(SpeciesAdvectionDiffusionValidation, PureAdvectionTransportsInletValueDowns
   const auto velocityBoundaries = makeVelocityBoundaries(mesh, u);
   BoundaryConditionSet concentrationBoundaries;
   concentrationBoundaries.set(mesh, "left", std::make_unique<FixedValue>(kY1));
-  concentrationBoundaries.set(mesh, "right", std::make_unique<FixedGradient>(0.0));  // zero-gradient outflow.
+  concentrationBoundaries.set(mesh, "right",
+                              std::make_unique<FixedGradient>(0.0));  // zero-gradient outflow.
   concentrationBoundaries.set(mesh, "top", std::make_unique<FixedGradient>(0.0));
   concentrationBoundaries.set(mesh, "bottom", std::make_unique<FixedGradient>(0.0));
   const Index n = mesh.numberOfCells();
@@ -242,12 +245,11 @@ TEST(SpeciesAdvectionDiffusionValidation, PureAdvectionTransportsInletValueDowns
   settings.linearSolver.absoluteTolerance = 1e-6;
   settings.linearSolver.relativeTolerance = 1e-5;
   const SpeciesSolver solver{settings};
-  const SpeciesResult result = solver.solve(mesh, initialConcentration, massFlux, fluid, species,
-                                            concentrationBoundaries);
+  const SpeciesResult result =
+      solver.solve(mesh, initialConcentration, massFlux, fluid, species, concentrationBoundaries);
   if (result.status != SpeciesStatus::Converged) {
     ADD_FAILURE() << "status=" << static_cast<int>(result.status)
-                  << " outerIter=" << result.iterations
-                  << " linearIter=" << result.linearIterations
+                  << " outerIter=" << result.iterations << " linearIter=" << result.linearIterations
                   << " initialResidual=" << result.initialResidual
                   << " finalResidual=" << result.finalResidual
                   << " maxConcChange=" << result.maxConcentrationChange;

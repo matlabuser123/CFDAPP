@@ -145,8 +145,7 @@ TEST(SSTEquationTest, F1RemainsBoundedAcrossRepresentativeStates) {
   };
   for (const auto& s : states) {
     const Real cdkw = computeCrossDiffusionCoefficient(rho, sigmaOmega2, s.omega, 1.0);
-    const Real arg1 =
-        computeF1Argument(s.k, s.omega, s.y, s.nu, rho, betaStar, sigmaOmega2, cdkw);
+    const Real arg1 = computeF1Argument(s.k, s.omega, s.y, s.nu, rho, betaStar, sigmaOmega2, cdkw);
     ASSERT_TRUE(std::isfinite(arg1));
     const Real f1 = computeF1(arg1);
     EXPECT_TRUE(std::isfinite(f1));
@@ -247,11 +246,11 @@ TEST(SSTEquationTest, TurbulentViscosityStrainDominatedBranch) {
 
 TEST(SSTEquationTest, TurbulentViscosityRejectsInvalidInputs) {
   EXPECT_THROW((void)computeSSTTurbulentViscosity(1.0, 0.0, 2.0, 10.0, 1.0, 1.0),
-              InvalidArgumentError);
+               InvalidArgumentError);
   EXPECT_THROW((void)computeSSTTurbulentViscosity(1.0, 0.31, 2.0, 0.0, 1.0, 1.0),
-              InvalidArgumentError);
+               InvalidArgumentError);
   EXPECT_THROW((void)computeSSTTurbulentViscosity(1.0, 0.31, 2.0, 10.0, -1.0, 1.0),
-              InvalidArgumentError);
+               InvalidArgumentError);
 }
 
 // --- production limiter (sections 19-20, 44, mandatory) -----------------

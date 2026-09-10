@@ -160,7 +160,8 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
     snapshot.temperature = std::move(temperatureValues);
   }
 
-  // --- residuals.csv: iteration,u_residual,v_residual,p_residual,continuity_residual,global_mass_imbalance
+  // --- residuals.csv:
+  // iteration,u_residual,v_residual,p_residual,continuity_residual,global_mass_imbalance
   std::ifstream residualsIn(residualsPath);
   std::string residualsHeader;
   if (!std::getline(residualsIn, residualsHeader)) return VisualizationSnapshot{};

@@ -64,7 +64,7 @@ TEST(CaseWriterTest, BasicCaseRoundTripsExactly) {
   EXPECT_DOUBLE_EQ(reread.solver.velocityRelaxation, original.solver.velocityRelaxation);
   EXPECT_EQ(reread.solver.momentumSolver.type, original.solver.momentumSolver.type);
   EXPECT_DOUBLE_EQ(reread.solver.momentumSolver.absoluteTolerance,
-                  original.solver.momentumSolver.absoluteTolerance);
+                   original.solver.momentumSolver.absoluteTolerance);
 
   EXPECT_DOUBLE_EQ(reread.initialConditions.velocity.x, 0.0);
   EXPECT_DOUBLE_EQ(reread.initialConditions.pressure, 0.0);
@@ -93,11 +93,15 @@ TEST(CaseWriterTest, ThermalTurbulenceBuoyancyRoundTrip) {
   CaseDefinition original = CaseReader{}.read(source.directory());
 
   original.physics.thermal = cfd::io::ThermalPhysicsConfig{0.6, 4180.0, 300.0};
-  original.physics.turbulence =
-      cfd::io::TurbulencePhysicsConfig{"k_epsilon", 0.1, /*initialEpsilon=*/0.01,
-                                       std::nullopt,     /*kRelaxation=*/0.6,
-                                       /*epsilonRelaxation=*/0.6, std::nullopt};
-  original.physics.buoyancy = cfd::io::BuoyancyPhysicsConfig{0.0003, 300.0, cfd::Vector2{0.0, -9.81}};
+  original.physics.turbulence = cfd::io::TurbulencePhysicsConfig{"k_epsilon",
+                                                                 0.1,
+                                                                 /*initialEpsilon=*/0.01,
+                                                                 std::nullopt,
+                                                                 /*kRelaxation=*/0.6,
+                                                                 /*epsilonRelaxation=*/0.6,
+                                                                 std::nullopt};
+  original.physics.buoyancy =
+      cfd::io::BuoyancyPhysicsConfig{0.0003, 300.0, cfd::Vector2{0.0, -9.81}};
 
   for (auto& [name, patch] : original.boundaries.patches) {
     (void)name;
@@ -105,11 +109,14 @@ TEST(CaseWriterTest, ThermalTurbulenceBuoyancyRoundTrip) {
   }
   original.boundaries.patches.at("left").temperature =
       cfd::io::TemperatureBoundarySpec{"fixed_temperature", 310.0};
-  original.boundaries.patches.at("right").velocity = cfd::io::VelocityBoundarySpec{"inlet", cfd::Vector2{2.0, 0.0}};
+  original.boundaries.patches.at("right").velocity =
+      cfd::io::VelocityBoundarySpec{"inlet", cfd::Vector2{2.0, 0.0}};
   original.boundaries.patches.at("right").temperature =
       cfd::io::TemperatureBoundarySpec{"heat_flux", 500.0};
-  original.boundaries.patches.at("bottom").velocity = cfd::io::VelocityBoundarySpec{"outlet", cfd::Vector2{}};
-  original.boundaries.patches.at("bottom").pressure = cfd::io::PressureBoundarySpec{"fixed_value", 0.0};
+  original.boundaries.patches.at("bottom").velocity =
+      cfd::io::VelocityBoundarySpec{"outlet", cfd::Vector2{}};
+  original.boundaries.patches.at("bottom").pressure =
+      cfd::io::PressureBoundarySpec{"fixed_value", 0.0};
 
   const CaseDefinition reread = roundTrip(original);
 

@@ -27,9 +27,9 @@ constexpr std::array<std::string_view, 2> kVelocityTypesWithValue{"moving_wall",
 // Only fixed_temperature/heat_flux take a "value" -- adiabatic has none,
 // same shape as kVelocityTypesWithValue above.
 constexpr std::array<std::string_view, 3> kTemperatureTypes{"fixed_temperature", "heat_flux",
-                                                             "adiabatic"};
+                                                            "adiabatic"};
 constexpr std::array<std::string_view, 2> kTemperatureTypesWithValue{"fixed_temperature",
-                                                                      "heat_flux"};
+                                                                     "heat_flux"};
 
 bool isOneOf(std::string_view value, const auto& options) {
   return std::any_of(options.begin(), options.end(),
@@ -85,8 +85,8 @@ TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
   TemperatureBoundarySpec spec;
   spec.type = getRequiredString(json, path, "type", context + ".type");
   if (!isOneOf(spec.type, kTemperatureTypes)) {
-    throwConfigError(path, context + ".type",
-                     "be one of: fixed_temperature, heat_flux, adiabatic", spec.type);
+    throwConfigError(path, context + ".type", "be one of: fixed_temperature, heat_flux, adiabatic",
+                     spec.type);
   }
 
   const bool needsValue = isOneOf(spec.type, kTemperatureTypesWithValue);
@@ -114,9 +114,9 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
     const std::string context = "boundaries.json patch \"" + patchName + "\"";
     requireObject(patchJson, path, context);
     rejectUnknownKeys(patchJson, path, context,
-                      thermalEnabled ? std::vector<std::string_view>{"velocity", "pressure",
-                                                                     "temperature"}
-                                     : std::vector<std::string_view>{"velocity", "pressure"});
+                      thermalEnabled
+                          ? std::vector<std::string_view>{"velocity", "pressure", "temperature"}
+                          : std::vector<std::string_view>{"velocity", "pressure"});
     requireField(patchJson, path, "velocity");
     requireField(patchJson, path, "pressure");
     if (thermalEnabled) {
@@ -127,8 +127,7 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
     patchConfig.velocity = parseVelocitySpec(patchJson.at("velocity"), path, patchName);
     patchConfig.pressure = parsePressureSpec(patchJson.at("pressure"), path, patchName);
     if (thermalEnabled) {
-      patchConfig.temperature =
-          parseTemperatureSpec(patchJson.at("temperature"), path, patchName);
+      patchConfig.temperature = parseTemperatureSpec(patchJson.at("temperature"), path, patchName);
     }
     // A duplicate JSON key within one object is not representable once
     // parsed (the underlying library keeps only the last occurrence), so

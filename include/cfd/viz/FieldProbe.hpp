@@ -76,8 +76,8 @@ struct LineSample {
 // points.size() != values.size(), or (sampleLineRaw only) if
 // numberOfSamples < 2.
 
-[[nodiscard]] Real probeScalarRaw(const std::vector<Vector2>& points, const std::vector<Real>& values,
-                                  const Vector2& point);
+[[nodiscard]] Real probeScalarRaw(const std::vector<Vector2>& points,
+                                  const std::vector<Real>& values, const Vector2& point);
 
 [[nodiscard]] std::vector<LineSample> sampleLineRaw(const std::vector<Vector2>& points,
                                                     const std::vector<Real>& values,

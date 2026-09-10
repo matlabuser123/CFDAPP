@@ -106,8 +106,8 @@ std::vector<LineSample> sampleLineRaw(const std::vector<Vector2>& points,
     if (!index.has_value()) {
       throw InvalidArgumentError("sampleLineRaw: no points given");
     }
-    samples.push_back(
-        LineSample{queryPoint, points[static_cast<std::size_t>(*index)], values[static_cast<std::size_t>(*index)]});
+    samples.push_back(LineSample{queryPoint, points[static_cast<std::size_t>(*index)],
+                                 values[static_cast<std::size_t>(*index)]});
   }
   return samples;
 }

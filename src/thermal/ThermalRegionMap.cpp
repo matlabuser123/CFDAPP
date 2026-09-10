@@ -15,8 +15,8 @@ ThermalRegionMap::ThermalRegionMap(std::vector<ThermalRegion> regions,
   for (std::size_t i = 0; i < regions_.size(); ++i) {
     for (std::size_t j = i + 1; j < regions_.size(); ++j) {
       if (regions_[i].name == regions_[j].name) {
-        throw InvalidArgumentError("ThermalRegionMap: duplicate region name \"" +
-                                   regions_[i].name + "\"");
+        throw InvalidArgumentError("ThermalRegionMap: duplicate region name \"" + regions_[i].name +
+                                   "\"");
       }
     }
   }

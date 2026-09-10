@@ -47,8 +47,7 @@ class BoussinesqBuoyancy {
   // coefficient is physically implausible for this model's intended use
   // and not silently accepted), if referenceTemperature is not finite,
   // or if either gravity component is not finite.
-  BoussinesqBuoyancy(Real referenceDensity, Real beta, Real referenceTemperature,
-                     Vector2 gravity);
+  BoussinesqBuoyancy(Real referenceDensity, Real beta, Real referenceTemperature, Vector2 gravity);
 
   [[nodiscard]] Real referenceDensity() const noexcept;
   [[nodiscard]] Real beta() const noexcept;

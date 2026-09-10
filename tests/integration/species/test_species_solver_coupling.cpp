@@ -66,7 +66,9 @@ constexpr Real kMeanVelocity = 1.0;
 constexpr Index kNx = 20;
 constexpr Index kNy = 8;
 
-Mesh makeChannelMesh() { return MeshGeometry::createCartesian2D(kNx, kNy, kChannelLength, kChannelHeight); }
+Mesh makeChannelMesh() {
+  return MeshGeometry::createCartesian2D(kNx, kNy, kChannelLength, kChannelHeight);
+}
 
 BoundaryConditionSet makeVelocityBoundaries(const Mesh& mesh) {
   BoundaryConditionSet boundaries;
@@ -209,9 +211,8 @@ TEST(SpeciesSolverCouplingTest, PassiveSpeciesDoesNotAlterVelocityOrThermalSolut
   const ScalarField initialTemperature(mesh.numberOfCells(), 300.0);
   const ThermalProperties thermalProps(0.6, 4180.0);
   const ThermalSolver thermalSolver{};
-  const ThermalResult thermalResult =
-      thermalSolver.solve(mesh, initialTemperature, flow.massFlux, thermalProps,
-                          temperatureBoundaries);
+  const ThermalResult thermalResult = thermalSolver.solve(mesh, initialTemperature, flow.massFlux,
+                                                          thermalProps, temperatureBoundaries);
   ASSERT_EQ(thermalResult.status, ThermalStatus::Converged);
 
   // Run species on top of the same flow/thermal state.
@@ -225,8 +226,8 @@ TEST(SpeciesSolverCouplingTest, PassiveSpeciesDoesNotAlterVelocityOrThermalSolut
   // at a high *domain* Pe) triggers on this coarser production-flow mesh.
   const SpeciesProperties species("tracer", 0.2);
   const SpeciesSolver speciesSolver{makeSpeciesSettings()};
-  const SpeciesResult speciesResult = speciesSolver.solve(
-      mesh, initialConcentration, flow.massFlux, fluid, species, concentrationBoundaries);
+  const SpeciesResult speciesResult = speciesSolver.solve(mesh, initialConcentration, flow.massFlux,
+                                                          fluid, species, concentrationBoundaries);
   ASSERT_EQ(speciesResult.status, SpeciesStatus::Converged);
 
   // Re-run velocity/pressure/temperature *without ever invoking the
@@ -236,9 +237,8 @@ TEST(SpeciesSolverCouplingTest, PassiveSpeciesDoesNotAlterVelocityOrThermalSolut
   // ThermalSolver takes a species field).
   const SIMPLEResult flowAgain = runChannelFlow(mesh, fluid);
   ASSERT_EQ(flowAgain.status, SIMPLEStatus::Converged);
-  const ThermalResult thermalAgain =
-      thermalSolver.solve(mesh, initialTemperature, flowAgain.massFlux, thermalProps,
-                          temperatureBoundaries);
+  const ThermalResult thermalAgain = thermalSolver.solve(
+      mesh, initialTemperature, flowAgain.massFlux, thermalProps, temperatureBoundaries);
   ASSERT_EQ(thermalAgain.status, ThermalStatus::Converged);
 
   for (Index i = 0; i < mesh.numberOfCells(); ++i) {

@@ -12,14 +12,14 @@
 #include "cfd/viz/MarchingSquares.hpp"
 #include "cfd/viz/VectorSampling.hpp"
 
+using cfd::Index;
+using cfd::Real;
+using cfd::Vector2;
 using cfd::app::CaseState;
 using cfd::app::ProjectRunOptions;
 using cfd::app::ProjectRunStatus;
 using cfd::app::VisualizationSnapshot;
 using cfd::pressure_velocity::SIMPLEIterationProgress;
-using cfd::Index;
-using cfd::Real;
-using cfd::Vector2;
 
 namespace {
 
@@ -118,7 +118,9 @@ bool SimulationController::canSave() const { return session_.canSave(); }
 bool SimulationController::canStop() const { return running_.load(); }
 bool SimulationController::isModified() const { return session_.isModified(); }
 
-QString SimulationController::lastError() const { return QString::fromStdString(session_.lastError()); }
+QString SimulationController::lastError() const {
+  return QString::fromStdString(session_.lastError());
+}
 
 bool SimulationController::openCase(const QString& caseDirectory) {
   const bool ok = session_.open(caseDirectory.toStdString());
@@ -168,7 +170,8 @@ bool SimulationController::validateCase() {
 
 void SimulationController::run() {
   if (running_.load() || !session_.canRun()) return;
-  joinWorkerIfAny();  // a prior run's worker (already finished) is joined before starting a new one.
+  joinWorkerIfAny();  // a prior run's worker (already finished) is joined before starting a new
+                      // one.
 
   running_.store(true);
   emit started();
@@ -201,7 +204,8 @@ void SimulationController::run() {
     // nor failed(), only the stateChanged() above (stateName() ==
     // "Cancelled"); a QML view distinguishes it from a real failure by
     // reading that property, not by an error banner.
-    if (result.status == ProjectRunStatus::Converged || result.status == ProjectRunStatus::DidNotConverge) {
+    if (result.status == ProjectRunStatus::Converged ||
+        result.status == ProjectRunStatus::DidNotConverge) {
       emit completed(result.status == ProjectRunStatus::Converged);
     } else if (result.status != ProjectRunStatus::Cancelled) {
       const QString message = result.errorMessage.empty()
@@ -276,7 +280,8 @@ bool SimulationController::loadCompletedResults() {
 QVariantMap SimulationController::scalarFieldGrid(const QString& field) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
   QVariantMap grid;
-  const std::vector<Real>* values = snapshot.valid ? snapshot.scalarField(field.toStdString()) : nullptr;
+  const std::vector<Real>* values =
+      snapshot.valid ? snapshot.scalarField(field.toStdString()) : nullptr;
   if (values == nullptr) return grid;
 
   // Every value here already passed buildSnapshot()'s/
@@ -325,9 +330,8 @@ QVariantList SimulationController::vectorSamples(int stride) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
   QVariantList samples;
   if (!snapshot.valid || stride < 1) return samples;
-  const auto raw =
-      cfd::viz::sampleVectorFieldRaw(snapshot.points, snapshot.velocityX, snapshot.velocityY,
-                                     static_cast<Index>(stride));
+  const auto raw = cfd::viz::sampleVectorFieldRaw(snapshot.points, snapshot.velocityX,
+                                                  snapshot.velocityY, static_cast<Index>(stride));
   for (const auto& s : raw) {
     QVariantMap sample;
     sample["x"] = s.position.x;
@@ -366,8 +370,8 @@ QVariantList SimulationController::sampleLine(const QString& field, double x0, d
   const std::vector<Real>* values = snapshot.scalarField(field.toStdString());
   if (values == nullptr) return samples;
 
-  const auto raw = cfd::viz::sampleLineRaw(snapshot.points, *values, Vector2{x0, y0}, Vector2{x1, y1},
-                                           static_cast<Index>(numberOfSamples));
+  const auto raw = cfd::viz::sampleLineRaw(snapshot.points, *values, Vector2{x0, y0},
+                                           Vector2{x1, y1}, static_cast<Index>(numberOfSamples));
   for (const auto& s : raw) {
     QVariantMap sample;
     sample["x"] = s.queryPoint.x;

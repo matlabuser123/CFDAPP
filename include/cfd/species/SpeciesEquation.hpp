@@ -148,6 +148,7 @@ struct ConcentrationBounds {
   Real minimum;
   Real maximum;
 };
-[[nodiscard]] ConcentrationBounds concentrationBounds(const cfd::fields::ScalarField& concentration);
+[[nodiscard]] ConcentrationBounds concentrationBounds(
+    const cfd::fields::ScalarField& concentration);
 
 }  // namespace cfd::species

@@ -170,8 +170,8 @@ TEST(PhaseConservationTest, OpenChannelAccumulationMatchesNetInflowMinusOutflow)
       const cfd::boundary::BoundaryCondition& bc =
           cfd::boundary::boundaryConditionForFace(mesh, face.id(), alphaBoundaries);
       const auto& scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition&>(bc);
-      const Real distance = cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(),
-                                                              face.centroid());
+      const Real distance =
+          cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
       // Evaluated against the *old* (pre-step) alpha, matching the
       // equation's own lagged-boundary convention (see
       // VolumeFractionEquation.hpp's own header comment).

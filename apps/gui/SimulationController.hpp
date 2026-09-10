@@ -53,7 +53,8 @@ class SimulationController : public QObject {
   // P5 GUI visualization integration -- see VisualizationSnapshot.hpp.
   Q_PROPERTY(bool hasResults READ hasResults NOTIFY resultsChanged)
   Q_PROPERTY(QStringList availableFields READ availableFields NOTIFY resultsChanged)
-  Q_PROPERTY(QStringList availableResidualSeriesNames READ availableResidualSeriesNames NOTIFY resultsChanged)
+  Q_PROPERTY(QStringList availableResidualSeriesNames READ availableResidualSeriesNames NOTIFY
+                 resultsChanged)
   Q_PROPERTY(QVariantMap meshBounds READ meshBounds NOTIFY resultsChanged)
 
  public:
@@ -120,7 +121,7 @@ class SimulationController : public QObject {
   Q_INVOKABLE QVariantMap probeAt(double x, double y) const;
   // [{x,y,value}, ...] evenly spaced from (x0,y0) to (x1,y1).
   Q_INVOKABLE QVariantList sampleLine(const QString& field, double x0, double y0, double x1,
-                                     double y1, int numberOfSamples) const;
+                                      double y1, int numberOfSamples) const;
   // Writes exactly what sampleLine() above would return as
   // "x,y,value\n"-format CSV (section 7's own "allow CSV export").
   // Returns false on any I/O failure.

@@ -89,8 +89,8 @@ CaseDefinition CaseReader::read(const std::filesystem::path& caseDirectory) cons
   // physics.json is already parsed above -- its "thermal" presence
   // decides whether boundaries.json's per-patch "temperature" key is
   // required or forbidden (P2-THERMAL-004).
-  definition.boundaries = detail::parseBoundaryConfig(
-      readJsonFile(boundariesPath), boundariesPath, definition.physics.thermal.has_value());
+  definition.boundaries = detail::parseBoundaryConfig(readJsonFile(boundariesPath), boundariesPath,
+                                                      definition.physics.thermal.has_value());
 
   const std::filesystem::path solverPath = loadReferenced("solver");
   definition.solver = detail::parseSolverConfig(readJsonFile(solverPath), solverPath);

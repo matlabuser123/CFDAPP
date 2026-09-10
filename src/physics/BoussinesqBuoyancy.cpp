@@ -25,15 +25,14 @@ void validateNonNegativeFinite(Real value, const char* fieldName) {
 
 void validateFinite(Real value, const char* fieldName) {
   if (!std::isfinite(value)) {
-    throw InvalidArgumentError(std::string("BoussinesqBuoyancy: ") + fieldName +
-                               " must be finite");
+    throw InvalidArgumentError(std::string("BoussinesqBuoyancy: ") + fieldName + " must be finite");
   }
 }
 
 }  // namespace
 
-BoussinesqBuoyancy::BoussinesqBuoyancy(Real referenceDensity, Real beta,
-                                       Real referenceTemperature, Vector2 gravity)
+BoussinesqBuoyancy::BoussinesqBuoyancy(Real referenceDensity, Real beta, Real referenceTemperature,
+                                       Vector2 gravity)
     : referenceDensity_(referenceDensity),
       beta_(beta),
       referenceTemperature_(referenceTemperature),

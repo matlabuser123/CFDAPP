@@ -74,7 +74,8 @@ TEST(SpeciesConservationTest, ClosedZeroFluxDomainConservesSpeciesForAnyArbitrar
   const Mesh mesh = MeshGeometry::createCartesian2D(6, 6, 1.0, 1.0);
   BoundaryConditionSet boundaries;
   for (const auto& patch : mesh.boundaryPatches()) {
-    boundaries.set(mesh, patch.name(), std::make_unique<FixedGradient>(0.0));  // zero diffusive flux.
+    boundaries.set(mesh, patch.name(),
+                   std::make_unique<FixedGradient>(0.0));  // zero diffusive flux.
   }
   const Index n = mesh.numberOfCells();
 
@@ -83,8 +84,8 @@ TEST(SpeciesConservationTest, ClosedZeroFluxDomainConservesSpeciesForAnyArbitrar
   // proof (a uniform or symmetric field could accidentally hide a bug).
   ScalarField concentration(n);
   for (Index i = 0; i < n; ++i) {
-    concentration[i] = 0.3 + 0.1 * std::sin(1.7 * static_cast<Real>(i)) +
-                       0.05 * static_cast<Real>(i % 3);
+    concentration[i] =
+        0.3 + 0.1 * std::sin(1.7 * static_cast<Real>(i)) + 0.05 * static_cast<Real>(i % 3);
   }
 
   SparseMatrixBuilder builder(n, n);
@@ -165,8 +166,8 @@ TEST(SpeciesConservationTest, OpenChannelSteadyStateInflowEqualsOutflowWithZeroS
   const SpeciesProperties species("tracer", diffusivity);
 
   const SpeciesSolver solver{};
-  const SpeciesResult result = solver.solve(mesh, initialConcentration, massFlux, fluid, species,
-                                            concentrationBoundaries);
+  const SpeciesResult result =
+      solver.solve(mesh, initialConcentration, massFlux, fluid, species, concentrationBoundaries);
   ASSERT_EQ(result.status, SpeciesStatus::Converged);
 
   // Net species flux leaving the domain, summed over every boundary face
@@ -183,8 +184,8 @@ TEST(SpeciesConservationTest, OpenChannelSteadyStateInflowEqualsOutflowWithZeroS
     const cfd::boundary::BoundaryCondition& bc =
         cfd::boundary::boundaryConditionForFace(mesh, face.id(), concentrationBoundaries);
     const auto& scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition&>(bc);
-    const Real distance = cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(),
-                                                            face.centroid());
+    const Real distance =
+        cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
     const Real yBoundary = scalarBc.boundaryValue(result.concentration[ownerId], distance);
 
     // Diffusive flux leaving the domain through this face.
@@ -253,8 +254,8 @@ TEST(SpeciesConservationTest, OpenChannelWithVolumetricSourceBalancesNetOutflowA
     const cfd::boundary::BoundaryCondition& bc =
         cfd::boundary::boundaryConditionForFace(mesh, face.id(), concentrationBoundaries);
     const auto& scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition&>(bc);
-    const Real distance = cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(),
-                                                            face.centroid());
+    const Real distance =
+        cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
     const Real yBoundary = scalarBc.boundaryValue(result.concentration[ownerId], distance);
     const Real diffusionCoefficient = fluid.density() * diffusivity;
     const Real diffusiveOut =

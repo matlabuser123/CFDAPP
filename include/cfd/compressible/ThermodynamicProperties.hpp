@@ -28,7 +28,7 @@ class ThermodynamicProperties {
   // a physically invalid calorically-perfect gas).
   ThermodynamicProperties(Real gasConstant, Real specificHeatPressure);
 
-  [[nodiscard]] Real gasConstant() const noexcept;         // R
+  [[nodiscard]] Real gasConstant() const noexcept;           // R
   [[nodiscard]] Real specificHeatPressure() const noexcept;  // cp
   [[nodiscard]] Real specificHeatVolume() const noexcept;    // cv = cp - R
   [[nodiscard]] Real specificHeatRatio() const noexcept;     // gamma = cp/cv

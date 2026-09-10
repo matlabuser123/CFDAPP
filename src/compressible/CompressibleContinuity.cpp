@@ -12,9 +12,9 @@ using cfd::fields::SurfaceField;
 using cfd::mesh::Mesh;
 
 CompressibleContinuityResult evaluateCompressibleContinuity(const Mesh& mesh,
-                                                             const ScalarField& densityOld,
-                                                             const ScalarField& densityNew,
-                                                             const SurfaceField& massFlux, Real dt) {
+                                                            const ScalarField& densityOld,
+                                                            const ScalarField& densityNew,
+                                                            const SurfaceField& massFlux, Real dt) {
   if (densityOld.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "evaluateCompressibleContinuity: densityOld size does not match mesh cell count");

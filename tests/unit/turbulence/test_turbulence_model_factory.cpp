@@ -192,8 +192,8 @@ TEST(TurbulenceModelFactoryTest, SSTNameCreatesSSTModel) {
   config.initialK = 0.02;
   config.initialOmega = 12.0;
 
-  const auto model = createTurbulenceModel("sst", mesh, fluid, velocityBoundaries,
-                                           scalarBoundaries, scalarBoundaries, config);
+  const auto model = createTurbulenceModel("sst", mesh, fluid, velocityBoundaries, scalarBoundaries,
+                                           scalarBoundaries, config);
   ASSERT_NE(model, nullptr);
   EXPECT_EQ(model->name(), "SST");
   auto* sst = dynamic_cast<SSTModel*>(model.get());

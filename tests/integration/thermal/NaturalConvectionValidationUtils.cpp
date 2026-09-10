@@ -71,7 +71,7 @@ DimensionlessNumbers computeDimensionlessNumbers(Real gravityMagnitude, Real bet
   DimensionlessNumbers result;
   result.pr = kinematicViscosity / thermalDiffusivity;
   result.ra = gravityMagnitude * beta * deltaT * length * length * length /
-             (kinematicViscosity * thermalDiffusivity);
+              (kinematicViscosity * thermalDiffusivity);
   return result;
 }
 

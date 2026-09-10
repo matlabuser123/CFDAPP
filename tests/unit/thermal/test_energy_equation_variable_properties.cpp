@@ -272,7 +272,8 @@ TEST(EnergyEquationVariablePropertiesTest, ConvectionUsesUpwindCellsOwnSpecificH
   EXPECT_NEAR(matrix.multiply(eA)[cellB], -expected, 1e-12);  // equal-and-opposite.
 }
 
-TEST(EnergyEquationVariablePropertiesTest, ConvectionSwitchesToNeighborsSpecificHeatWhenItIsUpwind) {
+TEST(EnergyEquationVariablePropertiesTest,
+     ConvectionSwitchesToNeighborsSpecificHeatWhenItIsUpwind) {
   const Mesh mesh = makeTwoCellMesh();
   const auto boundaries = makeZeroGradientBoundaries(mesh);
   const Index n = mesh.numberOfCells();
@@ -311,10 +312,9 @@ TEST(EnergyEquationVariablePropertiesTest, RejectsNonFiniteOrNonPositiveSpecific
 
   ScalarField zeroCp(n, 1.0);
   zeroCp[0] = 0.0;
-  EXPECT_THROW(
-      assembleThermalConvectionContribution(mesh, zeroCp, massFlux, temperature, boundaries,
-                                            builder, rhs),
-      InvalidArgumentError);
+  EXPECT_THROW(assembleThermalConvectionContribution(mesh, zeroCp, massFlux, temperature,
+                                                     boundaries, builder, rhs),
+               InvalidArgumentError);
 }
 
 // ---------------------------------------------------------------------
@@ -372,9 +372,9 @@ TEST(EnergyEquationVariablePropertiesTest, CombinerMismatchedFieldSizeThrows) {
   const ScalarField wrongSizeK(n + 1, 1.0);
   const ScalarField cpField(n, 1.0);
 
-  EXPECT_THROW((void)assembleEnergyEquation(mesh, temperature, massFlux, wrongSizeK, cpField,
-                                            boundaries),
-               InvalidArgumentError);
+  EXPECT_THROW(
+      (void)assembleEnergyEquation(mesh, temperature, massFlux, wrongSizeK, cpField, boundaries),
+      InvalidArgumentError);
 }
 
 TEST(EnergyEquationVariablePropertiesTest, CombinerRepeatedAssemblyIsDeterministic) {

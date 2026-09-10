@@ -28,7 +28,8 @@ namespace {
 // Same evaluate-at-current-state pattern as
 // thermal::EnergyEquation.cpp's boundaryTemperatureValue() and
 // physics::MomentumEquation.cpp's boundaryVelocity().
-Real boundaryConcentrationValue(const Mesh& mesh, const Face& face, const ScalarField& concentration,
+Real boundaryConcentrationValue(const Mesh& mesh, const Face& face,
+                                const ScalarField& concentration,
                                 const BoundaryConditionSet& concentrationBoundaries) {
   const BoundaryCondition& bc =
       cfd::boundary::boundaryConditionForFace(mesh, face.id(), concentrationBoundaries);
@@ -125,19 +126,18 @@ void assembleSpeciesConvectionContribution(const Mesh& mesh, const SurfaceField&
 
 void assembleSpeciesSourceContribution(const Mesh& mesh, Real volumetricSource, Vector& rhs) {
   if (!std::isfinite(volumetricSource)) {
-    throw InvalidArgumentError("assembleSpeciesSourceContribution: volumetricSource must be finite");
+    throw InvalidArgumentError(
+        "assembleSpeciesSourceContribution: volumetricSource must be finite");
   }
   for (const auto& cell : mesh.cells()) {
     rhs[cell.id()] += volumetricSource * cell.volume();
   }
 }
 
-SpeciesAssembly assembleSpeciesTransportEquation(const Mesh& mesh, const ScalarField& concentration,
-                                                 const SurfaceField& massFlux,
-                                                 const FluidProperties& fluid,
-                                                 const SpeciesProperties& species,
-                                                 const BoundaryConditionSet& concentrationBoundaries,
-                                                 Real volumetricSource) {
+SpeciesAssembly assembleSpeciesTransportEquation(
+    const Mesh& mesh, const ScalarField& concentration, const SurfaceField& massFlux,
+    const FluidProperties& fluid, const SpeciesProperties& species,
+    const BoundaryConditionSet& concentrationBoundaries, Real volumetricSource) {
   if (concentration.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleSpeciesTransportEquation: concentration size does not match mesh cell count");

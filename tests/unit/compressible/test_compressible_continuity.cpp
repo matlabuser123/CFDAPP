@@ -14,12 +14,12 @@
 using cfd::Index;
 using cfd::InvalidArgumentError;
 using cfd::Real;
+using cfd::compressible::CompressibleContinuityResult;
+using cfd::compressible::evaluateCompressibleContinuity;
 using cfd::fields::ScalarField;
 using cfd::fields::SurfaceField;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
-using cfd::compressible::CompressibleContinuityResult;
-using cfd::compressible::evaluateCompressibleContinuity;
 
 TEST(CompressibleContinuityTest, TimeOnlyImbalanceWithZeroFlux) {
   const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 2.0, 2.0);  // cell volume = 1 each.
@@ -38,8 +38,8 @@ TEST(CompressibleContinuityTest, TimeOnlyImbalanceWithZeroFlux) {
   for (Index i = 1; i < n; ++i) {
     EXPECT_NEAR(result.cellImbalance[i], 0.0, 1e-12) << "cell " << i;
   }
-  EXPECT_NEAR(result.totalMassOld, 4.0, 1e-12);   // 4 cells * rho=1 * V=1.
-  EXPECT_NEAR(result.totalMassNew, 4.2, 1e-12);   // one cell's rho raised by 0.2.
+  EXPECT_NEAR(result.totalMassOld, 4.0, 1e-12);  // 4 cells * rho=1 * V=1.
+  EXPECT_NEAR(result.totalMassNew, 4.2, 1e-12);  // one cell's rho raised by 0.2.
   EXPECT_NEAR(result.maxCellImbalance, 2.0, 1e-12);
 }
 

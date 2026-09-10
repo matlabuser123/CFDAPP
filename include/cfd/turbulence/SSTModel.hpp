@@ -90,9 +90,9 @@ class SSTModel final : public TurbulenceModel {
   // or if velocityBoundaries has no Wall/MovingWall patch (see
   // WallDistance.hpp).
   SSTModel(const cfd::mesh::Mesh& mesh, const cfd::physics::FluidProperties& fluid,
-          const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
-          const cfd::boundary::BoundaryConditionSet& kBoundaries,
-          const cfd::boundary::BoundaryConditionSet& omegaBoundaries, SSTConfig config);
+           const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
+           const cfd::boundary::BoundaryConditionSet& kBoundaries,
+           const cfd::boundary::BoundaryConditionSet& omegaBoundaries, SSTConfig config);
 
   [[nodiscard]] std::string_view name() const noexcept override;
 
@@ -133,7 +133,7 @@ class SSTModel final : public TurbulenceModel {
   // case, the same all-or-nothing policy KEpsilonModel/KOmegaModel
   // already apply.
   void correct(const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
-              const cfd::fields::ScalarField& pressure) override;
+               const cfd::fields::ScalarField& pressure) override;
 
   // max(|k_new - k_old|, |omega_new - omega_old|) over every cell, from
   // the last successful correct() call -- std::nullopt before correct()

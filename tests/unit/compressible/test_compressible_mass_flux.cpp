@@ -22,12 +22,12 @@ using cfd::boundary::BoundaryConditionSet;
 using cfd::boundary::Inlet;
 using cfd::boundary::Outlet;
 using cfd::boundary::Wall;
+using cfd::compressible::calculateCompressibleMassFlux;
 using cfd::fields::ScalarField;
 using cfd::fields::SurfaceField;
 using cfd::fields::VectorField;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
-using cfd::compressible::calculateCompressibleMassFlux;
 using cfd::physics::calculateMassFlux;
 using cfd::physics::FluidProperties;
 
@@ -56,7 +56,8 @@ TEST(CompressibleMassFluxTest, UniformDensityMatchesIncompressibleMassFluxExactl
   const SurfaceField incompressible = calculateMassFlux(mesh, velocity, fluid, boundaries);
 
   const ScalarField density(mesh.numberOfCells(), rho);
-  const SurfaceField compressible = calculateCompressibleMassFlux(mesh, velocity, density, boundaries);
+  const SurfaceField compressible =
+      calculateCompressibleMassFlux(mesh, velocity, density, boundaries);
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     EXPECT_DOUBLE_EQ(compressible[faceId], incompressible[faceId]) << "face " << faceId;
@@ -94,7 +95,7 @@ TEST(CompressibleMassFluxTest, BoundaryFaceUsesOwnerCellsOwnDensity) {
   const auto boundaries = makeChannelBoundaries(mesh, Vector2{1.0, 0.0});
   const VectorField velocity(mesh.numberOfCells(), Vector2{1.0, 0.0});
   ScalarField density(mesh.numberOfCells());
-  density[0] = 5.0;  // owner of the "left" boundary face.
+  density[0] = 5.0;    // owner of the "left" boundary face.
   density[1] = 100.0;  // must have no effect on the left boundary face.
 
   const SurfaceField massFlux = calculateCompressibleMassFlux(mesh, velocity, density, boundaries);

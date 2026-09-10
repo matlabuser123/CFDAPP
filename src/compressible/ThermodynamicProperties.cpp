@@ -33,8 +33,9 @@ Real ThermodynamicProperties::density(Real pressure, Real temperature) const {
 
 Real ThermodynamicProperties::speedOfSound(Real temperature) const {
   if (!std::isfinite(temperature) || !(temperature > 0.0)) {
-    throw InvalidArgumentError("ThermodynamicProperties::speedOfSound: temperature must be finite "
-                               "and > 0");
+    throw InvalidArgumentError(
+        "ThermodynamicProperties::speedOfSound: temperature must be finite "
+        "and > 0");
   }
   return std::sqrt(specificHeatRatio_ * gasConstant() * temperature);
 }
@@ -51,7 +52,8 @@ cfd::fields::ScalarField evaluateDensityField(const cfd::mesh::Mesh& mesh,
                                               const cfd::fields::ScalarField& temperature,
                                               const ThermodynamicProperties& thermodynamics) {
   if (pressure.size() != mesh.numberOfCells()) {
-    throw InvalidArgumentError("evaluateDensityField: pressure size does not match mesh cell count");
+    throw InvalidArgumentError(
+        "evaluateDensityField: pressure size does not match mesh cell count");
   }
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(

@@ -211,8 +211,8 @@ CompositeWallResult runCompositeWall(Index nx, Index ny,
   const Index neighbor = *interfaceFace.neighbor();
   const Real d1 =
       cfd::mesh::MeshGeometry::distance(mesh.cell(owner).centroid(), interfaceFace.centroid());
-  const Real d2 = cfd::mesh::MeshGeometry::distance(interfaceFace.centroid(),
-                                                    mesh.cell(neighbor).centroid());
+  const Real d2 =
+      cfd::mesh::MeshGeometry::distance(interfaceFace.centroid(), mesh.cell(neighbor).centroid());
   const Real g = interfaceConductance(kK1, d1, kK2, d2, interfaceFace.area());
   const Real tOwner = thermalResult.temperature[owner];
   const Real tNeighbor = thermalResult.temperature[neighbor];
@@ -225,17 +225,16 @@ CompositeWallResult runCompositeWall(Index nx, Index ny,
   // area): Ti = tOwner - q''*d1/k1 (owner side).
   result.numericalInterfaceTemperature = tOwner - (result.numericalHeatFlux * d1 / kK1);
 
-  result.hotWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature, boundaries,
-                                               regions, "left");
-  result.coldWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature, boundaries,
-                                                regions, "right");
-  result.topWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature, boundaries,
-                                               regions, "top");
-  result.bottomWallHeatLeaving = patchHeatLeaving(mesh, thermalResult.temperature, boundaries,
-                                                  regions, "bottom");
-  result.globalImbalance =
-      std::abs(result.hotWallHeatLeaving + result.coldWallHeatLeaving +
-               result.topWallHeatLeaving + result.bottomWallHeatLeaving);
+  result.hotWallHeatLeaving =
+      patchHeatLeaving(mesh, thermalResult.temperature, boundaries, regions, "left");
+  result.coldWallHeatLeaving =
+      patchHeatLeaving(mesh, thermalResult.temperature, boundaries, regions, "right");
+  result.topWallHeatLeaving =
+      patchHeatLeaving(mesh, thermalResult.temperature, boundaries, regions, "top");
+  result.bottomWallHeatLeaving =
+      patchHeatLeaving(mesh, thermalResult.temperature, boundaries, regions, "bottom");
+  result.globalImbalance = std::abs(result.hotWallHeatLeaving + result.coldWallHeatLeaving +
+                                    result.topWallHeatLeaving + result.bottomWallHeatLeaving);
   return result;
 }
 
