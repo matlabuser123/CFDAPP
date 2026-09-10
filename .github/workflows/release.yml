@@ -41,12 +41,18 @@ jobs:
       # machine's; if a future run hits the same error, matching
       # windows-latest's own MSVC version bracket (or picking an
       # even-newer Qt release) is the fix, not reverting to 6.5.
+      # No `modules:` entry -- a real CI run found "qtdeclarative" (QtQml/
+      # QtQuick) is not an installable addon module at all, it's part of
+      # the base desktop install already; aqtinstall rejected it outright
+      # ("packages ['qtdeclarative'] were not found"). This project's own
+      # local install command (scripts/windows-release's own recipe) never
+      # passed this flag either -- the CI config was simply wrong and
+      # untested until this run exposed it.
       - name: Install Qt6
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.9.3"
           arch: "win64_msvc2022_64"
-          modules: "qtdeclarative"
 
       # windows-latest already carries MSVC + CMake + Ninja.
       - name: Configure (Release, GUI + packaging)
