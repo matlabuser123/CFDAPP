@@ -53,7 +53,9 @@ bool allFieldsFinite(const SIMPLEResult& result) {
 void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetadata& metadata,
                                const Mesh& mesh, const SIMPLEResult& result,
                                const std::optional<ThermalRunMetadata>& thermal,
-                               const std::vector<SpeciesRunMetadata>& species) {
+                               const std::vector<SpeciesRunMetadata>& species,
+                               const std::optional<MultiphaseRunMetadata>& multiphase,
+                               const std::optional<CompressibleRunMetadata>& compressible) {
   const auto structured = detail::inferStructuredMeshInfo(mesh);
 
   nlohmann::json doc;
@@ -101,6 +103,34 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
                               {"converged", s.converged},
                               {"iterations", s.iterations},
                               {"final_residual", s.finalResidual}});
+  }
+
+  // P6-PHYS-002: "multiphase.enabled" is always present, same convention
+  // as "thermal.enabled" above.
+  doc["multiphase"]["enabled"] = multiphase.has_value();
+  if (multiphase.has_value()) {
+    doc["multiphase"]["phase1"]["name"] = multiphase->phase1Name;
+    doc["multiphase"]["phase1"]["density"] = multiphase->phase1Density;
+    doc["multiphase"]["phase1"]["viscosity"] = multiphase->phase1Viscosity;
+    doc["multiphase"]["phase2"]["name"] = multiphase->phase2Name;
+    doc["multiphase"]["phase2"]["density"] = multiphase->phase2Density;
+    doc["multiphase"]["phase2"]["viscosity"] = multiphase->phase2Viscosity;
+    doc["multiphase"]["status"] = multiphase->status;
+    doc["multiphase"]["converged"] = multiphase->converged;
+    doc["multiphase"]["conservation"]["phase1_volume"] = multiphase->phase1Volume;
+  }
+
+  // P6-PHYS-003: "compressible.enabled" is always present, same
+  // convention as "thermal.enabled" above.
+  doc["compressible"]["enabled"] = compressible.has_value();
+  if (compressible.has_value()) {
+    doc["compressible"]["gas_constant"] = compressible->gasConstant;
+    doc["compressible"]["specific_heat_pressure"] = compressible->specificHeatPressure;
+    doc["compressible"]["reference_pressure"] = compressible->referencePressure;
+    doc["compressible"]["thermal_coupled"] = compressible->thermalCoupled;
+    doc["compressible"]["status"] = compressible->status;
+    doc["compressible"]["mach_max"] = compressible->machMax;
+    doc["compressible"]["global_continuity_imbalance"] = compressible->globalContinuityImbalance;
   }
 
   std::ofstream out(path);

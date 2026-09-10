@@ -4,9 +4,11 @@
 #include <vector>
 
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/compressible/ThermodynamicProperties.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/multiphase/MultiphaseProperties.hpp"
 #include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/pressure_velocity/SIMPLESettings.hpp"
@@ -29,6 +31,36 @@ struct SpeciesSetup {
   cfd::species::SpeciesProperties properties;
   cfd::fields::ScalarField initialConcentration;
   cfd::boundary::BoundaryConditionSet concentrationBoundaries;
+};
+
+// P6-PHYS-002: everything `cfd::multiphase::VolumeFractionSolver::step()`
+// plus the mixture-property field evaluators need. `transportTimeStep` is
+// the single dt `step()` requires (VolumeFractionSolver.hpp's own
+// "single implicit-Euler step, no outer loop" scope). Momentum's own
+// mixture-viscosity coupling (see ProjectRunner.cpp's own header
+// comment) is built from `system`/`initialAlpha` by the caller, not
+// stored here -- same "CaseBuilder builds data, the caller
+// builds/orchestrates the solve" split every other optional physics
+// block in this struct already follows.
+struct MultiphaseSetup {
+  cfd::multiphase::TwoPhaseSystem system;
+  cfd::fields::ScalarField initialAlpha;
+  cfd::boundary::BoundaryConditionSet alphaBoundaries;
+  Real transportTimeStep{};
+};
+
+// P6-PHYS-003: everything the post-hoc low-Mach reinterpretation pass
+// (see CompressiblePhysicsConfig's own header comment for why this is
+// post-hoc, not a genuine compressible solve) needs. Exactly one of
+// `temperature` (isothermal) or `thermalCoupled` is meaningful --
+// `thermalCoupled` true means "use the case's own converged thermal
+// field instead", the same convention CompressiblePhysicsConfig itself
+// uses.
+struct CompressibleSetup {
+  cfd::compressible::ThermodynamicProperties thermodynamics;
+  Real referencePressure{};
+  std::optional<Real> temperature;
+  bool thermalCoupled{false};
 };
 
 // The bridge between configuration and CFD execution (TODO.md P1 section
@@ -140,6 +172,13 @@ struct SimulationSetup {
   // to keep in sync with it, same convention as PhysicsConfig::species
   // itself (see PhysicsConfig.hpp's own header comment).
   std::vector<SpeciesSetup> species;
+
+  // P6-PHYS-002/003: present iff physics.json configured the
+  // corresponding block -- same convention as thermal/buoyancy above.
+  // At most one of multiphase/turbulence is ever populated together (see
+  // PhysicsConfigParser.cpp's own cross-block rejection).
+  std::optional<MultiphaseSetup> multiphase;
+  std::optional<CompressibleSetup> compressible;
 };
 
 }  // namespace cfd::io

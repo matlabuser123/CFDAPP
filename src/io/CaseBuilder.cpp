@@ -30,8 +30,11 @@ using cfd::boundary::Outlet;
 using cfd::boundary::Symmetry;
 using cfd::boundary::Wall;
 using cfd::boundary::WallOmega;
+using cfd::compressible::ThermodynamicProperties;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
+using cfd::multiphase::PhaseProperties;
+using cfd::multiphase::TwoPhaseSystem;
 using cfd::physics::FluidProperties;
 using cfd::pressure_velocity::SIMPLESettings;
 using cfd::species::SpeciesProperties;
@@ -74,6 +77,16 @@ std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildConcentrationBounda
   if (spec.type == "fixed_gradient") return std::make_unique<FixedGradient>(spec.value);
   throw CaseConfigurationError("CaseBuilder: unsupported concentration boundary type \"" +
                                spec.type + "\"");
+}
+
+// P6-PHYS-002: same two types as buildPressureBoundary above (see
+// AlphaBoundarySpec's own header comment for why).
+std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildAlphaBoundary(
+    const AlphaBoundarySpec& spec) {
+  if (spec.type == "fixed_value") return std::make_unique<FixedValue>(spec.value);
+  if (spec.type == "fixed_gradient") return std::make_unique<FixedGradient>(spec.value);
+  throw CaseConfigurationError("CaseBuilder: unsupported alpha boundary type \"" + spec.type +
+                               "\"");
 }
 
 // P2-THERMAL-004: conductivity comes from the case's single
@@ -331,6 +344,21 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
         .concentrationBoundaries = BoundaryConditionSet{}});
   }
 
+  // P6-PHYS-002: built alongside species above -- system/initialAlpha
+  // come straight from physics.json (no per-patch dependency);
+  // alphaBoundaries is filled in during the per-patch loop below.
+  const bool multiphaseEnabled = definition.physics.multiphase.has_value();
+  std::optional<TwoPhaseSystem> multiphaseSystem;
+  std::optional<cfd::fields::ScalarField> multiphaseInitialAlpha;
+  std::optional<BoundaryConditionSet> alphaBoundaries;
+  if (multiphaseEnabled) {
+    const auto& m = *definition.physics.multiphase;
+    multiphaseSystem.emplace(PhaseProperties(m.phase1.name, m.phase1.density, m.phase1.viscosity),
+                             PhaseProperties(m.phase2.name, m.phase2.density, m.phase2.viscosity));
+    multiphaseInitialAlpha.emplace(mesh.numberOfCells(), m.initialAlpha);
+    alphaBoundaries.emplace();
+  }
+
   // P2-TURB-004 (extended by P2-TURB-005 and P2-TURB-006):
   // "k_epsilon"/"k_omega"/"sst" are the only models that need anything
   // built here -- an absent "turbulence" block or an explicit "model":
@@ -371,6 +399,9 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
       speciesSetup.concentrationBoundaries.set(
           mesh, patch.name(),
           buildConcentrationBoundary(patchConfig.concentration.at(speciesSetup.properties.name())));
+    }
+    if (multiphaseEnabled) {
+      alphaBoundaries->set(mesh, patch.name(), buildAlphaBoundary(patchConfig.alpha.value()));
     }
     if (kEpsilonEnabled) {
       kBoundaries->set(
@@ -424,7 +455,9 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                         .kBoundaries = std::nullopt,
                         .epsilonBoundaries = std::nullopt,
                         .omegaBoundaries = std::nullopt,
-                        .species = {}};
+                        .species = {},
+                        .multiphase = std::nullopt,
+                        .compressible = std::nullopt};
   if (thermalEnabled) {
     setup.thermal = thermal;
     setup.temperatureBoundaries = std::move(temperatureBoundaries);
@@ -460,6 +493,25 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
     setup.sstConfig = buildSSTConfig(*definition.physics.turbulence, definition.solver);
     setup.kBoundaries = std::move(kBoundaries);
     setup.omegaBoundaries = std::move(omegaBoundaries);
+  }
+  if (multiphaseEnabled) {
+    setup.multiphase =
+        MultiphaseSetup{.system = std::move(*multiphaseSystem),
+                        .initialAlpha = std::move(*multiphaseInitialAlpha),
+                        .alphaBoundaries = std::move(*alphaBoundaries),
+                        .transportTimeStep = definition.physics.multiphase->transportTimeStep};
+  }
+  // P6-PHYS-003: no per-patch dependency (the post-hoc low-Mach pass
+  // reuses the existing velocity/pressure BCs unchanged -- see
+  // CompressiblePhysicsConfig's own header comment), so built directly
+  // from physics.json here, not in the per-patch loop above.
+  if (definition.physics.compressible.has_value()) {
+    const auto& c = *definition.physics.compressible;
+    setup.compressible = CompressibleSetup{
+        .thermodynamics = ThermodynamicProperties(c.gasConstant, c.specificHeatPressure),
+        .referencePressure = c.referencePressure,
+        .temperature = c.temperature,
+        .thermalCoupled = c.thermalCoupled};
   }
   return setup;
 }

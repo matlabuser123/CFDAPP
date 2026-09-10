@@ -56,29 +56,36 @@ class ResultExporter {
   //    finite -- the same "only a fully-finite solution gets field files"
   //    policy extended to temperature, never a partially-finite export.
   //
-  //  - `species`/`speciesMetadata` (P6-PHYS-001): `species` supplies the
-  //    concentration_<name> column/SCALARS block data, `speciesMetadata`
-  //    the metadata.json "species" array entries -- the two are expected
-  //    to correspond 1:1 by position (same species, same order), the
-  //    caller's responsibility to keep in sync (ProjectRunner is the one
-  //    production caller). Unlike temperature's single optional field,
-  //    each species is filtered *independently*: a non-finite species
-  //    field is dropped from fields.csv/solution.vtk on its own (still
-  //    subject to every velocity/pressure value being finite first, same
-  //    top-level gate as temperature), without dropping any other
-  //    still-finite species or temperature. `speciesMetadata` is always
-  //    written in full regardless (metadata.json's own status/converged/
-  //    iterations/final_residual fields tell the real story for a species
-  //    that did not converge, the same "a failed solve is never
-  //    mislabeled as converged" policy already established for the top-
-  //    level solver/thermal status).
+  //  - `extraFields`/`speciesMetadata` (P6-PHYS-001, generalized by
+  //    P6-PHYS-002/003): `extraFields` supplies every further named
+  //    scalar field beyond temperature -- concentration_<name> per
+  //    species, plus (P6-PHYS-002/003) volume_fraction/mixture_density/
+  //    mixture_viscosity and density/pressure_absolute/mach_number,
+  //    whichever physics is enabled -- as one flat list (column/SCALARS
+  //    block data), never a separate parameter per physics module (this
+  //    codebase's own "one export pipeline, not one per physics type"
+  //    rule). `speciesMetadata` is only the "species" JSON array entries;
+  //    `multiphaseMetadata`/`compressibleMetadata` below are their own
+  //    single-object equivalents. Each `extraFields` entry is filtered
+  //    *independently*: a non-finite entry is dropped from
+  //    fields.csv/solution.vtk on its own (still subject to every
+  //    velocity/pressure value being finite first, same top-level gate as
+  //    temperature), without dropping any other still-finite entry or
+  //    temperature. Every *Metadata parameter is always written in full
+  //    regardless (metadata.json's own status/converged/iterations
+  //    fields tell the real story for a physics module that did not
+  //    converge, the same "a failed solve is never mislabeled as
+  //    converged" policy already established for the top-level solver/
+  //    thermal status).
   [[nodiscard]] static ResultExportSummary write(
       const std::filesystem::path& outputDirectory, const cfd::mesh::Mesh& mesh,
       const cfd::pressure_velocity::SIMPLEResult& result, const RunMetadata& metadata,
       const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt,
       const std::optional<ThermalRunMetadata>& thermalMetadata = std::nullopt,
-      const std::vector<NamedScalarField>& species = {},
-      const std::vector<SpeciesRunMetadata>& speciesMetadata = {});
+      const std::vector<NamedScalarField>& extraFields = {},
+      const std::vector<SpeciesRunMetadata>& speciesMetadata = {},
+      const std::optional<MultiphaseRunMetadata>& multiphaseMetadata = std::nullopt,
+      const std::optional<CompressibleRunMetadata>& compressibleMetadata = std::nullopt);
 };
 
 }  // namespace cfd::io

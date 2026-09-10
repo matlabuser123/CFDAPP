@@ -4,6 +4,8 @@
 add_executable(CFDCaseIntegrationTests
   test_case_lid_driven_cavity.cpp
   test_species_production_case.cpp
+  test_multiphase_production_case.cpp
+  test_compressible_production_case.cpp
 )
 
 target_link_libraries(CFDCaseIntegrationTests

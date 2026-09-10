@@ -92,3 +92,67 @@ TEST(LoadSnapshotFromResultsTest, ThermalCaseExposesTemperatureField) {
   const auto fields = reloaded.availableScalarFields();
   EXPECT_NE(std::find(fields.begin(), fields.end(), "temperature"), fields.end());
 }
+
+// P6-PHYS-001/002/003: "Reload / GUI compatibility" acceptance
+// criterion -- run a case, then reload its results/ directory
+// independently (no solver rerun), and confirm the new physics'
+// own fields are discoverable exactly like pressure/temperature, both
+// live (buildSnapshot) and reloaded (loadSnapshotFromResults), and that
+// the two agree with each other (same values, same field names) --
+// SimulationController (apps/gui/) needs no code change per physics
+// module because both paths already go through availableScalarFields()/
+// scalarField() generically.
+TEST(VisualizationSnapshotTest, SpeciesCaseExposesConcentrationFieldLiveAndReloaded) {
+  const auto run = ProjectRunner::run("cases/species_diffusion");
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged);
+  const VisualizationSnapshot live = buildSnapshot(run);
+  const auto reloaded =
+      loadSnapshotFromResults(std::filesystem::path("cases/species_diffusion") / "results");
+
+  ASSERT_TRUE(live.valid);
+  ASSERT_TRUE(reloaded.valid);
+  for (const VisualizationSnapshot* snapshot : {&live, &reloaded}) {
+    const auto fields = snapshot->availableScalarFields();
+    EXPECT_NE(std::find(fields.begin(), fields.end(), "concentration_CO2"), fields.end());
+    ASSERT_NE(snapshot->scalarField("concentration_CO2"), nullptr);
+  }
+  ASSERT_EQ(live.scalarField("concentration_CO2")->size(),
+            reloaded.scalarField("concentration_CO2")->size());
+  for (std::size_t i = 0; i < live.scalarField("concentration_CO2")->size(); ++i) {
+    EXPECT_NEAR((*live.scalarField("concentration_CO2"))[i],
+                (*reloaded.scalarField("concentration_CO2"))[i], 1e-9);
+  }
+}
+
+TEST(VisualizationSnapshotTest, MultiphaseCaseExposesMixtureFieldsLiveAndReloaded) {
+  const auto run = ProjectRunner::run("cases/multiphase_validation");
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged);
+  const VisualizationSnapshot live = buildSnapshot(run);
+  const auto reloaded =
+      loadSnapshotFromResults(std::filesystem::path("cases/multiphase_validation") / "results");
+
+  ASSERT_TRUE(live.valid);
+  ASSERT_TRUE(reloaded.valid);
+  for (const VisualizationSnapshot* snapshot : {&live, &reloaded}) {
+    const auto fields = snapshot->availableScalarFields();
+    EXPECT_NE(std::find(fields.begin(), fields.end(), "volume_fraction"), fields.end());
+    EXPECT_NE(std::find(fields.begin(), fields.end(), "mixture_density"), fields.end());
+    EXPECT_NE(std::find(fields.begin(), fields.end(), "mixture_viscosity"), fields.end());
+  }
+}
+
+TEST(VisualizationSnapshotTest, CompressibleCaseExposesThermodynamicFieldsLiveAndReloaded) {
+  const auto run = ProjectRunner::run("cases/compressible_validation");
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged);
+  const VisualizationSnapshot live = buildSnapshot(run);
+  const auto reloaded =
+      loadSnapshotFromResults(std::filesystem::path("cases/compressible_validation") / "results");
+
+  ASSERT_TRUE(live.valid);
+  ASSERT_TRUE(reloaded.valid);
+  for (const VisualizationSnapshot* snapshot : {&live, &reloaded}) {
+    const auto fields = snapshot->availableScalarFields();
+    EXPECT_NE(std::find(fields.begin(), fields.end(), "density"), fields.end());
+    EXPECT_NE(std::find(fields.begin(), fields.end(), "mach_number"), fields.end());
+  }
+}

@@ -16,7 +16,7 @@ using cfd::pressure_velocity::SIMPLEResult;
 void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
                             const SIMPLEResult& result,
                             const std::optional<cfd::fields::ScalarField>& temperature,
-                            const std::vector<NamedScalarField>& species) {
+                            const std::vector<NamedScalarField>& extraFields) {
   const Index n = mesh.numberOfCells();
   if (result.velocity.size() != n || result.pressure.size() != n) {
     throw InvalidArgumentError(
@@ -26,19 +26,24 @@ void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
     throw InvalidArgumentError(
         "CSVWriter::writeFields: temperature size does not match mesh cell count");
   }
-  for (const auto& [name, field] : species) {
+  for (const auto& [name, field] : extraFields) {
     if (field.size() != n) {
-      throw InvalidArgumentError("CSVWriter::writeFields: species \"" + name +
-                                 "\" field size does not match mesh cell count");
+      throw InvalidArgumentError("CSVWriter::writeFields: field \"" + name +
+                                 "\" size does not match mesh cell count");
     }
   }
 
   auto out = detail::openDeterministicOutput(path);
   out << "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure";
   if (temperature.has_value()) out << ",temperature";
-  for (const auto& [name, unused] : species) {
+  // The caller supplies each entry's full column name already (e.g.
+  // "concentration_CO2", "volume_fraction", "mach_number") -- no prefix
+  // is added here, so this stays generic across every physics module
+  // (P6-PHYS-001/002/003) rather than hardcoding one module's own naming
+  // convention.
+  for (const auto& [name, unused] : extraFields) {
     (void)unused;
-    out << ",concentration_" << name;
+    out << ',' << name;
   }
   out << '\n';
   for (Index id = 0; id < n; ++id) {
@@ -53,16 +58,16 @@ void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
       throw NumericalError("CSVWriter::writeFields: non-finite temperature at cell " +
                            std::to_string(id));
     }
-    for (const auto& [name, field] : species) {
+    for (const auto& [name, field] : extraFields) {
       if (!std::isfinite(field[id])) {
-        throw NumericalError("CSVWriter::writeFields: non-finite species \"" + name +
+        throw NumericalError("CSVWriter::writeFields: non-finite field \"" + name +
                              "\" value at cell " + std::to_string(id));
       }
     }
     out << id << ',' << centroid.x << ',' << centroid.y << ',' << velocity.x << ',' << velocity.y
         << ',' << magnitude(velocity) << ',' << pressure;
     if (temperature.has_value()) out << ',' << (*temperature)[id];
-    for (const auto& [name, field] : species) {
+    for (const auto& [name, field] : extraFields) {
       (void)name;
       out << ',' << field[id];
     }

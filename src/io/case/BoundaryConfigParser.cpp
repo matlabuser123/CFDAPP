@@ -7,6 +7,7 @@
 
 namespace cfd::io::detail {
 
+using cfd::io::AlphaBoundarySpec;
 using cfd::io::BoundaryConfig;
 using cfd::io::ConcentrationBoundarySpec;
 using cfd::io::PatchBoundaryConfig;
@@ -98,6 +99,24 @@ ConcentrationBoundarySpec parseConcentrationSpec(const nlohmann::json& json,
   return spec;
 }
 
+// P6-PHYS-002: phase-1 volume-fraction BC on one patch -- same two
+// types, same always-required "value", as parsePressureSpec above (see
+// AlphaBoundarySpec's own header comment for why).
+AlphaBoundarySpec parseAlphaSpec(const nlohmann::json& json, const std::filesystem::path& path,
+                                 const std::string& patchName) {
+  const std::string context = "patches." + patchName + ".alpha";
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context, {"type", "value"});
+
+  AlphaBoundarySpec spec;
+  spec.type = getRequiredString(json, path, "type", context + ".type");
+  if (!isOneOf(spec.type, kPressureTypes)) {
+    throwConfigError(path, context + ".type", "be one of: fixed_value, fixed_gradient", spec.type);
+  }
+  spec.value = getRequiredReal(json, path, "value", context + ".value");
+  return spec;
+}
+
 TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
                                              const std::filesystem::path& path,
                                              const std::string& patchName) {
@@ -125,7 +144,8 @@ TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
 
 BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesystem::path& path,
                                    bool thermalEnabled,
-                                   const std::vector<std::string>& speciesNames) {
+                                   const std::vector<std::string>& speciesNames,
+                                   bool multiphaseEnabled) {
   requireObject(json, path);
   rejectUnknownKeys(json, path, "boundaries.json", {"patches"});
   requireField(json, path, "patches");
@@ -141,6 +161,7 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
     std::vector<std::string_view> allowedKeys{"velocity", "pressure"};
     if (thermalEnabled) allowedKeys.push_back("temperature");
     if (speciesEnabled) allowedKeys.push_back("species");
+    if (multiphaseEnabled) allowedKeys.push_back("alpha");
     rejectUnknownKeys(patchJson, path, context, allowedKeys);
     requireField(patchJson, path, "velocity");
     requireField(patchJson, path, "pressure");
@@ -150,12 +171,18 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
     if (speciesEnabled) {
       requireField(patchJson, path, "species");
     }
+    if (multiphaseEnabled) {
+      requireField(patchJson, path, "alpha");
+    }
 
     PatchBoundaryConfig patchConfig;
     patchConfig.velocity = parseVelocitySpec(patchJson.at("velocity"), path, patchName);
     patchConfig.pressure = parsePressureSpec(patchJson.at("pressure"), path, patchName);
     if (thermalEnabled) {
       patchConfig.temperature = parseTemperatureSpec(patchJson.at("temperature"), path, patchName);
+    }
+    if (multiphaseEnabled) {
+      patchConfig.alpha = parseAlphaSpec(patchJson.at("alpha"), path, patchName);
     }
     // P6-PHYS-001: "species" must supply exactly the declared name set --
     // no fewer (an unconfigured species would otherwise reach

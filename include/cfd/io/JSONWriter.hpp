@@ -61,6 +61,43 @@ struct SpeciesRunMetadata {
   cfd::Real finalResidual{};
 };
 
+// P6-PHYS-002: the small set of the multiphase production run
+// metadata.json needs, same "own lightweight struct" reasoning as
+// ThermalRunMetadata above. phaseVolume is
+// multiphase::phaseVolume(mesh, alpha) at the *final* alpha -- the
+// conservation metric ProjectRunner reports (see ProjectRunner.hpp's
+// own header comment).
+struct MultiphaseRunMetadata {
+  std::string phase1Name;
+  std::string phase2Name;
+  cfd::Real phase1Density{};
+  cfd::Real phase1Viscosity{};
+  cfd::Real phase2Density{};
+  cfd::Real phase2Viscosity{};
+  std::string status;  // the exact VolumeFractionStatus enum name.
+  bool converged{};
+  cfd::Real phase1Volume{};
+};
+
+// P6-PHYS-003: the small set of the compressible post-hoc low-Mach
+// pass's metadata.json needs, same "own lightweight struct" reasoning
+// as ThermalRunMetadata above.
+struct CompressibleRunMetadata {
+  cfd::Real gasConstant{};
+  cfd::Real specificHeatPressure{};
+  cfd::Real referencePressure{};
+  bool thermalCoupled{false};
+  // "Evaluated" or "NotRun" -- there is no genuine iterative solve here
+  // (see ProjectRunner.hpp's own header comment: this is a deterministic
+  // post-hoc pass, not a converged/not-converged solver), so this is a
+  // simpler two-value status than ThermalStatus/SpeciesStatus/
+  // VolumeFractionStatus, not a third invented vocabulary for the same
+  // concept.
+  std::string status;
+  cfd::Real machMax{};
+  cfd::Real globalContinuityImbalance{};
+};
+
 class JSONWriter {
  public:
   // Writes metadata.json (section 11-16): format_version, case/mesh/
@@ -86,12 +123,18 @@ class JSONWriter {
   // (possibly empty), the same way a list-shaped field needs no separate
   // "enabled" flag the way thermal's single-optional-object shape does
   // (empty array already means "no species", unambiguously).
+  // `multiphase`/`compressible` (P6-PHYS-002/003): each present iff the
+  // case configured the corresponding block -- "multiphase.enabled"/
+  // "compressible.enabled" are always written (same documented-default
+  // convention as "thermal.enabled" above).
   // Throws IOError if `path` cannot be opened.
-  static void writeMetadata(const std::filesystem::path& path, const RunMetadata& metadata,
-                            const cfd::mesh::Mesh& mesh,
-                            const cfd::pressure_velocity::SIMPLEResult& result,
-                            const std::optional<ThermalRunMetadata>& thermal = std::nullopt,
-                            const std::vector<SpeciesRunMetadata>& species = {});
+  static void writeMetadata(
+      const std::filesystem::path& path, const RunMetadata& metadata, const cfd::mesh::Mesh& mesh,
+      const cfd::pressure_velocity::SIMPLEResult& result,
+      const std::optional<ThermalRunMetadata>& thermal = std::nullopt,
+      const std::vector<SpeciesRunMetadata>& species = {},
+      const std::optional<MultiphaseRunMetadata>& multiphase = std::nullopt,
+      const std::optional<CompressibleRunMetadata>& compressible = std::nullopt);
 };
 
 }  // namespace cfd::io

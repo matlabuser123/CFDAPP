@@ -14,6 +14,16 @@ bool allFinite(const std::vector<Real>& values) {
   return std::all_of(values.begin(), values.end(), [](Real v) { return std::isfinite(v); });
 }
 
+// P6-PHYS-001/002/003: cfd::fields::ScalarField -> std::vector<Real>, the
+// same conversion buildSnapshot() already does inline for temperature --
+// factored out here since species/multiphase/compressible each need it
+// at least once more.
+std::vector<Real> toVector(const cfd::fields::ScalarField& field) {
+  std::vector<Real> values(static_cast<std::size_t>(field.size()));
+  for (cfd::Index i = 0; i < field.size(); ++i) values[static_cast<std::size_t>(i)] = field[i];
+  return values;
+}
+
 std::vector<std::string> splitCsvLine(const std::string& line) {
   std::vector<std::string> fields;
   std::stringstream ss(line);
@@ -28,6 +38,10 @@ std::vector<std::string> VisualizationSnapshot::availableScalarFields() const {
   if (!valid) return {};
   std::vector<std::string> fields{"pressure", "velocity_magnitude"};
   if (temperature.has_value()) fields.push_back("temperature");
+  for (const auto& [name, unused] : extraScalarFields) {
+    (void)unused;
+    fields.push_back(name);
+  }
   return fields;
 }
 
@@ -36,6 +50,9 @@ const std::vector<Real>* VisualizationSnapshot::scalarField(const std::string& n
   if (name == "pressure") return &pressure;
   if (name == "velocity_magnitude") return &velocityMagnitude;
   if (name == "temperature" && temperature.has_value()) return &(*temperature);
+  for (const auto& [fieldName, values] : extraScalarFields) {
+    if (fieldName == name) return &values;
+  }
   return nullptr;
 }
 
@@ -96,6 +113,56 @@ VisualizationSnapshot buildSnapshot(const ProjectRunResult& run) {
     if (allFinite(temperature)) snapshot.temperature = std::move(temperature);
   }
 
+  // P6-PHYS-001/002/003: same field names ProjectRunner.cpp's own CSV/
+  // VTK export already uses (concentration_<name>, volume_fraction/
+  // mixture_density/mixture_viscosity, density/pressure_absolute/
+  // compressible_temperature/mach_number) -- a field selected in the GUI
+  // is therefore the exact same field a reloaded case's fields.csv/
+  // solution.vtk would show, never a second naming scheme.
+  for (const auto& speciesRun : run.speciesResults) {
+    if (static_cast<std::size_t>(speciesRun.result.concentration.size()) != n) continue;
+    std::vector<Real> values = toVector(speciesRun.result.concentration);
+    if (allFinite(values)) {
+      snapshot.extraScalarFields.emplace_back("concentration_" + speciesRun.name,
+                                              std::move(values));
+    }
+  }
+  if (run.multiphaseResult.has_value()) {
+    const auto& mp = *run.multiphaseResult;
+    if (static_cast<std::size_t>(mp.alphaStep.alpha.size()) == n) {
+      std::vector<Real> alpha = toVector(mp.alphaStep.alpha);
+      std::vector<Real> density = toVector(mp.mixtureDensity);
+      std::vector<Real> viscosity = toVector(mp.mixtureViscosity);
+      if (allFinite(alpha))
+        snapshot.extraScalarFields.emplace_back("volume_fraction", std::move(alpha));
+      if (allFinite(density)) {
+        snapshot.extraScalarFields.emplace_back("mixture_density", std::move(density));
+      }
+      if (allFinite(viscosity)) {
+        snapshot.extraScalarFields.emplace_back("mixture_viscosity", std::move(viscosity));
+      }
+    }
+  }
+  if (run.compressibleResult.has_value()) {
+    const auto& c = *run.compressibleResult;
+    if (static_cast<std::size_t>(c.density.size()) == n) {
+      std::vector<Real> density = toVector(c.density);
+      std::vector<Real> pressureAbsolute = toVector(c.pressureAbsolute);
+      std::vector<Real> compressibleTemperature = toVector(c.temperature);
+      std::vector<Real> mach = toVector(c.machNumber);
+      if (allFinite(density))
+        snapshot.extraScalarFields.emplace_back("density", std::move(density));
+      if (allFinite(pressureAbsolute)) {
+        snapshot.extraScalarFields.emplace_back("pressure_absolute", std::move(pressureAbsolute));
+      }
+      if (allFinite(compressibleTemperature)) {
+        snapshot.extraScalarFields.emplace_back("compressible_temperature",
+                                                std::move(compressibleTemperature));
+      }
+      if (allFinite(mach)) snapshot.extraScalarFields.emplace_back("mach_number", std::move(mach));
+    }
+  }
+
   snapshot.nx = run.caseDefinition->mesh.nx;
   snapshot.ny = run.caseDefinition->mesh.ny;
   snapshot.uResidualHistory = result.uResidualHistory;
@@ -127,16 +194,34 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
     return VisualizationSnapshot{};
   }
 
-  // --- fields.csv: cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure[,temperature]
+  // --- fields.csv: cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,
+  // pressure[,temperature][,<any further named field>...]. Every column
+  // beyond the first 7 is either "temperature" or (P6-PHYS-001/002/003)
+  // one of species/multiphase/compressible's own named fields
+  // (concentration_<name>, volume_fraction, mixture_density,
+  // mixture_viscosity, density, pressure_absolute,
+  // compressible_temperature, mach_number, ...) -- parsed generically by
+  // column *name* here (matching CSVWriter.cpp's own "the caller
+  // supplies the full column name, no fixed per-physics-module set"
+  // convention) rather than hardcoding one column per physics module, so
+  // a future physics module's own export needs no change here either.
   std::ifstream fieldsIn(fieldsPath);
   std::string headerLine;
   if (!std::getline(fieldsIn, headerLine)) return VisualizationSnapshot{};
   const std::vector<std::string> header = splitCsvLine(headerLine);
-  const bool hasTemperature =
-      std::find(header.begin(), header.end(), "temperature") != header.end();
   if (header.size() < 7) return VisualizationSnapshot{};
+  std::optional<std::size_t> temperatureColumn;
+  std::vector<std::pair<std::string, std::size_t>> extraColumns;  // {name, column index}.
+  for (std::size_t col = 7; col < header.size(); ++col) {
+    if (header[col] == "temperature") {
+      temperatureColumn = col;
+    } else {
+      extraColumns.emplace_back(header[col], col);
+    }
+  }
 
   std::vector<Real> temperatureValues;
+  std::vector<std::vector<Real>> extraColumnValues(extraColumns.size());
   std::string line;
   while (std::getline(fieldsIn, line)) {
     if (line.empty()) continue;
@@ -150,13 +235,25 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
       snapshot.velocityY.push_back(std::stod(row[4]));
       snapshot.velocityMagnitude.push_back(std::stod(row[5]));
       snapshot.pressure.push_back(std::stod(row[6]));
-      if (hasTemperature && row.size() > 7) temperatureValues.push_back(std::stod(row[7]));
+      if (temperatureColumn.has_value() && row.size() > *temperatureColumn) {
+        temperatureValues.push_back(std::stod(row[*temperatureColumn]));
+      }
+      for (std::size_t i = 0; i < extraColumns.size(); ++i) {
+        const std::size_t col = extraColumns[i].second;
+        if (row.size() > col) extraColumnValues[i].push_back(std::stod(row[col]));
+      }
     } catch (const std::exception&) {
       return VisualizationSnapshot{};
     }
   }
   if (snapshot.points.empty()) return VisualizationSnapshot{};
-  if (hasTemperature && temperatureValues.size() == snapshot.points.size()) {
+  for (std::size_t i = 0; i < extraColumns.size(); ++i) {
+    if (extraColumnValues[i].size() == snapshot.points.size()) {
+      snapshot.extraScalarFields.emplace_back(extraColumns[i].first,
+                                              std::move(extraColumnValues[i]));
+    }
+  }
+  if (temperatureColumn.has_value() && temperatureValues.size() == snapshot.points.size()) {
     snapshot.temperature = std::move(temperatureValues);
   }
 

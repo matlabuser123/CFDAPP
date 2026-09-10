@@ -122,6 +122,20 @@ void printReport(std::ostream& out, const ProjectRunResult& run) {
         << "Species " << speciesRun.name << " iterations: " << speciesRun.result.iterations
         << "\n\n";
   }
+  // P6-PHYS-002: mirrors the thermal block above -- there is exactly one
+  // multiphase block per case (unlike species' own list).
+  if (run.multiphaseResult.has_value()) {
+    out << "Multiphase alpha converged: "
+        << (run.multiphaseResult->alphaStep.converged() ? "yes" : "no") << "\n"
+        << "Multiphase phase1 volume: " << run.multiphaseResult->phase1Volume << "\n\n";
+  }
+  // P6-PHYS-003: this foundation has no genuine converged/not-converged
+  // solve (see ProjectRunner.hpp's own header comment) -- "evaluated"
+  // reports whether the post-hoc pass actually ran.
+  if (run.compressibleResult.has_value()) {
+    out << "Compressible evaluated: yes\n"
+        << "Compressible max Mach number: " << run.compressibleResult->machMax << "\n\n";
+  }
   if (run.exportSummary.has_value()) {
     out << "Results:\n"
         << "  JSON:      " << run.exportSummary->metadataPath.string() << "\n"

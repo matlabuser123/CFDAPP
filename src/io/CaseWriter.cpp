@@ -122,6 +122,32 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
     }
     physicsJson["species"] = std::move(speciesJson);
   }
+  // P6-PHYS-002: written iff present.
+  if (d.physics.multiphase.has_value()) {
+    const auto& m = *d.physics.multiphase;
+    auto phaseJson = [](const PhasePhysicsConfig& p) {
+      return json{{"name", p.name}, {"density", p.density}, {"viscosity", p.viscosity}};
+    };
+    physicsJson["multiphase"] = json{{"phase1", phaseJson(m.phase1)},
+                                     {"phase2", phaseJson(m.phase2)},
+                                     {"initial_alpha", m.initialAlpha},
+                                     {"transport_time_step", m.transportTimeStep}};
+  }
+  // P6-PHYS-003: written iff present. Exactly one of temperature/
+  // thermal_coupled -- see CompressiblePhysicsConfig's own header
+  // comment.
+  if (d.physics.compressible.has_value()) {
+    const auto& c = *d.physics.compressible;
+    json compressibleJson{{"gas_constant", c.gasConstant},
+                          {"specific_heat_pressure", c.specificHeatPressure},
+                          {"reference_pressure", c.referencePressure}};
+    if (c.thermalCoupled) {
+      compressibleJson["thermal_coupled"] = true;
+    } else {
+      compressibleJson["temperature"] = *c.temperature;
+    }
+    physicsJson["compressible"] = std::move(compressibleJson);
+  }
   writeJsonFile(caseDirectory / "physics.json", physicsJson);
 
   // --- boundaries.json --------------------------------------------------
@@ -153,6 +179,11 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
             json{{"type", concentrationSpec.type}, {"value", concentrationSpec.value}};
       }
       patchJson["species"] = std::move(speciesJson);
+    }
+    // P6-PHYS-002: same "written iff present" reasoning as temperature
+    // above.
+    if (patch.alpha.has_value()) {
+      patchJson["alpha"] = json{{"type", patch.alpha->type}, {"value", patch.alpha->value}};
     }
     patchesJson[patchName] = std::move(patchJson);
   }

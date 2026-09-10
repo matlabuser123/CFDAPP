@@ -77,12 +77,69 @@ struct BuoyancyPhysicsConfig {
 // this layer either, same reasoning). `name` also doubles as the key
 // boundaries.json's own per-patch "species" object must supply an entry
 // for (PhysicsConfigParser.cpp/BoundaryConfigParser.cpp's own
-// cross-check), and as the exported field/column name (species_<name> in
-// fields.csv/solution.vtk, "name" in metadata.json's "species" array).
+// cross-check), and as the exported field/column name
+// (concentration_<name> in fields.csv/solution.vtk, "name" in
+// metadata.json's "species" array).
 struct SpeciesConfig {
   std::string name;
   Real diffusivity{};
   Real initialConcentration{};
+};
+
+// P6-PHYS-002: one phase of physics.json's optional "multiphase" block,
+// mirroring cfd::multiphase::PhaseProperties exactly.
+struct PhasePhysicsConfig {
+  std::string name;
+  Real density{};
+  Real viscosity{};
+};
+
+// P6-PHYS-002: physics.json's optional "multiphase" object -- same
+// enable-by-presence convention as thermal/turbulence/buoyancy above.
+// Exactly two phases (cfd::multiphase::TwoPhaseSystem's own mandatory
+// two-phase scope -- see MultiphaseProperties.hpp's own header comment),
+// never a configurable N. initialAlpha is phase1's uniform initial
+// volume fraction (alpha=1 -> pure phase1, alpha=0 -> pure phase2, this
+// codebase's own established convention). transportTimeStep is the
+// single dt `cfd::multiphase::VolumeFractionSolver::step()` needs -- see
+// VolumeFractionSolver.hpp's own header comment on why this foundation
+// is a single implicit-Euler step, not an outer-iterated solve like
+// thermal/species: there is no case-file "dt" anywhere else in this
+// codebase (ProjectRunner is steady-SIMPLE-only), so this is the one
+// place a transient parameter enters an otherwise-steady case.
+struct MultiphasePhysicsConfig {
+  PhasePhysicsConfig phase1;
+  PhasePhysicsConfig phase2;
+  Real initialAlpha{};
+  Real transportTimeStep{};
+};
+
+// P6-PHYS-003: physics.json's optional "compressible" object -- same
+// enable-by-presence convention as the blocks above. This foundation has
+// no compressible pressure-velocity solver (no compressible SIMPLE/PISO
+// exists -- see cfd::compressible::CompressibleContinuity.hpp's own
+// header comment: "a genuine generalization of... this is NOT a
+// separately-iterated compressible pressure-correction solve"), so this
+// is deliberately a *post-hoc low-Mach reinterpretation* of an already-
+// converged incompressible SIMPLE result (exactly
+// tests/integration/compressible/test_low_mach_regression.cpp's own
+// validated recipe: solve incompressible SIMPLE with physics.json's
+// existing top-level density/dynamic_viscosity, then evaluate absolute
+// pressure/EOS density/Mach number/compressible mass flux/continuity
+// imbalance from that converged result) -- never a second, parallel flow
+// solve. referencePressure converts SIMPLE's own gauge pressure to
+// absolute (p_abs = referencePressure + p_gauge) for the EOS. Exactly
+// one of temperature (isothermal -- test_low_mach_regression.cpp's own
+// validated mode) or thermalCoupled (use the case's own "thermal" block
+// converged temperature field instead of a constant) must be set --
+// PhysicsConfigParser.cpp enforces this, and enforces "thermal" is
+// actually enabled when thermalCoupled is requested.
+struct CompressiblePhysicsConfig {
+  Real gasConstant{};
+  Real specificHeatPressure{};
+  Real referencePressure{};
+  std::optional<Real> temperature;
+  bool thermalCoupled{false};
 };
 
 // model is always "incompressible_laminar" for the current numerical
@@ -108,6 +165,14 @@ struct PhysicsConfig {
   // vector (PhysicsConfigParser.cpp accepts both; there is no meaningful
   // difference between them worth rejecting).
   std::vector<SpeciesConfig> species;
+  // P6-PHYS-002/003: at most one of multiphase/compressible is expected
+  // to be meaningfully combined with the other physics blocks in this
+  // foundation -- see PhysicsConfigParser.cpp's own cross-block checks
+  // for exactly which combinations are rejected (e.g. multiphase +
+  // turbulence both need SIMPLE's one effective-viscosity injection
+  // point) rather than silently producing an ambiguous configuration.
+  std::optional<MultiphasePhysicsConfig> multiphase;
+  std::optional<CompressiblePhysicsConfig> compressible;
 };
 
 }  // namespace cfd::io

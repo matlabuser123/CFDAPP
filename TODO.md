@@ -226,12 +226,87 @@
   (1162 pre-existing + 33 new), clang-format-18 clean, clang-tidy clean
   (0 findings on every changed production file). Committed `19e2300`,
   pushed to `main`.
-* [ ] Multiphase `physics.json` parsing
-* [ ] Multiphase `ProjectRunner` dispatch
-* [ ] Compressible `physics.json` parsing
-* [ ] Compressible `ProjectRunner` dispatch
-* [ ] Export/output wiring for new physics (species' own share of this is
-  done -- see above; multiphase/compressible still need theirs)
+* [x] Multiphase `physics.json` parsing -- physics.json's "multiphase"
+  object (phase1/phase2 name+density+viscosity, initial_alpha,
+  transport_time_step) and boundaries.json's per-patch "alpha" object
+  (fixed_value/fixed_gradient), enable-by-presence like species/thermal.
+  Full parse-time validation: initial_alpha in [0,1], both phase
+  viscosities > 0, distinct phase names, transport_time_step > 0,
+  top-level `dynamic_viscosity` <= min(phase viscosities) (guarantees
+  `MixtureViscosityModel`'s implied turbulent viscosity is never
+  negative), multiphase rejected together with turbulence (both want
+  SIMPLE's one turbulence-model slot).
+* [x] Multiphase `ProjectRunner` dispatch -- `SimulationSetup::multiphase`
+  built by `CaseBuilder`, run once SIMPLE's result is fully finite: one
+  `VolumeFractionSolver::step()` (the equation module's own single
+  implicit-Euler transient step -- no outer-Picard loop exists by
+  design), then `TwoPhaseSystem::evaluateMixtureDensityField`/
+  `evaluateMixtureViscosityField` at the final alpha. Mixture viscosity
+  is fed back into SIMPLE's momentum assembly via a new
+  `MixtureViscosityModel` adapter over the existing
+  `cfd::turbulence::TurbulenceModel` interface; mixture density is
+  intentionally NOT wired into continuity (`MultiphaseProperties.hpp`'s
+  own documented scope boundary -- SIMPLE's density stays the case's
+  single top-level constant). Exported to CSV/VTK/JSON
+  (`volume_fraction`/`mixture_density`/`mixture_viscosity`, a
+  "multiphase" metadata block with phase properties + phase1 volume
+  conservation metric), reported by the CLI, and discoverable via
+  `VisualizationSnapshot` (live and reloaded). New case
+  `cases/multiphase_validation` (quiescent two-phase slab; exact
+  hand-verified values: volume_fraction=0.5, mixture_density=500.5,
+  mixture_viscosity=5.09e-4, phase1_volume=0.5). Verified with
+  `tests/unit/io/test_multiphase_case.cpp` (11 tests) and
+  `tests/integration/case/test_multiphase_production_case.cpp` (7
+  tests) -- all passing.
+* [x] Compressible `physics.json` parsing -- physics.json's
+  "compressible" object (gas_constant, specific_heat_pressure,
+  reference_pressure, exactly one of temperature/thermal_coupled).
+  Validation: all positive, specific_heat_pressure > gas_constant,
+  thermal_coupled requires the case's own "thermal" block to be enabled
+  (reuses its converged temperature field instead of a constant).
+* [x] Compressible `ProjectRunner` dispatch -- this foundation has no
+  compressible pressure-velocity solver at all
+  (`CompressibleContinuity.hpp`'s own header comment: "NOT a
+  separately-iterated compressible pressure-correction solve"), so
+  dispatch is an honest post-hoc reinterpretation pass, not a genuine
+  solve, matching `test_low_mach_regression.cpp`'s own documented scope
+  ("a post-hoc consistency demonstration"). Once SIMPLE's result is
+  fully finite: absolute pressure from the case's reference pressure,
+  EOS density via `IdealGasEOS::evaluateDensityField`, per-cell Mach
+  number, `calculateCompressibleMassFlux`, and a diagnostic
+  `cfd::physics::evaluateContinuity` imbalance -- no density/momentum/
+  energy feedback into SIMPLE (unsupported coupling is not attempted).
+  Exported to CSV/VTK/JSON (`density`/`pressure_absolute`/
+  `compressible_temperature`/`mach_number`, a "compressible" metadata
+  block with a `status` field distinguishing "Evaluated" from
+  "NotRun"), reported by the CLI (`Compressible evaluated: yes` +
+  `Compressible max Mach number: ...`), and discoverable via
+  `VisualizationSnapshot`. New case `cases/compressible_validation`
+  (isothermal channel flow, low Mach; hand-verified: density matches
+  the ideal-gas law exactly, mach_max=0.0041, continuity
+  imbalance=3.68e-5). Verified with
+  `tests/unit/io/test_compressible_case.cpp` (11 tests) and
+  `tests/integration/case/test_compressible_production_case.cpp` (7
+  tests) -- all passing.
+* [x] Export/output wiring for new physics -- CSV/VTK/JSON now generic
+  across species/multiphase/compressible via `NamedScalarField` (a real
+  bug was found and fixed here: CSVWriter/VTKWriter were hardcoding a
+  `"concentration_"` prefix onto every extra field, which mis-prefixed
+  multiphase/compressible fields; the prefix is now supplied by the
+  caller per field). `VisualizationSnapshot` gained a generic
+  `extraScalarFields` list so species/multiphase/compressible fields are
+  discoverable via the existing `availableScalarFields()`/
+  `scalarField()` GUI API with zero `apps/gui/` code changes; both
+  `buildSnapshot()` (live) and `loadSnapshotFromResults()` (reloaded, no
+  solver rerun) populate it, verified equal by
+  `tests/unit/app/test_visualization_snapshot.cpp`'s three new
+  `*ExposesConcentrationFieldLiveAndReloaded`/`*ExposesMixtureFields...`/
+  `*ExposesThermodynamicFields...` tests. Existing incompressible cases
+  keep their CSV/VTK format unchanged; JSON metadata now always includes
+  `"multiphase"`/`"compressible"` `{"enabled": false}` blocks (a
+  backward-compatible, intentional schema extension -- confirmed via
+  `cases/heated_cavity`/`cases/species_diffusion`'s own committed
+  `results/metadata.json` diffs).
 
 ## GUI Improvements
 
@@ -254,6 +329,6 @@
 
 # Immediate Next Task
 
-**CI Gate and Release Gate are both fully closed (`v0.1.5` genuinely released). P5 is complete. Species production integration is done (physics.json/boundaries.json parsing, `CaseBuilder`/`ProjectRunner` dispatch, CSV/VTK/JSON export, CLI report, `cases/species_diffusion` example, 33 new passing tests, full regression 1195/1195 -- committed `19e2300`).**
+**CI Gate and Release Gate are both fully closed (`v0.1.5` genuinely released). P5 is complete. The full "Production Physics Integration" backlog is done: Species (committed `19e2300`), and now Multiphase + Compressible + generic export/output wiring + GUI-reload discoverability, all production-integrated (physics.json parsing, `CaseBuilder`/`ProjectRunner` dispatch, CSV/VTK/JSON export, CLI report, `VisualizationSnapshot` reload support, `cases/multiphase_validation`/`cases/compressible_validation` examples, 39 new passing tests, full regression 1234/1234).**
 
-**Next: Multiphase `physics.json` parsing + `ProjectRunner` dispatch** (see "Production Physics Integration" above) -- follow the same architecture species just established (CaseBuilder builds a runtime setup struct, ProjectRunner dispatches one-way/best-available, ResultExporter gets a new optional/list field, a real case under `cases/` exercises it end to end with a production-integration test). Not started.
+**Next: nothing queued from "Production Physics Integration" -- pick from "GUI Improvements" (mesh/physics/boundary-condition/solver-settings editors, full case creation from GUI) or "Performance Follow-up" (see "Next Backlog" above). One pre-existing, unrelated item worth a look first: `tests/data/cases/valid_cavity` is shared as a fixture by ~9 different test files across several test binaries, and running the full suite under `ctest -j8` occasionally (not reliably reproducible -- passes on most runs) fails exactly one of them, `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`, with `ProjectRunStatus::InvalidCase` instead of `Converged`; it always passes when rerun alone. This predates this phase's work (confirmed: the same fixture was already shared by 7 pre-existing test files before Multiphase/Compressible added 2 more usages) and looks like inter-process contention on that one shared `results/` directory under `-j8`, not a solver or export defect -- worth either giving each consumer its own copy of the fixture or serializing tests that touch it via a CTest fixture/resource lock.**

@@ -56,10 +56,13 @@ namespace cfd::io::detail {
 // set of per-patch "species" object keys required -- empty means no
 // patch may have a "species" key at all (same "required/forbidden, never
 // silently ignored" convention as thermalEnabled, generalized from one
-// boolean to a required key set).
+// boolean to a required key set). multiphaseEnabled (P6-PHYS-002,
+// sourced from physics.json's "multiphase" presence) decides whether
+// each patch's "alpha" key is required or forbidden, same convention as
+// thermalEnabled.
 [[nodiscard]] cfd::io::BoundaryConfig parseBoundaryConfig(
     const nlohmann::json& json, const std::filesystem::path& path, bool thermalEnabled,
-    const std::vector<std::string>& speciesNames);
+    const std::vector<std::string>& speciesNames, bool multiphaseEnabled);
 
 [[nodiscard]] cfd::io::SolverConfig parseSolverConfig(const nlohmann::json& json,
                                                       const std::filesystem::path& path);

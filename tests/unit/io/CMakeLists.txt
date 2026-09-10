@@ -7,6 +7,8 @@ add_executable(CFDIoTests
   test_turbulence_case.cpp
   test_boussinesq_case.cpp
   test_species_case.cpp
+  test_multiphase_case.cpp
+  test_compressible_case.cpp
   test_csv_writer.cpp
   test_json_writer.cpp
   test_vtk_writer.cpp

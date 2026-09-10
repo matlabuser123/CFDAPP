@@ -32,23 +32,25 @@ class VTKWriter {
   // `temperature` is present (P2-THERMAL-004) -- omitted entirely for a
   // nonthermal export. 2D coordinates get an explicit z=0 (section 19).
   //
-  // `species` (P6-PHYS-001): appends one further "SCALARS
-  // concentration_<name>" block per entry, in the given order, after the
-  // optional temperature block -- omitted entirely (no blocks at all)
-  // for an empty `species`, so every existing nonspecies solution.vtk is
-  // unaffected. Reuses CSVWriter.hpp's NamedScalarField (a plain {name,
-  // field} pair) rather than a second, VTK-only alias.
+  // `extraFields` (P6-PHYS-001, generalized by P6-PHYS-002/003): appends
+  // one further "SCALARS" block per entry, named exactly `entry.first`
+  // (no prefix added here -- see NamedScalarField's own header comment),
+  // in the given order, after the optional temperature block -- omitted
+  // entirely (no blocks at all) for an empty `extraFields`, so every case
+  // with no such fields produces a byte-identical solution.vtk to before
+  // this parameter existed. Reuses CSVWriter.hpp's NamedScalarField (a
+  // plain {name, field} pair) rather than a second, VTK-only alias.
   //
   // Throws InvalidArgumentError if result.velocity/result.pressure size
-  // (or temperature's/any species field's, when present) does not match
-  // mesh.numberOfCells(), or if mesh does not fit the structured layout
-  // this exporter assumes; NumericalError if any exported value is
-  // non-finite; IOError if `path` cannot be opened.
+  // (or temperature's/any extraFields entry's, when present) does not
+  // match mesh.numberOfCells(), or if mesh does not fit the structured
+  // layout this exporter assumes; NumericalError if any exported value
+  // is non-finite; IOError if `path` cannot be opened.
   static void writeSolution(
       const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
       const cfd::pressure_velocity::SIMPLEResult& result,
       const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt,
-      const std::vector<NamedScalarField>& species = {});
+      const std::vector<NamedScalarField>& extraFields = {});
 };
 
 }  // namespace cfd::io

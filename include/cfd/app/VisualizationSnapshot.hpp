@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "cfd/app/ProjectRunner.hpp"
@@ -40,6 +41,20 @@ struct VisualizationSnapshot {
   std::vector<Real> velocityMagnitude;
   std::optional<std::vector<Real>> temperature;  // present iff the case is thermal-enabled.
 
+  // P6-PHYS-001/002/003: every further named scalar field a case's
+  // enabled physics produces -- species concentration_<name>,
+  // multiphase volume_fraction/mixture_density/mixture_viscosity,
+  // compressible density/pressure_absolute/compressible_temperature/
+  // mach_number -- whichever a given run actually has, in a fixed order
+  // (species first in declaration order, then multiphase, then
+  // compressible; buildSnapshot()/loadSnapshotFromResults() both follow
+  // this same order). One flat list rather than one std::optional field
+  // per physics module: a GUI needs to list/plot *whatever* fields this
+  // run happens to have without this struct growing a new member for
+  // every future physics module (see availableScalarFields()/
+  // scalarField() below, which already search this generically).
+  std::vector<std::pair<std::string, std::vector<Real>>> extraScalarFields;
+
   // The solver's own canonical per-iteration history (section 8/27 --
   // never a second, GUI-computed residual), 1..N in iteration order.
   std::vector<Real> uResidualHistory;
@@ -48,8 +63,13 @@ struct VisualizationSnapshot {
   std::vector<Real> continuityResidualHistory;
 
   // The scalar fields a GUI field selector can list/plot, in a fixed,
-  // stable order -- "pressure", "velocity_magnitude", and (iff
-  // `temperature` is set) "temperature". Never includes velocity_x/
+  // stable order -- "pressure", "velocity_magnitude", (iff `temperature`
+  // is set) "temperature", then every `extraScalarFields` entry in the
+  // order it was populated (P6-PHYS-001/002/003) -- so a species/
+  // multiphase/compressible run's own fields are discoverable exactly
+  // like pressure/temperature, with no GUI-side code change needed per
+  // physics module (apps/gui/SimulationController.cpp already goes
+  // through this method generically). Never includes velocity_x/
   // velocity_y individually (those are exposed only as a vector field,
   // for the vector-plot view, matching VTKWriter's own "velocity is a
   // real vector, not two scalars to recombine" precedent).

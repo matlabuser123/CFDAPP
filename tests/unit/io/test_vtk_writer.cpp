@@ -237,7 +237,7 @@ TEST(VTKWriterTest, AppendsOneSpeciesBlockAfterVelocityMagnitudeWhenProvided) {
   ScalarField co2(1);
   co2[0] = 0.5;
   const auto path = tempFile("with_one_species.vtk");
-  VTKWriter::writeSolution(path, mesh, result, std::nullopt, {{"CO2", co2}});
+  VTKWriter::writeSolution(path, mesh, result, std::nullopt, {{"concentration_CO2", co2}});
   const auto lines = readLines(path);
 
   const auto magnitudeLine = findLine(lines, "SCALARS velocity_magnitude");
@@ -253,7 +253,8 @@ TEST(VTKWriterTest, MultipleSpeciesWrittenInOrderAfterTemperature) {
   ScalarField co2(1, 0.5);
   ScalarField o2(1, 0.21);
   const auto path = tempFile("with_temperature_and_species.vtk");
-  VTKWriter::writeSolution(path, mesh, result, temperature, {{"CO2", co2}, {"O2", o2}});
+  VTKWriter::writeSolution(path, mesh, result, temperature,
+                           {{"concentration_CO2", co2}, {"concentration_O2", o2}});
   const auto lines = readLines(path);
 
   const auto temperatureLine = findLine(lines, "SCALARS temperature");

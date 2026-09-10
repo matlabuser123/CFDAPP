@@ -62,6 +62,16 @@ struct ConcentrationBoundarySpec {
   Real value{};
 };
 
+// P6-PHYS-002: phase-1 volume-fraction BC on one patch -- pure advection
+// (VolumeFractionEquation.hpp's own explicit "no diffusion term"), so
+// same always-required-value fixed_value/fixed_gradient shape as
+// ConcentrationBoundarySpec above (no structurally-valueless type
+// needed).
+struct AlphaBoundarySpec {
+  std::string type;
+  Real value{};
+};
+
 struct PatchBoundaryConfig {
   VelocityBoundarySpec velocity;
   PressureBoundarySpec pressure;
@@ -77,6 +87,9 @@ struct PatchBoundaryConfig {
   // temperature/thermalEnabled already established, generalized from one
   // boolean flag to a set of required keys.
   std::map<std::string, ConcentrationBoundarySpec, std::less<>> concentration;
+  // P6-PHYS-002: present iff physics.json configured a "multiphase"
+  // block -- same convention as `temperature` above.
+  std::optional<AlphaBoundarySpec> alpha;
 };
 
 // Keyed by patch name ("left"/"right"/"bottom"/"top" for the only

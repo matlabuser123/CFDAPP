@@ -16,11 +16,16 @@
 
 namespace cfd::io {
 
-// P6-PHYS-001: one named scalar field to append as a trailing CSV column
-// / VTK SCALARS block, e.g. {"CO2", concentrationField} -- generalizes
-// temperature's single optional field to the N independent
-// physics.json-declared species this codebase's field-per-species
-// convention produces (see SpeciesProperties.hpp's own header comment).
+// P6-PHYS-001 (generalized by P6-PHYS-002/003): one named scalar field
+// to append as a trailing CSV column / VTK SCALARS block. `first` is the
+// exact column/SCALARS name written verbatim (the caller already
+// includes any prefix, e.g. "concentration_CO2", "volume_fraction",
+// "mach_number" -- this pair carries no separate per-physics-module
+// naming policy of its own), generalizing temperature's single optional
+// field to however many independent named fields a case's enabled
+// physics produces (species -- see SpeciesProperties.hpp's own header
+// comment -- plus multiphase mixture properties and compressible
+// thermodynamic fields).
 using NamedScalarField = std::pair<std::string, cfd::fields::ScalarField>;
 
 class CSVWriter {
@@ -35,22 +40,24 @@ class CSVWriter {
   // unaffected. Cell-center coordinates come from Mesh (section 4: never
   // reconstructed from nx/ny when the mesh already owns geometry).
   //
-  // `species` (P6-PHYS-001): appends one further trailing
-  // ",concentration_<name>" column per entry, in the given order, after
-  // the optional temperature column -- omitted entirely (no columns at
-  // all) for an empty `species`, so every existing nonspecies fields.csv
-  // is unaffected.
+  // `extraFields` (P6-PHYS-001, generalized by P6-PHYS-002/003): appends
+  // one further trailing column per entry, named exactly `entry.first`
+  // (no prefix added here -- see NamedScalarField's own header comment),
+  // in the given order, after the optional temperature column -- omitted
+  // entirely (no columns at all) for an empty `extraFields`, so every
+  // case with no such fields produces a byte-identical fields.csv to
+  // before this parameter existed.
   //
   // Throws InvalidArgumentError if result.velocity/result.pressure size
-  // (or temperature's/any species field's, when present) does not match
-  // mesh.numberOfCells(); NumericalError if any exported value is
+  // (or temperature's/any extraFields entry's, when present) does not
+  // match mesh.numberOfCells(); NumericalError if any exported value is
   // non-finite (section 40 -- the failed-solve export policy deciding
   // *whether* to call this at all for a non-finite result lives in
   // ResultExporter, not here); IOError if `path` cannot be opened.
   static void writeFields(const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
                           const cfd::pressure_velocity::SIMPLEResult& result,
                           const std::optional<cfd::fields::ScalarField>& temperature = std::nullopt,
-                          const std::vector<NamedScalarField>& species = {});
+                          const std::vector<NamedScalarField>& extraFields = {});
 
   // Writes one row per completed SIMPLE iteration, in iteration order
   // 1..N, with the stable header (section 8/41):

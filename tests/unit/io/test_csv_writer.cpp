@@ -310,7 +310,8 @@ TEST(CSVWriterTest, AppendsSpeciesColumnsInOrderAfterTemperature) {
   ScalarField o2(4, 0.21);
   const auto path = tempFile("fields_with_species.csv");
 
-  CSVWriter::writeFields(path, mesh, result, temperature, {{"CO2", co2}, {"O2", o2}});
+  CSVWriter::writeFields(path, mesh, result, temperature,
+                         {{"concentration_CO2", co2}, {"concentration_O2", o2}});
   const auto lines = readLines(path);
   EXPECT_EQ(lines.front(),
             "cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,"

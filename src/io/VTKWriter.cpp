@@ -28,7 +28,7 @@ Index pointIndex(Index i, Index j, Index nx) { return (j * (nx + 1)) + i; }
 void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mesh,
                               const SIMPLEResult& result,
                               const std::optional<cfd::fields::ScalarField>& temperature,
-                              const std::vector<NamedScalarField>& species) {
+                              const std::vector<NamedScalarField>& extraFields) {
   const Index n = mesh.numberOfCells();
   if (result.velocity.size() != n || result.pressure.size() != n) {
     throw InvalidArgumentError(
@@ -38,10 +38,10 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
     throw InvalidArgumentError(
         "VTKWriter::writeSolution: temperature size does not match mesh cell count");
   }
-  for (const auto& [name, field] : species) {
+  for (const auto& [name, field] : extraFields) {
     if (field.size() != n) {
-      throw InvalidArgumentError("VTKWriter::writeSolution: species \"" + name +
-                                 "\" field size does not match mesh cell count");
+      throw InvalidArgumentError("VTKWriter::writeSolution: field \"" + name +
+                                 "\" size does not match mesh cell count");
     }
   }
   for (Index id = 0; id < n; ++id) {
@@ -54,9 +54,9 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
       throw NumericalError("VTKWriter::writeSolution: non-finite temperature at cell " +
                            std::to_string(id));
     }
-    for (const auto& [name, field] : species) {
+    for (const auto& [name, field] : extraFields) {
       if (!std::isfinite(field[id])) {
-        throw NumericalError("VTKWriter::writeSolution: non-finite species \"" + name +
+        throw NumericalError("VTKWriter::writeSolution: non-finite field \"" + name +
                              "\" value at cell " + std::to_string(id));
       }
     }
@@ -120,8 +120,10 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
     for (Index id = 0; id < n; ++id) out << (*temperature)[id] << '\n';
   }
 
-  for (const auto& [name, field] : species) {
-    out << "SCALARS concentration_" << name << " double 1\nLOOKUP_TABLE default\n";
+  // The caller supplies each entry's full SCALARS name already -- see
+  // CSVWriter.cpp's own comment on why no prefix is added here.
+  for (const auto& [name, field] : extraFields) {
+    out << "SCALARS " << name << " double 1\nLOOKUP_TABLE default\n";
     for (Index id = 0; id < n; ++id) out << field[id] << '\n';
   }
 }

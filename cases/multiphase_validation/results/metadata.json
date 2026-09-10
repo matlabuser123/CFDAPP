@@ -1,7 +1,7 @@
 {
   "application": "CFDApp",
   "case": {
-    "name": "Species Diffusion Slab 20x4"
+    "name": "Multiphase Uniform Alpha 10x10"
   },
   "compressible": {
     "enabled": false
@@ -11,20 +11,35 @@
   },
   "format_version": 1,
   "mesh": {
-    "cells": 80,
-    "faces": 184,
-    "nx": 20,
-    "ny": 4
+    "cells": 100,
+    "faces": 220,
+    "nx": 10,
+    "ny": 10
   },
   "multiphase": {
-    "enabled": false
+    "conservation": {
+      "phase1_volume": 0.5000000000000003
+    },
+    "converged": true,
+    "enabled": true,
+    "phase1": {
+      "density": 1000.0,
+      "name": "water",
+      "viscosity": 0.001
+    },
+    "phase2": {
+      "density": 1.0,
+      "name": "air",
+      "viscosity": 1.8e-05
+    },
+    "status": "Converged"
   },
   "numerics": {
     "finite": true
   },
   "physics": {
     "density": 1.0,
-    "dynamic_viscosity": 0.01
+    "dynamic_viscosity": 1e-05
   },
   "residuals": {
     "continuity": 0.0,
@@ -38,16 +53,7 @@
     "status": "Converged",
     "type": "SIMPLE"
   },
-  "species": [
-    {
-      "converged": true,
-      "diffusivity": 0.002,
-      "final_residual": 5.232709177314215e-13,
-      "iterations": 593,
-      "name": "CO2",
-      "status": "Converged"
-    }
-  ],
+  "species": [],
   "thermal": {
     "enabled": false
   }

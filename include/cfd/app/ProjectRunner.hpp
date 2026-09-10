@@ -14,25 +14,64 @@
 // "CLI/GUI execution equivalence" requirement is satisfied by
 // construction, not by comparison after the fact).
 //
-// Steady-incompressible-SIMPLE(+thermal+species) scope, exactly matching
-// what CaseReader/CaseBuilder support today -- multiphase/compressible
-// case-config parsing is still a disclosed, separate, not-yet-done
-// prerequisite (see TODO.md's own P4 status notes), not silently
-// expanded here. Species (P6-PHYS-001) followed thermal's own precedent:
-// one-way, best-available, run only when the SIMPLE result is fully
-// finite (see this file's own "same one-way, best-available ... solve"
-// comment in ProjectRunner.cpp), never coupled back into the momentum
-// equation (this codebase's species are passive/non-reacting, so there
-// is no physical density/viscosity feedback to couple).
+// Steady-incompressible-SIMPLE(+thermal+species+multiphase+compressible)
+// scope, exactly matching what CaseReader/CaseBuilder support today.
+// Species (P6-PHYS-001) followed thermal's own precedent: one-way,
+// best-available, run only when the SIMPLE result is fully finite (see
+// this file's own "same one-way, best-available ... solve" comment in
+// ProjectRunner.cpp), never coupled back into the momentum equation
+// (this codebase's species are passive/non-reacting, so there is no
+// physical density/viscosity feedback to couple).
+//
+// Multiphase (P6-PHYS-002): mu_mix(alpha), evaluated at the case's
+// configured *initial* alpha and held fixed for the entire SIMPLE solve
+// (the same "held fixed across this entire solve() call" one-way
+// convention P3-PHYS-001's buoyancy/temperature coupling already
+// established), is fed into SIMPLE's momentum assembly through its
+// existing turbulenceModel effective-viscosity injection point (see
+// cfd::turbulence::TurbulenceModel.hpp's own header comment: mu_eff =
+// mu + mu_t is generic, not turbulence-specific by construction) via a
+// small adapter in ProjectRunner.cpp -- reusing this project's existing
+// architecture rather than adding a second momentum-assembly path.
+// rho_mix is deliberately NOT coupled into continuity/pressure
+// correction (cfd::multiphase::MultiphaseProperties.hpp's own explicit
+// scope disclosure: "evaluated and validated standalone only") -- SIMPLE
+// still solves with the case's single, constant, top-level physics.json
+// density. After SIMPLE converges, alpha is advanced exactly one
+// implicit-Euler step (cfd::multiphase::VolumeFractionSolver::step(),
+// which is not an outer-iterated solve by its own design -- see its own
+// header comment) using the converged massFlux, then mixture density/
+// viscosity fields are evaluated at that *final* alpha for reporting/
+// export. Configured together with "turbulence" is rejected at parse
+// time (PhysicsConfigParser.cpp) -- both would need the same one
+// effective-viscosity injection point.
+//
+// Compressible (P6-PHYS-003): this foundation has no compressible
+// pressure-velocity solver (cfd::compressible::CompressibleContinuity.hpp's
+// own header comment: "NOT a separately-iterated compressible pressure-
+// correction solve"), so this is a *post-hoc* reinterpretation of the
+// already-converged incompressible SIMPLE result -- exactly
+// tests/integration/compressible/test_low_mach_regression.cpp's own
+// validated recipe (absolute pressure -> IdealGasEOS density -> Mach
+// number -> compressible mass flux -> steady continuity imbalance),
+// never a second, parallel flow solve. Energy coupling is either
+// isothermal (a configured constant temperature) or, if
+// "thermal_coupled" is set, the case's own separately-configured
+// "thermal" block's converged temperature field -- both are read-only
+// inputs to the EOS, not fed back into momentum/continuity (there is no
+// implemented compressible pressure-correction loop to feed them into).
 
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "cfd/compressible/ThermodynamicProperties.hpp"
 #include "cfd/io/ResultExporter.hpp"
 #include "cfd/io/case/CaseDefinition.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/multiphase/VolumeFractionSolver.hpp"
+#include "cfd/physics/ContinuityEquation.hpp"
 #include "cfd/pressure_velocity/SIMPLEProgress.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 #include "cfd/species/SpeciesSolver.hpp"
@@ -63,6 +102,35 @@ enum class ProjectRunStatus {
 struct SpeciesRunResult {
   std::string name;
   cfd::species::SpeciesResult result;
+};
+
+// P6-PHYS-002: the multiphase production-run outcome -- the one-step
+// volume-fraction advance plus mixture property fields evaluated at the
+// *final* (post-step) alpha (see ProjectRunner.hpp's own header comment
+// on the coupling order).
+struct MultiphaseRunResult {
+  cfd::multiphase::VolumeFractionStepResult alphaStep;
+  cfd::fields::ScalarField mixtureDensity;
+  cfd::fields::ScalarField mixtureViscosity;
+  // multiphase::phaseVolume(mesh, alpha) at the final alpha -- the
+  // conservation quantity ProjectRunner reports (see
+  // ProjectRunner.cpp's own comment on why this, not a flux-balance
+  // check, is the meaningful conservation metric for a single transport
+  // step).
+  Real phase1Volume{};
+};
+
+// P6-PHYS-003: the compressible post-hoc low-Mach outcome -- every field
+// this foundation actually computes from the already-converged
+// incompressible SIMPLE result (see ProjectRunner.hpp's own header
+// comment for the exact recipe).
+struct CompressibleRunResult {
+  cfd::fields::ScalarField density;           // EOS-evaluated, cell-ordered.
+  cfd::fields::ScalarField pressureAbsolute;  // referencePressure + SIMPLE's gauge pressure.
+  cfd::fields::ScalarField temperature;       // the constant or thermal-coupled field used.
+  cfd::fields::ScalarField machNumber;
+  cfd::physics::ContinuityResult continuity;  // from the compressible mass flux.
+  Real machMax{};
 };
 
 // Both default-empty/no-op (SIMPLEProgress.hpp's own contract) -- an
@@ -101,6 +169,12 @@ struct ProjectRunResult {
   // thermal block, generalized from "unset" to "empty vector" for a
   // list-shaped field).
   std::vector<SpeciesRunResult> speciesResults;
+  // P6-PHYS-002/003: present iff the case configured the corresponding
+  // block AND the SIMPLE result was fully finite (same "run only once
+  // the flow is usable" policy species/thermal already follow) -- unset
+  // otherwise, never a partially-populated struct.
+  std::optional<MultiphaseRunResult> multiphaseResult;
+  std::optional<CompressibleRunResult> compressibleResult;
   std::optional<cfd::io::ResultExportSummary> exportSummary;
   // Populated for InvalidCase (CaseReader/CaseBuilder's own message) and
   // ApplicationError (a result-export I/O failure) -- empty otherwise,

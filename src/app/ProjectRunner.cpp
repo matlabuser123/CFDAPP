@@ -1,11 +1,17 @@
 #include "cfd/app/ProjectRunner.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <optional>
 
+#include "cfd/compressible/CompressibleMassFlux.hpp"
+#include "cfd/compressible/ThermodynamicProperties.hpp"
 #include "cfd/core/Exception.hpp"
 #include "cfd/io/CaseBuilder.hpp"
 #include "cfd/io/CaseReader.hpp"
+#include "cfd/multiphase/MultiphaseProperties.hpp"
+#include "cfd/multiphase/VolumeFractionEquation.hpp"
+#include "cfd/multiphase/VolumeFractionSolver.hpp"
 #include "cfd/physics/MassFlux.hpp"
 #include "cfd/pressure_velocity/SIMPLE.hpp"
 #include "cfd/turbulence/KEpsilonModel.hpp"
@@ -82,6 +88,61 @@ std::string speciesStatusName(cfd::species::SpeciesStatus status) {
   return "Unknown";
 }
 
+// P6-PHYS-002: the multiphase counterpart of thermalStatusName above.
+std::string volumeFractionStatusName(cfd::multiphase::VolumeFractionStatus status) {
+  using cfd::multiphase::VolumeFractionStatus;
+  switch (status) {
+    case VolumeFractionStatus::Converged:
+      return "Converged";
+    case VolumeFractionStatus::LinearSolveFailure:
+      return "LinearSolveFailure";
+    case VolumeFractionStatus::NonFiniteState:
+      return "NonFiniteState";
+    case VolumeFractionStatus::InvalidConfiguration:
+      return "InvalidConfiguration";
+  }
+  return "Unknown";
+}
+
+// P6-PHYS-002: reuses SIMPLE's existing turbulenceModel effective-
+// viscosity injection point (mu_eff = molecular + mu_t, see
+// cfd::turbulence::TurbulenceModel.hpp's own header comment: this
+// formula is generic, not turbulence-specific) to feed mu_mix(alpha)
+// into momentum assembly -- see ProjectRunner.hpp's own header comment
+// for the full justification and scope (mu_mix only, evaluated at the
+// case's configured *initial* alpha and held fixed for the whole SIMPLE
+// solve; rho_mix stays out of continuity entirely). name() reports this
+// plainly as what it is, not as a turbulence model, so a case's own
+// metadata.json/CLI report is never confusing about what actually ran.
+// correct() is a deliberate no-op: mu_t here is a fixed, precomputed
+// field (not something SIMPLE's own outer iterations should update),
+// unlike a genuine RANS model's own state.
+class MixtureViscosityModel final : public cfd::turbulence::TurbulenceModel {
+ public:
+  // The caller (ProjectRunner::run(), where the real mesh is available)
+  // is responsible for calling
+  // cfd::turbulence::validateTurbulentViscosityField(mesh,
+  // turbulentViscosityField) before constructing this -- not repeated
+  // here, since that check needs the mesh this constructor does not
+  // itself take (mirrors KEpsilonModel/KOmegaModel/SSTModel's own
+  // convention of trusting already-mesh-sized fields their own
+  // constructors receive).
+  explicit MixtureViscosityModel(cfd::fields::ScalarField turbulentViscosityField)
+      : turbulentViscosity_(std::move(turbulentViscosityField)) {}
+
+  [[nodiscard]] std::string_view name() const noexcept override {
+    return "multiphaseMixtureViscosity";
+  }
+  [[nodiscard]] const cfd::fields::ScalarField& turbulentViscosity() const override {
+    return turbulentViscosity_;
+  }
+  void correct(const cfd::mesh::Mesh&, const cfd::fields::VectorField&,
+               const cfd::fields::ScalarField&) override {}
+
+ private:
+  cfd::fields::ScalarField turbulentViscosity_;
+};
+
 ProjectRunStatus statusFor(SIMPLEStatus status) {
   switch (status) {
     case SIMPLEStatus::Converged:
@@ -140,6 +201,27 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
     activeTurbulenceModel = &(*sstModel);
   }
 
+  // P6-PHYS-002: reuses the same turbulenceModel injection slot as
+  // above -- mutually exclusive with real turbulence by construction
+  // (PhysicsConfigParser.cpp's own cross-block rejection), so this
+  // `else if` is never reached when any of the three models above
+  // already claimed the slot. mu_mix is evaluated at the case's
+  // *initial* alpha only (held fixed for this entire SIMPLE solve -- see
+  // ProjectRunner.hpp's own header comment on why), never the alpha
+  // this same run will go on to solve for below.
+  std::optional<MixtureViscosityModel> mixtureViscosityModel;
+  if (setup.multiphase.has_value() && activeTurbulenceModel == nullptr) {
+    cfd::fields::ScalarField turbulentViscosityField =
+        cfd::multiphase::evaluateMixtureViscosityField(setup.mesh, setup.multiphase->initialAlpha,
+                                                       setup.multiphase->system);
+    for (cfd::Index i = 0; i < turbulentViscosityField.size(); ++i) {
+      turbulentViscosityField[i] -= setup.fluid.dynamicViscosity();
+    }
+    cfd::turbulence::validateTurbulentViscosityField(setup.mesh, turbulentViscosityField);
+    mixtureViscosityModel.emplace(std::move(turbulentViscosityField));
+    activeTurbulenceModel = &(*mixtureViscosityModel);
+  }
+
   const cfd::pressure_velocity::SIMPLE simple(
       setup.solverSettings, /*referenceCell=*/0, activeTurbulenceModel, /*temperature=*/nullptr,
       /*buoyancy=*/nullptr, options.progressCallback, options.cancellationCheck);
@@ -155,7 +237,9 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
   // setup.velocityBoundaries, so sharing it changes nothing about either
   // solve's result.
   std::optional<cfd::fields::SurfaceField> massFlux;
-  if ((setup.thermal.has_value() || !setup.species.empty()) && !anyNonFinite(result)) {
+  if ((setup.thermal.has_value() || !setup.species.empty() || setup.multiphase.has_value() ||
+       setup.compressible.has_value()) &&
+      !anyNonFinite(result)) {
     massFlux = cfd::physics::calculateMassFlux(setup.mesh, result.velocity, setup.fluid,
                                                setup.velocityBoundaries);
   }
@@ -208,7 +292,8 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
           speciesSetup.properties.name(), speciesSetup.properties.diffusivity(),
           speciesStatusName(speciesResult.status), speciesResult.converged(),
           speciesResult.iterations, speciesResult.finalResidual});
-      speciesForExport.emplace_back(speciesSetup.properties.name(), speciesResult.concentration);
+      speciesForExport.emplace_back("concentration_" + speciesSetup.properties.name(),
+                                    speciesResult.concentration);
     }
   } else {
     for (const cfd::io::SpeciesSetup& speciesSetup : setup.species) {
@@ -218,15 +303,152 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
     }
   }
 
+  // P6-PHYS-002: same one-way, best-available policy as thermal/species
+  // above. One VolumeFractionSolver::step() call (see
+  // ProjectRunner.hpp's own header comment: this is the foundation's own
+  // "single implicit-Euler step, no outer loop" scope, not an
+  // approximation invented here), then mixture density/viscosity fields
+  // evaluated at the *final* (post-step) alpha for reporting/export --
+  // never fed back into this same SIMPLE solve (which already ran with
+  // mu_mix at the *initial* alpha, above).
+  std::optional<cfd::io::MultiphaseRunMetadata> multiphaseMetadata;
+  std::vector<cfd::io::NamedScalarField> multiphaseForExport;
+  if (setup.multiphase.has_value()) {
+    const auto& m = *setup.multiphase;
+    const auto& p1 = m.system.phase1();
+    const auto& p2 = m.system.phase2();
+    if (massFlux.has_value()) {
+      const cfd::multiphase::VolumeFractionSolver alphaSolver{};
+      const cfd::multiphase::VolumeFractionStepResult alphaStep = alphaSolver.step(
+          setup.mesh, m.initialAlpha, *massFlux, m.alphaBoundaries, m.transportTimeStep);
+      cfd::fields::ScalarField mixtureDensity =
+          cfd::multiphase::evaluateMixtureDensityField(setup.mesh, alphaStep.alpha, m.system);
+      cfd::fields::ScalarField mixtureViscosity =
+          cfd::multiphase::evaluateMixtureViscosityField(setup.mesh, alphaStep.alpha, m.system);
+      const Real phase1Volume = cfd::multiphase::phaseVolume(setup.mesh, alphaStep.alpha);
+
+      multiphaseMetadata =
+          cfd::io::MultiphaseRunMetadata{p1.name(),
+                                         p2.name(),
+                                         p1.density(),
+                                         p1.viscosity(),
+                                         p2.density(),
+                                         p2.viscosity(),
+                                         volumeFractionStatusName(alphaStep.status),
+                                         alphaStep.converged(),
+                                         phase1Volume};
+      multiphaseForExport.emplace_back("volume_fraction", alphaStep.alpha);
+      multiphaseForExport.emplace_back("mixture_density", mixtureDensity);
+      multiphaseForExport.emplace_back("mixture_viscosity", mixtureViscosity);
+      out.multiphaseResult = MultiphaseRunResult{alphaStep, std::move(mixtureDensity),
+                                                 std::move(mixtureViscosity), phase1Volume};
+    } else {
+      multiphaseMetadata = cfd::io::MultiphaseRunMetadata{
+          p1.name(), p2.name(), p1.density(), p1.viscosity(), p2.density(), p2.viscosity(),
+          "NotRun",  false,     0.0};
+    }
+  }
+
+  // P6-PHYS-003: the post-hoc low-Mach reinterpretation (see
+  // ProjectRunner.hpp's own header comment for the exact recipe and why
+  // this is not a genuine compressible solve). Runs whenever the SIMPLE
+  // result is fully finite -- same gate as massFlux above (compressible
+  // needs velocity, not massFlux itself, but shares the same "only a
+  // usable flow" precondition).
+  std::optional<cfd::io::CompressibleRunMetadata> compressibleMetadata;
+  std::vector<cfd::io::NamedScalarField> compressibleForExport;
+  if (setup.compressible.has_value()) {
+    const auto& c = *setup.compressible;
+    // thermal_coupled requires "thermal" (PhysicsConfigParser.cpp's own
+    // cross-block check), and both compressible and thermal share the
+    // identical `!anyNonFinite(result)` gate above, so thermalResult is
+    // guaranteed to have a value here whenever c.thermalCoupled is true
+    // and this branch is reached -- checked anyway (defensive, not load-
+    // bearing) rather than assumed.
+    const bool canEvaluate =
+        !anyNonFinite(result) && (!c.thermalCoupled || thermalResult.has_value());
+    if (canEvaluate) {
+      const cfd::Index n = setup.mesh.numberOfCells();
+      cfd::fields::ScalarField pressureAbsolute(n);
+      for (cfd::Index i = 0; i < n; ++i)
+        pressureAbsolute[i] = c.referencePressure + result.pressure[i];
+
+      cfd::fields::ScalarField temperatureField(n);
+      if (c.thermalCoupled) {
+        for (cfd::Index i = 0; i < n; ++i) temperatureField[i] = thermalResult->temperature[i];
+      } else {
+        for (cfd::Index i = 0; i < n; ++i) temperatureField[i] = *c.temperature;
+      }
+
+      cfd::fields::ScalarField density = cfd::compressible::evaluateDensityField(
+          setup.mesh, pressureAbsolute, temperatureField, c.thermodynamics);
+
+      cfd::fields::ScalarField mach(n);
+      Real machMax = 0.0;
+      for (cfd::Index i = 0; i < n; ++i) {
+        const Real speed = magnitude(result.velocity[i]);
+        const Real soundSpeed = c.thermodynamics.speedOfSound(temperatureField[i]);
+        mach[i] = cfd::compressible::machNumber(speed, soundSpeed);
+        machMax = std::max(machMax, mach[i]);
+      }
+
+      const cfd::fields::SurfaceField compressibleMassFlux =
+          cfd::compressible::calculateCompressibleMassFlux(setup.mesh, result.velocity, density,
+                                                           setup.velocityBoundaries);
+      const cfd::physics::ContinuityResult continuity =
+          cfd::physics::evaluateContinuity(setup.mesh, compressibleMassFlux);
+
+      compressibleMetadata =
+          cfd::io::CompressibleRunMetadata{c.thermodynamics.gasConstant(),
+                                           c.thermodynamics.specificHeatPressure(),
+                                           c.referencePressure,
+                                           c.thermalCoupled,
+                                           "Evaluated",
+                                           machMax,
+                                           std::abs(continuity.globalNetFlux)};
+      compressibleForExport.emplace_back("density", density);
+      compressibleForExport.emplace_back("pressure_absolute", pressureAbsolute);
+      compressibleForExport.emplace_back("compressible_temperature", temperatureField);
+      compressibleForExport.emplace_back("mach_number", mach);
+      out.compressibleResult = CompressibleRunResult{std::move(density),
+                                                     std::move(pressureAbsolute),
+                                                     std::move(temperatureField),
+                                                     std::move(mach),
+                                                     continuity,
+                                                     machMax};
+    } else {
+      compressibleMetadata =
+          cfd::io::CompressibleRunMetadata{c.thermodynamics.gasConstant(),
+                                           c.thermodynamics.specificHeatPressure(),
+                                           c.referencePressure,
+                                           c.thermalCoupled,
+                                           "NotRun",
+                                           0.0,
+                                           0.0};
+    }
+  }
+
   const cfd::io::RunMetadata exportMetadata{
       caseDefinition->caseConfig.name, caseDefinition->physics.density,
       caseDefinition->physics.dynamicViscosity, caseDefinition->solver.type};
   try {
     const std::optional<cfd::fields::ScalarField> temperatureForExport =
         thermalResult.has_value() ? std::optional(thermalResult->temperature) : std::nullopt;
+    // P6-PHYS-001 (generalized by P6-PHYS-002/003): every species/
+    // multiphase/compressible field combined into one flat list -- see
+    // ResultExporter.hpp's own header comment on why this is one
+    // parameter, not one per physics module.
+    std::vector<cfd::io::NamedScalarField> extraFieldsForExport = std::move(speciesForExport);
+    extraFieldsForExport.insert(extraFieldsForExport.end(),
+                                std::make_move_iterator(multiphaseForExport.begin()),
+                                std::make_move_iterator(multiphaseForExport.end()));
+    extraFieldsForExport.insert(extraFieldsForExport.end(),
+                                std::make_move_iterator(compressibleForExport.begin()),
+                                std::make_move_iterator(compressibleForExport.end()));
     out.exportSummary = cfd::io::ResultExporter::write(
         caseDirectory / "results", setup.mesh, result, exportMetadata, temperatureForExport,
-        thermalMetadata, speciesForExport, speciesMetadataForExport);
+        thermalMetadata, extraFieldsForExport, speciesMetadataForExport, multiphaseMetadata,
+        compressibleMetadata);
   } catch (const cfd::Error& e) {
     out.status = ProjectRunStatus::ApplicationError;
     out.errorMessage = e.what();
