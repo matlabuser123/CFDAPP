@@ -142,9 +142,12 @@
   was changed to force this job green.
 * [x] Full CI workflow green on `main` -- run 34444117973 (commit
   `1b6d350`), `conclusion: success`. Follow-up commit `b3ec9b9` (Qt
-  deploy fix for `CFDGuiControllerTests`, Windows-only, does not touch
-  Linux CI) has its own run in progress with the same 6/7 jobs already
-  green as of this check; only `sanitizers` still running.
+  deploy fix for `CFDGuiControllerTests`, Windows-only) has its own run
+  34448903502, also `conclusion: success`, all 7 jobs green (sanitizers
+  1h47m). Independently corroborated by a full local ASan/UBSan rerun
+  (WSL, same `asan` preset): 100% tests passed, 0 failed out of 1149.
+  `main` tip (`8bdba5d`, TODO.md-only) has no functional changes since
+  the last green commit.
 
 **Known issue (unchanged, not yet fixed):** one transient parallel-fixture race has been observed in `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`; it passes in isolation but should not be treated as a fully clean local regression result until the race is resolved or eliminated.
 
