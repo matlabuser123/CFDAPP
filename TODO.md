@@ -153,17 +153,31 @@
 
 ## Release Gate
 
-* [x] Keep existing tags immutable
+* [x] Keep existing tags immutable (`v0.1.0`-`v0.1.3` all untouched)
 * [x] Version/release fixes pushed to `main`
 * [x] CI Gate fully green (see above -- verified via run 34444117973)
-* [ ] Bump project version for the next clean release
-* [ ] Create a new release tag
-* [ ] Release workflow green end to end
-* [ ] Windows build succeeds on GitHub runner
-* [ ] Full release test suite passes
-* [ ] ZIP artifact produced
-* [ ] Installer artifact produced
-* [ ] CI smoke tests pass on packaged artifacts
+* [x] Bump project version for the next clean release (0.1.3, `5201f2d`)
+* [x] Create a new release tag (`v0.1.3`, pushed)
+* [ ] Release workflow green end to end -- **attempt 6 (`v0.1.3`, run
+  [34459485851](https://github.com/matlabuser123/CFDAPP/actions/runs/34459485851))
+  got further than any prior attempt: tag-version check passed, MSVC +
+  Qt setup passed, Build passed, the **full regression suite passed on
+  the real GitHub Windows runner** -- then failed at Package: `CPack
+  Error: Cannot find NSIS compiler makensis`. The ZIP generator
+  succeeded in the same run (`CFDApp-0.1.3-Windows-x64.zip generated`),
+  isolating this as an NSIS-only gap -- `windows-latest` doesn't carry
+  NSIS preinstalled and this workflow never installed it. Fixed in
+  `3437521` (installs NSIS via Chocolatey before the Package step),
+  pushed to `main`. Awaiting user go-ahead on a new tag (`v0.1.4`) to
+  retry, per the "never move a pushed tag" rule -- `v0.1.3` stays as-is.
+* [x] Windows build succeeds on GitHub runner (confirmed by attempt 6)
+* [x] Full release test suite passes (confirmed by attempt 6, on the
+  real GitHub Windows runner)
+* [x] ZIP artifact produced (confirmed by attempt 6)
+* [ ] Installer artifact produced -- blocked on the NSIS fix above until
+  reverified by a fresh tagged run
+* [ ] CI smoke tests pass on packaged artifacts -- not yet reached (the
+  smoke-test step never ran on attempt 6, packaging failed first)
 * [ ] Downloaded release artifact retested
 * [ ] GitHub Release published with assets
 * [ ] Mark release automation complete
@@ -204,4 +218,4 @@
 
 # Immediate Next Task
 
-**CI Gate is verified green (run 34444117973, commit `1b6d350`). Next: confirm `b3ec9b9`'s CI run also finishes green, then ask the user for a new release tag name (e.g. `v0.1.3`) before creating one -- do not create or move any tag without explicit go-ahead -- and begin the Release Gate (bump version, tag, monitor the Release workflow end to end, verify artifacts, download and retest, confirm the GitHub Release is published).**
+**CI Gate is fully green (verified). Release Gate in progress: `v0.1.3` (attempt 6) got further than every prior attempt -- build, full regression suite, and ZIP packaging all passed on the real GitHub Windows runner; failed only at NSIS installer packaging (NSIS not preinstalled on `windows-latest`), fixed in `3437521`. Awaiting user go-ahead on a new tag (e.g. `v0.1.4`) before retrying -- `v0.1.3` stays untouched per the "never move a pushed tag" rule.**
