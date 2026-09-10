@@ -58,12 +58,19 @@ jobs:
           arch: "win64_msvc2022_64"
 
       # windows-latest already carries MSVC + CMake + Ninja.
+      # CFDAPP_VERSION_SUFFIX="" (root CMakeLists.txt's own comment:
+      # "Leave empty for a tagged release build") -- without this, a real
+      # tagged release build still reports itself as e.g. "0.1.2-dev"
+      # (the CACHE default), which the version-check step below would
+      # still accept (it only compares the numeric project() version, not
+      # the suffix) but is wrong for what actually ships in the package.
       - name: Configure (Release, GUI + packaging)
         run: >
           cmake -S . -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DCFDAPP_BUILD_GUI=ON
           -DCFDAPP_ENABLE_PACKAGING=ON
+          -DCFDAPP_VERSION_SUFFIX=""
 
       - name: Verify tag matches project version
         run: |
