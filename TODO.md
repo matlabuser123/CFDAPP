@@ -116,19 +116,43 @@
 * [x] clang-format configuration fixed and pinned
 * [x] clang-tidy clean
 * [x] Python suite clean
-* [ ] gcc/debug build-test green
-* [ ] gcc/release build-test green
-* [ ] clang/debug build-test green
-* [ ] sanitizers green
-* [ ] Full CI workflow green on `main`
+* [x] gcc/debug build-test green
+* [x] gcc/release build-test green
+* [x] clang/debug build-test green
+* [x] sanitizers green -- **real GitHub Actions evidence, not assumed.**
+  Run [34444117973](https://github.com/matlabuser123/CFDAPP/actions/runs/34444117973)
+  on commit `1b6d350`: all 7 jobs `completed`/`success` (format 25s,
+  python 23s, clang-tidy 2m37s, build-test gcc/release 7m52s, build-test
+  clang/debug 28m49s, build-test gcc/debug 39m7s, **sanitizers
+  1h48m02s**). The sanitizers job's long duration was investigated
+  directly (not assumed safe): reproduced the identical `ctest` run
+  locally (WSL, same `asan` preset) and confirmed via `ps` that
+  individual slow tests (e.g. `TwoMaterialConductionValidation.
+  Grid80MatchesAnalyticalSolution`, `NaturalConvectionValidation.
+  Grid15x15MatchesDeVahlDavisRa1e3`) were genuinely at ~99% CPU the
+  whole time, not hung -- these are outer-Picard-loop validation tests
+  with maxIterations in the thousands even without ASan (see
+  `tests/integration/thermal/test_two_material_conduction.cpp`'s own
+  comments), and ASan's malloc/free instrumentation disproportionately
+  slows allocation-heavy iterative-solver code. Root cause: `ctest` runs
+  fully serially in CI (`CMakePresets.json`'s testPresets have no
+  `"jobs"` field, and `ci.yml` doesn't pass `-j`) -- a real CI
+  wall-clock inefficiency worth fixing later (parallelize + add a
+  per-test TIMEOUT safety net), but not a correctness defect, so nothing
+  was changed to force this job green.
+* [x] Full CI workflow green on `main` -- run 34444117973 (commit
+  `1b6d350`), `conclusion: success`. Follow-up commit `b3ec9b9` (Qt
+  deploy fix for `CFDGuiControllerTests`, Windows-only, does not touch
+  Linux CI) has its own run in progress with the same 6/7 jobs already
+  green as of this check; only `sanitizers` still running.
 
-**Known issue:** one transient parallel-fixture race has been observed in `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`; it passes in isolation but should not be treated as a fully clean local regression result until the race is resolved or eliminated.
+**Known issue (unchanged, not yet fixed):** one transient parallel-fixture race has been observed in `LoadSnapshotFromResultsTest.ReloadsAPreviouslyWrittenResultsDirectory`; it passes in isolation but should not be treated as a fully clean local regression result until the race is resolved or eliminated.
 
 ## Release Gate
 
 * [x] Keep existing tags immutable
 * [x] Version/release fixes pushed to `main`
-* [ ] CI Gate fully green
+* [x] CI Gate fully green (see above -- verified via run 34444117973)
 * [ ] Bump project version for the next clean release
 * [ ] Create a new release tag
 * [ ] Release workflow green end to end
@@ -177,4 +201,4 @@
 
 # Immediate Next Task
 
-**Finish the CI Gate on commit `1b6d350`; do not create another release tag until all required CI jobs are green.**
+**CI Gate is verified green (run 34444117973, commit `1b6d350`). Next: confirm `b3ec9b9`'s CI run also finishes green, then ask the user for a new release tag name (e.g. `v0.1.3`) before creating one -- do not create or move any tag without explicit go-ahead -- and begin the Release Gate (bump version, tag, monitor the Release workflow end to end, verify artifacts, download and retest, confirm the GitHub Release is published).**
