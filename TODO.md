@@ -153,33 +153,36 @@
 
 ## Release Gate
 
-* [x] Keep existing tags immutable (`v0.1.0`-`v0.1.3` all untouched)
+* [x] Keep existing tags immutable (`v0.1.0`-`v0.1.4` all untouched)
 * [x] Version/release fixes pushed to `main`
 * [x] CI Gate fully green (see above -- verified via run 34444117973)
-* [x] Bump project version for the next clean release (0.1.3, `5201f2d`)
-* [x] Create a new release tag (`v0.1.3`, pushed)
-* [ ] Release workflow green end to end -- **attempt 6 (`v0.1.3`, run
-  [34459485851](https://github.com/matlabuser123/CFDAPP/actions/runs/34459485851))
-  got further than any prior attempt: tag-version check passed, MSVC +
-  Qt setup passed, Build passed, the **full regression suite passed on
-  the real GitHub Windows runner** -- then failed at Package: `CPack
-  Error: Cannot find NSIS compiler makensis`. The ZIP generator
-  succeeded in the same run (`CFDApp-0.1.3-Windows-x64.zip generated`),
-  isolating this as an NSIS-only gap -- `windows-latest` doesn't carry
-  NSIS preinstalled and this workflow never installed it. Fixed in
-  `3437521` (installs NSIS via Chocolatey before the Package step),
-  pushed to `main`. Awaiting user go-ahead on a new tag (`v0.1.4`) to
-  retry, per the "never move a pushed tag" rule -- `v0.1.3` stays as-is.
-* [x] Windows build succeeds on GitHub runner (confirmed by attempt 6)
-* [x] Full release test suite passes (confirmed by attempt 6, on the
-  real GitHub Windows runner)
-* [x] ZIP artifact produced (confirmed by attempt 6)
-* [ ] Installer artifact produced -- blocked on the NSIS fix above until
-  reverified by a fresh tagged run
-* [ ] CI smoke tests pass on packaged artifacts -- not yet reached (the
-  smoke-test step never ran on attempt 6, packaging failed first)
-* [ ] Downloaded release artifact retested
-* [ ] GitHub Release published with assets
+* [x] Bump project version for the next clean release (currently 0.1.4,
+  `a3117f5`; another bump pending, see below)
+* [x] Create a new release tag (`v0.1.4`, pushed)
+* [x] Release workflow green end to end -- **attempt 7 (`v0.1.4`, run
+  [34461039922](https://github.com/matlabuser123/CFDAPP/actions/runs/34461039922)),
+  `conclusion: success`, all 16 steps passed**: tag-version check,
+  MSVC/Qt setup, Build, full regression suite, NSIS install, CPack
+  packaging (ZIP and NSIS installer both), the packaged-artifact smoke
+  test (CLI *and* GUI), checksums, and artifact upload. First fully
+  green Release run out of 7 attempts.
+* [x] Windows build succeeds on GitHub runner (confirmed)
+* [x] Full release test suite passes (confirmed, on the real GitHub
+  Windows runner)
+* [x] ZIP artifact produced (confirmed)
+* [x] Installer artifact produced (confirmed -- NSIS fix verified working)
+* [x] CI smoke tests pass on packaged artifacts (confirmed -- both CLI
+  `--version`/`--case` and the GUI process-stays-alive check passed)
+* [ ] Downloaded release artifact retested -- not yet done outside CI
+* [ ] GitHub Release published with assets -- **a run with
+  `conclusion: success` still did NOT publish one**: `gh release list`
+  stayed empty after attempt 7. Root cause: `actions/upload-artifact`
+  only attaches files to the *workflow run*, not to a Release object --
+  nothing in `release.yml` ever created one. Fixed in `645aecb`
+  (`softprops/action-gh-release@v2` + job-level `contents: write`
+  permission), pushed to `main`. Awaiting user go-ahead on a new tag
+  (`v0.1.5`) to verify this actually publishes a Release -- `v0.1.4`
+  stays as-is per the "never move a pushed tag" rule.
 * [ ] Mark release automation complete
 * [ ] Mark P5 complete
 
@@ -218,4 +221,4 @@
 
 # Immediate Next Task
 
-**CI Gate is fully green (verified). Release Gate in progress: `v0.1.3` (attempt 6) got further than every prior attempt -- build, full regression suite, and ZIP packaging all passed on the real GitHub Windows runner; failed only at NSIS installer packaging (NSIS not preinstalled on `windows-latest`), fixed in `3437521`. Awaiting user go-ahead on a new tag (e.g. `v0.1.4`) before retrying -- `v0.1.3` stays untouched per the "never move a pushed tag" rule.**
+**CI Gate is fully green (verified). Release Gate: `v0.1.4` (attempt 7) is the first fully green Release run end to end (build, tests, packaging, smoke test, checksums) -- but a `conclusion: success` run still did not publish an actual GitHub Release (`actions/upload-artifact` only attaches to the workflow run, not a Release object). Fixed in `645aecb` (`softprops/action-gh-release@v2`). Awaiting user go-ahead on a new tag (e.g. `v0.1.5`) to verify a Release actually gets published -- `v0.1.4` stays untouched per the "never move a pushed tag" rule.**
