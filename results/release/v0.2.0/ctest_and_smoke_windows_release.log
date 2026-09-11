@@ -1,0 +1,77 @@
+Condensed evidence from scripts/windows-release/2-test-and-smoke.ps1 against
+build/windows-release (commit 21e493e). Per-test lines omitted (1290 of them,
+all "Passed") -- full raw log was ~2700 lines; this keeps the summary,
+disabled-test list, and the two smoke checks.
+
+=== ctest summary ===
+100% tests passed, 0 tests failed out of 1290
+
+Label Time Summary:
+integration    =   1.21 sec*proc (29 tests)
+numerical      =   8.93 sec*proc (325 tests)
+solver         =  10.93 sec*proc (145 tests)
+unit           =  23.89 sec*proc (696 tests)
+validation     = 214.47 sec*proc (108 tests)
+
+Total Test time (real) =  66.93 sec
+
+The following tests did not run (pre-existing DISABLED_ slow grid-refinement
+cases, documented and excluded since P8 -- not new):
+	1135 - CavityGhiaValidation.Grid40x40ConvergesAndMatchesGhia (Disabled)
+	1136 - CavityGhiaValidation.Grid80x80ConvergesAndMatchesGhia (Disabled)
+	1137 - CavityGhiaValidation.GridRefinementReducesGhiaError (Disabled)
+	1142 - PoiseuilleValidation.Grid128x16ConvergesAndMatchesAnalyticalProfile (Disabled)
+	1143 - PoiseuilleValidation.Grid256x32ConvergesAndMatchesAnalyticalProfile (Disabled)
+	1144 - PoiseuilleValidation.GridRefinementReducesVelocityError (Disabled)
+	1168 - NaturalConvectionValidation.Grid20x20MatchesDeVahlDavisRa1e3 (Disabled)
+	1169 - NaturalConvectionValidation.GridRefinementReducesNusseltError (Disabled)
+	1174 - CaseLidDrivenCavityIntegrationTest.ProductionCaseLoadsBuildsAndConverges (Disabled)
+	1220 - ChannelFlowValidation.KEpsilonFineConvergesAndMatchesLogLaw (Disabled)
+	1223 - ChannelFlowValidation.KOmegaFineConvergesAndMatchesLogLaw (Disabled)
+	1226 - ChannelFlowValidation.SSTFineConvergesAndMatchesLogLaw (Disabled)
+	1227 - ChannelFlowValidation.KEpsilonGridRefinementReducesReTauError (Disabled)
+ctest exit code: 0
+
+Notable individual results (new/relevant to this session):
+  SimulationControllerTest.OpenCaseAcceptsQuotedAndPaddedPath ... Passed (0.02 sec)
+    -- the new regression test for the Explorer "Copy as path" quoted-path fix.
+  SIMPLEGpuSolverTest.GpuBackendReproducesCpuCavitySolutionWithinTolerance ... Passed (0.26 sec)
+  SIMPLEGpuSolverTest.GpuBackendSatisfiesTheSameConvergenceCriteria ... Passed (0.13 sec)
+  SIMPLEGpuSolverTest.RepeatedOuterIterationsReuseGpuSolverBuffersWithoutReallocating ... Passed (0.02 sec)
+    -- CAUTION: this build has CFDAPP_ENABLE_CUDA=OFF. Per src/gpu/GpuLinearSolver.cpp's
+    own header comment, makeGpuCG/makeGpuBiCGSTAB return nullptr in this configuration
+    and LinearSolverFactory falls back to the CPU solver -- so these three passing here
+    verify the CPU-fallback path only, NOT real GPU-hardware equivalence. See summary.md
+    for where the genuine CUDA-hardware evidence actually lives (WSL2/Linux, P6/P7).
+
+=== GUI startup check (build tree) ===
+GUI process is alive after 3s (event loop running) -- stopping it now.
+stderr:
+  qrc:/qml/PhysicsEditor.qml:169:29: Unable to assign [undefined] to bool
+  qrc:/qml/PhysicsEditor.qml:178:29: Unable to assign [undefined] to bool
+  qrc:/qml/PhysicsEditor.qml:401:29: Unable to assign [undefined] to bool
+  qrc:/qml/BoundaryEditor.qml:135:29: Unable to assign [undefined] to bool
+  qrc:/qml/BoundaryEditor.qml:205:29: Unable to assign [undefined] to bool
+(Non-fatal QML console warnings when no case is open yet -- app stays alive
+and functional; the same warnings reproduce in the packaged GUI smoke test
+below. Not something the 17-step manual acceptance checklist caught since it
+only opens an existing case, never inspects with no case loaded. Worth a
+follow-up QML binding-guard fix, not a release blocker.)
+
+=== CLI version/case check (build tree) ===
+CFDApp 0.2.0
+Case: Lid-Driven Cavity Re=100
+Mesh: 20 x 20
+Solver: SIMPLE
+Converged: yes
+Iterations: 3036
+U residual: 3.36265e-08
+V residual: 3.29209e-08
+P residual: 9.99854e-07
+Continuity: 3.96822e-11
+Mass imbalance: 0
+NaN/Inf: no
+CLI exit code: 0
+
+=== SUMMARY ===
+ctest: 0  gui_alive: True  cli: 0

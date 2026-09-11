@@ -1,0 +1,33 @@
+v0.2.0 release qualification -- native Windows build/package/smoke-test environment
+(gates 5/6/7; gates 1-3's GPU evidence was generated separately on WSL2/Linux with
+CUDA hardware -- see summary.md for that split and its citations).
+
+OS: Microsoft Windows 11 Pro, 10.0.26200 (Build 26200), x64
+CPU/GPU (machine, not build config): NVIDIA RTX 5000 Ada Generation Laptop GPU
+  (driver 580.97, 15352 MiB) -- present on this machine but NOT used for this
+  build: CFDAPP_ENABLE_CUDA=OFF (see summary.md, gate 1/2 notes).
+
+Toolchain (build/windows-release):
+  Compiler: MSVC 19.51.36256 (cl.exe), toolset 14.51.36231,
+    Visual Studio "18" Community
+  Qt: 6.9.3 (msvc2022_64), qmake 3.1
+  CMake generator: Ninja
+  Build type: Release
+
+CMake configure flags:
+  -DCMAKE_BUILD_TYPE=Release
+  -DCFDAPP_BUILD_GUI=ON
+  -DCFDAPP_ENABLE_PACKAGING=ON
+  -DCFDAPP_VERSION_SUFFIX=""
+  -DCMAKE_PREFIX_PATH="C:\Qt\6.9.3\msvc2022_64"
+  (CFDAPP_ENABLE_CUDA left at its OFF default -- see summary.md)
+
+Packaging: CPack, generators ZIP and NSIS.
+
+Commit under test: 21e493e7122fbc4ee3af93b555e1c65b826a80f1
+  (project version bump to 0.2.0 + release-script fixes; built directly on top
+  of 4e5a4d23f6b36203be9ef46dd4ec74880b1a06fe, the P6/P7/P8 substantive work
+  commit -- both on branch main, not yet pushed to origin, see summary.md
+  gate 4).
+
+Build date (UTC): 2026-09-11T12:53Z

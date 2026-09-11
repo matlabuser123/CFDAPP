@@ -1,0 +1,69 @@
+Evidence from scripts/windows-release/4-clean-machine-smoke-test.ps1 --
+the extracted, PACKAGED binaries (not the build tree), run from a PowerShell
+session whose PATH was never modified to include C:\Qt or Visual Studio.
+
+Package under test: build\windows-release\CFDApp-0.2.0-Windows-x64.zip
+
+=== PATH check ===
+(no Qt/Visual Studio entries found on PATH -- confirms this is testing the
+package's own bundled runtime, not a developer install's PATH artifacts)
+
+=== packaged CLI: --version ===
+CFDApp 0.2.0
+CLI --version exit code: 0
+
+=== packaged CLI: --help ===
+CFDApp
+Usage:
+  cfdapp --case <case-directory>
+Options:
+  --case <path>   Run a CFD case
+  --help          Show help
+  --version       Show version
+exit code: 0
+
+=== packaged CLI: invalid case path ===
+Case configuration error: case directory not found: C:\does\not\exist
+exit code: 2
+(clean, correct error handling -- no crash, no stack trace)
+
+=== packaged CLI: run a real example case (examples\lid_driven_cavity) ===
+Case: Lid-Driven Cavity Re=100
+Mesh: 20 x 20
+Solver: SIMPLE
+Converged: yes
+Iterations: 3036
+U residual: 3.36265e-08
+V residual: 3.29209e-08
+P residual: 9.99854e-07
+Continuity: 3.96822e-11
+Mass imbalance: 0
+NaN/Inf: no
+CLI case-run exit code: 0
+results exist: True (solution.vtk, fields.csv, residuals.csv, metadata.json
+  all written under examples\lid_driven_cavity\results\)
+
+=== packaged GUI: launch check ===
+packaged GUI is alive after 3s -- stopping it now.
+stderr: same five non-fatal QML "Unable to assign [undefined] to bool"
+  warnings as the build-tree check (PhysicsEditor.qml/BoundaryEditor.qml,
+  no case open yet) -- app stays alive and functional.
+
+=== SUMMARY ===
+cli_version_exit=0 case_exit=0 gui_alive=True
+
+=== Package contents spot-check (extracted tree) ===
+bin/cfdapp.exe, bin/cfdapp_gui.exe -- present
+bin/Qt6*.dll, bin/platforms, bin/qml, bin/imageformats, bin/tls,
+  bin/networkinformation, bin/translations -- full Qt runtime + plugins bundled
+bin/vc_redist.x64.exe -- MSVC redistributable installer bundled
+docs/ -- case_format.md, cli.md, getting_started.md, gui.md, installation.md,
+  paraview.md, troubleshooting.md
+examples/ -- backward_facing_step, channel_flow, compressible_validation,
+  heated_cavity, lid_driven_cavity, lid_driven_cavity_40x40,
+  lid_driven_cavity_80x80, multiphase_validation, poiseuille_flow,
+  species_diffusion
+licenses/LICENSE -- present
+(No top-level README.md in the package -- docs/getting_started.md serves
+that role; this matches the package's existing, pre-v0.2.0 layout, not a
+new gap introduced here.)

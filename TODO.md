@@ -195,24 +195,41 @@ Target: **v0.2.0**
 
 Release only when:
 
-* [ ] GPU production path is stable
-* [ ] CPU/GPU equivalence passes
-* [ ] Performance benchmarks are documented
-* [ ] Full CI is green
+* [x] GPU production path is stable -- carried forward from P6-GPU-001/002/003 and
+  P7-PERF-003, verified on WSL2/Linux with real CUDA hardware (`CFDAPP_ENABLE_CUDA=ON`);
+  unchanged since, no relevant code has changed. Native-Windows CUDA remains untested (this
+  machine's build has `CFDAPP_ENABLE_CUDA=OFF`) -- a pre-existing gap, not new. See
+  `results/release/v0.2.0/summary.md` gate 1.
+* [x] CPU/GPU equivalence passes -- carried forward, same WSL2/CUDA basis
+  (`tests/solver/simple/test_simple_gpu_solver.cpp`). See summary.md gate 2.
+* [x] Performance benchmarks are documented -- `results/performance/{cuda_end_to_end,
+  openmp_scaling,large_grid_stress,preconditioner}/`, unchanged since P7 (no relevant code
+  change). See summary.md gate 3.
+* [ ] Full CI is green -- **BLOCKED**: commits `4e5a4d2` (P6/P7/P8 work) and `21e493e`
+  (version bump to 0.2.0 + release-script fixes) exist locally on `main` but have not been
+  pushed to `origin` (deliberate -- see summary.md), so `.github/workflows/ci.yml` has never
+  run against them. Minimum to unblock: push and record the CI run result.
 * [x] GUI acceptance passes -- 17/17 PASS, human-executed; see
   `results/release/p8-hardening/gui_acceptance.md`.
-* [ ] Packaged CLI/GUI smoke tests pass
-* [ ] Release artifacts verified
+* [x] Packaged CLI/GUI smoke tests pass -- real `CFDApp-0.2.0-Windows-x64` package built and
+  smoke-tested (CLI `--help`/`--version`/invalid-path/real-case-run, GUI launch), including
+  from a PATH stripped of Qt/Visual Studio. See `results/release/v0.2.0/
+  packaged_smoke_test.log`.
+* [x] Release artifacts verified -- version exactly `0.2.0`, correct filenames, CLI+GUI+Qt
+  runtime+docs+examples+LICENSE all present, package extracts and smoke-tests clean,
+  SHA-256 checksums generated. See `results/release/v0.2.0/{summary.md,checksums.txt,
+  environment.txt}`.
 
 ---
 
 # Immediate Next Task
 
-**P9 — v0.2.0 release qualification**
+**P9 — v0.2.0 release qualification: 6 of 7 gates PASS, blocked on Full CI only**
 
-P8 is complete (all 9 gates, including the human-executed 17/17 GUI acceptance pass -- see
-the P8 section above). P9's remaining gates (GPU production stability, CPU/GPU equivalence,
-performance benchmark currency, full CI on the release commit, packaged CLI/GUI smoke tests,
-and release artifact verification) have not yet been (re)verified for this working tree and
-are next -- see the P9 status report in this session for the specific blockers found
-(uncommitted P6-P8 work, no CI run against a real commit, project version still `0.1.5`).
+P8 is complete (all 9 gates). Of P9's 7 gates, 6 have real, verified evidence (GPU
+stability/equivalence/benchmarks carried forward from P6/P7 with no relevant code change
+since; GUI acceptance, packaged smoke tests, and release-artifact verification all freshly
+verified this session -- see `results/release/v0.2.0/summary.md`). The one remaining gate,
+Full CI, is blocked purely on a git-push decision: commits `4e5a4d2` and `21e493e` are on
+`main` locally but not pushed to `origin`, so CI has never run against them. Do not mark P9
+complete or cut the release until CI has actually run green against the release commit.
