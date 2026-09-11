@@ -2,557 +2,351 @@
 
 ## Project Status
 
-**Current state:** P0/P1/P2/P3/P4 complete; P5 in final release-validation stage.
+**Released:** v0.1.5
+**Current:** P9 — v0.2.0 Release
+**Next:** P10 — Production Physics Integration
 
-**Current priority:**
+**Execution status:** See `TODO.md`.
+**Verification evidence:** See `results/`.
+
+Development sequence:
 
 ```text
-Numerical correctness
+Numerical foundation
     ↓
 Validation
     ↓
-Performance
+Transient / thermal / turbulence
     ↓
-Application
+Advanced physics foundations
     ↓
-Release
+Performance (CPU/OpenMP/CUDA foundations)
+    ↓
+Production application (CLI + GUI)
+    ↓
+GPU/performance validation
+    ↓
+Production hardening
+    ↓
+v0.2.0 release  ← current
     ↓
 Production physics integration
+    ↓
+GUI case authoring
+    ↓
+Solver/physics expansion
+    ↓
+Production maturity
 ```
 
 ---
 
-# P0 — Numerical Foundation ✅
+# Completed Development
 
-* [x] Structured mesh
-* [x] Scalar/vector fields
-* [x] Boundary conditions
-* [x] Sparse linear algebra
-* [x] Finite-volume operators
-* [x] Incompressible momentum equation
-* [x] Continuity equation
-* [x] SIMPLE
-* [x] Pressure correction
-* [x] Canonical mass-flux treatment
-* [x] Convergence criteria
-* [x] Mass conservation
-* [x] Deterministic execution
+## P0–P5 — Core CFDApp ✅
 
----
+- Numerical foundation and SIMPLE (structured mesh, finite-volume operators,
+  sparse linear algebra, incompressible momentum/continuity, pressure
+  correction, deterministic execution)
+- Validation and grid refinement (Poiseuille, lid-driven cavity, analytical
+  comparison tooling, regression suite, CI, sanitizers, static
+  analysis/formatting gates)
+- Transient CFD and PISO (implicit Euler, CFL monitoring, restart capability)
+- Thermal transport (energy equation, thermal BCs, conjugate heat-transfer
+  foundation)
+- Turbulence models (laminar, k-ε, k-ω, SST — validated against channel-flow
+  log-law/Re_τ benchmarks)
+- Buoyancy and natural convection (Boussinesq, validated against De Vahl
+  Davis 1983)
+- Variable properties (temperature-dependent viscosity/conductivity/heat
+  capacity)
+- Species transport foundation (advection-diffusion, analytically validated)
+- Multiphase foundation (volume-fraction transport, conservation/boundedness
+  checks)
+- Compressible foundation (ideal-gas EOS, low-Mach regression)
+- Production CLI/case system (JSON case format, New/Open/Save/Validate/Run,
+  CLI↔GUI compatibility)
+- GUI workflow (Qt/QML app, shared production solver backend, worker-thread
+  execution, run/stop/progress/failure handling)
+- Visualization/post-processing (scalar maps, contours, vector glyphs,
+  residual monitoring, probes/line-sampling, VTK/ParaView export)
+- Packaging/release foundations (CPack, Qt deployment, GitHub release
+  workflow; first genuine release v0.1.5)
 
-# P1 — Validation & Quality ✅
+**Note:** species/multiphase/compressible above are equation-level
+foundations, validated but not yet reachable through the production
+case/CLI/GUI dispatch path — that is P10's scope.
 
-* [x] Poiseuille validation
-* [x] Lid-driven cavity validation
-* [x] Grid refinement
-* [x] Analytical comparison tooling
-* [x] CSV export
-* [x] JSON metadata
-* [x] VTK export
-* [x] Regression suite
-* [x] Continuous integration
-* [x] ASan / UBSan
-* [x] clang-format
-* [x] clang-tidy
-* [x] Quality gates
+## P6 — GPU Performance ✅
 
----
+- Persistent GPU pipeline: fields/matrices GPU-resident across iterations,
+  minimal host/device transfers, verified CPU/GPU numerical equivalence
+- Production GPU CG/BiCGSTAB in the SIMPLE path, with robust CPU fallback
+- GPU-resident Jacobi preconditioning (diag(A)⁻¹, fully on-device); stronger
+  candidates (block/damped Jacobi, polynomial, approximate inverse, ILU(0))
+  investigated and rejected for scope
 
-# P2 — Transient CFD ✅
+**Evidence:** `results/performance/preconditioner/`.
 
-* [x] Time controller
-* [x] Implicit Euler
-* [x] CFL monitoring
-* [x] `TransientSolver`
-* [x] PISO
-* [x] Restart capability
-* [x] Transient validation
-* [x] Deterministic restart behaviour
+## P7 — Performance Validation ✅
 
----
+- CUDA end-to-end benchmarking: real production-SIMPLE CPU-vs-GPU timing,
+  20×20–320×320. GPU break-even **80×80**; best measured speedup **2.01× at
+  320×320**.
+- OpenMP scaling: 1–32+ threads, 160×160. Best **4 threads, 1.33× speedup**;
+  regresses severely at 16/32 threads (WSL2 thread-spawn overhead).
+  Bit-identical results across thread counts.
+- Large-grid stress testing: largest stable CPU grid **480×480**, GPU
+  **640×640**; limiting factor is solver iteration budget, not memory.
 
-# P2 — Thermal ✅
+**Evidence:** `results/performance/{cuda_end_to_end,openmp_scaling,large_grid_stress}/`.
 
-* [x] Thermal properties
-* [x] Energy equation
-* [x] Thermal boundary conditions
-* [x] Heated-cavity conduction
-* [x] Conjugate heat-transfer foundation
-* [x] Thermal validation
+## P8 — Production Hardening ✅
 
----
+- Full regression suite, parallel `ctest`, AddressSanitizer/UndefinedBehaviorSanitizer
+  (zero diagnostics), `clang-format`/`clang-tidy` (zero violations)
+- Native Windows build verified (MSVC, Qt 6.9.3) and WSL2/Linux build
+  verified (CPU-only and CUDA-enabled on real GPU hardware)
+- Manual GUI acceptance: 17/17 PASS, human-executed (one real bug found and
+  fixed along the way)
+- Production documentation updated
 
-# P2 — Turbulence ✅
-
-* [x] Turbulence-model interface
-* [x] Laminar model
-* [x] RANS framework
-* [x] k-ε
-* [x] k-ω
-* [x] SST
-* [x] Turbulence benchmark validation
-
----
-
-# P3 — Advanced Physics ✅
-
-## P3-PHYS-001 — Boussinesq Buoyancy ✅
-
-* [x] Thermal-expansion coefficient
-* [x] Reference temperature
-* [x] Gravity vector
-* [x] Boussinesq density variation
-* [x] Buoyancy source in momentum
-* [x] Temperature → momentum coupling
-* [x] Zero-buoyancy equivalence
-* [x] Sign/source validation
-* [x] Deterministic coupling
-
-## P3-PHYS-002 — Natural Convection ✅
-
-* [x] Natural-convection cavity
-* [x] Rayleigh number
-* [x] Prandtl number
-* [x] Multi-grid validation
-* [x] Velocity validation
-* [x] Temperature validation
-* [x] Nusselt-number validation
-* [x] Heat balance
-* [x] Mass conservation
-* [x] Grid refinement
-* [x] Determinism
-
-## P3-PHYS-003 — Variable Properties ✅
-
-* [x] Temperature-dependent viscosity
-* [x] Temperature-dependent conductivity
-* [x] Temperature-dependent heat capacity
-* [x] Temperature-dependent density where appropriate
-* [x] Property interpolation
-* [x] Validation tests
-* [x] Constant-property equivalence
-
-## P3-PHYS-004 — Species Transport ✅
-
-* [x] Species-field infrastructure
-* [x] Advection-diffusion equation
-* [x] Species boundary conditions
-* [x] Diffusivity models
-* [x] Conservation checks
-* [x] Analytical validation
-
-## P3-PHYS-005 — Multiphase Foundation ✅
-
-* [x] Two-phase representation
-* [x] Volume-fraction field
-* [x] Mixture properties
-* [x] Conservative interface transport
-* [x] Conservation tests
-* [x] Boundedness monitoring
-* [x] Single-phase equivalence
-* [x] Minimal validation case
-
-## P3-PHYS-006 — Compressible Foundation ✅
-
-* [x] Compressible fluid properties
-* [x] Ideal-gas equation of state
-* [x] Density coupling
-* [x] Compressible continuity
-* [x] Compressible momentum foundation
-* [x] Pressure-density coupling
-* [x] Energy coupling
-* [x] Mach-number diagnostics
-* [x] Low-Mach regression
-* [x] Compressible validation case
+**Evidence:** `results/release/p8-hardening/`.
 
 ---
 
-# P4 — Performance ✅
+# P9 — v0.2.0 Release ← CURRENT
 
-## P4-A — Profiling ✅
+Goal: qualify and publish the first v0.2 production release after GPU
+performance validation and production hardening.
 
-* [x] Reproducible profiling baseline
-* [x] Runtime breakdown
-* [x] Hardware/build metadata
-* [x] Representative benchmark cases
+**Current execution state:** See `TODO.md`.
 
-## P4-B — CPU Optimization ✅
+**Release evidence:** `results/release/v0.2.0/`.
 
-* [x] Matrix-assembly profiling
-* [x] Matrix-assembly optimization
-* [x] Linear-solver investigation
-* [x] Solver-workspace investigation
-* [x] Performance regression checks
-* [x] Numerical-equivalence checks
-
-## P4-C — Parallel Performance ✅
-
-* [x] OpenMP baseline
-* [x] Thread scaling
-* [x] Scaling efficiency
-* [x] Determinism/equivalence checks
-
-## P4-D — Memory/Layout ✅
-
-* [x] Memory/layout investigation
-* [x] Allocation analysis
-* [x] Data-layout review
-* [x] Geometry/connectivity reuse where appropriate
-
-## P4-E — CUDA ✅
-
-* [x] Optional CUDA backend
-* [x] CUDA context/backend foundation
-* [x] GPU sparse operations
-* [x] GPU linear algebra
-* [x] CPU fallback
-* [x] CPU/GPU equivalence
-
-## P4-F — Large-Grid Benchmarks ✅
-
-* [x] Multi-grid benchmark suite
-* [x] Runtime scaling
-* [x] Iteration scaling
-* [x] Memory scaling
-* [x] CPU/OpenMP/GPU comparison where supported
+P10 may begin only after the required P9 release gates are complete.
 
 ---
 
-# P5 — Application 🚧
+# P10 — Production Physics Integration
 
-## P5-A — Production Case Manager ✅
+Begin only after P9 release qualification is complete.
 
-* [x] New case
-* [x] Open case
-* [x] Save
-* [x] Save As
-* [x] Reload
-* [x] Validate
-* [x] Run
-* [x] Cancel
-* [x] Explicit case lifecycle
-* [x] CLI/GUI case-format compatibility
+**Goal:** move the existing advanced-physics foundations (species,
+multiphase, compressible — see P0–P5 note above) into the normal production
+case/configuration/dispatch/export workflow, in that priority order.
 
-## P5-B — GUI Solver Workflow ✅
+## P10-APP-001 — Species Production Integration
 
-* [x] Qt/QML application
-* [x] Shared production solver backend
-* [x] Worker-thread execution
-* [x] Responsive GUI
-* [x] Run/Stop workflow
-* [x] Progress reporting
-* [x] Failure handling
-* [x] Controller-level tests
-* [x] Headless QML smoke test
+- [ ] `physics.json` species configuration
+- [ ] `CaseBuilder` integration
+- [ ] `ProjectRunner` dispatch
+- [ ] Production example case
+- [ ] CLI verification
+- [ ] GUI verification
+- [ ] Species-field export
+- [ ] End-to-end regression
 
-## P5-C — Field Visualization ✅
+## P10-APP-002 — Multiphase Production Integration
 
-* [x] Scalar-field map
-* [x] Field selector
-* [x] Legend
-* [x] Mesh/domain rendering
-* [x] Completed-run result loading
+- [ ] Multiphase configuration parsing
+- [ ] Phase construction from case configuration
+- [ ] Volume-fraction transport wired into production runner
+- [ ] Mixture-field exposure
+- [ ] Production example case
+- [ ] CLI verification
+- [ ] GUI verification
+- [ ] Restart/export verification
+- [ ] End-to-end regression
 
-## P5-D — Contours ✅
+## P10-APP-003 — Compressible Production Integration
 
-* [x] Marching-squares extraction
-* [x] Automatic contour levels
-* [x] GUI contour overlay
-* [x] Synthetic analytical tests
+- [ ] Compressible configuration parsing
+- [ ] EOS configuration
+- [ ] Pressure/reference-pressure configuration
+- [ ] Production solver dispatch
+- [ ] Compressible boundary conditions
+- [ ] Compressible energy coupling
+- [ ] Density/Mach/absolute-pressure export
+- [ ] Production low-Mach example
+- [ ] CLI verification
+- [ ] GUI verification
+- [ ] End-to-end regression
 
-## P5-E — Vector Plots ✅
+## P10-APP-004 — Production Physics Compatibility Matrix
 
-* [x] Velocity-vector sampling
-* [x] GUI vector glyphs
-* [x] Sampling controls
-* [x] Display scaling
+- [ ] Define supported physics combinations
+- [ ] Reject unsupported combinations cleanly
+- [ ] Document compatibility matrix
+- [ ] Production-dispatch tests
+- [ ] Representative integrated validation cases
 
-## P5-F — Residual Monitoring ✅
-
-* [x] Live residual monitoring
-* [x] Full multi-series history
-* [x] Residual-history plotting
-* [x] Reload from `residuals.csv`
-
-## P5-G — Post-Processing ✅
-
-* [x] Field statistics
-* [x] Probe tool
-* [x] Line sampling
-* [x] CSV export
-* [x] Derived-field support
-
-## P5-H — ParaView ✅
-
-* [x] VTK output
-* [x] Velocity vector export
-* [x] Scalar field export
-* [x] Automated VTK smoke test
-* [x] ParaView user workflow documentation
-
-## P5-I — Documentation ✅
-
-* [x] Getting started
-* [x] Installation
-* [x] CLI guide
-* [x] GUI guide
-* [x] Visualization guide
-* [x] Case-format documentation
-* [x] ParaView guide
-* [x] Troubleshooting
-
-## P5-J — Packaging 🚧
-
-* [x] CPack configuration written
-* [x] Qt deployment configuration written
-* [ ] Build Windows production package
-* [ ] Run `windeployqt`
-* [ ] Generate portable ZIP
-* [ ] Generate Windows installer
-* [ ] Smoke-test packaged CLI
-* [ ] Smoke-test packaged GUI
-* [ ] Verify clean-machine execution
-* [ ] Verify CPU-only fallback
-* [ ] Generate release checksums
-
-## P5-K — Release Automation 🚧
-
-* [x] GitHub release workflow written
-* [ ] Execute workflow on Windows
-* [ ] Run full Windows Release test suite
-* [ ] Package inside CI
-* [ ] Smoke-test packaged binaries
-* [ ] Generate checksums
-* [ ] Upload release assets
-* [ ] Download and retest published artifact
+**P10 Acceptance:** species, multiphase, and compressible capabilities must
+be configurable and runnable through the production application without
+custom test-only code paths, with end-to-end regression and
+numerical/physical validation.
 
 ---
 
-# P6 — Production Physics Integration
+# P11 — GUI Case Authoring
 
-Begin only after P5 release is complete.
+**Goal:** allow ordinary users to create and configure production cases
+without manually editing JSON. Current GUI can open, save, validate, run and
+post-process cases, but configuration still depends on hand-edited case
+files.
 
-The advanced-physics modules exist, but some are not yet fully available through the production case/configuration/dispatch path.
+## P11-GUI-001 — Mesh Editor
 
-## P6-APP-001 — Species Production Integration
+- [ ] Mesh dimensions, domain dimensions, mesh preview, input validation
 
-* [ ] Add/complete `physics.json` species configuration parsing
-* [ ] Wire species configuration into `CaseBuilder`
-* [ ] Dispatch species transport through `ProjectRunner`
-* [ ] Add production example case
-* [ ] Verify CLI execution
-* [ ] Verify GUI execution
-* [ ] Export species fields
-* [ ] Add end-to-end regression
+## P11-GUI-002 — Physics Editor
 
-## P6-APP-002 — Multiphase Production Integration
+- [ ] Flow-regime selection, material properties, thermal configuration,
+  turbulence selection, species/multiphase/compressible controls
 
-* [ ] Add/complete multiphase configuration parsing
-* [ ] Build phase definitions from case configuration
-* [ ] Wire volume-fraction transport into production runner
-* [ ] Expose mixture fields
-* [ ] Add production example
-* [ ] Verify CLI execution
-* [ ] Verify GUI execution
-* [ ] Verify restart/export
-* [ ] Add end-to-end regression
+## P11-GUI-003 — Boundary-Condition Editor
 
-## P6-APP-003 — Compressible Production Integration
+- [ ] Boundary/BC-type selection; edit velocity, pressure, temperature,
+  species, volume fraction; validation/error reporting
 
-* [ ] Add/complete compressible configuration parsing
-* [ ] Add EOS configuration
-* [ ] Define pressure/reference-pressure configuration
-* [ ] Wire compressible solver dispatch into `ProjectRunner`
-* [ ] Wire compressible BCs
-* [ ] Wire compressible energy coupling
-* [ ] Export density/Mach/absolute pressure
-* [ ] Add production low-Mach example
-* [ ] Verify CLI execution
-* [ ] Verify GUI execution
-* [ ] Add end-to-end regression
+## P11-GUI-004 — Solver Settings Editor
 
-## P6-APP-004 — Production Physics Matrix
+- [ ] SIMPLE/PISO configuration, linear-solver selection, tolerances,
+  relaxation factors, time-step/CFL controls, CPU/OpenMP/GPU backend
+  selection
 
-* [ ] Define supported physics combinations
-* [ ] Reject unsupported combinations cleanly
-* [ ] Document compatibility matrix
-* [ ] Add production-dispatch tests
-* [ ] Add representative integrated validation cases
+## P11-GUI-005 — Case Creation Wizard
+
+- [ ] New case without manual JSON editing, template selection, guided
+  setup, pre-save validation, CLI-compatible output
+
+**P11 Acceptance:** a representative supported case can be created,
+configured, validated, saved, reopened, and executed entirely through the
+GUI without manual JSON editing, while remaining CLI-compatible.
 
 ---
 
-# P7 — GUI Case Authoring
+# P12 — Solver & Physics Expansion
 
-Current GUI can open, save, validate, run and post-process cases, but ordinary configuration still depends heavily on existing JSON case files.
+Begin after production integration is stable. These are planned capability
+directions, not current commitments.
 
-## P7-GUI-001 — Mesh Editor
+## P12-NUM — Numerics
 
-* [ ] Mesh size controls
-* [ ] Domain dimensions
-* [ ] Mesh preview
-* [ ] Validation
+- [ ] Higher-order convection schemes
+- [ ] Additional preconditioners
+- [ ] Multigrid
+- [ ] Fully coupled pressure-based solver
 
-## P7-GUI-002 — Physics Editor
+## P12-COMP — Compressible CFD
 
-* [ ] Flow-regime selection
-* [ ] Material properties
-* [ ] Thermal controls
-* [ ] Turbulence selection
-* [ ] Species controls
-* [ ] Multiphase controls
-* [ ] Compressible controls
+- [ ] Advanced compressible-energy formulation
+- [ ] Higher-Mach capability
 
-## P7-GUI-003 — Boundary-Condition Editor
+## P12-TURB — Turbulence
 
-* [ ] Select boundary
-* [ ] Select BC type
-* [ ] Edit velocity
-* [ ] Edit pressure
-* [ ] Edit temperature
-* [ ] Edit species
-* [ ] Edit volume fraction
-* [ ] Validation/error reporting
+- [ ] Advanced turbulence validation
+- [ ] Additional production turbulence capabilities where justified
 
-## P7-GUI-004 — Solver Settings Editor
+## P12-SPECIES — Species & Reactions
 
-* [ ] SIMPLE/PISO configuration
-* [ ] Linear-solver selection
-* [ ] Tolerances
-* [ ] Relaxation factors
-* [ ] Time-step controls
-* [ ] CFL controls
-* [ ] Backend selection
-* [ ] CPU/OpenMP/GPU controls
+- [ ] Additional species models
+- [ ] Reaction/source-term framework
 
-## P7-GUI-005 — Case Creation Wizard
+## P12-MULTI — Multiphase
 
-* [ ] Create new case without manual JSON editing
-* [ ] Template selection
-* [ ] Guided setup
-* [ ] Validate before save
-* [ ] CLI-compatible output
+- [ ] Advanced interface methods
+- [ ] Surface tension
+- [ ] Interface reconstruction
+
+## P12-MESH — Geometry
+
+- [ ] Moving/deforming meshes
+- [ ] 3D foundation
 
 ---
 
-# P8 — Solver & Physics Expansion
+# P13 — Production Maturity
 
-Only after production integration is stable.
+Long-term hardening for broader production use.
 
-Potential future work:
+## Reliability
 
-* [ ] Higher-order convection schemes
-* [ ] Additional preconditioners
-* [ ] Multigrid
-* [ ] Fully coupled pressure-based solver
-* [ ] Advanced compressible-energy formulation
-* [ ] Higher-Mach compressible capability
-* [ ] Advanced turbulence validation
-* [ ] Additional species models
-* [ ] Reaction/source-term framework
-* [ ] Advanced multiphase interface methods
-* [ ] Surface tension
-* [ ] Interface reconstruction
-* [ ] Moving/deforming meshes
-* [ ] 3D foundation
+- [ ] Crash reporting
+- [ ] Structured diagnostic logging
+- [ ] Long-duration stability tests
+- [ ] Large-case stress tests
 
-These are future capabilities, not current commitments.
+## Results & Benchmarking
 
----
+- [ ] Result-comparison tools
+- [ ] Automated benchmark dashboard
 
-# P9 — Production Maturity
+## Compatibility
 
-Long-term application hardening.
+- [ ] Backward-compatible case-schema migration
+- [ ] Plugin/model extension architecture
 
-* [ ] Crash reporting
-* [ ] Structured diagnostic logs
-* [ ] Result comparison tools
-* [ ] Automated benchmark dashboard
-* [ ] Backward-compatible case-schema migration
-* [ ] Plugin/model extension architecture
-* [ ] Cross-platform packaging
-* [ ] Linux release
-* [ ] Automated installer testing
-* [ ] Long-duration stability tests
-* [ ] Large-case stress tests
-* [ ] Release-candidate qualification process
+## Distribution
+
+- [ ] Cross-platform packaging
+- [ ] Linux release
+- [ ] Automated installer testing
+
+## Release Engineering
+
+- [ ] Formal release-candidate qualification process
 
 ---
 
-# Current Priority
+# Dependencies
 
-## NOW — Finish P5 Release Gate
+```text
+P9  v0.2.0 Release
+ ↓
+P10 Production Physics Integration
+ ↓
+P11 GUI Case Authoring
+ ↓
+P12 Solver & Physics Expansion
 
-Complete:
-
-```text id="p2mgxx"
-P5-J — Packaging
-P5-K — Release Automation
+P10/P11 ↘
+          P13 Production Maturity
 ```
 
-Immediate requirement:
+P11 infrastructure work may overlap with late P10 only if production
+schemas/interfaces are stable and `TODO.md` explicitly authorizes it.
 
-```text id="jnktmg"
-Windows + Qt 6
-      ↓
-Release build
-      ↓
-Full CTest
-      ↓
-windeployqt
-      ↓
-CPack
-      ↓
-Packaged CLI smoke test
-      ↓
-Packaged GUI smoke test
-      ↓
-Checksums
-      ↓
-GitHub release workflow
-      ↓
-Download + retest published artifact
-```
-
-Only then mark:
-
-```text id="xehd74"
-P5 — Application ✅
-```
+P13 is not strictly gated behind all of P12: reliability, compatibility, and
+distribution items (crash reporting, diagnostic logging, schema migration,
+Linux packaging, installer testing) may proceed alongside later P10/P11 work
+once those phases are far enough along for such hardening to be meaningful,
+without waiting for the full P12 solver/physics-expansion scope. Do not
+silently start a later phase — any overlap still needs `TODO.md` to
+explicitly authorize it.
 
 ---
 
-# Next After Release
+# Roadmap Principles
 
-Begin:
-
-```text id="980bxa"
-P6 — Production Physics Integration
-```
-
-Priority:
-
-```text id="sd3qn5"
-1. Species production dispatch
-2. Multiphase production dispatch
-3. Compressible production dispatch
-4. Supported-physics compatibility matrix
-```
-
-After P6:
-
-```text id="21d4yu"
-P7 — GUI Case Authoring
-```
-
-This will remove the remaining need for ordinary users to edit case JSON manually.
+1. Numerical correctness before optimization.
+2. Validation before performance claims.
+3. Production integration before GUI exposure.
+4. CPU reference implementation remains authoritative unless explicitly
+   superseded.
+5. GPU/OpenMP paths require numerical equivalence.
+6. New physics requires physical validation, not only unit tests.
+7. New features require production-path integration.
+8. Failed/excluded cases remain documented.
+9. Performance claims require reproducible measured evidence.
+10. A roadmap item becomes complete only after implementation, testing,
+    validation, integration, documentation, and production usability.
 
 ---
 
-# Development Rule
+# Definition of Done
 
-Every new roadmap item must follow:
-
-```text id="imrd7b"
+```text
 Implementation
     ↓
 Focused tests
@@ -563,20 +357,29 @@ Regression
     ↓
 Determinism/equivalence
     ↓
+Production integration
+    ↓
 Documentation
     ↓
-Only then mark complete
+Usable through supported application path
+    ↓
+COMPLETE
 ```
 
 Never mark a feature complete because code merely exists.
 
-A feature is complete only when it is:
+---
 
-```text id="kqnqu5"
-implemented
-tested
-validated
-integrated
-documented
-and usable through the production application
-```
+# Current Execution
+
+See `TODO.md` for:
+
+- current phase
+- active gate
+- blockers
+- release candidate
+- CI state
+- immediate next task
+
+`TODO.md` is the only live execution checklist. This file does not track
+day-to-day status, so it never goes stale when a commit or CI run changes.

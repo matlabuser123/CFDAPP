@@ -1,8 +1,43 @@
 # CFDApp — TODO
 
-**Current phase:** Performance & Production Hardening
+**Current phase:** P9 — v0.2.0 Release
 **Released:** v0.1.5
-**Priority:** GPU pipeline → GPU solvers → preconditioning → benchmarking → release
+**Next release:** v0.2.0
+**Immediate task:** Complete v0.2.0 CI gate (see "Immediate Next Task" below)
+
+## Rules
+
+1. Work top-to-bottom within the current phase.
+2. Do not start the next phase until the current phase's required gates pass.
+3. `[ ]` = not completed or not verified. `[x]` = implemented AND verified with real evidence.
+4. Never mark `[x]` for planned, assumed, partially implemented, or unverified work.
+5. A successful build alone does not prove numerical correctness.
+6. Automated tests do not substitute for explicitly required manual tests.
+7. Local tests do not substitute for explicitly required CI results.
+8. Never fabricate test, benchmark, CI, GUI, hardware, or release evidence.
+9. Record failures honestly; do not weaken acceptance criteria to make a gate pass.
+10. Fix the root cause, then rerun the affected verification before marking `[x]`.
+11. Performance claims must come from measured end-to-end results, not assumptions or
+    kernel-only timings unless explicitly labelled as microbenchmarks.
+12. CPU/GPU equivalence requires explicit numerical tolerances and measured comparisons.
+13. Hardware-specific claims must identify the environment actually tested.
+14. A release gate applies to the exact release candidate commit; evidence from older
+    commits may only be reused when clearly justified and unaffected by later changes.
+15. Do not create a release/tag while a required release gate is blocked.
+16. Update `TODO.md` immediately after verified work changes project status.
+17. Keep detailed logs/results in `results/`; keep `TODO.md` concise and link to the
+    evidence instead of copying large reports into it.
+18. Preserve known limitations and failed/excluded tests rather than hiding them.
+19. Do not start unrelated future-phase work while the current immediate task is blocked.
+
+## Status
+
+- `[ ]` — incomplete or unverified
+- `[x]` — implemented and verified
+- `← CURRENT` — active phase
+- `⏳` — in progress
+- `⚠️ BLOCKED` — cannot proceed until stated gate/dependency clears
+- `✅` — phase complete
 
 ---
 
@@ -24,212 +59,102 @@
 
 ---
 
-# P6 — GPU Performance ← CURRENT
+# P6 — GPU Performance ✅
 
-## P6-GPU-001 — Persistent GPU Pipeline ✅
+* [x] **P6-GPU-001 — Persistent GPU pipeline.** Fields/matrices GPU-resident across
+  iterations, minimal host/device transfers, CPU/GPU equivalence verified.
+* [x] **P6-GPU-002 — Production GPU linear solvers.** GPU CG/BiCGSTAB in the
+  production SIMPLE path, robust CPU fallback.
+* [x] **P6-GPU-003 — Preconditioning.** GPU-resident Jacobi (diag(A)⁻¹, fully
+  on-device). Stronger candidates (block/damped Jacobi, polynomial, approximate
+  inverse, ILU(0)) investigated and rejected for scope.
 
-* [x] Keep fields resident on GPU
-* [x] Keep sparse matrices resident on GPU
-* [x] Minimize CPU ↔ GPU transfers
-* [x] Reuse GPU buffers between iterations
-* [x] Add transfer/timing instrumentation
-* [x] Verify CPU/GPU numerical equivalence
+**Acceptance:** production solve runs repeated iterations without unnecessary
+host/device transfers; GPU CG/BiCGSTAB reproduce CPU solutions within tolerance;
+preconditioning validated against CPU Jacobi and unpreconditioned solves within
+tolerance, with measured (not assumed) iteration-count/wall-clock evidence.
 
-**Acceptance:** production solve can execute repeated iterations without unnecessary host/device transfers.
-
-## P6-GPU-002 — Production GPU Linear Solvers ✅
-
-* [x] Integrate GPU CG
-* [x] Integrate GPU BiCGSTAB
-* [x] Connect solvers to production SIMPLE path
-* [x] Implement robust CPU fallback
-* [x] Add convergence/equivalence tests
-
-**Acceptance:** production cases can select GPU CG/BiCGSTAB and reproduce CPU solutions within tolerance.
-
-## P6-GPU-003 — Preconditioning ✅
-
-* [x] Establish current solver baseline
-* [x] Implement/improve Jacobi preconditioning
-* [x] Investigate stronger GPU-friendly preconditioners
-* [x] Measure iteration-count and runtime improvement
-* [x] Add regression tests
-
-**Acceptance:** GPU-resident Jacobi preconditioning (diag(A)^-1 built and applied entirely on
-device, no per-iteration host round trip) is available to GPU CG/BiCGSTAB via
-`LinearSolverSettings::preconditioner`, validated against CPU Jacobi and unpreconditioned
-solves within tolerance, with regression tests and measured (not assumed) iteration-count and
-wall-clock evidence in `results/performance/preconditioner/`. Stronger candidates (block Jacobi,
-damped Jacobi, polynomial, approximate inverse, ILU(0)) were investigated and rejected for this
-task's scope -- see the P6-GPU-003 final report for the evidence-based reasoning.
+**Evidence:** `include/cfd/gpu/`, `src/gpu/`, `src/algebra/LinearSolverFactory.cpp`,
+`tests/solver/simple/test_simple_gpu_solver.cpp`, `results/performance/preconditioner/`.
 
 ---
 
-# P7 — Performance Validation
+# P7 — Performance Validation ✅
 
-## P7-PERF-001 — CUDA End-to-End Benchmark ✅
+* [x] **P7-PERF-001 — CUDA end-to-end.** Real production-SIMPLE CPU-vs-GPU timing
+  (never kernel-only), 20×20–320×320. **GPU break-even: 80×80. Best speedup: 2.01×
+  at 320×320.** 640×640 excluded: CPU failed to converge within the shared
+  iteration budget.
+* [x] **P7-PERF-002 — OpenMP scaling.** 1–32+ threads, 160×160. **Best: 4 threads,
+  1.33× speedup.** Regresses severely at 16/32 threads (WSL2 thread-spawn
+  overhead). Bit-identical results across thread counts — zero race-condition
+  evidence.
+* [x] **P7-PERF-003 — Large-grid stress.** Memory/stability/NaN-Inf/mass-conservation
+  checked at every grid. **Largest stable CPU grid: 480×480. Largest stable GPU
+  grid: 640×640.** Limiting factor is solver iteration budget, not memory (under
+  1GB host memory even at 800k+ cells); failures are clean
+  `PressureCorrectionFailure`, never blow-up.
 
-* [x] Measure total CPU runtime
-* [x] Measure total GPU runtime
-* [x] Measure transfer overhead
-* [x] Measure solver/assembly runtime
-* [x] Calculate speedup
-* [x] Identify GPU break-even grid size
-
-Test at minimum:
-
-* [x] 20×20
-* [x] 40×40
-* [x] 80×80
-* [x] 160×160
-* [x] 320×320
-* [x] Larger grid if practical (640×640 attempted; CPU failed to converge within the shared
-  linear-solver iteration budget at that scale -- documented as an invalid/excluded
-  comparison, not fabricated, in `results/performance/cuda_end_to_end/summary.md`)
-
-**Acceptance:** real end-to-end CPU-vs-GPU production SIMPLE timing measured at
-`benchmarks/gpu/cfd_benchmark_cuda_end_to_end` -- never kernel-only. GPU break-even: **80×80**
-(6,400 cells). Maximum measured speedup: **2.01x at 320×320**. Full results in
-`results/performance/cuda_end_to_end/` (`runs.csv`, `summary.csv`, `metadata.json`,
-`summary.md`, `environment_hardware.txt`).
-
-## P7-PERF-002 — OpenMP Scaling ✅
-
-* [x] Benchmark 1 thread
-* [x] Benchmark 2 threads
-* [x] Benchmark 4 threads
-* [x] Benchmark 8+ threads where available
-* [x] Measure speedup and efficiency
-* [x] Identify remaining serial bottlenecks
-
-**Acceptance:** real end-to-end production-SIMPLE OpenMP scaling measured at
-`benchmarks/cpu/cfd_benchmark_openmp_scaling` (160x160, 60 outer iterations), corroborated by
-the pre-existing pure-SpMV microbenchmark (`cfd_benchmark_spmv_scaling`). Audit finding: exactly
-one `#pragma omp` exists in the whole codebase (`SparseMatrix::multiply`), which bounds and
-explains every result. Best thread count: **4** (1.33x speedup, 9.28s median vs 12.33s at
-1 thread). Scaling saturates by 4 threads and **regresses severely at 16/32 threads** (32
-threads = 197s, 16x *slower* than 1 thread) -- a reproducible WSL2 thread-spawn-overhead effect
-across the many small, frequent parallel regions a full SIMPLE solve triggers, corroborated by
-the isolated-kernel microbenchmark showing the same shape. Numerical equivalence: exactly 0.0
-max velocity difference from the 1-thread baseline at every thread count (bit-identical, not
-just within tolerance) -- zero race-condition evidence. Full results and estimated ~78%
-effective serial fraction (Amdahl, from measured data) in
-`results/performance/openmp_scaling/summary.md`.
-
-## P7-PERF-003 — Large-Grid Stress Tests ✅
-
-* [x] Test memory usage
-* [x] Test solver stability
-* [x] Test CPU scaling
-* [x] Test GPU scaling
-* [x] Check NaN/Inf
-* [x] Check mass conservation
-* [x] Record convergence history
-
-**Acceptance:** progressively larger lid-driven-cavity stress tests measured at
-`benchmarks/gpu/cfd_benchmark_large_grid_stress`. **Largest stable CPU grid: 480x480**
-(230,400 cells); **largest stable GPU grid: 640x640** (409,600 cells, one tier further than
-CPU). Limiting factor at both backends is solver capacity, not memory: unpreconditioned
-BiCGSTAB's pressure-correction solve fails to converge within the shared 5,000-iteration
-budget at CPU 640x640 and GPU 800x800 (`SIMPLEStatus::PressureCorrectionFailure`,
-reproducing P7-PERF-001's own independent 640x640 CPU finding). Zero NaN/Inf and zero mass
-imbalance at every attempted grid, including the failed ones -- failures are clean
-"iteration budget exceeded," never numerical blow-up. Host memory peaks at under 1GB even at
-800,000+ cells (32GB machine) -- memory was never the limiting factor in the tested range.
-Full results, per-grid convergence histories, and known limitations (including a documented
-GPU-memory-measurement caveat) in `results/performance/large_grid_stress/summary.md`.
+**Evidence:** `results/performance/{cuda_end_to_end,openmp_scaling,large_grid_stress}/`.
 
 ---
 
 # P8 — Production Hardening ✅
 
-* [x] Run full regression suite -- 1289/1289 (100%) on Linux (WSL2) and on a genuine native
-  Windows MSVC build; 13 pre-existing `DISABLED_` slow grid-refinement cases excluded
-  (documented, unrelated to this task).
-* [x] Run parallel `ctest` -- `ctest -j8`: 1289/1289 (100%), 277.82s vs 1398.47s serial, no
-  race conditions, no test-order/shared-resource issues.
-* [x] Run sanitizers -- AddressSanitizer + UndefinedBehaviorSanitizer (`--preset asan`,
-  `ctest -j8 --timeout 900`): 1250/1250 (100%; asan preset builds CPU-only, so the
-  CUDA-only test binary is absent from this count), **zero** ASan/UBSan diagnostics
-  anywhere in the log (not just zero ctest failures -- greped for
-  `ERROR: AddressSanitizer|ERROR: LeakSanitizer|runtime error:|SUMMARY:.*Sanitizer`
-  directly).
-* [x] Run clang-format -- found 6 files with violations (`clang-format-18 --dry-run
-  --Werror`, CI's exact recipe), formatted them in place, re-verified 0 violations across
-  all 455 production files.
-* [x] Run clang-tidy -- `run-clang-tidy -p build/debug '^(include|src)/.*\.(cpp|hpp)$'`
-  (CI's exact recipe): **zero findings** in production code.
-* [x] Verify Windows build -- a genuine native Windows build (MSVC 19.44, Visual Studio
-  2022, Qt 6.9.3, `-DCFDAPP_BUILD_GUI=ON`), not a WSL build relabeled: clean configure,
-  clean build (0 errors, only minor pre-existing `[[nodiscard]]`-discard warnings in test
-  files), 1289/1289 ctest, CLI smoke (`--help`/`--version`/invalid-path all correct), and a
-  real production case (`cases/lid_driven_cavity`) run to convergence through
-  `cfdapp.exe`.
-* [x] Verify Linux build -- WSL2/Ubuntu 22.04, described accurately as such (not claimed as
-  a native-Linux-distribution matrix): clean configure/build, 1289/1289 serial and
-  parallel ctest, CPU-only and with `-DCFDAPP_ENABLE_CUDA=ON` on a real GPU.
-* [x] Perform manual GUI acceptance test -- **17/17 PASS**, human-executed by the project
-  owner against the rebuilt `cfdapp_gui.exe` (self-reported result; Claude Code has no
-  screen-capture/input-automation tool for a native Qt window and did not perform the
-  interaction itself). One real bug was found and fixed during the run -- the Case page's
-  Directory field rejected a path pasted via Windows Explorer's "Copy as path" (wrapped in
-  literal double quotes); fixed with `sanitizeCaseDirectory()` in
-  `apps/gui/SimulationController.cpp` plus a regression test
-  (`SimulationControllerTest.OpenCaseAcceptsQuotedAndPaddedPath`), rebuilt, retested PASS.
-  Full 17-row results in `results/release/p8-hardening/gui_acceptance.md`.
-* [x] Update performance documentation -- `README.md` rewritten with accurate current GPU/
-  CUDA status, OpenMP scaling, and large-grid stress findings from P7 (previously stale --
-  predated the persistent GPU pipeline and reported "GPU measured slower than CPU," now
-  false); `README.md` was also found and fixed as a UTF-16-encoded file (unreadable by most
-  tools) and re-saved as UTF-8.
+* [x] Regression suite: 1289/1289
+* [x] Parallel `ctest -j8`: 1289/1289, no race conditions
+* [x] ASan/UBSan: PASS, zero diagnostics (grepped directly, not inferred)
+* [x] `clang-format`: PASS (0/455 files)
+* [x] `clang-tidy`: PASS (zero findings)
+* [x] Native Windows build (MSVC 19.44, Qt 6.9.3): PASS
+* [x] WSL2/Linux build, CPU-only and CUDA-enabled on real GPU: PASS
+* [x] Manual GUI acceptance: **17/17 PASS**, human-executed. One real bug found and
+  fixed (Explorer "Copy as path" quoted-path rejection) — see evidence.
+* [x] Performance documentation updated (`README.md`)
 
-**Overall: COMPLETE, all 9 gates** -- see `results/release/p8-hardening/` for full evidence
-(build logs, ctest logs, ASan/UBSan log, clang-format/clang-tidy logs, environment.txt, the
-GUI checklist with 17/17 PASS results).
+**Acceptance:** all 9 hardening gates pass with real, verified evidence.
+
+**Evidence:** `results/release/p8-hardening/` (build/ctest/ASan-UBSan/clang-format/
+clang-tidy logs, `gui_acceptance.md`).
 
 ---
 
-# P9 — Next Release
+# P9 — v0.2.0 Release ← CURRENT ⚠️ BLOCKED
 
-Target: **v0.2.0**
+**Status:** 6/7 gates PASS
+**Candidate:** `8a8af79`
+**Blocked on:** Full CI
+**CI:** `34605885487` — IN PROGRESS
 
-Release only when:
+* [x] GPU production path stable — carried forward from P6/P7 (WSL2/CUDA hardware
+  evidence, unchanged since)
+* [x] CPU/GPU equivalence passes — carried forward, same basis
+* [x] Performance benchmarks documented — carried forward, same basis
+* [ ] Full CI green
+  - Previous run (`34601816351`, commit `267bbbd`): FAILED — sanitizer job
+    scheduling/timeout (tuned for 32 cores, ran on a 4-vCPU runner)
+  - Fixed in `8a8af79`; current run `34605885487` is the retest
+* [x] GUI acceptance — 17/17 PASS
+* [x] Packaged CLI/GUI smoke tests — PASS (`CFDApp-0.2.0-Windows-x64`, isolated PATH)
+* [x] Release artifacts verified — version exactly `0.2.0`, correct filenames,
+  contents, checksums
 
-* [x] GPU production path is stable -- carried forward from P6-GPU-001/002/003 and
-  P7-PERF-003, verified on WSL2/Linux with real CUDA hardware (`CFDAPP_ENABLE_CUDA=ON`);
-  unchanged since, no relevant code has changed. Native-Windows CUDA remains untested (this
-  machine's build has `CFDAPP_ENABLE_CUDA=OFF`) -- a pre-existing gap, not new. See
-  `results/release/v0.2.0/summary.md` gate 1.
-* [x] CPU/GPU equivalence passes -- carried forward, same WSL2/CUDA basis
-  (`tests/solver/simple/test_simple_gpu_solver.cpp`). See summary.md gate 2.
-* [x] Performance benchmarks are documented -- `results/performance/{cuda_end_to_end,
-  openmp_scaling,large_grid_stress,preconditioner}/`, unchanged since P7 (no relevant code
-  change). See summary.md gate 3.
-* [ ] Full CI is green -- **BLOCKED**: commits `4e5a4d2` (P6/P7/P8 work) and `21e493e`
-  (version bump to 0.2.0 + release-script fixes) exist locally on `main` but have not been
-  pushed to `origin` (deliberate -- see summary.md), so `.github/workflows/ci.yml` has never
-  run against them. Minimum to unblock: push and record the CI run result.
-* [x] GUI acceptance passes -- 17/17 PASS, human-executed; see
-  `results/release/p8-hardening/gui_acceptance.md`.
-* [x] Packaged CLI/GUI smoke tests pass -- real `CFDApp-0.2.0-Windows-x64` package built and
-  smoke-tested (CLI `--help`/`--version`/invalid-path/real-case-run, GUI launch), including
-  from a PATH stripped of Qt/Visual Studio. See `results/release/v0.2.0/
-  packaged_smoke_test.log`.
-* [x] Release artifacts verified -- version exactly `0.2.0`, correct filenames, CLI+GUI+Qt
-  runtime+docs+examples+LICENSE all present, package extracts and smoke-tests clean,
-  SHA-256 checksums generated. See `results/release/v0.2.0/{summary.md,checksums.txt,
-  environment.txt}`.
+**Known limitation:** Native Windows + CUDA remains untested (this build is
+`CFDAPP_ENABLE_CUDA=OFF`; only WSL2/Linux+CUDA has been verified).
+
+**Evidence:** `results/release/v0.2.0/`.
 
 ---
 
 # Immediate Next Task
 
-**P9 — v0.2.0 release qualification: 6 of 7 gates PASS, blocked on Full CI only**
+## Complete v0.2.0 CI gate
 
-P8 is complete (all 9 gates). Of P9's 7 gates, 6 have real, verified evidence (GPU
-stability/equivalence/benchmarks carried forward from P6/P7 with no relevant code change
-since; GUI acceptance, packaged smoke tests, and release-artifact verification all freshly
-verified this session -- see `results/release/v0.2.0/summary.md`). The one remaining gate,
-Full CI, is blocked purely on a git-push decision: commits `4e5a4d2` and `21e493e` are on
-`main` locally but not pushed to `origin`, so CI has never run against them. Do not mark P9
-complete or cut the release until CI has actually run green against the release commit.
+- [ ] Wait for current CI.
+- [ ] Verify all mandatory jobs.
+- [ ] Failure → diagnose → fix → commit → push → rerun.
+- [ ] Success → record evidence → mark CI gate `[x]`.
+- [ ] Ensure the exact final release commit has green CI.
+- [ ] Only then tag/publish `v0.2.0`.
+
+**Guard:** Do not tag or publish while any P9 gate is open.
