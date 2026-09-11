@@ -1,13 +1,13 @@
 # P9 — v0.2.0 Release Qualification — Summary
 
-**Status: 6 of 7 gates PASS. Gate 4 (Full CI) BLOCKED — not yet pushed.**
+**Status: 7 of 7 gates PASS.**
 
-Commits: `4e5a4d23f6b36203be9ef46dd4ec74880b1a06fe` (P6 GPU / P7 performance /
-P8 hardening substantive work, 108 files) and
-`21e493e7122fbc4ee3af93b555e1c65b826a80f1` (version bump to 0.2.0 + two
-release-script fixes), both on branch `main`, **not yet pushed to origin**
-(`github.com/matlabuser123/CFDAPP`) — that decision was deliberately deferred
-to the project owner and is the reason gate 4 stays open.
+Commits pushed to `main` on `github.com/matlabuser123/CFDAPP`:
+`4e5a4d23f6b36203be9ef46dd4ec74880b1a06fe` (P6 GPU / P7 performance / P8
+hardening substantive work, 108 files), `21e493e7122fbc4ee3af93b555e1c65b826a80f1`
+(version bump to 0.2.0 + release-script fixes), `267bbbd61268321527c80aa086e7e7e119fa93ec`
+(release evidence + `.gitignore` fix), and `8a8af792060414dcd5d3bb28c7b9b9cac3814058`
+(CI sanitizer-job scheduling fix — the exact commit gate 4 is verified against).
 
 ## Gate 1 — GPU production path is stable: ✅ PASS (carried forward from P6/P7)
 
@@ -56,13 +56,49 @@ scaling, large-grid stress to 640×640 GPU / 480×480 CPU), summarized in
 `README.md`. No solver/GPU code changed since these were measured, so no
 rerun was needed per this gate's own "only rerun if code changed" rule.
 
-## Gate 4 — Full CI is green: ❌ BLOCKED
+## Gate 4 — Full CI is green: ✅ PASS
 
-`.github/workflows/ci.yml` has not run against either commit above — nothing
-has been pushed to `origin`. This was a deliberate decision (the user chose
-"commit now, don't push yet" when asked), not an oversight. **Minimum action
-to unblock:** push `main` to origin (or open a PR) so GitHub Actions CI runs
-against `21e493e...`, then record the resulting run URL/conclusion here.
+`main` was pushed to `origin` (`git push origin main`), confirmed landing at
+the exact pushed SHA via both `git fetch`/`rev-parse` and the GitHub API
+(`gh api repos/matlabuser123/CFDAPP/commits/main`).
+
+**First run** — `34601816351` at commit `267bbbd61268321527c80aa086e7e7e119fa93ec`:
+**FAILED**. Root cause (confirmed by reading the job log directly, not
+inferred): the `sanitizers` job ran `ctest --preset asan -j8 --output-on-failure
+--timeout 900`, tuned against the 32-core local workstation this repo's P8
+evidence was measured on. GitHub-hosted `ubuntu-latest` runners carry only 4
+vCPUs (confirmed via the run's job metadata), so `-j8` oversubscribed 2×;
+combined with ASan/UBSan's own 2-3× overhead, 6 of the heaviest validation
+tests (SST convergence, natural-convection 15×15, channel-flow comparisons)
+exceeded the 900s per-test timeout. Grepped the full failed-job log for
+`sanitizer|abort|segmentation|SIGSEGV|SIGABRT|heap-buffer|stack-buffer|
+use-after` (case-insensitive): zero matches outside the job/step name
+strings themselves — a scheduling regression, not a memory-safety or UB bug.
+
+**Fix** — commit `8a8af792060414dcd5d3bb28c7b9b9cac3814058`: changed
+`.github/workflows/ci.yml`'s sanitizers job to `ctest --preset asan
+-j$(nproc) --output-on-failure --timeout 1800` (same convention the Build
+step already used, correctly sized to the actual runner; timeout raised for
+headroom on shared/weaker CI hardware). No sanitizer flag, tolerance, or
+disabled-test changed.
+
+**Retest** — run `34605885487` at commit `8a8af792060414dcd5d3bb28c7b9b9cac3814058`:
+**PASS**. Verified via `gh run view 34605885487 --json headSha,conclusion,status`
+→ `{"conclusion":"success","headSha":"8a8af79...","status":"completed"}`, and
+`headSha` matches local `HEAD`/`origin/main` exactly (nothing else was pushed
+in between). All 7 jobs green:
+
+| Job | Result | Duration |
+|---|---|---|
+| format | ✅ | 53s |
+| sanitizers | ✅ | 59m17s |
+| build-test (gcc, debug) | ✅ | 37m26s |
+| clang-tidy | ✅ | 3m8s |
+| python | ✅ | 26s |
+| build-test (clang, debug) | ✅ | 39m10s |
+| build-test (gcc, release) | ✅ | 8m5s |
+
+Run URL: `https://github.com/matlabuser123/CFDAPP/actions/runs/34605885487`.
 
 ## Gate 5 — GUI acceptance passes: ✅ PASS
 
@@ -112,18 +148,18 @@ blocker.
 ## Bottom line
 
 ```
-P9: 6/7 PASS, 1 BLOCKED
+P9: 7/7 PASS
 
 Gate 1 GPU production path stable:     PASS (Linux/CUDA evidence, carried forward)
 Gate 2 CPU/GPU equivalence:            PASS (Linux/CUDA evidence, carried forward)
 Gate 3 Performance benchmarks:         PASS (P7 data, unchanged)
-Gate 4 Full CI green:                  BLOCKED -- not pushed to origin yet
+Gate 4 Full CI green:                  PASS (run 34605885487 @ 8a8af79, all 7 jobs)
 Gate 5 GUI acceptance:                 PASS (17/17, human-executed)
 Gate 6 Packaged CLI/GUI smoke tests:   PASS
 Gate 7 Release artifacts verified:     PASS
 ```
 
-v0.2.0 is not release-ready until gate 4 clears. Minimum action: push `main`
-(commits `4e5a4d2`, `21e493e`) to `origin` and let CI run, or explicitly
-accept a locally-verified-only release without CI evidence (not recommended
--- this project's own P8 gates already treat CI as mandatory).
+All 7 release gates pass. Final release-candidate commit:
+`8a8af792060414dcd5d3bb28c7b9b9cac3814058`, with green CI verified directly
+against that exact SHA (not an earlier or later commit). v0.2.0 is ready to
+tag and publish from this commit.

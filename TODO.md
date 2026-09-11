@@ -3,7 +3,7 @@
 **Current phase:** P9 — v0.2.0 Release
 **Released:** v0.1.5
 **Next release:** v0.2.0
-**Immediate task:** Complete v0.2.0 CI gate (see "Immediate Next Task" below)
+**Immediate task:** Verify final CI pass, then tag v0.2.0 (see "Immediate Next Task" below)
 
 ## Rules
 
@@ -119,21 +119,18 @@ clang-tidy logs, `gui_acceptance.md`).
 
 ---
 
-# P9 — v0.2.0 Release ← CURRENT ⚠️ BLOCKED
+# P9 — v0.2.0 Release ← CURRENT
 
-**Status:** 6/7 gates PASS
-**Candidate:** `8a8af79`
-**Blocked on:** Full CI
-**CI:** `34605885487` — IN PROGRESS
+**Status:** 7/7 gates PASS
+**Candidate:** `8a8af79` (verified green CI at this exact SHA — see note below)
 
 * [x] GPU production path stable — carried forward from P6/P7 (WSL2/CUDA hardware
   evidence, unchanged since)
 * [x] CPU/GPU equivalence passes — carried forward, same basis
 * [x] Performance benchmarks documented — carried forward, same basis
-* [ ] Full CI green
-  - Previous run (`34601816351`, commit `267bbbd`): FAILED — sanitizer job
-    scheduling/timeout (tuned for 32 cores, ran on a 4-vCPU runner)
-  - Fixed in `8a8af79`; current run `34605885487` is the retest
+* [x] Full CI green — run `34605885487` @ `8a8af79`, all 7 jobs PASS. Previous
+  run (`34601816351` @ `267bbbd`) failed on a sanitizer-job scheduling/timeout
+  bug (tuned for 32 cores, ran on a 4-vCPU runner), fixed in `8a8af79`.
 * [x] GUI acceptance — 17/17 PASS
 * [x] Packaged CLI/GUI smoke tests — PASS (`CFDApp-0.2.0-Windows-x64`, isolated PATH)
 * [x] Release artifacts verified — version exactly `0.2.0`, correct filenames,
@@ -142,19 +139,23 @@ clang-tidy logs, `gui_acceptance.md`).
 **Known limitation:** Native Windows + CUDA remains untested (this build is
 `CFDAPP_ENABLE_CUDA=OFF`; only WSL2/Linux+CUDA has been verified).
 
+**Note:** this evidence update commit itself needs one more green CI pass
+before tagging — rule 14 applies to the exact tagged commit, not `8a8af79`,
+once this commit moves `main` past it.
+
 **Evidence:** `results/release/v0.2.0/`.
 
 ---
 
 # Immediate Next Task
 
-## Complete v0.2.0 CI gate
+## Verify final CI pass, then tag v0.2.0
 
-- [ ] Wait for current CI.
-- [ ] Verify all mandatory jobs.
+- [ ] Push this evidence-update commit.
+- [ ] Wait for CI on the new commit; verify all mandatory jobs pass.
 - [ ] Failure → diagnose → fix → commit → push → rerun.
-- [ ] Success → record evidence → mark CI gate `[x]`.
-- [ ] Ensure the exact final release commit has green CI.
-- [ ] Only then tag/publish `v0.2.0`.
+- [ ] Success → tag `v0.2.0` at that exact commit, push the tag.
+- [ ] Create the GitHub Release and attach verified `results/release/v0.2.0/` artifacts.
 
-**Guard:** Do not tag or publish while any P9 gate is open.
+**Guard:** Do not tag or publish until the commit being tagged itself has
+green CI.
