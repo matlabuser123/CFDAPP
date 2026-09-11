@@ -116,27 +116,35 @@ jobs:
       - name: Build
         run: cmake --build --preset asan -- -j$(nproc)
 
-      # Parallelized (-j8): CMakePresets.json's asan testPreset carries no
-      # "jobs" field, so `ctest --preset asan` alone still runs serially --
-      # this is the one place that mattered (see TODO.md's own "a real CI
-      # wall-clock inefficiency worth fixing later" note). Verified locally
-      # first (`ctest --preset asan -j8 --output-on-failure`, 1221/1221
-      # passed, ~18 min wall clock vs. ~1h50 serial) before changing this
-      # job -- no sanitizer flag, tolerance, or disabled-test change
-      # anywhere, only how many ctest worker processes run at once.
-      # --timeout 900 is a new global safety net (CTest only applies it to
-      # a test that doesn't already carry its own TIMEOUT property -- none
-      # here do): 900s is far above this suite's own ~18-minute *total*
-      # -j8 wall time, so no genuine test is expected to approach it even
-      # under ASan+parallel-worker contention; it exists purely so a real
-      # deadlock/hang under -j8 fails loudly as a reported CTest timeout
-      # instead of silently consuming the entire job's time budget --
-      # this makes a real hang *more* visible, never less.
+      # Parallelized: CMakePresets.json's asan testPreset carries no "jobs"
+      # field, so `ctest --preset asan` alone still runs serially -- this is
+      # the one place that mattered (see TODO.md's own "a real CI wall-clock
+      # inefficiency worth fixing later" note). No sanitizer flag, tolerance,
+      # or disabled-test change anywhere, only how many ctest worker
+      # processes run at once.
+      #
+      # -j8/--timeout 900 (this job's own prior values) were tuned against a
+      # 32-core local workstation and, run for real here for the first time
+      # (this job's very first push to CI), failed: 6 of the heaviest
+      # validation tests (SST convergence, natural-convection 15x15,
+      # channel-flow comparisons) blew past 900s -- github-hosted
+      # ubuntu-latest runners carry only 4 vCPUs, so -j8 oversubscribes 2x,
+      # and that contention under ASan/UBSan's own 2-3x overhead was enough
+      # to push borderline-slow tests over the timeout. Zero actual ASan/
+      # UBSan diagnostics anywhere in that failed run's log -- a scheduling
+      # regression, not a memory-safety bug.
+      #
+      # Fixed the same way the Build step above already sizes itself
+      # (-j$(nproc)) instead of a second hardcoded worker count, and
+      # --timeout raised to 1800s -- generous headroom for a shared,
+      # weaker-than-a-developer's-workstation runner, while still existing
+      # purely so a real deadlock/hang fails loudly as a reported CTest
+      # timeout instead of silently consuming the whole job's time budget.
       - name: Test under ASan+UBSan
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=0
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=0
-        run: ctest --preset asan -j8 --output-on-failure --timeout 900
+        run: ctest --preset asan -j$(nproc) --output-on-failure --timeout 1800
 
   # --- section 37: python ------------------------------------------------------
   python:
