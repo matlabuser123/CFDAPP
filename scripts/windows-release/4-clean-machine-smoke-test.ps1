@@ -11,7 +11,15 @@
 $ErrorActionPreference = "Stop"
 $extractDir = "C:\Users\Hasib\AppData\Local\Temp\cfdapp_clean_test"
 Remove-Item -Recurse -Force $extractDir -ErrorAction SilentlyContinue
-Expand-Archive -Path "C:\Users\Hasib\Desktop\CFDAPP\CFDApp\build\windows-release\CFDApp-0.1.0-Windows-x64.zip" -DestinationPath $extractDir
+# Resolved by pattern, not a hardcoded version -- a stale "0.1.0" literal
+# here previously meant this script silently tested last release's
+# package (or errored) instead of the one 1-configure-and-build.ps1 /
+# 3-package.ps1 just produced.
+$zipPath = Get-ChildItem "C:\Users\Hasib\Desktop\CFDAPP\CFDApp\build\windows-release\CFDApp-*-Windows-x64.zip" |
+    Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
+if (-not $zipPath) { throw "No CFDApp-*-Windows-x64.zip found in build\windows-release -- run 3-package.ps1 first." }
+Write-Output "=== packaging under test: $zipPath ==="
+Expand-Archive -Path $zipPath -DestinationPath $extractDir
 
 Write-Output "=== PATH for this test (should NOT contain C:\Qt or Visual Studio) ==="
 $env:PATH -split ';' | Where-Object { $_ -match 'Qt|Visual Studio' }

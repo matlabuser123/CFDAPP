@@ -34,10 +34,17 @@ qmake --version
 $src = "C:\Users\Hasib\Desktop\CFDAPP\CFDApp"
 $build = "$src\build\windows-release"
 
+# CFDAPP_VERSION_SUFFIX="" (root CMakeLists.txt's own comment: "Leave
+# empty for a tagged release build") -- without this, a real release
+# build still reports itself as e.g. "0.2.0-dev" (the CACHE default),
+# wrong for what actually ships in the package (see .github/workflows/
+# release.yml's own comment on this exact gap, previously present here
+# too).
 & cmake -S $src -B $build -G Ninja `
     -DCMAKE_BUILD_TYPE=Release `
     -DCFDAPP_BUILD_GUI=ON `
     -DCFDAPP_ENABLE_PACKAGING=ON `
+    -DCFDAPP_VERSION_SUFFIX="" `
     -DCMAKE_PREFIX_PATH="$qtDir"
 if ($LASTEXITCODE -ne 0) { throw "cmake configure failed" }
 
