@@ -299,3 +299,21 @@ TEST(CaseValidationTest, UnsupportedLinearSolverTypeIsRejected) {
   })");
   expectRejected(fixture);
 }
+
+// P6-GPU-002: "backend" only accepts "CPU"/"GPU" -- a typo or an
+// unsupported value (e.g. a hypothetical future "TPU") must be rejected
+// the same way an unsupported "type" already is, not silently ignored
+// or defaulted.
+TEST(CaseValidationTest, UnsupportedLinearSolverBackendIsRejected) {
+  CaseFixture fixture;
+  fixture.write("solver.json", R"({
+    "type": "SIMPLE", "max_iterations": 100,
+    "velocity_relaxation": 0.7, "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6, "pressure_tolerance": 1e-6, "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "backend": "TPU", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000}
+  })");
+  expectRejected(fixture);
+}

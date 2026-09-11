@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "cfd/core/Constants.hpp"
+#include "cfd/core/Exception.hpp"
 
 namespace cfd::algebra {
 
@@ -17,14 +18,27 @@ SolverResult CG::solve(const LinearSystem& system, const Vector& initialGuess) c
 
   SolverResult result;
   result.solution = initialGuess;
+  result.backendUsed = LinearSolverBackend::CPU;
 
   if (initialGuess.size() != n || !A.allFinite() || !b.allFinite() || !initialGuess.allFinite()) {
     result.status = SolverStatus::NonFiniteInput;
     return result;
   }
 
+  // P6-GPU-003: a preconditioner that rejects this matrix (e.g. Jacobi
+  // against a zero/near-zero/non-finite diagonal) is a legitimate solve()-
+  // time outcome, not an exception that should escape solve() -- the same
+  // "SolverStatus for numerical outcomes, exceptions for programming
+  // errors" convention this file already follows for NonFiniteInput above.
+  // SolverStatus::InvalidSystem exists in LinearSolver.hpp specifically
+  // for this case.
   if (preconditioner_ != nullptr) {
-    preconditioner_->build(A);
+    try {
+      preconditioner_->build(A);
+    } catch (const InvalidArgumentError&) {
+      result.status = SolverStatus::InvalidSystem;
+      return result;
+    }
   }
 
   Vector x = initialGuess;

@@ -34,6 +34,23 @@ struct SIMPLESettings {
 
   cfd::algebra::LinearSolverSettings momentumSolver;
   cfd::algebra::LinearSolverSettings pressureSolver;
+
+  // P6-GPU-001 -- Performance: opt-in only, default false, so every
+  // existing caller's behavior (CPU-only build or not) is unchanged
+  // unless it deliberately sets this. When true, SIMPLE::solve() mirrors
+  // each outer iteration's momentum/pressure-correction matrices and u/
+  // v/pressure fields into a persistent, per-solve()-call
+  // cfd::gpu::GpuResidencyManager (structure uploaded once, values
+  // updated in place thereafter -- see that class's own header comment)
+  // purely to keep that residency path exercised against genuine
+  // production data. This never affects the numerical result: the
+  // mirrored GPU data is not read back into the solve, and the CPU
+  // linear solvers (momentumSolver/pressureSolver above) remain the sole
+  // source of SIMPLE's computed velocity/pressure -- no GPU linear
+  // solver exists yet (TODO.md P6-GPU-002). Silently inert (no CUDA
+  // calls at all) in a CPU-only build, or a CUDA build with no usable
+  // device at runtime -- see GpuResidencyManager::active().
+  bool enableGpuResidency{false};
 };
 
 // Throws InvalidArgumentError if:

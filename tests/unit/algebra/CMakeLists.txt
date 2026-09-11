@@ -7,6 +7,7 @@ add_executable(CFDAlgebraTests
   test_bicgstab.cpp
   test_solver_failures.cpp
   test_solver_determinism.cpp
+  test_linear_solver_factory.cpp
 )
 
 target_link_libraries(CFDAlgebraTests

@@ -16,6 +16,35 @@ using cfd::IOError;
 using cfd::io::CaseReader;
 using cfd::testutil::CaseFixture;
 
+// P6-GPU-002: "CG" (newly constructible from case config, previously
+// only "BiCGSTAB" was accepted) and an explicit "GPU" backend both parse
+// correctly and independently per linear-solver block.
+TEST(CaseReaderTest, CgTypeAndGpuBackendParseCorrectly) {
+  CaseFixture fixture;
+  fixture.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "CG", "backend": "GPU", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000}
+  })");
+
+  const auto definition = CaseReader{}.read(fixture.directory());
+
+  EXPECT_EQ(definition.solver.momentumSolver.type, "CG");
+  EXPECT_EQ(definition.solver.momentumSolver.backend, "GPU");
+  // The pressure block independently keeps its own type/backend --
+  // proves these are per-block, not a single case-wide setting.
+  EXPECT_EQ(definition.solver.pressureSolver.type, "BiCGSTAB");
+  EXPECT_EQ(definition.solver.pressureSolver.backend, "CPU");
+}
+
 TEST(CaseReaderTest, ValidCaseParsesIntoExpectedConfiguration) {
   CaseFixture fixture;
   const auto definition = CaseReader{}.read(fixture.directory());
@@ -46,6 +75,10 @@ TEST(CaseReaderTest, ValidCaseParsesIntoExpectedConfiguration) {
   EXPECT_EQ(definition.solver.maxIterations, 1000u);
   EXPECT_DOUBLE_EQ(definition.solver.velocityRelaxation, 0.7);
   EXPECT_EQ(definition.solver.momentumSolver.type, "BiCGSTAB");
+  // P6-GPU-002: absent from the fixture's solver.json -- must default to
+  // "CPU" so every pre-P6-GPU-002 case file keeps parsing into the exact
+  // same (CPU-only) configuration it always did.
+  EXPECT_EQ(definition.solver.momentumSolver.backend, "CPU");
 
   // No "initial_conditions" block in the fixture -- zero default (section
   // 26).

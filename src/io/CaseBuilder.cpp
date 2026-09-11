@@ -263,6 +263,19 @@ SSTConfig buildSSTConfig(const TurbulencePhysicsConfig& turbulence, const Solver
   return config;
 }
 
+// P6-GPU-002: LinearSolverSpec.type/backend are already validated to be
+// one of exactly these strings (SolverConfigParser.cpp) -- this is a
+// pure lookup, never an "else" branch that needs its own error.
+cfd::algebra::LinearSolverType parseLinearSolverType(const std::string& type) {
+  return (type == "CG") ? cfd::algebra::LinearSolverType::CG
+                        : cfd::algebra::LinearSolverType::BiCGSTAB;
+}
+
+cfd::algebra::LinearSolverBackend parseLinearSolverBackend(const std::string& backend) {
+  return (backend == "GPU") ? cfd::algebra::LinearSolverBackend::GPU
+                            : cfd::algebra::LinearSolverBackend::CPU;
+}
+
 SIMPLESettings buildSolverSettings(const SolverConfig& solver) {
   SIMPLESettings settings;
   settings.maxIterations = solver.maxIterations;
@@ -274,9 +287,13 @@ SIMPLESettings buildSolverSettings(const SolverConfig& solver) {
   settings.momentumSolver.absoluteTolerance = solver.momentumSolver.absoluteTolerance;
   settings.momentumSolver.relativeTolerance = solver.momentumSolver.relativeTolerance;
   settings.momentumSolver.maxIterations = solver.momentumSolver.maxIterations;
+  settings.momentumSolver.type = parseLinearSolverType(solver.momentumSolver.type);
+  settings.momentumSolver.backend = parseLinearSolverBackend(solver.momentumSolver.backend);
   settings.pressureSolver.absoluteTolerance = solver.pressureSolver.absoluteTolerance;
   settings.pressureSolver.relativeTolerance = solver.pressureSolver.relativeTolerance;
   settings.pressureSolver.maxIterations = solver.pressureSolver.maxIterations;
+  settings.pressureSolver.type = parseLinearSolverType(solver.pressureSolver.type);
+  settings.pressureSolver.backend = parseLinearSolverBackend(solver.pressureSolver.backend);
   return settings;
 }
 

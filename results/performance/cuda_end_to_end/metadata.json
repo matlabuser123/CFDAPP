@@ -1,0 +1,14 @@
+{
+  "build_type": "Release (NDEBUG)",
+  "cfdapp_version": "0.1.5-dev",
+  "cold_gpu_first_use_seconds": 0.503935688,
+  "compiler": "11.4.0",
+  "cuda_available_at_runtime": true,
+  "cuda_toolkit_version": "11.5.119 (see environment_hardware.txt)",
+  "gpu_break_even_grid": "80x80",
+  "hardware_note": "See results/performance/cuda_end_to_end/environment_hardware.txt (nproc/free/nvidia-smi/nvcc captured alongside this run) for CPU/RAM/GPU/CUDA-toolkit details.",
+  "max_measured_speedup": 2.006302442985818,
+  "max_measured_speedup_grid": "320x320",
+  "note_on_640x640": "Excluded from gpu_break_even_grid/max_measured_speedup above (both computed over the 20x20-320x320 valid grid set only). At 640x640 the CPU run reported SIMPLEStatus::PressureCorrectionFailure after 1 outer iteration (its pressure-correction BiCGSTAB solve did not converge within the shared 5000-iteration budget); the GPU run completed all 8 outer iterations but only reached SolverStatus::MaxIterations, not Converged, in its own inner solves. Neither side reached the same well-defined numerical state, so the 640x640 row's speedup/equivalence numbers in summary.csv are not a valid CPU/GPU comparison -- see the written report for the full explanation.",
+  "note_on_metadata_bug_fixed": "An earlier revision of this tool checked #ifdef CFDAPP_ENABLE_CUDA to report a build-time CUDA flag; that symbol is a CMake cache variable never propagated as a preprocessor define anywhere in this project, so the check always evaluated false regardless of the actual build. Fixed in benchmark_cuda_end_to_end.cpp to report cuda_available_at_runtime (a real runtime check) instead; this file's cuda_enabled_at_build field (previously incorrectly false) has been replaced by hand to match, since this specific run predates the source fix."
+}

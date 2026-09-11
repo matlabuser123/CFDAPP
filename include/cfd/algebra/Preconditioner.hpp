@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 
@@ -26,16 +24,31 @@ class IdentityPreconditioner : public Preconditioner {
   void apply(const Vector& input, Vector& output) const override { output = input; }
 };
 
-// diag(A)^-1. Fails clearly (throws InvalidArgumentError) rather than
-// silently regularizing a missing, zero, or non-finite diagonal entry --
-// that could hide a broken CFD matrix assembly.
+// Computes diag(A)^-1, one entry per row. Shared by JacobiPreconditioner
+// (below) and cfd::gpu's GPU-resident Jacobi preconditioner
+// (GpuPreconditioner.hpp -- P6-GPU-003), so both CPU and GPU paths apply
+// the exact same validation instead of two independently-maintained
+// copies. Fails clearly (throws InvalidArgumentError) rather than
+// silently regularizing a missing, zero, near-zero, or non-finite
+// diagonal entry -- that could hide a broken CFD matrix assembly:
+//   - missing: matrix.diagonal(row) itself throws if no diagonal is
+//     stored at all for that row.
+//   - zero / near-zero: |A_ii| < cfd::constants::small (1e-12) is
+//     treated as numerically dangerous to invert, not just literal 0.0.
+//   - non-finite: NaN/Inf (defense in depth -- SparseMatrix already
+//     rejects non-finite values at construction, so this can't currently
+//     be reached through a normally-built matrix).
+[[nodiscard]] Vector computeInverseDiagonal(const SparseMatrix& matrix);
+
+// diag(A)^-1. See computeInverseDiagonal's own header comment for the
+// exact validation policy.
 class JacobiPreconditioner : public Preconditioner {
  public:
   void build(const SparseMatrix& matrix) override;
   void apply(const Vector& input, Vector& output) const override;
 
  private:
-  std::vector<Real> inverseDiagonal_;
+  Vector inverseDiagonal_;
 };
 
 // Shared by CG/BiCGSTAB: applies `preconditioner` if non-null, otherwise

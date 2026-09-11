@@ -8,14 +8,26 @@
 // cfd::gpu::cudaAvailable()'s real (runtime-checking) implementation --
 // see GPUBackend.hpp's own header comment for why exactly one of this
 // file and src/gpu/GPUBackend.cpp's stub is ever compiled.
+//
+// P6-PERF-001 -- Performance: the kernel itself is unchanged, but this
+// file now exposes two ways to run it: the original stateless
+// csrSpmvCuda(matrix, x) (a fresh upload/compute/download every call --
+// kept, unchanged behavior, for one-off callers) and the new persistent-
+// residency spmv(DeviceCsrMatrix, DeviceVector, DeviceVector) (no
+// allocation or transfer at all -- for a caller that keeps its own
+// DeviceCsrMatrix/DeviceVector alive across repeated calls). csrSpmvCuda
+// is now implemented in terms of the persistent primitives internally,
+// so there is exactly one CUDA code path, not two.
 #include <cuda_runtime.h>
 
-#include <string>
-#include <vector>
-
 #include "cfd/core/Exception.hpp"
+#include "cfd/core/Timer.hpp"
+#include "cfd/gpu/CudaCheck.hpp"
 #include "cfd/gpu/CudaSpmv.hpp"
+#include "cfd/gpu/DeviceCsrMatrix.hpp"
+#include "cfd/gpu/DeviceVector.hpp"
 #include "cfd/gpu/GPUBackend.hpp"
+#include "cfd/gpu/GPUExecutionStats.hpp"
 
 namespace cfd::gpu {
 
@@ -50,14 +62,30 @@ __global__ void csrSpmvKernel(cfd::Index rows, const cfd::Real* values,
   y[row] = sum;
 }
 
-void checkCuda(cudaError_t status, const char* what) {
-  if (status != cudaSuccess) {
-    throw NumericalError(std::string("csrSpmvCuda: ") + what +
-                         " failed: " + cudaGetErrorString(status));
-  }
-}
-
 }  // namespace
+
+void spmv(const DeviceCsrMatrix& matrix, const DeviceVector& x, DeviceVector& y) {
+  if (x.size() != matrix.columns()) {
+    throw InvalidArgumentError("spmv: vector size does not match matrix columns");
+  }
+  if (y.size() != matrix.rows()) {
+    throw InvalidArgumentError("spmv: output vector size does not match matrix rows");
+  }
+
+  constexpr int kThreadsPerBlock = 256;
+  const int blocks = static_cast<int>(
+      (matrix.rows() + kThreadsPerBlock - 1) / static_cast<cfd::Index>(kThreadsPerBlock));
+  cfd::Timer kernelTimer;
+  csrSpmvKernel<<<blocks, kThreadsPerBlock>>>(matrix.rows(), matrix.valuesDevice(),
+                                              matrix.columnIndicesDevice(),
+                                              matrix.rowOffsetsDevice(), x.data(), y.data());
+  checkCuda(cudaGetLastError(), "csrSpmvKernel launch");
+  ++gpuExecutionStats().kernelLaunches;
+  checkCuda(cudaDeviceSynchronize(), "csrSpmvKernel execution");
+  auto& stats = gpuExecutionStats();
+  stats.kernelSeconds += kernelTimer.elapsedSeconds();
+  ++stats.synchronizations;
+}
 
 cfd::algebra::Vector csrSpmvCuda(const cfd::algebra::SparseMatrix& matrix,
                                  const cfd::algebra::Vector& x) {
@@ -68,54 +96,25 @@ cfd::algebra::Vector csrSpmvCuda(const cfd::algebra::SparseMatrix& matrix,
     throw NumericalError("csrSpmvCuda: no usable CUDA device is available at runtime");
   }
 
-  const cfd::Index rows = matrix.rows();
-  const cfd::Index nnz = matrix.nonZeros();
+  // A private, short-lived DeviceCsrMatrix/DeviceVector pair built on
+  // top of the shared persistent-residency primitives -- preserves this
+  // function's original stateless contract (fresh upload/compute/
+  // download every call, correct for a one-off caller that never
+  // revisits the same matrix) while sharing one CUDA code path instead
+  // of keeping a second copy. A caller that *does* revisit the same
+  // matrix repeatedly should hold its own DeviceCsrMatrix/DeviceVector
+  // and call spmv() directly to get the actual reuse benefit -- see
+  // DeviceCsrMatrix.hpp's own header comment.
+  DeviceCsrMatrix deviceMatrix;
+  deviceMatrix.uploadStructureAndValues(matrix);
 
-  cfd::Real* deviceValues = nullptr;
-  cfd::Index* deviceColumnIndices = nullptr;
-  cfd::Index* deviceRowOffsets = nullptr;
-  cfd::Real* deviceX = nullptr;
-  cfd::Real* deviceY = nullptr;
+  DeviceVector deviceX;
+  deviceX.uploadFrom(x);
 
-  checkCuda(cudaMalloc(&deviceValues, nnz * sizeof(cfd::Real)), "cudaMalloc(values)");
-  checkCuda(cudaMalloc(&deviceColumnIndices, nnz * sizeof(cfd::Index)),
-            "cudaMalloc(columnIndices)");
-  checkCuda(cudaMalloc(&deviceRowOffsets, (rows + 1) * sizeof(cfd::Index)),
-            "cudaMalloc(rowOffsets)");
-  checkCuda(cudaMalloc(&deviceX, x.size() * sizeof(cfd::Real)), "cudaMalloc(x)");
-  checkCuda(cudaMalloc(&deviceY, rows * sizeof(cfd::Real)), "cudaMalloc(y)");
+  DeviceVector deviceY(matrix.rows());
+  spmv(deviceMatrix, deviceX, deviceY);
 
-  checkCuda(cudaMemcpy(deviceValues, matrix.valuesData(), nnz * sizeof(cfd::Real),
-                       cudaMemcpyHostToDevice),
-            "cudaMemcpy(values)");
-  checkCuda(cudaMemcpy(deviceColumnIndices, matrix.columnIndicesData(), nnz * sizeof(cfd::Index),
-                       cudaMemcpyHostToDevice),
-            "cudaMemcpy(columnIndices)");
-  checkCuda(cudaMemcpy(deviceRowOffsets, matrix.rowOffsetsData(), (rows + 1) * sizeof(cfd::Index),
-                       cudaMemcpyHostToDevice),
-            "cudaMemcpy(rowOffsets)");
-  checkCuda(cudaMemcpy(deviceX, x.data(), x.size() * sizeof(cfd::Real), cudaMemcpyHostToDevice),
-            "cudaMemcpy(x)");
-
-  constexpr int kThreadsPerBlock = 256;
-  const int blocks =
-      static_cast<int>((rows + kThreadsPerBlock - 1) / static_cast<cfd::Index>(kThreadsPerBlock));
-  csrSpmvKernel<<<blocks, kThreadsPerBlock>>>(rows, deviceValues, deviceColumnIndices,
-                                              deviceRowOffsets, deviceX, deviceY);
-  checkCuda(cudaGetLastError(), "csrSpmvKernel launch");
-  checkCuda(cudaDeviceSynchronize(), "csrSpmvKernel execution");
-
-  cfd::algebra::Vector y(rows);
-  checkCuda(cudaMemcpy(y.data(), deviceY, rows * sizeof(cfd::Real), cudaMemcpyDeviceToHost),
-            "cudaMemcpy(y back to host)");
-
-  cudaFree(deviceValues);
-  cudaFree(deviceColumnIndices);
-  cudaFree(deviceRowOffsets);
-  cudaFree(deviceX);
-  cudaFree(deviceY);
-
-  return y;
+  return deviceY.downloadToVector();
 }
 
 }  // namespace cfd::gpu

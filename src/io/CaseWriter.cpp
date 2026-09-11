@@ -192,6 +192,7 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
   // --- solver.json --------------------------------------------------------
   auto linearSolverJson = [](const LinearSolverSpec& s) {
     return json{{"type", s.type},
+                {"backend", s.backend},
                 {"absolute_tolerance", s.absoluteTolerance},
                 {"relative_tolerance", s.relativeTolerance},
                 {"max_iterations", s.maxIterations}};

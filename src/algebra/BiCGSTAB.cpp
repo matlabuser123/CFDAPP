@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "cfd/core/Constants.hpp"
+#include "cfd/core/Exception.hpp"
 
 namespace cfd::algebra {
 
@@ -17,14 +18,23 @@ SolverResult BiCGSTAB::solve(const LinearSystem& system, const Vector& initialGu
 
   SolverResult result;
   result.solution = initialGuess;
+  result.backendUsed = LinearSolverBackend::CPU;
 
   if (initialGuess.size() != n || !A.allFinite() || !b.allFinite() || !initialGuess.allFinite()) {
     result.status = SolverStatus::NonFiniteInput;
     return result;
   }
 
+  // P6-GPU-003: see CG.cpp's identical comment -- a preconditioner build
+  // failure is a legitimate SolverStatus::InvalidSystem outcome, not an
+  // exception left to escape solve().
   if (preconditioner_ != nullptr) {
-    preconditioner_->build(A);
+    try {
+      preconditioner_->build(A);
+    } catch (const InvalidArgumentError&) {
+      result.status = SolverStatus::InvalidSystem;
+      return result;
+    }
   }
 
   Vector x = initialGuess;

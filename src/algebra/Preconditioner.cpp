@@ -2,28 +2,37 @@
 
 #include <cmath>
 #include <string>
-#include <utility>
 
+#include "cfd/core/Constants.hpp"
 #include "cfd/core/Exception.hpp"
 
 namespace cfd::algebra {
 
-void JacobiPreconditioner::build(const SparseMatrix& matrix) {
+Vector computeInverseDiagonal(const SparseMatrix& matrix) {
   const Index n = matrix.rows();
-  std::vector<Real> inverseDiagonal(n);
+  Vector inverseDiagonal(n);
   for (Index row = 0; row < n; ++row) {
     const Real diag = matrix.diagonal(row);  // throws if no diagonal is stored at all
     if (!std::isfinite(diag)) {
-      throw InvalidArgumentError("JacobiPreconditioner: non-finite diagonal at row " +
+      throw InvalidArgumentError("computeInverseDiagonal: non-finite diagonal at row " +
                                  std::to_string(row));
     }
     if (diag == 0.0) {
-      throw InvalidArgumentError("JacobiPreconditioner: zero diagonal at row " +
+      throw InvalidArgumentError("computeInverseDiagonal: zero diagonal at row " +
                                  std::to_string(row));
+    }
+    if (std::abs(diag) < constants::small) {
+      throw InvalidArgumentError("computeInverseDiagonal: near-zero diagonal at row " +
+                                 std::to_string(row) + " (|A_ii| < " +
+                                 std::to_string(constants::small) + ")");
     }
     inverseDiagonal[row] = 1.0 / diag;
   }
-  inverseDiagonal_ = std::move(inverseDiagonal);
+  return inverseDiagonal;
+}
+
+void JacobiPreconditioner::build(const SparseMatrix& matrix) {
+  inverseDiagonal_ = computeInverseDiagonal(matrix);
 }
 
 void JacobiPreconditioner::apply(const Vector& input, Vector& output) const {

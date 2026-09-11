@@ -4,6 +4,10 @@
 # kernel (P4 -- Performance, section 32's own narrow "first CUDA target").
 add_library(cfdcuda STATIC
   kernels/CsrSpmvKernel.cu
+  kernels/GpuResidencyManagerCuda.cpp
+  kernels/DeviceVectorOpsKernel.cu
+  kernels/GpuPreconditionerKernel.cu
+  kernels/GpuLinearSolverCuda.cpp
 )
 add_library(cfdapp::cuda ALIAS cfdcuda)
 

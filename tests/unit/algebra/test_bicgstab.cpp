@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "cfd/algebra/BiCGSTAB.hpp"
 #include "cfd/algebra/LinearSystem.hpp"
+#include "cfd/algebra/Preconditioner.hpp"
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 
 using cfd::algebra::BiCGSTAB;
+using cfd::algebra::JacobiPreconditioner;
 using cfd::algebra::LinearSolverSettings;
 using cfd::algebra::LinearSystem;
 using cfd::algebra::SolverStatus;
@@ -51,6 +55,38 @@ TEST(BiCGSTABTest, SolvesNonsymmetricSystem) {
 
   const Vector residual = system.rhs() - system.matrix().multiply(result.solution);
   EXPECT_LE(cfd::algebra::l2Norm(residual), 1e-7);
+}
+
+TEST(BiCGSTABTest, SolvesWithJacobiPreconditioner) {
+  // P6-GPU-003: right-preconditioned BiCGSTAB (pHat/sHat = M^-1 p/s,
+  // A*pHat/A*sHat, x updated from pHat/sHat -- see BiCGSTAB.cpp's own
+  // solve() implementation) must reach the same solution as the
+  // unpreconditioned case, convergence path aside.
+  const LinearSystem system(makeNonsymmetricMatrix(), Vector{6.0, 11.0, 8.0});
+
+  const BiCGSTAB solver(strictSettings(), std::make_shared<JacobiPreconditioner>());
+  const auto result = solver.solve(system);
+
+  EXPECT_TRUE(result.converged());
+  EXPECT_NEAR(result.solution[0], 1.0, 1e-8);
+  EXPECT_NEAR(result.solution[1], 2.0, 1e-8);
+  EXPECT_NEAR(result.solution[2], 3.0, 1e-8);
+
+  const Vector residual = system.rhs() - system.matrix().multiply(result.solution);
+  EXPECT_LE(cfd::algebra::l2Norm(residual), 1e-7);
+}
+
+TEST(BiCGSTABTest, InvalidSystemWhenPreconditionerRejectsTheMatrix) {
+  // P6-GPU-003: see CGTest's identical test -- must not let
+  // Preconditioner::build()'s exception escape solve() uncaught.
+  const SparseMatrix matrix(2, 2, {0.0, 1.0, 1.0, 2.0}, {0, 1, 0, 1}, {0, 2, 4});
+  const LinearSystem system(matrix, Vector{1.0, 1.0});
+
+  const BiCGSTAB solver(strictSettings(), std::make_shared<JacobiPreconditioner>());
+  const auto result = solver.solve(system);
+
+  EXPECT_FALSE(result.converged());
+  EXPECT_EQ(result.status, SolverStatus::InvalidSystem);
 }
 
 TEST(BiCGSTABTest, ZeroRhsConvergesImmediately) {

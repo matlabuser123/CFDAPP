@@ -15,6 +15,8 @@ add_executable(CFDSimpleTests
   test_simple_sst.cpp
   test_simple_turbulence_models.cpp
   test_simple_buoyancy.cpp
+  test_simple_gpu_residency.cpp
+  test_simple_gpu_solver.cpp
 )
 
 target_link_libraries(CFDSimpleTests

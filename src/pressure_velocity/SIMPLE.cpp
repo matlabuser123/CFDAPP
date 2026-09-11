@@ -1,11 +1,13 @@
 #include "cfd/pressure_velocity/SIMPLE.hpp"
 
 #include <cmath>
+#include <memory>
 #include <optional>
 #include <utility>
 
-#include "cfd/algebra/BiCGSTAB.hpp"
+#include "cfd/algebra/LinearSolverFactory.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/gpu/GpuResidencyManager.hpp"
 #include "cfd/physics/ContinuityEquation.hpp"
 #include "cfd/physics/MassFlux.hpp"
 #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
@@ -14,7 +16,6 @@
 
 namespace cfd::pressure_velocity {
 
-using cfd::algebra::BiCGSTAB;
 using cfd::algebra::Vector;
 using cfd::boundary::BoundaryConditionSet;
 using cfd::fields::ScalarField;
@@ -114,13 +115,25 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
   // Configuration problems are a legitimate solve()-time outcome a
   // caller should branch on via `status`, not an exception escaping
   // solve() -- consistent with every other failure category here. This
-  // includes constructing the two BiCGSTAB solvers: LinearSolver's own
+  // includes constructing the two linear solvers: LinearSolver's own
   // constructor validates its settings (e.g. maxIterations >= 1) and
   // throws InvalidArgumentError, which must be caught here rather than
   // left to propagate out of solve().
+  //
+  // P6-GPU-002 -- Performance: cfd::algebra::makeLinearSolver() (not a
+  // direct BiCGSTAB construction any more) is what actually implements
+  // "SIMPLE -> LinearSolver interface -> backend selection" --
+  // settings_.momentumSolver/pressureSolver's own type/backend fields
+  // (LinearSolverSettings, defaulting to BiCGSTAB+CPU -- unchanged
+  // behavior for every pre-P6-GPU-002 caller) decide which concrete
+  // solver comes back, including a deterministic, logged fallback to CPU
+  // if GPU was requested but is unavailable (see that function's own
+  // header comment). Held as a polymorphic cfd::algebra::LinearSolver
+  // pointer rather than a concrete-type std::optional, since the
+  // concrete type is now a runtime decision, not a compile-time one.
   bool configurationValid = true;
-  std::optional<BiCGSTAB> momentumSolver;
-  std::optional<BiCGSTAB> pressureSolver;
+  std::unique_ptr<cfd::algebra::LinearSolver> momentumSolver;
+  std::unique_ptr<cfd::algebra::LinearSolver> pressureSolver;
   try {
     validateSIMPLESettings(settings_);
     if (initialVelocity.size() != mesh.numberOfCells() ||
@@ -143,8 +156,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     if (temperature_ != nullptr && temperature_->size() != mesh.numberOfCells()) {
       throw InvalidArgumentError("SIMPLE::solve: temperature size does not match mesh cell count");
     }
-    momentumSolver.emplace(settings_.momentumSolver);
-    pressureSolver.emplace(settings_.pressureSolver);
+    momentumSolver = cfd::algebra::makeLinearSolver(settings_.momentumSolver);
+    pressureSolver = cfd::algebra::makeLinearSolver(settings_.pressureSolver);
   } catch (const InvalidArgumentError&) {
     configurationValid = false;
   }
@@ -183,6 +196,18 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
   }
 
   SIMPLEStatus finalStatus = SIMPLEStatus::MaxIterations;
+
+  // P6-GPU-001 -- Performance: scoped to exactly this solve() call --
+  // "case initialization -> create persistent GPU resources -> ... ->
+  // cleanup" (TODO.md's own target lifecycle) maps directly onto one
+  // solve() call's outer-iteration loop, so RAII destruction at the end
+  // of this function is the whole cleanup story; no separate lifecycle
+  // hook is needed. Constructed unconditionally (cheap -- one
+  // cudaGetDeviceCount() query when CUDA-enabled, a no-op struct
+  // otherwise) but only ever *used* below when
+  // settings_.enableGpuResidency is set, so a default-settings solve()
+  // call issues zero CUDA calls, in either build configuration.
+  cfd::gpu::GpuResidencyManager gpuResidency;
 
   for (Index iteration = 0; iteration < settings_.maxIterations; ++iteration) {
     // P5-B section 13: checked at the top of the outer loop only, before
@@ -243,6 +268,20 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       break;
     }
 
+    // P6-GPU-001: mirror this iteration's freshly-assembled momentum
+    // matrices/fields into the persistent GPU residency path (structure
+    // uploaded once, value-only updates on every later iteration whose
+    // sparsity is unchanged -- see GpuResidencyManager's own header
+    // comment). Read-only w.r.t. everything below -- never influences
+    // uResult/vResult, which remain the sole CPU-computed source of this
+    // iteration's velocity.
+    if (settings_.enableGpuResidency) {
+      gpuResidency.syncMatrix("momentum_u", uAssembly->system.matrix());
+      gpuResidency.syncMatrix("momentum_v", vAssembly->system.matrix());
+      gpuResidency.syncField("u", previousU);
+      gpuResidency.syncField("v", previousV);
+    }
+
     // Warm-start from the previous iterate -- this is not just an
     // efficiency choice: SolverResult::initialResidual (= ||b - A x0||)
     // then measures how far the *previous* SIMPLE iterate is from
@@ -293,6 +332,14 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     if (!pAssembly.has_value()) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
+    }
+
+    // P6-GPU-001: same read-only mirroring as the momentum matrices
+    // above, for the pressure-correction system and the pre-correction
+    // pressure field.
+    if (settings_.enableGpuResidency) {
+      gpuResidency.syncMatrix("pressure", pAssembly->system.matrix());
+      gpuResidency.syncField("pressure", pressure);
     }
 
     const auto pResult = pressureSolver->solve(pAssembly->system);

@@ -94,6 +94,17 @@ TEST(SimulationControllerTest, OpenValidCaseSucceeds) {
   EXPECT_EQ(controller.stateName(), QStringLiteral("Loaded"));
 }
 
+// Explorer's "Copy as path" wraps the clipboard text in double quotes --
+// a directory pasted straight from there (plus any stray surrounding
+// whitespace) must still open, not fail as "case directory not found"
+// against the literal quote-including string.
+TEST(SimulationControllerTest, OpenCaseAcceptsQuotedAndPaddedPath) {
+  SimulationController controller;
+  EXPECT_TRUE(controller.openCase(QStringLiteral("  \"tests/data/cases/valid_cavity\"  ")));
+  EXPECT_EQ(controller.caseName(), QStringLiteral("Test Cavity 4x4"));
+  EXPECT_EQ(controller.stateName(), QStringLiteral("Loaded"));
+}
+
 TEST(SimulationControllerTest, OpenMissingCaseFailsAndReportsError) {
   SimulationController controller;
   QSignalSpy errorSpy(&controller, &SimulationController::errorChanged);

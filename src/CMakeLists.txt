@@ -63,6 +63,7 @@ target_sources(cfdcore
     algebra/Preconditioner.cpp
     algebra/CG.cpp
     algebra/BiCGSTAB.cpp
+    algebra/LinearSolverFactory.cpp
 )
 
 target_sources(cfdcore
@@ -287,8 +288,20 @@ if(NOT CFDAPP_ENABLE_CUDA)
   target_sources(cfdcore
     PRIVATE
       gpu/GPUBackend.cpp
+      gpu/GpuResidencyManager.cpp
+      gpu/GpuLinearSolver.cpp
   )
 endif()
+
+# P6-PERF-001 -- Performance: transfer/allocation/kernel-launch counters.
+# Plain counters, no CUDA dependency -- always compiled, in both build
+# configurations, so a CPU-only build can honestly report "zero GPU
+# activity" via the same API a CUDA build uses to prove reduced transfer
+# volume (see GPUExecutionStats.hpp's own header comment).
+target_sources(cfdcore
+  PRIVATE
+    gpu/GPUExecutionStats.cpp
+)
 
 # P5 -- Application: ProjectRunner, the one production solver-backend
 # entry point shared by apps/cli and apps/gui (section 0's "ONE SOLVER
@@ -347,4 +360,27 @@ endif()
 # target_sources guard above).
 if(CFDAPP_ENABLE_CUDA)
   target_link_libraries(cfdcore PUBLIC cfdapp::cuda)
+
+  # P6-PERF-001 -- Performance: the reverse edge of a genuine link-time
+  # cycle. cuda/kernels/CsrSpmvKernel.cu (cfdcuda's only translation
+  # unit) calls into cfd::algebra::SparseMatrix/Vector -- symbols cfdcore
+  # defines -- so cfdcuda depends on cfdcore just as much as cfdcore
+  # depends on cfdcuda for cfd::gpu::cudaAvailable()/csrSpmvCuda(). CMake
+  # supports a PUBLIC cycle between two STATIC library targets (it
+  # repeats them on the final link line as needed); leaving this edge
+  # undeclared, as it was before this task, is silently fine only for a
+  # consumer that never causes the linker to pull a cfdcuda object file
+  # in isolation. Any consumer that does -- e.g. CFDCoreTests calling
+  # only cfd::gpu::cudaAvailable(), never csrSpmvCuda() -- extracts all
+  # of CsrSpmvKernel.cu.o's other undefined references (SparseMatrix::
+  # rows(), Vector::size(), ...) at once, and a single-pass linker that
+  # already finished processing cfdcore.a earlier on the link line can
+  # never resolve them: an "undefined reference" link failure with every
+  # symbol actually defined right there in cfdcore.a. Declared here
+  # (inside src/CMakeLists.txt, not cuda/CMakeLists.txt) because
+  # cuda/ is add_subdirectory()'d before src/ in the root
+  # CMakeLists.txt -- cfdapp::core does not exist yet at cuda/
+  # CMakeLists.txt's own scope, but both targets already exist by this
+  # point.
+  target_link_libraries(cfdcuda PUBLIC cfdapp::core)
 endif()

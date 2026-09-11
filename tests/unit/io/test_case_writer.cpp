@@ -63,6 +63,7 @@ TEST(CaseWriterTest, BasicCaseRoundTripsExactly) {
   EXPECT_EQ(reread.solver.maxIterations, original.solver.maxIterations);
   EXPECT_DOUBLE_EQ(reread.solver.velocityRelaxation, original.solver.velocityRelaxation);
   EXPECT_EQ(reread.solver.momentumSolver.type, original.solver.momentumSolver.type);
+  EXPECT_EQ(reread.solver.momentumSolver.backend, original.solver.momentumSolver.backend);
   EXPECT_DOUBLE_EQ(reread.solver.momentumSolver.absoluteTolerance,
                    original.solver.momentumSolver.absoluteTolerance);
 

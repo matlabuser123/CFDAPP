@@ -58,6 +58,21 @@ std::vector<cfd::viz::GridPoint> toGridPoints(const std::vector<Vector2>& points
   return gridPoints;
 }
 
+// Explorer's "Copy as path" wraps the result in double quotes, and a
+// pasted/typed path can pick up stray leading/trailing whitespace -- a
+// case directory is trimmed and unquoted the same way a shell would
+// before it ever reaches CaseReader, so a straight paste from Explorer
+// just works instead of failing as "case directory not found" against a
+// literal quote-including path.
+QString sanitizeCaseDirectory(const QString& raw) {
+  QString trimmed = raw.trimmed();
+  if (trimmed.size() >= 2 && trimmed.front() == QLatin1Char('"') &&
+      trimmed.back() == QLatin1Char('"')) {
+    trimmed = trimmed.mid(1, trimmed.size() - 2).trimmed();
+  }
+  return trimmed;
+}
+
 }  // namespace
 
 SimulationController::SimulationController(QObject* parent) : QObject(parent) {}
@@ -123,7 +138,7 @@ QString SimulationController::lastError() const {
 }
 
 bool SimulationController::openCase(const QString& caseDirectory) {
-  const bool ok = session_.open(caseDirectory.toStdString());
+  const bool ok = session_.open(sanitizeCaseDirectory(caseDirectory).toStdString());
   // P7-GUI: a freshly opened/created case has no validation history of
   // its own yet -- a stale error from whatever case was open before
   // would be actively misleading here.
@@ -163,7 +178,7 @@ bool SimulationController::save() {
 }
 
 bool SimulationController::saveAs(const QString& caseDirectory) {
-  const bool ok = session_.saveAs(caseDirectory.toStdString());
+  const bool ok = session_.saveAs(sanitizeCaseDirectory(caseDirectory).toStdString());
   emit caseChanged();
   emit stateChanged();
   if (!ok) emit errorChanged();

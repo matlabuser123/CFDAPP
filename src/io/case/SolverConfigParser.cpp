@@ -14,15 +14,26 @@ LinearSolverSpec parseLinearSolverSpec(const nlohmann::json& json,
   requireField(json, path, fieldName);
   const auto& block = json.at(fieldName);
   requireObject(block, path, fieldName);
-  rejectUnknownKeys(block, path, fieldName,
-                    {"type", "absolute_tolerance", "relative_tolerance", "max_iterations"});
+  rejectUnknownKeys(
+      block, path, fieldName,
+      {"type", "backend", "absolute_tolerance", "relative_tolerance", "max_iterations"});
 
   LinearSolverSpec spec;
   spec.type = getRequiredString(block, path, "type", fieldName + ".type");
-  // The only Krylov solver SIMPLE actually constructs (SIMPLE.cpp always
-  // uses BiCGSTAB for both the momentum and pressure-correction solves).
-  if (spec.type != "BiCGSTAB") {
-    throwConfigError(path, fieldName + ".type", "be one of: BiCGSTAB", spec.type);
+  // P6-GPU-002: CG is now constructible from case config too (previously
+  // only BiCGSTAB); see this struct's own header comment on why BiCGSTAB
+  // remains the only well-posed choice for SIMPLE's own systems in
+  // general.
+  if (spec.type != "BiCGSTAB" && spec.type != "CG") {
+    throwConfigError(path, fieldName + ".type", "be one of: BiCGSTAB, CG", spec.type);
+  }
+
+  // P6-GPU-002: optional, defaults to "CPU" -- absent in every
+  // pre-P6-GPU-002 case file, which keeps every existing case parsing
+  // (and its CPU-only behavior) unchanged.
+  spec.backend = getOptionalString(block, path, "backend", "CPU", fieldName + ".backend");
+  if (spec.backend != "CPU" && spec.backend != "GPU") {
+    throwConfigError(path, fieldName + ".backend", "be one of: CPU, GPU", spec.backend);
   }
 
   spec.absoluteTolerance =

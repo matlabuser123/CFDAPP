@@ -11,13 +11,28 @@ CMakeUserPresets.json
 .vscode/*
 !.vscode/extensions.json
 *.user
+.idea/
 
-# Stray MSVC diagnostic artifacts -- ad hoc standalone probes compiled
-# outside the build system leave these at the repo root; never intended
-# to be committed.
+# Stray MSVC/GCC/Clang diagnostic artifacts -- ad hoc standalone probes
+# compiled outside the build system (e.g. an isolated microbenchmark, see
+# results/performance/assembly/'s own header comment on how those are
+# produced) leave these at the repo root; never intended to be committed.
 *.obj
 *.pdb
 *.ilk
+*.o
+*.exe
+*.dll
+
+# In case anyone ever configures in-source by mistake.
+CMakeCache.txt
+CMakeFiles/
+
+# Ad hoc log output from local tooling runs (e.g. this project's own
+# scripts/windows-release/ recipe) -- results/release/<version>/ holds the
+# real, curated release-evidence logs that *are* meant to be committed;
+# this only catches stray *.log files left elsewhere.
+*.log
 
 # Python -----------------------------------------------------------------
 python/__pycache__/
