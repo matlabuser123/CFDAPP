@@ -6,6 +6,7 @@ add_executable(CFDCaseIntegrationTests
   test_species_production_case.cpp
   test_multiphase_production_case.cpp
   test_compressible_production_case.cpp
+  test_heated_species_diffusion_production_case.cpp
   ${CFDApp_SOURCE_DIR}/tests/support/CaseFixtureCopy.cpp
 )
 

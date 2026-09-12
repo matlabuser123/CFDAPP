@@ -259,12 +259,11 @@ an oversight.
   thermal, turbulence, buoyancy, species, multiphase, and compressible are
   all undocumented there despite being fully implemented. This predates
   P10 but should close alongside it.
-- At least one representative combined-physics *production example case*
-  (none exists today — every current case exercises exactly one advanced
-  module; thermal+species is the physically sensible first combination).
-  Note this is distinct from P10-APP-004's own test coverage above, which
-  proves the combinations parse/build correctly but isn't a full
-  production-path regression case with hand-verified numbers.
+- ~~At least one representative combined-physics production example
+  case~~ — done: `cases/heated_species_diffusion` (thermal+species) +
+  `tests/integration/case/test_heated_species_diffusion_production_case.cpp`
+  (5 tests, hand-verified against both fields' closed-form analytical
+  profiles). Full regression 1305/1305.
 - No standalone grid-refinement/analytical validation study exists under
   `results/validation/multiphase/` (Poiseuille/cavity/turbulence all have
   one) — evidence-parity gap, not a correctness concern.

@@ -232,16 +232,25 @@ evidence, with the genuinely-open items kept `[ ]` (see below).
   22/22, `CFDGuiControllerTests` 40/40, full regression **1300/1300** (up
   from 1290/1290, zero regressions). Evidence:
   `results/p10-app-004/summary.md`.
-- [ ] **Combined-physics example case.** No case today exercises more
-  than one advanced-physics module. Add one (thermal+species is the
-  physically sensible first combination) with its own
-  `test_<x>_production_case.cpp`-style end-to-end test.
-- [ ] **Documentation gap.** `docs/user_guide/case_format.md` documents
-  only `model`/`density`/`dynamic_viscosity`/`reynolds_number` in
-  `physics.json` and `velocity`/`pressure` in `boundaries.json`; add
-  thermal, turbulence, buoyancy, species, multiphase, compressible, and
-  their per-patch boundary keys. Write the compatibility matrix down
-  there too. Refresh `schemas/README.md`'s pointer if needed.
+- [x] **Combined-physics example case.** Added `cases/heated_species_diffusion`
+  (thermal + species together, same quiescent 20x4 slab geometry as
+  `cases/species_diffusion`, thermal values from `cases/heated_cavity`) and
+  `tests/integration/case/test_heated_species_diffusion_production_case.cpp`
+  (5 tests: converges, both fields match their independent analytical
+  profiles simultaneously, both conserve flux independently, both export
+  to CSV/VTK/JSON, deterministic). Real CLI-generated results committed
+  under `cases/heated_species_diffusion/results/` (species converges in
+  593 iterations, identical to standalone `cases/species_diffusion` --
+  confirms the two modules run independently, neither perturbing the
+  other). Full regression **1305/1305** (up from 1300/1300), parallel
+  `ctest -j8` clean (no fixture race).
+- [x] **Documentation gap.** `docs/user_guide/case_format.md` now
+  documents thermal/turbulence/buoyancy/species/multiphase/compressible
+  (each with an example and field-by-field constraints), their per-patch
+  `boundaries.json` requirements (temperature/species/alpha), and a
+  "Physics compatibility" section with the same matrix table
+  `validatePhysicsCompatibility` enforces. `schemas/README.md`'s pointer
+  was already correct, no change needed. Commit `d704e89`.
 - [ ] **P11-GUI-005 manual verification.** One human-executed GUI step:
   create a brand-new case from scratch (not opening an existing one),
   save it, run it. Record PASS/FAIL as a dated addendum to
