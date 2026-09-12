@@ -352,6 +352,19 @@ directions, not current commitments.
 
 ## P12-COMP — Compressible CFD
 
+**Scope decision (made during P10-APP-003 closeout, recorded here):** the
+two items below were deliberately deferred out of P10 rather than
+committed to under it — P10-APP-003 is considered complete against the
+current, honestly-disclosed post-hoc-reinterpretation scope (see P10
+above), and these are real, large new numerics, not wiring.
+
+- [ ] A real boundary-density model for compressible inlets/outlets
+  (today, boundary faces reuse the owner cell's density --
+  `CompressibleMassFlux.hpp`'s own documented gap)
+- [ ] A genuinely coupled compressible pressure-velocity solver (today,
+  compressible is a one-way, post-hoc reinterpretation of an already-
+  converged incompressible SIMPLE result -- never a second, coupled flow
+  solve)
 - [ ] Advanced compressible-energy formulation
 - [ ] Higher-Mach capability
 

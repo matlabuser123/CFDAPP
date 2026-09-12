@@ -258,11 +258,14 @@ evidence, with the genuinely-open items kept `[ ]` (see below).
   checklist only opened an existing case). Confirm whether template
   selection exists; if not, note it as a disclosed gap rather than
   claiming it.
-- [ ] **Compressible scope decision.** Record explicitly (this file +
-  `ROADMAP.md`, already done in `ROADMAP.md`) that a real
-  boundary-density model and a genuinely coupled compressible solver are
-  deferred to `ROADMAP.md`'s `P12-COMP`, not committed to under P10 — the
-  current honest post-hoc scope is what P10-APP-003 is considered
-  complete against.
+- [x] **Compressible scope decision.** Recorded in `ROADMAP.md`: a real
+  boundary-density model and a genuinely coupled compressible
+  pressure-velocity solver are deferred to `ROADMAP.md`'s `P12-COMP`
+  (both now listed there explicitly as the first two items, with the
+  decision's rationale), not committed to under P10 — the current
+  honest post-hoc-reinterpretation scope is what P10-APP-003 is
+  considered complete against. No architecture/evidence found that
+  contradicts this deferral (compressible's own header comments have
+  disclosed this scope since it was first implemented).
 
 **Guard:** do not start P12/P13 until the items above close (rule 19).
