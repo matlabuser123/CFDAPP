@@ -181,8 +181,15 @@ LowMachOutcome runLowMachCase(Index nx, Index ny) {
     machMax = std::max(machMax, machNumber(speed, soundSpeed));
   }
 
-  const auto compressibleMassFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries);
+  // P12-COMP-001: boundary faces now get an EOS-evaluated density at
+  // their own boundary pressure/temperature state (here, isothermal --
+  // temperatureBoundaries is nullptr, so the uniform kTemperature value
+  // is used directly at every boundary too), superseding the previous
+  // owner-cell-reuse simplification.
+  const ScalarField temperature(n, kTemperature);
+  const auto compressibleMassFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, flow.pressure, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
   // A single *global* flux scale (the mean inlet mass flow rate), not a
   // per-face one -- most faces off the inlet/outlet (e.g. every wall
   // face, and interior faces far from the core flow) carry a flux near

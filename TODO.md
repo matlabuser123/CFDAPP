@@ -1,16 +1,14 @@
 # CFDApp — TODO
 
-**Current phase:** P10/P11 — Production Physics Integration & GUI Case
-Authoring closeout (reconciliation phase — see "P10/P11 Reconciliation"
-below: most of both phases were already implemented and shipped in
-v0.2.0, just never marked done here)
+**Current phase:** P12-COMP-001 ✅ done (compressible boundary-density
+model) — see its own section below. P10/P11 closeout is otherwise
+complete except P11-GUI-005 (human GUI verification, pending).
 **Released:** v0.2.0
-**Next release:** TBD — no new release planned until P10-APP-004 and the
-P11-GUI-005 manual-verification gap close
-**Immediate task:** P10-APP-004 (compatibility matrix) is done — close the
-remaining P10/P11 gaps (see "Immediate Next Task" below): `case_format.md`
-documentation, combined-physics example case, one manual GUI
-case-creation check
+**Next release:** TBD — no new release planned
+**Immediate task:** P11-GUI-005 manual verification (see "Immediate Next
+Task" below) is the one remaining P10/P11 item; `P12-COMP-002` (the
+coupled compressible solver) is audited/planned but explicitly not
+started
 
 ## Rules
 
@@ -263,14 +261,88 @@ evidence, with the genuinely-open items kept `[ ]` (see below).
   checklist only opened an existing case). Confirm whether template
   selection exists; if not, note it as a disclosed gap rather than
   claiming it.
-- [x] **Compressible scope decision.** Recorded in `ROADMAP.md`: a real
-  boundary-density model and a genuinely coupled compressible
-  pressure-velocity solver are deferred to `ROADMAP.md`'s `P12-COMP`
-  (both now listed there explicitly as the first two items, with the
-  decision's rationale), not committed to under P10 — the current
-  honest post-hoc-reinterpretation scope is what P10-APP-003 is
-  considered complete against. No architecture/evidence found that
-  contradicts this deferral (compressible's own header comments have
-  disclosed this scope since it was first implemented).
+- [x] **Compressible scope decision.** Recorded in `ROADMAP.md`: a
+  genuinely coupled compressible pressure-velocity solver (P12-COMP-002)
+  is deferred, not committed to under P10 — the current honest
+  post-hoc-reinterpretation scope is what P10-APP-003 is considered
+  complete against. The real boundary-density model half of this
+  decision has since been implemented under `P12-COMP-001` (below), by
+  explicit instruction — this bullet's "deferred" scope now refers only
+  to the coupled solver.
 
-**Guard:** do not start P12/P13 until the items above close (rule 19).
+---
+
+# P12-COMP-001 — Compressible boundary-density model
+
+Explicitly authorized and scoped separately from `P12-COMP-002` (the
+coupled solver, not started) — see `ROADMAP.md`'s `P12-COMP` section for
+the full audit this was staged from.
+
+Replaced `CompressibleMassFlux`'s owner-cell-reuse boundary-density
+simplification with a real EOS-evaluated boundary density: each boundary
+face's own boundary-interpolated absolute pressure/temperature (via the
+already-existing generic `cfd::discretization::interpolateFace` and the
+case's own already-existing pressure/temperature boundary conditions —
+no new boundary-condition types or `physics.json`/`boundaries.json` keys
+were needed). `calculateCompressibleMassFlux`'s signature was extended
+accordingly; `ProjectRunner.cpp`'s one call site and every existing test
+that called it were updated to match.
+
+**Evidence:** `results/p12-comp-001/summary.md`.
+
+- [x] Audited the existing boundary-condition architecture before
+  changing anything (`ScalarBoundaryCondition::boundaryValue()`,
+  `cfd::discretization::interpolateFace`/`interpolateBoundaryFace` —
+  confirmed these already generically handle every existing
+  velocity/pressure/temperature BC type, so no new infrastructure was
+  needed).
+- [x] Explicit behavior confirmed per boundary type: Outlet (typically
+  Dirichlet/`fixed_value` gauge pressure) gets the exact
+  reference-pressure-consistent density, not the interior's; Inlet/Wall
+  (typically zero-gradient pressure) reduce to the old owner-cell result
+  exactly when the gradient is genuinely zero; Wall's own zero-velocity
+  BC makes the boundary-density choice irrelevant to conservation there
+  either way (confirmed by a dedicated test, not assumed).
+- [x] 9 new/rewritten unit tests in `tests/unit/compressible/test_compressible_mass_flux.cpp`
+  (the old `BoundaryFaceUsesOwnerCellsOwnDensity` test, which asserted
+  exactly the behavior this supersedes, was replaced): internal-face
+  interpolation (unchanged), outlet/inlet/wall boundary behavior, direct
+  EOS-consistency check, non-positive-boundary-temperature rejection,
+  and a uniform-state/low-Mach limiting-behavior check.
+- [x] New integration test proving the treatment is exercised by the
+  *production* dispatch path, not just the equation-level function:
+  `CompressibleProductionCaseTest.OutletBoundaryMassFluxUsesReferencePressureDensity`
+  in `tests/integration/case/test_compressible_production_case.cpp`,
+  using the real `cases/compressible_validation` case — confirms the
+  outlet's mass flux now uses the reference-pressure-consistent EOS
+  density, and explicitly confirms this differs from the (superseded)
+  owner-cell value in this real case.
+- [x] `include/cfd/app/ProjectRunner.hpp`'s `CompressibleRunResult` gained
+  a `massFlux` field (the value was already computed internally; it just
+  wasn't being kept) so this new treatment is independently inspectable
+  by tests/future GUI use, not only implicit in the continuity diagnostic.
+- [x] Stale "owner-cell reuse" comments updated in
+  `CompressibleMassFlux.hpp` (kept as a historical note, not deleted) and
+  `ROADMAP.md`'s P10-APP-003/P12-COMP sections.
+- [x] Fresh verification, this session: incremental rebuild clean;
+  `CFDCompressibleTests` **50/50** PASS; `CFDLowMachRegressionTests`
+  **7/7** PASS (unchanged — confirms the existing low-Mach regression
+  still holds under the new boundary treatment); `CFDCaseIntegrationTests`
+  filtered to `CompressibleProductionCaseTest.*` **8/8** PASS;
+  `CFDIoTests` **194/194** PASS (unchanged, confirming no case-format
+  impact); full regression suite **1313/1313** PASS (up from 1305/1305 —
+  net +8 tests: +9 new/rewritten in the mass-flux suite, −1 removed
+  stale test, +1 new production-case test — zero regressions), parallel
+  `ctest -j8` clean.
+- [x] No case-format expansion was needed (the one condition under which
+  this task's instructions required stopping before implementing) — every
+  boundary-density input already existed via the case's own existing
+  pressure/temperature boundary conditions.
+
+**P12-COMP-001 acceptance:** met — real EOS-based boundary density
+implemented, explicit per-type behavior confirmed, comprehensive new test
+coverage, production-path integration proven, zero regressions.
+
+**Guard:** `P12-COMP-002` (the coupled compressible solver) and P13 remain
+not started, per explicit instruction to stage P12-COMP-001 and
+P12-COMP-002 separately (rule 19).

@@ -17,12 +17,16 @@
 
 #include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
+#include "cfd/compressible/ThermodynamicProperties.hpp"
+#include "cfd/core/Vector2.hpp"
 
 using cfd::Index;
 using cfd::Real;
+using cfd::Vector2;
 using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunResult;
 using cfd::app::ProjectRunStatus;
+using cfd::compressible::ThermodynamicProperties;
 using cfd::testutil::CaseFixtureCopy;
 
 namespace {
@@ -87,6 +91,48 @@ TEST(CompressibleProductionCaseTest, ContinuityImbalanceIsSmall) {
   // and unit inlet velocity/height.
   const Real fluxScale = 1.176 * 1.0 * 1.0;
   EXPECT_LT(std::abs(run.compressibleResult->continuity.globalNetFlux) / fluxScale, 1e-3);
+}
+
+// P12-COMP-001: proves the new boundary-density treatment is actually
+// exercised by the *production* dispatch path (ProjectRunner::run()),
+// not just the equation-level function it's built from
+// (test_compressible_mass_flux.cpp already covers that). This case's own
+// "right" patch pairs an Outlet velocity BC with a Dirichlet
+// (fixed_value=0.0) gauge-pressure BC (boundaries.json) -- so the
+// outlet's absolute pressure is *exactly* kReferencePressure regardless
+// of the interior's own (numerically slightly different) gauge pressure,
+// meaning the outlet boundary density must be the EOS value at exactly
+// kReferencePressure/kTemperature, not whatever the owner cell's own
+// (interior) density happens to be -- which is exactly what the
+// pre-P12-COMP-001 owner-cell-reuse simplification would have produced
+// instead.
+TEST(CompressibleProductionCaseTest, OutletBoundaryMassFluxUsesReferencePressureDensity) {
+  const CaseFixtureCopy fixture(kCaseDirectory);
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged);
+  ASSERT_TRUE(run.compressibleResult.has_value());
+  ASSERT_TRUE(run.mesh.has_value());
+  ASSERT_TRUE(run.simpleResult.has_value());
+  const auto& mesh = *run.mesh;
+  const auto& c = *run.compressibleResult;
+
+  const ThermodynamicProperties thermo(kGasConstant, 1005.0);
+  const Real expectedOutletDensity = thermo.density(kReferencePressure, kTemperature);
+
+  const Index outletFaceId = mesh.boundaryPatch("right").faceIds().front();
+  const auto& face = mesh.face(outletFaceId);
+  const Vector2 ownerVelocity = run.simpleResult->velocity[face.owner()];
+  const Real expectedFlux = expectedOutletDensity * dot(ownerVelocity, face.areaVector());
+
+  ASSERT_EQ(c.massFlux.size(), mesh.numberOfFaces());
+  EXPECT_NEAR(c.massFlux[outletFaceId], expectedFlux, 1e-6);
+
+  // Confirms this genuinely differs from what the superseded owner-cell
+  // approximation would have given (the interior cell's own density is
+  // not exactly the reference-pressure EOS value, since its own gauge
+  // pressure is not exactly 0 -- only the Dirichlet-BC outlet face is).
+  const Real ownerCellDensity = c.density[face.owner()];
+  EXPECT_NE(ownerCellDensity, expectedOutletDensity);
 }
 
 TEST(CompressibleProductionCaseTest, ExportsCompressibleFieldsToCsvVtkAndJson) {

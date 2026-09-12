@@ -392,9 +392,19 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
         machMax = std::max(machMax, mach[i]);
       }
 
+      // P12-COMP-001: boundary faces now get a real EOS-evaluated density
+      // at their own boundary pressure/temperature (via
+      // setup.pressureBoundaries and, when thermal-coupled,
+      // *setup.temperatureBoundaries), superseding the previous owner-
+      // cell-reuse simplification -- see CompressibleMassFlux.hpp's own
+      // header comment.
+      const cfd::boundary::BoundaryConditionSet* temperatureBoundariesPtr =
+          c.thermalCoupled ? &(*setup.temperatureBoundaries) : nullptr;
       const cfd::fields::SurfaceField compressibleMassFlux =
-          cfd::compressible::calculateCompressibleMassFlux(setup.mesh, result.velocity, density,
-                                                           setup.velocityBoundaries);
+          cfd::compressible::calculateCompressibleMassFlux(
+              setup.mesh, result.velocity, density, setup.velocityBoundaries, result.pressure,
+              setup.pressureBoundaries, c.referencePressure, c.thermodynamics, temperatureField,
+              temperatureBoundariesPtr);
       const cfd::physics::ContinuityResult continuity =
           cfd::physics::evaluateContinuity(setup.mesh, compressibleMassFlux);
 
@@ -414,6 +424,7 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
                                                      std::move(pressureAbsolute),
                                                      std::move(temperatureField),
                                                      std::move(mach),
+                                                     compressibleMassFlux,
                                                      continuity,
                                                      machMax};
     } else {

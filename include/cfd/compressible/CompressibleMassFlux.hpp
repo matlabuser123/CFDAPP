@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/compressible/ThermodynamicProperties.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
@@ -20,27 +21,68 @@ namespace cfd::compressible {
 // correctly to every existing velocity BC -- section 25/26 do not need a
 // second velocity-interpolation mechanism).
 //
-// Face-density policy (section 12): internal faces use this project's
-// established distance-weighted linear interpolation
-// (cfd::discretization::interpolateInternalFace, arithmetic mean on a
-// uniform grid) -- the same "for low Mach, arithmetic interpolation may
-// be sufficient initially" policy this task's own section 12 endorses. A
-// boundary face has no separate boundary-density state (density is a
-// derived field, not a primary transported quantity with its own BCs in
-// this foundation) -- disclosed simplification: the owner cell's own
-// density is used directly, the same "no neighbor to interpolate
-// against, use the owner value" convention already established for
-// field-based effective-viscosity/conductivity at boundaries
-// (P2-TURB-003, P3-PHYS-003). A physically complete compressible inlet/
-// outlet boundary-density model (evaluating a prescribed boundary
-// thermodynamic state through the EOS, sections 26-27) is deferred --
-// see TODO.md's own P3-PHYS-006 status note.
+// Face-density policy (section 12, superseded at boundaries by
+// P12-COMP-001 -- see below):
+//   - Internal faces: this project's established distance-weighted
+//     linear interpolation (cfd::discretization::interpolateInternalFace,
+//     arithmetic mean on a uniform grid) of the per-cell EOS-evaluated
+//     `density` field -- the same "for low Mach, arithmetic interpolation
+//     may be sufficient initially" policy section 12 endorses. Unchanged
+//     by P12-COMP-001.
+//   - Boundary faces (P12-COMP-001): the EOS evaluated at that face's own
+//     boundary-interpolated absolute pressure and temperature --
+//     `rho_face = thermodynamics.density(referencePressure +
+//     interpolateFace(pressureGauge, pressureBoundaries), T_face)`, where
+//     `T_face` is either the (spatially uniform) isothermal temperature
+//     or `interpolateFace(temperature, *temperatureBoundaries)` when
+//     `temperature.thermal_coupled` is set. This reuses the same generic,
+//     already-existing `cfd::discretization::interpolateFace` every other
+//     boundary-aware field evaluation in this codebase already goes
+//     through -- no new boundary-condition types or per-patch case-format
+//     keys were needed, since a compressible case's existing
+//     velocity/pressure (and, when thermal-coupled, temperature)
+//     boundary conditions already fully determine the thermodynamic state
+//     at every boundary face.
 //
-// Throws InvalidArgumentError if velocity.size() or density.size() !=
-// mesh.numberOfCells().
+//   This makes every existing boundary-condition type behave physically:
+//   an `Outlet` typically paired with a Dirichlet (`fixed_value`)
+//   pressure BC gets the *exact* reference-pressure-consistent density
+//   at that face (not the interior cell's own, generally different,
+//   density); an `Inlet`/`Wall` typically paired with a zero-gradient
+//   pressure BC gets a boundary density that reduces to the owner cell's
+//   own value when the gradient is genuinely zero (the previous
+//   simplification's result, now derived rather than assumed); a `Wall`
+//   face's mass flux is `rho_face * 0` regardless of `rho_face` (the
+//   velocity BC there is zero-normal-flow by construction), so the
+//   boundary-density choice has no effect on conservation at walls
+//   either way -- correctness there was never actually at stake, only at
+//   inlets/outlets with a genuinely prescribed or extrapolated boundary
+//   thermodynamic state differing from the interior.
+//
+// Historical note: prior to P12-COMP-001, a boundary face had no
+// separate boundary-density state at all (density was treated purely as
+// a cell-centered derived field with no BC of its own in this
+// foundation) -- the owner cell's own density was used directly, the
+// same "no neighbor to interpolate against, use the owner value"
+// convention already established for field-based effective-
+// viscosity/conductivity at boundaries (P2-TURB-003, P3-PHYS-003). That
+// was a disclosed simplification (see TODO.md's own P3-PHYS-006 status
+// note and `results/p12-comp-001/summary.md` for this task's own
+// evidence), not a defect -- P12-COMP-001 supersedes it with the
+// EOS-based treatment above rather than correcting a bug.
+//
+// Throws InvalidArgumentError if velocity.size(), density.size(),
+// pressureGauge.size(), or temperature.size() != mesh.numberOfCells(),
+// or (propagated from `thermodynamics.density()`) if any boundary face's
+// evaluated absolute pressure or temperature is not finite and strictly
+// positive.
 [[nodiscard]] cfd::fields::SurfaceField calculateCompressibleMassFlux(
     const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
     const cfd::fields::ScalarField& density,
-    const cfd::boundary::BoundaryConditionSet& velocityBoundaries);
+    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
+    const cfd::fields::ScalarField& pressureGauge,
+    const cfd::boundary::BoundaryConditionSet& pressureBoundaries, Real referencePressure,
+    const ThermodynamicProperties& thermodynamics, const cfd::fields::ScalarField& temperature,
+    const cfd::boundary::BoundaryConditionSet* temperatureBoundaries);
 
 }  // namespace cfd::compressible

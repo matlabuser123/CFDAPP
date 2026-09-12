@@ -67,6 +67,7 @@
 #include <vector>
 
 #include "cfd/compressible/ThermodynamicProperties.hpp"
+#include "cfd/fields/SurfaceField.hpp"
 #include "cfd/io/ResultExporter.hpp"
 #include "cfd/io/case/CaseDefinition.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -129,6 +130,12 @@ struct CompressibleRunResult {
   cfd::fields::ScalarField pressureAbsolute;  // referencePressure + SIMPLE's gauge pressure.
   cfd::fields::ScalarField temperature;       // the constant or thermal-coupled field used.
   cfd::fields::ScalarField machNumber;
+  // P12-COMP-001: the actual per-face compressible mass flux (boundary
+  // faces now EOS-evaluated at their own boundary pressure/temperature,
+  // not the owner cell's density) -- kept, not just consumed internally
+  // by `continuity` below, so a caller/test can directly confirm the new
+  // boundary-density treatment took effect at a specific face.
+  cfd::fields::SurfaceField massFlux;
   cfd::physics::ContinuityResult continuity;  // from the compressible mass flux.
   Real machMax{};
 };

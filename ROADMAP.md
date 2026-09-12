@@ -205,10 +205,11 @@ an oversight.
 - [x] GUI verification — `PhysicsEditor.qml` compressible editor
 - [x] End-to-end regression — `tests/integration/case/test_compressible_production_case.cpp`,
   7/7 PASS (freshly re-run)
-- [ ] **Compressible boundary conditions** — genuinely open: no
-  boundary-density model exists for compressible inlets/outlets
-  (`CompressibleMassFlux.hpp`'s own documented gap; boundary faces
-  currently reuse the owner cell's density)
+- [x] **Compressible boundary conditions** — closed under `P12-COMP-001`
+  (not this phase, since it needed dedicated audit/design work — see
+  P12-COMP below): a real EOS-evaluated boundary-density model now
+  replaces the owner-cell-reuse simplification. Evidence:
+  `results/p12-comp-001/summary.md`.
 - [ ] **Compressible energy coupling** — genuinely open in the "real
   two-way coupling" sense: there is no coupled compressible
   pressure-velocity solver, only a one-way, post-hoc reinterpretation.
@@ -350,7 +351,7 @@ directions, not current commitments.
 - [ ] Multigrid
 - [ ] Fully coupled pressure-based solver
 
-## P12-COMP — Compressible CFD
+## P12-COMP — Compressible CFD ⏳ (P12-COMP-001 done, P12-COMP-002 not started)
 
 **Scope decision (made during P10-APP-003 closeout, recorded here):** the
 two items below were deliberately deferred out of P10 rather than
@@ -358,13 +359,58 @@ committed to under it — P10-APP-003 is considered complete against the
 current, honestly-disclosed post-hoc-reinterpretation scope (see P10
 above), and these are real, large new numerics, not wiring.
 
-- [ ] A real boundary-density model for compressible inlets/outlets
-  (today, boundary faces reuse the owner cell's density --
-  `CompressibleMassFlux.hpp`'s own documented gap)
+**Audit (done before any implementation):** every compressible capability
+(EOS, density calc, continuity, momentum coupling, energy coupling,
+pressure-density coupling, boundary density, solver architecture,
+low-Mach regression, exports, GUI) was classified against source/tests,
+not ROADMAP's own prior checkboxes. Two non-obvious findings: (a)
+`CompressibleMomentum.{hpp,cpp}` is a fully-implemented, unit-tested,
+variable-density momentum assembler that is completely unwired from
+production — a ready-to-integrate building block for P12-COMP-002, not
+something to write from scratch; (b) the existing low-Mach regression
+test is self-consistency only (its headline "EOS consistency" assertion
+is tautological), not validation against an independent analytical/
+literature reference. Evidence: `results/p12-comp-001/summary.md`.
+
+### P12-COMP-001 — Boundary-density model ✅
+
+- [x] Replaced the owner-cell-reuse simplification with a real
+  EOS-evaluated boundary density: `calculateCompressibleMassFlux` now
+  evaluates each boundary face's own boundary-interpolated absolute
+  pressure/temperature (via the *existing* generic
+  `cfd::discretization::interpolateFace` and the case's own existing
+  pressure/temperature boundary conditions — no new BC types or
+  case-format keys needed).
+- [x] Explicit behavior confirmed for every existing boundary-condition
+  type: Outlet (Dirichlet pressure) gets the exact reference-pressure-
+  consistent density, not the interior's; Inlet/Wall (typically
+  zero-gradient pressure) reduce to the previous owner-cell result when
+  the gradient is genuinely zero; Wall's own zero-velocity BC makes the
+  boundary-density choice irrelevant to conservation there either way.
+  9 new/rewritten unit tests in `test_compressible_mass_flux.cpp`
+  (internal-face interpolation unchanged, inlet/outlet/wall behavior,
+  EOS consistency, invalid/non-finite boundary state, low-Mach limiting
+  behavior) — 50/50 `CFDCompressibleTests` PASS.
+- [x] New integration test proving the production path exercises the new
+  treatment (`test_compressible_production_case.cpp`) — see
+  `results/p12-comp-001/summary.md` for the exact assertion.
+- [x] Fresh verification: `CFDCompressibleTests` 50/50,
+  `CFDLowMachRegressionTests` 7/7 (unchanged, confirming the existing
+  low-Mach regression still holds under the new treatment),
+  `CFDCaseIntegrationTests`, `CFDIoTests`, and the full regression suite
+  all re-run — see `TODO.md` for exact counts.
+
+### P12-COMP-002 — Coupled compressible pressure-velocity solver (not started)
+
 - [ ] A genuinely coupled compressible pressure-velocity solver (today,
   compressible is a one-way, post-hoc reinterpretation of an already-
   converged incompressible SIMPLE result -- never a second, coupled flow
-  solve)
+  solve). Proposed formulation, dependencies, and an ordered task list
+  already exist in this session's approved plan (Patankar-style
+  compressible-SIMPLE, reusing the already-built but currently-unwired
+  `CompressibleMomentum` and `IdealGasEOS::dDensityDPressure`) — not
+  started per explicit instruction to stage P12-COMP-001 and
+  P12-COMP-002 separately.
 - [ ] Advanced compressible-energy formulation
 - [ ] Higher-Mach capability
 
