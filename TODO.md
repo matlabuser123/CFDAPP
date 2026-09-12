@@ -1,9 +1,9 @@
 # CFDApp — TODO
 
-**Current phase:** P9 — v0.2.0 Release
-**Released:** v0.1.5
-**Next release:** v0.2.0
-**Immediate task:** Verify final CI pass, then tag v0.2.0 (see "Immediate Next Task" below)
+**Current phase:** P9 — v0.2.0 Release ✅ complete
+**Released:** v0.2.0
+**Next release:** TBD — see `ROADMAP.md` (P10/P11 not started)
+**Immediate task:** none — P9 fully verified and closed; no later phase started
 
 ## Rules
 
@@ -119,41 +119,53 @@ clang-tidy logs, `gui_acceptance.md`).
 
 ---
 
-# P9 — v0.2.0 Release ← CURRENT
+# P9 — v0.2.0 Release ✅
 
-**Status:** 7/7 gates PASS
-**Candidate:** `1e960c7` (verified green CI at this exact SHA — see note below)
+**Status:** 7/7 gates PASS — tagged, released, and independently verified
+**Released commit:** `1e960c7eb8070a1292e07e66ea45b3a6b2c0a7db`
+**Tag:** `v0.2.0` (annotated, object `191d2cc0`, dereferences to `1e960c7` —
+confirmed both locally and via `git ls-remote --tags origin`)
+**Release URL:** <https://github.com/matlabuser123/CFDAPP/releases/tag/v0.2.0>
 
 * [x] GPU production path stable — carried forward from P6/P7 (WSL2/CUDA hardware
   evidence, unchanged since)
 * [x] CPU/GPU equivalence passes — carried forward, same basis
 * [x] Performance benchmarks documented — carried forward, same basis
-* [x] Full CI green — run `34605885487` @ `8a8af79`, all 7 jobs PASS. Previous
-  run (`34601816351` @ `267bbbd`) failed on a sanitizer-job scheduling/timeout
-  bug (tuned for 32 cores, ran on a 4-vCPU runner), fixed in `8a8af79`.
+* [x] Full CI green on the exact tagged commit — run `34617756507` @
+  `1e960c7`, all 7 jobs PASS (format, python, clang-tidy, build-test
+  gcc/release, build-test clang/debug, build-test gcc/debug, sanitizers).
+  (Earlier candidate `8a8af79` also passed CI — run `34605885487` — but
+  `1e960c7` superseded it and needed, and got, its own fresh green run per
+  rule 14.)
 * [x] GUI acceptance — 17/17 PASS
-* [x] Packaged CLI/GUI smoke tests — PASS (`CFDApp-0.2.0-Windows-x64`, isolated PATH)
-* [x] Release artifacts verified — version exactly `0.2.0`, correct filenames,
-  contents, checksums
+* [x] Packaged CLI/GUI smoke tests — PASS, re-verified twice: standalone
+  isolated-PATH smoke test (`CFDApp-0.2.0-Windows-x64`) and independently
+  again inside the release workflow's own "Smoke-test the packaged
+  artifact" step on run `34675450224`.
+* [x] Release artifacts verified — GitHub Release `v0.2.0` published
+  (run `34675450224`, job `release`, all 14 steps PASS incl. "Publish
+  GitHub Release"): `isDraft=false`, `isPrerelease=false`, tag `v0.2.0`.
+  Assets present and `state=uploaded`: `CFDApp-0.2.0-Windows-x64.exe`
+  (50,656,427 bytes), `CFDApp-0.2.0-Windows-x64.zip` (62,180,196 bytes),
+  `SHA256SUMS.txt` (192 bytes). Checksums cross-verified: `SHA256SUMS.txt`
+  hashes match GitHub's independently-computed asset digests exactly for
+  both binaries. Release body diffed against `RELEASE_NOTES_v0.2.0.md` —
+  identical (only difference: CRLF checkout line endings and one trailing
+  blank line, both cosmetic).
 
 **Known limitation:** Native Windows + CUDA remains untested (this build is
 `CFDAPP_ENABLE_CUDA=OFF`; only WSL2/Linux+CUDA has been verified).
 
-**Note:** rule 14 satisfied for the exact commit tagged — `1e960c7` (adds
-`RELEASE_NOTES_v0.2.0.md`) has verified green CI: run `34617756507`, all 7
-jobs PASS (format, python, clang-tidy, build-test gcc/release, build-test
-clang/debug, build-test gcc/debug, sanitizers). `v0.2.0` tag pushed to
-origin, dereferences to `1e960c7` (verified via `git ls-remote --tags`).
-Release workflow triggered on the tag push: run `34675450224` — in
-progress, not yet verified complete.
-
-**Evidence:** `results/release/v0.2.0/`.
+**Evidence:** `results/release/v0.2.0/` (local logs); GitHub Actions runs
+`34617756507` (CI) and `34675450224` (release, incl. Windows build, full
+regression suite, packaging, smoke test, checksums, publish); published
+release at the URL above.
 
 ---
 
 # Immediate Next Task
 
-## Verify final CI pass, then tag v0.2.0
+## Verify final CI pass, then tag v0.2.0 — ✅ DONE
 
 - [x] Push this evidence-update commit. — `1e960c7`, `main` == `origin/main`.
 - [x] Wait for CI on the new commit; verify all mandatory jobs pass. — run
@@ -161,9 +173,17 @@ progress, not yet verified complete.
 - [ ] Failure → diagnose → fix → commit → push → rerun. — N/A, no failure.
 - [x] Success → tag `v0.2.0` at that exact commit, push the tag. — tag
   object `191d2cc0`, dereferences to `1e960c7`; pushed to origin.
-- [ ] Create the GitHub Release and attach verified `results/release/v0.2.0/`
-  artifacts. — Release workflow run `34675450224` triggered by the tag push;
-  in progress, not yet verified.
+- [x] Create the GitHub Release and attach verified `results/release/v0.2.0/`
+  artifacts. — Release workflow run `34675450224` completed
+  `status=completed conclusion=success`, all 14 steps PASS. `gh release
+  view v0.2.0` confirms: not draft, not prerelease, tag `v0.2.0`, 3 assets
+  `state=uploaded` (`.exe`, `.zip`, `SHA256SUMS.txt`), checksums match
+  GitHub's own asset digests, release body matches
+  `RELEASE_NOTES_v0.2.0.md` verbatim (modulo CRLF/trailing-newline).
+  Release: <https://github.com/matlabuser123/CFDAPP/releases/tag/v0.2.0>
 
-**Guard:** Do not tag or publish until the commit being tagged itself has
-green CI.
+P9 is now fully complete — all 7 gates verified with real evidence, v0.2.0
+tagged and published. No later phase started.
+
+**Guard (satisfied):** the commit that was tagged (`1e960c7`) had green CI
+before it was tagged and released.
