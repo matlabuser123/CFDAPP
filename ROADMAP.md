@@ -217,34 +217,54 @@ an oversight.
   under P10. The current honest post-hoc scope is what P10-APP-003 is
   considered complete against.
 
-## P10-APP-004 — Production Physics Compatibility Matrix ⏳ (partially done)
+## P10-APP-004 — Production Physics Compatibility Matrix ✅
 
-- [x] Some supported/rejected combinations already enforced in
-  `PhysicsConfigParser.cpp`: buoyancy requires thermal; multiphase
-  excludes turbulence; multiphase viscosity invariant
-  (`dynamic_viscosity ≤ min(phase viscosities)`); compressible
-  `thermal_coupled` requires thermal. Tested in `test_multiphase_case.cpp`/
-  `test_compressible_case.cpp`.
-- [ ] Not yet enforced or tested: multiphase+compressible together (both
-  would claim "the" authoritative density field), species+multiphase,
-  species+compressible, compressible+buoyancy, compressible+turbulence
-- [ ] Consolidate the ad hoc cross-checks into one clearly-named
-  validation section
-- [ ] Document the full compatibility matrix (`docs/user_guide/case_format.md`
-  or a new `docs/user_guide/physics_compatibility.md`)
-- [ ] Add rejection tests for each newly-added cross-check
-- [ ] At least one representative combined-physics production example case
-  (none exists today — every current case exercises exactly one advanced
-  module; thermal+species is the physically sensible first combination)
+- [x] Audited all cross-block combinations of thermal/turbulence/buoyancy/
+  species/multiphase/compressible against `ProjectRunner.cpp`'s actual
+  dispatch order and each module's own documented scope
+- [x] Consolidated the previously ad hoc, scattered cross-checks into one
+  authoritative function, `validatePhysicsCompatibility` in
+  `src/io/case/PhysicsConfigParser.cpp`, called once after every block is
+  parsed
+- [x] Added the one missing rejection: multiphase excludes compressible
+  (a linear-mixture density/viscosity model and an ideal-gas EOS
+  reinterpretation describe incompatible fluids) — previously silently
+  allowed and untested
+- [x] Confirmed, not assumed: GUI validation already reaches this same
+  function (no duplicate rules existed in `PhysicsEditor.qml`/
+  `CaseModelAdapter.cpp` — GUI "Validate"/"Save" round-trips through
+  `cfd::io::CaseBuilder{}.build(...)`, the same call CLI/`ProjectRunner`
+  use), so connecting GUI/`ProjectRunner`/JSON validation to one authority
+  required no additional wiring, only the consolidation above
+- [x] New test file `tests/unit/io/test_physics_compatibility.cpp` (10
+  tests): every supported combination not covered elsewhere
+  (species+multiphase, species+compressible, compressible+buoyancy,
+  compressible+turbulence, and the maximal "everything compatible at
+  once" case), every unsupported combination with diagnostic-message
+  content checks, and one conflicting/malformed-configuration case
+- [x] Fresh full verification: `CFDIoTests` 194/194, `CFDCaseIntegrationTests`
+  22/22, `CFDGuiControllerTests` 40/40, full regression 1300/1300 (up
+  from 1290/1290 — 10 new tests, zero regressions)
 
-## Still open beyond the checklist above
+**Evidence:** `results/p10-app-004/summary.md`.
 
+## Still open beyond P10-APP-004
+
+- Document the compatibility matrix in `docs/user_guide/case_format.md`
+  (today it exists only as `validatePhysicsCompatibility`'s own header
+  comment) — tracked in `TODO.md`.
 - `docs/user_guide/case_format.md`/`schemas/README.md` document only the
   bare-minimum `physics.json` (`model`/`density`/`dynamic_viscosity`/
   `reynolds_number`) and `boundaries.json` (`velocity`/`pressure`) —
   thermal, turbulence, buoyancy, species, multiphase, and compressible are
   all undocumented there despite being fully implemented. This predates
   P10 but should close alongside it.
+- At least one representative combined-physics *production example case*
+  (none exists today — every current case exercises exactly one advanced
+  module; thermal+species is the physically sensible first combination).
+  Note this is distinct from P10-APP-004's own test coverage above, which
+  proves the combinations parse/build correctly but isn't a full
+  production-path regression case with hand-verified numbers.
 - No standalone grid-refinement/analytical validation study exists under
   `results/validation/multiphase/` (Poiseuille/cavity/turbulence all have
   one) — evidence-parity gap, not a correctness concern.
@@ -254,9 +274,9 @@ an oversight.
 
 **P10 Acceptance:** species, multiphase, and compressible capabilities are
 configurable and runnable through the production application without
-custom test-only code paths (✅, re-verified — see `TODO.md`); the
-compatibility matrix and its documentation are not yet complete
-(P10-APP-004, genuinely open).
+custom test-only code paths (✅); the compatibility matrix is implemented,
+connected, and tested (✅, P10-APP-004); its user-facing documentation and
+a combined-physics example case remain open (tracked in `TODO.md`).
 
 ---
 

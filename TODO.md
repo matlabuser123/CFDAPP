@@ -7,9 +7,10 @@ v0.2.0, just never marked done here)
 **Released:** v0.2.0
 **Next release:** TBD — no new release planned until P10-APP-004 and the
 P11-GUI-005 manual-verification gap close
-**Immediate task:** close the genuinely-open P10/P11 gaps (see "Immediate
-Next Task" below): compatibility matrix, `case_format.md` documentation,
-combined-physics example case, one manual GUI case-creation check
+**Immediate task:** P10-APP-004 (compatibility matrix) is done — close the
+remaining P10/P11 gaps (see "Immediate Next Task" below): `case_format.md`
+documentation, combined-physics example case, one manual GUI
+case-creation check
 
 ## Rules
 
@@ -217,14 +218,20 @@ evidence, with the genuinely-open items kept `[ ]` (see below).
 
 ## Close the real remaining P10/P11 gaps
 
-- [ ] **P10-APP-004 — Compatibility matrix.** Consolidate the ad hoc
-  cross-checks in `PhysicsConfigParser.cpp::parsePhysicsConfig` into one
-  named validation section. Add missing cross-checks: reject
-  multiphase+compressible together (both claim "the" authoritative
-  density field); decide and implement, or explicitly allow-and-document,
-  species+multiphase, species+compressible, compressible+buoyancy,
-  compressible+turbulence. Add rejection tests per new check (pattern:
-  `tests/unit/io/test_multiphase_case.cpp`/`test_compressible_case.cpp`).
+- [x] **P10-APP-004 — Compatibility matrix.** Consolidated the ad hoc
+  cross-checks into one authoritative function,
+  `validatePhysicsCompatibility` in `src/io/case/PhysicsConfigParser.cpp`.
+  Added the one missing rejection (multiphase excludes compressible).
+  Confirmed GUI/ProjectRunner already reach this same function with no
+  duplicate logic to remove (GUI validation round-trips through
+  `cfd::io::CaseBuilder{}.build(...)`, same as CLI). New test file
+  `tests/unit/io/test_physics_compatibility.cpp`, 10/10 PASS (5 supported
+  combinations incl. the maximal "everything at once" case, 4 unsupported
+  combinations with message-content checks, 1 conflicting-config case).
+  Fresh full verification: `CFDIoTests` 194/194, `CFDCaseIntegrationTests`
+  22/22, `CFDGuiControllerTests` 40/40, full regression **1300/1300** (up
+  from 1290/1290, zero regressions). Evidence:
+  `results/p10-app-004/summary.md`.
 - [ ] **Combined-physics example case.** No case today exercises more
   than one advanced-physics module. Add one (thermal+species is the
   physically sensible first combination) with its own

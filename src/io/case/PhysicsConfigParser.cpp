@@ -364,6 +364,100 @@ CompressiblePhysicsConfig parseCompressiblePhysicsConfig(const nlohmann::json& j
   return compressible;
 }
 
+// P10-APP-004: the one authoritative production-physics compatibility
+// system. Every cross-block rule governing which physics.json modules may
+// be combined lives here, and only here -- GUI validation and
+// ProjectRunner never re-implement any of it; both reach physics.json
+// exclusively through this same parser (GUI's "Validate"/"Save" round-
+// trips through cfd::io::CaseBuilder, which calls parsePhysicsConfig
+// below; ProjectRunner only ever consumes an already-validated
+// SimulationSetup built from that same CaseBuilder pass). This function is
+// called exactly once, from parsePhysicsConfig, after every individual
+// block has been parsed -- so every field this function reads
+// (config.thermal, config.turbulence, ...) already reflects the full,
+// independently-validated physics.json.
+//
+// Compatibility matrix (Thermal/Turbulence/Buoyancy/Species/Multiphase/
+// Compressible -- laminar-incompressible is always the implicit baseline,
+// never itself a "module" to combine):
+//
+//   Buoyancy       requires Thermal (needs a real temperature field to
+//                  evaluate its momentum source against; this codebase has
+//                  no other source of one)
+//   Compressible   requires Thermal only when thermal_coupled=true
+//                  (isothermal compressible, the other mode, needs no
+//                  thermal block at all)
+//   Multiphase     excludes Turbulence (both want SIMPLE's one
+//                  effective-viscosity injection point; accepting both
+//                  would silently discard one)
+//   Multiphase     excludes Compressible (multiphase's linear-mixture
+//                  density/viscosity model and compressible's ideal-gas
+//                  EOS reinterpretation describe two different, mutually
+//                  incoherent fluids -- there is no single physical
+//                  reading of "a two-phase liquid/gas mixture that is also
+//                  an ideal gas")
+//   Species        no exclusions -- a passive scalar riding the existing
+//                  mass flux, compatible with every other module
+//   Turbulence     no exclusions besides the Multiphase one above
+//   Thermal        no exclusions
+//
+// Every combination not listed as excluded above is supported (see
+// docs/user_guide/case_format.md's own copy of this table, which must be
+// kept in sync with this comment) and has at least one production-path
+// regression test exercising it -- see
+// tests/unit/io/test_physics_compatibility.cpp.
+void validatePhysicsCompatibility(const PhysicsConfig& config, const std::filesystem::path& path) {
+  if (config.buoyancy.has_value() && !config.thermal.has_value()) {
+    throwConfigError(path, "buoyancy", "be present only alongside a \"thermal\" block",
+                     "no \"thermal\" block was given");
+  }
+  if (config.compressible.has_value() && config.compressible->thermalCoupled &&
+      !config.thermal.has_value()) {
+    throwConfigError(path, "compressible.thermal_coupled",
+                     "be true only alongside a \"thermal\" block",
+                     "no \"thermal\" block was given");
+  }
+  if (config.multiphase.has_value() && config.turbulence.has_value()) {
+    throwConfigError(path, "multiphase",
+                     "be present only without a \"turbulence\" block (both would need "
+                     "SIMPLE's one effective-viscosity injection point)",
+                     "a \"turbulence\" block was also given");
+  }
+  if (config.multiphase.has_value() && config.compressible.has_value()) {
+    throwConfigError(path, "multiphase",
+                     "be present only without a \"compressible\" block (a two-phase "
+                     "mixture and an ideal-gas EOS reinterpretation describe incompatible "
+                     "fluids)",
+                     "a \"compressible\" block was also given");
+  }
+  if (config.multiphase.has_value()) {
+    // P6-PHYS-002: ProjectRunner feeds mu_mix(alpha) into SIMPLE's
+    // effective-viscosity injection point as mu_t = mu_mix - molecular,
+    // where "molecular" is this same top-level "dynamic_viscosity" (the
+    // constant FluidProperties passed to SIMPLE unchanged) -- see
+    // ProjectRunner.cpp's own header comment. mu_t must never be negative
+    // (cfd::turbulence::validateTurbulentViscosityField's own hard
+    // requirement), and mu_mix is a convex combination of the two phase
+    // viscosities (bounded below by their min) for any alpha in [0,1], so
+    // requiring dynamic_viscosity <= min(phase1, phase2) here guarantees
+    // that invariant at parse time -- a clear, immediate configuration
+    // error instead of a hard-to-diagnose runtime validation throw deep
+    // inside SIMPLE's first outer iteration.
+    const Real minPhaseViscosity =
+        std::min(config.multiphase->phase1.viscosity, config.multiphase->phase2.viscosity);
+    if (config.dynamicViscosity > minPhaseViscosity) {
+      throwConfigError(
+          path, "dynamic_viscosity",
+          "be <= the smaller of multiphase.phase1.viscosity/phase2.viscosity (" +
+              std::to_string(minPhaseViscosity) +
+              ") -- it is used as the molecular-viscosity baseline the mixture-viscosity "
+              "coupling adds mu_mix-baseline on top of, and that difference must never be "
+              "negative",
+          std::to_string(config.dynamicViscosity));
+    }
+  }
+}
+
 }  // namespace
 
 PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesystem::path& path) {
@@ -409,16 +503,10 @@ PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesyst
   // P3-PHYS-001: presence of "buoyancy" is the enable flag, same
   // convention as "thermal"/"turbulence" above -- absent means no
   // buoyancy source, every pre-P3-PHYS-001 case continues to parse
-  // identically. A buoyancy source needs a temperature field to
-  // evaluate against, and this codebase's only source of one is the
-  // "thermal" block, so "buoyancy" without "thermal" is rejected here
-  // rather than silently parsing into a config CaseBuilder could never
-  // actually drive with a real temperature field.
+  // identically. The "requires thermal" cross-block rule is enforced once,
+  // by validatePhysicsCompatibility below, alongside every other
+  // cross-block rule (P10-APP-004) -- not here.
   if (json.contains("buoyancy")) {
-    if (!config.thermal.has_value()) {
-      throwConfigError(path, "buoyancy", "be present only alongside a \"thermal\" block",
-                       "no \"thermal\" block was given");
-    }
     config.buoyancy = parseBuoyancyPhysicsConfig(json.at("buoyancy"), path);
   }
   // P6-PHYS-001: physics.json's optional "species" array (a JSON array,
@@ -443,58 +531,26 @@ PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesyst
     }
   }
   // P6-PHYS-002: presence of "multiphase" is the enable flag, same
-  // convention as every other block above. Rejected alongside
-  // "turbulence": both want the SIMPLE::turbulenceModel effective-
-  // viscosity injection point CaseBuilder/ProjectRunner uses for the
-  // mixture-viscosity adapter (see ProjectRunner.cpp's own header
-  // comment) -- accepting both would leave one silently discarded rather
-  // than producing a clear error for an unsupported combination.
+  // convention as every other block above. Cross-block rules (exclusion
+  // with turbulence/compressible, the mixture-viscosity invariant) are
+  // enforced once, by validatePhysicsCompatibility below (P10-APP-004) --
+  // not here.
   if (json.contains("multiphase")) {
-    if (config.turbulence.has_value()) {
-      throwConfigError(path, "multiphase",
-                       "be present only without a \"turbulence\" block (both would need "
-                       "SIMPLE's one effective-viscosity injection point)",
-                       "a \"turbulence\" block was also given");
-    }
     config.multiphase = parseMultiphasePhysicsConfig(json.at("multiphase"), path);
-    // P6-PHYS-002: ProjectRunner feeds mu_mix(alpha) into SIMPLE's
-    // effective-viscosity injection point as mu_t = mu_mix - molecular,
-    // where "molecular" is this same top-level "dynamic_viscosity" (the
-    // constant FluidProperties passed to SIMPLE unchanged) -- see
-    // ProjectRunner.cpp's own header comment. mu_t must never be negative
-    // (cfd::turbulence::validateTurbulentViscosityField's own hard
-    // requirement), and mu_mix is a convex combination of the two phase
-    // viscosities (bounded below by their min) for any alpha in [0,1], so
-    // requiring dynamic_viscosity <= min(phase1, phase2) here guarantees
-    // that invariant at parse time -- a clear, immediate configuration
-    // error instead of a hard-to-diagnose runtime validation throw deep
-    // inside SIMPLE's first outer iteration.
-    const Real minPhaseViscosity =
-        std::min(config.multiphase->phase1.viscosity, config.multiphase->phase2.viscosity);
-    if (config.dynamicViscosity > minPhaseViscosity) {
-      throwConfigError(
-          path, "dynamic_viscosity",
-          "be <= the smaller of multiphase.phase1.viscosity/phase2.viscosity (" +
-              std::to_string(minPhaseViscosity) +
-              ") -- it is used as the molecular-viscosity baseline the mixture-viscosity "
-              "coupling adds mu_mix-baseline on top of, and that difference must never be "
-              "negative",
-          std::to_string(config.dynamicViscosity));
-    }
   }
   // P6-PHYS-003: presence of "compressible" is the enable flag, same
-  // convention as every other block above. thermal_coupled requires
-  // "thermal" to actually be enabled -- same "needs a real source of the
-  // field it claims to use" cross-check as buoyancy's own "requires
-  // thermal" rule above.
+  // convention as every other block above. The thermal_coupled/"thermal"
+  // cross-block rule is enforced once, by validatePhysicsCompatibility
+  // below (P10-APP-004) -- not here.
   if (json.contains("compressible")) {
     config.compressible = parseCompressiblePhysicsConfig(json.at("compressible"), path);
-    if (config.compressible->thermalCoupled && !config.thermal.has_value()) {
-      throwConfigError(path, "compressible.thermal_coupled",
-                       "be true only alongside a \"thermal\" block",
-                       "no \"thermal\" block was given");
-    }
   }
+
+  // P10-APP-004: every cross-block compatibility rule, enforced once, in
+  // one place, after every individual block above has already been
+  // parsed. See validatePhysicsCompatibility's own header comment for the
+  // full matrix.
+  validatePhysicsCompatibility(config, path);
   return config;
 }
 

@@ -165,12 +165,10 @@ struct PhysicsConfig {
   // vector (PhysicsConfigParser.cpp accepts both; there is no meaningful
   // difference between them worth rejecting).
   std::vector<SpeciesConfig> species;
-  // P6-PHYS-002/003: at most one of multiphase/compressible is expected
-  // to be meaningfully combined with the other physics blocks in this
-  // foundation -- see PhysicsConfigParser.cpp's own cross-block checks
-  // for exactly which combinations are rejected (e.g. multiphase +
-  // turbulence both need SIMPLE's one effective-viscosity injection
-  // point) rather than silently producing an ambiguous configuration.
+  // P10-APP-004: see PhysicsConfigParser.cpp's validatePhysicsCompatibility
+  // (the one authoritative compatibility matrix) for exactly which
+  // combinations of thermal/turbulence/buoyancy/species/multiphase/
+  // compressible are supported, required, or mutually exclusive.
   std::optional<MultiphasePhysicsConfig> multiphase;
   std::optional<CompressiblePhysicsConfig> compressible;
 };
