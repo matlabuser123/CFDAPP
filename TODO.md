@@ -1,9 +1,15 @@
 # CFDApp — TODO
 
-**Current phase:** P9 — v0.2.0 Release ✅ complete
+**Current phase:** P10/P11 — Production Physics Integration & GUI Case
+Authoring closeout (reconciliation phase — see "P10/P11 Reconciliation"
+below: most of both phases were already implemented and shipped in
+v0.2.0, just never marked done here)
 **Released:** v0.2.0
-**Next release:** TBD — see `ROADMAP.md` (P10/P11 not started)
-**Immediate task:** none — P9 fully verified and closed; no later phase started
+**Next release:** TBD — no new release planned until P10-APP-004 and the
+P11-GUI-005 manual-verification gap close
+**Immediate task:** close the genuinely-open P10/P11 gaps (see "Immediate
+Next Task" below): compatibility matrix, `case_format.md` documentation,
+combined-physics example case, one manual GUI case-creation check
 
 ## Rules
 
@@ -163,27 +169,84 @@ release at the URL above.
 
 ---
 
+# P10/P11 Reconciliation — audit finding
+
+Auditing `ROADMAP.md` after v0.2.0 to find "the next phase" turned up a
+bookkeeping defect, not a coding gap: **P10 (Production Physics
+Integration) and P11 (GUI Case Authoring) were already implemented and
+shipped in v0.2.0**, under an earlier internal numbering
+(`P6-PHYS-001/002/003`), in commits `19e2300` (species), `5603621`
+(multiphase + compressible), `3d26930` (GUI editors) — all ancestors of
+the released `1e960c7`. `ROADMAP.md`'s P10/P11 sections had every item
+unchecked because a later refactor (`a5af328`) renumbered a stale
+future-phase template onto this already-completed work without checking
+it against the source tree (root cause traced via `git log`/`git show`,
+not guessed).
+
+**Consequence, disclosed rather than silently fixed:** the already-
+published v0.2.0 GitHub Release's "Known limitations" section states
+species/multiphase/compressible are "not yet reachable through
+`physics.json`/`ProjectRunner`'s production dispatch" — false against the
+source tree that was actually released. The published release stays
+untouched (immutable evidence); this is recorded here as a known
+documentation defect to avoid repeating in the next release's notes.
+
+**Fresh re-verification performed before touching any checklist** (rule
+10 — root-cause/fix before marking `[x]`; this was a doc-vs-reality gap,
+so re-verification stood in for a fix):
+
+- Fresh incremental build, `build/debug` (WSL2/gcc), zero errors.
+- Full regression: **100% passed, 0 failed, 1290/1290** active tests (13
+  pre-existing disabled, unchanged) — matches the documented baseline
+  exactly, no regression.
+- `CFDCaseIntegrationTests` (run from source root, correct working
+  directory): **22/22 PASS** — `SpeciesProductionCaseTest`×7,
+  `MultiphaseProductionCaseTest`×7, `CompressibleProductionCaseTest`×7,
+  `CaseLidDrivenCavityIntegrationTest`×1.
+- `CFDIoTests` filtered to `*Species*:*Multiphase*:*Compressible*`:
+  **48/48 PASS**.
+- `CFDGuiControllerTests`: **40/40 PASS**, including
+  `CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`.
+
+`ROADMAP.md`'s P10/P11 sections have been corrected to `[x]` against this
+evidence, with the genuinely-open items kept `[ ]` (see below).
+
+---
+
 # Immediate Next Task
 
-## Verify final CI pass, then tag v0.2.0 — ✅ DONE
+## Close the real remaining P10/P11 gaps
 
-- [x] Push this evidence-update commit. — `1e960c7`, `main` == `origin/main`.
-- [x] Wait for CI on the new commit; verify all mandatory jobs pass. — run
-  `34617756507`, 7/7 jobs PASS.
-- [ ] Failure → diagnose → fix → commit → push → rerun. — N/A, no failure.
-- [x] Success → tag `v0.2.0` at that exact commit, push the tag. — tag
-  object `191d2cc0`, dereferences to `1e960c7`; pushed to origin.
-- [x] Create the GitHub Release and attach verified `results/release/v0.2.0/`
-  artifacts. — Release workflow run `34675450224` completed
-  `status=completed conclusion=success`, all 14 steps PASS. `gh release
-  view v0.2.0` confirms: not draft, not prerelease, tag `v0.2.0`, 3 assets
-  `state=uploaded` (`.exe`, `.zip`, `SHA256SUMS.txt`), checksums match
-  GitHub's own asset digests, release body matches
-  `RELEASE_NOTES_v0.2.0.md` verbatim (modulo CRLF/trailing-newline).
-  Release: <https://github.com/matlabuser123/CFDAPP/releases/tag/v0.2.0>
+- [ ] **P10-APP-004 — Compatibility matrix.** Consolidate the ad hoc
+  cross-checks in `PhysicsConfigParser.cpp::parsePhysicsConfig` into one
+  named validation section. Add missing cross-checks: reject
+  multiphase+compressible together (both claim "the" authoritative
+  density field); decide and implement, or explicitly allow-and-document,
+  species+multiphase, species+compressible, compressible+buoyancy,
+  compressible+turbulence. Add rejection tests per new check (pattern:
+  `tests/unit/io/test_multiphase_case.cpp`/`test_compressible_case.cpp`).
+- [ ] **Combined-physics example case.** No case today exercises more
+  than one advanced-physics module. Add one (thermal+species is the
+  physically sensible first combination) with its own
+  `test_<x>_production_case.cpp`-style end-to-end test.
+- [ ] **Documentation gap.** `docs/user_guide/case_format.md` documents
+  only `model`/`density`/`dynamic_viscosity`/`reynolds_number` in
+  `physics.json` and `velocity`/`pressure` in `boundaries.json`; add
+  thermal, turbulence, buoyancy, species, multiphase, compressible, and
+  their per-patch boundary keys. Write the compatibility matrix down
+  there too. Refresh `schemas/README.md`'s pointer if needed.
+- [ ] **P11-GUI-005 manual verification.** One human-executed GUI step:
+  create a brand-new case from scratch (not opening an existing one),
+  save it, run it. Record PASS/FAIL as a dated addendum to
+  `results/release/p8-hardening/gui_acceptance.md` (the existing 17-step
+  checklist only opened an existing case). Confirm whether template
+  selection exists; if not, note it as a disclosed gap rather than
+  claiming it.
+- [ ] **Compressible scope decision.** Record explicitly (this file +
+  `ROADMAP.md`, already done in `ROADMAP.md`) that a real
+  boundary-density model and a genuinely coupled compressible solver are
+  deferred to `ROADMAP.md`'s `P12-COMP`, not committed to under P10 — the
+  current honest post-hoc scope is what P10-APP-003 is considered
+  complete against.
 
-P9 is now fully complete — all 7 gates verified with real evidence, v0.2.0
-tagged and published. No later phase started.
-
-**Guard (satisfied):** the commit that was tagged (`1e960c7`) had green CI
-before it was tagged and released.
+**Guard:** do not start P12/P13 until the items above close (rule 19).

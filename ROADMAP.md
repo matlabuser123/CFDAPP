@@ -2,9 +2,12 @@
 
 ## Project Status
 
-**Released:** v0.1.5
-**Current:** P9 — v0.2.0 Release
-**Next:** P10 — Production Physics Integration
+**Released:** v0.2.0
+**Current:** P10 — Production Physics Integration closeout (most of P10 and
+P11 were actually completed *before* v0.2.0 shipped; this phase reconciles
+the record and closes the real remaining gaps — see P10 below)
+**Next:** P11 — GUI Case Authoring closeout (same situation as P10), then
+P12 — Solver & Physics Expansion
 
 **Execution status:** See `TODO.md`.
 **Verification evidence:** See `results/`.
@@ -28,11 +31,10 @@ GPU/performance validation
     ↓
 Production hardening
     ↓
-v0.2.0 release  ← current
+v0.2.0 release
     ↓
-Production physics integration
-    ↓
-GUI case authoring
+Production physics integration + GUI case authoring
+  (both substantially done pre-release; closeout in progress ← current)
     ↓
 Solver/physics expansion
     ↓
@@ -60,22 +62,22 @@ Production maturity
   Davis 1983)
 - Variable properties (temperature-dependent viscosity/conductivity/heat
   capacity)
-- Species transport foundation (advection-diffusion, analytically validated)
-- Multiphase foundation (volume-fraction transport, conservation/boundedness
-  checks)
-- Compressible foundation (ideal-gas EOS, low-Mach regression)
+- Species, multiphase, and compressible physics: equation-level foundation
+  **and** production integration (`physics.json`/`boundaries.json` parsing,
+  `CaseBuilder`/`ProjectRunner` dispatch, CLI reporting, GUI editing,
+  CSV/VTK/JSON export, production example cases) — see P10 below for the
+  evidence; this was completed pre-v0.2.0 but not reflected here until
+  this correction (see P10's "Reconciliation note")
 - Production CLI/case system (JSON case format, New/Open/Save/Validate/Run,
   CLI↔GUI compatibility)
 - GUI workflow (Qt/QML app, shared production solver backend, worker-thread
-  execution, run/stop/progress/failure handling)
+  execution, run/stop/progress/failure handling) **and** GUI case-authoring
+  editors (mesh/physics/boundary/solver, full case-creation-from-scratch) —
+  see P11 below for the evidence; also completed pre-v0.2.0
 - Visualization/post-processing (scalar maps, contours, vector glyphs,
   residual monitoring, probes/line-sampling, VTK/ParaView export)
 - Packaging/release foundations (CPack, Qt deployment, GitHub release
   workflow; first genuine release v0.1.5)
-
-**Note:** species/multiphase/compressible above are equation-level
-foundations, validated but not yet reachable through the production
-case/CLI/GUI dispatch path — that is P10's scope.
 
 ## P6 — GPU Performance ✅
 
@@ -115,114 +117,205 @@ case/CLI/GUI dispatch path — that is P10's scope.
 
 ---
 
-# P9 — v0.2.0 Release ← CURRENT
+# P9 — v0.2.0 Release ✅
 
 Goal: qualify and publish the first v0.2 production release after GPU
 performance validation and production hardening.
 
-**Current execution state:** See `TODO.md`.
+**Release evidence:** `results/release/v0.2.0/`; tagged/published at
+`1e960c7` (run `34617756507` CI, run `34675450224` release). See `TODO.md`
+for the full closure record.
 
-**Release evidence:** `results/release/v0.2.0/`.
-
-P10 may begin only after the required P9 release gates are complete.
-
----
-
-# P10 — Production Physics Integration
-
-Begin only after P9 release qualification is complete.
-
-**Goal:** move the existing advanced-physics foundations (species,
-multiphase, compressible — see P0–P5 note above) into the normal production
-case/configuration/dispatch/export workflow, in that priority order.
-
-## P10-APP-001 — Species Production Integration
-
-- [ ] `physics.json` species configuration
-- [ ] `CaseBuilder` integration
-- [ ] `ProjectRunner` dispatch
-- [ ] Production example case
-- [ ] CLI verification
-- [ ] GUI verification
-- [ ] Species-field export
-- [ ] End-to-end regression
-
-## P10-APP-002 — Multiphase Production Integration
-
-- [ ] Multiphase configuration parsing
-- [ ] Phase construction from case configuration
-- [ ] Volume-fraction transport wired into production runner
-- [ ] Mixture-field exposure
-- [ ] Production example case
-- [ ] CLI verification
-- [ ] GUI verification
-- [ ] Restart/export verification
-- [ ] End-to-end regression
-
-## P10-APP-003 — Compressible Production Integration
-
-- [ ] Compressible configuration parsing
-- [ ] EOS configuration
-- [ ] Pressure/reference-pressure configuration
-- [ ] Production solver dispatch
-- [ ] Compressible boundary conditions
-- [ ] Compressible energy coupling
-- [ ] Density/Mach/absolute-pressure export
-- [ ] Production low-Mach example
-- [ ] CLI verification
-- [ ] GUI verification
-- [ ] End-to-end regression
-
-## P10-APP-004 — Production Physics Compatibility Matrix
-
-- [ ] Define supported physics combinations
-- [ ] Reject unsupported combinations cleanly
-- [ ] Document compatibility matrix
-- [ ] Production-dispatch tests
-- [ ] Representative integrated validation cases
-
-**P10 Acceptance:** species, multiphase, and compressible capabilities must
-be configurable and runnable through the production application without
-custom test-only code paths, with end-to-end regression and
-numerical/physical validation.
+**Known documentation defect in the published release notes (disclosed,
+not corrected in place):** the shipped v0.2.0 GitHub Release's "Known
+limitations" section states species/multiphase/compressible are "not yet
+reachable through `physics.json`/`ProjectRunner`'s production dispatch."
+That statement is false against the source tree that was actually
+released — see P10 below. The published release itself is left untouched
+(release evidence is immutable); the correction applies going forward
+(this document, `TODO.md`, and the next release's notes).
 
 ---
 
-# P11 — GUI Case Authoring
+# P10 — Production Physics Integration ✅ (reconciled)
+
+**Reconciliation note (read this first):** this phase's checklist below
+was, until now, entirely unchecked — but the underlying work was actually
+implemented and shipped in v0.2.0, under an earlier internal numbering
+(`P6-PHYS-001/002/003`), in commits `19e2300` (species), `5603621`
+(multiphase + compressible), both ancestors of the released `1e960c7`. A
+later documentation refactor (`a5af328`) renumbered a stale future-phase
+template onto this already-completed work without checking it against the
+source tree, and an earlier squash (`4e5a4d2`) had compressed the original
+detailed evidence back down to generic "foundation" bullets — see P0–P5
+above. This entry now reflects the source tree as independently
+re-verified (fresh build + full regression, see `TODO.md`), not the
+original aspirational draft.
+
+**Goal:** move the advanced-physics foundations (species, multiphase,
+compressible) into the normal production case/configuration/dispatch/export
+workflow, in that priority order.
+
+## P10-APP-001 — Species Production Integration ✅
+
+- [x] `physics.json` species configuration — `PhysicsConfigParser.cpp`
+- [x] `CaseBuilder` integration — `SimulationSetup::species`
+- [x] `ProjectRunner` dispatch — one `SpeciesSolver::solve()` per species
+- [x] Production example case — `cases/species_diffusion`
+- [x] CLI verification — `apps/cli/main.cpp` species report block
+- [x] GUI verification — `PhysicsEditor.qml` species editor; P8 manual GUI
+  acceptance (`results/release/p8-hardening/gui_acceptance.md`) exercised
+  the Physics editor on a real case
+- [x] Species-field export — `concentration_<name>` in CSV/VTK/JSON
+- [x] End-to-end regression — `tests/integration/case/test_species_production_case.cpp`,
+  7/7 PASS (freshly re-run, see `TODO.md`)
+
+## P10-APP-002 — Multiphase Production Integration ✅
+
+- [x] Multiphase configuration parsing — `PhysicsConfigParser.cpp`
+- [x] Phase construction from case configuration — `TwoPhaseSystem`
+- [x] Volume-fraction transport wired into production runner — one
+  `VolumeFractionSolver::step()` per run
+- [x] Mixture-field exposure — `volume_fraction`/`mixture_density`/
+  `mixture_viscosity`
+- [x] Production example case — `cases/multiphase_validation`
+- [x] CLI verification — `apps/cli/main.cpp` multiphase report block
+- [x] GUI verification — `PhysicsEditor.qml` multiphase editor
+- [x] Restart/export verification — CSV/VTK/JSON export confirmed
+- [x] End-to-end regression — `tests/integration/case/test_multiphase_production_case.cpp`,
+  7/7 PASS (freshly re-run)
+
+**Disclosed, deliberate scope limit (not a gap to close silently):**
+mixture density is intentionally **not** coupled into the continuity
+equation (`MultiphaseProperties.hpp`'s own documented scope) — only
+mixture viscosity feeds SIMPLE's momentum assembly. This should stay an
+explicit documented decision (see "Still open" below), not be treated as
+an oversight.
+
+## P10-APP-003 — Compressible Production Integration ✅ (post-hoc scope)
+
+- [x] Compressible configuration parsing — `PhysicsConfigParser.cpp`
+- [x] EOS configuration — `IdealGasEOS`/`ThermodynamicProperties`
+- [x] Pressure/reference-pressure configuration
+- [x] Production solver dispatch — post-hoc EOS/Mach/continuity-imbalance
+  pass, honestly labeled as such in the GUI and in `ProjectRunner.hpp`
+- [x] Density/Mach/absolute-pressure export
+- [x] Production low-Mach example — `cases/compressible_validation`
+- [x] CLI verification — `apps/cli/main.cpp` compressible report block
+- [x] GUI verification — `PhysicsEditor.qml` compressible editor
+- [x] End-to-end regression — `tests/integration/case/test_compressible_production_case.cpp`,
+  7/7 PASS (freshly re-run)
+- [ ] **Compressible boundary conditions** — genuinely open: no
+  boundary-density model exists for compressible inlets/outlets
+  (`CompressibleMassFlux.hpp`'s own documented gap; boundary faces
+  currently reuse the owner cell's density)
+- [ ] **Compressible energy coupling** — genuinely open in the "real
+  two-way coupling" sense: there is no coupled compressible
+  pressure-velocity solver, only a one-way, post-hoc reinterpretation.
+  **Scope decision, recorded here:** a real coupled compressible solver
+  is large new numerics — deferred to P12-COMP rather than committed to
+  under P10. The current honest post-hoc scope is what P10-APP-003 is
+  considered complete against.
+
+## P10-APP-004 — Production Physics Compatibility Matrix ⏳ (partially done)
+
+- [x] Some supported/rejected combinations already enforced in
+  `PhysicsConfigParser.cpp`: buoyancy requires thermal; multiphase
+  excludes turbulence; multiphase viscosity invariant
+  (`dynamic_viscosity ≤ min(phase viscosities)`); compressible
+  `thermal_coupled` requires thermal. Tested in `test_multiphase_case.cpp`/
+  `test_compressible_case.cpp`.
+- [ ] Not yet enforced or tested: multiphase+compressible together (both
+  would claim "the" authoritative density field), species+multiphase,
+  species+compressible, compressible+buoyancy, compressible+turbulence
+- [ ] Consolidate the ad hoc cross-checks into one clearly-named
+  validation section
+- [ ] Document the full compatibility matrix (`docs/user_guide/case_format.md`
+  or a new `docs/user_guide/physics_compatibility.md`)
+- [ ] Add rejection tests for each newly-added cross-check
+- [ ] At least one representative combined-physics production example case
+  (none exists today — every current case exercises exactly one advanced
+  module; thermal+species is the physically sensible first combination)
+
+## Still open beyond the checklist above
+
+- `docs/user_guide/case_format.md`/`schemas/README.md` document only the
+  bare-minimum `physics.json` (`model`/`density`/`dynamic_viscosity`/
+  `reynolds_number`) and `boundaries.json` (`velocity`/`pressure`) —
+  thermal, turbulence, buoyancy, species, multiphase, and compressible are
+  all undocumented there despite being fully implemented. This predates
+  P10 but should close alongside it.
+- No standalone grid-refinement/analytical validation study exists under
+  `results/validation/multiphase/` (Poiseuille/cavity/turbulence all have
+  one) — evidence-parity gap, not a correctness concern.
+- Multiphase's density-non-coupling and compressible's post-hoc-only scope
+  (both noted above) should be written down as explicit decisions, not
+  left implicit in code comments only.
+
+**P10 Acceptance:** species, multiphase, and compressible capabilities are
+configurable and runnable through the production application without
+custom test-only code paths (✅, re-verified — see `TODO.md`); the
+compatibility matrix and its documentation are not yet complete
+(P10-APP-004, genuinely open).
+
+---
+
+# P11 — GUI Case Authoring ✅ (reconciled, one manual-verification gap open)
+
+**Reconciliation note:** same situation as P10 — this checklist was
+entirely unchecked, but the work was implemented and shipped pre-v0.2.0 in
+commit `3d26930` ("...add GUI case editors (mesh/physics/boundary/solver/
+full-case-creation)"), verified there at 1260/1260 (Windows) and 1221/1221
+(Linux) full regression, 19 consecutive clean `ctest -j8` runs, and clean
+clang-format/clang-tidy. Freshly re-confirmed: `CFDGuiControllerTests`
+40/40 PASS, including `CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`.
 
 **Goal:** allow ordinary users to create and configure production cases
-without manually editing JSON. Current GUI can open, save, validate, run and
-post-process cases, but configuration still depends on hand-edited case
-files.
+without manually editing JSON.
 
-## P11-GUI-001 — Mesh Editor
+## P11-GUI-001 — Mesh Editor ✅
 
-- [ ] Mesh dimensions, domain dimensions, mesh preview, input validation
+- [x] Mesh dimensions, domain dimensions, mesh preview, input validation —
+  `apps/gui/qml/MeshEditor.qml`
 
-## P11-GUI-002 — Physics Editor
+## P11-GUI-002 — Physics Editor ✅
 
-- [ ] Flow-regime selection, material properties, thermal configuration,
-  turbulence selection, species/multiphase/compressible controls
+- [x] Flow-regime selection, material properties, thermal configuration,
+  turbulence selection, species/multiphase/compressible controls —
+  `apps/gui/qml/PhysicsEditor.qml`
 
-## P11-GUI-003 — Boundary-Condition Editor
+## P11-GUI-003 — Boundary-Condition Editor ✅
 
-- [ ] Boundary/BC-type selection; edit velocity, pressure, temperature,
-  species, volume fraction; validation/error reporting
+- [x] Boundary/BC-type selection; edit velocity, pressure, temperature,
+  species, volume fraction; validation/error reporting —
+  `apps/gui/qml/BoundaryEditor.qml`
 
-## P11-GUI-004 — Solver Settings Editor
+## P11-GUI-004 — Solver Settings Editor ✅
 
-- [ ] SIMPLE/PISO configuration, linear-solver selection, tolerances,
+- [x] SIMPLE/PISO configuration, linear-solver selection, tolerances,
   relaxation factors, time-step/CFL controls, CPU/OpenMP/GPU backend
-  selection
+  selection — `apps/gui/qml/SolverEditor.qml`
 
-## P11-GUI-005 — Case Creation Wizard
+## P11-GUI-005 — Case Creation Wizard ⏳ (backend done, manual GUI step open)
 
-- [ ] New case without manual JSON editing, template selection, guided
-  setup, pre-save validation, CLI-compatible output
+- [x] New case without manual JSON editing, guided setup, pre-save
+  validation, CLI-compatible output — backend logic verified
+  (`CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`)
+- [ ] **Manual, human-executed GUI verification of creating a brand-new
+  case from scratch** — the P8 manual GUI acceptance checklist
+  (`results/release/p8-hardening/gui_acceptance.md`) only opened an
+  *existing* case (step 2); it never exercised the new-case-creation flow
+  end to end by hand. Genuinely open — needs one more human-executed
+  checklist addendum.
+- [ ] Template selection — not confirmed present; verify alongside the
+  manual step above.
 
 **P11 Acceptance:** a representative supported case can be created,
 configured, validated, saved, reopened, and executed entirely through the
-GUI without manual JSON editing, while remaining CLI-compatible.
+GUI without manual JSON editing, while remaining CLI-compatible. Backend
+logic meets this (✅); the human-executed manual confirmation specifically
+for *case creation* (as opposed to opening an existing case) is the one
+remaining gap.
 
 ---
 
