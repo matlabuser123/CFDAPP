@@ -97,6 +97,16 @@ finite and `> 0`. `reynolds_number` is optional, reporting-only metadata
 -- it is never used to derive viscosity; density and viscosity are always
 the explicit physical inputs.
 
+**Units:** the parser enforces no unit system at all -- every numeric
+field here is a plain `double` (`cfd::Real`), checked only for
+finiteness/sign/range, never dimensional consistency. Every example in
+this document and every case shipped under `cases/` is written in
+SI-consistent units by convention (kg, m, s, K, Pa) -- e.g. `1000.0`/
+`0.001` for water's density/viscosity, `287.05`/`101325.0` for air's gas
+constant/standard pressure -- but nothing stops a case from using a
+different self-consistent unit system; get every quantity in the same
+system and the numerics work.
+
 Six further blocks are all optional, each enabled purely by the presence
 of its key (there is no separate `"enabled": true/false` anywhere in
 `physics.json` -- an absent block always means "off", matching the plain
@@ -132,6 +142,16 @@ alongside the matching `initial_epsilon`/`initial_omega`. No per-patch
 boundary configuration is needed -- wall behavior for k/epsilon/omega is
 derived automatically from each patch's existing velocity type.
 
+**Invalid example** (model/field mismatch -- both fields given at once):
+
+```json
+"turbulence": { "model": "k_epsilon", "initial_k": 0.02,
+                "initial_epsilon": 0.005, "initial_omega": 0.01 }
+```
+
+Rejected: `field "physics.json turbulence" must satisfy have exactly one
+of initial_epsilon/initial_omega; received both present`.
+
 ### `buoyancy`
 
 ```json
@@ -145,6 +165,17 @@ finite value; `gravity` is a required 2-component finite `[gx, gy]`
 vector. **Requires a `thermal` block** -- a buoyancy source needs a real
 temperature field to evaluate against, and `thermal` is this codebase's
 only source of one.
+
+**Invalid example** (no `thermal` block):
+
+```json
+"buoyancy": { "model": "boussinesq", "beta": 0.0034,
+              "reference_temperature": 300.0, "gravity": [0.0, -9.81] }
+```
+
+Rejected (with no `"thermal"` key anywhere in the same `physics.json`):
+`field "buoyancy" must satisfy be present only alongside a "thermal"
+block; received no "thermal" block was given`.
 
 ### `species`
 
@@ -191,6 +222,21 @@ can never go negative. Enabling `multiphase` requires every
 `boundaries.json` patch to configure an `"alpha"` key (see below). See
 "Physics compatibility" below for what `multiphase` excludes.
 
+**Invalid example** (top-level viscosity above both phases):
+
+```json
+"dynamic_viscosity": 0.01,
+"multiphase": { "phase1": { "name": "water", "density": 1000.0, "viscosity": 0.001 },
+                "phase2": { "name": "air", "density": 1.0, "viscosity": 1.8e-5 },
+                "initial_alpha": 0.5, "transport_time_step": 0.01 }
+```
+
+Rejected: `field "dynamic_viscosity" must satisfy be <= the smaller of
+multiphase.phase1.viscosity/phase2.viscosity (0.000018) -- it is used as
+the molecular-viscosity baseline the mixture-viscosity coupling adds
+mu_mix-baseline on top of, and that difference must never be negative;
+received 0.010000`.
+
 ### `compressible`
 
 ```json
@@ -213,6 +259,17 @@ Exactly one of `temperature` (a constant, isothermal reinterpretation,
 must be `> 0`) or `thermal_coupled: true` (reuse the case's own converged
 `thermal` field instead -- **requires a `thermal` block**) must be given.
 
+**Invalid example** (both `temperature` and `thermal_coupled` given):
+
+```json
+"compressible": { "gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                   "reference_pressure": 101325.0, "temperature": 300.0,
+                   "thermal_coupled": true }
+```
+
+Rejected: `field "physics.json compressible" must satisfy have exactly
+one of temperature/thermal_coupled; received both present`.
+
 ## Physics compatibility
 
 The blocks above are not all freely combinable. The full compatibility
@@ -231,7 +288,32 @@ matrix (enforced in exactly one place,
 
 An unsupported combination is rejected at load time with a message naming
 the two conflicting blocks, the same way any other invalid `physics.json`
-field is reported.
+field is reported. Two invalid examples (the excludes rules -- the
+requires rules are illustrated in each block's own section above):
+
+```json
+"turbulence": { "model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005 },
+"multiphase": { "phase1": { "name": "water", "density": 1000.0, "viscosity": 0.001 },
+                "phase2": { "name": "air", "density": 1.0, "viscosity": 1.8e-5 },
+                "initial_alpha": 0.5, "transport_time_step": 0.01 }
+```
+
+Rejected: `field "multiphase" must satisfy be present only without a
+"turbulence" block (both would need SIMPLE's one effective-viscosity
+injection point); received a "turbulence" block was also given`.
+
+```json
+"compressible": { "gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                   "reference_pressure": 101325.0, "temperature": 300.0 },
+"multiphase": { "phase1": { "name": "water", "density": 1000.0, "viscosity": 0.001 },
+                "phase2": { "name": "air", "density": 1.0, "viscosity": 1.8e-5 },
+                "initial_alpha": 0.5, "transport_time_step": 0.01 }
+```
+
+Rejected: `field "multiphase" must satisfy be present only without a
+"compressible" block (a two-phase mixture and an ideal-gas EOS
+reinterpretation describe incompatible fluids); received a "compressible"
+block was also given`.
 
 ## `boundaries.json`
 
