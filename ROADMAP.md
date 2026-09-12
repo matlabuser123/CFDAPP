@@ -80,15 +80,18 @@ density is not coupled into continuity, only viscosity feeds momentum
 two-way energy/pressure-velocity coupling was deferred to `P12-COMP`
 rather than committed to under P10 — see below.
 
-**P11 — GUI Case Authoring** (reconciled, one gap open). Mesh
-(`P11-GUI-001`), physics (`P11-GUI-002`), boundary-condition
-(`P11-GUI-003`), and solver-settings (`P11-GUI-004`) editors let a user
-build a full case without hand-editing JSON; backend logic for
-from-scratch case creation is verified
+**P11 — GUI Case Authoring** ✅. Mesh (`P11-GUI-001`), physics
+(`P11-GUI-002`), boundary-condition (`P11-GUI-003`), and solver-settings
+(`P11-GUI-004`) editors let a user build a full case without hand-editing
+JSON; backend logic for from-scratch case creation is verified
 (`CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`).
-**Open:** `P11-GUI-005`'s human-executed GUI pass through the actual
-new-case-creation workflow has not been recorded with real evidence — see
-`TODO.md`.
+`P11-GUI-005`'s human-executed pass through the actual new-case-creation
+workflow (New → mesh → physics → boundaries → solver → Save As → close →
+reopen → round-trip → Validate → Run → inspect residuals/results):
+13/13 PASS, tester: project owner, 2026-09-13, against a fresh binary at
+commit `c25115faefd676ce59ce04d83769c80b9a2d2d3c`. Template-selection
+option confirmed present. Evidence:
+`results/release/p8-hardening/gui_acceptance.md`'s P11-GUI-005 addendum.
 
 ---
 

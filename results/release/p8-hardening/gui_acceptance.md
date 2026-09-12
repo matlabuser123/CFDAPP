@@ -70,3 +70,61 @@ visualizations (blank/garbled contour or vector plots).
 17/17 PASS. `TODO.md`'s P8 manual GUI acceptance item and P9's "GUI
 acceptance passes" gate are marked `[x]` on the basis of this human-executed
 result.
+
+---
+
+# P11-GUI-005 — Case-Creation-From-Scratch Addendum
+
+**Status: COMPLETE — 13/13 PASS.**
+
+The 17-step checklist above only ever opened an *existing* case (step 2);
+it never exercised creating a brand-new case from scratch end to end. This
+is that distinct workflow, per `ROADMAP.md`'s P11-GUI-005 gap and
+`CLAUDE.md`'s own rule that this is a separate gate from the P8 checklist
+above, not satisfiable by reusing it.
+
+As with the checklist above, **these results are human-executed and
+self-reported** — Claude Code has no screen-capture or input-automation
+tool for a native Qt window in this environment, so it did not click
+through this itself. It built the exact binary below from a verified-clean
+working tree and launched it; every Result/Notes cell below was reported
+by the person who actually ran the workflow.
+
+**Commit under test:** `c25115faefd676ce59ce04d83769c80b9a2d2d3c`
+**Binary under test:** `build\windows-release\apps\gui\cfdapp_gui.exe`,
+rebuilt fresh from a clean working tree at the commit above (MSVC via
+Visual Studio 2022 "18"/Community's toolset, Qt 6.9.3, `windeployqt`-bundled
+runtime) — not a stale/reused build from an earlier commit.
+**New case path:** `cases/gui_manual_test` (deleted by the tester as
+cleanup after this run — confirmed no longer present on disk; the
+workflow completed against it as reported below before deletion).
+**Tester:** project owner, 2026-09-13.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | Launch `cfdapp_gui.exe`, start a brand-new case (not opening an existing one) | PASS | |
+| 2 | Configure mesh (geometry/resolution) in the Mesh editor | PASS | |
+| 3 | Configure physics (fluid model, any of thermal/turbulence/buoyancy/species/multiphase/compressible) in the Physics editor | PASS | |
+| 4 | Configure boundary conditions for every patch in the Boundary editor | PASS | |
+| 5 | Configure solver settings in the Solver editor | PASS | |
+| 6 | "Save As" to a new case directory | PASS | |
+| 7 | Close the application (or close the case) | PASS | |
+| 8 | Reopen the saved case | PASS | |
+| 9 | Confirm round-trip: every value configured in steps 2-5 reads back exactly as set (no silently-dropped or defaulted fields) | PASS | |
+| 10 | Run "Validate" and confirm it reports the case as valid (or, if you deliberately entered an invalid value, that it reports the error clearly) | PASS | |
+| 11 | Run the solver from the GUI | PASS | |
+| 12 | Watch live residual/progress status update during the run | PASS | |
+| 13 | Inspect the output/results (fields, residual history, exported files) after completion | PASS | |
+
+**Template selection:** present — a template/preset-selection option
+exists in the new-case flow (resolves `ROADMAP.md`'s P11-GUI-005 disclosed
+"not confirmed present" note).
+
+**Warnings/errors observed:** none.
+
+**Final result:** PASS (13/13).
+
+## Outcome
+
+13/13 PASS. `TODO.md`'s P11-GUI-005 item and `ROADMAP.md`'s P11 acceptance
+are marked `[x]` on the basis of this human-executed result.

@@ -8,31 +8,32 @@ verified with real evidence; `[ ]` = not yet.
 
 ## Current
 
-None — P12-COMP-002 (below) just closed. Awaiting next scope decision
-before starting any further P12 direction.
+None — P10/P11 closeout and P12-COMP-002 (below) are both now closed.
+Awaiting next scope decision before starting any further P12 direction.
 
 ## Next
 
-1. P11-GUI-005 manual GUI verification (see Blocked/Manual below) — the
-   one remaining open item from P10/P11 closeout.
-2. No further P12 direction (P12-NUM/TURB/SPECIES/MULTI/MESH, or
+1. No further P12 direction (P12-NUM/TURB/SPECIES/MULTI/MESH, or
    compressible energy/higher-Mach capability) without an explicit new
    scope decision.
 
 ## Blocked / Manual
 
-- **P11-GUI-005 — case-creation-from-scratch GUI acceptance.** Backend
-  logic is verified (`CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`).
-  Still open: one human-executed pass through the GUI itself (New → Save
-  As → close → reopen → round-trip → Validate → Run → inspect results),
-  recorded as a dated addendum to `results/release/p8-hardening/gui_acceptance.md`,
-  plus confirming whether template selection exists. This has been claimed
-  "done" twice without an actual filled evidence record (commit SHA +
-  PASS/FAIL per step); it stays `[ ]` until that evidence is provided.
 - Native Windows + CUDA is untested (only WSL2/Linux+CUDA verified) —
   needs that specific hardware/OS combination to close.
 
 ## Recently Completed
+
+- **P11-GUI-005 — case-creation-from-scratch GUI acceptance.** `[x]`
+  Human-executed, self-reported 13/13 PASS (tester: project owner,
+  2026-09-13), against a fresh binary rebuilt from a verified-clean
+  working tree at commit `c25115faefd676ce59ce04d83769c80b9a2d2d3c`
+  (`build\windows-release\apps\gui\cfdapp_gui.exe`, MSVC/Qt 6.9.3).
+  Template-selection option confirmed present. No warnings/errors
+  observed. This item had been claimed "done" twice before without an
+  actual filled evidence record; this is the first real one. Evidence:
+  `results/release/p8-hardening/gui_acceptance.md`'s P11-GUI-005
+  addendum. This closes P10/P11 entirely.
 
 - **P12-COMP-002 — coupled compressible pressure-velocity solver.** `[x]`
   A dedicated `CompressibleSIMPLE` path (new

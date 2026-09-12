@@ -33,9 +33,9 @@ before relying on this for anything beyond research/learning use.
   - *Default*: a post-hoc, one-way ideal-gas reinterpretation of an
     already-converged incompressible SIMPLE result (density/Mach/mass-flux
     from EOS, never fed back into the flow solve).
-  - *Opt-in* (`compressible.coupled: true`, in progress — see
-    [ROADMAP.md](ROADMAP.md)): a dedicated `CompressibleSIMPLE` solver
-    with density as genuinely iterated state.
+  - *Opt-in* (`compressible.coupled: true`): a dedicated
+    `CompressibleSIMPLE` solver with density as genuinely iterated state,
+    validated against an independent literature analytical solution.
 - **Production physics compatibility matrix**: every cross-physics
   combination (thermal/turbulence/buoyancy/species/multiphase/compressible)
   is validated at parse time by one authoritative function, reachable
@@ -189,12 +189,15 @@ schema:
   used to compute density/Mach number/a compressible mass flux from the
   already-converged result. Never a second, coupled flow solve — density
   never feeds back into momentum/continuity.
-- **Coupled (opt-in, in progress)**: a dedicated `CompressibleSIMPLE`
-  solver where density is genuinely iterated state, updated from the
-  corrected pressure every outer iteration, solving a compressible
-  pressure-correction equation. See [ROADMAP.md](ROADMAP.md)'s P12-COMP
-  section and [TODO.md](TODO.md) for current status — do not assume this
-  mode is complete or validated until those mark it so.
+- **Coupled (opt-in)**: a dedicated `CompressibleSIMPLE` solver where
+  density is genuinely iterated state, updated from the corrected
+  pressure every outer iteration, solving a compressible
+  pressure-correction equation. Reduces to plain incompressible `SIMPLE`
+  in the low-Mach limit, and independently validated against Arkilic et
+  al. (1997)'s isothermal compressible-channel analytical solution
+  (`cases/compressible_channel_coupled`). See
+  [ROADMAP.md](ROADMAP.md)'s P12-COMP section for evidence and disclosed
+  scope limits (no turbulence/buoyancy injection point yet, CPU-only).
 
 ## Performance
 
@@ -261,15 +264,12 @@ tests.
 
 ## Known Limitations
 
-- **Compressible coupling is still post-hoc by default.** See
-  [Compressible flow status](#compressible-flow-status) — the genuinely
-  coupled solver is opt-in and in progress, not yet the default or fully
-  validated.
+- **Compressible coupling is opt-in, not the default.** See
+  [Compressible flow status](#compressible-flow-status) — the coupled
+  solver is validated but has no turbulence/buoyancy injection point yet
+  and is CPU-only; the default remains the post-hoc reinterpretation.
 - **Multiphase density is not coupled into continuity** — only mixture
   viscosity feeds momentum (documented scope limit, `MultiphaseProperties.hpp`).
-- **P11-GUI-005 gap**: the case-creation-from-scratch GUI workflow has
-  verified backend logic but no recorded human-executed GUI acceptance
-  pass yet — see [TODO.md](TODO.md).
 - **GPU covers linear-solve only, not assembly.** See
   [GPU / CUDA status](#gpu--cuda-status).
 - **Native Windows + CUDA is untested** — only WSL2/Linux+CUDA is verified.
