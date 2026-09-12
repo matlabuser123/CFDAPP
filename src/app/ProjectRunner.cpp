@@ -160,6 +160,46 @@ ProjectRunStatus statusFor(SIMPLEStatus status) {
   return ProjectRunStatus::NumericalFailure;
 }
 
+// P12-COMP-002: same mapping convention as statusFor(SIMPLEStatus) above,
+// applied to the coupled compressible solve's own status -- used only
+// when compressible.coupled is set, in which case this solve's outcome
+// (not the incompressible warm-start's) becomes the run's authoritative
+// status.
+ProjectRunStatus statusFor(cfd::compressible::CompressibleSIMPLEStatus status) {
+  using cfd::compressible::CompressibleSIMPLEStatus;
+  switch (status) {
+    case CompressibleSIMPLEStatus::Converged:
+      return ProjectRunStatus::Converged;
+    case CompressibleSIMPLEStatus::MaxIterations:
+      return ProjectRunStatus::DidNotConverge;
+    case CompressibleSIMPLEStatus::MomentumFailure:
+    case CompressibleSIMPLEStatus::PressureCorrectionFailure:
+    case CompressibleSIMPLEStatus::NonFiniteState:
+    case CompressibleSIMPLEStatus::InvalidConfiguration:
+      return ProjectRunStatus::NumericalFailure;
+  }
+  return ProjectRunStatus::NumericalFailure;
+}
+
+std::string compressibleSimpleStatusName(cfd::compressible::CompressibleSIMPLEStatus status) {
+  using cfd::compressible::CompressibleSIMPLEStatus;
+  switch (status) {
+    case CompressibleSIMPLEStatus::Converged:
+      return "Converged";
+    case CompressibleSIMPLEStatus::MaxIterations:
+      return "MaxIterations";
+    case CompressibleSIMPLEStatus::MomentumFailure:
+      return "MomentumFailure";
+    case CompressibleSIMPLEStatus::PressureCorrectionFailure:
+      return "PressureCorrectionFailure";
+    case CompressibleSIMPLEStatus::NonFiniteState:
+      return "NonFiniteState";
+    case CompressibleSIMPLEStatus::InvalidConfiguration:
+      return "InvalidConfiguration";
+  }
+  return "Unknown";
+}
+
 }  // namespace
 
 ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
@@ -349,9 +389,8 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
     }
   }
 
-  // P6-PHYS-003: the post-hoc low-Mach reinterpretation (see
-  // ProjectRunner.hpp's own header comment for the exact recipe and why
-  // this is not a genuine compressible solve). Runs whenever the SIMPLE
+  // P6-PHYS-003 (extended by P12-COMP-002): two modes, see
+  // ProjectRunner.hpp's own header comment. Runs whenever the SIMPLE
   // result is fully finite -- same gate as massFlux above (compressible
   // needs velocity, not massFlux itself, but shares the same "only a
   // usable flow" precondition).
@@ -369,42 +408,100 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
         !anyNonFinite(result) && (!c.thermalCoupled || thermalResult.has_value());
     if (canEvaluate) {
       const cfd::Index n = setup.mesh.numberOfCells();
-      cfd::fields::ScalarField pressureAbsolute(n);
-      for (cfd::Index i = 0; i < n; ++i)
-        pressureAbsolute[i] = c.referencePressure + result.pressure[i];
-
       cfd::fields::ScalarField temperatureField(n);
       if (c.thermalCoupled) {
         for (cfd::Index i = 0; i < n; ++i) temperatureField[i] = thermalResult->temperature[i];
       } else {
         for (cfd::Index i = 0; i < n; ++i) temperatureField[i] = *c.temperature;
       }
-
-      cfd::fields::ScalarField density = cfd::compressible::evaluateDensityField(
-          setup.mesh, pressureAbsolute, temperatureField, c.thermodynamics);
-
-      cfd::fields::ScalarField mach(n);
-      Real machMax = 0.0;
-      for (cfd::Index i = 0; i < n; ++i) {
-        const Real speed = magnitude(result.velocity[i]);
-        const Real soundSpeed = c.thermodynamics.speedOfSound(temperatureField[i]);
-        mach[i] = cfd::compressible::machNumber(speed, soundSpeed);
-        machMax = std::max(machMax, mach[i]);
-      }
-
       // P12-COMP-001: boundary faces now get a real EOS-evaluated density
       // at their own boundary pressure/temperature (via
       // setup.pressureBoundaries and, when thermal-coupled,
       // *setup.temperatureBoundaries), superseding the previous owner-
       // cell-reuse simplification -- see CompressibleMassFlux.hpp's own
-      // header comment.
+      // header comment. Shared by both modes below.
       const cfd::boundary::BoundaryConditionSet* temperatureBoundariesPtr =
           c.thermalCoupled ? &(*setup.temperatureBoundaries) : nullptr;
-      const cfd::fields::SurfaceField compressibleMassFlux =
-          cfd::compressible::calculateCompressibleMassFlux(
-              setup.mesh, result.velocity, density, setup.velocityBoundaries, result.pressure,
-              setup.pressureBoundaries, c.referencePressure, c.thermodynamics, temperatureField,
-              temperatureBoundariesPtr);
+
+      cfd::fields::ScalarField density(n);
+      cfd::fields::ScalarField pressureAbsolute(n);
+      cfd::fields::ScalarField mach(n);
+      Real machMax = 0.0;
+      cfd::fields::SurfaceField compressibleMassFlux(setup.mesh.numberOfFaces());
+      std::string statusName;
+
+      if (c.coupled) {
+        // P12-COMP-002: genuinely coupled solve, warm-started from the
+        // incompressible SIMPLE result already computed above -- see
+        // CompressibleSIMPLE.hpp's own header comment. Initial density
+        // guess is the EOS evaluated at the warm-start's own gauge
+        // pressure (a reasonable starting iterate, not itself part of the
+        // converged answer).
+        for (cfd::Index i = 0; i < n; ++i)
+          pressureAbsolute[i] = c.referencePressure + result.pressure[i];
+        const cfd::fields::ScalarField initialDensity = cfd::compressible::evaluateDensityField(
+            setup.mesh, pressureAbsolute, temperatureField, c.thermodynamics);
+
+        cfd::compressible::CompressibleSIMPLESettings compressibleSettings;
+        compressibleSettings.maxIterations = setup.solverSettings.maxIterations;
+        compressibleSettings.velocityRelaxation = setup.solverSettings.velocityRelaxation;
+        compressibleSettings.pressureRelaxation = setup.solverSettings.pressureRelaxation;
+        compressibleSettings.velocityTolerance = setup.solverSettings.velocityTolerance;
+        compressibleSettings.pressureTolerance = setup.solverSettings.pressureTolerance;
+        compressibleSettings.continuityTolerance = setup.solverSettings.continuityTolerance;
+        compressibleSettings.momentumSolver = setup.solverSettings.momentumSolver;
+        compressibleSettings.pressureSolver = setup.solverSettings.pressureSolver;
+        // compressibleSettings.pseudoTimeStep is left at its own default
+        // (1.0) -- no case-format exposure for it in this phase (see
+        // ROADMAP.md's P12-COMP-002 scope note).
+
+        const cfd::compressible::CompressibleSIMPLE compressibleSimple(
+            compressibleSettings, c.thermodynamics, c.referencePressure, /*referenceCell=*/0);
+        cfd::compressible::CompressibleSIMPLEResult coupled = compressibleSimple.solve(
+            setup.mesh, setup.fluid.dynamicViscosity(), setup.velocityBoundaries,
+            setup.pressureBoundaries, temperatureField, temperatureBoundariesPtr, result.velocity,
+            result.pressure, initialDensity);
+
+        density = coupled.density;
+        for (cfd::Index i = 0; i < n; ++i)
+          pressureAbsolute[i] = c.referencePressure + coupled.pressure[i];
+        for (cfd::Index i = 0; i < n; ++i) {
+          const Real speed = magnitude(coupled.velocity[i]);
+          const Real soundSpeed = c.thermodynamics.speedOfSound(temperatureField[i]);
+          mach[i] = cfd::compressible::machNumber(speed, soundSpeed);
+          machMax = std::max(machMax, mach[i]);
+        }
+        compressibleMassFlux = coupled.massFlux;
+        statusName = compressibleSimpleStatusName(coupled.status);
+        // The coupled solve's own convergence is this run's authoritative
+        // status -- see ProjectRunner.hpp's own header comment on
+        // compressibleSimpleResult.
+        out.status = statusFor(coupled.status);
+        out.compressibleSimpleResult = std::move(coupled);
+      } else {
+        // The post-hoc pass: a *reinterpretation* of the already-converged
+        // incompressible SIMPLE result, never a second flow solve -- see
+        // ProjectRunner.hpp's own header comment for the exact recipe.
+        for (cfd::Index i = 0; i < n; ++i)
+          pressureAbsolute[i] = c.referencePressure + result.pressure[i];
+
+        density = cfd::compressible::evaluateDensityField(setup.mesh, pressureAbsolute,
+                                                           temperatureField, c.thermodynamics);
+
+        for (cfd::Index i = 0; i < n; ++i) {
+          const Real speed = magnitude(result.velocity[i]);
+          const Real soundSpeed = c.thermodynamics.speedOfSound(temperatureField[i]);
+          mach[i] = cfd::compressible::machNumber(speed, soundSpeed);
+          machMax = std::max(machMax, mach[i]);
+        }
+
+        compressibleMassFlux = cfd::compressible::calculateCompressibleMassFlux(
+            setup.mesh, result.velocity, density, setup.velocityBoundaries, result.pressure,
+            setup.pressureBoundaries, c.referencePressure, c.thermodynamics, temperatureField,
+            temperatureBoundariesPtr);
+        statusName = "Evaluated";
+      }
+
       const cfd::physics::ContinuityResult continuity =
           cfd::physics::evaluateContinuity(setup.mesh, compressibleMassFlux);
 
@@ -413,7 +510,8 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
                                            c.thermodynamics.specificHeatPressure(),
                                            c.referencePressure,
                                            c.thermalCoupled,
-                                           "Evaluated",
+                                           c.coupled,
+                                           statusName,
                                            machMax,
                                            std::abs(continuity.globalNetFlux)};
       compressibleForExport.emplace_back("density", density);
@@ -433,6 +531,7 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
                                            c.thermodynamics.specificHeatPressure(),
                                            c.referencePressure,
                                            c.thermalCoupled,
+                                           c.coupled,
                                            "NotRun",
                                            0.0,
                                            0.0};

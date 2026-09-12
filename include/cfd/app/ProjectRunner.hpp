@@ -46,26 +46,39 @@
 // time (PhysicsConfigParser.cpp) -- both would need the same one
 // effective-viscosity injection point.
 //
-// Compressible (P6-PHYS-003): this foundation has no compressible
-// pressure-velocity solver (cfd::compressible::CompressibleContinuity.hpp's
-// own header comment: "NOT a separately-iterated compressible pressure-
-// correction solve"), so this is a *post-hoc* reinterpretation of the
-// already-converged incompressible SIMPLE result -- exactly
-// tests/integration/compressible/test_low_mach_regression.cpp's own
-// validated recipe (absolute pressure -> IdealGasEOS density -> Mach
-// number -> compressible mass flux -> steady continuity imbalance),
-// never a second, parallel flow solve. Energy coupling is either
-// isothermal (a configured constant temperature) or, if
-// "thermal_coupled" is set, the case's own separately-configured
-// "thermal" block's converged temperature field -- both are read-only
-// inputs to the EOS, not fed back into momentum/continuity (there is no
-// implemented compressible pressure-correction loop to feed them into).
+// Compressible (P6-PHYS-003, extended by P12-COMP-002): two modes,
+// chosen by physics.json's "compressible.coupled" (default false).
+//
+//   coupled=false (default): a *post-hoc* reinterpretation of the
+//   already-converged incompressible SIMPLE result -- exactly
+//   tests/integration/compressible/test_low_mach_regression.cpp's own
+//   validated recipe (absolute pressure -> IdealGasEOS density -> Mach
+//   number -> compressible mass flux -> steady continuity imbalance),
+//   never a second, parallel flow solve. Energy coupling is either
+//   isothermal (a configured constant temperature) or, if
+//   "thermal_coupled" is set, the case's own separately-configured
+//   "thermal" block's converged temperature field -- both read-only
+//   inputs to the EOS, not fed back into momentum/continuity.
+//
+//   coupled=true: dispatches to cfd::compressible::CompressibleSIMPLE, a
+//   genuinely coupled compressible pressure-velocity solver (density is
+//   iterated state, updated via the EOS from the corrected pressure
+//   every outer iteration -- see that class's own header comment),
+//   warm-started from the incompressible SIMPLE result computed above.
+//   This solve's own status becomes the run's authoritative status (see
+//   ProjectRunResult::compressibleSimpleResult). Disclosed, deliberate
+//   scope limitation of this first coupled implementation: no
+//   turbulence-model or buoyancy-source injection point exists yet, so
+//   "turbulence"/"buoyancy" combined with "coupled": true are rejected
+//   at parse time (PhysicsConfigParser.cpp) rather than silently
+//   ignored -- the non-coupled mode is unaffected and still allows both.
 
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "cfd/compressible/CompressibleSIMPLE.hpp"
 #include "cfd/compressible/ThermodynamicProperties.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/io/ResultExporter.hpp"
@@ -182,6 +195,14 @@ struct ProjectRunResult {
   // otherwise, never a partially-populated struct.
   std::optional<MultiphaseRunResult> multiphaseResult;
   std::optional<CompressibleRunResult> compressibleResult;
+  // P12-COMP-002: present iff `compressible.coupled` was set and the
+  // incompressible warm-start was usable -- the full, authoritative
+  // coupled-solver result (its own status/residuals/iterated density),
+  // additive to `compressibleResult` above (which is still populated,
+  // from the coupled result's own final state, for the export pipeline's
+  // existing field names). When this is set, `status` above reflects
+  // *this* result's own convergence, not the warm-start SIMPLE run's.
+  std::optional<cfd::compressible::CompressibleSIMPLEResult> compressibleSimpleResult;
   std::optional<cfd::io::ResultExportSummary> exportSummary;
   // Populated for InvalidCase (CaseReader/CaseBuilder's own message) and
   // ApplicationError (a result-export I/O failure) -- empty otherwise,

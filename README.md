@@ -1,154 +1,85 @@
 # CFDApp
 
-A 2D finite-volume computational fluid dynamics solver in C++20, covering
-incompressible steady/transient flow, thermal and turbulence coupling,
-several advanced-physics foundations, and an application layer (CLI + Qt/QML
-GUI) built around one shared production solver backend.
+A 2D finite-volume computational fluid dynamics solver in C++20 — steady
+incompressible SIMPLE and transient PISO, thermal/turbulence/buoyancy
+coupling, species/multiphase/compressible physics, CPU/OpenMP/CUDA
+execution, and an application layer (CLI + Qt6/QML GUI) built around one
+shared production solver backend.
 
-This is a research/learning-oriented codebase with an unusually strict
-internal discipline: every numerical feature ships with unit tests,
-analytical or literature-benchmark validation, and determinism checks before
-it is considered done -- see [TODO.md](TODO.md) for the exact, current,
-checkbox-level status of every item below, and
-[QUALITY_GATE.md](QUALITY_GATE.md) for a worked example of that discipline in
-practice (two real order-of-accuracy bugs found and fixed, with the
-derivation and fix documented in full).
+**Status: released, v0.2.0.** Every capability below ships with unit
+tests, analytical/literature-benchmark validation, and determinism checks
+— see [TODO.md](TODO.md) for exact live status and [ROADMAP.md](ROADMAP.md)
+for phase history, and [Known limitations](#known-limitations) below
+before relying on this for anything beyond research/learning use.
 
-**Status: pre-release (v0.1.5, GPU performance phase in progress).** Treat
-every claim below as "implemented and tested," not "hardened for production
-use" -- see [Known limitations](#known-limitations).
+## Features
 
-## Major capabilities
-
-- **Incompressible flow**: structured 2D mesh, finite-volume discretization,
-  SIMPLE (steady) and PISO (transient, via `TransientSolver`), sparse linear
+- **Incompressible flow**: structured 2D mesh, finite-volume
+  discretization, SIMPLE (steady) and PISO (transient), sparse linear
   algebra (CG/BiCGSTAB) with restart support.
 - **Thermal**: energy equation, thermal boundary conditions, conjugate
-  heat-transfer foundation, Boussinesq buoyancy with natural-convection
-  validation against the De Vahl Davis (1983) benchmark.
-- **Turbulence**: RANS framework with laminar, k-epsilon, k-omega, and SST models,
+  heat-transfer foundation, Boussinesq buoyancy validated against De Vahl
+  Davis (1983).
+- **Turbulence**: laminar, k-epsilon, k-omega, and SST RANS models,
   validated against channel-flow log-law/Re_tau benchmarks.
-- **Advanced physics foundations** (equation-level, validated, but **not**
-  yet reachable through the production case/CLI/GUI dispatch path -- see
-  [Known limitations](#known-limitations)): species transport
-  (advection-diffusion), a two-phase volume-fraction transport foundation,
-  and a compressible (ideal-gas, low-Mach) foundation.
-- **GPU performance**: a persistent GPU-resident pipeline (fields and sparse
-  matrices stay on-device across outer SIMPLE iterations), production GPU
-  CG/BiCGSTAB linear solvers with a deterministic CPU fallback, and
-  GPU-resident Jacobi preconditioning -- all with verified CPU/GPU numerical
-  equivalence and a real, measured end-to-end CPU-vs-GPU speedup (not a
-  kernel-only microbenchmark). See [GPU / CUDA status](#gpu--cuda-status)
-  for exactly what this means and doesn't.
+- **Species transport**: advection-diffusion of one or more passive
+  species, production-integrated (`physics.json` → CLI/GUI → export).
+- **Multiphase**: two-phase volume-fraction transport with mixture
+  density/viscosity, production-integrated. Mixture *viscosity* feeds
+  momentum; mixture *density* is deliberately not coupled into continuity
+  (documented scope limit, not a bug).
+- **Compressible flow — two modes** (see
+  [Compressible flow status](#compressible-flow-status)):
+  - *Default*: a post-hoc, one-way ideal-gas reinterpretation of an
+    already-converged incompressible SIMPLE result (density/Mach/mass-flux
+    from EOS, never fed back into the flow solve).
+  - *Opt-in* (`compressible.coupled: true`, in progress — see
+    [ROADMAP.md](ROADMAP.md)): a dedicated `CompressibleSIMPLE` solver
+    with density as genuinely iterated state.
+- **Production physics compatibility matrix**: every cross-physics
+  combination (thermal/turbulence/buoyancy/species/multiphase/compressible)
+  is validated at parse time by one authoritative function, reachable
+  identically from the CLI, the GUI, and raw JSON — see
+  [docs/user_guide/case_format.md](docs/user_guide/case_format.md).
+- **GPU performance**: a persistent GPU-resident pipeline (fields/matrices
+  stay on-device across SIMPLE iterations), production GPU CG/BiCGSTAB with
+  a deterministic CPU fallback, and GPU-resident Jacobi preconditioning —
+  verified CPU/GPU numerical equivalence and a measured end-to-end
+  speedup, not a kernel-only microbenchmark. See
+  [GPU / CUDA status](#gpu--cuda-status).
 - **CPU performance**: OpenMP-parallelized sparse matrix-vector multiply,
-  with measured end-to-end thread-count scaling (see
-  [Performance](#performance) below) -- and a documented, measured finding
-  that more threads is not automatically faster on every environment.
-- **Application layer**: a production case manager (`cfd::app::CaseSession`)
-  with an explicit state machine, a CLI (`cfdapp`) and a Qt6/QML GUI
-  (`cfdapp_gui`) that both call the *same* solver backend
-  (`cfd::app::ProjectRunner`), field visualization (scalar maps, contours,
-  vector glyphs), a probe/line-sampling post-processing panel, live and
-  historical residual monitoring, and ParaView-ready VTK export.
+  with measured thread-count scaling (see [Performance](#performance)).
+- **Application layer**: a production case manager
+  (`cfd::app::ProjectRunner`) that the CLI (`cfdapp`) and the Qt6/QML GUI
+  (`cfdapp_gui`) both call unchanged — no second, GUI-only solve path —
+  plus a GUI case-authoring workflow (mesh/physics/boundary/solver
+  editors, new-case-from-scratch), field visualization, probes/line
+  sampling, residual monitoring, and ParaView-ready VTK export.
 
-## Architecture
+## Quick Start
 
-```text
-Case (JSON files)
-        |
-        v
-CaseReader / CaseWriter   (read/write, round-trip verified)
-        |
-        v
-CaseBuilder                    (JSON -> typed runtime objects: Mesh, FluidProperties, ...)
-        |
-        v
-ProjectRunner                  (the one production solver backend)
-        |
-        +-- SIMPLE (steady)
-        +-- PISO (transient, via TransientSolver)
-        |
-        v
-SimulationResults -> ResultExporter (CSV / JSON / VTK)
-        |
-        +-- CLI  (apps/cli)
-        +-- GUI  (apps/gui, Qt6/QML) -- via CaseSession + SimulationController
-```
-
-`ProjectRunner` is the single entry point both `apps/cli/main.cpp` and the
-GUI's `SimulationController` call -- there is deliberately no second,
-GUI-only solve path. Visualization/post-processing algorithms
-(`include/cfd/viz/`: marching-squares contours, vector-field sampling, probe,
-line sampling, derived fields) are plain C++ with no Qt dependency, unit-
-tested against synthetic fields with known analytical answers, and consumed
-by the GUI through one `VisualizationSnapshot` built either from a live run
-or reloaded from a completed case's `results/` directory without rerunning
-the solver.
-
-## Repository structure
-
-```text
-include/cfd/            Public headers, one subdirectory per physics/infrastructure module
-    core/                Types, exceptions, logging, versioning, profiling
-    mesh/                Structured 2D mesh, cells, faces, boundary patches
-    fields/              Scalar/vector/surface field containers
-    algebra/             Sparse matrix, CG, BiCGSTAB, preconditioners
-    discretization/      FVM operators (convection, diffusion, gradients)
-    boundary/            Boundary-condition classes
-    physics/             Momentum/continuity assembly, mass flux, buoyancy
-    pressure_velocity/   SIMPLE, PISO, pressure correction, transient momentum
-    thermal/             Energy equation, thermal properties/BCs
-    turbulence/          RANS models (laminar, k-epsilon, k-omega, SST)
-    species/             Species transport (equation-level; see limitations)
-    multiphase/          Volume-fraction transport (equation-level; see limitations)
-    compressible/        Ideal-gas EOS, compressible continuity/momentum (equation-level)
-    gpu/                 Persistent-residency CUDA backend: DeviceCsrMatrix/DeviceVector,
-                         GPU CG/BiCGSTAB, GPU-resident Jacobi preconditioner
-    viz/                 Contour/vector/probe/derived-field algorithms (no Qt)
-    app/                 ProjectRunner, CaseSession, VisualizationSnapshot
-    io/                  Case reader/writer/builder, CSV/JSON/VTK export
-src/                     Implementation, mirroring include/cfd/
-cuda/                    CUDA kernels (SpMV, vector ops, GPU solvers, GPU preconditioner)
-apps/cli/                The `cfdapp` command-line executable
-apps/gui/                The `cfdapp_gui` Qt6/QML executable (built only with -DCFDAPP_BUILD_GUI=ON)
-tests/                   unit/, solver/, integration/ -- gtest, one CTest label per tier
-benchmarks/              Standalone CPU/GPU performance-benchmark executables
-cases/                   Example cases, runnable as-is by both the CLI and GUI
-cmake/                   CMake modules (sanitizers, OpenMP, CUDA, packaging, Qt deploy)
-scripts/windows-release/ The verified, reproducible Windows build/package/test recipe
-docs/user_guide/         Getting started, installation, CLI, GUI, visualization, ParaView, troubleshooting
-docs/developer_guide/    Packaging status and evidence
-results/release/         Real packaging/release evidence (see docs/developer_guide/packaging.md)
-results/performance/     Real, measured benchmark evidence -- see Performance below
-python/cfdapp/           Validation/plotting tooling (pytest-tested)
-TODO.md                  The authoritative, checkbox-level project status
-ROADMAP.md               A higher-level phase overview
-```
-
-## Build requirements
+### Requirements
 
 - CMake 3.20+
-- A C++20 compiler: GCC, Clang, or MSVC (developed against GCC 11/Clang 14 on
-  Linux and MSVC 19.44/Visual Studio 2022 on Windows -- both a WSL2/Linux
-  build and a genuine native Windows MSVC + Qt6 build are verified; see
-  [Testing](#testing))
-- Nothing else for the CLI and the numerical core -- GoogleTest and
+- A C++20 compiler: GCC, Clang, or MSVC (developed against GCC 11/Clang 14
+  on Linux and MSVC 19.44/Visual Studio 2022 on Windows — both a WSL2/Linux
+  build and a native Windows MSVC+Qt6 build are verified).
+- Nothing else for the CLI and numerical core — GoogleTest and
   nlohmann/json are fetched automatically by CMake.
 
 Optional:
 
 - **GUI** (`cfdapp_gui`): Qt 6.2+ (`Core`, `Gui`, `Qml`, `Quick`,
   `QuickControls2`; developed against 6.5/6.9 on Windows).
-- **OpenMP**: `-DCFDAPP_ENABLE_OPENMP=ON`. See [Performance](#performance)
-  for measured scaling -- the best-performing configuration on this
-  project's own dev/CI environment is a *moderate* thread count, not the
-  maximum available.
-- **CUDA**: `-DCFDAPP_ENABLE_CUDA=ON`, requires the CUDA toolkit -- see
+- **OpenMP**: `-DCFDAPP_ENABLE_OPENMP=ON` — see
+  [Performance](#performance) for measured scaling; the best-performing
+  thread count on this project's own environment is moderate, not maximum.
+- **CUDA**: `-DCFDAPP_ENABLE_CUDA=ON`, requires the CUDA toolkit — see
   [GPU / CUDA status](#gpu--cuda-status).
-- **Windows packaging**: NSIS (for the installer) -- see
+- **Windows packaging**: NSIS (installer) — see
   [docs/developer_guide/packaging.md](docs/developer_guide/packaging.md).
 
-## Building
+### Build
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -170,40 +101,7 @@ cmake --preset release
 cmake --build --preset release -j
 ```
 
-## Testing
-
-```bash
-cd build && ctest --output-on-failure
-```
-
-Current regression status (see [TODO.md](TODO.md) for the live count):
-**1289/1289** passing (13 pre-existing, deliberately `DISABLED_` slow
-grid-refinement cases excluded -- see [QUALITY_GATE.md](QUALITY_GATE.md) and
-`ci.yml`'s own comment for why), confirmed on:
-
-- Linux (WSL2/Ubuntu), CPU-only and with `-DCFDAPP_ENABLE_CUDA=ON` on a real
-  NVIDIA GPU, serial and parallel (`ctest -j8`) -- no race conditions
-  observed;
-- AddressSanitizer + UndefinedBehaviorSanitizer (`--preset asan`);
-- a genuine native Windows build (MSVC 19.44 / Visual Studio 2022, Qt 6.9.3,
-  `-DCFDAPP_BUILD_GUI=ON`) -- not a WSL build relabeled as Windows.
-
-**Note on `OMP_NUM_THREADS`**: if you build with `-DCFDAPP_ENABLE_OPENMP=ON`
-and run under a virtualized/shared-CPU environment, set `OMP_NUM_THREADS`
-explicitly (see [Performance](#performance)) -- the unconstrained default
-(one thread per logical processor) was measured to make some tests take
-20-30x longer on this project's own WSL2 dev environment, not because the
-tests are slow, but because of OpenMP thread-spawn overhead at high thread
-counts on that specific platform.
-
-Python validation/plotting tooling has its own test suite:
-
-```bash
-python -m pip install -e "./python[dev]"
-python -m pytest python/tests
-```
-
-## CLI usage
+### Run CLI
 
 ```bash
 cfdapp --case cases/lid_driven_cavity
@@ -211,115 +109,220 @@ cfdapp --case cases/lid_driven_cavity
 
 Reads, validates, solves, and writes `results/{metadata.json,residuals.csv,
 fields.csv,solution.vtk}` under the case directory. See
-[docs/user_guide/cli.md](docs/user_guide/cli.md) for exit codes and
-[docs/user_guide/case_format.md](docs/user_guide/case_format.md) for the case
-JSON schema. A handful of ready-to-run examples are under `cases/`.
+[docs/user_guide/cli.md](docs/user_guide/cli.md) for exit codes.
 
-## Validation status
+### Run GUI
 
-Every physics module listed under "Major capabilities" above has at least
-one integration test comparing against an analytical solution or a published
-benchmark (Poiseuille flow, lid-driven-cavity Ghia et al. data, De Vahl Davis
-natural convection, channel-flow log-law/Re_tau), plus grid-refinement and
-determinism checks. See [TODO.md](TODO.md) for the full, per-item breakdown
-and [QUALITY_GATE.md](QUALITY_GATE.md) for the quality-gate methodology.
+Launch `cfdapp_gui` (built with `-DCFDAPP_BUILD_GUI=ON`) to open, create,
+edit, run, and visualize cases without touching JSON directly — see
+[docs/user_guide/gui.md](docs/user_guide/gui.md).
+
+### Tests
+
+```bash
+cd build && ctest --output-on-failure
+```
+
+See [Testing](#testing) below for current pass counts and verified
+environments. Python validation/plotting tooling has its own suite:
+
+```bash
+python -m pip install -e "./python[dev]"
+python -m pytest python/tests
+```
+
+## Case Structure
+
+A case is a directory of small JSON files:
+
+```text
+case.json          Case metadata + paths to the files below
+geometry.json       Domain shape/dimensions
+mesh.json           Mesh type and resolution
+physics.json        Fluid model + optional thermal/turbulence/buoyancy/
+                    species/multiphase/compressible blocks
+boundaries.json     Per-patch boundary conditions
+solver.json         Solver type, tolerances, relaxation, linear-solver settings
+```
+
+`CaseReader`/`CaseWriter` round-trip a case losslessly; `CaseBuilder`
+turns it into typed runtime objects (`Mesh`, `FluidProperties`, boundary
+condition sets, ...) that `ProjectRunner` solves — the exact path both the
+CLI and the GUI use. Full field/constraint documentation, per-physics
+examples, and the physics compatibility matrix are in
+[docs/user_guide/case_format.md](docs/user_guide/case_format.md).
+
+## Example Cases
+
+Ready to run as-is with either the CLI or the GUI, under `cases/`:
+
+| Case | Demonstrates |
+| --- | --- |
+| `lid_driven_cavity` (+ `_40x40`, `_80x80`) | Incompressible SIMPLE, Ghia et al. validation |
+| `poiseuille_flow` | Analytical parabolic-profile validation |
+| `channel_flow` | Turbulence (k-ε/k-ω/SST) log-law validation |
+| `heated_cavity` | Thermal + Boussinesq natural convection |
+| `species_diffusion` | Passive species transport |
+| `heated_species_diffusion` | Combined thermal + species |
+| `multiphase_validation` | Two-phase volume-fraction transport |
+| `compressible_validation` | Post-hoc compressible (ideal-gas, low-Mach) |
+| `backward_facing_step` | Separated incompressible flow |
+
+## Validation
+
+Every module above has at least one integration test comparing against an
+analytical solution or a published benchmark (Poiseuille flow, Ghia et al.
+lid-driven cavity, De Vahl Davis natural convection, channel-flow
+log-law/Re_tau), plus grid-refinement and determinism checks. See
+[TODO.md](TODO.md) for the full per-item breakdown and
+[QUALITY_GATE.md](QUALITY_GATE.md) for the quality-gate methodology (with a
+worked example: two real order-of-accuracy bugs found and fixed).
+
+## Compressible Flow Status
+
+Two distinct modes, controlled by `physics.json`'s `compressible.coupled`
+(default `false`) — see `docs/user_guide/case_format.md` for the full
+schema:
+
+- **Post-hoc (default, production-ready)**: incompressible SIMPLE solves
+  the flow exactly as it always has; only afterward is an ideal-gas EOS
+  used to compute density/Mach number/a compressible mass flux from the
+  already-converged result. Never a second, coupled flow solve — density
+  never feeds back into momentum/continuity.
+- **Coupled (opt-in, in progress)**: a dedicated `CompressibleSIMPLE`
+  solver where density is genuinely iterated state, updated from the
+  corrected pressure every outer iteration, solving a compressible
+  pressure-correction equation. See [ROADMAP.md](ROADMAP.md)'s P12-COMP
+  section and [TODO.md](TODO.md) for current status — do not assume this
+  mode is complete or validated until those mark it so.
 
 ## Performance
 
-Three real, end-to-end (never kernel-only) benchmarks, each with full
+Three real, end-to-end (never kernel-only) benchmarks, full
 machine-readable data under `results/performance/`:
 
-**GPU vs CPU** (`results/performance/cuda_end_to_end/`, lid-driven cavity,
-NVIDIA RTX 5000 Ada): GPU break-even at **80x80** (6,400 cells); up to
-**2.0x** measured speedup at 320x320. GPU is *slower* than CPU below the
-break-even point (launch/synchronization overhead dominates small problems)
--- this is expected and documented, not a defect.
+**GPU vs CPU** (`cuda_end_to_end/`, lid-driven cavity, NVIDIA RTX 5000
+Ada): GPU break-even at **80×80** (6,400 cells); up to **2.0x** measured
+speedup at 320×320. GPU is slower than CPU below break-even
+(launch/sync overhead dominates small problems) — expected, not a defect.
 
-**OpenMP scaling** (`results/performance/openmp_scaling/`, same case,
-Intel i9-14900HX, 32 logical CPUs): best measured thread count is **4**
-(1.33x speedup over 1 thread); scaling saturates by 4-8 threads and
-*regresses severely* beyond that on this project's own WSL2 dev environment
-(32 threads measured 16x *slower* than 1 thread -- OpenMP thread-spawn
-overhead compounding across the many small, frequent parallel regions a full
-solve triggers). Exactly one loop in the entire codebase is currently
-OpenMP-parallelized (`SparseMatrix::multiply`, the CSR SpMV every CG/BiCGSTAB
-iteration calls) -- this bounds and explains the modest ceiling.
+**OpenMP scaling** (`openmp_scaling/`, same case, Intel i9-14900HX, 32
+logical CPUs): best measured thread count is **4** (1.33x speedup);
+regresses severely beyond 8 threads on this project's WSL2 dev environment
+(32 threads measured 16x *slower* than 1 — thread-spawn overhead). Exactly
+one loop is OpenMP-parallelized today (`SparseMatrix::multiply`).
 
-**Large-grid stress** (`results/performance/large_grid_stress/`): largest
-stable CPU grid **480x480** (230,400 cells); largest stable GPU grid
-**640x640** (409,600 cells) -- one tier further than CPU. Memory was never
-the limiting factor at any tested size (host peak under 1 GB even near
-1,000,000 cells, on a 32 GB machine); the limiting factor at both backends
-is unpreconditioned linear-solver iteration budget vs. problem conditioning,
-not memory or numerical instability (zero NaN/Inf observed anywhere,
-including the failed runs).
+**Large-grid stress** (`large_grid_stress/`): largest stable CPU grid
+**480×480**; GPU **640×640**. Memory was never the limiting factor
+(host peak under 1GB even near 1M cells); the limit at both backends is
+unpreconditioned linear-solver iteration budget, not memory or
+instability.
 
-See each results directory's own `summary.md` for full methodology,
-environment metadata, and known limitations of these specific measurements.
+See each results directory's own `summary.md` for full methodology and
+known limitations of that specific measurement.
 
 ## GPU / CUDA status
 
-**What is verified**: with `-DCFDAPP_ENABLE_CUDA=ON`, fields and sparse
-matrices stay resident on the GPU across repeated outer SIMPLE iterations
-(no unnecessary per-iteration host<->device transfers); production GPU CG
-and BiCGSTAB linear solvers are available via
-`LinearSolverSettings::backend = GPU`, with a deterministic, logged CPU
-fallback when no usable device is present; a GPU-resident Jacobi
-preconditioner applies diag(A)^-1 entirely on-device, with zero
-per-iteration host round trips. CPU/GPU numerical equivalence is verified
-throughout (bit-identical for the CSR SpMV kernel; within tight tolerance
-for the iterative solvers, matching the same floating-point-summation-order
-caveat any parallel reduction has). This was exercised end-to-end on a real
-NVIDIA RTX 5000 Ada GPU -- see [Performance](#performance) above for the
-measured real-world speedup, not just kernel correctness.
+**Verified**: with `-DCFDAPP_ENABLE_CUDA=ON`, fields and sparse matrices
+stay resident on the GPU across outer SIMPLE iterations; production GPU
+CG/BiCGSTAB (`LinearSolverSettings::backend = GPU`) with a deterministic,
+logged CPU fallback when no usable device is present; a GPU-resident
+Jacobi preconditioner with zero per-iteration host round-trips. CPU/GPU
+numerical equivalence is verified (bit-identical CSR SpMV; tight tolerance
+for the iterative solvers). Exercised end-to-end on a real NVIDIA RTX 5000
+Ada GPU under **WSL2/Linux**.
 
-**What this does NOT mean**: GPU execution is a per-solver-instance choice
-(`LinearSolverSettings::backend`), not a whole-application mode -- assembly
-(momentum, pressure correction) always runs on the CPU host; only the linear
-solve itself runs on-device. GPU is measured to be *slower* than CPU below
-the 80x80 break-even grid size (see Performance) -- this is an inherent,
-expected property of small-problem GPU launch/synchronization overhead, not
-a bug. The default build has CUDA off and needs no GPU at all.
+**Not established**: native Windows + CUDA (only WSL2/Linux+CUDA is
+verified — do not generalize that evidence to native Windows). GPU covers
+only the linear solve; momentum/pressure assembly always runs on the CPU
+host. GPU is slower than CPU below the 80×80 break-even grid size — an
+inherent, expected property of small-problem launch overhead. The default
+build has CUDA off and needs no GPU.
 
-## Known limitations
+## Testing
 
-- **Species/multiphase/compressible are equation-level only.** They are
-  implemented and validated as standalone equations/solvers with their own
-  unit and integration tests, but `physics.json` case-config parsing and
-  `ProjectRunner`'s production dispatch do not yet route to them -- a case
-  cannot currently select these physics through the normal CLI/GUI
-  workflow. See ROADMAP.md's P6 for the tracked follow-up.
-- **The GUI cannot author cases.** It opens, saves, validates, runs, and
-  post-processes a case exactly as its JSON files already describe it;
-  creating or editing mesh/physics/boundary-condition/solver settings still
-  means editing the case JSON directly (same as CLI-only use). A real,
-  human-executed manual GUI acceptance test has not yet been performed in
-  this environment -- see `results/release/p8-hardening/gui_acceptance.md`
-  for the prepared checklist and current status.
+```bash
+cd build && ctest --output-on-failure
+```
+
+See [TODO.md](TODO.md) for the exact current pass count. Confirmed on:
+
+- Linux (WSL2/Ubuntu), CPU-only and with `-DCFDAPP_ENABLE_CUDA=ON` on a
+  real NVIDIA GPU, serial and parallel (`ctest -j8`) — no race conditions;
+- AddressSanitizer + UndefinedBehaviorSanitizer (`--preset asan`);
+- a genuine native Windows build (MSVC 19.44/Visual Studio 2022, Qt 6.9.3,
+  `-DCFDAPP_BUILD_GUI=ON`).
+
+**Note on `OMP_NUM_THREADS`**: under a virtualized/shared-CPU environment,
+set it explicitly — the unconstrained default (one thread per logical
+processor) was measured to make some tests take 20-30x longer on this
+project's own WSL2 environment due to thread-spawn overhead, not slow
+tests.
+
+## Known Limitations
+
+- **Compressible coupling is still post-hoc by default.** See
+  [Compressible flow status](#compressible-flow-status) — the genuinely
+  coupled solver is opt-in and in progress, not yet the default or fully
+  validated.
+- **Multiphase density is not coupled into continuity** — only mixture
+  viscosity feeds momentum (documented scope limit, `MultiphaseProperties.hpp`).
+- **P11-GUI-005 gap**: the case-creation-from-scratch GUI workflow has
+  verified backend logic but no recorded human-executed GUI acceptance
+  pass yet — see [TODO.md](TODO.md).
 - **GPU covers linear-solve only, not assembly.** See
-  [GPU / CUDA status](#gpu--cuda-status) above -- momentum/pressure
-  assembly is always CPU-side.
-- **OpenMP covers one kernel.** See [Performance](#performance) above --
-  most of a production solve (assembly, vector arithmetic inside the
-  Krylov solvers, residual/mass-flux computation) is currently
-  single-threaded regardless of thread count.
-- **Packaging/release automation is mid-verification.** The Windows
-  packaging pipeline (CPack ZIP + NSIS installer, Qt runtime deployment) has
-  been built and smoke-tested with real evidence on a real Windows machine
-  (see [docs/developer_guide/packaging.md](docs/developer_guide/packaging.md)
-  and `results/release/0.1.0/`); the GitHub Actions release workflow itself
-  is still being verified end-to-end in CI. No GitHub Release has been
-  published yet.
+  [GPU / CUDA status](#gpu--cuda-status).
+- **Native Windows + CUDA is untested** — only WSL2/Linux+CUDA is verified.
+- **OpenMP covers one kernel** (`SparseMatrix::multiply`) — most of a
+  production solve is single-threaded regardless of thread count.
 - **2D only.** No 3D mesh support.
-- Mesh geometry is structured/Cartesian only; no unstructured or
+- Mesh geometry is structured/Cartesian only — no unstructured or
   boundary-fitted meshing.
 
-## Roadmap
+## Development
 
-See [ROADMAP.md](ROADMAP.md) for the phase-level plan (including P6
-production-physics integration, P7 GUI case authoring, and longer-term
-items) and [TODO.md](TODO.md) for the authoritative, checkbox-level status
-of everything currently implemented.
+- [TODO.md](TODO.md) — current work, blockers, next steps.
+- [ROADMAP.md](ROADMAP.md) — phase-level plan and history.
+- [CLAUDE.md](CLAUDE.md) — agent working rules (evidence discipline,
+  workflow, stop conditions).
+- [CONTRIBUTING.md](CONTRIBUTING.md) — how to contribute.
+- `results/` — detailed, per-task verification evidence.
+
+## Repository Structure
+
+```text
+include/cfd/            Public headers, one subdirectory per physics/infrastructure module
+    core/                Types, exceptions, logging, versioning, profiling
+    mesh/                Structured 2D mesh, cells, faces, boundary patches
+    fields/              Scalar/vector/surface field containers
+    algebra/             Sparse matrix, CG, BiCGSTAB, preconditioners
+    discretization/      FVM operators (convection, diffusion, gradients)
+    boundary/            Boundary-condition classes
+    physics/             Momentum/continuity assembly, mass flux, buoyancy
+    pressure_velocity/   SIMPLE, PISO, pressure correction, transient momentum
+    thermal/             Energy equation, thermal properties/BCs
+    turbulence/          RANS models (laminar, k-epsilon, k-omega, SST)
+    species/             Species transport
+    multiphase/          Volume-fraction transport
+    compressible/        Ideal-gas EOS, compressible continuity/momentum/mass-flux
+    gpu/                 Persistent-residency CUDA backend (CSR matrix/vector, solvers, preconditioner)
+    viz/                 Contour/vector/probe/derived-field algorithms (no Qt)
+    app/                 ProjectRunner, CaseSession, VisualizationSnapshot
+    io/                  Case reader/writer/builder, CSV/JSON/VTK export
+src/                     Implementation, mirroring include/cfd/
+cuda/                    CUDA kernels (SpMV, vector ops, GPU solvers, GPU preconditioner)
+apps/cli/                The `cfdapp` command-line executable
+apps/gui/                The `cfdapp_gui` Qt6/QML executable (-DCFDAPP_BUILD_GUI=ON)
+tests/                   unit/, solver/, integration/ — gtest, one CTest label per tier
+benchmarks/              Standalone CPU/GPU performance-benchmark executables
+cases/                   Example cases, runnable as-is by the CLI and GUI
+cmake/                   CMake modules (sanitizers, OpenMP, CUDA, packaging, Qt deploy)
+scripts/windows-release/ The verified, reproducible Windows build/package/test recipe
+docs/user_guide/         Getting started, installation, CLI, GUI, visualization, ParaView, troubleshooting
+docs/developer_guide/    Packaging status and evidence
+results/                 Real verification/benchmark/release evidence
+python/cfdapp/           Validation/plotting tooling (pytest-tested)
+```
 
 ## Contributing
 

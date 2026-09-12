@@ -87,12 +87,20 @@ struct CompressibleRunMetadata {
   cfd::Real specificHeatPressure{};
   cfd::Real referencePressure{};
   bool thermalCoupled{false};
-  // "Evaluated" or "NotRun" -- there is no genuine iterative solve here
-  // (see ProjectRunner.hpp's own header comment: this is a deterministic
-  // post-hoc pass, not a converged/not-converged solver), so this is a
-  // simpler two-value status than ThermalStatus/SpeciesStatus/
-  // VolumeFractionStatus, not a third invented vocabulary for the same
-  // concept.
+  // P12-COMP-002: true iff compressible.coupled was set -- distinguishes
+  // a genuinely-converged/not-converged CompressibleSIMPLE run from the
+  // default post-hoc pass in the exported metadata, not just in-memory.
+  bool coupled{false};
+  // For the post-hoc pass (coupled=false): "Evaluated" or "NotRun" --
+  // there is no genuine iterative solve there (see ProjectRunner.hpp's
+  // own header comment), so a simpler two-value status than
+  // ThermalStatus/SpeciesStatus/VolumeFractionStatus is deliberate, not
+  // an oversight. For a coupled run: the real CompressibleSIMPLEStatus
+  // name ("Converged", "MaxIterations", "MomentumFailure",
+  // "PressureCorrectionFailure", "NonFiniteState",
+  // "InvalidConfiguration"), or "NotRun" if the coupled solve was never
+  // attempted (e.g. the incompressible warm-start itself was
+  // non-finite).
   std::string status;
   cfd::Real machMax{};
   cfd::Real globalContinuityImbalance{};

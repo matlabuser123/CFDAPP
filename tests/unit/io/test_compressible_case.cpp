@@ -47,6 +47,59 @@ TEST(CompressibleCaseTest, ParsesIsothermalCompressibleConfigWhenEnabled) {
   EXPECT_FALSE(definition.physics.compressible->thermalCoupled);
 }
 
+// P12-COMP-002: "coupled" is optional -- absent must mean exactly the
+// same as the pre-P12-COMP-002 case format, byte-for-byte (default
+// false), not a silently-different parse.
+TEST(CompressibleCaseTest, CoupledDefaultsToFalseWhenAbsent) {
+  CaseFixture fixture;
+  fixture.write("physics.json", kCompressiblePhysics);
+  const auto definition = CaseReader{}.read(fixture.directory());
+  ASSERT_TRUE(definition.physics.compressible.has_value());
+  EXPECT_FALSE(definition.physics.compressible->coupled);
+
+  const auto setup = CaseBuilder{}.build(definition);
+  ASSERT_TRUE(setup.compressible.has_value());
+  EXPECT_FALSE(setup.compressible->coupled);
+}
+
+TEST(CompressibleCaseTest, CoupledTrueParsesAndRoundTripsThroughCaseBuilder) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                                     "reference_pressure": 101325.0, "temperature": 300.0,
+                                     "coupled": true}})");
+  const auto definition = CaseReader{}.read(fixture.directory());
+  ASSERT_TRUE(definition.physics.compressible.has_value());
+  EXPECT_TRUE(definition.physics.compressible->coupled);
+
+  const auto setup = CaseBuilder{}.build(definition);
+  ASSERT_TRUE(setup.compressible.has_value());
+  EXPECT_TRUE(setup.compressible->coupled);
+}
+
+TEST(CompressibleCaseTest, CoupledExplicitFalseParsesTheSameAsAbsent) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                                     "reference_pressure": 101325.0, "temperature": 300.0,
+                                     "coupled": false}})");
+  const auto definition = CaseReader{}.read(fixture.directory());
+  ASSERT_TRUE(definition.physics.compressible.has_value());
+  EXPECT_FALSE(definition.physics.compressible->coupled);
+}
+
+TEST(CompressibleCaseTest, RejectsNonBooleanCoupled) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                                     "reference_pressure": 101325.0, "temperature": 300.0,
+                                     "coupled": "true"}})");
+  expectRejected(fixture);
+}
+
 TEST(CompressibleCaseTest, BuilderConstructsCompressibleRuntimeObjects) {
   CaseFixture fixture;
   fixture.write("physics.json", kCompressiblePhysics);

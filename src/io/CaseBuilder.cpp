@@ -528,7 +528,8 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
         .thermodynamics = ThermodynamicProperties(c.gasConstant, c.specificHeatPressure),
         .referencePressure = c.referencePressure,
         .temperature = c.temperature,
-        .thermalCoupled = c.thermalCoupled};
+        .thermalCoupled = c.thermalCoupled,
+        .coupled = c.coupled};
   }
   return setup;
 }

@@ -115,13 +115,9 @@ struct MultiphasePhysicsConfig {
 };
 
 // P6-PHYS-003: physics.json's optional "compressible" object -- same
-// enable-by-presence convention as the blocks above. This foundation has
-// no compressible pressure-velocity solver (no compressible SIMPLE/PISO
-// exists -- see cfd::compressible::CompressibleContinuity.hpp's own
-// header comment: "a genuine generalization of... this is NOT a
-// separately-iterated compressible pressure-correction solve"), so this
-// is deliberately a *post-hoc low-Mach reinterpretation* of an already-
-// converged incompressible SIMPLE result (exactly
+// enable-by-presence convention as the blocks above. By default (absent
+// or `"coupled": false`), this is a *post-hoc low-Mach reinterpretation*
+// of an already-converged incompressible SIMPLE result (exactly
 // tests/integration/compressible/test_low_mach_regression.cpp's own
 // validated recipe: solve incompressible SIMPLE with physics.json's
 // existing top-level density/dynamic_viscosity, then evaluate absolute
@@ -134,12 +130,25 @@ struct MultiphasePhysicsConfig {
 // converged temperature field instead of a constant) must be set --
 // PhysicsConfigParser.cpp enforces this, and enforces "thermal" is
 // actually enabled when thermalCoupled is requested.
+//
+// P12-COMP-002: `coupled: true` dispatches to
+// cfd::compressible::CompressibleSIMPLE instead -- a genuinely coupled
+// compressible pressure-velocity solve (density is iterated state, not a
+// post-hoc read) rather than a reinterpretation of a separate
+// incompressible solve. Defaults to `false` so every existing
+// compressible case (including `cases/compressible_validation`) keeps
+// today's exact post-hoc behavior, byte-identical, unless a case opts in
+// explicitly -- see ProjectRunner.cpp's own dispatch comment for why the
+// two modes are not layerable (once CompressibleSIMPLE solves for
+// density/pressure natively, "reinterpretation of an already-converged
+// incompressible result" no longer describes it).
 struct CompressiblePhysicsConfig {
   Real gasConstant{};
   Real specificHeatPressure{};
   Real referencePressure{};
   std::optional<Real> temperature;
   bool thermalCoupled{false};
+  bool coupled{false};
 };
 
 // model is always "incompressible_laminar" for the current numerical

@@ -61,6 +61,10 @@ struct CompressibleSetup {
   Real referencePressure{};
   std::optional<Real> temperature;
   bool thermalCoupled{false};
+  // P12-COMP-002: true dispatches ProjectRunner to
+  // cfd::compressible::CompressibleSIMPLE instead of the post-hoc pass --
+  // see CompressiblePhysicsConfig's own header comment.
+  bool coupled{false};
 };
 
 // The bridge between configuration and CFD execution (TODO.md P1 section

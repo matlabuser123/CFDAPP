@@ -311,13 +311,18 @@ MultiphasePhysicsConfig parseMultiphasePhysicsConfig(const nlohmann::json& json,
 // caller (parsePhysicsConfig) checks thermal_coupled's own "thermal"
 // block prerequisite, since that is a cross-block check this function
 // does not have the rest of physics.json available to make.
+//
+// P12-COMP-002: "coupled" is optional, defaulting to `false` (today's
+// exact post-hoc behavior) -- absent or explicitly `false` means every
+// existing case, including cases with no "coupled" key at all, parses
+// identically to before this key existed.
 CompressiblePhysicsConfig parseCompressiblePhysicsConfig(const nlohmann::json& json,
                                                          const std::filesystem::path& path) {
   const std::string context = "physics.json compressible";
   requireObject(json, path, context);
   rejectUnknownKeys(json, path, context,
                     {"gas_constant", "specific_heat_pressure", "reference_pressure", "temperature",
-                     "thermal_coupled"});
+                     "thermal_coupled", "coupled"});
 
   CompressiblePhysicsConfig compressible;
   compressible.gasConstant = getRequiredReal(json, path, "gas_constant", context + ".gas_constant");
@@ -361,6 +366,14 @@ CompressiblePhysicsConfig parseCompressiblePhysicsConfig(const nlohmann::json& j
     }
     compressible.thermalCoupled = true;
   }
+
+  if (json.contains("coupled")) {
+    if (!json.at("coupled").is_boolean()) {
+      throwConfigError(path, context + ".coupled", "be a boolean",
+                       describeJsonValue(json.at("coupled")));
+    }
+    compressible.coupled = json.at("coupled").get<bool>();
+  }
   return compressible;
 }
 
@@ -398,8 +411,21 @@ CompressiblePhysicsConfig parseCompressiblePhysicsConfig(const nlohmann::json& j
 //                  an ideal gas")
 //   Species        no exclusions -- a passive scalar riding the existing
 //                  mass flux, compatible with every other module
-//   Turbulence     no exclusions besides the Multiphase one above
+//   Turbulence     no exclusions besides the Multiphase one above, UNLESS
+//                  Compressible.coupled is also true (see below)
 //   Thermal        no exclusions
+//   Compressible.coupled=true (P12-COMP-002)
+//                  excludes Turbulence and Buoyancy -- disclosed, deliberate
+//                  scope limitation of this first coupled-solver
+//                  implementation: cfd::compressible::CompressibleSIMPLE
+//                  has no turbulence-model or buoyancy-source injection
+//                  point yet (unlike plain SIMPLE, which accepts both),
+//                  so silently allowing either would mean silently
+//                  dropping that physics rather than solving with it --
+//                  rejected here instead of producing a numerically
+//                  quiet wrong answer. The non-coupled (post-hoc,
+//                  default) Compressible mode is unaffected and keeps
+//                  allowing both, exactly as before.
 //
 // Every combination not listed as excluded above is supported (see
 // docs/user_guide/case_format.md's own copy of this table, which must be
@@ -429,6 +455,26 @@ void validatePhysicsCompatibility(const PhysicsConfig& config, const std::filesy
                      "mixture and an ideal-gas EOS reinterpretation describe incompatible "
                      "fluids)",
                      "a \"compressible\" block was also given");
+  }
+  // P12-COMP-002: CompressibleSIMPLE (dispatched when compressible.coupled
+  // is true) has no turbulence-model or buoyancy-source injection point
+  // yet -- a disclosed, deliberate scope limitation of this first coupled-
+  // solver implementation (see this function's own header comment).
+  // Rejected here rather than silently dropping that physics. The
+  // default, non-coupled post-hoc compressible mode is unaffected.
+  if (config.compressible.has_value() && config.compressible->coupled &&
+      config.turbulence.has_value()) {
+    throwConfigError(path, "compressible.coupled",
+                     "be true only without a \"turbulence\" block (CompressibleSIMPLE has no "
+                     "turbulence-model injection point yet)",
+                     "a \"turbulence\" block was also given");
+  }
+  if (config.compressible.has_value() && config.compressible->coupled &&
+      config.buoyancy.has_value()) {
+    throwConfigError(path, "compressible.coupled",
+                     "be true only without a \"buoyancy\" block (CompressibleSIMPLE has no "
+                     "buoyancy-source injection point yet)",
+                     "a \"buoyancy\" block was also given");
   }
   if (config.multiphase.has_value()) {
     // P6-PHYS-002: ProjectRunner feeds mu_mix(alpha) into SIMPLE's

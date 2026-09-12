@@ -242,22 +242,35 @@ received 0.010000`.
 ```json
 "compressible": {
   "gas_constant": 287.05, "specific_heat_pressure": 1005.0,
-  "reference_pressure": 101325.0, "temperature": 300.0
+  "reference_pressure": 101325.0, "temperature": 300.0,
+  "coupled": false
 }
 ```
 
-**Not a coupled compressible flow solver** -- this codebase has no
-compressible pressure-velocity solve. Instead, once the incompressible
-SIMPLE result converges, this block triggers a post-hoc, one-way
-reinterpretation of that result: absolute pressure
-(`reference_pressure + gauge pressure`), ideal-gas EOS density, per-cell
-Mach number, a compressible mass flux, and a diagnostic continuity
-imbalance -- exported, never fed back into the flow solve.
 `gas_constant`/`reference_pressure` must be finite and `> 0`;
 `specific_heat_pressure` must be `>` `gas_constant` (so `cv = cp - R > 0`).
 Exactly one of `temperature` (a constant, isothermal reinterpretation,
 must be `> 0`) or `thermal_coupled: true` (reuse the case's own converged
 `thermal` field instead -- **requires a `thermal` block**) must be given.
+`coupled` is optional and defaults to `false`.
+
+**`coupled: false` (default) -- post-hoc, not a coupled flow solver.**
+Once the incompressible SIMPLE result converges, this mode triggers a
+post-hoc, one-way reinterpretation of that already-converged result:
+absolute pressure (`reference_pressure + gauge pressure`), ideal-gas EOS
+density, per-cell Mach number, a compressible mass flux, and a diagnostic
+continuity imbalance -- exported, never fed back into the flow solve.
+
+**`coupled: true` -- a genuinely coupled compressible solve.** Dispatches
+to `cfd::compressible::CompressibleSIMPLE` instead: density is iterated
+state, updated from the EOS at the corrected pressure every outer
+iteration, solving a compressible pressure-correction equation (warm-started
+from an incompressible SIMPLE solve, but that warm start's own convergence
+is not the reported result -- the coupled solve's own status is). Disclosed
+scope limit: this solver has no turbulence-model or buoyancy-source
+injection point yet, so `coupled: true` together with a `turbulence` or
+`buoyancy` block is rejected at load time (see the compatibility matrix
+below) rather than silently ignoring that physics.
 
 **Invalid example** (both `temperature` and `thermal_coupled` given):
 
@@ -283,13 +296,17 @@ matrix (enforced in exactly one place,
 | `compressible.thermal_coupled: true` | requires `thermal` |
 | `multiphase` | excludes `turbulence` (both want SIMPLE's one effective-viscosity injection point) |
 | `multiphase` | excludes `compressible` (a two-phase mixture and an ideal-gas EOS reinterpretation describe incompatible fluids) |
+| `compressible.coupled: true` | excludes `turbulence` (`CompressibleSIMPLE` has no turbulence-model injection point yet) |
+| `compressible.coupled: true` | excludes `buoyancy` (`CompressibleSIMPLE` has no buoyancy-source injection point yet) |
 | `species` | no exclusions -- compatible with everything |
-| everything else | supported (e.g. `thermal`+`turbulence`+`buoyancy`+`species`+`compressible` all together is valid, as long as `multiphase` is absent) |
+| everything else | supported (e.g. `thermal`+`turbulence`+`buoyancy`+`species`+`compressible` (`coupled` absent/`false`) all together is valid, as long as `multiphase` is absent) |
 
 An unsupported combination is rejected at load time with a message naming
 the two conflicting blocks, the same way any other invalid `physics.json`
-field is reported. Two invalid examples (the excludes rules -- the
-requires rules are illustrated in each block's own section above):
+field is reported. Three invalid examples (the excludes rules -- the
+requires rules are illustrated in each block's own section above; the
+`compressible.coupled`/`buoyancy` exclusion follows the same pattern as
+the `compressible.coupled`/`turbulence` one below):
 
 ```json
 "turbulence": { "model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005 },
@@ -314,6 +331,17 @@ Rejected: `field "multiphase" must satisfy be present only without a
 "compressible" block (a two-phase mixture and an ideal-gas EOS
 reinterpretation describe incompatible fluids); received a "compressible"
 block was also given`.
+
+```json
+"turbulence": { "model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005 },
+"compressible": { "gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                   "reference_pressure": 101325.0, "temperature": 300.0,
+                   "coupled": true }
+```
+
+Rejected: `field "compressible.coupled" must satisfy be true only without
+a "turbulence" block (CompressibleSIMPLE has no turbulence-model
+injection point yet); received a "turbulence" block was also given`.
 
 ## `boundaries.json`
 

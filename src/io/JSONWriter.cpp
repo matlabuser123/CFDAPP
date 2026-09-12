@@ -128,6 +128,7 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
     doc["compressible"]["specific_heat_pressure"] = compressible->specificHeatPressure;
     doc["compressible"]["reference_pressure"] = compressible->referencePressure;
     doc["compressible"]["thermal_coupled"] = compressible->thermalCoupled;
+    doc["compressible"]["coupled"] = compressible->coupled;
     doc["compressible"]["status"] = compressible->status;
     doc["compressible"]["mach_max"] = compressible->machMax;
     doc["compressible"]["global_continuity_imbalance"] = compressible->globalContinuityImbalance;

@@ -85,4 +85,27 @@ namespace cfd::compressible {
     const ThermodynamicProperties& thermodynamics, const cfd::fields::ScalarField& temperature,
     const cfd::boundary::BoundaryConditionSet* temperatureBoundaries);
 
+// P12-COMP-002: the exact per-face density `calculateCompressibleMassFlux`
+// evaluates internally (internal faces: distance-weighted interpolation
+// of `density`; boundary faces: the P12-COMP-001 EOS-based treatment,
+// see this header's own comment above), now also exposed directly. A
+// compressible pressure-correction equation's D_f face coefficient must
+// use *this exact same* per-face density -- not a second, independently-
+// computed one -- for the same "one canonical compressible face
+// quantity, consumed consistently everywhere" reason this file's own
+// mass-flux function already follows (P3-PHYS-006 section 11/17), and
+// the same consistency invariant `PressureCorrectionEquation.hpp`'s own
+// header comment documents for its incompressible `faceCoefficient`.
+// `calculateCompressibleMassFlux` itself calls this internally (a pure
+// refactor -- its behavior/signature are unchanged); this function is
+// the shared building block, not a second, parallel implementation.
+//
+// Same throws contract as `calculateCompressibleMassFlux`.
+[[nodiscard]] cfd::fields::SurfaceField evaluateCompressibleFaceDensity(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& density,
+    const cfd::fields::ScalarField& pressureGauge,
+    const cfd::boundary::BoundaryConditionSet& pressureBoundaries, Real referencePressure,
+    const ThermodynamicProperties& thermodynamics, const cfd::fields::ScalarField& temperature,
+    const cfd::boundary::BoundaryConditionSet* temperatureBoundaries);
+
 }  // namespace cfd::compressible

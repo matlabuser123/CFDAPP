@@ -266,9 +266,13 @@ target_sources(cfdcore
 # compressible mass flux, the transient compressible continuity
 # diagnostic, and the compressible momentum transient-storage term +
 # combiner (reusing physics::MomentumEquation's own contribution
-# assemblers unchanged). No compressible pressure-correction/SIMPLE
-# solve is added -- see TODO.md's own P3-PHYS-006 status note for the
-# disclosed scope boundary.
+# assemblers unchanged).
+#
+# P12-COMP-002: a genuine coupled compressible pressure-velocity solver
+# (CompressibleSIMPLE) has since been added -- see that file's own header
+# comment; the "no compressible pressure-correction/SIMPLE solve" note
+# that used to be here described P3-PHYS-006's own scope, superseded, not
+# corrected (P3-PHYS-006 itself remains exactly as it was).
 target_sources(cfdcore
   PRIVATE
     compressible/IdealGasEOS.cpp
@@ -276,6 +280,9 @@ target_sources(cfdcore
     compressible/CompressibleMassFlux.cpp
     compressible/CompressibleContinuity.cpp
     compressible/CompressibleMomentum.cpp
+    compressible/CompressibleRelaxedMomentum.cpp
+    compressible/CompressiblePressureCorrection.cpp
+    compressible/CompressibleSIMPLE.cpp
 )
 
 # P4 -- Performance: GPU backend detection (cfd::gpu::cudaAvailable).

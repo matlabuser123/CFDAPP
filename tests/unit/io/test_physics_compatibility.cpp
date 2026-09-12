@@ -299,6 +299,37 @@ TEST(PhysicsCompatibilityTest, RejectsCompressibleThermalCoupledWithoutThermal) 
   expectRejectedWithMessage(fixture, "thermal");
 }
 
+// P12-COMP-002: CompressibleSIMPLE (compressible.coupled: true) has no
+// turbulence-model/buoyancy-source injection point yet -- both rejected
+// at parse time. The non-coupled combinations above
+// (CompressibleSupportedAlongsideTurbulence/Buoyancy) confirm the
+// default (coupled absent/false) mode is unaffected.
+TEST(PhysicsCompatibilityTest, RejectsCoupledCompressibleTogetherWithTurbulence) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005},
+                    "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                                     "reference_pressure": 101325.0, "temperature": 300.0,
+                                     "coupled": true}})");
+  expectRejectedWithMessage(fixture, "turbulence");
+}
+
+TEST(PhysicsCompatibilityTest, RejectsCoupledCompressibleTogetherWithBuoyancy) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.2, "dynamic_viscosity": 0.01,
+                    "thermal": {"conductivity": 0.6, "specific_heat": 4180.0,
+                                "initial_temperature": 300.0},
+                    "buoyancy": {"model": "boussinesq", "beta": 0.0034,
+                                 "reference_temperature": 300.0, "gravity": [0.0, -9.81]},
+                    "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+                                     "reference_pressure": 101325.0, "thermal_coupled": true,
+                                     "coupled": true}})");
+  fixture.write("boundaries.json", kThermalBoundaries);
+  expectRejectedWithMessage(fixture, "buoyancy");
+}
+
 // Conflicting/malformed: two independently-sufficient rejection reasons at
 // once (multiphase+turbulence AND multiphase+compressible) -- must still
 // reject, regardless of which rule fires first.

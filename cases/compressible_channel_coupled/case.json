@@ -1,0 +1,10 @@
+{
+  "name": "Coupled Compressible Channel 48x8 (Isothermal Lubrication)",
+  "description": "2D velocity-inlet / pressure-outlet channel flow, isothermal dry air, genuinely coupled CompressibleSIMPLE solve (P12-COMP-002, physics.compressible.coupled=true) -- 48x8 structured Cartesian mesh, length/height = 20. Low reduced Reynolds number (Re*(H/L) ~ 0.17, based on the converged solution's own outlet properties) and high aspect ratio put the flow in the isothermal-compressible-lubrication regime (Arkilic et al. 1997): mass conservation (rho*u=const per unit width, here enforced exactly by the coupled pressure-correction's own face mass flux) plus the isothermal ideal-gas law plus the lubrication-limit viscous momentum balance give d^2(p^2)/dx^2 = 0, i.e. p(x)^2 varies linearly in x -- a literature closed-form reference genuinely independent of this solver's own EOS self-consistency, exercising exactly the pressure-density coupling CompressibleSIMPLE implements. The reference (analytical) p(x) uses the converged solution's own measured mass flow rate, not an assumed one -- see results/p12-comp-002/summary.md for the derivation, the pressure-linear-solver root-cause fix (BiCGSTAB->CG) this case's convergence required, and the recorded numbers. See tests/integration/case/test_compressible_coupled_production_case.cpp for the quantitative comparison.",
+  "format_version": 1,
+  "geometry": "geometry.json",
+  "mesh": "mesh.json",
+  "physics": "physics.json",
+  "boundaries": "boundaries.json",
+  "solver": "solver.json"
+}
