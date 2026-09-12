@@ -250,7 +250,12 @@ evidence, with the genuinely-open items kept `[ ]` (see below).
   `boundaries.json` requirements (temperature/species/alpha), and a
   "Physics compatibility" section with the same matrix table
   `validatePhysicsCompatibility` enforces. `schemas/README.md`'s pointer
-  was already correct, no change needed. Commit `d704e89`.
+  was already correct, no change needed. Also documents units (none
+  enforced anywhere in this codebase -- SI by convention only) and an
+  invalid-configuration example for every cross-field/compatibility rule,
+  each error message captured verbatim from a real `cfdapp` run, not
+  hand-derived. Commits `d704e89`, `525b5a0`. Verified:
+  `CFDIoTests` 194/194, `CFDCaseIntegrationTests` 27/27, unchanged.
 - [ ] **P11-GUI-005 manual verification.** One human-executed GUI step:
   create a brand-new case from scratch (not opening an existing one),
   save it, run it. Record PASS/FAIL as a dated addendum to
