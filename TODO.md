@@ -122,7 +122,7 @@ clang-tidy logs, `gui_acceptance.md`).
 # P9 — v0.2.0 Release ← CURRENT
 
 **Status:** 7/7 gates PASS
-**Candidate:** `8a8af79` (verified green CI at this exact SHA — see note below)
+**Candidate:** `1e960c7` (verified green CI at this exact SHA — see note below)
 
 * [x] GPU production path stable — carried forward from P6/P7 (WSL2/CUDA hardware
   evidence, unchanged since)
@@ -139,9 +139,13 @@ clang-tidy logs, `gui_acceptance.md`).
 **Known limitation:** Native Windows + CUDA remains untested (this build is
 `CFDAPP_ENABLE_CUDA=OFF`; only WSL2/Linux+CUDA has been verified).
 
-**Note:** this evidence update commit itself needs one more green CI pass
-before tagging — rule 14 applies to the exact tagged commit, not `8a8af79`,
-once this commit moves `main` past it.
+**Note:** rule 14 satisfied for the exact commit tagged — `1e960c7` (adds
+`RELEASE_NOTES_v0.2.0.md`) has verified green CI: run `34617756507`, all 7
+jobs PASS (format, python, clang-tidy, build-test gcc/release, build-test
+clang/debug, build-test gcc/debug, sanitizers). `v0.2.0` tag pushed to
+origin, dereferences to `1e960c7` (verified via `git ls-remote --tags`).
+Release workflow triggered on the tag push: run `34675450224` — in
+progress, not yet verified complete.
 
 **Evidence:** `results/release/v0.2.0/`.
 
@@ -151,11 +155,15 @@ once this commit moves `main` past it.
 
 ## Verify final CI pass, then tag v0.2.0
 
-- [ ] Push this evidence-update commit.
-- [ ] Wait for CI on the new commit; verify all mandatory jobs pass.
-- [ ] Failure → diagnose → fix → commit → push → rerun.
-- [ ] Success → tag `v0.2.0` at that exact commit, push the tag.
-- [ ] Create the GitHub Release and attach verified `results/release/v0.2.0/` artifacts.
+- [x] Push this evidence-update commit. — `1e960c7`, `main` == `origin/main`.
+- [x] Wait for CI on the new commit; verify all mandatory jobs pass. — run
+  `34617756507`, 7/7 jobs PASS.
+- [ ] Failure → diagnose → fix → commit → push → rerun. — N/A, no failure.
+- [x] Success → tag `v0.2.0` at that exact commit, push the tag. — tag
+  object `191d2cc0`, dereferences to `1e960c7`; pushed to origin.
+- [ ] Create the GitHub Release and attach verified `results/release/v0.2.0/`
+  artifacts. — Release workflow run `34675450224` triggered by the tag push;
+  in progress, not yet verified.
 
 **Guard:** Do not tag or publish until the commit being tagged itself has
 green CI.
