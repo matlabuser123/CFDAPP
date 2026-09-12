@@ -90,9 +90,148 @@ rejected, not truncated).
 }
 ```
 
-`density`/`dynamic_viscosity` must be finite and `> 0`. `reynolds_number`
-is optional, reporting-only metadata -- it is never used to derive
-viscosity; density and viscosity are always the explicit physical inputs.
+`model` must be `incompressible_laminar` (the only base flow model --
+turbulence and compressible effects, below, are opt-in additions on top of
+it, not separate `model` values). `density`/`dynamic_viscosity` must be
+finite and `> 0`. `reynolds_number` is optional, reporting-only metadata
+-- it is never used to derive viscosity; density and viscosity are always
+the explicit physical inputs.
+
+Six further blocks are all optional, each enabled purely by the presence
+of its key (there is no separate `"enabled": true/false` anywhere in
+`physics.json` -- an absent block always means "off", matching the plain
+example above):
+
+### `thermal`
+
+```json
+"thermal": { "conductivity": 0.6, "specific_heat": 4180.0, "initial_temperature": 300.0 }
+```
+
+Solves the energy equation one-way alongside the flow (the converged
+velocity/pressure field is used as-is; temperature never feeds back into
+momentum unless `buoyancy` is also present). `conductivity`/
+`specific_heat` must be `> 0`; `initial_temperature` may be any finite
+value. Enabling `thermal` requires every `boundaries.json` patch to
+configure a `"temperature"` key (see below).
+
+### `turbulence`
+
+```json
+"turbulence": { "model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005 }
+```
+
+`model` is one of `laminar` (explicit no-op -- identical to omitting the
+block), `k_epsilon`, `k_omega`, or `sst`. `initial_k` is always required
+and must be `> 0`. Exactly one of `initial_epsilon` (with `k_epsilon`) or
+`initial_omega` (with `k_omega`/`sst`) is required, matching the chosen
+model -- never both, never neither. `k_relaxation`,
+`epsilon_relaxation`/`omega_relaxation` are optional relaxation factors in
+`(0, 1]` (default `0.7`); the epsilon/omega one may only be given
+alongside the matching `initial_epsilon`/`initial_omega`. No per-patch
+boundary configuration is needed -- wall behavior for k/epsilon/omega is
+derived automatically from each patch's existing velocity type.
+
+### `buoyancy`
+
+```json
+"buoyancy": { "model": "boussinesq", "beta": 0.0034, "reference_temperature": 300.0, "gravity": [0.0, -9.81] }
+```
+
+Adds a Boussinesq buoyancy source to the momentum equation. `model` must
+be `boussinesq` (the only implemented model). `beta` (thermal expansion
+coefficient) must be finite and `>= 0`; `reference_temperature` may be any
+finite value; `gravity` is a required 2-component finite `[gx, gy]`
+vector. **Requires a `thermal` block** -- a buoyancy source needs a real
+temperature field to evaluate against, and `thermal` is this codebase's
+only source of one.
+
+### `species`
+
+```json
+"species": [
+  { "name": "CO2", "diffusivity": 2.0e-3, "initial_concentration": 0.0 }
+]
+```
+
+A JSON array (unlike every other block, which is a single object) --
+each entry is one independently transported, passive, non-reacting scalar
+species, advected/diffused using the already-converged flow field
+(one-way, same as `thermal`; species never feed back into momentum).
+`name` must be non-empty and unique across the array; `diffusivity` must
+be `>= 0` (`0` means pure advection, deliberately allowed); `initial_concentration`
+may be any finite value (no `0 <= Y <= 1` or `sum(Y) = 1` enforcement at
+this layer). Enabling `species` requires every `boundaries.json` patch to
+configure a `"species"` object with an entry for each declared name (see
+below). An absent key and a present-but-empty `"species": []` array are
+equivalent (both mean "no species").
+
+### `multiphase`
+
+```json
+"multiphase": {
+  "phase1": { "name": "water", "density": 1000.0, "viscosity": 0.001 },
+  "phase2": { "name": "air", "density": 1.0, "viscosity": 1.8e-5 },
+  "initial_alpha": 0.5,
+  "transport_time_step": 0.01
+}
+```
+
+A single implicit-Euler volume-fraction-transport step, evaluated once
+after the flow converges (not an outer-iterated solve). Exactly two
+phases, `phase1`/`phase2`, each with a non-empty, mutually distinct
+`name` and finite `density`/`viscosity > 0`. `initial_alpha` (phase1's
+uniform starting volume fraction, `1` = pure phase1, `0` = pure phase2)
+must be in `[0, 1]`. `transport_time_step` must be finite and `> 0` --
+the one place a transient parameter appears in an otherwise-steady case.
+Mixture viscosity feeds SIMPLE's effective-viscosity injection point (the
+same slot `turbulence` uses); **top-level `dynamic_viscosity` must be `<=`
+the smaller of the two phase viscosities**, so that injected difference
+can never go negative. Enabling `multiphase` requires every
+`boundaries.json` patch to configure an `"alpha"` key (see below). See
+"Physics compatibility" below for what `multiphase` excludes.
+
+### `compressible`
+
+```json
+"compressible": {
+  "gas_constant": 287.05, "specific_heat_pressure": 1005.0,
+  "reference_pressure": 101325.0, "temperature": 300.0
+}
+```
+
+**Not a coupled compressible flow solver** -- this codebase has no
+compressible pressure-velocity solve. Instead, once the incompressible
+SIMPLE result converges, this block triggers a post-hoc, one-way
+reinterpretation of that result: absolute pressure
+(`reference_pressure + gauge pressure`), ideal-gas EOS density, per-cell
+Mach number, a compressible mass flux, and a diagnostic continuity
+imbalance -- exported, never fed back into the flow solve.
+`gas_constant`/`reference_pressure` must be finite and `> 0`;
+`specific_heat_pressure` must be `>` `gas_constant` (so `cv = cp - R > 0`).
+Exactly one of `temperature` (a constant, isothermal reinterpretation,
+must be `> 0`) or `thermal_coupled: true` (reuse the case's own converged
+`thermal` field instead -- **requires a `thermal` block**) must be given.
+
+## Physics compatibility
+
+The blocks above are not all freely combinable. The full compatibility
+matrix (enforced in exactly one place,
+`validatePhysicsCompatibility` in `src/io/case/PhysicsConfigParser.cpp`
+-- this table must stay in sync with that function's own header comment):
+
+| Rule | Kind |
+|---|---|
+| `buoyancy` | requires `thermal` |
+| `compressible.thermal_coupled: true` | requires `thermal` |
+| `multiphase` | excludes `turbulence` (both want SIMPLE's one effective-viscosity injection point) |
+| `multiphase` | excludes `compressible` (a two-phase mixture and an ideal-gas EOS reinterpretation describe incompatible fluids) |
+| `species` | no exclusions -- compatible with everything |
+| everything else | supported (e.g. `thermal`+`turbulence`+`buoyancy`+`species`+`compressible` all together is valid, as long as `multiphase` is absent) |
+
+An unsupported combination is rejected at load time with a message naming
+the two conflicting blocks, the same way any other invalid `physics.json`
+field is reported.
 
 ## `boundaries.json`
 
@@ -126,6 +265,50 @@ array, `[vx, vy]`); every other type must *not* have one.
 `inlet`/`symmetry` velocity patches). Both always take a numeric
 `"value"` (the fixed pressure, or the gradient -- `0.0` for the common
 zero-gradient case).
+
+### Per-patch keys required by optional `physics.json` blocks
+
+Three more per-patch keys exist, each **required on every patch when the
+corresponding `physics.json` block is enabled, and forbidden on every
+patch when it is not** -- there is no "leave it absent and get a default"
+option once the block is on, so a case can never silently run with an
+unconfigured thermal/species/alpha boundary.
+
+**`temperature`** (required by every patch iff `thermal` is enabled).
+`type`: `fixed_temperature`/`heat_flux` (Dirichlet/Neumann, both take a
+numeric `"value"`) or `adiabatic` (zero-gradient, no `"value"`):
+
+```json
+"temperature": { "type": "fixed_temperature", "value": 310.0 }
+```
+
+**`species`** (required by every patch iff `species` is enabled) -- an
+object keyed by species name, one entry per name declared in
+`physics.json`'s `species` array. Each entry's `type` is `fixed_value` or
+`fixed_gradient` (both take a numeric `"value"`):
+
+```json
+"species": {
+  "CO2": { "type": "fixed_value", "value": 1.0 },
+  "O2":  { "type": "fixed_gradient", "value": 0.0 }
+}
+```
+
+**`alpha`** (required by every patch iff `multiphase` is enabled) --
+phase1's volume fraction at that patch. `type`: `fixed_value` or
+`fixed_gradient` (both take a numeric `"value"`):
+
+```json
+"alpha": { "type": "fixed_value", "value": 1.0 }
+```
+
+These three combine freely with each other and with velocity/pressure --
+e.g. a patch with `thermal`+`species` both enabled configures
+`"velocity"`, `"pressure"`, `"temperature"`, and `"species"` all on the
+same patch object. `turbulence` and `compressible` need no per-patch
+boundary key at all (turbulent wall behavior is derived from the existing
+velocity type; `compressible` only ever reinterprets an already-converged
+result).
 
 ## `solver.json`
 
