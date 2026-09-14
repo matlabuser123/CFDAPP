@@ -123,8 +123,9 @@ option confirmed present. Evidence:
 
 Final regression after P12-NUM: 1654/1654 passed (1679 listed, 25
 explicit/disabled). Evidence: `results/p12-num-001/` through
-`results/p12-num-007/`; method notes in `docs/validation/`. Not yet
-committed or CI-confirmed as of 2026-09-14 — see `TODO.md`.
+`results/p12-num-007/`; method notes in `docs/validation/`. Committed as
+`105383d` (with CI fixes `44b996a`); CI run 34839669398 green on `44b996a`
+(all 7 jobs). Closeout record: `results/p12-num-closeout/summary.md`.
 
 *Disclosed limitations* (details in each phase's evidence):
 - production cases still use uniform Cartesian grids, so the

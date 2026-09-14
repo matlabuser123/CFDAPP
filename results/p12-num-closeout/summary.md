@@ -5,6 +5,7 @@
 - Date: 2026-09-14.
 - Branch: `main`; upstream `origin` (github.com/matlabuser123/CFDAPP).
 - Starting point: HEAD = `origin/main` = `fd9bae3416b7595b5a65f4b512f6cee6e3758419` (P11-GUI-005); all P12-NUM work uncommitted.
+- Final: P12-NUM committed as `105383d`, CI fixes as `44b996a`, pushed; CI run 34839669398 is green on `44b996a39f3884bd64937c732a4c8c6e61723dd6` (§7).
 
 ## 1. Diff audit
 
@@ -114,7 +115,32 @@ The previous 5 CI runs (P12-COMP-001/002 and earlier) also failed.
 
 ## 7. Commit, push and CI
 
-PENDING — completed after push (commit SHAs, CI run ID, exact head SHA, job conclusions).
+**Commits** (branch `main`, parent `fd9bae3`):
+
+| commit | content |
+|---|---|
+| `105383d1c026f2cad1b19753250e4a931065cca0` | `feat(numerics): complete P12 numerical methods and validation`: all P12-NUM-001..007 work plus the closeout fixes (328 files) |
+| `44b996a39f3884bd64937c732a4c8c6e61723dd6` | `ci: fix the pre-existing format and sanitizer-timeout CI failures`: 7 whitespace-only P12-COMP files and the ASan hang guard 1800 → 7200 s (8 files) |
+
+**Push:** `git push origin main` (`fd9bae3..44b996a`, no force). Afterwards HEAD = `origin/main` = `44b996a39f3884bd64937c732a4c8c6e61723dd6`.
+
+**CI:** workflow `CI`, run **34839669398** (<https://github.com/matlabuser123/CFDAPP/actions/runs/34839669398>), event `push`. The head SHA is **`44b996a39f3884bd64937c732a4c8c6e61723dd6`**, equal to the local closeout SHA. Conclusion: **success**, 2026-09-14 11:43 → 14:31 UTC.
+
+| job (ID) | conclusion | result |
+|---|---|---|
+| format (103961443545) | success | clang-format-18 clean (was failing at baseline) |
+| python (103961443754) | success | |
+| clang-tidy (103961443841) | success | |
+| build-test gcc-release (103961443923) | success | 1614/1614 passed, 25 disabled, 1082.9 s |
+| build-test clang-debug (103961443819) | success | 1614/1614 passed, 25 disabled, 4334.5 s |
+| build-test gcc-debug (103961443833) | success | 1614/1614 passed, 25 disabled, 8483.1 s |
+| sanitizers (103961443848) | success | 1614/1614 passed, 25 disabled, 9846.0 s; 0 ASan/UBSan/leak diagnostics; 0 timeouts (was failing at baseline) |
+
+The longest tests under CI ASan were `CompressibleCoupledProductionCaseTest.RepeatedRunIsDeterministic` (3570.7 s) and `NaturalConvectionValidation.GridConvergence` (2634.1 s). Both are within the §6 projection of up to about 4000 s, and both would have failed at the former 1800 s.
+
+**Test counts:** CI builds without the GUI, so it lists 1639 tests (1614 enabled + 25 disabled), the same as the local Release tree. The 40 GUI tests passed locally (§5).
+
+**This record itself** (TODO/ROADMAP/closeout updates) is a documentation-only follow-up commit on top of `44b996a`. Its own CI run is reported in the handoff, not here: recording it would need yet another commit.
 
 ## 8. Known remaining limitations
 

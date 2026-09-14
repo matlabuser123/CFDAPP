@@ -17,23 +17,30 @@ See:
 
 # Current
 
-## P12-NUM Closeout
+## P12-NUM Closeout — `[x]` COMPLETE (2026-09-15)
 
 * [x] Review the complete P12-NUM working-tree diff.
 * [x] Remove/revert generated files, runtime-only changes and accidental artifacts.
 * [x] Confirm `results/p12-num-001/` through `results/p12-num-007/` contain the intended evidence.
 * [x] Confirm `TODO.md`, `ROADMAP.md` and validation documentation agree with the final implementation.
 * [x] Run final focused smoke checks if required by `CLAUDE.md`.
-* [ ] Commit P12-NUM-001 through P12-NUM-007.
-* [ ] Push the commit.
-* [ ] Confirm CI passes on the exact pushed commit.
-* [ ] Record the final commit SHA and CI run in the closeout evidence.
+* [x] Commit P12-NUM-001 through P12-NUM-007.
+* [x] Push the commit.
+* [x] Confirm CI passes on the exact pushed commit.
+* [x] Record the final commit SHA and CI run in the closeout evidence.
 
 Evidence: `results/p12-num-closeout/summary.md` (§1 audit, §2 cleanup, §3
 evidence, §4 docs, §5 verification: Release 1614/1614 + GUI 40/40, ASan 0
-diagnostics; §6 pre-existing CI failures and their fixes).
+diagnostics; §6 pre-existing CI failures and their fixes; §7 commits/CI).
 
-**Do not start another P12 phase until this closeout is complete.**
+* P12-NUM commit: `105383d1c026f2cad1b19753250e4a931065cca0`; CI-fix commit:
+  `44b996a39f3884bd64937c732a4c8c6e61723dd6` (pushed, = `origin/main`).
+* CI run `34839669398` on exact SHA `44b996a…`: success, all 7 jobs green
+  (format, python, clang-tidy, gcc-release, clang-debug, gcc-debug,
+  sanitizers; each test job 1614/1614, 25 disabled, 0 sanitizer diagnostics).
+
+**The closeout is complete. No next phase is authorized — a new explicit scope
+decision is required before any further P12 work (see below).**
 
 ---
 
