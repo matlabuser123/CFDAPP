@@ -93,7 +93,7 @@ TEST(CompressiblePressureCorrectionTest, NegligibleCompressibilityMatchesIncompr
 
   for (Index row = 0; row < n; ++row) {
     EXPECT_NEAR(compressible.system.matrix().diagonal(row), reference.system.matrix().diagonal(row),
-               1e-6 * std::abs(reference.system.matrix().diagonal(row)) + 1e-9)
+                1e-6 * std::abs(reference.system.matrix().diagonal(row)) + 1e-9)
         << "row " << row;
     EXPECT_NEAR(compressible.system.rhs()[row], reference.system.rhs()[row], 1e-9) << "row " << row;
   }

@@ -111,8 +111,8 @@ TEST(HeatedSpeciesDiffusionProductionCaseTest, BothFieldsMatchAnalyticalProfiles
     const Real x = cell.centroid().x;
     temperatureLInf =
         std::max(temperatureLInf, std::abs(temperature[cell.id()] - analyticalTemperature(x)));
-    concentrationLInf = std::max(
-        concentrationLInf, std::abs(concentration[cell.id()] - analyticalConcentration(x)));
+    concentrationLInf = std::max(concentrationLInf,
+                                 std::abs(concentration[cell.id()] - analyticalConcentration(x)));
   }
 
   EXPECT_LT(temperatureLInf, 1e-6);

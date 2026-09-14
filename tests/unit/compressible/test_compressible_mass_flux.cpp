@@ -61,7 +61,9 @@ constexpr Real kReferenceDensity = 2.0;
 // P = rho * R * T.
 constexpr Real kReferencePressure = kReferenceDensity * kGasConstant * kReferenceTemperature;
 
-ThermodynamicProperties makeThermo() { return ThermodynamicProperties(kGasConstant, kSpecificHeatPressure); }
+ThermodynamicProperties makeThermo() {
+  return ThermodynamicProperties(kGasConstant, kSpecificHeatPressure);
+}
 
 Mesh makeChannelMesh() { return MeshGeometry::createCartesian2D(2, 1, 2.0, 1.0); }
 
@@ -134,10 +136,9 @@ TEST(CompressibleMassFluxTest, InternalFaceUsesArithmeticMeanDensity) {
   const ScalarField temperature(mesh.numberOfCells(), kReferenceTemperature);
   const ThermodynamicProperties thermo = makeThermo();
 
-  const SurfaceField massFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries, pressureGauge,
-                                    pressureBoundaries, kReferencePressure, thermo, temperature,
-                                    nullptr);
+  const SurfaceField massFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
 
   bool found = false;
   for (const auto& face : mesh.faces()) {
@@ -172,10 +173,9 @@ TEST(CompressibleMassFluxTest, OutletBoundaryUsesEosEvaluatedPressureNotOwnerDen
   const ScalarField temperature(mesh.numberOfCells(), kReferenceTemperature);
   const ThermodynamicProperties thermo = makeThermo();
 
-  const SurfaceField massFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries, pressureGauge,
-                                    pressureBoundaries, kReferencePressure, thermo, temperature,
-                                    nullptr);
+  const SurfaceField massFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
 
   const Index rightFaceId = mesh.boundaryPatch("right").faceIds().front();
   const Real expectedDensity = thermo.density(kReferencePressure, kReferenceTemperature);
@@ -205,13 +205,12 @@ TEST(CompressibleMassFluxTest, InletBoundaryReducesToOwnerDensityUnderZeroPressu
   // (kReferencePressure, kReferenceTemperature) -- so the new
   // boundary-EOS evaluation and the old "just use the owner's density"
   // approximation must agree here.
-  const ScalarField density(mesh.numberOfCells(), thermo.density(kReferencePressure,
-                                                                  kReferenceTemperature));
+  const ScalarField density(mesh.numberOfCells(),
+                            thermo.density(kReferencePressure, kReferenceTemperature));
 
-  const SurfaceField massFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries, pressureGauge,
-                                    pressureBoundaries, kReferencePressure, thermo, temperature,
-                                    nullptr);
+  const SurfaceField massFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
 
   const Index leftFaceId = mesh.boundaryPatch("left").faceIds().front();
   const Real area = mesh.face(leftFaceId).area();
@@ -240,10 +239,9 @@ TEST(CompressibleMassFluxTest, WallBoundaryMassFluxIsZeroRegardlessOfBoundaryDen
   const ScalarField density(mesh.numberOfCells(), kReferenceDensity);
   const ThermodynamicProperties thermo = makeThermo();
 
-  const SurfaceField massFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries, pressureGauge,
-                                    pressureBoundaries, kReferencePressure, thermo, temperature,
-                                    nullptr);
+  const SurfaceField massFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
 
   for (const std::string& patchName : {std::string("bottom"), std::string("top")}) {
     for (const Index faceId : mesh.boundaryPatch(patchName).faceIds()) {
@@ -272,13 +270,13 @@ TEST(CompressibleMassFluxTest, BoundaryDensityMatchesDirectEosEvaluation) {
   const ScalarField density(mesh.numberOfCells(), kReferenceDensity);
   const ThermodynamicProperties thermo = makeThermo();
 
-  const SurfaceField massFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries, pressureGauge,
-                                    pressureBoundaries, kReferencePressure, thermo, temperature,
-                                    nullptr);
+  const SurfaceField massFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
 
   const Index rightFaceId = mesh.boundaryPatch("right").faceIds().front();
-  const Real expectedDensity = thermo.density(kReferencePressure + outletGauge, kReferenceTemperature);
+  const Real expectedDensity =
+      thermo.density(kReferencePressure + outletGauge, kReferenceTemperature);
   const Real area = mesh.face(rightFaceId).area();
   // Sf=(+area,0) on the right/outlet patch, U=(2,0) -> U.Sf = 2*area.
   EXPECT_NEAR(massFlux[rightFaceId], expectedDensity * 2.0 * area, 1e-6);
@@ -300,10 +298,9 @@ TEST(CompressibleMassFluxTest, ThrowsOnNonPositiveBoundaryTemperature) {
   temperature[0] = -1.0;  // owner of the "left" boundary face.
   const ThermodynamicProperties thermo = makeThermo();
 
-  EXPECT_THROW((void)calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries,
-                                                    pressureGauge, pressureBoundaries,
-                                                    kReferencePressure, thermo, temperature,
-                                                    nullptr),
+  EXPECT_THROW((void)calculateCompressibleMassFlux(
+                   mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+                   kReferencePressure, thermo, temperature, nullptr),
                InvalidArgumentError);
 }
 
@@ -328,10 +325,9 @@ TEST(CompressibleMassFluxTest, UniformStateGivesUniformBoundaryDensityMatchingIn
   const ThermodynamicProperties thermo = makeThermo();
   const ScalarField density(mesh.numberOfCells(), kReferenceDensity);
 
-  const SurfaceField massFlux =
-      calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries, pressureGauge,
-                                    pressureBoundaries, kReferencePressure, thermo, temperature,
-                                    nullptr);
+  const SurfaceField massFlux = calculateCompressibleMassFlux(
+      mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+      kReferencePressure, thermo, temperature, nullptr);
 
   for (const std::string& patchName : {std::string("left"), std::string("right")}) {
     for (const Index faceId : mesh.boundaryPatch(patchName).faceIds()) {
@@ -352,10 +348,9 @@ TEST(CompressibleMassFluxTest, MismatchedVelocitySizeThrows) {
   const ScalarField pressureGauge(mesh.numberOfCells(), 0.0);
   const ScalarField temperature(mesh.numberOfCells(), kReferenceTemperature);
   const ThermodynamicProperties thermo = makeThermo();
-  EXPECT_THROW((void)calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries,
-                                                    pressureGauge, pressureBoundaries,
-                                                    kReferencePressure, thermo, temperature,
-                                                    nullptr),
+  EXPECT_THROW((void)calculateCompressibleMassFlux(
+                   mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+                   kReferencePressure, thermo, temperature, nullptr),
                InvalidArgumentError);
 }
 
@@ -368,10 +363,9 @@ TEST(CompressibleMassFluxTest, MismatchedDensitySizeThrows) {
   const ScalarField pressureGauge(mesh.numberOfCells(), 0.0);
   const ScalarField temperature(mesh.numberOfCells(), kReferenceTemperature);
   const ThermodynamicProperties thermo = makeThermo();
-  EXPECT_THROW((void)calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries,
-                                                    pressureGauge, pressureBoundaries,
-                                                    kReferencePressure, thermo, temperature,
-                                                    nullptr),
+  EXPECT_THROW((void)calculateCompressibleMassFlux(
+                   mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+                   kReferencePressure, thermo, temperature, nullptr),
                InvalidArgumentError);
 }
 
@@ -384,10 +378,9 @@ TEST(CompressibleMassFluxTest, MismatchedPressureGaugeSizeThrows) {
   const ScalarField pressureGauge(mesh.numberOfCells() + 1, 0.0);
   const ScalarField temperature(mesh.numberOfCells(), kReferenceTemperature);
   const ThermodynamicProperties thermo = makeThermo();
-  EXPECT_THROW((void)calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries,
-                                                    pressureGauge, pressureBoundaries,
-                                                    kReferencePressure, thermo, temperature,
-                                                    nullptr),
+  EXPECT_THROW((void)calculateCompressibleMassFlux(
+                   mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+                   kReferencePressure, thermo, temperature, nullptr),
                InvalidArgumentError);
 }
 
@@ -400,9 +393,8 @@ TEST(CompressibleMassFluxTest, MismatchedTemperatureSizeThrows) {
   const ScalarField pressureGauge(mesh.numberOfCells(), 0.0);
   const ScalarField temperature(mesh.numberOfCells() + 1, kReferenceTemperature);
   const ThermodynamicProperties thermo = makeThermo();
-  EXPECT_THROW((void)calculateCompressibleMassFlux(mesh, velocity, density, velocityBoundaries,
-                                                    pressureGauge, pressureBoundaries,
-                                                    kReferencePressure, thermo, temperature,
-                                                    nullptr),
+  EXPECT_THROW((void)calculateCompressibleMassFlux(
+                   mesh, velocity, density, velocityBoundaries, pressureGauge, pressureBoundaries,
+                   kReferencePressure, thermo, temperature, nullptr),
                InvalidArgumentError);
 }

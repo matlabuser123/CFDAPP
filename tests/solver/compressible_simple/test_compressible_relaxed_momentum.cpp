@@ -56,7 +56,8 @@ BoundaryConditionSet makeZeroGradientPressureBoundaries(const Mesh& mesh) {
 
 }  // namespace
 
-TEST(CompressibleRelaxedMomentumTest, AlphaOneMatchesUnrelaxedCompressibleMomentumComponentExactly) {
+TEST(CompressibleRelaxedMomentumTest,
+     AlphaOneMatchesUnrelaxedCompressibleMomentumComponentExactly) {
   const Mesh mesh = MeshGeometry::createCartesian2D(4, 3, 1.0, 1.0);
   const auto velocityBoundaries = makeConstantVelocityBoundaries(mesh, Vector2{0.5, -0.2});
   const auto pressureBoundaries = makeZeroGradientPressureBoundaries(mesh);

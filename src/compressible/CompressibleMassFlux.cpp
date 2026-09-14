@@ -59,15 +59,14 @@ SurfaceField evaluateCompressibleFaceDensity(const Mesh& mesh, const ScalarField
       const Real faceGaugePressure =
           cfd::discretization::interpolateFace(mesh, face, pressureGauge, pressureBoundaries);
       const Real faceAbsolutePressure = referencePressure + faceGaugePressure;
-      const Real faceTemperature =
-          (temperatureBoundaries != nullptr)
-              ? cfd::discretization::interpolateFace(mesh, face, temperature,
-                                                     *temperatureBoundaries)
-              // Isothermal mode: `temperature` is already spatially
-              // uniform (every cell holds the same configured constant),
-              // so the owner cell's own value *is* the boundary value --
-              // no interpolation needed, not a simplification.
-              : temperature[face.owner()];
+      const Real faceTemperature = (temperatureBoundaries != nullptr)
+                                       ? cfd::discretization::interpolateFace(
+                                             mesh, face, temperature, *temperatureBoundaries)
+                                       // Isothermal mode: `temperature` is already spatially
+                                       // uniform (every cell holds the same configured constant),
+                                       // so the owner cell's own value *is* the boundary value --
+                                       // no interpolation needed, not a simplification.
+                                       : temperature[face.owner()];
       faceDensity[faceId] = thermodynamics.density(faceAbsolutePressure, faceTemperature);
     } else {
       faceDensity[faceId] = cfd::discretization::interpolateInternalFace(mesh, face, density);
@@ -76,15 +75,12 @@ SurfaceField evaluateCompressibleFaceDensity(const Mesh& mesh, const ScalarField
   return faceDensity;
 }
 
-SurfaceField calculateCompressibleMassFlux(const Mesh& mesh, const VectorField& velocity,
-                                           const ScalarField& density,
-                                           const BoundaryConditionSet& velocityBoundaries,
-                                           const ScalarField& pressureGauge,
-                                           const BoundaryConditionSet& pressureBoundaries,
-                                           Real referencePressure,
-                                           const ThermodynamicProperties& thermodynamics,
-                                           const ScalarField& temperature,
-                                           const BoundaryConditionSet* temperatureBoundaries) {
+SurfaceField calculateCompressibleMassFlux(
+    const Mesh& mesh, const VectorField& velocity, const ScalarField& density,
+    const BoundaryConditionSet& velocityBoundaries, const ScalarField& pressureGauge,
+    const BoundaryConditionSet& pressureBoundaries, Real referencePressure,
+    const ThermodynamicProperties& thermodynamics, const ScalarField& temperature,
+    const BoundaryConditionSet* temperatureBoundaries) {
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "calculateCompressibleMassFlux: velocity size does not match mesh cell count");

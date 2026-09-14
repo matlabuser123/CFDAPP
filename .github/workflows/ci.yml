@@ -140,11 +140,28 @@ jobs:
       # weaker-than-a-developer's-workstation runner, while still existing
       # purely so a real deadlock/hang fails loudly as a reported CTest
       # timeout instead of silently consuming the whole job's time budget.
+      #
+      # --timeout raised again, 1800s -> 7200s (P12-NUM closeout,
+      # 2026-09-14). Since P12-COMP-002 the five
+      # CompressibleCoupledProductionCaseTest cases timed out here at 1800s
+      # (run 34705436662: all 5 Timeout, zero ASan/UBSan diagnostics) and the
+      # P12-NUM grid-convergence / MMS studies are of the same length.
+      # Measured with this same preset and ASAN/UBSAN options on a local
+      # workstation (build/asan, all 1614 enabled tests, zero sanitizer
+      # diagnostics): longest tests RepeatedRunIsDeterministic 2220s,
+      # NaturalConvectionValidation.GridConvergence 1623s,
+      # SIMPLEMMS.DistortedMesh 1423s, the other four coupled-compressible
+      # cases ~1280s. This runner measured 1.12-1.43x (median 1.29) slower
+      # than that workstation on 49 tests under -j16 contention, so these
+      # need up to ~4000s here; 7200s keeps >=1.8x headroom while still
+      # failing a genuine hang well inside the job's 6h limit (estimated
+      # total job time ~3.5h). Again no sanitizer flag, tolerance, or
+      # enabled/disabled-test change -- only the hang guard.
       - name: Test under ASan+UBSan
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=0
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=0
-        run: ctest --preset asan -j$(nproc) --output-on-failure --timeout 1800
+        run: ctest --preset asan -j$(nproc) --output-on-failure --timeout 7200
 
   # --- section 37: python ------------------------------------------------------
   python:

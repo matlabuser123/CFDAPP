@@ -145,12 +145,11 @@ constexpr const char* kThermalAndSpeciesBoundaries = R"({
 
 TEST(PhysicsCompatibilityTest, SpeciesSupportedAlongsideMultiphase) {
   CaseFixture fixture;
-  fixture.write("physics.json",
-                std::string(R"({"model": "incompressible_laminar", "density": 1.0,
+  fixture.write("physics.json", std::string(R"({"model": "incompressible_laminar", "density": 1.0,
                     "dynamic_viscosity": 1.0e-5,
                     "species": [{"name": "CO2", "diffusivity": 1.6e-5, "initial_concentration": 0.0}],
-                    )") +
-                    kMultiphaseBlock + "}");
+                    )") + kMultiphaseBlock +
+                                    "}");
   fixture.write("boundaries.json", kSpeciesAndMultiphaseBoundaries);
 
   const auto definition = CaseReader{}.read(fixture.directory());
@@ -258,25 +257,23 @@ TEST(PhysicsCompatibilityTest, AllCompatibleModulesTogether) {
 
 TEST(PhysicsCompatibilityTest, RejectsMultiphaseTogetherWithCompressible) {
   CaseFixture fixture;
-  fixture.write("physics.json",
-                std::string(R"({"model": "incompressible_laminar", "density": 1.0,
+  fixture.write("physics.json", std::string(R"({"model": "incompressible_laminar", "density": 1.0,
                     "dynamic_viscosity": 1.0e-5,
                     "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
                                      "reference_pressure": 101325.0, "temperature": 300.0},
-                    )") +
-                    kMultiphaseBlock + "}");
+                    )") + kMultiphaseBlock +
+                                    "}");
   fixture.write("boundaries.json", kMultiphaseBoundaries);
   expectRejectedWithMessage(fixture, "compressible");
 }
 
 TEST(PhysicsCompatibilityTest, RejectsMultiphaseTogetherWithTurbulence) {
   CaseFixture fixture;
-  fixture.write("physics.json",
-                std::string(R"({"model": "incompressible_laminar", "density": 1.0,
+  fixture.write("physics.json", std::string(R"({"model": "incompressible_laminar", "density": 1.0,
                     "dynamic_viscosity": 1.0e-5,
                     "turbulence": {"model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005},
-                    )") +
-                    kMultiphaseBlock + "}");
+                    )") + kMultiphaseBlock +
+                                    "}");
   fixture.write("boundaries.json", kMultiphaseBoundaries);
   expectRejectedWithMessage(fixture, "turbulence");
 }
@@ -335,14 +332,13 @@ TEST(PhysicsCompatibilityTest, RejectsCoupledCompressibleTogetherWithBuoyancy) {
 // reject, regardless of which rule fires first.
 TEST(PhysicsCompatibilityTest, RejectsMultiphaseCompressibleAndTurbulenceAllTogether) {
   CaseFixture fixture;
-  fixture.write("physics.json",
-                std::string(R"({"model": "incompressible_laminar", "density": 1.0,
+  fixture.write("physics.json", std::string(R"({"model": "incompressible_laminar", "density": 1.0,
                     "dynamic_viscosity": 1.0e-5,
                     "turbulence": {"model": "k_epsilon", "initial_k": 0.02, "initial_epsilon": 0.005},
                     "compressible": {"gas_constant": 287.05, "specific_heat_pressure": 1005.0,
                                      "reference_pressure": 101325.0, "temperature": 300.0},
-                    )") +
-                    kMultiphaseBlock + "}");
+                    )") + kMultiphaseBlock +
+                                    "}");
   fixture.write("boundaries.json", kMultiphaseBoundaries);
   expectRejected(fixture);
 }

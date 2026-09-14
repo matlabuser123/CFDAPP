@@ -72,7 +72,7 @@ constexpr Real kLength = 1.0;
 // see results/p12-comp-002/summary.md for why an earlier, wrong analysis
 // during development mistook this for a conservation defect).
 std::map<long long, Real> massFlowByStation(const cfd::mesh::Mesh& mesh,
-                                             const cfd::fields::SurfaceField& massFlux) {
+                                            const cfd::fields::SurfaceField& massFlux) {
   std::map<long long, Real> totals;
   for (Index f = 0; f < static_cast<Index>(mesh.numberOfFaces()); ++f) {
     const auto& face = mesh.face(f);
@@ -226,7 +226,8 @@ TEST(CompressibleCoupledProductionCaseTest, RepeatedRunIsDeterministic) {
     EXPECT_EQ(a.density[i], b.density[i]) << "cell " << i;
     EXPECT_EQ(a.pressureAbsolute[i], b.pressureAbsolute[i]) << "cell " << i;
   }
-  EXPECT_EQ(first.compressibleSimpleResult->iterations, second.compressibleSimpleResult->iterations);
+  EXPECT_EQ(first.compressibleSimpleResult->iterations,
+            second.compressibleSimpleResult->iterations);
 }
 
 TEST(CompressibleCoupledProductionCaseTest, NonCoupledCaseStillUsesPostHocPathUnchanged) {
