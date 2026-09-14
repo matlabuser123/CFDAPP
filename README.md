@@ -6,17 +6,27 @@ coupling, species/multiphase/compressible physics, CPU/OpenMP/CUDA
 execution, and an application layer (CLI + Qt6/QML GUI) built around one
 shared production solver backend.
 
-**Status: released, v0.2.0.** Every capability below ships with unit
-tests, analytical/literature-benchmark validation, and determinism checks
-— see [TODO.md](TODO.md) for exact live status and [ROADMAP.md](ROADMAP.md)
-for phase history, and [Known limitations](#known-limitations) below
-before relying on this for anything beyond research/learning use.
+**Status: released, v0.2.0.** The P12 work since that release (coupled
+compressible solver, numerical methods and verification/validation) is on
+`main` but not yet in a tagged release. Every capability below ships with
+unit tests, analytical/literature-benchmark validation, and determinism
+checks — see [TODO.md](TODO.md) for exact live status and
+[ROADMAP.md](ROADMAP.md) for phase history, and
+[Known limitations](#known-limitations) below before relying on this for
+anything beyond research/learning use.
 
 ## Features
 
 - **Incompressible flow**: structured 2D mesh, finite-volume
   discretization, SIMPLE (steady) and PISO (transient), sparse linear
-  algebra (CG/BiCGSTAB) with restart support.
+  algebra (CG/BiCGSTAB/GMRES) with restart support.
+- **Numerical methods** (P12-NUM, `solver.json`):
+  - upwind / central / linear-upwind / QUICK convection (bounded deferred
+    correction);
+  - Green–Gauss and weighted least-squares gradients;
+  - non-orthogonal and skewness correction;
+  - solver robustness: normalized residuals, stagnation and divergence
+    detection, adaptive under-relaxation, automatic linear-solver fallback.
 - **Thermal**: energy equation, thermal boundary conditions, conjugate
   heat-transfer foundation, Boussinesq buoyancy validated against De Vahl
   Davis (1983).
@@ -172,9 +182,13 @@ Ready to run as-is with either the CLI or the GUI, under `cases/`:
 
 Every module above has at least one integration test comparing against an
 analytical solution or a published benchmark (Poiseuille flow, Ghia et al.
-lid-driven cavity, De Vahl Davis natural convection, channel-flow
-log-law/Re_tau), plus grid-refinement and determinism checks. See
-[TODO.md](TODO.md) for the full per-item breakdown and
+lid-driven cavity at Re = 100 and 1000, De Vahl Davis natural convection,
+channel-flow log-law/Re_tau, the Gartling backward-facing step), plus
+grid-refinement and determinism checks. Verification and validation follow
+the hierarchy in [docs/validation/](docs/validation/): system-level
+manufactured solutions, grid-convergence studies (observed order, Richardson
+extrapolation, GCI), then production validation against benchmarks. See
+`results/` for the per-task evidence and
 [QUALITY_GATE.md](QUALITY_GATE.md) for the quality-gate methodology (with a
 worked example: two real order-of-accuracy bugs found and fixed).
 
@@ -277,7 +291,13 @@ tests.
   production solve is single-threaded regardless of thread count.
 - **2D only.** No 3D mesh support.
 - Mesh geometry is structured/Cartesian only — no unstructured or
-  boundary-fitted meshing.
+  boundary-fitted meshing. Case files build uniform Cartesian meshes, so the
+  non-orthogonal/skewness corrections are exercised only on test-generated
+  distorted meshes so far.
+- **No Rhie–Chow interpolation** in the collocated pressure-velocity
+  coupling: pressure fields can carry an undamped odd-even mode on open
+  domains (velocity, mass flow and the checkerboard-immune pressure
+  estimators used in validation are unaffected).
 
 ## Development
 

@@ -152,12 +152,12 @@ void KOmegaModel::correct(const Mesh& mesh, const VectorField& velocity,
   // they were on entry (see this class's own header comment). Not
   // `const`: both are moved from below once the whole update has
   // succeeded.
-  ScalarField newK =
-      solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
-                                  config_.kRelaxation, config_.kFloor, config_.kSolver);
+  ScalarField newK = solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
+                                                 config_.kRelaxation, config_.kFloor,
+                                                 config_.kSolver, config_.nonOrthogonal);
   ScalarField newOmega = solveRelaxedScalarTransport(
       mesh, omega_, massFlux, gammaOmega, omegaBoundaries_, suOmega, spOmega,
-      config_.omegaRelaxation, config_.omegaFloor, config_.omegaSolver);
+      config_.omegaRelaxation, config_.omegaFloor, config_.omegaSolver, config_.nonOrthogonal);
 
   ScalarField newMuT =
       computeTurbulentViscosityField(mesh, rho, newK, newOmega, config_.omegaFloor);

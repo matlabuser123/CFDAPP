@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <fstream>
+#include <string>
 
 #include "CaseFixture.hpp"
 #include "cfd/core/Exception.hpp"
@@ -85,6 +86,163 @@ TEST(CaseReaderTest, ValidCaseParsesIntoExpectedConfiguration) {
   EXPECT_DOUBLE_EQ(definition.initialConditions.velocity.x, 0.0);
   EXPECT_DOUBLE_EQ(definition.initialConditions.velocity.y, 0.0);
   EXPECT_DOUBLE_EQ(definition.initialConditions.pressure, 0.0);
+}
+
+// P12-NUM-001: "convection_scheme" is optional in solver.json (absent ->
+// "upwind", the only scheme that existed before this field -- every
+// pre-P12-NUM-001 case file, including this fixture's own default
+// solver.json, keeps parsing into exactly that same behavior).
+TEST(CaseReaderTest, MissingConvectionSchemeDefaultsToUpwind) {
+  CaseFixture fixture;
+  const auto definition = CaseReader{}.read(fixture.directory());
+  EXPECT_EQ(definition.solver.convectionScheme, "upwind");
+}
+
+TEST(CaseReaderTest, EachValidConvectionSchemeNameParses) {
+  for (const std::string scheme : {"upwind", "central", "linear_upwind", "quick"}) {
+    CaseFixture fixture;
+    fixture.write("solver.json", R"({
+      "type": "SIMPLE",
+      "max_iterations": 1000,
+      "velocity_relaxation": 0.7,
+      "pressure_relaxation": 0.3,
+      "velocity_tolerance": 1e-6,
+      "pressure_tolerance": 1e-6,
+      "continuity_tolerance": 1e-6,
+      "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                  "relative_tolerance": 1e-8, "max_iterations": 500},
+      "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                  "relative_tolerance": 1e-8, "max_iterations": 2000},
+      "convection_scheme": ")" + scheme +
+                                     R"("
+    })");
+    const auto definition = CaseReader{}.read(fixture.directory());
+    EXPECT_EQ(definition.solver.convectionScheme, scheme);
+  }
+}
+
+TEST(CaseReaderTest, InvalidConvectionSchemeValueThrowsCaseConfigurationError) {
+  CaseFixture fixture;
+  fixture.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "convection_scheme": "cubic_spline"
+  })");
+  EXPECT_THROW((void)CaseReader{}.read(fixture.directory()), CaseConfigurationError);
+}
+
+// P12-NUM-002: "gradient_scheme" is optional in solver.json (absent ->
+// "green_gauss", the only scheme that existed before this field --
+// every pre-P12-NUM-002 case file, including this fixture's own default
+// solver.json, keeps parsing into exactly that same behavior).
+TEST(CaseReaderTest, MissingGradientSchemeDefaultsToGreenGauss) {
+  CaseFixture fixture;
+  const auto definition = CaseReader{}.read(fixture.directory());
+  EXPECT_EQ(definition.solver.gradientScheme, "green_gauss");
+}
+
+TEST(CaseReaderTest, EachValidGradientSchemeNameParses) {
+  for (const std::string scheme : {"green_gauss", "least_squares"}) {
+    CaseFixture fixture;
+    fixture.write("solver.json", R"({
+      "type": "SIMPLE",
+      "max_iterations": 1000,
+      "velocity_relaxation": 0.7,
+      "pressure_relaxation": 0.3,
+      "velocity_tolerance": 1e-6,
+      "pressure_tolerance": 1e-6,
+      "continuity_tolerance": 1e-6,
+      "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                  "relative_tolerance": 1e-8, "max_iterations": 500},
+      "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                  "relative_tolerance": 1e-8, "max_iterations": 2000},
+      "gradient_scheme": ")" + scheme +
+                                     R"("
+    })");
+    const auto definition = CaseReader{}.read(fixture.directory());
+    EXPECT_EQ(definition.solver.gradientScheme, scheme);
+  }
+}
+
+TEST(CaseReaderTest, InvalidGradientSchemeValueThrowsCaseConfigurationError) {
+  CaseFixture fixture;
+  fixture.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "gradient_scheme": "cubic_spline"
+  })");
+  EXPECT_THROW((void)CaseReader{}.read(fixture.directory()), CaseConfigurationError);
+}
+
+// P12-NUM-003: "non_orthogonal_corrections" is optional in solver.json
+// (absent -> 0, the only value that existed before this field -- every
+// pre-P12-NUM-003 case file, including this fixture's own default
+// solver.json, keeps parsing into exactly that same (uncorrected)
+// behavior).
+TEST(CaseReaderTest, MissingNonOrthogonalCorrectionsDefaultsToZero) {
+  CaseFixture fixture;
+  const auto definition = CaseReader{}.read(fixture.directory());
+  EXPECT_EQ(definition.solver.nonOrthogonalCorrections, 0u);
+}
+
+TEST(CaseReaderTest, ValidNonOrthogonalCorrectionsCountParses) {
+  for (const int count : {0, 1, 3}) {
+    CaseFixture fixture;
+    fixture.write("solver.json", R"({
+      "type": "SIMPLE",
+      "max_iterations": 1000,
+      "velocity_relaxation": 0.7,
+      "pressure_relaxation": 0.3,
+      "velocity_tolerance": 1e-6,
+      "pressure_tolerance": 1e-6,
+      "continuity_tolerance": 1e-6,
+      "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                  "relative_tolerance": 1e-8, "max_iterations": 500},
+      "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                  "relative_tolerance": 1e-8, "max_iterations": 2000},
+      "non_orthogonal_corrections": )" +
+                                     std::to_string(count) + R"(
+    })");
+    const auto definition = CaseReader{}.read(fixture.directory());
+    EXPECT_EQ(definition.solver.nonOrthogonalCorrections, static_cast<cfd::Index>(count));
+  }
+}
+
+TEST(CaseReaderTest, NegativeNonOrthogonalCorrectionsThrowsCaseConfigurationError) {
+  CaseFixture fixture;
+  fixture.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "non_orthogonal_corrections": -1
+  })");
+  EXPECT_THROW((void)CaseReader{}.read(fixture.directory()), CaseConfigurationError);
 }
 
 TEST(CaseReaderTest, ExplicitInitialConditionsAreParsed) {

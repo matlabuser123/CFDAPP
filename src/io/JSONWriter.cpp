@@ -34,6 +34,10 @@ std::string_view statusName(SIMPLEStatus status) {
       return "InvalidConfiguration";
     case SIMPLEStatus::Cancelled:
       return "Cancelled";
+    case SIMPLEStatus::Stagnated:
+      return "Stagnated";
+    case SIMPLEStatus::Diverging:
+      return "Diverging";
   }
   return "Unknown";
 }
@@ -77,6 +81,27 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
   doc["residuals"]["p"] = result.finalPressureResidual;
   doc["residuals"]["continuity"] = result.finalContinuityResidual;
   doc["conservation"]["global_mass_imbalance"] = result.globalMassImbalance;
+
+  // P12-NUM-004: additive diagnostics (always present; absent from
+  // pre-P12-NUM-004 files, which readers must tolerate).
+  const auto& robustness = result.robustness;
+  auto& r = doc["robustness"];
+  r["convergence_criterion"] =
+      std::string(cfd::solver::convergenceCriterionName(robustness.convergenceCriterion));
+  r["status_detail"] = robustness.statusDetail;
+  const auto lastOrZero = [](const std::vector<Real>& history) {
+    return history.empty() ? 0.0 : history.back();
+  };
+  r["normalized_residuals"]["u"] = lastOrZero(robustness.uNormalizedHistory);
+  r["normalized_residuals"]["v"] = lastOrZero(robustness.vNormalizedHistory);
+  r["normalized_residuals"]["p"] = lastOrZero(robustness.pressureNormalizedHistory);
+  r["normalized_residuals"]["continuity"] = lastOrZero(robustness.continuityNormalizedHistory);
+  r["final_velocity_relaxation"] = lastOrZero(robustness.velocityRelaxationHistory);
+  r["final_pressure_relaxation"] = lastOrZero(robustness.pressureRelaxationHistory);
+  r["relaxation_increases"] = robustness.relaxationIncreases;
+  r["relaxation_decreases"] = robustness.relaxationDecreases;
+  r["linear_solver_fallbacks"] = robustness.linearSolverFallbacks;
+  r["linear_solver_fallback_recoveries"] = robustness.linearSolverFallbackRecoveries;
   doc["numerics"]["finite"] = allFieldsFinite(result);
 
   // P2-THERMAL-004: "thermal.enabled" is always present (a documented

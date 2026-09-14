@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <utility>
 
 #include "cfd/core/Exception.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::species {
@@ -44,14 +46,22 @@ Real boundaryConcentrationValue(const Mesh& mesh, const Face& face,
 
 }  // namespace
 
-void assembleSpeciesDiffusionContribution(const Mesh& mesh, Real diffusionCoefficient,
-                                          const ScalarField& concentration,
-                                          const BoundaryConditionSet& concentrationBoundaries,
-                                          SparseMatrixBuilder& builder, Vector& rhs) {
+void assembleSpeciesDiffusionContribution(
+    const Mesh& mesh, Real diffusionCoefficient, const ScalarField& concentration,
+    const BoundaryConditionSet& concentrationBoundaries, SparseMatrixBuilder& builder, Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   if (concentration.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleSpeciesDiffusionContribution: concentration size does not match mesh cell count");
   }
+  // P12-NUM-003: grad(Y) for the explicit non-orthogonal term, only when
+  // enabled (lagged -- SpeciesSolver's outer Picard loop converges it).
+  std::optional<cfd::fields::VectorField> gradY;
+  if (nonOrthogonal.enabled) {
+    gradY = cfd::discretization::gradient(mesh, concentration, concentrationBoundaries,
+                                          nonOrthogonal.gradientScheme);
+  }
+  const cfd::fields::VectorField* gradYPtr = gradY.has_value() ? &(*gradY) : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -59,10 +69,20 @@ void assembleSpeciesDiffusionContribution(const Mesh& mesh, Real diffusionCoeffi
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
       const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const Real conductance = diffusionCoefficient * face.area() / distance;
+      const bool prescribed =
+          gradYPtr != nullptr &&
+          cfd::discretization::prescribesBoundaryValue(
+              cfd::boundary::boundaryConditionForFace(mesh, face.id(), concentrationBoundaries)
+                  .type());
+      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+          mesh, face, diffusionCoefficient, distance, gradYPtr, prescribed);
+      const Real conductance = terms.coefficient;
 
       const Real yB =
           boundaryConcentrationValue(mesh, face, concentration, concentrationBoundaries);
+      if (gradYPtr != nullptr) {
+        rhs[ownerId] += terms.explicitFlux;
+      }
 
       builder.add(ownerId, ownerId, conductance);
       rhs[ownerId] += conductance * yB;
@@ -72,7 +92,13 @@ void assembleSpeciesDiffusionContribution(const Mesh& mesh, Real diffusionCoeffi
     const Index ownerId = face.owner();
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
-    const Real conductance = diffusionCoefficient * face.area() / dPN;
+    const auto terms = cfd::discretization::internalFaceDiffusionTerms(
+        mesh, face, diffusionCoefficient, dPN, gradYPtr);
+    const Real conductance = terms.coefficient;
+    if (gradYPtr != nullptr) {
+      rhs[ownerId] += terms.explicitFlux;
+      rhs[neighborId] -= terms.explicitFlux;
+    }
 
     builder.add(ownerId, ownerId, conductance);
     builder.add(ownerId, neighborId, -conductance);
@@ -137,7 +163,8 @@ void assembleSpeciesSourceContribution(const Mesh& mesh, Real volumetricSource, 
 SpeciesAssembly assembleSpeciesTransportEquation(
     const Mesh& mesh, const ScalarField& concentration, const SurfaceField& massFlux,
     const FluidProperties& fluid, const SpeciesProperties& species,
-    const BoundaryConditionSet& concentrationBoundaries, Real volumetricSource) {
+    const BoundaryConditionSet& concentrationBoundaries, Real volumetricSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   if (concentration.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleSpeciesTransportEquation: concentration size does not match mesh cell count");
@@ -153,7 +180,7 @@ SpeciesAssembly assembleSpeciesTransportEquation(
 
   const Real diffusionCoefficient = fluid.density() * species.diffusivity();
   assembleSpeciesDiffusionContribution(mesh, diffusionCoefficient, concentration,
-                                       concentrationBoundaries, builder, rhs);
+                                       concentrationBoundaries, builder, rhs, nonOrthogonal);
   assembleSpeciesConvectionContribution(mesh, massFlux, concentration, concentrationBoundaries,
                                         builder, rhs);
   assembleSpeciesSourceContribution(mesh, volumetricSource, rhs);

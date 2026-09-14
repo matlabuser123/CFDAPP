@@ -1,0 +1,142 @@
+{
+  "format_version": 1,
+  "kind": "production_validation",
+  "study": "turbulent_channel_re_tau_180_ci",
+  "description": "Turbulent channel Re_tau = 180, SST, medium grid (default suite)",
+  "reference": "Kim, Moin & Moser (1987) J. Fluid Mech. 177; Moser, Kim & Mansour (1999) Phys. Fluids 11: Re_tau 180 summary statistics (Re_tau 180, Re_bulk 5600, U_c+ 18.2, U_b+ 15.6, Cf 8.2e-3) and the log law u+ = ln(y+)/0.41 + 5.0 (validation/data/turbulence/channel_flow/)",
+  "method": {
+    "error_norms": "against sample-point reference data (benchmark tables): unweighted L1 = mean|e|, L2 = sqrt(mean e^2), Linf = max|e| over the tabulated stations; against a field: volume-weighted (cfd/validation/ErrorNorms.hpp)",
+    "solve_acceptance": "a run is accepted only if SIMPLE Converged, every field is finite and the global mass imbalance is within tolerance (P12-NUM-005 assessSimpleSolve)",
+    "grid_convergence": "P12-NUM-005 three-grid study of this code's own solutions (observed order, Richardson extrapolation, GCI) -- separate from the error against the reference",
+    "indexing": "runs listed in execution order; grid sequences coarse -> fine"
+  },
+  "coefficients": {
+    "re_bulk": 5600.0,
+    "re_tau_reference": 180.0,
+    "channel_height": 2.0,
+    "channel_length": 16.0,
+    "density": 1.0,
+    "viscosity": 0.00035714285714285714,
+    "bulk_velocity": 1.0
+  },
+  "configuration": {
+    "formulation": "inlet/outlet channel (no periodic BCs in CFDApp), L = 8H, uniform inlet, 5 % intensity, mixing length 0.07 H; comparison station 0.9 L",
+    "algorithm": "SIMPLE, upwind convection, alpha 0.5/0.3, u/p gates 2e-5/5e-4, continuity 1e-6, turbulence 1e-5 (P2-TURB-007 settings)",
+    "wall_shear": "secant mu U(y1)/y1 (P2-TURB-007) and momentum balance -dp/dx delta (pair-averaged dp/dx between 0.8 L and 0.9 L)",
+    "thresholds": "P2-TURB-007 locked Re_tau / log-law bounds per grid, reused unchanged"
+  },
+  "runs": [
+    {
+      "id": "turbulent_channel_re_tau_180_SST/medium/upwind",
+      "case": "turbulent_channel_re_tau_180_SST",
+      "reynolds": 180.0,
+      "mesh": "medium",
+      "nx": 64,
+      "ny": 16,
+      "cells": 1024,
+      "h": 0.1767766952966369,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1286,
+      "mass_imbalance": 2.917965674642531e-09,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 8.588447732575425,
+          "l2": 8.623609214480958,
+          "linf": 9.24254729046861,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_all_regions": {
+          "l1": 7.359409117884822,
+          "l2": 7.727782052571965,
+          "linf": 9.24254729046861,
+          "samples": 8,
+          "weight": 8.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 4.966850983407141,
+          "l2": 4.989970065749616,
+          "linf": 5.869814993113554,
+          "samples": 7,
+          "weight": 7.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 21006.0,
+        "pressure_linear_iterations": 123792.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 7.755567738924862e-06,
+        "final_v_residual": 1.1019304621521477e-07,
+        "final_pressure_residual": 0.0001217799782208937,
+        "final_continuity_residual": 3.121111611075908e-11,
+        "wall_shear_bottom": 0.0022126533447550906,
+        "wall_shear_top": 0.0022126533447545133,
+        "friction_velocity": 0.04703884931367997,
+        "re_tau": 131.7087780783039,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.268284566231645,
+        "skin_friction_coefficient": 0.004425306689510181,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 25.357345452281205,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 21.259023436807947,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 8.231798629893994,
+        "development_relative_difference": 0.009100945391727833,
+        "pressure_gradient": -0.008405377038800376,
+        "wall_shear_momentum_balance": 0.008405377038800376,
+        "friction_velocity_momentum_balance": 0.0916808433578159,
+        "re_tau_momentum_balance": 256.7063614018845,
+        "skin_friction_coefficient_momentum_balance": 0.016810754077600753,
+        "u_bulk_plus_momentum_balance": 10.907404026565914,
+        "log_region_samples": 6.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 131.71 vs 180: relative error 0.2683 (bound 0.40)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 8.624 over 6 samples (bound 15.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0091 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "orders": [],
+  "grid_convergence": [],
+  "gates": [],
+  "limitations": [
+    "No velocity wall function: on these grids the first cell is outside the viscous sublayer and the secant wall shear under-estimates tau_w -- Re_tau, Cf and u+ carry that bias; the momentum-balance values bound it from the other side.",
+    "Inlet/outlet channel instead of a periodic one: at 0.8-0.9 L the profile shape has stopped changing (< 5 %) but the flow is not momentum-developed -- the momentum-balance wall shear (-dp/dx delta) includes the still-accelerating core and over-estimates tau_w (Re_tau 204-448); secant and balance values bracket the true wall shear.",
+    "The reference is a set of DNS summary statistics plus the log law, not a point-by-point DNS profile (see validation/data/turbulence/channel_flow/README.md).",
+    "Runtimes are wall-clock and not deterministic."
+  ],
+  "passed": true,
+  "runtime": {
+    "note": "measured wall time -- with grid_convergence[*].grids[*].runtime_seconds, the only non-deterministic part of this report",
+    "runs": [
+      {
+        "id": "turbulent_channel_re_tau_180_SST/medium/upwind",
+        "seconds": 226.262711069
+      }
+    ]
+  }
+}

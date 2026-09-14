@@ -1,5 +1,8 @@
 #include "cfd/pressure_velocity/RelaxedMomentum.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <optional>
 #include <utility>
 
 #include "cfd/algebra/SparseMatrix.hpp"
@@ -29,7 +32,10 @@ MomentumAssembly assembleRelaxedMomentumComponent(
     const SurfaceField& massFlux, const ScalarField& effectiveViscosity,
     const BoundaryConditionSet& velocityBoundaries, const BoundaryConditionSet& pressureBoundaries,
     VelocityComponent component, const ScalarField& previousComponentValue, Real alpha,
-    const ScalarField* temperature, const BoussinesqBuoyancy* buoyancy) {
+    const ScalarField* temperature, const BoussinesqBuoyancy* buoyancy,
+    cfd::discretization::ConvectionScheme convectionScheme,
+    cfd::discretization::GradientScheme gradientScheme, bool applyNonOrthogonalCorrection,
+    const VectorField* nonOrthogonalCorrectionVelocity, const VectorField* momentumSource) {
   const Index n = mesh.numberOfCells();
   if (velocity.size() != n || pressure.size() != n) {
     throw InvalidArgumentError(
@@ -64,12 +70,17 @@ MomentumAssembly assembleRelaxedMomentumComponent(
   Vector rhs(n, 0.0);
 
   assembleDiffusionContribution(mesh, effectiveViscosity, velocity, velocityBoundaries, component,
-                                builder, rhs);
+                                builder, rhs, applyNonOrthogonalCorrection, gradientScheme,
+                                nonOrthogonalCorrectionVelocity);
   assembleConvectionContribution(mesh, massFlux, velocity, velocityBoundaries, component, builder,
-                                 rhs);
-  assemblePressureSourceContribution(mesh, pressure, pressureBoundaries, component, rhs);
+                                 rhs, convectionScheme);
+  assemblePressureSourceContribution(mesh, pressure, pressureBoundaries, component, rhs,
+                                     gradientScheme);
   if (buoyancy != nullptr) {
     assembleBuoyancySourceContribution(mesh, *temperature, *buoyancy, component, rhs);
+  }
+  if (momentumSource != nullptr) {
+    cfd::physics::assembleMomentumSourceContribution(mesh, *momentumSource, component, rhs);
   }
 
   Vector previousComponentVector(n);
@@ -90,6 +101,91 @@ MomentumAssembly assembleRelaxedMomentumComponent(
   }
 
   return MomentumAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs), std::move(diagonal)};
+}
+
+namespace {
+
+Vector componentVector(const VectorField& velocity, VelocityComponent component) {
+  Vector v(velocity.size());
+  for (Index i = 0; i < velocity.size(); ++i) {
+    v[i] = (component == VelocityComponent::U) ? velocity[i].x : velocity[i].y;
+  }
+  return v;
+}
+
+}  // namespace
+
+NonOrthogonalPassResult runNonOrthogonalCorrectionPasses(
+    Index totalPasses, const VectorField& velocityStar,
+    const cfd::algebra::LinearSolver& momentumSolver, const Mesh& mesh, const VectorField& velocity,
+    const ScalarField& pressure, const SurfaceField& massFlux,
+    const ScalarField& effectiveViscosity, const BoundaryConditionSet& velocityBoundaries,
+    const BoundaryConditionSet& pressureBoundaries, const ScalarField& previousU,
+    const ScalarField& previousV, Real alpha, const ScalarField* temperature,
+    const BoussinesqBuoyancy* buoyancy, cfd::discretization::ConvectionScheme convectionScheme,
+    cfd::discretization::GradientScheme gradientScheme, const VectorField* momentumSource) {
+  NonOrthogonalPassResult result;
+  result.velocityStar = velocityStar;
+
+  for (Index pass = 1; pass < totalPasses; ++pass) {
+    std::optional<MomentumAssembly> uPass;
+    std::optional<MomentumAssembly> vPass;
+    try {
+      uPass = assembleRelaxedMomentumComponent(
+          mesh, velocity, pressure, massFlux, effectiveViscosity, velocityBoundaries,
+          pressureBoundaries, VelocityComponent::U, previousU, alpha, temperature, buoyancy,
+          convectionScheme, gradientScheme, /*applyNonOrthogonalCorrection=*/true,
+          &result.velocityStar, momentumSource);
+      vPass = assembleRelaxedMomentumComponent(
+          mesh, velocity, pressure, massFlux, effectiveViscosity, velocityBoundaries,
+          pressureBoundaries, VelocityComponent::V, previousV, alpha, temperature, buoyancy,
+          convectionScheme, gradientScheme, /*applyNonOrthogonalCorrection=*/true,
+          &result.velocityStar, momentumSource);
+    } catch (const NumericalError&) {
+      result.status = NonOrthogonalPassStatus::NonFiniteState;
+      return result;
+    } catch (const InvalidArgumentError&) {
+      result.status = NonOrthogonalPassStatus::NonFiniteState;
+      return result;
+    }
+
+    const auto uSolve = momentumSolver.solve(
+        uPass->system, componentVector(result.velocityStar, VelocityComponent::U));
+    if (uSolve.fallback.attempted) result.fallbackReports.push_back(uSolve.fallback);
+    if (!uSolve.converged()) {
+      result.status = NonOrthogonalPassStatus::MomentumFailure;
+      result.failedSolve = uSolve;
+      return result;
+    }
+    const auto vSolve = momentumSolver.solve(
+        vPass->system, componentVector(result.velocityStar, VelocityComponent::V));
+    if (vSolve.fallback.attempted) result.fallbackReports.push_back(vSolve.fallback);
+    if (!vSolve.converged()) {
+      result.status = NonOrthogonalPassStatus::MomentumFailure;
+      result.failedSolve = vSolve;
+      return result;
+    }
+
+    VectorField next(mesh.numberOfCells());
+    Real increment = 0.0;
+    bool finite = true;
+    for (Index i = 0; i < mesh.numberOfCells(); ++i) {
+      next[i] = Vector2{uSolve.solution[i], vSolve.solution[i]};
+      finite = finite && std::isfinite(next[i].x) && std::isfinite(next[i].y);
+      increment = std::max(increment, magnitude(next[i] - result.velocityStar[i]));
+    }
+    if (!finite) {
+      result.status = NonOrthogonalPassStatus::NonFiniteState;
+      return result;
+    }
+    result.velocityStar = std::move(next);
+    result.u = std::move(uPass);
+    result.v = std::move(vPass);
+    result.passIncrements.push_back(increment);
+    result.linearIterations += uSolve.iterations + vSolve.iterations;
+    ++result.passesExecuted;
+  }
+  return result;
 }
 
 }  // namespace cfd::pressure_velocity

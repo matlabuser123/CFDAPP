@@ -17,6 +17,7 @@
 
 #include "cfd/core/Types.hpp"
 #include "cfd/fields/ScalarField.hpp"
+#include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 
@@ -56,6 +57,52 @@ struct ProfileSample {
                                                   cfd::Index ny,
                                                   const cfd::fields::ScalarField& pressure,
                                                   cfd::Real x1, cfd::Real x2);
+
+// P12-NUM-007: checkerboard-immune axial pressure gradient. Collocated
+// SIMPLE without Rhie-Chow interpolation lets an odd-even pressure mode
+// a*(-1)^i grow on this open channel's residual plateau (measured on 64x8:
+// amplitude 0.03 after 1000 iterations, 0.64 after 40000), which biases the
+// two-column estimate above by a*2/(x2-x1) (7 % drift on 64x8). Averaging
+// each ADJACENT PAIR of column-averaged pressures, P(i) = (pbar_i +
+// pbar_{i+1})/2 located at the face x_{i+1/2}, cancels that mode exactly;
+// the gradient is (P(i2) - P(i1)) / (x_{i2+1/2} - x_{i1+1/2}) with the
+// faces nearest x1 and x2 -- identical to the mean central-difference
+// gradient over columns i1+1..i2 (telescoping sum).
+struct PairAveragedPressureGradient {
+  cfd::Real gradient{0.0};
+  cfd::Real drop{0.0};  // P(i2) - P(i1)
+  cfd::Real x1Face{0.0};
+  cfd::Real x2Face{0.0};
+};
+[[nodiscard]] PairAveragedPressureGradient pairAveragedPressureGradient(
+    const cfd::mesh::Mesh& mesh, cfd::Index nx, cfd::Index ny,
+    const cfd::fields::ScalarField& pressure, cfd::Real x1, cfd::Real x2);
+
+// Amplitude a of the odd-even column mode over the columns whose centres lie
+// in [x1, x2]: max |pbar_i - (pbar_{i-1} + pbar_{i+1})/2| / 2 (exactly |a|
+// for pbar_i = linear + a*(-1)^i).
+[[nodiscard]] cfd::Real pressureOddEvenAmplitude(const cfd::mesh::Mesh& mesh, cfd::Index nx,
+                                                 cfd::Index ny,
+                                                 const cfd::fields::ScalarField& pressure,
+                                                 cfd::Real x1, cfd::Real x2);
+
+// Net mass flow through the internal vertical face column nearest x (sum of
+// the face mass fluxes, oriented +x).
+[[nodiscard]] cfd::Real sectionMassFlow(const cfd::mesh::Mesh& mesh,
+                                        const cfd::fields::SurfaceField& massFlux, cfd::Real x);
+
+// The EXACT fully developed solution of this code's discretisation on ny
+// uniform rows (central diffusion, wall face gradient over the half cell
+// dy/2): u_j = (G/2) y_j (H - y_j) + G dy^2/8, G = -(dp/dx)/mu, whose mean
+// over the rows equals meanVelocity for
+//   dp/dx = -12 mu meanVelocity / H^2 * ny^2 / (ny^2 + 2).
+// It differs from the continuous solution only by O(dy^2) -- the formal
+// second order -- so comparing against both separates the discretisation
+// error (predicted exactly) from entrance, outlet and iterative effects.
+[[nodiscard]] cfd::Real discretePressureGradient(cfd::Real dynamicViscosity, cfd::Real meanVelocity,
+                                                 cfd::Real channelHeight, cfd::Index ny);
+[[nodiscard]] cfd::Real discretePoiseuilleVelocity(cfd::Real y, cfd::Real channelHeight,
+                                                   cfd::Real meanVelocity, cfd::Index ny);
 
 // Linearly interpolates `profile` (sorted by coordinate) at `coordinate`.
 [[nodiscard]] cfd::Real interpolateProfile(const std::vector<ProfileSample>& profile,

@@ -14,6 +14,7 @@ add_subdirectory(multiphase)
 add_subdirectory(compressible)
 add_subdirectory(app)
 add_subdirectory(viz)
+add_subdirectory(validation)
 
 # P4 -- Performance: only when CFDAPP_ENABLE_CUDA=ON (section 29 -- "No
 # GPU should be required to run normal CFDApp tests").

@@ -46,7 +46,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 
 #include "DeVahlDavis1983.hpp"
@@ -62,6 +64,7 @@
 #include "cfd/pressure_velocity/SIMPLE.hpp"
 #include "cfd/thermal/ThermalProperties.hpp"
 #include "cfd/thermal/ThermalSolver.hpp"
+#include "cfd/validation/GridConvergenceStudy.hpp"
 
 using cfd::Index;
 using cfd::Real;
@@ -418,27 +421,101 @@ TEST(NaturalConvectionValidation, DISABLED_Grid20x20MatchesDeVahlDavisRa1e3) {
 }
 
 // =====================================================================
-// Grid refinement (heavy: needs all three tiers; disabled by default,
-// same precedent as every other *GridRefinementReduces* test in this
-// codebase).
+// P12-NUM-005: three-grid convergence study (replaces the former
+// DISABLED_GridRefinementReducesNusseltError, which only checked that the
+// benchmark error did not grow). Grids 10 / 15 / 20 -- UNEQUAL refinement
+// ratios r21 = 20/15 = 1.333, r32 = 15/10 = 1.5, solved exactly by the
+// shared analysis -- through cfd::validation::runGridConvergenceStudy.
+// A grid is accepted only if the final SIMPLE solve passes
+// assessSimpleSolve, the thermal solve converged, and the outer Picard loop
+// met its own 1e-8 temperature-change tolerance.
+//
+// Grid convergence is computed only from this code's three solutions
+// (formal order 1: first-order upwind convection); the de Vahl Davis
+// (1983) values are benchmark data, reported separately. Enabled in the
+// default suite: ~400 s in Debug (10x10 24 s, 15x15 133 s, 20x20 247 s
+// measured), the same order as the already-enabled per-grid 15x15 test
+// (275 s). Measured result (results/p12-num-005/): Nu_avg converges
+// monotonically but is NOT yet asymptotic on these grids (p = 1.56 vs
+// formal 1); u_max (a cell-centre-sampled extremum) oscillates -- both
+// reported, not hidden.
 // =====================================================================
 
-TEST(NaturalConvectionValidation, DISABLED_GridRefinementReducesNusseltError) {
-  const auto coarse = runNaturalConvectionCavity(kGrid10, kBeta, "10x10");
-  ASSERT_TRUE(coarse.record.flowConverged);
-  const auto medium = runNaturalConvectionCavity(kGrid15, kBeta, "15x15");
-  ASSERT_TRUE(medium.record.flowConverged);
-  const auto fine = runNaturalConvectionCavity(kGrid20, kBeta, "20x20");
-  ASSERT_TRUE(fine.record.flowConverged);
+TEST(NaturalConvectionValidation, GridConvergence) {
+  using cfd::validation::GridSolveOutput;
+  using cfd::validation::GridSpec;
+  const auto solve = [](const GridSpec& spec) {
+    const GridCase grid = spec.nx == 10 ? kGrid10 : (spec.nx == 15 ? kGrid15 : kGrid20);
+    const auto outcome = runNaturalConvectionCavity(grid, kBeta, grid.label);
+    GridSolveOutput out;
+    out.acceptance = cfd::validation::assessSimpleSolve(outcome.flow, 1e-6);
+    out.solverIterations = outcome.record.outerIterations;
+    if (out.acceptance.accepted && !outcome.record.thermalConverged) {
+      out.acceptance.accepted = false;
+      out.acceptance.reason = "thermal solve did not converge";
+    }
+    if (out.acceptance.accepted && !(outcome.record.finalOuterTemperatureChange < 1e-8)) {
+      out.acceptance.accepted = false;
+      out.acceptance.reason = "outer Picard loop did not converge";
+    }
+    if (!out.acceptance.accepted) return out;
+    out.quantities.emplace_back("nu_avg", outcome.record.nuAvgComputed);
+    out.quantities.emplace_back("u_max", outcome.record.uMaxComputed);
+    out.quantities.emplace_back("v_max", outcome.record.vMaxComputed);
+    out.quantities.emplace_back("heat_imbalance", outcome.record.heatImbalance);
+    return out;
+  };
+  const auto quantity = [](const char* name, const char* description, Real reference) {
+    cfd::validation::QuantitySpec q;
+    q.name = name;
+    q.description = description;
+    q.reference = reference;
+    q.referenceKind = "benchmark";
+    q.options.formalOrder = 1.0;
+    q.options.absoluteNoise = 1e-6;  // outer Picard tolerance 1e-8 on theta
+    q.options.gridIndependenceThreshold = 0.01;
+    return q;
+  };
+  using namespace cfd::validation::de_vahl_davis_1983;
+  const auto study = cfd::validation::runGridConvergenceStudy(
+      "natural_convection_ra1e3",
+      "Differentially heated square cavity, Ra = 1e3, Pr = 0.71, SIMPLE + ThermalSolver Picard "
+      "coupling (first-order upwind convection); references: de Vahl Davis (1983) benchmark data",
+      {GridSpec{"coarse", 10, 10, kLength, kHeight}, GridSpec{"medium", 15, 15, kLength, kHeight},
+       GridSpec{"fine", 20, 20, kLength, kHeight}},
+      solve,
+      {quantity("nu_avg", "average hot-wall Nusselt number", kRa1e3.nuAvg),
+       quantity("u_max", "max u on the vertical mid-line (sampled at cell centres)", kRa1e3.uMax),
+       quantity("v_max", "max v on the horizontal mid-line (sampled at cell centres)",
+                kRa1e3.vMax)});
+  cfd::validation::writeGridConvergenceReport(
+      "results/validation/grid_convergence/natural_convection_ra1e3.json", study);
+  {
+    std::ofstream md("results/validation/grid_convergence/natural_convection_ra1e3.md");
+    md << cfd::validation::gridConvergenceReportMarkdown(study);
+  }
+  std::printf("\n%s", cfd::validation::gridConvergenceReportMarkdown(study).c_str());
+  // The written report passes the schema / consistency validator.
+  const auto reportProblems = cfd::validation::validateGridConvergenceReportFile(
+      "results/validation/grid_convergence/natural_convection_ra1e3.json");
+  EXPECT_TRUE(reportProblems.empty()) << reportProblems.front();
 
-  // Nu_avg error decreases monotonically with refinement (diagnosed:
-  // 4.9% -> 2.7% -> 1.8%) -- not claimed for u_max/v_max individually
-  // (their own diagnosed trend is not perfectly monotonic, a real,
-  // disclosed finding -- see this file's own header comment and the
-  // P3-PHYS-002 Final Report), only for Nu_avg, which is a globally-
-  // integrated (hence smoother) quantity.
-  EXPECT_LE(medium.record.nuAvgError, coarse.record.nuAvgError);
-  EXPECT_LE(fine.record.nuAvgError, medium.record.nuAvgError);
+  ASSERT_TRUE(study.allSolvesAccepted) << study.rejectionReason;
+  const auto& nu = study.quantities[0];
+  EXPECT_NE(nu.analysis.status, cfd::validation::GridConvergenceStatus::Invalid)
+      << nu.analysis.diagnostic;
+  EXPECT_NEAR(nu.analysis.r21, 20.0 / 15.0, 1e-12);
+  EXPECT_NEAR(nu.analysis.r32, 1.5, 1e-12);
+  for (const auto& q : study.quantities) {
+    const auto& a = q.analysis;
+    if (!a.observedOrder.has_value()) continue;
+    ASSERT_TRUE(a.gci21.has_value() && a.gci32.has_value() && a.extrapolated21.has_value());
+    EXPECT_LT(std::abs(*q.values[2] - *a.extrapolated21),
+              std::abs(*q.values[0] - *a.extrapolated21))
+        << q.spec.name;
+  }
+  // Benchmark comparison, separately: Nu_avg moves toward de Vahl Davis.
+  EXPECT_LT(std::abs(*nu.errorVsReference[2]), std::abs(*nu.errorVsReference[0]));
 }
 
 // =====================================================================

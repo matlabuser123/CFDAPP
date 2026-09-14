@@ -144,12 +144,13 @@ void KEpsilonModel::correct(const Mesh& mesh, const VectorField& velocity,
   // Not `const`: both are moved from below (k_ = std::move(newK), ...)
   // once the whole update has succeeded -- a `const` local would compile
   // but silently degrade that into a copy instead of a move.
-  ScalarField newK =
-      solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
-                                  config_.kRelaxation, config_.kFloor, config_.kSolver);
+  ScalarField newK = solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
+                                                 config_.kRelaxation, config_.kFloor,
+                                                 config_.kSolver, config_.nonOrthogonal);
   ScalarField newEpsilon = solveRelaxedScalarTransport(
       mesh, epsilon_, massFlux, gammaEpsilon, epsilonBoundaries_, suEpsilon, spEpsilon,
-      config_.epsilonRelaxation, config_.epsilonFloor, config_.epsilonSolver);
+      config_.epsilonRelaxation, config_.epsilonFloor, config_.epsilonSolver,
+      config_.nonOrthogonal);
 
   ScalarField newMuT = computeTurbulentViscosityField(mesh, rho, c.cMu, newK, newEpsilon,
                                                       config_.kFloor, config_.epsilonFloor);

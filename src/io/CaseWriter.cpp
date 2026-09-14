@@ -197,18 +197,50 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
                 {"relative_tolerance", s.relativeTolerance},
                 {"max_iterations", s.maxIterations}};
   };
-  writeJsonFile(caseDirectory / "solver.json",
-                json{
-                    {"type", d.solver.type},
-                    {"max_iterations", d.solver.maxIterations},
-                    {"velocity_relaxation", d.solver.velocityRelaxation},
-                    {"pressure_relaxation", d.solver.pressureRelaxation},
-                    {"velocity_tolerance", d.solver.velocityTolerance},
-                    {"pressure_tolerance", d.solver.pressureTolerance},
-                    {"continuity_tolerance", d.solver.continuityTolerance},
-                    {"momentum_linear_solver", linearSolverJson(d.solver.momentumSolver)},
-                    {"pressure_linear_solver", linearSolverJson(d.solver.pressureSolver)},
-                });
+  json solverJson{
+      {"type", d.solver.type},
+      {"max_iterations", d.solver.maxIterations},
+      {"velocity_relaxation", d.solver.velocityRelaxation},
+      {"pressure_relaxation", d.solver.pressureRelaxation},
+      {"velocity_tolerance", d.solver.velocityTolerance},
+      {"pressure_tolerance", d.solver.pressureTolerance},
+      {"continuity_tolerance", d.solver.continuityTolerance},
+      {"momentum_linear_solver", linearSolverJson(d.solver.momentumSolver)},
+      {"pressure_linear_solver", linearSolverJson(d.solver.pressureSolver)},
+      {"convection_scheme", d.solver.convectionScheme},
+      {"gradient_scheme", d.solver.gradientScheme},
+      {"non_orthogonal_corrections", d.solver.nonOrthogonalCorrections},
+  };
+  // P12-NUM-004: the "robustness" block is written only when it differs
+  // from the defaults, so a default case's solver.json is unchanged; when
+  // written, every field is explicit.
+  const cfd::solver::SolverRobustnessSettings& r = d.solver.robustness;
+  if (!(r == cfd::solver::SolverRobustnessSettings{})) {
+    solverJson["robustness"] = json{
+        {"convergence_criterion",
+         std::string(cfd::solver::convergenceCriterionName(r.convergenceCriterion))},
+        {"normalization", json{{"reference_iterations", r.normalization.referenceIterations},
+                               {"velocity_tolerance", r.normalization.velocityTolerance},
+                               {"pressure_tolerance", r.normalization.pressureTolerance}}},
+        {"stagnation_detection",
+         json{{"enabled", r.stagnation.enabled},
+              {"window", r.stagnation.window},
+              {"min_relative_improvement", r.stagnation.minRelativeImprovement},
+              {"start_iteration", r.stagnation.startIteration}}},
+        {"divergence_detection", json{{"enabled", r.divergence.enabled},
+                                      {"window", r.divergence.window},
+                                      {"growth_factor", r.divergence.growthFactor},
+                                      {"start_iteration", r.divergence.startIteration}}},
+        {"adaptive_relaxation", json{{"enabled", r.adaptiveRelaxation.enabled},
+                                     {"min_velocity", r.adaptiveRelaxation.minVelocity},
+                                     {"max_velocity", r.adaptiveRelaxation.maxVelocity},
+                                     {"min_pressure", r.adaptiveRelaxation.minPressure},
+                                     {"max_pressure", r.adaptiveRelaxation.maxPressure}}},
+        {"linear_solver_fallback", json{{"enabled", r.linearSolverFallback.enabled},
+                                        {"max_attempts", r.linearSolverFallback.maxAttempts}}},
+    };
+  }
+  writeJsonFile(caseDirectory / "solver.json", solverJson);
 }
 
 }  // namespace cfd::io

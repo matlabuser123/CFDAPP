@@ -7,6 +7,11 @@
 // relative fixture path below resolves against the repository root.
 #include <gtest/gtest.h>
 
+#include <cstdio>
+#include <fstream>
+#include <iterator>
+#include <string>
+
 #include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
 
@@ -74,4 +79,71 @@ TEST(ProjectRunnerTest, CancellationStopsEarlyWithCancelledStatus) {
   EXPECT_GE(progressCalls, 2);
   EXPECT_LT(run.simpleResult->iterations, 390);  // valid_cavity normally converges around ~390.
   EXPECT_EQ(cfd::app::exitCodeFor(run.status), 5);
+}
+
+// P12-NUM-004: solver.json's "robustness" block end to end through the
+// production backend -- statuses map to the documented run statuses/exit
+// codes and reach the exported results.
+namespace {
+
+void writeFile(const std::filesystem::path& path, const std::string& content) {
+  std::ofstream out(path);
+  out << content;
+}
+
+// %.17g, not std::to_string (which prints 1e-16 as "0.000000").
+std::string number(double value) {
+  char buffer[40];
+  std::snprintf(buffer, sizeof(buffer), "%.17g", value);
+  return buffer;
+}
+
+std::string robustSolverJson(double alpha, double tolerance, const std::string& robustness) {
+  return std::string(R"({
+  "type": "SIMPLE", "max_iterations": 6000,
+  "velocity_relaxation": )") +
+         number(alpha) + R"(, "pressure_relaxation": )" + number(alpha) + R"(,
+  "velocity_tolerance": )" +
+         number(tolerance) + R"(, "pressure_tolerance": )" + number(tolerance) +
+         R"(, "continuity_tolerance": )" + number(tolerance) + R"(,
+  "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                             "relative_tolerance": 1e-8, "max_iterations": 500},
+  "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                             "relative_tolerance": 1e-8, "max_iterations": 2000},
+  "robustness": )" +
+         robustness + "\n}";
+}
+
+}  // namespace
+
+TEST(ProjectRunnerTest, DivergenceDetectionReportsNumericalFailure) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  writeFile(fixture.path() / "mesh.json", R"({"type": "structured_cartesian", "nx": 8, "ny": 8})");
+  writeFile(fixture.path() / "solver.json",
+            robustSolverJson(0.9, 1e-6, R"({"divergence_detection": {"enabled": true}})"));
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
+  ASSERT_TRUE(run.simpleResult.has_value());
+  EXPECT_EQ(run.simpleResult->status, cfd::pressure_velocity::SIMPLEStatus::Diverging);
+  EXPECT_EQ(run.status, ProjectRunStatus::NumericalFailure);
+  EXPECT_EQ(cfd::app::exitCodeFor(run.status), 4);
+  EXPECT_FALSE(run.simpleResult->robustness.statusDetail.empty());
+}
+
+TEST(ProjectRunnerTest, StagnationDetectionReportsDidNotConverge) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  writeFile(fixture.path() / "mesh.json", R"({"type": "structured_cartesian", "nx": 8, "ny": 8})");
+  writeFile(fixture.path() / "solver.json",
+            robustSolverJson(0.7, 1e-16, R"({"stagnation_detection": {"enabled": true}})"));
+  // 0.7 for both factors is fine for this 8x8 Re=100 cavity.
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
+  ASSERT_TRUE(run.simpleResult.has_value());
+  EXPECT_EQ(run.simpleResult->status, cfd::pressure_velocity::SIMPLEStatus::Stagnated);
+  EXPECT_LT(run.simpleResult->iterations, 6000u);
+  EXPECT_EQ(run.status, ProjectRunStatus::DidNotConverge);
+  EXPECT_EQ(cfd::app::exitCodeFor(run.status), 3);
+  ASSERT_TRUE(run.exportSummary.has_value());
+  std::ifstream in(run.exportSummary->metadataPath);
+  const std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+  EXPECT_NE(text.find("\"Stagnated\""), std::string::npos);
+  EXPECT_NE(text.find("\"robustness\""), std::string::npos);
 }

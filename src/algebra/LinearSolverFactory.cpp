@@ -2,6 +2,7 @@
 
 #include "cfd/algebra/BiCGSTAB.hpp"
 #include "cfd/algebra/CG.hpp"
+#include "cfd/algebra/GMRES.hpp"
 #include "cfd/core/Logger.hpp"
 #include "cfd/gpu/GPUExecutionStats.hpp"
 #include "cfd/gpu/GpuLinearSolver.hpp"
@@ -11,10 +12,14 @@ namespace cfd::algebra {
 std::unique_ptr<LinearSolver> makeLinearSolver(LinearSolverSettings settings,
                                                std::shared_ptr<Preconditioner> preconditioner) {
   if (settings.backend == LinearSolverBackend::GPU) {
-    std::unique_ptr<LinearSolver> gpuSolver =
-        (settings.type == LinearSolverType::CG)
-            ? cfd::gpu::makeGpuCG(settings, preconditioner)
-            : cfd::gpu::makeGpuBiCGSTAB(settings, preconditioner);
+    // P12-NUM-004: there is no GPU GMRES -- a GPU request for it takes the
+    // same logged, counted CPU fallback as an unavailable device.
+    std::unique_ptr<LinearSolver> gpuSolver;
+    if (settings.type == LinearSolverType::CG) {
+      gpuSolver = cfd::gpu::makeGpuCG(settings, preconditioner);
+    } else if (settings.type == LinearSolverType::BiCGSTAB) {
+      gpuSolver = cfd::gpu::makeGpuBiCGSTAB(settings, preconditioner);
+    }
     if (gpuSolver != nullptr) {
       return gpuSolver;
     }
@@ -46,6 +51,9 @@ std::unique_ptr<LinearSolver> makeLinearSolver(LinearSolverSettings settings,
 
   if (settings.type == LinearSolverType::CG) {
     return std::make_unique<CG>(settings, std::move(preconditioner));
+  }
+  if (settings.type == LinearSolverType::GMRES) {
+    return std::make_unique<GMRES>(settings, std::move(preconditioner));
   }
   return std::make_unique<BiCGSTAB>(settings, std::move(preconditioner));
 }

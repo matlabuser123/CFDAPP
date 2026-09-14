@@ -45,6 +45,12 @@ namespace cfd::compressible {
 // numerical target CompressibleSIMPLE's own reduction-to-incompressible
 // regression checks.
 //
+// P12-NUM-003: the face coupling is the geometric one of
+// cfd::pressure_velocity::pressureCorrectionFaceCoupling (no axis-aligned
+// restriction any more), assembled by the SAME
+// assembleGeometricPressureCorrection the incompressible equation uses;
+// `options` enables the non-orthogonal correction exactly as there.
+//
 // Boundary treatment (Dirichlet/Neumann pressure-patch distinction,
 // reference-cell pinning) is otherwise identical to
 // assemblePressureCorrection's own -- see PressureCorrectionEquation.hpp's
@@ -66,6 +72,7 @@ assembleCompressiblePressureCorrection(
     const cfd::fields::ScalarField& vResponseCoefficient,
     const cfd::fields::ScalarField& pressureAbsolute, const cfd::fields::ScalarField& temperature,
     const ThermodynamicProperties& thermodynamics, Real pseudoTimeStep, Index referenceCell,
-    const cfd::boundary::BoundaryConditionSet& pressureBoundaries);
+    const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
+    const cfd::pressure_velocity::PressureCorrectionOptions& options = {});
 
 }  // namespace cfd::compressible

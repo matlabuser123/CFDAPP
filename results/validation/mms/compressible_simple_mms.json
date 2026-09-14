@@ -1,0 +1,521 @@
+{
+  "format_version": 1,
+  "study": "compressible_simple_mms",
+  "description": "CompressibleSIMPLE MMS, isothermal ideal gas in a closed box, from rest; upwind convection (the only scheme of the compressible momentum assembly)",
+  "manufactured_solution": "p = cos(pi x) cos(pi y) + x y / 2 (gauge); rho = (P_ref + p)/(R T0); rho U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi",
+  "method": {
+    "error_norms": "volume-weighted over the selected cells: L1 = sum|e|V/sumV, L2 = sqrt(sum e^2 V/sumV), Linf = max|e| (cfd/validation/ErrorNorms.hpp)",
+    "pressure_gauge": "numerical and exact pressure each shifted to zero volume-weighted mean over all cells before comparison",
+    "observed_order": "P12-NUM-005 analyzeGridConvergence on each consecutive triplet of error values (exact limit 0); reduction factor = E_coarse/E_fine",
+    "indexing": "levels listed coarse -> fine"
+  },
+  "coefficients": {
+    "reference_pressure": 20.0,
+    "gas_constant": 1.0,
+    "temperature": 20.0,
+    "viscosity": 0.1
+  },
+  "configuration": {
+    "solver": "cfd::compressible::CompressibleSIMPLE + setMomentumSource",
+    "convection": "upwind",
+    "relaxation": "velocity 0.7, pressure 0.3; pseudo time step 1 (CompressibleSIMPLE defaults)",
+    "velocity_bc": "exact Dirichlet U = m/rho (Inlet) on every boundary face",
+    "pressure_bc": "exact Neumann FixedGradient(grad p . n) per face",
+    "pressure_level": "closed compressible box: the absolute level is a datum; reference cell 0 is pinned at its initial value = exact gauge pressure at its centroid (initial pressure uniform at that value, velocity at rest)",
+    "forcing": "analytical f = (m.grad)U + grad p - mu lap U at cell centroids",
+    "not_covered": "energy equation, mu/3 grad(div U) stress term, higher-order convection, high Mach"
+  },
+  "levels": [
+    {
+      "name": "8x8",
+      "nx": 8,
+      "ny": 8,
+      "cells": 64,
+      "h": 0.125,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1070,
+      "mass_imbalance": 4.733745903139335e-19,
+      "errors": {
+        "u": {
+          "l1": 0.026632599033641978,
+          "l2": 0.03482441716171196,
+          "linf": 0.08287791920326526,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.026317761748514027,
+          "l2": 0.03441069455462733,
+          "linf": 0.08196801149707278,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.04250458547805904,
+          "l2": 0.04895749105484061,
+          "linf": 0.08402450382396681,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "p": {
+          "l1": 0.07002674263262496,
+          "l2": 0.08701635614712457,
+          "linf": 0.20316688530600835,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "p_gauge": {
+          "l1": 0.054969516338500064,
+          "l2": 0.0725921781110616,
+          "linf": 0.2511483600042199,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "density": {
+          "l1": 0.00350133713163126,
+          "l2": 0.004350817807356239,
+          "linf": 0.010158344265300379,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "continuity": {
+          "l1": 3.971996686061402e-10,
+          "l2": 6.681451334254314e-10,
+          "linf": 4.392221253368689e-09,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "mass_flux": {
+          "l1": 0.026321734374272994,
+          "l2": 0.03654702659633311,
+          "linf": 0.09030563372728484,
+          "cells": 144,
+          "volume": 18.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 4.733745903139335e-19,
+        "eos_max_relative_deviation": 0.0,
+        "pressure_datum": 0.9638928912556434
+      }
+    },
+    {
+      "name": "16x16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 256,
+      "h": 0.0625,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 2317,
+      "mass_imbalance": 1.0249639872003599e-19,
+      "errors": {
+        "u": {
+          "l1": 0.01538787053802919,
+          "l2": 0.02046226106402881,
+          "linf": 0.04708598685201337,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.01541155802577826,
+          "l2": 0.02053548261172387,
+          "linf": 0.0520576129630006,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.024679569678124364,
+          "l2": 0.02898982880164838,
+          "linf": 0.05215770513985395,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "p": {
+          "l1": 0.04162738087875995,
+          "l2": 0.04953265253511171,
+          "linf": 0.10840403831358333,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "p_gauge": {
+          "l1": 0.024122695652723763,
+          "l2": 0.030988949449504297,
+          "linf": 0.11883467632343447,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "density": {
+          "l1": 0.0020813690439380013,
+          "l2": 0.002476632626755588,
+          "linf": 0.005420201915679046,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "continuity": {
+          "l1": 7.194596708041462e-10,
+          "l2": 2.753589717992364e-09,
+          "linf": 4.2751441498012355e-08,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "mass_flux": {
+          "l1": 0.014998989714419915,
+          "l2": 0.020426014033498117,
+          "linf": 0.05255704568417263,
+          "cells": 544,
+          "volume": 34.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 1.0249639872003599e-19,
+        "eos_max_relative_deviation": 0.0,
+        "pressure_datum": 0.9908809214516153
+      }
+    },
+    {
+      "name": "32x32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 1024,
+      "h": 0.03125,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 3286,
+      "mass_imbalance": 2.1466357357527496e-20,
+      "errors": {
+        "u": {
+          "l1": 0.008413301970135009,
+          "l2": 0.01122114504073006,
+          "linf": 0.02656267557745373,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.008395696953646128,
+          "l2": 0.01128543893136596,
+          "linf": 0.02856310773112325,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.0134685421120747,
+          "l2": 0.015914623083777106,
+          "linf": 0.028657102867352777,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "p": {
+          "l1": 0.025988925105795944,
+          "l2": 0.029618454644517716,
+          "linf": 0.06092853184890208,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "p_gauge": {
+          "l1": 0.011781489505204211,
+          "l2": 0.014851755529961336,
+          "linf": 0.055083464434097174,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "density": {
+          "l1": 0.0012994462552897929,
+          "l2": 0.0014809227322258856,
+          "linf": 0.0030464265924452505,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "continuity": {
+          "l1": 1.3081975612956399e-09,
+          "l2": 1.1965727934018362e-08,
+          "linf": 3.807605732930597e-07,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "mass_flux": {
+          "l1": 0.00801693967849182,
+          "l2": 0.010870496207906734,
+          "linf": 0.027869828514739292,
+          "cells": 2112,
+          "volume": 66.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 2.1466357357527496e-20,
+        "eos_max_relative_deviation": 0.0,
+        "pressure_datum": 0.9977144336485985
+      }
+    }
+  ],
+  "orders": [
+    {
+      "quantity": "u",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.7018850972892137,
+        1.8235448334154596
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.6361333504508293,
+          "asymptotic_ratio": 0.7770790920421954,
+          "extrapolated_error": -0.0054548083038323605,
+          "diagnostic": "monotonic convergence, observed order 0.636133 (formal 1); asymptotic ratio 0.777079 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.6361333504508293
+    },
+    {
+      "quantity": "v",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.675670117194226,
+        1.8196441216521038
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.5849777252768318,
+          "asymptotic_ratio": 0.7500079146851438,
+          "extrapolated_error": -0.007214062758425182,
+          "diagnostic": "monotonic convergence, observed order 0.584978 (formal 1); asymptotic ratio 0.750008 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.5849777252768318
+    },
+    {
+      "quantity": "p",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.7567473513646814,
+        1.6723577624020316
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "asymptotic",
+          "observed_order": 0.9124661352436236,
+          "asymptotic_ratio": 0.941130137852989,
+          "extrapolated_error": 0.00704665985906305,
+          "diagnostic": "monotonic convergence, observed order 0.912466 (formal 1); asymptotic ratio 0.94113 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.9124661352436236
+    },
+    {
+      "quantity": "p_gauge",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.342518200862172,
+        2.0865512758399793
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.3663057629188158,
+          "asymptotic_ratio": 1.289047800658009,
+          "extrapolated_error": 0.004626016413721635,
+          "diagnostic": "monotonic convergence, observed order 1.36631 (formal 1); asymptotic ratio 1.28905 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.3663057629188158
+    },
+    {
+      "quantity": "density",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.756747351364684,
+        1.6723577624020336
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "asymptotic",
+          "observed_order": 0.9124661352436236,
+          "asymptotic_ratio": 0.9411301378529908,
+          "extrapolated_error": 0.0003523329929531493,
+          "diagnostic": "monotonic convergence, observed order 0.912466 (formal 1); asymptotic ratio 0.94113 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.9124661352436236
+    },
+    {
+      "quantity": "mass_flux",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.789239277736565,
+        1.879032349842605
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.7545364006675159,
+          "asymptotic_ratio": 0.843544685755284,
+          "extrapolated_error": -0.0030367452977850384,
+          "diagnostic": "monotonic convergence, observed order 0.754536 (formal 1); asymptotic ratio 0.843545 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.7545364006675159
+    }
+  ],
+  "gates": [
+    {
+      "name": "compressible: u L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "compressible: u l2 observed order in [0.55, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.636 (monotonic_not_asymptotic vs formal 1); reduction factors 1.702 1.824"
+    },
+    {
+      "name": "compressible: v L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "compressible: v l2 observed order in [0.55, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.585 (monotonic_not_asymptotic vs formal 1); reduction factors 1.676 1.820"
+    },
+    {
+      "name": "compressible: p L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "compressible: p l2 observed order in [0.80, 1.60]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.912 (asymptotic vs formal 1); reduction factors 1.757 1.672"
+    },
+    {
+      "name": "compressible: p_gauge L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "compressible: p_gauge l2 observed order in [0.80, 1.60]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.366 (monotonic_not_asymptotic vs formal 1); reduction factors 2.343 2.087"
+    },
+    {
+      "name": "compressible: EOS consistency at 8x8",
+      "passed": true,
+      "detail": "max |rho - EOS(p)|/rho = 0.00e+00"
+    },
+    {
+      "name": "compressible: density error = pressure error / (R T0) at 8x8",
+      "passed": true,
+      "detail": "rho L2 4.3508e-03, p L2 / RT 4.3508e-03"
+    },
+    {
+      "name": "compressible: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8",
+      "passed": true,
+      "detail": "Linf 4.39e-09"
+    },
+    {
+      "name": "compressible: global mass imbalance <= 1e-14 at 8x8",
+      "passed": true,
+      "detail": "4.73e-19"
+    },
+    {
+      "name": "compressible: EOS consistency at 16x16",
+      "passed": true,
+      "detail": "max |rho - EOS(p)|/rho = 0.00e+00"
+    },
+    {
+      "name": "compressible: density error = pressure error / (R T0) at 16x16",
+      "passed": true,
+      "detail": "rho L2 2.4766e-03, p L2 / RT 2.4766e-03"
+    },
+    {
+      "name": "compressible: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16",
+      "passed": true,
+      "detail": "Linf 4.28e-08"
+    },
+    {
+      "name": "compressible: global mass imbalance <= 1e-14 at 16x16",
+      "passed": true,
+      "detail": "1.02e-19"
+    },
+    {
+      "name": "compressible: EOS consistency at 32x32",
+      "passed": true,
+      "detail": "max |rho - EOS(p)|/rho = 0.00e+00"
+    },
+    {
+      "name": "compressible: density error = pressure error / (R T0) at 32x32",
+      "passed": true,
+      "detail": "rho L2 1.4809e-03, p L2 / RT 1.4809e-03"
+    },
+    {
+      "name": "compressible: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32",
+      "passed": true,
+      "detail": "Linf 3.81e-07"
+    },
+    {
+      "name": "compressible: global mass imbalance <= 1e-14 at 32x32",
+      "passed": true,
+      "detail": "2.15e-20"
+    }
+  ],
+  "all_gates_passed": true,
+  "runtime": {
+    "note": "measured wall time -- the only non-deterministic part of this report",
+    "levels": [
+      {
+        "name": "8x8",
+        "seconds": 11.277457406
+      },
+      {
+        "name": "16x16",
+        "seconds": 80.664762253
+      },
+      {
+        "name": "32x32",
+        "seconds": 437.727324857
+      }
+    ]
+  }
+}

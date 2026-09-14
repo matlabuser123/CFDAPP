@@ -429,3 +429,46 @@ TEST(TurbulenceCaseTest, RejectsUnknownKey) {
                                    "initial_epsilon": 0.001, "not_a_field": 1.0}})");
   expectRejected(fixture);
 }
+
+// --- P12-NUM-003: one non-orthogonal-correction switch for every term ----
+
+// solver.json's non_orthogonal_corrections / gradient_scheme reach every
+// turbulence model's k/epsilon/omega diffusion (via
+// pressure_velocity::nonOrthogonalOptions) -- default off, exactly the
+// pre-existing operator.
+TEST(TurbulenceCaseTest, NonOrthogonalCorrectionReachesEveryTurbulenceModel) {
+  constexpr const char* kSolverWithCorrection = R"({
+    "type": "SIMPLE", "max_iterations": 1000,
+    "velocity_relaxation": 0.7, "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6, "pressure_tolerance": 1e-6, "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                               "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                               "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "gradient_scheme": "least_squares",
+    "non_orthogonal_corrections": 2
+  })";
+  for (const char* physics : {kKEpsilonPhysics, kKOmegaPhysics, kSSTPhysics}) {
+    {
+      CaseFixture fixture;
+      fixture.write("physics.json", physics);
+      const auto setup = CaseBuilder{}.build(CaseReader{}.read(fixture.directory()));
+      const auto options = setup.kEpsilonConfig ? setup.kEpsilonConfig->nonOrthogonal
+                           : setup.kOmegaConfig ? setup.kOmegaConfig->nonOrthogonal
+                                                : setup.sstConfig->nonOrthogonal;
+      EXPECT_FALSE(options.enabled);
+    }
+    {
+      CaseFixture fixture;
+      fixture.write("physics.json", physics);
+      fixture.write("solver.json", kSolverWithCorrection);
+      const auto setup = CaseBuilder{}.build(CaseReader{}.read(fixture.directory()));
+      EXPECT_EQ(setup.solverSettings.nonOrthogonalCorrections, 2u);
+      const auto options = setup.kEpsilonConfig ? setup.kEpsilonConfig->nonOrthogonal
+                           : setup.kOmegaConfig ? setup.kOmegaConfig->nonOrthogonal
+                                                : setup.sstConfig->nonOrthogonal;
+      EXPECT_TRUE(options.enabled);
+      EXPECT_EQ(options.gradientScheme, cfd::discretization::GradientScheme::LeastSquares);
+    }
+  }
+}

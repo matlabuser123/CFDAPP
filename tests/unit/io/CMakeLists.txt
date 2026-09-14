@@ -13,6 +13,7 @@ add_executable(CFDIoTests
   test_csv_writer.cpp
   test_json_writer.cpp
   test_vtk_writer.cpp
+  test_robustness_config.cpp
 )
 
 target_link_libraries(CFDIoTests

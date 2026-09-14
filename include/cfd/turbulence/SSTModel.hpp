@@ -4,6 +4,7 @@
 
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/physics/FluidProperties.hpp"
@@ -30,6 +31,12 @@ struct SSTConfig {
 
   cfd::algebra::LinearSolverSettings kSolver{};
   cfd::algebra::LinearSolverSettings omegaSolver{};
+
+  // P12-NUM-003: non-orthogonal correction of the k/omega diffusion terms
+  // (default disabled -- exactly the pre-existing operator). Evaluated once
+  // per model correct() call from the lagged field; SIMPLE's outer
+  // iteration converges the lag. See assembleScalarDiffusionContribution.
+  cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonal{};
 
   // Patankar implicit under-relaxation, same mechanism/semantics as
   // KEpsilonConfig/KOmegaConfig's own (section 34: "reuse generic k/

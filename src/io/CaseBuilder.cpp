@@ -14,6 +14,8 @@
 #include "cfd/boundary/Wall.hpp"
 #include "cfd/boundary/WallOmega.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/discretization/Convection.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::io {
@@ -267,8 +269,9 @@ SSTConfig buildSSTConfig(const TurbulencePhysicsConfig& turbulence, const Solver
 // one of exactly these strings (SolverConfigParser.cpp) -- this is a
 // pure lookup, never an "else" branch that needs its own error.
 cfd::algebra::LinearSolverType parseLinearSolverType(const std::string& type) {
-  return (type == "CG") ? cfd::algebra::LinearSolverType::CG
-                        : cfd::algebra::LinearSolverType::BiCGSTAB;
+  if (type == "CG") return cfd::algebra::LinearSolverType::CG;
+  if (type == "GMRES") return cfd::algebra::LinearSolverType::GMRES;
+  return cfd::algebra::LinearSolverType::BiCGSTAB;
 }
 
 cfd::algebra::LinearSolverBackend parseLinearSolverBackend(const std::string& backend) {
@@ -294,6 +297,20 @@ SIMPLESettings buildSolverSettings(const SolverConfig& solver) {
   settings.pressureSolver.maxIterations = solver.pressureSolver.maxIterations;
   settings.pressureSolver.type = parseLinearSolverType(solver.pressureSolver.type);
   settings.pressureSolver.backend = parseLinearSolverBackend(solver.pressureSolver.backend);
+  // P12-NUM-001: already validated to be one of exactly upwind/central/
+  // linear_upwind/quick by SolverConfigParser.cpp -- reuses
+  // cfd::discretization's own parser rather than a second lookup table
+  // here (same "pure lookup, never an else branch that needs its own
+  // error" reasoning as parseLinearSolverType/Backend above).
+  settings.convectionScheme = cfd::discretization::parseConvectionScheme(solver.convectionScheme);
+  // P12-NUM-002: already validated to be one of exactly green_gauss/
+  // least_squares by SolverConfigParser.cpp -- same reasoning as
+  // convectionScheme above.
+  settings.gradientScheme = cfd::discretization::parseGradientScheme(solver.gradientScheme);
+  // P12-NUM-003: already validated to be >= 0 by SolverConfigParser.cpp.
+  settings.nonOrthogonalCorrections = solver.nonOrthogonalCorrections;
+  // P12-NUM-004: solver.json's "robustness" block (default: all off).
+  settings.robustness = solver.robustness;
   return settings;
 }
 
@@ -498,16 +515,24 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                            definition.physics.buoyancy->referenceTemperature,
                            definition.physics.buoyancy->gravity);
   }
+  // P12-NUM-003: every turbulence model's k/epsilon/omega diffusion uses the
+  // same non-orthogonal-correction switch as momentum (solver.json's
+  // non_orthogonal_corrections / gradient_scheme).
+  const auto turbulenceNonOrthogonal =
+      cfd::pressure_velocity::nonOrthogonalOptions(setup.solverSettings);
   if (kEpsilonEnabled) {
     setup.kEpsilonConfig = buildKEpsilonConfig(*definition.physics.turbulence, definition.solver);
+    setup.kEpsilonConfig->nonOrthogonal = turbulenceNonOrthogonal;
     setup.kBoundaries = std::move(kBoundaries);
     setup.epsilonBoundaries = std::move(epsilonBoundaries);
   } else if (kOmegaEnabled) {
     setup.kOmegaConfig = buildKOmegaConfig(*definition.physics.turbulence, definition.solver);
+    setup.kOmegaConfig->nonOrthogonal = turbulenceNonOrthogonal;
     setup.kBoundaries = std::move(kBoundaries);
     setup.omegaBoundaries = std::move(omegaBoundaries);
   } else if (sstEnabled) {
     setup.sstConfig = buildSSTConfig(*definition.physics.turbulence, definition.solver);
+    setup.sstConfig->nonOrthogonal = turbulenceNonOrthogonal;
     setup.kBoundaries = std::move(kBoundaries);
     setup.omegaBoundaries = std::move(omegaBoundaries);
   }

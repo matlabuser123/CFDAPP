@@ -4,6 +4,7 @@
 
 #include "cfd/boundary/FixedGradient.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
 
@@ -103,6 +104,52 @@ TEST(VelocityCorrectionTest, DifferentUAndVResponseCoefficientsApplyToTheirOwnCo
     if (cellTouchesBoundary(mesh, cell)) continue;
     EXPECT_NEAR(corrected[cell.id()].x, 0.0, 1e-9);
     EXPECT_NEAR(corrected[cell.id()].y, -0.25, 1e-9);
+  }
+}
+
+TEST(VelocityCorrectionTest, DefaultGradientSchemeArgumentMatchesExplicitGreenGauss) {
+  // P12-NUM-002: the new `scheme` parameter defaults to GreenGauss, so
+  // every pre-P12-NUM-002 call site (which never passes it) is
+  // byte-identical.
+  const Mesh mesh = MeshGeometry::createCartesian2D(8, 8, 1.0, 1.0);
+  ScalarField pPrime(mesh.numberOfCells());
+  for (const auto& cell : mesh.cells()) pPrime[cell.id()] = cell.centroid().x;
+  const VectorField predictorVelocity(mesh.numberOfCells(), Vector2{5.0, -1.0});
+  const ScalarField uResponse(mesh.numberOfCells(), 0.3);
+  const ScalarField vResponse(mesh.numberOfCells(), 0.9);
+  const auto boundaries = makeZeroGradientPressureBoundaries(mesh);
+
+  const VectorField correctedDefault =
+      correctVelocity(mesh, predictorVelocity, uResponse, vResponse, pPrime, boundaries);
+  const VectorField correctedExplicit =
+      correctVelocity(mesh, predictorVelocity, uResponse, vResponse, pPrime, boundaries,
+                      cfd::discretization::GradientScheme::GreenGauss);
+  for (Index i = 0; i < mesh.numberOfCells(); ++i) {
+    EXPECT_DOUBLE_EQ(correctedDefault[i].x, correctedExplicit[i].x);
+    EXPECT_DOUBLE_EQ(correctedDefault[i].y, correctedExplicit[i].y);
+  }
+}
+
+TEST(VelocityCorrectionTest, LeastSquaresSchemeIsWiredThroughAndMatchesOnInteriorCells) {
+  // Both schemes are exact for a linear p' field on interior cells (all
+  // faces internal) -- proves `scheme` reaches correctVelocity's own
+  // gradient call (see MomentumPressureTest's identical reasoning for
+  // assemblePressureSourceContribution).
+  const Mesh mesh = MeshGeometry::createCartesian2D(8, 8, 1.0, 1.0);
+  ScalarField pPrime(mesh.numberOfCells());
+  for (const auto& cell : mesh.cells()) pPrime[cell.id()] = cell.centroid().x;
+  const VectorField predictorVelocity(mesh.numberOfCells(), Vector2{5.0, -1.0});
+  const Real dU = 0.3;
+  const ScalarField uResponse(mesh.numberOfCells(), dU);
+  const ScalarField vResponse(mesh.numberOfCells(), 0.9);
+
+  const VectorField corrected = correctVelocity(mesh, predictorVelocity, uResponse, vResponse,
+                                                pPrime, makeZeroGradientPressureBoundaries(mesh),
+                                                cfd::discretization::GradientScheme::LeastSquares);
+  for (const auto& cell : mesh.cells()) {
+    if (cellTouchesBoundary(mesh, cell)) continue;
+    EXPECT_NEAR(corrected[cell.id()].x, 5.0 - dU, 1e-9);
+    EXPECT_NEAR(corrected[cell.id()].y, -1.0, 1e-9);
   }
 }
 

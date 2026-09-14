@@ -4,6 +4,7 @@
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -56,10 +57,23 @@ struct EnergyAssembly {
 // MomentumEquation's assembleDiffusionContribution with k in place of
 // mu), Dirichlet-style boundary contribution added to the RHS. Throws
 // InvalidArgumentError if temperature.size() != mesh.numberOfCells().
+//
+// P12-NUM-003: `nonOrthogonal` (default disabled -- exactly the
+// pre-existing operator) applies the shared non-orthogonal correction
+// (cfd::discretization::internalFaceDiffusionTerms/
+// boundaryFaceDiffusionTerms -- the one implementation, not a copy): every
+// internal face, and every boundary face whose condition prescribes the
+// temperature (FixedValue/FixedTemperature); HeatFlux/Adiabatic/
+// FixedGradient faces are never corrected (prescribed flux). grad(T) is
+// cfd::discretization::gradient(temperature, temperatureBoundaries,
+// nonOrthogonal.gradientScheme), evaluated from the temperature passed in
+// (lagged -- ThermalSolver's outer Picard loop converges it). On an
+// orthogonal mesh the corrected assembly is bit-identical.
 void assembleThermalDiffusionContribution(
     const cfd::mesh::Mesh& mesh, Real conductivity, const cfd::fields::ScalarField& temperature,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
-    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs);
+    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // P3-PHYS-003: same physics as the constant-conductivity overload above,
 // but with a per-cell conductivity field (k(T), typically produced by
@@ -78,12 +92,14 @@ void assembleThermalDiffusionContribution(
 // their existing, exact floating-point behavior (P3-PHYS-003 section 4's
 // backward-equivalence requirement). Throws InvalidArgumentError if
 // temperature.size() or conductivity.size() != mesh.numberOfCells(), or if
-// any conductivity value is non-finite or <= 0.
+// any conductivity value is non-finite or <= 0. `nonOrthogonal`: as for
+// the scalar overload above.
 void assembleThermalDiffusionContribution(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& conductivity,
     const cfd::fields::ScalarField& temperature,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
-    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs);
+    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // specificHeat * upwind-face-mass-flux convection contribution. massFlux
 // must already carry rho (see physics::calculateMassFlux) -- exactly like
@@ -128,6 +144,16 @@ void assembleThermalConvectionContribution(
 void assembleThermalSourceContribution(const cfd::mesh::Mesh& mesh, Real volumetricHeatSource,
                                        cfd::algebra::Vector& rhs);
 
+// P12-NUM-006: the spatially varying counterpart -- one volumetric source
+// value [W/m^3] per cell (the source at the cell centroid; midpoint-rule
+// volume integral): rhs[P] += Q_P * V_P. Generic: nothing here knows what
+// the field represents. Throws InvalidArgumentError if
+// volumetricHeatSource.size() != mesh.numberOfCells() or any value is
+// non-finite.
+void assembleThermalSourceContribution(const cfd::mesh::Mesh& mesh,
+                                       const cfd::fields::ScalarField& volumetricHeatSource,
+                                       cfd::algebra::Vector& rhs);
+
 // Combines the three contributions above into the full steady-state,
 // constant-property energy equation:
 //   rho*cp*(U . grad)T = k*Laplacian(T) + Q
@@ -167,7 +193,20 @@ void assembleThermalSourceContribution(const cfd::mesh::Mesh& mesh, Real volumet
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& temperature,
     const cfd::fields::SurfaceField& massFlux, const ThermalProperties& thermal,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
-    Real volumetricHeatSource = 0.0);
+    Real volumetricHeatSource = 0.0,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
+
+// P12-NUM-006: same equation and assembly as the overload above, with a
+// per-cell volumetric heat source (assembleThermalSourceContribution's
+// field overload) in place of the uniform one. Throws as the overload
+// above, plus InvalidArgumentError for a wrongly sized or non-finite
+// source field.
+[[nodiscard]] EnergyAssembly assembleEnergyEquation(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& temperature,
+    const cfd::fields::SurfaceField& massFlux, const ThermalProperties& thermal,
+    const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
+    const cfd::fields::ScalarField& volumetricHeatSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // P3-PHYS-003: same combiner as above, but taking per-cell conductivity/
 // specificHeat fields (typically produced once per outer Picard iteration
@@ -187,6 +226,7 @@ void assembleThermalSourceContribution(const cfd::mesh::Mesh& mesh, Real volumet
     const cfd::fields::SurfaceField& massFlux, const cfd::fields::ScalarField& conductivity,
     const cfd::fields::ScalarField& specificHeat,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
-    Real volumetricHeatSource = 0.0);
+    Real volumetricHeatSource = 0.0,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 }  // namespace cfd::thermal

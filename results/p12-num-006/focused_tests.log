@@ -1,0 +1,2692 @@
+# P12-NUM-006 focused tests (2026-09-14, WSL2 Ubuntu, GCC, build/debug)
+# Final binaries; run from the repository root (reports -> results/validation/mms/).
+
+################ 1. Baseline before any NUM-006 change
+=== tests/unit/discretization/CFDDiscretizationTests
+[==========] 135 tests from 18 test suites ran. (626 ms total)
+[  PASSED  ] 135 tests.
+=== tests/unit/physics/CFDPhysicsTests
+[==========] 98 tests from 15 test suites ran. (14 ms total)
+[  PASSED  ] 98 tests.
+=== tests/unit/thermal/CFDThermalTests
+[==========] 83 tests from 13 test suites ran. (4070 ms total)
+[  PASSED  ] 83 tests.
+=== tests/solver/simple/CFDSimpleTests
+[==========] 109 tests from 22 test suites ran. (174925 ms total)
+[  PASSED  ] 109 tests.
+=== tests/unit/validation/CFDValidationUnitTests
+[==========] 22 tests from 2 test suites ran. (22 ms total)
+[  PASSED  ] 22 tests.
+[  PASSED  ] 28 tests.
+
+################ 2. Unit suites (final binaries)
+################ tests/unit/validation/CFDValidationUnitTests
+[==========] Running 36 tests from 6 test suites.
+[       OK ] GridConvergenceTest.RepresentativeGridSize (1 ms)
+[       OK ] GridConvergenceTest.FirstOrderSynthetic (0 ms)
+[       OK ] GridConvergenceTest.SecondOrderSynthetic (0 ms)
+[       OK ] GridConvergenceTest.ThirdOrderSynthetic (0 ms)
+[       OK ] GridConvergenceTest.UnequalRefinementRatios (0 ms)
+[       OK ] GridConvergenceTest.RichardsonExactRecovery (0 ms)
+[       OK ] GridConvergenceTest.GCIKnownCase (0 ms)
+[       OK ] GridConvergenceTest.AsymptoticRatio (0 ms)
+[       OK ] GridConvergenceTest.OscillatorySequenceDetected (0 ms)
+[       OK ] GridConvergenceTest.DivergingSequenceDetected (0 ms)
+[       OK ] GridConvergenceTest.ZeroDifferenceHandled (0 ms)
+[       OK ] GridConvergenceTest.ZeroSolutionQuantityHasNoRelativeMetrics (0 ms)
+[       OK ] GridConvergenceTest.InvalidGridSpacingRejected (0 ms)
+[       OK ] GridConvergenceTest.NonFiniteInputRejected (0 ms)
+[       OK ] GridConvergenceTest.GridIndependenceCriterion (0 ms)
+[       OK ] GridConvergenceTest.ObservedOrderSolverMatchesClosedFormForEqualRatios (0 ms)
+[       OK ] GridConvergenceStudyTest.RunsCoarseToFineAndAnalysesEveryQuantity (1 ms)
+[       OK ] GridConvergenceStudyTest.RejectedSolveInvalidatesTheStudy (0 ms)
+[       OK ] GridConvergenceStudyTest.MissingQuantityIsInvalid (0 ms)
+[       OK ] GridConvergenceStudyTest.SimpleSolveGateRejectsInvalidSolves (0 ms)
+[       OK ] GridConvergenceStudyTest.DeterministicReport (2 ms)
+[       OK ] GridConvergenceStudyTest.ReportSchemaValidation (17 ms)
+[       OK ] ManufacturedFieldsTest.VelocityIsAnalyticallyDivergenceFree (0 ms)
+[       OK ] ManufacturedFieldsTest.VelocityDerivativesExact (0 ms)
+[       OK ] ManufacturedFieldsTest.PressureGradientExact (0 ms)
+[       OK ] ManufacturedFieldsTest.MomentumForcingExact (1 ms)
+[       OK ] ManufacturedFieldsTest.ScalarForcingExact (0 ms)
+[       OK ] ManufacturedFieldsTest.CompressibleForcingExact (3 ms)
+[       OK ] ManufacturedFieldsTest.ExactFaceFluxIsDiscretelyDivergenceFree (0 ms)
+[       OK ] MMSSourceTest.CellVolumeScaling (0 ms)
+[       OK ] MMSSourceTest.RelaxedMomentumSourceIsAPureRhsTerm (0 ms)
+[       OK ] MMSSourceTest.SolversRejectMalformedSourceFields (0 ms)
+[       OK ] MMSErrorNormsTest.KnownField (0 ms)
+[       OK ] MMSErrorNormsTest.PressureGaugeRemoval (0 ms)
+[       OK ] MMSStudyTest.OrdersComeFromTheSharedGridConvergenceAnalysis (0 ms)
+[       OK ] MMSStudyTest.ReportIsDeterministicExceptRuntime (2 ms)
+[==========] 36 tests from 6 test suites ran. (36 ms total)
+[  PASSED  ] 36 tests.
+################ tests/unit/discretization/CFDDiscretizationTests
+[==========] Running 135 tests from 18 test suites.
+[       OK ] InterpolationTest.ConstantFieldIsPreservedExactly (0 ms)
+[       OK ] InterpolationTest.LinearFieldPhiXIsExactAtEveryFace (0 ms)
+[       OK ] InterpolationTest.LinearFieldPhiYIsExactAtEveryFace (0 ms)
+[       OK ] InterpolationTest.BoundaryFaceUsesFixedValueNotOwnerValue (0 ms)
+[       OK ] InterpolationTest.SkewCorrectedInterpolationIsExactForLinearFieldOnSkewedMesh (0 ms)
+[       OK ] InterpolationTest.SkewCorrectedInterpolationMatchesPlainOnCartesianMesh (0 ms)
+[       OK ] InterpolationTest.SkewCorrectedInterpolationFallsBackOnDegenerateFace (0 ms)
+[       OK ] GradientTest.ConstantFieldHasZeroGradient (0 ms)
+[       OK ] GradientTest.PhiXGivesGradientOneZero (0 ms)
+[       OK ] GradientTest.PhiYGivesGradientZeroOne (0 ms)
+[       OK ] GradientTest.QuadraticFieldMatchesAnalyticalGradient (0 ms)
+[       OK ] GradientTest.DefaultSchemeArgumentMatchesExplicitGreenGauss (0 ms)
+[       OK ] GradientSchemeTest.ParsesBothValidNames (0 ms)
+[       OK ] GradientSchemeTest.RejectsInvalidName (0 ms)
+[       OK ] GradientSchemeTest.NameRoundTripsThroughParse (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.ReconstructsExactGradientForConsistentLinearData (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.ZeroDataGivesZeroGradient (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.DetectsAColinearStencilAsIllConditioned (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.DetectsASingleNeighborAsIllConditioned (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.DetectsNoNeighborsAsIllConditioned (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.IgnoresAZeroDistanceEntryRatherThanDividingByZero (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.NearlyColinearStencilIsAlsoRejected (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.MismatchedSizesThrows (0 ms)
+[       OK ] SolveLeastSquaresGradientTest.NeverProducesNonFiniteResultOnAcceptedInput (0 ms)
+[       OK ] LeastSquaresTest.ConstantFieldHasZeroGradient (0 ms)
+[       OK ] LeastSquaresTest.LinearFieldCartesianIsExactAtEveryCellIncludingBoundaryAdjacent (0 ms)
+[       OK ] LeastSquaresTest.LinearFieldDistortedIsExactAtEveryCell (0 ms)
+[       OK ] LeastSquaresTest.GreenGaussDistortedIsNotExactUnlikeLeastSquares (0 ms)
+[       OK ] LeastSquaresTest.BoundaryCellsUseTheAssignedConditionAtTheFacesOwnPosition (0 ms)
+[       OK ] LeastSquaresTest.RejectsNonScalarBoundaryCondition (0 ms)
+[       OK ] LeastSquaresTest.MismatchedFieldSizeThrows (0 ms)
+[       OK ] LeastSquaresTest.RepeatedCallsAreDeterministic (0 ms)
+[       OK ] LeastSquaresTest.SmoothNonlinearFieldIsFiniteAndReasonablyAccurate (0 ms)
+[       OK ] SkewnessTest.ProductionInterpolationUsesCorrection (1 ms)
+[       OK ] SkewnessTest.CorrectedProductionOperatorImprovesError (6 ms)
+[       OK ] DivergenceTest.ConstantVectorFieldHasZeroDivergence (0 ms)
+[       OK ] DivergenceTest.ULinearGivesDivergenceTwo (0 ms)
+[       OK ] DivergenceTest.RotationalFieldIsDivergenceFree (0 ms)
+[       OK ] DivergenceTest.GlobalDivergenceTheoremHolds (0 ms)
+[       OK ] LaplacianTest.PhiXHasZeroLaplacian (0 ms)
+[       OK ] LaplacianTest.PhiYHasZeroLaplacian (0 ms)
+[       OK ] LaplacianTest.QuadraticFieldGivesFour (0 ms)
+[       OK ] DiffusionTest.EqualsGammaTimesLaplacianForConstantGamma (0 ms)
+[       OK ] DiffusionTest.QuadraticFieldWithGammaHalf (0 ms)
+[       OK ] DiffusionTest.QuadraticFieldWithGammaTwo (0 ms)
+[       OK ] DiffusionTest.ZeroFluxBoundaryConservesGlobally (0 ms)
+[       OK ] DiffusionTest.NonOrthogonalCorrectionMatchesBaselineOnCartesianMesh (0 ms)
+[       OK ] DiffusionTest.DefaultParametersPreserveUncorrectedBehavior (0 ms)
+[       OK ] DiffusionTest.LinearFieldGivesZeroDiffusionOnCartesianRegardlessOfCorrection (0 ms)
+[       OK ] DiffusionTest.LinearFieldNearZeroInInteriorOnDistortedMeshWhenCorrected (0 ms)
+[       OK ] DiffusionTest.CorrectionReducesInteriorErrorForQuadraticFieldOnDistortedMesh (0 ms)
+[       OK ] DiffusionTest.ConstantFieldConservesGloballyOnDistortedMeshWithCorrection (0 ms)
+[       OK ] DiffusionTest.StrongDistortionProducesFiniteResults (0 ms)
+[       OK ] DiffusionTest.NonOrthogonalCorrectionIsDeterministic (0 ms)
+[       OK ] DiffusionTest.CorrectedFluxIsAntisymmetricUnderFaceReversal (1 ms)
+[       OK ] DiffusionTest.ClosedDomainGlobalBalanceIsUnchangedByCorrection (1 ms)
+[       OK ] DiffusionTest.LinearField2x3y5IsConsistentOnCartesianAndDistortedMeshes (2 ms)
+[       OK ] DiffusionTest.CorrectionLeavesWallThermalBoundaryFluxesUntouched (0 ms)
+[       OK ] DiffusionTest.NetDirichletBoundaryFluxIsMoreAccurateWithCorrectionOnDistortedMesh (0 ms)
+[       OK ] DiffusionTest.NeumannBoundaryFluxesAreNeverCorrected (1 ms)
+[       OK ] DiffusionTest.CorrectionNeverAlterableOnPureBoundaryMeshWithMixedConditions (0 ms)
+[       OK ] DiffusionTest.ExtremeNonOrthogonalityFallsBackSafely (0 ms)
+[       OK ] DiffusionTest.ZeroOwnerNeighborDistanceIsAPreexistingLimitationNotWorsenedByCorrection (0 ms)
+[       OK ] DiffusionTest.BoundaryCorrectionClassificationCoversEveryConditionType (0 ms)
+[       OK ] DiffusionTest.BoundaryRingTruncationIsFirstOrderAndLocalized (61 ms)
+[       OK ] ConvectionTest.UpwindSelectsOwnerForPositiveFluxNeighborForNegative (0 ms)
+[       OK ] ConvectionTest.BoundaryOutflowUsesOwnerValue (0 ms)
+[       OK ] ConvectionTest.BoundaryInflowUsesGhostReflectedValue (0 ms)
+[       OK ] ConvectionTest.ConstantFieldGivesZeroConvection (0 ms)
+[       OK ] ConvectionTest.InternalConservationFaceOnce (0 ms)
+[       OK ] ConvectionSchemeTest.ParsesAllFourValidNames (0 ms)
+[       OK ] ConvectionSchemeTest.RejectsInvalidName (0 ms)
+[       OK ] ConvectionSchemeTest.NameRoundTripsThroughParse (0 ms)
+[       OK ] ConvectionSchemeTest.ConvectionOverloadWithoutSchemeArgumentDefaultsToUpwind (0 ms)
+[       OK ] ConvectionSchemeTest.CentralSchemeMatchesIndependentOracleForPositiveAndNegativeFlux (0 ms)
+[       OK ] ConvectionSchemeTest.QuickSchemeMatchesIndependentOracleForPositiveAndNegativeFlux (0 ms)
+[       OK ] ConvectionSchemeTest.QuickDegradesToUpwindWhenNoFartherUpstreamCellExists (0 ms)
+[       OK ] ConvectionSchemeTest.SchemeChoiceDoesNotAffectABoundaryOnlyMesh (0 ms)
+[       OK ] ConvectionSchemeTest.LinearFieldIsReproducedExactlyAwayFromAnyDegradedFace (0 ms)
+[       OK ] ConvectionSchemeTest.DegradedFaceStillProducesAFiniteConsistentResult (0 ms)
+[       OK ] ConvectionSchemeTest.HigherOrderSchemesAreDeterministic (0 ms)
+[       OK ] ConvectionSchemeTest.StepFunctionStaysWithinInitialBoundsAfterOneExplicitStep (0 ms)
+[       OK ] QuickFaceValueTest.MatchesClassicalCoefficientsOnUniformGrid (0 ms)
+[       OK ] QuickFaceValueTest.ReproducesALinearFieldExactly (0 ms)
+[       OK ] QuickFaceValueTest.ThrowsOnNonPositiveDistance (0 ms)
+[       OK ] LinearUpwindFaceValueTest.ReconstructsExactlyForALinearField (0 ms)
+[       OK ] LinearUpwindFaceValueTest.ZeroGradientReturnsUpwindValueUnchanged (0 ms)
+[       OK ] SmoothnessRatioTest.PositiveForSmoothMonotoneData (0 ms)
+[       OK ] SmoothnessRatioTest.NegativeAtALocalExtremum (0 ms)
+[       OK ] SmoothnessRatioTest.NulloptWhenLocalGradientIsZero (0 ms)
+[       OK ] VanLeerLimiterTest.ZeroAtOrBelowZeroRatio (0 ms)
+[       OK ] VanLeerLimiterTest.ZeroWhenRatioIsNullopt (0 ms)
+[       OK ] VanLeerLimiterTest.OneAtRatioOfOne (0 ms)
+[       OK ] VanLeerLimiterTest.ApproachesTwoForLargeRatio (0 ms)
+[       OK ] VanLeerLimiterTest.StaysWithinTheZeroToTwoSwebyTvdRegion (0 ms)
+[       OK ] GridRefinementTest.GradientOfSmoothFieldConvergesAtSecondOrder (13 ms)
+[       OK ] GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder (9 ms)
+[       OK ] GridRefinementTest.UpwindConvectionConvergesAtFirstOrder (9 ms)
+[       OK ] GridRefinementTest.CentralConvectionOfSmoothFieldGlobalOrderReflectsBoundaryTreatment (16 ms)
+[       OK ] GridRefinementTest.CentralConvectionOfSmoothFieldConvergesAboveFirstOrderInInterior (20 ms)
+[       OK ] GridRefinementTest.LinearUpwindConvectionOfSmoothFieldGlobalOrderReflectsBoundaryTreatment (23 ms)
+[       OK ] GridRefinementTest.LinearUpwindConvectionOfSmoothFieldConvergesAboveFirstOrderInInterior (22 ms)
+[       OK ] GridRefinementTest.QuickConvectionOfSmoothFieldGlobalOrderReflectsBoundaryTreatment (15 ms)
+[       OK ] GridRefinementTest.QuickConvectionOfSmoothFieldConvergesAboveFirstOrderInInterior (15 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientCartesianGlobalOrderReflectsBoundaryTreatment (19 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientCartesianConvergesAtSecondOrderInInterior (18 ms)
+[       OK ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment (26 ms)
+[       OK ] GridRefinementTest.GreenGaussGradientDistortedConvergesAtSecondOrderInInterior (26 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientDistortedGlobalOrderReflectsBoundaryTreatment (29 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientDistortedConvergesAtSecondOrderInInterior (29 ms)
+[       OK ] GridRefinementTest.DiffusionOrthogonalUncorrectedConvergesAtSecondOrder (9 ms)
+[       OK ] GridRefinementTest.DiffusionOrthogonalCorrectionFlagIsInertOnCartesianMesh (22 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedUncorrectedGlobalOrderReflectsBoundaryTreatment (9 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedUncorrectedConvergesInInterior (9 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedCorrectedGlobalOrderReflectsBoundaryTreatment (35 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedCorrectedGlobal (36 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedUncorrectedGlobal (10 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedCorrectedConvergesAtSecondOrderInInterior (35 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedCorrectedGreenGaussInterior (30 ms)
+[       OK ] GridRefinementTest.DiffusionModeratelyDistortedUncorrectedInterior (10 ms)
+[       OK ] GridRefinementTest.DiffusionModeratelyDistortedCorrectedConvergesAtSecondOrderInInterior (39 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedUncorrectedInterior (14 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedCorrectedConvergesAtSecondOrderInInterior (62 ms)
+[       OK ] TimeDerivativeTest.ExactCoefficientsForSingleCell (0 ms)
+[       OK ] TimeDerivativeTest.DifferentVolumesScaleDiagonalAndSourceIndependently (0 ms)
+[       OK ] TimeDerivativeTest.PreviousFieldIsNotMutated (0 ms)
+[       OK ] TimeDerivativeTest.RejectsFieldSizeMismatch (0 ms)
+[       OK ] TimeDerivativeTest.RejectsNonPositiveDeltaT (0 ms)
+[       OK ] TimeDerivativeTest.RejectsNonFiniteOrNonPositiveDensity (0 ms)
+[       OK ] TimeDerivativeTest.RejectsNonFiniteDeltaT (0 ms)
+[       OK ] TimeDerivativeTest.ImplicitEulerOdeConvergesAtFirstOrder (0 ms)
+[       OK ] VectorGradientTest.LinearShearFieldIsExactEverywhere (0 ms)
+[       OK ] VectorGradientTest.UniformVelocityGivesZeroGradientEverywhere (0 ms)
+[       OK ] VectorGradientTest.LeastSquaresIsExactForLinearFieldOnDistortedMesh (2 ms)
+[       OK ] VectorGradientTest.MismatchedVelocitySizeThrows (0 ms)
+[==========] 135 tests from 18 test suites ran. (716 ms total)
+[  PASSED  ] 135 tests.
+################ tests/unit/physics/CFDPhysicsTests
+[==========] Running 98 tests from 15 test suites.
+[       OK ] FluidPropertiesTest.StoresDensityAndViscosity (0 ms)
+[       OK ] FluidPropertiesTest.KinematicViscosityIsMuOverRho (0 ms)
+[       OK ] FluidPropertiesTest.RejectsZeroDensity (1 ms)
+[       OK ] FluidPropertiesTest.RejectsNegativeDensity (0 ms)
+[       OK ] FluidPropertiesTest.RejectsZeroViscosity (0 ms)
+[       OK ] FluidPropertiesTest.RejectsNegativeViscosity (0 ms)
+[       OK ] FluidPropertiesTest.RejectsNonFiniteDensity (0 ms)
+[       OK ] FluidPropertiesTest.RejectsNonFiniteViscosity (0 ms)
+[       OK ] MassFluxTest.InternalFaceValue (0 ms)
+[       OK ] MassFluxTest.TangentialVelocityAtVerticalFaceGivesZeroFlux (0 ms)
+[       OK ] MassFluxTest.StationaryWallGivesZeroFlux (0 ms)
+[       OK ] MassFluxTest.TangentialMovingWallGivesZeroFlux (0 ms)
+[       OK ] MassFluxTest.InletFluxIsNegativeOutletFluxIsPositive (0 ms)
+[       OK ] MassFluxTest.ChannelMassBalanceExample (0 ms)
+[       OK ] MassFluxTest.MismatchedVelocitySizeThrows (0 ms)
+[       OK ] ContinuityEquationTest.ClosedZeroVelocityCavityHasZeroImbalance (0 ms)
+[       OK ] ContinuityEquationTest.InternalFacePairCancelsExactly (0 ms)
+[       OK ] ContinuityEquationTest.UniformChannelHasLocalBalanceEverywhere (0 ms)
+[       OK ] ContinuityEquationTest.GlobalDivergenceTheoremIdentityHolds (0 ms)
+[       OK ] ContinuityEquationTest.DivergenceFreeRotationalFieldGivesNearZeroImbalance (0 ms)
+[       OK ] ContinuityEquationTest.NonSolenoidalFieldIsDetected (0 ms)
+[       OK ] ContinuityEquationTest.MismatchedMassFluxSizeThrows (0 ms)
+[       OK ] MomentumDiffusionTest.ConstantVelocityGivesZeroContributionEverywhere (0 ms)
+[       OK ] MomentumDiffusionTest.InteriorCellsMatchKnownQuadraticLaplacian (0 ms)
+[       OK ] MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric (0 ms)
+[       OK ] MomentumDiffusionTest.DiagonalIsFinitePositiveAndNonzero (0 ms)
+[       OK ] MomentumDiffusionTest.MismatchedVelocitySizeThrows (0 ms)
+[       OK ] MomentumDiffusionTest.UniformEffectiveViscosityFieldMatchesConstantOverload (0 ms)
+[       OK ] MomentumDiffusionTest.NonUniformEffectiveViscosityChangesDiffusionCoefficients (0 ms)
+[       OK ] MomentumDiffusionTest.MismatchedEffectiveViscosityFieldSizeThrows (0 ms)
+[       OK ] MomentumDiffusionTest.NonFiniteOrNonPositiveEffectiveViscosityFieldThrows (0 ms)
+[       OK ] MomentumConvectionTest.PositiveInternalFluxSelectsOwnerNegativeSelectsNeighbor (0 ms)
+[       OK ] MomentumConvectionTest.BoundaryOutflowUsesOwnerUnknownNotBoundaryValue (0 ms)
+[       OK ] MomentumConvectionTest.BoundaryInflowUsesBoundaryValueOnRhs (0 ms)
+[       OK ] MomentumConvectionTest.ConstantFieldGivesZeroNetContribution (0 ms)
+[       OK ] MomentumConvectionTest.DefaultSchemeArgumentMatchesExplicitUpwind (0 ms)
+[       OK ] MomentumConvectionTest.NonUpwindSchemeAddsAnExplicitCorrectionOnlyOnInternalFaces (0 ms)
+[       OK ] MomentumConvectionTest.MismatchedMassFluxSizeThrows (0 ms)
+[       OK ] MomentumPressureTest.LinearPressureXGivesNegativeXSourceZeroYSource (0 ms)
+[       OK ] MomentumPressureTest.LinearPressureYGivesNegativeYSourceZeroXSource (0 ms)
+[       OK ] MomentumPressureTest.ConstantPressureGivesZeroSource (0 ms)
+[       OK ] MomentumPressureTest.AddingConstantToPressureDoesNotChangeSource (0 ms)
+[       OK ] MomentumPressureTest.DefaultGradientSchemeArgumentMatchesExplicitGreenGauss (0 ms)
+[       OK ] MomentumPressureTest.LeastSquaresSchemeIsWiredThroughAndAlsoExactForALinearPressureField (0 ms)
+[       OK ] MomentumPressureTest.MismatchedPressureSizeThrows (0 ms)
+[       OK ] MomentumAssemblyTest.CavityAssemblyIsFiniteWithLidForcingOnUOnly (0 ms)
+[       OK ] MomentumAssemblyTest.ChannelAssemblyHasCorrectDimensionsAndFiniteCoefficients (0 ms)
+[       OK ] MomentumAssemblyTest.RepeatedAssemblyIsDeterministic (0 ms)
+[       OK ] MomentumAssemblyTest.UAndVSystemsAreIndependentScalarSystems (0 ms)
+[       OK ] BoussinesqBuoyancyTest.ConstructsWithValidParameters (0 ms)
+[       OK ] BoussinesqBuoyancyTest.RejectsNonPositiveReferenceDensity (0 ms)
+[       OK ] BoussinesqBuoyancyTest.RejectsNegativeBeta (0 ms)
+[       OK ] BoussinesqBuoyancyTest.AcceptsZeroBeta (0 ms)
+[       OK ] BoussinesqBuoyancyTest.RejectsNonFiniteInputs (0 ms)
+[       OK ] BoussinesqBuoyancyTest.RejectsNonFiniteTemperature (0 ms)
+[       OK ] BoussinesqBuoyancyTest.ReferenceTemperatureGivesZeroSource (0 ms)
+[       OK ] BoussinesqBuoyancyTest.ZeroBetaGivesZeroSourceForAnyTemperature (0 ms)
+[       OK ] BoussinesqBuoyancyTest.ZeroGravityGivesZeroSourceForAnyTemperature (0 ms)
+[       OK ] BoussinesqBuoyancyTest.HotCellWithDownwardGravityDrivesFluidUpward (0 ms)
+[       OK ] BoussinesqBuoyancyTest.ColdCellWithDownwardGravityDrivesFluidDownward (0 ms)
+[       OK ] BoussinesqBuoyancyTest.ReversingGravityReversesTheHotCellDirection (0 ms)
+[       OK ] BoussinesqBuoyancyTest.SourceIsLinearInTemperatureDeviation (0 ms)
+[       OK ] BoussinesqBuoyancyTest.HorizontalGravityProducesHorizontalSourceOnly (0 ms)
+[       OK ] BoussinesqBuoyancyTest.MomentumContributionScalesWithCellVolume (0 ms)
+[       OK ] BoussinesqBuoyancyTest.DoublingCellVolumeDoublesIntegratedSource (0 ms)
+[       OK ] BoussinesqBuoyancyTest.UniformReferenceTemperatureGivesZeroMomentumContribution (0 ms)
+[       OK ] BoussinesqBuoyancyTest.MismatchedTemperatureSizeThrows (0 ms)
+[       OK ] ConstantPropertyTest.ReturnsTheSameValueForAnyTemperature (0 ms)
+[       OK ] ConstantPropertyTest.RejectsNonFiniteReferenceValue (0 ms)
+[       OK ] ConstantPropertyTest.RejectsNonFiniteTemperatureQuery (0 ms)
+[       OK ] LinearPropertyTest.MatchesReferenceValueAtReferenceTemperature (0 ms)
+[       OK ] LinearPropertyTest.MatchesHandWorkedValuesAboveAndBelowReference (0 ms)
+[       OK ] LinearPropertyTest.RejectsNonFiniteConstructorArguments (0 ms)
+[       OK ] LinearPropertyTest.AcceptsZeroSlopeAsAnEquivalentOfConstant (0 ms)
+[       OK ] TabulatedPropertyTest.RecoversExactTableNodes (0 ms)
+[       OK ] TabulatedPropertyTest.MidpointInterpolationMatchesHandWorkedValue (0 ms)
+[       OK ] TabulatedPropertyTest.InterpolatesWithinAnArbitraryBracket (0 ms)
+[       OK ] TabulatedPropertyTest.ClampsBelowRangeToTheFirstValue (0 ms)
+[       OK ] TabulatedPropertyTest.ClampsAboveRangeToTheLastValue (0 ms)
+[       OK ] TabulatedPropertyTest.ReportsTableRange (0 ms)
+[       OK ] TabulatedPropertyTest.RejectsFewerThanTwoPoints (0 ms)
+[       OK ] TabulatedPropertyTest.RejectsMismatchedLengths (0 ms)
+[       OK ] TabulatedPropertyTest.RejectsNonIncreasingTemperatures (0 ms)
+[       OK ] TabulatedPropertyTest.RejectsNonFiniteEntries (0 ms)
+[       OK ] EvaluatePropertyFieldTest.EvaluatesEveryCellFromItsOwnTemperature (0 ms)
+[       OK ] EvaluatePropertyFieldTest.ConstantPropertyGivesAUniformField (0 ms)
+[       OK ] EvaluatePropertyFieldTest.RejectsNonPositiveResultWhenRequired (0 ms)
+[       OK ] EvaluatePropertyFieldTest.AllowsNonPositiveResultWhenNotRequired (0 ms)
+[       OK ] EvaluatePropertyFieldTest.MismatchedTemperatureSizeThrows (0 ms)
+[       OK ] DensityPropertyDemonstrationTest.LinearDensityModelFeedsThermalDiffusivityPerCell (0 ms)
+[       OK ] MomentumVariableViscosityTest.ConstantPropertyReproducesScalarOverloadExactly (0 ms)
+[       OK ] MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue (0 ms)
+[       OK ] MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue (0 ms)
+[       OK ] MomentumVariableViscosityTest.StrongTemperatureContrastIncreasesLocalDiffusionAsymmetrically (0 ms)
+[       OK ] MomentumNonOrthogonalTest.CartesianCorrectionIsBitIdenticalForBothOverloads (2 ms)
+[       OK ] MomentumNonOrthogonalTest.LinearVelocityResidualVanishesInEveryRowWhenCorrected (6 ms)
+[       OK ] MomentumNonOrthogonalTest.ExplicitCorrectionIsGloballyConservativeWithoutDirichletFaces (2 ms)
+[       OK ] MomentumNonOrthogonalTest.CorrectionVelocityDefaultsToVelocityAndIsValidated (2 ms)
+[==========] 98 tests from 15 test suites ran. (25 ms total)
+[  PASSED  ] 98 tests.
+################ tests/unit/thermal/CFDThermalTests
+[==========] Running 83 tests from 13 test suites.
+[       OK ] ThermalPropertiesTest.StoresConductivityAndSpecificHeat (0 ms)
+[       OK ] ThermalPropertiesTest.ThermalDiffusivityIsKOverRhoCp (0 ms)
+[       OK ] ThermalPropertiesTest.RejectsZeroConductivity (1 ms)
+[       OK ] ThermalPropertiesTest.RejectsNegativeConductivity (0 ms)
+[       OK ] ThermalPropertiesTest.RejectsZeroSpecificHeat (0 ms)
+[       OK ] ThermalPropertiesTest.RejectsNegativeSpecificHeat (0 ms)
+[       OK ] ThermalPropertiesTest.RejectsNonFiniteConductivity (0 ms)
+[       OK ] ThermalPropertiesTest.RejectsNonFiniteSpecificHeat (0 ms)
+[       OK ] ThermalPropertiesTest.ThermalDiffusivityRejectsZeroDensity (0 ms)
+[       OK ] ThermalPropertiesTest.ThermalDiffusivityRejectsNegativeDensity (0 ms)
+[       OK ] ThermalPropertiesTest.ThermalDiffusivityRejectsNonFiniteDensity (0 ms)
+[       OK ] EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients (0 ms)
+[       OK ] EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric (0 ms)
+[       OK ] EnergyEquationDiffusionTest.ConstantTemperatureGivesZeroContributionEverywhere (0 ms)
+[       OK ] EnergyEquationDiffusionTest.DiagonalIsFinitePositiveAndNonzero (0 ms)
+[       OK ] EnergyEquationDiffusionTest.MismatchedTemperatureSizeThrows (0 ms)
+[       OK ] EnergyEquationConvectionTest.PositiveInternalFluxSelectsOwnerNegativeSelectsNeighbor (0 ms)
+[       OK ] EnergyEquationConvectionTest.BoundaryOutflowUsesOwnerUnknownNotBoundaryValue (0 ms)
+[       OK ] EnergyEquationConvectionTest.BoundaryInflowUsesBoundaryValueOnRhs (0 ms)
+[       OK ] EnergyEquationConvectionTest.ConstantTemperatureWithDivergenceFreeFluxGivesZeroNetContribution (0 ms)
+[       OK ] EnergyEquationConvectionTest.MismatchedTemperatureSizeThrows (0 ms)
+[       OK ] EnergyEquationConvectionTest.MismatchedMassFluxSizeThrows (0 ms)
+[       OK ] EnergyEquationSourceTest.AddsQTimesVolumeExactly (0 ms)
+[       OK ] EnergyEquationSourceTest.AccumulatesOnExistingRhs (0 ms)
+[       OK ] EnergyEquationSourceTest.RejectsNonFiniteHeatSource (0 ms)
+[       OK ] EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients (0 ms)
+[       OK ] EnergyEquationAssemblyTest.ProducesCorrectDimensions (0 ms)
+[       OK ] EnergyEquationAssemblyTest.MismatchedTemperatureSizeThrows (0 ms)
+[       OK ] EnergyEquationAssemblyTest.MismatchedMassFluxSizeThrows (0 ms)
+[       OK ] EnergyEquationAssemblyTest.RejectsNonFiniteHeatSource (0 ms)
+[       OK ] EnergyEquationAssemblyTest.NonFiniteTemperatureAtGradientBoundaryThrowsNumericalError (0 ms)
+[       OK ] EnergyEquationAssemblyTest.NonFiniteMassFluxThrowsInvalidArgumentError (0 ms)
+[       OK ] EnergyEquationAssemblyTest.RepeatedAssemblyIsDeterministic (0 ms)
+[       OK ] EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue (0 ms)
+[       OK ] EnergyEquationThermalBCIntegrationTest.HeatFluxAndAdiabaticBoundariesMatchHandDerivedRhs (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.DiffusionUniformFieldMatchesScalarOverloadExactly (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.RejectsNonFiniteOrNonPositiveConductivityField (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.DiffusionMismatchedConductivityFieldSizeThrows (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.ConvectionUniformFieldMatchesScalarOverloadExactly (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.ConvectionUsesUpwindCellsOwnSpecificHeat (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.ConvectionSwitchesToNeighborsSpecificHeatWhenItIsUpwind (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.RejectsNonFiniteOrNonPositiveSpecificHeatField (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.CombinerUniformFieldsMatchScalarThermalProperties (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.CombinerProducesCorrectDimensionsAndIsFinite (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.CombinerMismatchedFieldSizeThrows (0 ms)
+[       OK ] EnergyEquationVariablePropertiesTest.CombinerRepeatedAssemblyIsDeterministic (0 ms)
+[       OK ] ThermalSolverTest.ConvergesAndMatchesAnalytical1DConductionProfile (108 ms)
+[       OK ] ThermalSolverTest.InvalidConfigurationForMismatchedTemperatureSize (0 ms)
+[       OK ] ThermalSolverTest.InvalidConfigurationForMismatchedMassFluxSize (0 ms)
+[       OK ] ThermalSolverTest.MaxIterationsWhenOuterBudgetTooSmall (0 ms)
+[       OK ] ThermalSolverTest.LinearSolveFailureWhenInnerSolverIsStarved (0 ms)
+[       OK ] ThermalSolverTest.InvalidConfigurationForInvalidLinearSolverSettings (0 ms)
+[       OK ] ThermalSolverTest.InvalidConfigurationForZeroOuterMaxIterations (0 ms)
+[       OK ] ThermalSolverTest.InvalidConfigurationForNonPositiveTolerance (0 ms)
+[       OK ] ThermalSolverTest.NonFiniteStateForNonFiniteInitialTemperature (0 ms)
+[       OK ] ThermalSolverTest.NonFiniteStateForNonFiniteMassFlux (0 ms)
+[       OK ] ThermalSolverTest.RepeatedSolveIsDeterministic (167 ms)
+[       OK ] ThermalSolverVariablePropertiesTest.ConstantModelsReproduceThermalPropertiesOverloadExactly (189 ms)
+[       OK ] ThermalSolverVariablePropertiesTest.InvalidConfigurationForMismatchedTemperatureSize (0 ms)
+[       OK ] ThermalSolverVariablePropertiesTest.NonFiniteStateWhenPropertyModelPredictsNonPositiveValue (0 ms)
+[       OK ] ThermalSolverVariablePropertiesTest.RepeatedSolveIsDeterministic (3892 ms)
+[       OK ] ThermalSolverVariablePropertiesTest.VariableConductivityMatchesManufacturedAnalyticalProfile (31952 ms)
+[       OK ] ThermalRegionMapTest.ConstructsAndReportsCellRegions (0 ms)
+[       OK ] ThermalRegionMapTest.RejectsEmptyRegions (0 ms)
+[       OK ] ThermalRegionMapTest.RejectsDuplicateRegionNames (0 ms)
+[       OK ] ThermalRegionMapTest.RejectsEmptyCellRegionIndex (0 ms)
+[       OK ] ThermalRegionMapTest.RejectsOutOfRangeRegionIndex (0 ms)
+[       OK ] ThermalRegionMapTest.RegionForCellOutOfRangeThrows (0 ms)
+[       OK ] InterfaceConductanceTest.MatchesHandDerivedExample (0 ms)
+[       OK ] InterfaceConductanceTest.EqualConductivityReducesToPlainFormula (0 ms)
+[       OK ] InterfaceConductanceTest.RejectsNonPositiveConductivity (0 ms)
+[       OK ] InterfaceConductanceTest.RejectsNonPositiveDistance (0 ms)
+[       OK ] InterfaceConductanceTest.RejectsNonFiniteInputs (0 ms)
+[       OK ] RegionAwareThermalDiffusionTest.InterfaceCoefficientMatchesHandDerivedExample (0 ms)
+[       OK ] RegionAwareThermalDiffusionTest.EqualConductivityMatchesSingleMaterialPathExactly (1 ms)
+[       OK ] RegionAwareThermalDiffusionTest.MismatchedTemperatureSizeThrows (0 ms)
+[       OK ] RegionAwareThermalDiffusionTest.MismatchedRegionSizeThrows (0 ms)
+[       OK ] RegionAwareThermalDiffusionTest.RepeatedAssemblyIsDeterministic (0 ms)
+[       OK ] ThermalNonOrthogonalTest.NonOrthogonalDiffusion (1777 ms)
+[       OK ] ThermalNonOrthogonalTest.CartesianSolveIsBitIdentical (259 ms)
+[       OK ] ThermalNonOrthogonalTest.PrescribedFluxWallsKeepEnergyBalance (827 ms)
+[==========] 83 tests from 13 test suites ran. (39189 ms total)
+[  PASSED  ] 83 tests.
+################ tests/solver/compressible_simple/CFDCompressibleSimpleTests
+[==========] Running 28 tests from 6 test suites.
+[       OK ] CompressibleRelaxedMomentumTest.AlphaOneMatchesUnrelaxedCompressibleMomentumComponentExactly (1 ms)
+[       OK ] CompressibleRelaxedMomentumTest.RelaxationMatchesHandDerivedPatankarFormula (0 ms)
+[       OK ] CompressibleRelaxedMomentumTest.MismatchedVelocitySizeThrows (1 ms)
+[       OK ] CompressibleRelaxedMomentumTest.MismatchedMassFluxSizeThrows (0 ms)
+[       OK ] CompressibleRelaxedMomentumTest.RejectsNonPositivePseudoTimeStep (0 ms)
+[       OK ] CompressiblePressureCorrectionTest.NegligibleCompressibilityMatchesIncompressibleEquation (0 ms)
+[       OK ] CompressiblePressureCorrectionTest.CompressibilityDiagonalMatchesHandFormula (0 ms)
+[       OK ] CompressiblePressureCorrectionTest.MismatchedPredictorMassFluxSizeThrows (0 ms)
+[       OK ] CompressiblePressureCorrectionTest.RejectsNonPositivePseudoTimeStep (0 ms)
+[       OK ] CompressiblePressureCorrectionTest.RejectsOutOfRangeReferenceCell (0 ms)
+[       OK ] CompressiblePressureCorrectionTest.OpenBoundaryDoesNotPinReferenceCell (0 ms)
+[       OK ] CompressibleSimpleTest.ReducesToIncompressibleSimpleWithNegligibleCompressibility (372 ms)
+[       OK ] CompressibleSimpleTest.TinyCavityConvergesWithGenuineCompressibility (167 ms)
+[       OK ] CompressibleSimpleTest.RepeatedRunIsDeterministic (365 ms)
+[       OK ] CompressibleSimpleTest.InvalidSettingsReportInvalidConfiguration (0 ms)
+[       OK ] CompressibleSimpleTest.InitialStateOutsideEosDomainReportsInvalidConfiguration (0 ms)
+[       OK ] CompressibleSimpleTest.NonPhysicalPressureTransientReportsNonFiniteState (5 ms)
+[       OK ] CompressibleSimpleTest.MismatchedInitialFieldSizeReportsInvalidConfiguration (0 ms)
+[       OK ] CompressibleSimpleSettingsTest.RejectsZeroMaxIterations (0 ms)
+[       OK ] CompressibleSimpleSettingsTest.RejectsNonPositivePseudoTimeStep (0 ms)
+[       OK ] CompressibleSimpleSettingsTest.RejectsOutOfRangeRelaxation (0 ms)
+[       OK ] CompressibleSIMPLENonOrthogonalTest.CartesianCompatibility (73 ms)
+[       OK ] CompressibleSIMPLENonOrthogonalTest.NonOrthogonalPressureCorrection (3277 ms)
+[       OK ] CompressibleSIMPLENonOrthogonalTest.NonOrthogonalOpenChannel (12225 ms)
+[       OK ] CompressibleSIMPLENonOrthogonalTest.LowMachRegression (5803 ms)
+[       OK ] CompressibleSIMPLERobustnessTest.RobustnessRegression (7840 ms)
+[       OK ] CompressibleSIMPLERobustnessTest.FallbackRecovery (4862 ms)
+[       OK ] CompressibleSIMPLERobustnessTest.LowMachRegression (1605 ms)
+[==========] 28 tests from 6 test suites ran. (36607 ms total)
+[  PASSED  ] 28 tests.
+################ tests/solver/simple/CFDSimpleTests
+[==========] Running 109 tests from 22 test suites.
+[       OK ] SIMPLESettingsTest.DefaultsAreValid (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsZeroMaxIterations (2 ms)
+[       OK ] SIMPLESettingsTest.RejectsZeroVelocityRelaxation (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsNegativeVelocityRelaxation (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsVelocityRelaxationAboveOne (0 ms)
+[       OK ] SIMPLESettingsTest.AcceptsVelocityRelaxationExactlyOne (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsNonFinitePressureRelaxation (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsZeroVelocityTolerance (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsNegativePressureTolerance (0 ms)
+[       OK ] SIMPLESettingsTest.RejectsNonFiniteContinuityTolerance (0 ms)
+[       OK ] SIMPLESettingsTest.NonOrthogonalOptionsFollowTheCorrectionCountAndGradientScheme (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.RelaxedDiagonalMatchesAPOverAlphaExactly (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.RelaxedSourceMatchesDerivationExactly (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.OffDiagonalCoefficientsAreUnchanged (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.AlphaOneIsAnExactNoOp (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.RejectsAlphaOutOfRange (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.RejectsMismatchedPreviousValueSize (0 ms)
+[       OK ] MomentumPredictorRelaxationTest.RejectsMismatchedRhsSize (0 ms)
+[       OK ] PressureCorrectionTest.TwoCellProbeSourceSignAndSolutionMatchHandDerivation (0 ms)
+[       OK ] PressureCorrectionTest.ReferenceRowIsExactIdentity (0 ms)
+[       OK ] PressureCorrectionTest.ConstantResponseCoefficientGivesSymmetricInternalCoupling (0 ms)
+[       OK ] PressureCorrectionTest.NonReferenceRowsConserveConstantInput (0 ms)
+[       OK ] PressureCorrectionTest.BoundaryFacesGetZeroCoefficient (0 ms)
+[       OK ] PressureCorrectionTest.MismatchedReferenceCellThrows (0 ms)
+[       OK ] PressureCorrectionTest.NonPositiveDensityThrows (0 ms)
+[       OK ] PressureCorrectionTest.OpenBoundaryDirichletCouplingMatchesHandDerivation (0 ms)
+[       OK ] PressureCorrectionTest.OpenBoundaryDoesNotForceReferenceCellRow (0 ms)
+[       OK ] VelocityCorrectionTest.ConstantPressureCorrectionGivesZeroVelocityCorrection (0 ms)
+[       OK ] VelocityCorrectionTest.LinearPressureCorrectionGivesExpectedComponentwiseCorrection (0 ms)
+[       OK ] VelocityCorrectionTest.DifferentUAndVResponseCoefficientsApplyToTheirOwnComponent (0 ms)
+[       OK ] VelocityCorrectionTest.DefaultGradientSchemeArgumentMatchesExplicitGreenGauss (0 ms)
+[       OK ] VelocityCorrectionTest.LeastSquaresSchemeIsWiredThroughAndMatchesOnInteriorCells (0 ms)
+[       OK ] VelocityCorrectionTest.MismatchedSizeThrows (0 ms)
+[       OK ] FluxCorrectionTest.InternalFaceCorrectionMatchesDCoefficientTimesPressureDifference (0 ms)
+[       OK ] FluxCorrectionTest.BoundaryFluxIsUnchangedByCorrection (0 ms)
+[       OK ] FluxCorrectionTest.ConstantPressureCorrectionGivesZeroFluxCorrectionEverywhere (0 ms)
+[       OK ] FluxCorrectionTest.MismatchedFaceCoefficientSizeThrows (0 ms)
+[       OK ] SIMPLEContinuityTest.ReducedClosedProbeContinuityImprovesAcrossIterations (60 ms)
+[       OK ] SIMPLEContinuityTest.GlobalMassImbalanceStaysNearZeroForClosedDomain (239 ms)
+[       OK ] SIMPLEConvergenceTest.TinyFourByFourCavityConverges (233 ms)
+[       OK ] SIMPLEConvergenceTest.CavityRe100_20x20Converges (42777 ms)
+[       OK ] SIMPLEFailureTest.MaxIterationsIsNotReportedAsConverged (2 ms)
+[       OK ] SIMPLEFailureTest.MomentumSolverTooFewIterationsReportsMomentumFailure (1 ms)
+[       OK ] SIMPLEFailureTest.PressureSolverTooFewIterationsReportsPressureCorrectionFailure (1 ms)
+[       OK ] SIMPLEFailureTest.InvalidSettingsReportInvalidConfiguration (0 ms)
+[       OK ] SIMPLEFailureTest.MismatchedInitialFieldSizeReportsInvalidConfiguration (0 ms)
+[       OK ] SIMPLEFailureTest.InvalidInnerSolverSettingsReportInvalidConfiguration (0 ms)
+[       OK ] SIMPLEFailureTest.OutOfRangeReferenceCellReportsInvalidConfiguration (0 ms)
+[       OK ] SIMPLENonFiniteTest.NaNInitialVelocityIsDetectedImmediately (0 ms)
+[       OK ] SIMPLENonFiniteTest.InfiniteInitialPressureIsDetectedImmediately (0 ms)
+[       OK ] SIMPLEDeterminismTest.RepeatedSolveIsBitIdentical (469 ms)
+[       OK ] SIMPLEDeterminismTest.RepeatedSolveIsBitIdenticalThirdRun (454 ms)
+[       OK ] SIMPLETurbulenceTest.DefaultTurbulenceModelMatchesExplicitLaminarModel (455 ms)
+[       OK ] SIMPLETurbulenceTest.ElevatedEddyViscosityChangesConvergedVelocityField (443 ms)
+[       OK ] SIMPLEKEpsilonTest.EndToEndLoopIsConnectedAndProducesPhysicalFields (441 ms)
+[       OK ] SIMPLEKEpsilonTest.RepeatedSolveIsBitIdentical (467 ms)
+[       OK ] SIMPLEKEpsilonTest.ConvergedStatusImpliesTurbulenceResidualWithinTolerance (228 ms)
+[       OK ] SIMPLEKOmegaTest.EndToEndLoopIsConnectedAndProducesPhysicalFields (414 ms)
+[       OK ] SIMPLEKOmegaTest.RepeatedSolveIsBitIdentical (535 ms)
+[       OK ] SIMPLEKOmegaTest.ConvergedStatusImpliesTurbulenceResidualWithinTolerance (260 ms)
+[       OK ] SIMPLESSTTest.EndToEndLoopIsConnectedAndProducesPhysicalFields (518 ms)
+[       OK ] SIMPLESSTTest.WallDistanceFieldIsSane (0 ms)
+[       OK ] SIMPLESSTTest.RepeatedSolveIsBitIdentical (595 ms)
+[       OK ] SIMPLESSTTest.ConvergedStatusImpliesTurbulenceResidualWithinTolerance (306 ms)
+[       OK ] SIMPLETurbulenceModelsTest.LaminarKEpsilonKOmegaAndSSTProduceDistinctModelsAndMuT (1615 ms)
+[       OK ] SIMPLEBuoyancyTest.CaseA_NoBuoyancySuppliedIsTheBaseline (223 ms)
+[       OK ] SIMPLEBuoyancyTest.CaseB_BetaZeroMatchesNoBuoyancyBitForBit (476 ms)
+[       OK ] SIMPLEBuoyancyTest.CaseC_ZeroGravityMatchesNoBuoyancyBitForBit (449 ms)
+[       OK ] SIMPLEBuoyancyTest.UniformReferenceTemperatureMatchesNoBuoyancyBitForBit (479 ms)
+[       OK ] SIMPLEBuoyancyTest.RealBuoyancySourceChangesConvergedVelocityField (610 ms)
+[       OK ] SIMPLEBuoyancyTest.RejectsTemperatureWithoutBuoyancy (0 ms)
+[       OK ] SIMPLEBuoyancyTest.RejectsBuoyancyWithoutTemperature (0 ms)
+[       OK ] SIMPLEBuoyancyTest.RejectsMismatchedTemperatureSize (0 ms)
+[       OK ] SIMPLEBuoyancyTest.RepeatedBuoyantSolveIsBitIdentical (814 ms)
+[       OK ] SIMPLEGpuResidencyTest.DisabledByDefaultIssuesNoGpuActivity (3 ms)
+[       OK ] SIMPLEGpuResidencyTest.EnablingResidencyDoesNotChangeTheComputedResult (9 ms)
+[       OK ] SIMPLEGpuResidencyTest.RepeatedOuterIterationsReuseGpuResidencyWithoutReallocating (10 ms)
+[       OK ] SIMPLEGpuSolverTest.GpuBackendReproducesCpuCavitySolutionWithinTolerance (1635 ms)
+[       OK ] SIMPLEGpuSolverTest.GpuBackendSatisfiesTheSameConvergenceCriteria (792 ms)
+[       OK ] SIMPLEGpuSolverTest.RepeatedOuterIterationsReuseGpuSolverBuffersWithoutReallocating (37 ms)
+[       OK ] SIMPLENonOrthogonalTest.DefaultSettingsDisableTheCorrection (0 ms)
+[       OK ] SIMPLENonOrthogonalTest.CartesianExtraPassesOnlyDifferByLinearSolverTolerance (905 ms)
+[       OK ] SIMPLENonOrthogonalTest.NonOrthogonalCorrectionsZeroPreservesBaseline (6076 ms)
+[       OK ] SIMPLENonOrthogonalTest.DistortedMeshMild (18877 ms)
+[       OK ] SIMPLENonOrthogonalTest.DistortedMeshModerate (18885 ms)
+[       OK ] SIMPLENonOrthogonalTest.DistortedMeshStrong (34399 ms)
+[       OK ] SIMPLENonOrthogonalTest.NonOrthogonalMassConservation (9245 ms)
+[       OK ] SIMPLENonOrthogonalTest.NonOrthogonalDeterministic (12257 ms)
+[       OK ] SIMPLENonOrthogonalTest.NonOrthogonalCorrectionPassCount (113 ms)
+[       OK ] SIMPLENonOrthogonalTest.CorrectedSolveIsCloserToExactCouetteFlowOnDistortedMesh (37254 ms)
+[       OK ] NonOrthogonalCorrectionPassesTest.AtMostOnePassRunsNothing (2 ms)
+[       OK ] NonOrthogonalCorrectionPassesTest.PassesExecuteAndTheCorrectorIterationConverges (42 ms)
+[       OK ] NonOrthogonalCorrectionPassesTest.PassesChangeOnlyTheRightHandSide (7 ms)
+[       OK ] NonOrthogonalCorrectionPassesTest.Deterministic (25 ms)
+[       OK ] PressureCorrectionNonOrthogonalTest.CartesianCompatibility (0 ms)
+[       OK ] PressureCorrectionNonOrthogonalTest.NonOrthogonalInternalFace (0 ms)
+[       OK ] PressureCorrectionNonOrthogonalTest.NonOrthogonalConservation (2 ms)
+[       OK ] PressureCorrectionNonOrthogonalTest.NonOrthogonalBoundary (0 ms)
+[       OK ] PressureCorrectionNonOrthogonalTest.DegenerateGeometryRejected (0 ms)
+[       OK ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline (538 ms)
+[       OK ] SIMPLERobustnessTest.NormalizedResidualConvergence (4105 ms)
+[       OK ] SIMPLERobustnessTest.StagnationStatus (11546 ms)
+[       OK ] SIMPLERobustnessTest.NormalConvergenceIsNotStagnationOrDivergence (3532 ms)
+[       OK ] SIMPLERobustnessTest.DivergenceStatus (56 ms)
+[       OK ] SIMPLERobustnessTest.AdaptiveRelaxationRecovery (2990 ms)
+[       OK ] SIMPLERobustnessTest.LinearSolverFallbackRecovery (1849 ms)
+[       OK ] SIMPLERobustnessTest.Deterministic (4219 ms)
+[       OK ] SIMPLERobustnessTest.InvalidRobustnessSettingsAreInvalidConfiguration (0 ms)
+[       OK ] SIMPLERobustnessTest.BookkeepingOverheadIsSmall (3576 ms)
+[==========] 109 tests from 22 test suites ran. (226592 ms total)
+[  PASSED  ] 109 tests.
+
+################ 3. Operator-level MMS (GridRefinementTest, unchanged, on the library norms)
+[==========] Running 28 tests from 1 test suite.
+[       OK ] GridRefinementTest.GradientOfSmoothFieldConvergesAtSecondOrder (14 ms)
+[       OK ] GridRefinementTest.LaplacianOfSmoothFieldConvergesAtSecondOrder (9 ms)
+[       OK ] GridRefinementTest.UpwindConvectionConvergesAtFirstOrder (8 ms)
+[       OK ] GridRefinementTest.CentralConvectionOfSmoothFieldGlobalOrderReflectsBoundaryTreatment (15 ms)
+[       OK ] GridRefinementTest.CentralConvectionOfSmoothFieldConvergesAboveFirstOrderInInterior (16 ms)
+[       OK ] GridRefinementTest.LinearUpwindConvectionOfSmoothFieldGlobalOrderReflectsBoundaryTreatment (23 ms)
+[       OK ] GridRefinementTest.LinearUpwindConvectionOfSmoothFieldConvergesAboveFirstOrderInInterior (21 ms)
+[       OK ] GridRefinementTest.QuickConvectionOfSmoothFieldGlobalOrderReflectsBoundaryTreatment (15 ms)
+[       OK ] GridRefinementTest.QuickConvectionOfSmoothFieldConvergesAboveFirstOrderInInterior (16 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientCartesianGlobalOrderReflectsBoundaryTreatment (17 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientCartesianConvergesAtSecondOrderInInterior (16 ms)
+[       OK ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment (24 ms)
+[       OK ] GridRefinementTest.GreenGaussGradientDistortedConvergesAtSecondOrderInInterior (24 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientDistortedGlobalOrderReflectsBoundaryTreatment (28 ms)
+[       OK ] GridRefinementTest.LeastSquaresGradientDistortedConvergesAtSecondOrderInInterior (30 ms)
+[       OK ] GridRefinementTest.DiffusionOrthogonalUncorrectedConvergesAtSecondOrder (10 ms)
+[       OK ] GridRefinementTest.DiffusionOrthogonalCorrectionFlagIsInertOnCartesianMesh (23 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedUncorrectedGlobalOrderReflectsBoundaryTreatment (10 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedUncorrectedConvergesInInterior (9 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedCorrectedGlobalOrderReflectsBoundaryTreatment (34 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedCorrectedGlobal (37 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedUncorrectedGlobal (9 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedCorrectedConvergesAtSecondOrderInInterior (35 ms)
+[       OK ] GridRefinementTest.DiffusionDistortedCorrectedGreenGaussInterior (30 ms)
+[       OK ] GridRefinementTest.DiffusionModeratelyDistortedUncorrectedInterior (9 ms)
+[       OK ] GridRefinementTest.DiffusionModeratelyDistortedCorrectedConvergesAtSecondOrderInInterior (35 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedUncorrectedInterior (9 ms)
+[       OK ] GridRefinementTest.DiffusionStronglyDistortedCorrectedConvergesAtSecondOrderInInterior (36 ms)
+[==========] 28 tests from 1 test suite ran. (592 ms total)
+[  PASSED  ] 28 tests.
+
+################ 4. System-level MMS (ctest -j16 -V, all enabled CFDMMSValidationTests)
+UpdateCTestConfiguration  from :<repo>/build/debug/DartConfiguration.tcl
+Parse Config file:<repo>/build/debug/DartConfiguration.tcl
+UpdateCTestConfiguration  from :<repo>/build/debug/DartConfiguration.tcl
+Parse Config file:<repo>/build/debug/DartConfiguration.tcl
+Test project <repo>/build/debug
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1591
+      Start 1591: ScalarMMS.AdvectionDiffusionConverges
+
+1591: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=ScalarMMS.AdvectionDiffusionConverges" "--gtest_also_run_disabled_tests"
+1591: Test timeout computed to be: 1500
+test 1592
+      Start 1592: ScalarMMS.DistortedMeshNonOrthogonalCorrection
+
+1592: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=ScalarMMS.DistortedMeshNonOrthogonalCorrection" "--gtest_also_run_disabled_tests"
+1592: Test timeout computed to be: 1500
+test 1593
+      Start 1593: MomentumMMS.UConverges
+
+1593: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=MomentumMMS.UConverges" "--gtest_also_run_disabled_tests"
+1593: Test timeout computed to be: 1500
+test 1594
+      Start 1594: MomentumMMS.VConverges
+
+1594: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=MomentumMMS.VConverges" "--gtest_also_run_disabled_tests"
+1594: Test timeout computed to be: 1500
+test 1595
+      Start 1595: MomentumMMS.PressureGradientBalance
+
+1595: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=MomentumMMS.PressureGradientBalance" "--gtest_also_run_disabled_tests"
+1595: Test timeout computed to be: 1500
+test 1596
+      Start 1596: MomentumMMS.DistortedMesh
+
+1596: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=MomentumMMS.DistortedMesh" "--gtest_also_run_disabled_tests"
+1596: Test timeout computed to be: 1500
+test 1597
+      Start 1597: ContinuityMMS.DivergenceFreeField
+
+1597: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=ContinuityMMS.DivergenceFreeField" "--gtest_also_run_disabled_tests"
+1597: Test timeout computed to be: 1500
+test 1598
+      Start 1598: SIMPLEMMS.ConvergesFromNonExactInitialCondition
+
+1598: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.ConvergesFromNonExactInitialCondition" "--gtest_also_run_disabled_tests"
+1598: Test timeout computed to be: 1500
+test 1599
+      Start 1599: SIMPLEMMS.VelocityConvergesAtExpectedOrder
+
+1599: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.VelocityConvergesAtExpectedOrder" "--gtest_also_run_disabled_tests"
+1599: Test timeout computed to be: 1500
+test 1600
+      Start 1600: SIMPLEMMS.PressureConvergesAtExpectedOrder
+
+1600: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.PressureConvergesAtExpectedOrder" "--gtest_also_run_disabled_tests"
+1600: Test timeout computed to be: 1500
+test 1601
+      Start 1601: SIMPLEMMS.ContinuityConverges
+
+1601: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.ContinuityConverges" "--gtest_also_run_disabled_tests"
+1601: Test timeout computed to be: 1500
+test 1602
+      Start 1602: SIMPLEMMS.GlobalMassBalance
+
+1602: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.GlobalMassBalance" "--gtest_also_run_disabled_tests"
+1602: Test timeout computed to be: 1500
+test 1603
+      Start 1603: SIMPLEMMS.Deterministic
+
+1603: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.Deterministic" "--gtest_also_run_disabled_tests"
+1603: Test timeout computed to be: 1500
+test 1604
+      Start 1604: SIMPLEMMS.DistortedMesh
+
+1604: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=SIMPLEMMS.DistortedMesh" "--gtest_also_run_disabled_tests"
+1604: Test timeout computed to be: 1500
+test 1605
+      Start 1605: SIMPLEMMS.FineGridStudy
+ 1/16 Test #1605: SIMPLEMMS.FineGridStudy ...........................***Not Run (Disabled)   0.00 sec
+test 1606
+      Start 1606: CompressibleSimpleMMS.SystemConvergence
+
+1606: Test command: <repo>/build/debug/tests/integration/mms/CFDMMSValidationTests "--gtest_filter=CompressibleSimpleMMS.SystemConvergence" "--gtest_also_run_disabled_tests"
+1606: Test timeout computed to be: 1500
+1591: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1591: Note: Google Test filter = ScalarMMS.AdvectionDiffusionConverges
+1591: [==========] Running 1 test from 1 test suite.
+1591: [----------] Global test environment set-up.
+1591: [----------] 1 test from ScalarMMS
+1591: [ RUN      ] ScalarMMS.AdvectionDiffusionConverges
+1592: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1592: Note: Google Test filter = ScalarMMS.DistortedMeshNonOrthogonalCorrection
+1592: [==========] Running 1 test from 1 test suite.
+1592: [----------] Global test environment set-up.
+1592: [----------] 1 test from ScalarMMS
+1592: [ RUN      ] ScalarMMS.DistortedMeshNonOrthogonalCorrection
+1593: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1593: Note: Google Test filter = MomentumMMS.UConverges
+1593: [==========] Running 1 test from 1 test suite.
+1593: [----------] Global test environment set-up.
+1593: [----------] 1 test from MomentumMMS
+1593: [ RUN      ] MomentumMMS.UConverges
+1594: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1594: Note: Google Test filter = MomentumMMS.VConverges
+1594: [==========] Running 1 test from 1 test suite.
+1594: [----------] Global test environment set-up.
+1594: [----------] 1 test from MomentumMMS
+1594: [ RUN      ] MomentumMMS.VConverges
+1595: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1595: Note: Google Test filter = MomentumMMS.PressureGradientBalance
+1595: [==========] Running 1 test from 1 test suite.
+1595: [----------] Global test environment set-up.
+1595: [----------] 1 test from MomentumMMS
+1595: [ RUN      ] MomentumMMS.PressureGradientBalance
+1596: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1596: Note: Google Test filter = MomentumMMS.DistortedMesh
+1596: [==========] Running 1 test from 1 test suite.
+1596: [----------] Global test environment set-up.
+1596: [----------] 1 test from MomentumMMS
+1596: [ RUN      ] MomentumMMS.DistortedMesh
+1597: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1597: Note: Google Test filter = ContinuityMMS.DivergenceFreeField
+1597: [==========] Running 1 test from 1 test suite.
+1597: [----------] Global test environment set-up.
+1597: [----------] 1 test from ContinuityMMS
+1597: [ RUN      ] ContinuityMMS.DivergenceFreeField
+1598: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1598: Note: Google Test filter = SIMPLEMMS.ConvergesFromNonExactInitialCondition
+1598: [==========] Running 1 test from 1 test suite.
+1598: [----------] Global test environment set-up.
+1598: [----------] 1 test from SIMPLEMMS
+1598: [ RUN      ] SIMPLEMMS.ConvergesFromNonExactInitialCondition
+1599: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1599: Note: Google Test filter = SIMPLEMMS.VelocityConvergesAtExpectedOrder
+1599: [==========] Running 1 test from 1 test suite.
+1599: [----------] Global test environment set-up.
+1599: [----------] 1 test from SIMPLEMMS
+1599: [ RUN      ] SIMPLEMMS.VelocityConvergesAtExpectedOrder
+1600: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1600: Note: Google Test filter = SIMPLEMMS.PressureConvergesAtExpectedOrder
+1600: [==========] Running 1 test from 1 test suite.
+1600: [----------] Global test environment set-up.
+1600: [----------] 1 test from SIMPLEMMS
+1600: [ RUN      ] SIMPLEMMS.PressureConvergesAtExpectedOrder
+1601: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1601: Note: Google Test filter = SIMPLEMMS.ContinuityConverges
+1601: [==========] Running 1 test from 1 test suite.
+1601: [----------] Global test environment set-up.
+1601: [----------] 1 test from SIMPLEMMS
+1601: [ RUN      ] SIMPLEMMS.ContinuityConverges
+1602: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1602: Note: Google Test filter = SIMPLEMMS.GlobalMassBalance
+1602: [==========] Running 1 test from 1 test suite.
+1602: [----------] Global test environment set-up.
+1602: [----------] 1 test from SIMPLEMMS
+1602: [ RUN      ] SIMPLEMMS.GlobalMassBalance
+1603: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1603: Note: Google Test filter = SIMPLEMMS.Deterministic
+1603: [==========] Running 1 test from 1 test suite.
+1603: [----------] Global test environment set-up.
+1603: [----------] 1 test from SIMPLEMMS
+1603: [ RUN      ] SIMPLEMMS.Deterministic
+1604: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1604: Note: Google Test filter = SIMPLEMMS.DistortedMesh
+1604: [==========] Running 1 test from 1 test suite.
+1604: [----------] Global test environment set-up.
+1604: [----------] 1 test from SIMPLEMMS
+1604: [ RUN      ] SIMPLEMMS.DistortedMesh
+1606: Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+1606: Note: Google Test filter = CompressibleSimpleMMS.SystemConvergence
+1606: [==========] Running 1 test from 1 test suite.
+1606: [----------] Global test environment set-up.
+1606: [----------] 1 test from CompressibleSimpleMMS
+1606: [ RUN      ] CompressibleSimpleMMS.SystemConvergence
+1597:
+1597: ### MMS: continuity_mms
+1597:
+1597: Production face-flux interpolation (calculateMassFlux) and continuity evaluation (evaluateContinuity) of the exact divergence-free velocity
+1597:
+1597: Manufactured solution: mms::velocity (streamfunction curl; div U = 0 analytically)
+1597:
+1597: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1597: |---|---|---|---|---|---|---|
+1597: | 16x16 | 256 | 0.0625 | Evaluated | 0 | 7.95e-20 | 0.0 |
+1597: | 32x32 | 1024 | 0.03125 | Evaluated | 0 | 1.98e-20 | 0.0 |
+1597: | 64x64 | 4096 | 0.015625 | Evaluated | 0 | 4.96e-21 | 0.0 |
+1597: | 128x128 | 16384 | 0.0078125 | Evaluated | 0 | 1.24e-21 | 0.0 |
+1597:
+1597: **divergence**
+1597:
+1597: | grid | L1 | L2 | Linf |
+1597: |---|---|---|---|
+1597: | 16x16 | 6.5125e-03 | 9.5315e-03 | 4.6666e-02 |
+1597: | 32x32 | 1.7926e-03 | 3.2694e-03 | 2.4064e-02 |
+1597: | 64x64 | 4.6929e-04 | 1.1326e-03 | 1.2144e-02 |
+1597: | 128x128 | 1.2002e-04 | 3.9578e-04 | 6.0905e-03 |
+1597:
+1597: **divergence_interior**
+1597:
+1597: | grid | L1 | L2 | Linf |
+1597: |---|---|---|---|
+1597: | 16x16 | 3.9290e-03 | 4.4354e-03 | 7.6308e-03 |
+1597: | 32x32 | 9.9925e-04 | 1.1250e-03 | 2.0387e-03 |
+1597: | 64x64 | 2.5091e-04 | 2.8250e-04 | 5.2404e-04 |
+1597: | 128x128 | 6.2814e-05 | 7.0739e-05 | 1.3271e-04 |
+1597:
+1597: **divergence_boundary_ring**
+1597:
+1597: | grid | L1 | L2 | Linf |
+1597: |---|---|---|---|
+1597: | 16x16 | 1.4952e-02 | 1.7982e-02 | 4.6666e-02 |
+1597: | 32x32 | 7.5506e-03 | 8.8931e-03 | 2.4064e-02 |
+1597: | 64x64 | 3.8004e-03 | 4.4308e-03 | 1.2144e-02 |
+1597: | 128x128 | 1.9079e-03 | 2.2126e-03 | 6.0905e-03 |
+1597:
+1597: **face_flux**
+1597:
+1597: | grid | L1 | L2 | Linf |
+1597: |---|---|---|---|
+1597: | 16x16 | 1.6235e-03 | 2.0444e-03 | 4.8220e-03 |
+1597: | 32x32 | 4.0079e-04 | 5.0588e-04 | 1.2266e-03 |
+1597: | 64x64 | 9.9583e-05 | 1.2581e-04 | 3.0838e-04 |
+1597: | 128x128 | 2.4820e-05 | 3.1367e-05 | 7.7291e-05 |
+1597:
+1597: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1597: |---|---|---|---|---|---|
+1597: | face_flux | l2 | 2 | 4.041, 4.021, 4.011 | 2.017, 2.009 | asymptotic |
+1597: | divergence_interior | l2 | 2 | 3.943, 3.982, 3.994 | 1.974, 1.992 | asymptotic |
+1597: | divergence | l1 | 2 | 3.633, 3.820, 3.910 | 1.835, 1.922 | asymptotic |
+1597: | divergence_boundary_ring | linf | 1 | 1.939, 1.982, 1.994 | 0.923, 0.978 | asymptotic |
+1597:
+1597: - [x] continuity: exact face flux divergence-free per cell at 16x16: max |imbalance| 1.39e-17
+1597: - [x] continuity: global mass imbalance ~ 0 at 16x16: -7.95e-20 (zero normal wall velocity)
+1597: - [x] continuity: exact face flux divergence-free per cell at 32x32: max |imbalance| 6.94e-18
+1597: - [x] continuity: global mass imbalance ~ 0 at 32x32: -1.98e-20 (zero normal wall velocity)
+1597: - [x] continuity: exact face flux divergence-free per cell at 64x64: max |imbalance| 3.47e-18
+1597: - [x] continuity: global mass imbalance ~ 0 at 64x64: -4.96e-21 (zero normal wall velocity)
+1597: - [x] continuity: exact face flux divergence-free per cell at 128x128: max |imbalance| 1.73e-18
+1597: - [x] continuity: global mass imbalance ~ 0 at 128x128: -1.24e-21 (zero normal wall velocity)
+1597: - [x] continuity: face_flux l2 observed order in [1.80, 2.30]: finest-triplet observed order 2.009 (asymptotic vs formal 2); reduction factors 4.041 4.021 4.011
+1597: - [x] continuity: divergence_interior l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.992 (asymptotic vs formal 2); reduction factors 3.943 3.982 3.994
+1597: - [x] continuity: divergence l1 observed order in [1.50, 2.30]: finest-triplet observed order 1.922 (asymptotic vs formal 2); reduction factors 3.633 3.820 3.910
+1597: - [x] continuity: divergence L1/L2/Linf decrease on every refinement: monotone
+1597:
+1597: [       OK ] ContinuityMMS.DivergenceFreeField (95 ms)
+1597: [----------] 1 test from ContinuityMMS (95 ms total)
+1597:
+1597: [----------] Global test environment tear-down
+1597: [==========] 1 test from 1 test suite ran. (95 ms total)
+1597: [  PASSED  ] 1 test.
+ 2/16 Test #1597: ContinuityMMS.DivergenceFreeField .................   Passed    0.13 sec
+1595:
+1595: ### MMS: pressure_gradient_mms
+1595:
+1595: Production momentum pressure source -V grad(p) of the exact pressure vs the analytical -V grad p (per unit volume), x and y, Green-Gauss and least-squares
+1595:
+1595: Manufactured solution: mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+1595:
+1595: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1595: |---|---|---|---|---|---|---|
+1595: | 16x16 | 256 | 0.0625 | Evaluated | 0 | -- | 0.0 |
+1595: | 32x32 | 1024 | 0.03125 | Evaluated | 0 | -- | 0.0 |
+1595: | 64x64 | 4096 | 0.015625 | Evaluated | 0 | -- | 0.0 |
+1595: | 128x128 | 16384 | 0.0078125 | Evaluated | 0 | -- | 0.0 |
+1595:
+1595: **dpdx_green_gauss**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 1.6321e-02 | 2.7870e-02 | 1.0346e-01 |
+1595: | 32x32 | 4.0880e-03 | 9.4551e-03 | 5.1486e-02 |
+1595: | 64x64 | 1.0225e-03 | 3.2763e-03 | 2.5712e-02 |
+1595: | 128x128 | 2.5565e-04 | 1.1470e-03 | 1.2852e-02 |
+1595:
+1595: **dpdx_green_gauss_interior**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 8.4466e-03 | 9.9744e-03 | 1.9187e-02 |
+1595: | 32x32 | 2.0896e-03 | 2.5165e-03 | 4.9836e-03 |
+1595: | 64x64 | 5.1753e-04 | 6.3042e-04 | 1.2577e-03 |
+1595: | 128x128 | 1.2865e-04 | 1.5768e-04 | 3.1517e-04 |
+1595:
+1595: **dpdx_green_gauss_boundary_ring**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 4.2042e-02 | 5.4672e-02 | 1.0346e-01 |
+1595: | 32x32 | 1.8593e-02 | 2.6311e-02 | 5.1486e-02 |
+1595: | 64x64 | 8.7251e-03 | 1.2977e-02 | 2.5712e-02 |
+1595: | 128x128 | 4.2248e-03 | 6.4538e-03 | 1.2852e-02 |
+1595:
+1595: **dpdy_green_gauss**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 1.6321e-02 | 2.7870e-02 | 1.0346e-01 |
+1595: | 32x32 | 4.0880e-03 | 9.4551e-03 | 5.1486e-02 |
+1595: | 64x64 | 1.0225e-03 | 3.2763e-03 | 2.5712e-02 |
+1595: | 128x128 | 2.5565e-04 | 1.1470e-03 | 1.2852e-02 |
+1595:
+1595: **dpdy_green_gauss_interior**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 8.4466e-03 | 9.9744e-03 | 1.9187e-02 |
+1595: | 32x32 | 2.0896e-03 | 2.5165e-03 | 4.9836e-03 |
+1595: | 64x64 | 5.1753e-04 | 6.3042e-04 | 1.2577e-03 |
+1595: | 128x128 | 1.2865e-04 | 1.5768e-04 | 3.1517e-04 |
+1595:
+1595: **dpdy_green_gauss_boundary_ring**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 4.2042e-02 | 5.4672e-02 | 1.0346e-01 |
+1595: | 32x32 | 1.8593e-02 | 2.6311e-02 | 5.1486e-02 |
+1595: | 64x64 | 8.7251e-03 | 1.2977e-02 | 2.5712e-02 |
+1595: | 128x128 | 4.2248e-03 | 6.4538e-03 | 1.2852e-02 |
+1595:
+1595: **dpdx_least_squares**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 8.1918e-03 | 1.0074e-02 | 1.9954e-02 |
+1595: | 32x32 | 2.0460e-03 | 2.5221e-03 | 5.0320e-03 |
+1595: | 64x64 | 5.1137e-04 | 6.3075e-04 | 1.2607e-03 |
+1595: | 128x128 | 1.2783e-04 | 1.5770e-04 | 3.1536e-04 |
+1595:
+1595: **dpdx_least_squares_interior**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 8.4466e-03 | 9.9744e-03 | 1.9187e-02 |
+1595: | 32x32 | 2.0896e-03 | 2.5165e-03 | 4.9836e-03 |
+1595: | 64x64 | 5.1753e-04 | 6.3042e-04 | 1.2577e-03 |
+1595: | 128x128 | 1.2865e-04 | 1.5768e-04 | 3.1517e-04 |
+1595:
+1595: **dpdx_least_squares_boundary_ring**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 7.3593e-03 | 1.0392e-02 | 1.9954e-02 |
+1595: | 32x32 | 1.7295e-03 | 2.5621e-03 | 5.0320e-03 |
+1595: | 64x64 | 4.1736e-04 | 6.3572e-04 | 1.2607e-03 |
+1595: | 128x128 | 1.0239e-04 | 1.5832e-04 | 3.1536e-04 |
+1595:
+1595: **dpdy_least_squares**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 8.1918e-03 | 1.0074e-02 | 1.9954e-02 |
+1595: | 32x32 | 2.0460e-03 | 2.5221e-03 | 5.0320e-03 |
+1595: | 64x64 | 5.1137e-04 | 6.3075e-04 | 1.2607e-03 |
+1595: | 128x128 | 1.2783e-04 | 1.5770e-04 | 3.1536e-04 |
+1595:
+1595: **dpdy_least_squares_interior**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 8.4466e-03 | 9.9744e-03 | 1.9187e-02 |
+1595: | 32x32 | 2.0896e-03 | 2.5165e-03 | 4.9836e-03 |
+1595: | 64x64 | 5.1753e-04 | 6.3042e-04 | 1.2577e-03 |
+1595: | 128x128 | 1.2865e-04 | 1.5768e-04 | 3.1517e-04 |
+1595:
+1595: **dpdy_least_squares_boundary_ring**
+1595:
+1595: | grid | L1 | L2 | Linf |
+1595: |---|---|---|---|
+1595: | 16x16 | 7.3593e-03 | 1.0392e-02 | 1.9954e-02 |
+1595: | 32x32 | 1.7295e-03 | 2.5621e-03 | 5.0320e-03 |
+1595: | 64x64 | 4.1736e-04 | 6.3572e-04 | 1.2607e-03 |
+1595: | 128x128 | 1.0239e-04 | 1.5832e-04 | 3.1536e-04 |
+1595:
+1595: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1595: |---|---|---|---|---|---|
+1595: | dpdx_green_gauss_interior | l2 | 2 | 3.964, 3.992, 3.998 | 1.983, 1.996 | asymptotic |
+1595: | dpdx_least_squares_interior | l2 | 2 | 3.964, 3.992, 3.998 | 1.983, 1.996 | asymptotic |
+1595: | dpdx_green_gauss_boundary_ring | linf | 1 | 2.009, 2.002, 2.001 | 1.012, 1.003 | asymptotic |
+1595: | dpdx_green_gauss | l2 | 1.5 | 2.948, 2.886, 2.856 | 1.575, 1.537 | asymptotic |
+1595: | dpdx_least_squares_boundary_ring | linf | 1 | 3.965, 3.991, 3.998 | 1.984, 1.996 | monotonic_not_asymptotic |
+1595: | dpdx_least_squares | l2 | 2 | 3.994, 3.999, 4.000 | 1.997, 1.999 | asymptotic |
+1595: | dpdy_green_gauss_interior | l2 | 2 | 3.964, 3.992, 3.998 | 1.983, 1.996 | asymptotic |
+1595: | dpdy_least_squares_interior | l2 | 2 | 3.964, 3.992, 3.998 | 1.983, 1.996 | asymptotic |
+1595: | dpdy_green_gauss_boundary_ring | linf | 1 | 2.009, 2.002, 2.001 | 1.012, 1.003 | asymptotic |
+1595: | dpdy_green_gauss | l2 | 1.5 | 2.948, 2.886, 2.856 | 1.575, 1.537 | asymptotic |
+1595: | dpdy_least_squares_boundary_ring | linf | 1 | 3.965, 3.991, 3.998 | 1.984, 1.996 | monotonic_not_asymptotic |
+1595: | dpdy_least_squares | l2 | 2 | 3.994, 3.999, 4.000 | 1.997, 1.999 | asymptotic |
+1595:
+1595: - [x] balance: dpdx_green_gauss_interior l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.996 (asymptotic vs formal 2); reduction factors 3.964 3.992 3.998
+1595: - [x] balance: dpdx_green_gauss L1/L2/Linf decrease on every refinement: monotone
+1595: - [x] balance: dpdx_least_squares_interior l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.996 (asymptotic vs formal 2); reduction factors 3.964 3.992 3.998
+1595: - [x] balance: dpdx_least_squares L1/L2/Linf decrease on every refinement: monotone
+1595: - [x] balance: dpdx_green_gauss_boundary_ring linf observed order in [0.80, 1.20]: finest-triplet observed order 1.003 (asymptotic vs formal 1); reduction factors 2.009 2.002 2.001
+1595: - [x] balance: dpdx_green_gauss l2 observed order in [1.30, 1.70]: finest-triplet observed order 1.537 (asymptotic vs formal 2); reduction factors 2.948 2.886 2.856
+1595: - [x] balance: dpdx_least_squares_boundary_ring linf observed order in [0.80, 2.30]: finest-triplet observed order 1.996 (monotonic_not_asymptotic vs formal 1); reduction factors 3.965 3.991 3.998
+1595: - [x] balance: dpdx_least_squares l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.999 (asymptotic vs formal 2); reduction factors 3.994 3.999 4.000
+1595: - [x] balance: dpdy_green_gauss_interior l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.996 (asymptotic vs formal 2); reduction factors 3.964 3.992 3.998
+1595: - [x] balance: dpdy_green_gauss L1/L2/Linf decrease on every refinement: monotone
+1595: - [x] balance: dpdy_least_squares_interior l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.996 (asymptotic vs formal 2); reduction factors 3.964 3.992 3.998
+1595: - [x] balance: dpdy_least_squares L1/L2/Linf decrease on every refinement: monotone
+1595: - [x] balance: dpdy_green_gauss_boundary_ring linf observed order in [0.80, 1.20]: finest-triplet observed order 1.003 (asymptotic vs formal 1); reduction factors 2.009 2.002 2.001
+1595: - [x] balance: dpdy_green_gauss l2 observed order in [1.30, 1.70]: finest-triplet observed order 1.537 (asymptotic vs formal 2); reduction factors 2.948 2.886 2.856
+1595: - [x] balance: dpdy_least_squares_boundary_ring linf observed order in [0.80, 2.30]: finest-triplet observed order 1.996 (monotonic_not_asymptotic vs formal 1); reduction factors 3.965 3.991 3.998
+1595: - [x] balance: dpdy_least_squares l2 observed order in [1.80, 2.30]: finest-triplet observed order 1.999 (asymptotic vs formal 2); reduction factors 3.994 3.999 4.000
+1595:
+1595: [       OK ] MomentumMMS.PressureGradientBalance (260 ms)
+1595: [----------] 1 test from MomentumMMS (260 ms total)
+1595:
+1595: [----------] Global test environment tear-down
+1595: [==========] 1 test from 1 test suite ran. (260 ms total)
+1595: [  PASSED  ] 1 test.
+ 3/16 Test #1595: MomentumMMS.PressureGradientBalance ...............   Passed    0.30 sec
+1603: [       OK ] SIMPLEMMS.Deterministic (37490 ms)
+1603: [----------] 1 test from SIMPLEMMS (37490 ms total)
+1603:
+1603: [----------] Global test environment tear-down
+1603: [==========] 1 test from 1 test suite ran. (37490 ms total)
+1603: [  PASSED  ] 1 test.
+ 4/16 Test #1603: SIMPLEMMS.Deterministic ...........................   Passed   37.50 sec
+1592:
+1592: ### MMS: distorted_mesh_mms
+1592:
+1592: Scalar advection-diffusion MMS (diffusion-dominated, k = 5) on Cartesian vs distorted (0.25 h) meshes, with and without the P12-NUM-003 non-orthogonal correction; level status/iterations are the corrected distorted solve
+1592:
+1592: Manufactured solution: mms::scalar (as scalar_advection_diffusion_mms)
+1592:
+1592: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1592: |---|---|---|---|---|---|---|
+1592: | 16x16 | 256 | 0.0625 | Converged | 9 | 2.78e-17 | 0.1 |
+1592: | 32x32 | 1024 | 0.03125 | Converged | 8 | 6.94e-17 | 0.3 |
+1592: | 64x64 | 4096 | 0.015625 | Converged | 7 | 3.47e-17 | 6.9 |
+1592: | 128x128 | 16384 | 0.0078125 | Converged | 6 | 3.82e-17 | 35.5 |
+1592:
+1592: **phi_cartesian**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 1.6618e-03 | 2.1102e-03 | 4.4967e-03 |
+1592: | 32x32 | 1.1872e-03 | 1.4872e-03 | 3.0613e-03 |
+1592: | 64x64 | 6.8652e-04 | 8.5439e-04 | 1.7384e-03 |
+1592: | 128x128 | 3.6686e-04 | 4.5515e-04 | 9.2143e-04 |
+1592:
+1592: **phi_interior_cartesian**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 2.0714e-03 | 2.4010e-03 | 4.4967e-03 |
+1592: | 32x32 | 1.3380e-03 | 1.5858e-03 | 3.0613e-03 |
+1592: | 64x64 | 7.2991e-04 | 8.8192e-04 | 1.7384e-03 |
+1592: | 128x128 | 3.7839e-04 | 4.6237e-04 | 9.2143e-04 |
+1592:
+1592: **phi_boundary_ring_cartesian**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 3.2392e-04 | 4.0888e-04 | 9.6925e-04 |
+1592: | 32x32 | 9.2225e-05 | 1.1758e-04 | 2.8537e-04 |
+1592: | 64x64 | 2.4661e-05 | 3.1662e-05 | 7.6860e-05 |
+1592: | 128x128 | 6.3759e-06 | 8.2168e-06 | 1.9891e-05 |
+1592:
+1592: **phi_distorted_uncorrected**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 3.4318e-03 | 4.5447e-03 | 1.3366e-02 |
+1592: | 32x32 | 1.8882e-03 | 2.5640e-03 | 7.2590e-03 |
+1592: | 64x64 | 1.0009e-03 | 1.3675e-03 | 3.7707e-03 |
+1592: | 128x128 | 5.1723e-04 | 7.0639e-04 | 1.9185e-03 |
+1592:
+1592: **phi_interior_distorted_uncorrected**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 4.0501e-03 | 5.1027e-03 | 1.3366e-02 |
+1592: | 32x32 | 2.0966e-03 | 2.7295e-03 | 7.2590e-03 |
+1592: | 64x64 | 1.0601e-03 | 1.4113e-03 | 3.7707e-03 |
+1592: | 128x128 | 5.3299e-04 | 7.1758e-04 | 1.9185e-03 |
+1592:
+1592: **phi_boundary_ring_distorted_uncorrected**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 1.4122e-03 | 1.7516e-03 | 3.7347e-03 |
+1592: | 32x32 | 3.7534e-04 | 4.6390e-04 | 9.9525e-04 |
+1592: | 64x64 | 9.6736e-05 | 1.1905e-04 | 2.5734e-04 |
+1592: | 128x128 | 2.4540e-05 | 3.0134e-05 | 6.5277e-05 |
+1592:
+1592: **phi_distorted_corrected**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 1.6796e-03 | 2.1440e-03 | 4.6717e-03 |
+1592: | 32x32 | 1.1923e-03 | 1.4957e-03 | 3.0935e-03 |
+1592: | 64x64 | 6.8811e-04 | 8.5669e-04 | 1.7452e-03 |
+1592: | 128x128 | 3.6729e-04 | 4.5575e-04 | 9.2295e-04 |
+1592:
+1592: **phi_interior_distorted_corrected**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 2.0957e-03 | 2.4402e-03 | 4.6717e-03 |
+1592: | 32x32 | 1.3441e-03 | 1.5948e-03 | 3.0935e-03 |
+1592: | 64x64 | 7.3162e-04 | 8.8429e-04 | 1.7452e-03 |
+1592: | 128x128 | 3.7884e-04 | 4.6298e-04 | 9.2295e-04 |
+1592:
+1592: **phi_boundary_ring_distorted_corrected**
+1592:
+1592: | grid | L1 | L2 | Linf |
+1592: |---|---|---|---|
+1592: | 16x16 | 3.2031e-04 | 4.0051e-04 | 9.0134e-04 |
+1592: | 32x32 | 9.0653e-05 | 1.1441e-04 | 2.7273e-04 |
+1592: | 64x64 | 2.4422e-05 | 3.1164e-05 | 7.4967e-05 |
+1592: | 128x128 | 6.3439e-06 | 8.1489e-06 | 1.9637e-05 |
+1592:
+1592: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1592: |---|---|---|---|---|---|
+1592: | phi_cartesian | l2 | 1 | 1.419, 1.741, 1.877 | --, 0.665 | monotonic_not_asymptotic |
+1592: | phi_distorted_corrected | l2 | 1 | 1.433, 1.746, 1.880 | 0.021, 0.672 | monotonic_not_asymptotic |
+1592: | phi_distorted_uncorrected | l2 | 1 | 1.772, 1.875, 1.936 | 0.727, 0.856 | asymptotic |
+1592:
+1592: - [x] distorted: phi_distorted_corrected L1/L2/Linf decrease on every refinement: monotone
+1592: - [x] distorted: phi_distorted_uncorrected L1/L2/Linf decrease on every refinement: monotone
+1592: - [x] distorted: corrected observed order equals Cartesian within 0.05: corrected 0.672, Cartesian 0.665
+1592: - [x] distorted: corrected reduction factors equal Cartesian within 2%: corrected/Cartesian: 1.433/1.419 1.746/1.741 1.880/1.877
+1592: - [x] distorted: corrected L2 within 5% of Cartesian at 16x16: corrected 2.1440e-03, Cartesian 2.1102e-03
+1592: - [x] distorted: corrected L2 within 5% of Cartesian at 32x32: corrected 1.4957e-03, Cartesian 1.4872e-03
+1592: - [x] distorted: corrected L2 within 5% of Cartesian at 64x64: corrected 8.5669e-04, Cartesian 8.5439e-04
+1592: - [x] distorted: uncorrected L2 >= 1.3x Cartesian at 64x64: uncorrected 1.3675e-03 = 1.60x Cartesian
+1592: - [x] distorted: corrected L2 within 5% of Cartesian at 128x128: corrected 4.5575e-04, Cartesian 4.5515e-04
+1592: - [x] distorted: uncorrected L2 >= 1.3x Cartesian at 128x128: uncorrected 7.0639e-04 = 1.55x Cartesian
+1592:
+1592: [       OK ] ScalarMMS.DistortedMeshNonOrthogonalCorrection (42805 ms)
+1592: [----------] 1 test from ScalarMMS (42806 ms total)
+1592:
+1592: [----------] Global test environment tear-down
+1592: [==========] 1 test from 1 test suite ran. (42806 ms total)
+1592: [  PASSED  ] 1 test.
+ 5/16 Test #1592: ScalarMMS.DistortedMeshNonOrthogonalCorrection ....   Passed   42.84 sec
+1591:
+1591: ### MMS: scalar_advection_diffusion_mms
+1591:
+1591: Steady scalar advection-diffusion, production ThermalSolver (cp div(rho U phi) - k lap(phi) = Q), five systematically refined Cartesian grids
+1591:
+1591: Manufactured solution: mms::scalar: phi = sin(pi x) sin(pi y) + x^2 y / 2 + 1/4 on [0,1]^2; advecting U = (1, 0.5) + (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi
+1591:
+1591: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1591: |---|---|---|---|---|---|---|
+1591: | 16x16 | 256 | 0.0625 | Converged | 3 | 2.78e-17 | 0.0 |
+1591: | 32x32 | 1024 | 0.03125 | Converged | 3 | 6.94e-17 | 0.0 |
+1591: | 64x64 | 4096 | 0.015625 | Converged | 3 | 3.47e-17 | 0.3 |
+1591: | 128x128 | 16384 | 0.0078125 | Converged | 3 | 3.82e-17 | 16.2 |
+1591: | 256x256 | 65536 | 0.0039062 | Converged | 3 | 9.19e-17 | 33.5 |
+1591:
+1591: **phi**
+1591:
+1591: | grid | L1 | L2 | Linf |
+1591: |---|---|---|---|
+1591: | 16x16 | 4.0213e-02 | 5.2446e-02 | 1.1448e-01 |
+1591: | 32x32 | 2.2678e-02 | 2.9545e-02 | 6.3699e-02 |
+1591: | 64x64 | 1.2191e-02 | 1.5783e-02 | 3.3715e-02 |
+1591: | 128x128 | 6.3462e-03 | 8.1717e-03 | 1.7364e-02 |
+1591: | 256x256 | 3.2415e-03 | 4.1598e-03 | 8.8157e-03 |
+1591:
+1591: **phi_interior**
+1591:
+1591: | grid | L1 | L2 | Linf |
+1591: |---|---|---|---|
+1591: | 16x16 | 4.8993e-02 | 5.9413e-02 | 1.1448e-01 |
+1591: | 32x32 | 2.5342e-02 | 3.1476e-02 | 6.3699e-02 |
+1591: | 64x64 | 1.2932e-02 | 1.6289e-02 | 3.3715e-02 |
+1591: | 128x128 | 6.5417e-03 | 8.3012e-03 | 1.7364e-02 |
+1591: | 256x256 | 3.2918e-03 | 4.1925e-03 | 8.8157e-03 |
+1591:
+1591: **phi_boundary_ring**
+1591:
+1591: | grid | L1 | L2 | Linf |
+1591: |---|---|---|---|
+1591: | 16x16 | 1.1534e-02 | 1.4318e-02 | 3.2176e-02 |
+1591: | 32x32 | 3.3363e-03 | 4.1849e-03 | 9.6908e-03 |
+1591: | 64x64 | 9.0020e-04 | 1.1381e-03 | 2.6827e-03 |
+1591: | 128x128 | 2.3407e-04 | 2.9732e-04 | 7.0705e-04 |
+1591: | 256x256 | 5.9700e-05 | 7.6020e-05 | 1.8156e-04 |
+1591:
+1591: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1591: |---|---|---|---|---|---|
+1591: | phi | l1 | 1 | 1.773, 1.860, 1.921, 1.958 | 0.742, 0.843, 0.913 | asymptotic |
+1591: | phi | l2 | 1 | 1.775, 1.872, 1.931, 1.964 | 0.735, 0.855, 0.924 | asymptotic |
+1591: | phi | linf | 1 | 1.797, 1.889, 1.942, 1.970 | 0.760, 0.875, 0.936 | asymptotic |
+1591: | phi_boundary_ring | l2 | 2 | 3.421, 3.677, 3.828, 3.911 | 1.734, 1.857, 1.926 | asymptotic |
+1591: | phi_interior | l2 | 1 | 1.888, 1.932, 1.962, 1.980 | 0.879, 0.927, 0.959 | asymptotic |
+1591:
+1591: - [x] scalar: every solve Converged: ThermalStatus::Converged on all 5 grids
+1591: - [x] scalar: phi L1/L2/Linf decrease on every refinement: monotone
+1591: - [x] scalar: phi l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.913 (asymptotic vs formal 1); reduction factors 1.773 1.860 1.921 1.958
+1591: - [x] scalar: phi l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.924 (asymptotic vs formal 1); reduction factors 1.775 1.872 1.931 1.964
+1591: - [x] scalar: phi linf observed order in [0.80, 1.20]: finest-triplet observed order 0.936 (asymptotic vs formal 1); reduction factors 1.797 1.889 1.942 1.970
+1591: - [x] scalar: extrapolated L2 error |E_ext| <= 0.25 E_fine: E_ext -3.121e-04, E_fine 4.160e-03
+1591: - [x] boundary: phi_boundary_ring l2 observed order in [1.70, 2.30]: finest-triplet observed order 1.926 (asymptotic vs formal 2); reduction factors 3.421 3.677 3.828 3.911
+1591: - [x] boundary: phi_interior l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.959 (asymptotic vs formal 1); reduction factors 1.888 1.932 1.962 1.980
+1591:
+1591: [       OK ] ScalarMMS.AdvectionDiffusionConverges (50038 ms)
+1591: [----------] 1 test from ScalarMMS (50038 ms total)
+1591:
+1591: [----------] Global test environment tear-down
+1591: [==========] 1 test from 1 test suite ran. (50038 ms total)
+1591: [  PASSED  ] 1 test.
+ 6/16 Test #1591: ScalarMMS.AdvectionDiffusionConverges .............   Passed   50.07 sec
+1598: [       OK ] SIMPLEMMS.ConvergesFromNonExactInitialCondition (70840 ms)
+1598: [----------] 1 test from SIMPLEMMS (70841 ms total)
+1598:
+1598: [----------] Global test environment tear-down
+1598: [==========] 1 test from 1 test suite ran. (70841 ms total)
+1598: [  PASSED  ] 1 test.
+ 7/16 Test #1598: SIMPLEMMS.ConvergesFromNonExactInitialCondition ...   Passed   70.85 sec
+1593:
+1593: ### MMS: momentum_mms_central
+1593:
+1593: Momentum-only MMS: production relaxed-momentum assembly (alpha = 1) with exact pressure, exact face mass flux and analytical forcing; Picard on the lagged terms from U = 0
+1593:
+1593: Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+1593:
+1593: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1593: |---|---|---|---|---|---|---|
+1593: | 16x16 | 256 | 0.0625 | Converged | 15 | 1.54e-33 | 0.1 |
+1593: | 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.5 |
+1593: | 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 2.9 |
+1593: | 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 18.2 |
+1593:
+1593: **u**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.4624e-03 | 1.8275e-03 | 5.6797e-03 |
+1593: | 32x32 | 2.8955e-04 | 3.6964e-04 | 1.3331e-03 |
+1593: | 64x64 | 6.6924e-05 | 8.6906e-05 | 3.5223e-04 |
+1593: | 128x128 | 1.7000e-05 | 2.2017e-05 | 9.0220e-05 |
+1593:
+1593: **v**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.7860e-03 | 3.3009e-03 | 7.9018e-03 |
+1593: | 32x32 | 6.9580e-04 | 8.3195e-04 | 1.8164e-03 |
+1593: | 64x64 | 1.7627e-04 | 2.1205e-04 | 4.3956e-04 |
+1593: | 128x128 | 4.4799e-05 | 5.3901e-05 | 1.0964e-04 |
+1593:
+1593: **velocity**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 3.4112e-03 | 3.7730e-03 | 8.5159e-03 |
+1593: | 32x32 | 8.1484e-04 | 9.1037e-04 | 1.8215e-03 |
+1593: | 64x64 | 2.0387e-04 | 2.2917e-04 | 4.4239e-04 |
+1593: | 128x128 | 5.1803e-05 | 5.8225e-05 | 1.1104e-04 |
+1593:
+1593: **u_interior**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.4052e-03 | 1.7747e-03 | 5.6797e-03 |
+1593: | 32x32 | 2.6500e-04 | 3.3133e-04 | 1.1269e-03 |
+1593: | 64x64 | 6.3145e-05 | 8.0354e-05 | 3.0892e-04 |
+1593: | 128x128 | 1.6518e-05 | 2.1170e-05 | 8.4349e-05 |
+1593:
+1593: **v_interior**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.7777e-03 | 3.2863e-03 | 7.8461e-03 |
+1593: | 32x32 | 7.1408e-04 | 8.4575e-04 | 1.8164e-03 |
+1593: | 64x64 | 1.7948e-04 | 2.1451e-04 | 4.3956e-04 |
+1593: | 128x128 | 4.5233e-05 | 5.4253e-05 | 1.0964e-04 |
+1593:
+1593: **u_boundary_ring**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.6493e-03 | 1.9902e-03 | 4.7051e-03 |
+1593: | 32x32 | 4.6771e-04 | 5.7579e-04 | 1.3331e-03 |
+1593: | 64x64 | 1.2457e-04 | 1.5579e-04 | 3.5223e-04 |
+1593: | 128x128 | 3.2061e-05 | 4.0359e-05 | 9.0220e-05 |
+1593:
+1593: **v_boundary_ring**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.8131e-03 | 3.3482e-03 | 7.9018e-03 |
+1593: | 32x32 | 5.6314e-04 | 7.2391e-04 | 1.6295e-03 |
+1593: | 64x64 | 1.2734e-04 | 1.7010e-04 | 3.9205e-04 |
+1593: | 128x128 | 3.1237e-05 | 4.1434e-05 | 9.6441e-05 |
+1593:
+1593: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1593: |---|---|---|---|---|---|
+1593: | u | l2 | 2 | 4.944, 4.253, 3.947 | 2.366, 2.123 | asymptotic |
+1593: | u | l1 | 2 | 5.051, 4.327, 3.937 | 2.397, 2.157 | monotonic_not_asymptotic |
+1593: | u | linf | 2 | 4.261, 3.785, 3.904 | 2.148, 1.904 | asymptotic |
+1593: | v | l2 | 2 | 3.968, 3.923, 3.934 | 1.994, 1.971 | asymptotic |
+1593: | v | l1 | 2 | 4.004, 3.947, 3.935 | 2.008, 1.982 | asymptotic |
+1593: | v | linf | 2 | 4.350, 4.132, 4.009 | 2.144, 2.061 | asymptotic |
+1593: | velocity | l2 | 2 | 4.144, 3.973, 3.936 | 2.071, 1.995 | asymptotic |
+1593: | u_interior | l2 | 2 | 5.356, 4.123, 3.796 | 2.524, 2.084 | asymptotic |
+1593: | u_boundary_ring | l2 | 2 | 3.456, 3.696, 3.860 | 1.752, 1.863 | asymptotic |
+1593:
+1593: - [x] u: u L1/L2/Linf decrease on every refinement: monotone
+1593: - [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.123 (asymptotic vs formal 2); reduction factors 4.944 4.253 3.947
+1593: - [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.157 (monotonic_not_asymptotic vs formal 2); reduction factors 5.051 4.327 3.937
+1593: - [x] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 1.904 (asymptotic vs formal 2); reduction factors 4.261 3.785 3.904
+1593: - [x] v: v L1/L2/Linf decrease on every refinement: monotone
+1593: - [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.971 (asymptotic vs formal 2); reduction factors 3.968 3.923 3.934
+1593: - [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 1.982 (asymptotic vs formal 2); reduction factors 4.004 3.947 3.935
+1593: - [x] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 2.061 (asymptotic vs formal 2); reduction factors 4.350 4.132 4.009
+1593:
+1593:
+1593: ### MMS: momentum_mms_upwind
+1593:
+1593: Momentum-only MMS: production relaxed-momentum assembly (alpha = 1) with exact pressure, exact face mass flux and analytical forcing; Picard on the lagged terms from U = 0
+1593:
+1593: Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+1593:
+1593: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1593: |---|---|---|---|---|---|---|
+1593: | 16x16 | 256 | 0.0625 | Converged | 3 | 1.54e-33 | 0.0 |
+1593: | 32x32 | 1024 | 0.03125 | Converged | 3 | 7.7e-34 | 0.1 |
+1593: | 64x64 | 4096 | 0.015625 | Converged | 3 | 7.7e-34 | 0.8 |
+1593: | 128x128 | 16384 | 0.0078125 | Converged | 3 | 9.63e-34 | 38.6 |
+1593:
+1593: **u**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.7464e-02 | 2.2493e-02 | 4.9393e-02 |
+1593: | 32x32 | 8.8528e-03 | 1.1476e-02 | 2.5166e-02 |
+1593: | 64x64 | 4.4899e-03 | 5.8282e-03 | 1.2758e-02 |
+1593: | 128x128 | 2.2632e-03 | 2.9380e-03 | 6.4214e-03 |
+1593:
+1593: **v**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.4739e-02 | 1.9037e-02 | 4.3065e-02 |
+1593: | 32x32 | 8.0264e-03 | 1.0510e-02 | 2.3864e-02 |
+1593: | 64x64 | 4.2063e-03 | 5.5220e-03 | 1.2534e-02 |
+1593: | 128x128 | 2.1563e-03 | 2.8316e-03 | 6.4175e-03 |
+1593:
+1593: **velocity**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.5587e-02 | 2.9467e-02 | 5.0640e-02 |
+1593: | 32x32 | 1.3408e-02 | 1.5562e-02 | 2.6195e-02 |
+1593: | 64x64 | 6.9082e-03 | 8.0287e-03 | 1.3380e-02 |
+1593: | 128x128 | 3.5111e-03 | 4.0804e-03 | 6.7681e-03 |
+1593:
+1593: **u_interior**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.1403e-02 | 2.5518e-02 | 4.9393e-02 |
+1593: | 32x32 | 9.9124e-03 | 1.2230e-02 | 2.5166e-02 |
+1593: | 64x64 | 4.7650e-03 | 6.0155e-03 | 1.2758e-02 |
+1593: | 128x128 | 2.3333e-03 | 2.9845e-03 | 6.4214e-03 |
+1593:
+1593: **v_interior**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.7795e-02 | 2.1518e-02 | 4.3065e-02 |
+1593: | 32x32 | 8.9658e-03 | 1.1197e-02 | 2.3864e-02 |
+1593: | 64x64 | 4.4624e-03 | 5.6993e-03 | 1.2534e-02 |
+1593: | 128x128 | 2.2229e-03 | 2.8765e-03 | 6.4175e-03 |
+1593:
+1593: **u_boundary_ring**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 4.5944e-03 | 5.5996e-03 | 1.4074e-02 |
+1593: | 32x32 | 1.1620e-03 | 1.4113e-03 | 3.5066e-03 |
+1593: | 64x64 | 2.9260e-04 | 3.5481e-04 | 8.7433e-04 |
+1593: | 128x128 | 7.3306e-05 | 8.8845e-05 | 2.1790e-04 |
+1593:
+1593: **v_boundary_ring**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 4.7572e-03 | 5.8012e-03 | 1.2522e-02 |
+1593: | 32x32 | 1.2076e-03 | 1.4854e-03 | 3.3187e-03 |
+1593: | 64x64 | 2.9968e-04 | 3.7201e-04 | 8.5105e-04 |
+1593: | 128x128 | 7.4323e-05 | 9.2882e-05 | 2.1547e-04 |
+1593:
+1593: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1593: |---|---|---|---|---|---|
+1593: | u | l2 | 1 | 1.960, 1.969, 1.984 | 0.964, 0.967 | asymptotic |
+1593: | u | l1 | 1 | 1.973, 1.972, 1.984 | 0.981, 0.970 | asymptotic |
+1593: | u | linf | 1 | 1.963, 1.972, 1.987 | 0.965, 0.969 | asymptotic |
+1593: | v | l2 | 1 | 1.811, 1.903, 1.950 | 0.773, 0.891 | asymptotic |
+1593: | v | l1 | 1 | 1.836, 1.908, 1.951 | 0.813, 0.898 | asymptotic |
+1593: | v | linf | 1 | 1.805, 1.904, 1.953 | 0.761, 0.889 | asymptotic |
+1593: | velocity | l2 | 1 | 1.894, 1.938, 1.968 | 0.884, 0.932 | asymptotic |
+1593: | u_interior | l2 | 1 | 2.086, 2.033, 2.016 | 1.096, 1.036 | asymptotic |
+1593: | u_boundary_ring | l2 | 1 | 3.968, 3.978, 3.994 | 1.987, 1.990 | monotonic_not_asymptotic |
+1593:
+1593: - [x] u: u L1/L2/Linf decrease on every refinement: monotone
+1593: - [x] u: u l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.967 (asymptotic vs formal 1); reduction factors 1.960 1.969 1.984
+1593: - [x] u: u l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.970 (asymptotic vs formal 1); reduction factors 1.973 1.972 1.984
+1593: - [x] u: u linf observed order in [0.60, 1.20]: finest-triplet observed order 0.969 (asymptotic vs formal 1); reduction factors 1.963 1.972 1.987
+1593: - [x] v: v L1/L2/Linf decrease on every refinement: monotone
+1593: - [x] v: v l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.891 (asymptotic vs formal 1); reduction factors 1.811 1.903 1.950
+1593: - [x] v: v l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.898 (asymptotic vs formal 1); reduction factors 1.836 1.908 1.951
+1593: - [x] v: v linf observed order in [0.60, 1.20]: finest-triplet observed order 0.889 (asymptotic vs formal 1); reduction factors 1.805 1.904 1.953
+1593:
+1593:
+1593: ### MMS: momentum_mms_linear_upwind
+1593:
+1593: Momentum-only MMS: production relaxed-momentum assembly (alpha = 1) with exact pressure, exact face mass flux and analytical forcing; Picard on the lagged terms from U = 0
+1593:
+1593: Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+1593:
+1593: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1593: |---|---|---|---|---|---|---|
+1593: | 16x16 | 256 | 0.0625 | Converged | 17 | 1.54e-33 | 0.2 |
+1593: | 32x32 | 1024 | 0.03125 | Converged | 13 | 7.7e-34 | 0.7 |
+1593: | 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 3.5 |
+1593: | 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 19.9 |
+1593:
+1593: **u**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.9817e-03 | 2.4552e-03 | 7.0221e-03 |
+1593: | 32x32 | 4.2093e-04 | 5.3007e-04 | 1.4986e-03 |
+1593: | 64x64 | 1.0129e-04 | 1.2798e-04 | 4.0706e-04 |
+1593: | 128x128 | 2.5369e-05 | 3.2249e-05 | 9.5909e-05 |
+1593:
+1593: **v**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 3.1648e-03 | 3.7696e-03 | 9.8310e-03 |
+1593: | 32x32 | 7.8515e-04 | 9.4915e-04 | 2.1819e-03 |
+1593: | 64x64 | 1.9435e-04 | 2.3797e-04 | 5.5993e-04 |
+1593: | 128x128 | 4.8310e-05 | 5.9844e-05 | 1.4204e-04 |
+1593:
+1593: **velocity**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 4.0086e-03 | 4.4987e-03 | 1.0095e-02 |
+1593: | 32x32 | 9.6426e-04 | 1.0871e-03 | 2.2732e-03 |
+1593: | 64x64 | 2.3953e-04 | 2.7020e-04 | 5.6715e-04 |
+1593: | 128x128 | 6.0273e-05 | 6.7980e-05 | 1.4289e-04 |
+1593:
+1593: **u_interior**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.0882e-03 | 2.5791e-03 | 7.0221e-03 |
+1593: | 32x32 | 4.1558e-04 | 5.2585e-04 | 1.2199e-03 |
+1593: | 64x64 | 9.9852e-05 | 1.2616e-04 | 3.7985e-04 |
+1593: | 128x128 | 2.5160e-05 | 3.1972e-05 | 9.1796e-05 |
+1593:
+1593: **v_interior**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 3.2693e-03 | 3.8814e-03 | 9.8310e-03 |
+1593: | 32x32 | 8.1621e-04 | 9.7707e-04 | 2.1819e-03 |
+1593: | 64x64 | 1.9882e-04 | 2.4185e-04 | 5.5993e-04 |
+1593: | 128x128 | 4.8864e-05 | 6.0347e-05 | 1.4204e-04 |
+1593:
+1593: **u_boundary_ring**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 1.6338e-03 | 1.9975e-03 | 6.4284e-03 |
+1593: | 32x32 | 4.5977e-04 | 5.5977e-04 | 1.4986e-03 |
+1593: | 64x64 | 1.2322e-04 | 1.5298e-04 | 4.0706e-04 |
+1593: | 128x128 | 3.1880e-05 | 3.9957e-05 | 9.5909e-05 |
+1593:
+1593: **v_boundary_ring**
+1593:
+1593: | grid | L1 | L2 | Linf |
+1593: |---|---|---|---|
+1593: | 16x16 | 2.8234e-03 | 3.3790e-03 | 9.7019e-03 |
+1593: | 32x32 | 5.5971e-04 | 7.1444e-04 | 1.8779e-03 |
+1593: | 64x64 | 1.2611e-04 | 1.6806e-04 | 4.5556e-04 |
+1593: | 128x128 | 3.0981e-05 | 4.1127e-05 | 1.0358e-04 |
+1593:
+1593: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1593: |---|---|---|---|---|---|
+1593: | u | l2 | 2 | 4.632, 4.142, 3.968 | 2.259, 2.071 | asymptotic |
+1593: | u | l1 | 2 | 4.708, 4.156, 3.993 | 2.288, 2.074 | asymptotic |
+1593: | u | linf | 2 | 4.686, 3.682, 4.244 | 2.339, 1.811 | monotonic_not_asymptotic |
+1593: | v | l2 | 2 | 3.972, 3.988, 3.977 | 1.988, 1.997 | asymptotic |
+1593: | v | l1 | 2 | 4.031, 4.040, 4.023 | 2.010, 2.016 | asymptotic |
+1593: | v | linf | 2 | 4.506, 3.897, 3.942 | 2.238, 1.957 | asymptotic |
+1593: | velocity | l2 | 2 | 4.138, 4.023, 3.975 | 2.062, 2.014 | asymptotic |
+1593: | u_interior | l2 | 2 | 4.905, 4.168, 3.946 | 2.361, 2.085 | asymptotic |
+1593: | u_boundary_ring | l2 | 2 | 3.568, 3.659, 3.829 | 1.821, 1.848 | monotonic_not_asymptotic |
+1593:
+1593: - [x] u: u L1/L2/Linf decrease on every refinement: monotone
+1593: - [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.071 (asymptotic vs formal 2); reduction factors 4.632 4.142 3.968
+1593: - [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.074 (asymptotic vs formal 2); reduction factors 4.708 4.156 3.993
+1593: - [x] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 1.811 (monotonic_not_asymptotic vs formal 2); reduction factors 4.686 3.682 4.244
+1593: - [x] v: v L1/L2/Linf decrease on every refinement: monotone
+1593: - [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.997 (asymptotic vs formal 2); reduction factors 3.972 3.988 3.977
+1593: - [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.016 (asymptotic vs formal 2); reduction factors 4.031 4.040 4.023
+1593: - [x] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 1.957 (asymptotic vs formal 2); reduction factors 4.506 3.897 3.942
+1593:
+1593: [       OK ] MomentumMMS.UConverges (85446 ms)
+1593: [----------] 1 test from MomentumMMS (85446 ms total)
+1593:
+1593: [----------] Global test environment tear-down
+1593: [==========] 1 test from 1 test suite ran. (85446 ms total)
+1593: [  PASSED  ] 1 test.
+ 8/16 Test #1593: MomentumMMS.UConverges ............................   Passed   85.49 sec
+1594: [       OK ] MomentumMMS.VConverges (85548 ms)
+1594: [----------] 1 test from MomentumMMS (85548 ms total)
+1594:
+1594: [----------] Global test environment tear-down
+1594: [==========] 1 test from 1 test suite ran. (85548 ms total)
+1594: [  PASSED  ] 1 test.
+ 9/16 Test #1594: MomentumMMS.VConverges ............................   Passed   85.55 sec
+1596:
+1596: ### MMS: distorted_mesh_momentum_mms
+1596:
+1596: Momentum-only MMS (central convection) on Cartesian vs distorted (0.25 h) meshes, uncorrected (Green-Gauss) vs non-orthogonal-corrected (least-squares); level status/iterations are the corrected distorted solve
+1596:
+1596: Manufactured solution: mms::velocity / mms::pressure (as momentum_mms)
+1596:
+1596: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1596: |---|---|---|---|---|---|---|
+1596: | 16x16 | 256 | 0.0625 | Converged | 14 | 1.54e-33 | 0.5 |
+1596: | 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 14.1 |
+1596: | 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 30.5 |
+1596: | 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 60.0 |
+1596:
+1596: **u_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 1.4624e-03 | 1.8275e-03 | 5.6797e-03 |
+1596: | 32x32 | 2.8955e-04 | 3.6964e-04 | 1.3331e-03 |
+1596: | 64x64 | 6.6924e-05 | 8.6906e-05 | 3.5223e-04 |
+1596: | 128x128 | 1.7000e-05 | 2.2017e-05 | 9.0220e-05 |
+1596:
+1596: **v_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.7860e-03 | 3.3009e-03 | 7.9018e-03 |
+1596: | 32x32 | 6.9580e-04 | 8.3195e-04 | 1.8164e-03 |
+1596: | 64x64 | 1.7627e-04 | 2.1205e-04 | 4.3956e-04 |
+1596: | 128x128 | 4.4799e-05 | 5.3901e-05 | 1.0964e-04 |
+1596:
+1596: **velocity_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 3.4112e-03 | 3.7730e-03 | 8.5159e-03 |
+1596: | 32x32 | 8.1484e-04 | 9.1037e-04 | 1.8215e-03 |
+1596: | 64x64 | 2.0387e-04 | 2.2917e-04 | 4.4239e-04 |
+1596: | 128x128 | 5.1803e-05 | 5.8225e-05 | 1.1104e-04 |
+1596:
+1596: **u_interior_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 1.4052e-03 | 1.7747e-03 | 5.6797e-03 |
+1596: | 32x32 | 2.6500e-04 | 3.3133e-04 | 1.1269e-03 |
+1596: | 64x64 | 6.3145e-05 | 8.0354e-05 | 3.0892e-04 |
+1596: | 128x128 | 1.6518e-05 | 2.1170e-05 | 8.4349e-05 |
+1596:
+1596: **v_interior_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.7777e-03 | 3.2863e-03 | 7.8461e-03 |
+1596: | 32x32 | 7.1408e-04 | 8.4575e-04 | 1.8164e-03 |
+1596: | 64x64 | 1.7948e-04 | 2.1451e-04 | 4.3956e-04 |
+1596: | 128x128 | 4.5233e-05 | 5.4253e-05 | 1.0964e-04 |
+1596:
+1596: **u_boundary_ring_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 1.6493e-03 | 1.9902e-03 | 4.7051e-03 |
+1596: | 32x32 | 4.6771e-04 | 5.7579e-04 | 1.3331e-03 |
+1596: | 64x64 | 1.2457e-04 | 1.5579e-04 | 3.5223e-04 |
+1596: | 128x128 | 3.2061e-05 | 4.0359e-05 | 9.0220e-05 |
+1596:
+1596: **v_boundary_ring_cartesian**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.8131e-03 | 3.3482e-03 | 7.9018e-03 |
+1596: | 32x32 | 5.6314e-04 | 7.2391e-04 | 1.6295e-03 |
+1596: | 64x64 | 1.2734e-04 | 1.7010e-04 | 3.9205e-04 |
+1596: | 128x128 | 3.1237e-05 | 4.1434e-05 | 9.6441e-05 |
+1596:
+1596: **u_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 6.7908e-03 | 8.9708e-03 | 2.2405e-02 |
+1596: | 32x32 | 3.2354e-03 | 4.4195e-03 | 1.1549e-02 |
+1596: | 64x64 | 1.5787e-03 | 2.1884e-03 | 5.7670e-03 |
+1596: | 128x128 | 7.7780e-04 | 1.0855e-03 | 2.8727e-03 |
+1596:
+1596: **v_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 5.7881e-03 | 6.9982e-03 | 1.7484e-02 |
+1596: | 32x32 | 2.5755e-03 | 3.2512e-03 | 8.2771e-03 |
+1596: | 64x64 | 1.2442e-03 | 1.6031e-03 | 4.0453e-03 |
+1596: | 128x128 | 6.1542e-04 | 8.0127e-04 | 2.0084e-03 |
+1596:
+1596: **velocity_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 9.6934e-03 | 1.1378e-02 | 2.3473e-02 |
+1596: | 32x32 | 4.5063e-03 | 5.4866e-03 | 1.1966e-02 |
+1596: | 64x64 | 2.1930e-03 | 2.7127e-03 | 6.0487e-03 |
+1596: | 128x128 | 1.0832e-03 | 1.3492e-03 | 3.0323e-03 |
+1596:
+1596: **u_interior_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 8.0252e-03 | 1.0098e-02 | 2.2405e-02 |
+1596: | 32x32 | 3.5788e-03 | 4.7034e-03 | 1.1549e-02 |
+1596: | 64x64 | 1.6697e-03 | 2.2583e-03 | 5.7670e-03 |
+1596: | 128x128 | 8.0115e-04 | 1.1027e-03 | 2.8727e-03 |
+1596:
+1596: **v_interior_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 6.6668e-03 | 7.7604e-03 | 1.7484e-02 |
+1596: | 32x32 | 2.8336e-03 | 3.4533e-03 | 8.2771e-03 |
+1596: | 64x64 | 1.3146e-03 | 1.6539e-03 | 4.0453e-03 |
+1596: | 128x128 | 6.3375e-04 | 8.1393e-04 | 2.0084e-03 |
+1596:
+1596: **u_boundary_ring_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.7582e-03 | 3.1999e-03 | 6.2424e-03 |
+1596: | 32x32 | 7.4249e-04 | 8.5698e-04 | 1.4110e-03 |
+1596: | 64x64 | 1.9025e-04 | 2.2109e-04 | 3.7857e-04 |
+1596: | 128x128 | 4.8156e-05 | 5.6021e-05 | 9.8672e-05 |
+1596:
+1596: **v_boundary_ring_distorted_uncorrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.9179e-03 | 3.4974e-03 | 7.7561e-03 |
+1596: | 32x32 | 7.0193e-04 | 8.5694e-04 | 2.0620e-03 |
+1596: | 64x64 | 1.7125e-04 | 2.1358e-04 | 5.2385e-04 |
+1596: | 128x128 | 4.2413e-05 | 5.3404e-05 | 1.3163e-04 |
+1596:
+1596: **u_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 1.6070e-03 | 1.9226e-03 | 4.9927e-03 |
+1596: | 32x32 | 3.0610e-04 | 3.8147e-04 | 1.3413e-03 |
+1596: | 64x64 | 6.7399e-05 | 8.7536e-05 | 3.5196e-04 |
+1596: | 128x128 | 1.6922e-05 | 2.2038e-05 | 9.0071e-05 |
+1596:
+1596: **v_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.4251e-03 | 2.8408e-03 | 6.0005e-03 |
+1596: | 32x32 | 6.4042e-04 | 7.6376e-04 | 1.6080e-03 |
+1596: | 64x64 | 1.6849e-04 | 2.0280e-04 | 4.1172e-04 |
+1596: | 128x128 | 4.3694e-05 | 5.2691e-05 | 1.0619e-04 |
+1596:
+1596: **velocity_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 3.1492e-03 | 3.4302e-03 | 6.5270e-03 |
+1596: | 32x32 | 7.7030e-04 | 8.5373e-04 | 1.6305e-03 |
+1596: | 64x64 | 1.9717e-04 | 2.2089e-04 | 4.1188e-04 |
+1596: | 128x128 | 5.0902e-05 | 5.7114e-05 | 1.0718e-04 |
+1596:
+1596: **u_interior_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 1.5127e-03 | 1.8201e-03 | 4.3067e-03 |
+1596: | 32x32 | 2.8033e-04 | 3.4174e-04 | 1.0576e-03 |
+1596: | 64x64 | 6.3572e-05 | 8.0913e-05 | 3.1038e-04 |
+1596: | 128x128 | 1.6439e-05 | 2.1185e-05 | 8.4382e-05 |
+1596:
+1596: **v_interior_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.3879e-03 | 2.7810e-03 | 5.8368e-03 |
+1596: | 32x32 | 6.5391e-04 | 7.7311e-04 | 1.6080e-03 |
+1596: | 64x64 | 1.7118e-04 | 2.0494e-04 | 4.1172e-04 |
+1596: | 128x128 | 4.4094e-05 | 5.3021e-05 | 1.0619e-04 |
+1596:
+1596: **u_boundary_ring_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 1.9150e-03 | 2.2250e-03 | 4.9927e-03 |
+1596: | 32x32 | 4.9315e-04 | 5.9507e-04 | 1.3413e-03 |
+1596: | 64x64 | 1.2578e-04 | 1.5711e-04 | 3.5196e-04 |
+1596: | 128x128 | 3.2018e-05 | 4.0457e-05 | 9.0071e-05 |
+1596:
+1596: **v_boundary_ring_distorted_corrected**
+1596:
+1596: | grid | L1 | L2 | Linf |
+1596: |---|---|---|---|
+1596: | 16x16 | 2.5465e-03 | 3.0280e-03 | 6.0005e-03 |
+1596: | 32x32 | 5.4246e-04 | 6.9210e-04 | 1.5423e-03 |
+1596: | 64x64 | 1.2751e-04 | 1.6683e-04 | 3.8168e-04 |
+1596: | 128x128 | 3.1205e-05 | 4.1069e-05 | 9.5199e-05 |
+1596:
+1596: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1596: |---|---|---|---|---|---|
+1596: | u_distorted_corrected | l2 | 2 | 5.040, 4.358, 3.972 | 2.390, 2.166 | monotonic_not_asymptotic |
+1596: | u_distorted_uncorrected | l2 | 1 | 2.030, 2.020, 2.016 | 1.028, 1.016 | asymptotic |
+1596: | v_distorted_corrected | l2 | 2 | 3.719, 3.766, 3.849 | 1.889, 1.902 | asymptotic |
+1596: | v_distorted_uncorrected | l2 | 1 | 2.153, 2.028, 2.001 | 1.185, 1.039 | asymptotic |
+1596:
+1596: - [x] distorted: u_distorted_corrected l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.166 (monotonic_not_asymptotic vs formal 2); reduction factors 5.040 4.358 3.972
+1596: - [x] distorted: u_distorted_uncorrected l2 observed order in [0.70, 1.30]: finest-triplet observed order 1.016 (asymptotic vs formal 1); reduction factors 2.030 2.020 2.016
+1596: - [x] distorted: u corrected L2 within 10% of Cartesian (finest grid): corrected 2.2038e-05, Cartesian 2.2017e-05
+1596: - [x] distorted: u uncorrected L2 >= 3x corrected (finest grid): ratio 49.3
+1596: - [x] distorted: v_distorted_corrected l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.902 (asymptotic vs formal 2); reduction factors 3.719 3.766 3.849
+1596: - [x] distorted: v_distorted_uncorrected l2 observed order in [0.70, 1.30]: finest-triplet observed order 1.039 (asymptotic vs formal 1); reduction factors 2.153 2.028 2.001
+1596: - [x] distorted: v corrected L2 within 10% of Cartesian (finest grid): corrected 5.2691e-05, Cartesian 5.3901e-05
+1596: - [x] distorted: v uncorrected L2 >= 3x corrected (finest grid): ratio 15.2
+1596:
+1596: [       OK ] MomentumMMS.DistortedMesh (105127 ms)
+1596: [----------] 1 test from MomentumMMS (105127 ms total)
+1596:
+1596: [----------] Global test environment tear-down
+1596: [==========] 1 test from 1 test suite ran. (105127 ms total)
+1596: [  PASSED  ] 1 test.
+10/16 Test #1596: MomentumMMS.DistortedMesh .........................   Passed  105.19 sec
+1602: [       OK ] SIMPLEMMS.GlobalMassBalance (130738 ms)
+1602: [----------] 1 test from SIMPLEMMS (130738 ms total)
+1602:
+1602: [----------] Global test environment tear-down
+1602: [==========] 1 test from 1 test suite ran. (130738 ms total)
+1602: [  PASSED  ] 1 test.
+11/16 Test #1602: SIMPLEMMS.GlobalMassBalance .......................   Passed  130.74 sec
+1606:
+1606: ### MMS: compressible_simple_mms
+1606:
+1606: CompressibleSIMPLE MMS, isothermal ideal gas in a closed box, from rest; upwind convection (the only scheme of the compressible momentum assembly)
+1606:
+1606: Manufactured solution: p = cos(pi x) cos(pi y) + x y / 2 (gauge); rho = (P_ref + p)/(R T0); rho U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi
+1606:
+1606: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1606: |---|---|---|---|---|---|---|
+1606: | 8x8 | 64 | 0.125 | Converged | 1070 | 4.73e-19 | 16.3 |
+1606: | 16x16 | 256 | 0.0625 | Converged | 2317 | 1.02e-19 | 36.9 |
+1606: | 32x32 | 1024 | 0.03125 | Converged | 3286 | 2.15e-20 | 98.7 |
+1606:
+1606: **u**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 2.6633e-02 | 3.4824e-02 | 8.2878e-02 |
+1606: | 16x16 | 1.5388e-02 | 2.0462e-02 | 4.7086e-02 |
+1606: | 32x32 | 8.4133e-03 | 1.1221e-02 | 2.6563e-02 |
+1606:
+1606: **v**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 2.6318e-02 | 3.4411e-02 | 8.1968e-02 |
+1606: | 16x16 | 1.5412e-02 | 2.0535e-02 | 5.2058e-02 |
+1606: | 32x32 | 8.3957e-03 | 1.1285e-02 | 2.8563e-02 |
+1606:
+1606: **velocity**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 4.2505e-02 | 4.8957e-02 | 8.4025e-02 |
+1606: | 16x16 | 2.4680e-02 | 2.8990e-02 | 5.2158e-02 |
+1606: | 32x32 | 1.3469e-02 | 1.5915e-02 | 2.8657e-02 |
+1606:
+1606: **p**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 7.0027e-02 | 8.7016e-02 | 2.0317e-01 |
+1606: | 16x16 | 4.1627e-02 | 4.9533e-02 | 1.0840e-01 |
+1606: | 32x32 | 2.5989e-02 | 2.9618e-02 | 6.0929e-02 |
+1606:
+1606: **p_gauge**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 5.4970e-02 | 7.2592e-02 | 2.5115e-01 |
+1606: | 16x16 | 2.4123e-02 | 3.0989e-02 | 1.1883e-01 |
+1606: | 32x32 | 1.1781e-02 | 1.4852e-02 | 5.5083e-02 |
+1606:
+1606: **density**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 3.5013e-03 | 4.3508e-03 | 1.0158e-02 |
+1606: | 16x16 | 2.0814e-03 | 2.4766e-03 | 5.4202e-03 |
+1606: | 32x32 | 1.2994e-03 | 1.4809e-03 | 3.0464e-03 |
+1606:
+1606: **continuity**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 3.9720e-10 | 6.6815e-10 | 4.3922e-09 |
+1606: | 16x16 | 7.1946e-10 | 2.7536e-09 | 4.2751e-08 |
+1606: | 32x32 | 1.3082e-09 | 1.1966e-08 | 3.8076e-07 |
+1606:
+1606: **mass_flux**
+1606:
+1606: | grid | L1 | L2 | Linf |
+1606: |---|---|---|---|
+1606: | 8x8 | 2.6322e-02 | 3.6547e-02 | 9.0306e-02 |
+1606: | 16x16 | 1.4999e-02 | 2.0426e-02 | 5.2557e-02 |
+1606: | 32x32 | 8.0169e-03 | 1.0870e-02 | 2.7870e-02 |
+1606:
+1606: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1606: |---|---|---|---|---|---|
+1606: | u | l2 | 1 | 1.702, 1.824 | 0.636 | monotonic_not_asymptotic |
+1606: | v | l2 | 1 | 1.676, 1.820 | 0.585 | monotonic_not_asymptotic |
+1606: | p | l2 | 1 | 1.757, 1.672 | 0.912 | asymptotic |
+1606: | p_gauge | l2 | 1 | 2.343, 2.087 | 1.366 | monotonic_not_asymptotic |
+1606: | density | l2 | 1 | 1.757, 1.672 | 0.912 | asymptotic |
+1606: | mass_flux | l2 | 1 | 1.789, 1.879 | 0.755 | monotonic_not_asymptotic |
+1606:
+1606: - [x] compressible: u L1/L2/Linf decrease on every refinement: monotone
+1606: - [x] compressible: u l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.636 (monotonic_not_asymptotic vs formal 1); reduction factors 1.702 1.824
+1606: - [x] compressible: v L1/L2/Linf decrease on every refinement: monotone
+1606: - [x] compressible: v l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.585 (monotonic_not_asymptotic vs formal 1); reduction factors 1.676 1.820
+1606: - [x] compressible: p L1/L2/Linf decrease on every refinement: monotone
+1606: - [x] compressible: p l2 observed order in [0.80, 1.60]: finest-triplet observed order 0.912 (asymptotic vs formal 1); reduction factors 1.757 1.672
+1606: - [x] compressible: p_gauge L1/L2/Linf decrease on every refinement: monotone
+1606: - [x] compressible: p_gauge l2 observed order in [0.80, 1.60]: finest-triplet observed order 1.366 (monotonic_not_asymptotic vs formal 1); reduction factors 2.343 2.087
+1606: - [x] compressible: EOS consistency at 8x8: max |rho - EOS(p)|/rho = 0.00e+00
+1606: - [x] compressible: density error = pressure error / (R T0) at 8x8: rho L2 4.3508e-03, p L2 / RT 4.3508e-03
+1606: - [x] compressible: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 4.39e-09
+1606: - [x] compressible: global mass imbalance <= 1e-14 at 8x8: 4.73e-19
+1606: - [x] compressible: EOS consistency at 16x16: max |rho - EOS(p)|/rho = 0.00e+00
+1606: - [x] compressible: density error = pressure error / (R T0) at 16x16: rho L2 2.4766e-03, p L2 / RT 2.4766e-03
+1606: - [x] compressible: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 4.28e-08
+1606: - [x] compressible: global mass imbalance <= 1e-14 at 16x16: 1.02e-19
+1606: - [x] compressible: EOS consistency at 32x32: max |rho - EOS(p)|/rho = 0.00e+00
+1606: - [x] compressible: density error = pressure error / (R T0) at 32x32: rho L2 1.4809e-03, p L2 / RT 1.4809e-03
+1606: - [x] compressible: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 3.81e-07
+1606: - [x] compressible: global mass imbalance <= 1e-14 at 32x32: 2.15e-20
+1606:
+1606: [       OK ] CompressibleSimpleMMS.SystemConvergence (151897 ms)
+1606: [----------] 1 test from CompressibleSimpleMMS (151897 ms total)
+1606:
+1606: [----------] Global test environment tear-down
+1606: [==========] 1 test from 1 test suite ran. (151897 ms total)
+1606: [  PASSED  ] 1 test.
+12/16 Test #1606: CompressibleSimpleMMS.SystemConvergence ...........   Passed  151.93 sec
+1601: [       OK ] SIMPLEMMS.ContinuityConverges (170733 ms)
+1601: [----------] 1 test from SIMPLEMMS (170733 ms total)
+1601:
+1601: [----------] Global test environment tear-down
+1601: [==========] 1 test from 1 test suite ran. (170733 ms total)
+1601: [  PASSED  ] 1 test.
+13/16 Test #1601: SIMPLEMMS.ContinuityConverges .....................   Passed  170.74 sec
+1599:
+1599: ### MMS: simple_mms
+1599:
+1599: Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes
+1599:
+1599: Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+1599:
+1599: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1599: |---|---|---|---|---|---|---|
+1599: | 8x8 | 64 | 0.125 | Converged | 964 | 3.2e-19 | 1.9 |
+1599: | 16x16 | 256 | 0.0625 | Converged | 1845 | 7.95e-20 | 13.3 |
+1599: | 32x32 | 1024 | 0.03125 | Converged | 4189 | 1.98e-20 | 106.9 |
+1599:
+1599: **u**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 5.7596e-03 | 7.1077e-03 | 1.7606e-02 |
+1599: | 16x16 | 1.5427e-03 | 1.9948e-03 | 5.3246e-03 |
+1599: | 32x32 | 4.4482e-04 | 5.6196e-04 | 1.3762e-03 |
+1599:
+1599: **v**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 4.5984e-03 | 6.4350e-03 | 2.6197e-02 |
+1599: | 16x16 | 1.4298e-03 | 1.8455e-03 | 5.4411e-03 |
+1599: | 32x32 | 4.1574e-04 | 5.3455e-04 | 1.4543e-03 |
+1599:
+1599: **velocity**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 8.0873e-03 | 9.5879e-03 | 2.7266e-02 |
+1599: | 16x16 | 2.4003e-03 | 2.7175e-03 | 6.2890e-03 |
+1599: | 32x32 | 7.0466e-04 | 7.7560e-04 | 1.4644e-03 |
+1599:
+1599: **u_interior**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 4.7488e-03 | 5.9447e-03 | 1.4650e-02 |
+1599: | 16x16 | 1.3847e-03 | 1.8103e-03 | 5.3246e-03 |
+1599: | 32x32 | 4.3269e-04 | 5.4789e-04 | 1.2821e-03 |
+1599:
+1599: **v_interior**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 3.3026e-03 | 4.1875e-03 | 1.0643e-02 |
+1599: | 16x16 | 1.3115e-03 | 1.6733e-03 | 4.6482e-03 |
+1599: | 32x32 | 4.0561e-04 | 5.2008e-04 | 1.3922e-03 |
+1599:
+1599: **u_boundary_ring**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 7.0592e-03 | 8.3689e-03 | 1.7606e-02 |
+1599: | 16x16 | 2.0589e-03 | 2.5046e-03 | 5.1509e-03 |
+1599: | 32x32 | 5.3289e-04 | 6.5508e-04 | 1.3762e-03 |
+1599:
+1599: **v_boundary_ring**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 6.2645e-03 | 8.4914e-03 | 2.6197e-02 |
+1599: | 16x16 | 1.8165e-03 | 2.3207e-03 | 5.4411e-03 |
+1599: | 32x32 | 4.8928e-04 | 6.2969e-04 | 1.4543e-03 |
+1599:
+1599: **p**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 4.8562e-02 | 6.1631e-02 | 1.9076e-01 |
+1599: | 16x16 | 1.3816e-02 | 1.8698e-02 | 7.8966e-02 |
+1599: | 32x32 | 3.8857e-03 | 5.4335e-03 | 2.7046e-02 |
+1599:
+1599: **p_interior**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 4.0656e-02 | 4.9527e-02 | 1.1522e-01 |
+1599: | 16x16 | 1.2937e-02 | 1.7447e-02 | 6.0784e-02 |
+1599: | 32x32 | 3.7739e-03 | 5.2730e-03 | 2.4346e-02 |
+1599:
+1599: **p_boundary_ring**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 5.8726e-02 | 7.4353e-02 | 1.9076e-01 |
+1599: | 16x16 | 1.6689e-02 | 2.2302e-02 | 7.8966e-02 |
+1599: | 32x32 | 4.6975e-03 | 6.4809e-03 | 2.7046e-02 |
+1599:
+1599: **continuity**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 1.2692e-10 | 5.0291e-10 | 3.9781e-09 |
+1599: | 16x16 | 3.0596e-10 | 2.4529e-09 | 3.9163e-08 |
+1599: | 32x32 | 4.8227e-10 | 7.3866e-09 | 2.3619e-07 |
+1599:
+1599: **face_flux**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 4.3589e-03 | 6.2347e-03 | 1.9954e-02 |
+1599: | 16x16 | 4.8571e-04 | 6.6266e-04 | 2.2471e-03 |
+1599: | 32x32 | 9.1386e-05 | 1.2873e-04 | 5.1570e-04 |
+1599:
+1599: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1599: |---|---|---|---|---|---|
+1599: | u | l2 | 2 | 3.563, 3.550 | 1.835 | monotonic_not_asymptotic |
+1599: | u | l1 | 2 | 3.733, 3.468 | 1.941 | asymptotic |
+1599: | v | l2 | 2 | 3.487, 3.452 | 1.808 | monotonic_not_asymptotic |
+1599: | v | l1 | 2 | 3.216, 3.439 | 1.644 | monotonic_not_asymptotic |
+1599: | velocity | l2 | 2 | 3.528, 3.504 | 1.823 | monotonic_not_asymptotic |
+1599: | u | linf | 2 | 3.307, 3.869 | 1.637 | monotonic_not_asymptotic |
+1599: | p | l2 | 2 | 3.296, 3.441 | 1.694 | monotonic_not_asymptotic |
+1599: | p | l1 | 2 | 3.515, 3.556 | 1.807 | monotonic_not_asymptotic |
+1599: | p | linf | 2 | 2.416, 2.920 | 1.106 | monotonic_not_asymptotic |
+1599: | p_interior | l2 | 2 | 2.839, 3.309 | 1.398 | monotonic_not_asymptotic |
+1599: | p_boundary_ring | l2 | 2 | 3.334, 3.441 | 1.718 | monotonic_not_asymptotic |
+1599: | face_flux | l2 | 2 | 9.409, 5.148 | 3.384 | monotonic_not_asymptotic |
+1599:
+1599: - [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 1.835 (monotonic_not_asymptotic vs formal 2); reduction factors 3.563 3.550
+1599: - [x] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 1.941 (asymptotic vs formal 2); reduction factors 3.733 3.468
+1599: - [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 1.808 (monotonic_not_asymptotic vs formal 2); reduction factors 3.487 3.452
+1599: - [x] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 1.644 (monotonic_not_asymptotic vs formal 2); reduction factors 3.216 3.439
+1599: - [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 3.550
+1599: - [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.694 (monotonic_not_asymptotic vs formal 2); reduction factors 3.296 3.441
+1599: - [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.807 (monotonic_not_asymptotic vs formal 2); reduction factors 3.515 3.556
+1599: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 3.98e-09, L2 5.03e-10
+1599: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.92e-08, L2 2.45e-09
+1599: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.36e-07, L2 7.39e-09
+1599: - [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 3.384 (monotonic_not_asymptotic vs formal 2); reduction factors 9.409 5.148
+1599: - [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+1599: - [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+1599: - [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+1599:
+1599:
+1599: ### MMS: simple_mms_upwind
+1599:
+1599: Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes
+1599:
+1599: Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+1599:
+1599: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1599: |---|---|---|---|---|---|---|
+1599: | 8x8 | 64 | 0.125 | Converged | 600 | 3.2e-19 | 2.9 |
+1599: | 16x16 | 256 | 0.0625 | Converged | 1493 | 7.95e-20 | 43.5 |
+1599: | 32x32 | 1024 | 0.03125 | Converged | 2974 | 1.98e-20 | 83.5 |
+1599:
+1599: **u**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 2.6712e-02 | 3.4810e-02 | 8.1734e-02 |
+1599: | 16x16 | 1.5436e-02 | 2.0508e-02 | 4.6360e-02 |
+1599: | 32x32 | 8.4578e-03 | 1.1260e-02 | 2.6200e-02 |
+1599:
+1599: **v**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 2.6631e-02 | 3.4836e-02 | 8.1042e-02 |
+1599: | 16x16 | 1.5689e-02 | 2.0769e-02 | 5.1303e-02 |
+1599: | 32x32 | 8.5456e-03 | 1.1410e-02 | 2.8229e-02 |
+1599:
+1599: **velocity**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 4.2755e-02 | 4.9247e-02 | 8.3164e-02 |
+1599: | 16x16 | 2.4884e-02 | 2.9188e-02 | 5.1330e-02 |
+1599: | 32x32 | 1.3591e-02 | 1.6030e-02 | 2.8289e-02 |
+1599:
+1599: **u_interior**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 3.8987e-02 | 4.4400e-02 | 8.1734e-02 |
+1599: | 16x16 | 1.9172e-02 | 2.3276e-02 | 4.6360e-02 |
+1599: | 32x32 | 9.5058e-03 | 1.2000e-02 | 2.6200e-02 |
+1599:
+1599: **v_interior**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 3.7142e-02 | 4.2971e-02 | 8.1042e-02 |
+1599: | 16x16 | 1.9433e-02 | 2.3519e-02 | 5.1303e-02 |
+1599: | 32x32 | 9.6028e-03 | 1.2158e-02 | 2.8229e-02 |
+1599:
+1599: **u_boundary_ring**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 1.0929e-02 | 1.5330e-02 | 4.0587e-02 |
+1599: | 16x16 | 3.2324e-03 | 4.9684e-03 | 1.4844e-02 |
+1599: | 32x32 | 8.5133e-04 | 1.3443e-03 | 4.2024e-03 |
+1599:
+1599: **v_boundary_ring**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 1.3117e-02 | 1.9992e-02 | 5.7731e-02 |
+1599: | 16x16 | 3.4591e-03 | 5.7877e-03 | 1.8938e-02 |
+1599: | 32x32 | 8.7212e-04 | 1.5199e-03 | 5.2078e-03 |
+1599:
+1599: **p**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 5.5737e-02 | 7.2890e-02 | 2.3630e-01 |
+1599: | 16x16 | 2.4666e-02 | 3.1563e-02 | 1.1467e-01 |
+1599: | 32x32 | 1.2127e-02 | 1.5270e-02 | 5.3039e-02 |
+1599:
+1599: **p_interior**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 5.5120e-02 | 6.8054e-02 | 1.5710e-01 |
+1599: | 16x16 | 2.4198e-02 | 3.0597e-02 | 7.2706e-02 |
+1599: | 32x32 | 1.2021e-02 | 1.5108e-02 | 3.8243e-02 |
+1599:
+1599: **p_boundary_ring**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 5.6529e-02 | 7.8672e-02 | 2.3630e-01 |
+1599: | 16x16 | 2.6195e-02 | 3.4533e-02 | 1.1467e-01 |
+1599: | 32x32 | 1.2901e-02 | 1.6397e-02 | 5.3039e-02 |
+1599:
+1599: **continuity**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 1.1894e-10 | 4.6027e-10 | 3.6293e-09 |
+1599: | 16x16 | 3.0354e-10 | 2.4334e-09 | 3.8854e-08 |
+1599: | 32x32 | 5.6382e-10 | 8.9371e-09 | 2.8581e-07 |
+1599:
+1599: **face_flux**
+1599:
+1599: | grid | L1 | L2 | Linf |
+1599: |---|---|---|---|
+1599: | 8x8 | 2.7145e-02 | 3.7792e-02 | 9.3690e-02 |
+1599: | 16x16 | 1.5778e-02 | 2.1423e-02 | 5.4245e-02 |
+1599: | 32x32 | 8.5581e-03 | 1.1534e-02 | 2.9091e-02 |
+1599:
+1599: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1599: |---|---|---|---|---|---|
+1599: | u | l2 | 1 | 1.697, 1.821 | 0.629 | monotonic_not_asymptotic |
+1599: | u | l1 | 1 | 1.730, 1.825 | 0.692 | monotonic_not_asymptotic |
+1599: | v | l2 | 1 | 1.677, 1.820 | 0.588 | monotonic_not_asymptotic |
+1599: | v | l1 | 1 | 1.697, 1.836 | 0.615 | monotonic_not_asymptotic |
+1599: | velocity | l2 | 1 | 1.687, 1.821 | 0.608 | monotonic_not_asymptotic |
+1599: | u | linf | 1 | 1.763, 1.769 | 0.811 | monotonic_not_asymptotic |
+1599: | p | l2 | 1 | 2.309, 2.067 | 1.343 | monotonic_not_asymptotic |
+1599: | p | l1 | 1 | 2.260, 2.034 | 1.309 | monotonic_not_asymptotic |
+1599: | p | linf | 1 | 2.061, 2.162 | 0.981 | asymptotic |
+1599: | p_interior | l2 | 1 | 2.224, 2.025 | 1.274 | monotonic_not_asymptotic |
+1599: | p_boundary_ring | l2 | 1 | 2.278, 2.106 | 1.283 | monotonic_not_asymptotic |
+1599: | face_flux | l2 | 1 | 1.764, 1.857 | 0.727 | monotonic_not_asymptotic |
+1599:
+1599: - [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] velocity: u l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.629 (monotonic_not_asymptotic vs formal 1); reduction factors 1.697 1.821
+1599: - [x] velocity: u l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.692 (monotonic_not_asymptotic vs formal 1); reduction factors 1.730 1.825
+1599: - [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] velocity: v l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.588 (monotonic_not_asymptotic vs formal 1); reduction factors 1.677 1.820
+1599: - [x] velocity: v l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.615 (monotonic_not_asymptotic vs formal 1); reduction factors 1.697 1.836
+1599: - [x] velocity: u L2 finest reduction factor >= 1.6: E_coarse/E_fine = 1.821
+1599: - [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] pressure: p l2 observed order in [0.80, 1.60]: finest-triplet observed order 1.343 (monotonic_not_asymptotic vs formal 1); reduction factors 2.309 2.067
+1599: - [x] pressure: p l1 observed order in [0.80, 1.60]: finest-triplet observed order 1.309 (monotonic_not_asymptotic vs formal 1); reduction factors 2.260 2.034
+1599: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 3.63e-09, L2 4.60e-10
+1599: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.89e-08, L2 2.43e-09
+1599: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.86e-07, L2 8.94e-09
+1599: - [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+1599: - [x] continuity: face_flux l2 observed order in [0.55, 4.00]: finest-triplet observed order 0.727 (monotonic_not_asymptotic vs formal 1); reduction factors 1.764 1.857
+1599: - [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+1599: - [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+1599: - [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+1599:
+1599: [       OK ] SIMPLEMMS.VelocityConvergesAtExpectedOrder (251977 ms)
+1599: [----------] 1 test from SIMPLEMMS (251977 ms total)
+1599:
+1599: [----------] Global test environment tear-down
+1599: [==========] 1 test from 1 test suite ran. (251977 ms total)
+1599: [  PASSED  ] 1 test.
+14/16 Test #1599: SIMPLEMMS.VelocityConvergesAtExpectedOrder ........   Passed  252.02 sec
+1600: [       OK ] SIMPLEMMS.PressureConvergesAtExpectedOrder (252083 ms)
+1600: [----------] 1 test from SIMPLEMMS (252083 ms total)
+1600:
+1600: [----------] Global test environment tear-down
+1600: [==========] 1 test from 1 test suite ran. (252083 ms total)
+1600: [  PASSED  ] 1 test.
+15/16 Test #1600: SIMPLEMMS.PressureConvergesAtExpectedOrder ........   Passed  252.09 sec
+1604:
+1604: ### MMS: distorted_mesh_simple_mms
+1604:
+1604: Full SIMPLE MMS from rest (U = 0, p = 0), distorted (0.25 h) meshes, 2 non-orthogonal corrections, least-squares gradient
+1604:
+1604: Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+1604:
+1604: | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+1604: |---|---|---|---|---|---|---|
+1604: | 8x8 | 64 | 0.125 | Converged | 907 | 3.2e-19 | 40.0 |
+1604: | 16x16 | 256 | 0.0625 | Converged | 1535 | 7.95e-20 | 46.5 |
+1604: | 32x32 | 1024 | 0.03125 | Converged | 3334 | 1.98e-20 | 289.8 |
+1604:
+1604: **u**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 6.4642e-03 | 8.3068e-03 | 2.3314e-02 |
+1604: | 16x16 | 1.4120e-03 | 1.8119e-03 | 5.2178e-03 |
+1604: | 32x32 | 4.0491e-04 | 5.2031e-04 | 1.3400e-03 |
+1604:
+1604: **v**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 5.8147e-03 | 7.1559e-03 | 1.6660e-02 |
+1604: | 16x16 | 1.2539e-03 | 1.6298e-03 | 4.9903e-03 |
+1604: | 32x32 | 3.8148e-04 | 4.9121e-04 | 1.3802e-03 |
+1604:
+1604: **velocity**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 9.9188e-03 | 1.0964e-02 | 2.3473e-02 |
+1604: | 16x16 | 2.1327e-03 | 2.4371e-03 | 5.9180e-03 |
+1604: | 32x32 | 6.4407e-04 | 7.1555e-04 | 1.3810e-03 |
+1604:
+1604: **u_interior**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 7.2449e-03 | 9.0406e-03 | 2.1514e-02 |
+1604: | 16x16 | 1.2914e-03 | 1.6599e-03 | 5.2178e-03 |
+1604: | 32x32 | 3.8993e-04 | 5.0277e-04 | 1.2768e-03 |
+1604:
+1604: **v_interior**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 5.1505e-03 | 6.4925e-03 | 1.3937e-02 |
+1604: | 16x16 | 1.0638e-03 | 1.3381e-03 | 4.1327e-03 |
+1604: | 32x32 | 3.6598e-04 | 4.6946e-04 | 1.3121e-03 |
+1604:
+1604: **u_boundary_ring**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 5.4605e-03 | 7.2550e-03 | 2.3314e-02 |
+1604: | 16x16 | 1.8060e-03 | 2.2377e-03 | 4.4965e-03 |
+1604: | 32x32 | 5.1358e-04 | 6.3319e-04 | 1.3400e-03 |
+1604:
+1604: **v_boundary_ring**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 6.6687e-03 | 7.9277e-03 | 1.6660e-02 |
+1604: | 16x16 | 1.8751e-03 | 2.3420e-03 | 4.9903e-03 |
+1604: | 32x32 | 4.9400e-04 | 6.2684e-04 | 1.3802e-03 |
+1604:
+1604: **p**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 3.3941e-02 | 4.3616e-02 | 1.4457e-01 |
+1604: | 16x16 | 9.9585e-03 | 1.3248e-02 | 5.6169e-02 |
+1604: | 32x32 | 2.7956e-03 | 3.8054e-03 | 1.8826e-02 |
+1604:
+1604: **p_interior**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 3.1241e-02 | 4.0480e-02 | 1.4457e-01 |
+1604: | 16x16 | 9.2601e-03 | 1.2457e-02 | 5.6169e-02 |
+1604: | 32x32 | 2.7065e-03 | 3.6796e-03 | 1.8479e-02 |
+1604:
+1604: **p_boundary_ring**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 3.7411e-02 | 4.7344e-02 | 1.1388e-01 |
+1604: | 16x16 | 1.2240e-02 | 1.5553e-02 | 5.1257e-02 |
+1604: | 32x32 | 3.4423e-03 | 4.6166e-03 | 1.8826e-02 |
+1604:
+1604: **continuity**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 1.3690e-10 | 5.3918e-10 | 4.1621e-09 |
+1604: | 16x16 | 2.9525e-10 | 2.3510e-09 | 3.7267e-08 |
+1604: | 32x32 | 6.2177e-10 | 9.9356e-09 | 3.1721e-07 |
+1604:
+1604: **face_flux**
+1604:
+1604: | grid | L1 | L2 | Linf |
+1604: |---|---|---|---|
+1604: | 8x8 | 5.8485e-03 | 8.2988e-03 | 2.4164e-02 |
+1604: | 16x16 | 6.7723e-04 | 9.1030e-04 | 2.4055e-03 |
+1604: | 32x32 | 8.7457e-05 | 1.1901e-04 | 4.6453e-04 |
+1604:
+1604: | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+1604: |---|---|---|---|---|---|
+1604: | u | l2 | 2 | 4.584, 3.482 | 2.330 | monotonic_not_asymptotic |
+1604: | u | l1 | 2 | 4.578, 3.487 | 2.327 | monotonic_not_asymptotic |
+1604: | v | l2 | 2 | 4.391, 3.318 | 2.279 | monotonic_not_asymptotic |
+1604: | v | l1 | 2 | 4.637, 3.287 | 2.386 | monotonic_not_asymptotic |
+1604: | velocity | l2 | 2 | 4.499, 3.406 | 2.308 | monotonic_not_asymptotic |
+1604: | u | linf | 2 | 4.468, 3.894 | 2.222 | monotonic_not_asymptotic |
+1604: | p | l2 | 2 | 3.292, 3.481 | 1.685 | monotonic_not_asymptotic |
+1604: | p | l1 | 2 | 3.408, 3.562 | 1.743 | monotonic_not_asymptotic |
+1604: | p | linf | 2 | 2.574, 2.984 | 1.243 | monotonic_not_asymptotic |
+1604: | p_interior | l2 | 2 | 3.250, 3.385 | 1.675 | monotonic_not_asymptotic |
+1604: | p_boundary_ring | l2 | 2 | 3.044, 3.369 | 1.539 | monotonic_not_asymptotic |
+1604: | face_flux | l2 | 2 | 9.117, 7.649 | 3.223 | monotonic_not_asymptotic |
+1604:
+1604: - [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+1604: - [x] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 2.330 (monotonic_not_asymptotic vs formal 2); reduction factors 4.584 3.482
+1604: - [x] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 2.327 (monotonic_not_asymptotic vs formal 2); reduction factors 4.578 3.487
+1604: - [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+1604: - [x] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 2.279 (monotonic_not_asymptotic vs formal 2); reduction factors 4.391 3.318
+1604: - [x] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 2.386 (monotonic_not_asymptotic vs formal 2); reduction factors 4.637 3.287
+1604: - [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 3.482
+1604: - [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+1604: - [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.685 (monotonic_not_asymptotic vs formal 2); reduction factors 3.292 3.481
+1604: - [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.743 (monotonic_not_asymptotic vs formal 2); reduction factors 3.408 3.562
+1604: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 4.16e-09, L2 5.39e-10
+1604: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.73e-08, L2 2.35e-09
+1604: - [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 3.17e-07, L2 9.94e-09
+1604: - [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+1604: - [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 3.223 (monotonic_not_asymptotic vs formal 2); reduction factors 9.117 7.649
+1604: - [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+1604: - [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+1604: - [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+1604:
+1604: [       OK ] SIMPLEMMS.DistortedMesh (376256 ms)
+1604: [----------] 1 test from SIMPLEMMS (376256 ms total)
+1604:
+1604: [----------] Global test environment tear-down
+1604: [==========] 1 test from 1 test suite ran. (376256 ms total)
+1604: [  PASSED  ] 1 test.
+16/16 Test #1604: SIMPLEMMS.DistortedMesh ...........................   Passed  376.27 sec
+
+The following tests passed:
+	ContinuityMMS.DivergenceFreeField
+	MomentumMMS.PressureGradientBalance
+	SIMPLEMMS.Deterministic
+	ScalarMMS.DistortedMeshNonOrthogonalCorrection
+	ScalarMMS.AdvectionDiffusionConverges
+	SIMPLEMMS.ConvergesFromNonExactInitialCondition
+	MomentumMMS.UConverges
+	MomentumMMS.VConverges
+	MomentumMMS.DistortedMesh
+	SIMPLEMMS.GlobalMassBalance
+	CompressibleSimpleMMS.SystemConvergence
+	SIMPLEMMS.ContinuityConverges
+	SIMPLEMMS.VelocityConvergesAtExpectedOrder
+	SIMPLEMMS.PressureConvergesAtExpectedOrder
+	SIMPLEMMS.DistortedMesh
+
+100% tests passed, 0 tests failed out of 15
+
+Label Time Summary:
+validation    = 1811.73 sec*proc (16 tests)
+
+Total Test time (real) = 376.99 sec
+
+The following tests did not run:
+	1605 - SIMPLEMMS.FineGridStudy (Disabled)
+
+real	6m36.832s
+user	30m46.450s
+sys	0m12.218s
+
+################ 5. SIMPLEMMS.ConvergesFromNonExactInitialCondition (with the printed differences)
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SIMPLEMMS.ConvergesFromNonExactInitialCondition
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SIMPLEMMS
+[ RUN      ] SIMPLEMMS.ConvergesFromNonExactInitialCondition
+
+SIMPLE MMS 16x16 upwind: from rest 1493 outer iterations, from (-0.5 U_exact, p = 10) 1494; max |difference| u 2.871e-09, v 2.463e-09, p (modulo gauge) 2.106e-07
+[       OK ] SIMPLEMMS.ConvergesFromNonExactInitialCondition (24218 ms)
+[----------] 1 test from SIMPLEMMS (24218 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (24219 ms total)
+[  PASSED  ] 1 test.
+
+real	0m25.140s
+user	0m24.552s
+sys	0m0.238s
+
+################ 6. SIMPLEMMS.DISABLED_FineGridStudy (explicit, --gtest_also_run_disabled_tests)
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SIMPLEMMS.DISABLED_FineGridStudy
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SIMPLEMMS
+[ RUN      ] SIMPLEMMS.DISABLED_FineGridStudy
+
+### MMS: simple_mms_fine_upwind
+
+Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 16x16 | 256 | 0.0625 | Converged | 1493 | 7.95e-20 | 8.4 |
+| 32x32 | 1024 | 0.03125 | Converged | 2974 | 1.98e-20 | 55.0 |
+| 64x64 | 4096 | 0.015625 | Converged | 5417 | 4.96e-21 | 466.4 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.5436e-02 | 2.0508e-02 | 4.6360e-02 |
+| 32x32 | 8.4578e-03 | 1.1260e-02 | 2.6200e-02 |
+| 64x64 | 4.4495e-03 | 5.9270e-03 | 1.3835e-02 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.5689e-02 | 2.0769e-02 | 5.1303e-02 |
+| 32x32 | 8.5456e-03 | 1.1410e-02 | 2.8229e-02 |
+| 64x64 | 4.4947e-03 | 6.0042e-03 | 1.4882e-02 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.4884e-02 | 2.9188e-02 | 5.1330e-02 |
+| 32x32 | 1.3591e-02 | 1.6030e-02 | 2.8289e-02 |
+| 64x64 | 7.1538e-03 | 8.4368e-03 | 1.4895e-02 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.9172e-02 | 2.3276e-02 | 4.6360e-02 |
+| 32x32 | 9.5058e-03 | 1.2000e-02 | 2.6200e-02 |
+| 64x64 | 4.7270e-03 | 6.1176e-03 | 1.3835e-02 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.9433e-02 | 2.3519e-02 | 5.1303e-02 |
+| 32x32 | 9.6028e-03 | 1.2158e-02 | 2.8229e-02 |
+| 64x64 | 4.7749e-03 | 6.1971e-03 | 1.4882e-02 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 3.2324e-03 | 4.9684e-03 | 1.4844e-02 |
+| 32x32 | 8.5133e-04 | 1.3443e-03 | 4.2024e-03 |
+| 64x64 | 2.1595e-04 | 3.4381e-04 | 1.0942e-03 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 3.4591e-03 | 5.7877e-03 | 1.8938e-02 |
+| 32x32 | 8.7212e-04 | 1.5199e-03 | 5.2078e-03 |
+| 64x64 | 2.1976e-04 | 3.8631e-04 | 1.3485e-03 |
+
+**p**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.4666e-02 | 3.1563e-02 | 1.1467e-01 |
+| 32x32 | 1.2127e-02 | 1.5270e-02 | 5.3039e-02 |
+| 64x64 | 6.0984e-03 | 7.6176e-03 | 2.4249e-02 |
+
+**p_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.4198e-02 | 3.0597e-02 | 7.2706e-02 |
+| 32x32 | 1.2021e-02 | 1.5108e-02 | 3.8243e-02 |
+| 64x64 | 6.0774e-03 | 7.5927e-03 | 1.9991e-02 |
+
+**p_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.6195e-02 | 3.4533e-02 | 1.1467e-01 |
+| 32x32 | 1.2901e-02 | 1.6397e-02 | 5.3039e-02 |
+| 64x64 | 6.4194e-03 | 7.9882e-03 | 2.4249e-02 |
+
+**continuity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 3.0354e-10 | 2.4334e-09 | 3.8854e-08 |
+| 32x32 | 5.6382e-10 | 8.9371e-09 | 2.8581e-07 |
+| 64x64 | 1.2126e-09 | 3.8770e-08 | 2.4809e-06 |
+
+**face_flux**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.5778e-02 | 2.1423e-02 | 5.4245e-02 |
+| 32x32 | 8.5581e-03 | 1.1534e-02 | 2.9091e-02 |
+| 64x64 | 4.4858e-03 | 6.0156e-03 | 1.5107e-02 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 1 | 1.821, 1.900 | 0.794 | monotonic_not_asymptotic |
+| u | l1 | 1 | 1.825, 1.901 | 0.800 | monotonic_not_asymptotic |
+| v | l2 | 1 | 1.820, 1.900 | 0.792 | monotonic_not_asymptotic |
+| v | l1 | 1 | 1.836, 1.901 | 0.818 | monotonic_not_asymptotic |
+| velocity | l2 | 1 | 1.821, 1.900 | 0.793 | monotonic_not_asymptotic |
+| u | linf | 1 | 1.769, 1.894 | 0.705 | monotonic_not_asymptotic |
+| p | l2 | 1 | 2.067, 2.005 | 1.090 | asymptotic |
+| p | l1 | 1 | 2.034, 1.989 | 1.056 | asymptotic |
+| p | linf | 1 | 2.162, 2.187 | 1.098 | asymptotic |
+| p_interior | l2 | 1 | 2.025, 1.990 | 1.043 | asymptotic |
+| p_boundary_ring | l2 | 1 | 2.106, 2.053 | 1.109 | asymptotic |
+| face_flux | l2 | 1 | 1.857, 1.917 | 0.842 | monotonic_not_asymptotic |
+
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: u l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.794 (monotonic_not_asymptotic vs formal 1); reduction factors 1.821 1.900
+- [x] velocity: u l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.800 (monotonic_not_asymptotic vs formal 1); reduction factors 1.825 1.901
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: v l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.792 (monotonic_not_asymptotic vs formal 1); reduction factors 1.820 1.900
+- [x] velocity: v l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.818 (monotonic_not_asymptotic vs formal 1); reduction factors 1.836 1.901
+- [x] velocity: u L2 finest reduction factor >= 1.6: E_coarse/E_fine = 1.900
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [0.80, 1.60]: finest-triplet observed order 1.090 (asymptotic vs formal 1); reduction factors 2.067 2.005
+- [x] pressure: p l1 observed order in [0.80, 1.60]: finest-triplet observed order 1.056 (asymptotic vs formal 1); reduction factors 2.034 1.989
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.89e-08, L2 2.43e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.86e-07, L2 8.94e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 64x64: Linf 2.48e-06, L2 3.88e-08
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [0.55, 4.00]: finest-triplet observed order 0.842 (monotonic_not_asymptotic vs formal 1); reduction factors 1.857 1.917
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+- [x] mass: global mass imbalance <= 1e-14 at 64x64: 4.96e-21
+
+
+### MMS: simple_mms_fine
+
+Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 16x16 | 256 | 0.0625 | Converged | 1845 | 7.95e-20 | 10.3 |
+| 32x32 | 1024 | 0.03125 | Converged | 4189 | 1.98e-20 | 86.7 |
+| 64x64 | 4096 | 0.015625 | Converged | 6420 | 4.96e-21 | 671.6 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.5427e-03 | 1.9948e-03 | 5.3246e-03 |
+| 32x32 | 4.4482e-04 | 5.6196e-04 | 1.3762e-03 |
+| 64x64 | 1.1774e-04 | 1.4756e-04 | 3.6226e-04 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.4298e-03 | 1.8455e-03 | 5.4411e-03 |
+| 32x32 | 4.1574e-04 | 5.3455e-04 | 1.4543e-03 |
+| 64x64 | 1.1099e-04 | 1.4142e-04 | 3.7337e-04 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.4003e-03 | 2.7175e-03 | 6.2890e-03 |
+| 32x32 | 7.0466e-04 | 7.7560e-04 | 1.4644e-03 |
+| 64x64 | 1.8776e-04 | 2.0439e-04 | 3.7353e-04 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.3847e-03 | 1.8103e-03 | 5.3246e-03 |
+| 32x32 | 4.3269e-04 | 5.4789e-04 | 1.2821e-03 |
+| 64x64 | 1.1670e-04 | 1.4627e-04 | 3.4284e-04 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.3115e-03 | 1.6733e-03 | 4.6482e-03 |
+| 32x32 | 4.0561e-04 | 5.2008e-04 | 1.3922e-03 |
+| 64x64 | 1.1011e-04 | 1.4003e-04 | 3.6683e-04 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.0589e-03 | 2.5046e-03 | 5.1509e-03 |
+| 32x32 | 5.3289e-04 | 6.5508e-04 | 1.3762e-03 |
+| 64x64 | 1.3359e-04 | 1.6606e-04 | 3.6226e-04 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.8165e-03 | 2.3207e-03 | 5.4411e-03 |
+| 32x32 | 4.8928e-04 | 6.2969e-04 | 1.4543e-03 |
+| 64x64 | 1.2442e-04 | 1.6126e-04 | 3.7337e-04 |
+
+**p**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.3816e-02 | 1.8698e-02 | 7.8966e-02 |
+| 32x32 | 3.8857e-03 | 5.4335e-03 | 2.7046e-02 |
+| 64x64 | 9.9717e-04 | 1.4054e-03 | 8.2062e-03 |
+
+**p_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.2937e-02 | 1.7447e-02 | 6.0784e-02 |
+| 32x32 | 3.7739e-03 | 5.2730e-03 | 2.4346e-02 |
+| 64x64 | 9.8177e-04 | 1.3812e-03 | 7.6692e-03 |
+
+**p_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.6689e-02 | 2.2302e-02 | 7.8966e-02 |
+| 32x32 | 4.6975e-03 | 6.4809e-03 | 2.7046e-02 |
+| 64x64 | 1.2320e-03 | 1.7329e-03 | 8.2062e-03 |
+
+**continuity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 3.0596e-10 | 2.4529e-09 | 3.9163e-08 |
+| 32x32 | 4.8227e-10 | 7.3866e-09 | 2.3619e-07 |
+| 64x64 | 7.0924e-10 | 1.9915e-08 | 1.2740e-06 |
+
+**face_flux**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 4.8571e-04 | 6.6266e-04 | 2.2471e-03 |
+| 32x32 | 9.1386e-05 | 1.2873e-04 | 5.1570e-04 |
+| 64x64 | 2.4116e-05 | 3.3926e-05 | 1.4777e-04 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 2 | 3.550, 3.808 | 1.790 | monotonic_not_asymptotic |
+| u | l1 | 2 | 3.468, 3.778 | 1.747 | monotonic_not_asymptotic |
+| v | l2 | 2 | 3.452, 3.780 | 1.738 | monotonic_not_asymptotic |
+| v | l1 | 2 | 3.439, 3.746 | 1.735 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 3.504, 3.795 | 1.765 | monotonic_not_asymptotic |
+| u | linf | 2 | 3.869, 3.799 | 1.961 | asymptotic |
+| p | l2 | 2 | 3.441, 3.866 | 1.719 | monotonic_not_asymptotic |
+| p | l1 | 2 | 3.556, 3.897 | 1.782 | monotonic_not_asymptotic |
+| p | linf | 2 | 2.920, 3.296 | 1.463 | monotonic_not_asymptotic |
+| p_interior | l2 | 2 | 3.309, 3.818 | 1.645 | monotonic_not_asymptotic |
+| p_boundary_ring | l2 | 2 | 3.441, 3.740 | 1.736 | monotonic_not_asymptotic |
+| face_flux | l2 | 2 | 5.148, 3.795 | 2.494 | monotonic_not_asymptotic |
+
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 1.790 (monotonic_not_asymptotic vs formal 2); reduction factors 3.550 3.808
+- [x] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 1.747 (monotonic_not_asymptotic vs formal 2); reduction factors 3.468 3.778
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 1.738 (monotonic_not_asymptotic vs formal 2); reduction factors 3.452 3.780
+- [x] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 1.735 (monotonic_not_asymptotic vs formal 2); reduction factors 3.439 3.746
+- [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 3.808
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.719 (monotonic_not_asymptotic vs formal 2); reduction factors 3.441 3.866
+- [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.782 (monotonic_not_asymptotic vs formal 2); reduction factors 3.556 3.897
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.92e-08, L2 2.45e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.36e-07, L2 7.39e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 64x64: Linf 1.27e-06, L2 1.99e-08
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 2.494 (monotonic_not_asymptotic vs formal 2); reduction factors 5.148 3.795
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+- [x] mass: global mass imbalance <= 1e-14 at 64x64: 4.96e-21
+
+[       OK ] SIMPLEMMS.DISABLED_FineGridStudy (1298342 ms)
+[----------] 1 test from SIMPLEMMS (1298342 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1298343 ms total)
+[  PASSED  ] 1 test.
+
+real	22m7.338s
+user	21m38.149s
+sys	0m28.918s
+
+################ 7. Full-regression lines for the NUM-006 tests (ctest -j32, see summary.md section 14)
+   1/1646 Test #1603: SIMPLEMMS.Deterministic ..................................................................................   Passed    8.31 sec
+   2/1646 Test #1592: ScalarMMS.DistortedMeshNonOrthogonalCorrection ...........................................................   Passed   18.50 sec
+   3/1646 Test #1591: ScalarMMS.AdvectionDiffusionConverges ....................................................................   Passed   36.28 sec
+   9/1646 Test #1598: SIMPLEMMS.ConvergesFromNonExactInitialCondition ..........................................................   Passed   92.94 sec
+  10/1646 Test #1594: MomentumMMS.VConverges ...................................................................................   Passed   98.67 sec
+  11/1646 Test #1593: MomentumMMS.UConverges ...................................................................................   Passed   98.81 sec
+  22/1646 Test #1596: MomentumMMS.DistortedMesh ................................................................................   Passed  171.29 sec
+  27/1646 Test #1602: SIMPLEMMS.GlobalMassBalance ..............................................................................   Passed  197.01 sec
+  40/1646 Test #1606: CompressibleSimpleMMS.SystemConvergence ..................................................................   Passed  230.32 sec
+ 163/1646 Test #1595: MomentumMMS.PressureGradientBalance ......................................................................   Passed    0.64 sec
+ 544/1646 Test #1597: ContinuityMMS.DivergenceFreeField ........................................................................   Passed    0.32 sec
+1066/1646 Test #1601: SIMPLEMMS.ContinuityConverges ............................................................................   Passed  288.70 sec
+1615/1646 Test #1605: SIMPLEMMS.FineGridStudy ..................................................................................***Not Run (Disabled)   0.00 sec
+1618/1646 Test #1230: ManufacturedFieldsTest.VelocityIsAnalyticallyDivergenceFree ..............................................   Passed    0.50 sec
+1619/1646 Test #1231: ManufacturedFieldsTest.VelocityDerivativesExact ..........................................................   Passed    0.50 sec
+1620/1646 Test #1232: ManufacturedFieldsTest.PressureGradientExact .............................................................   Passed    0.49 sec
+1621/1646 Test #1233: ManufacturedFieldsTest.MomentumForcingExact ..............................................................   Passed    0.49 sec
+1622/1646 Test #1234: ManufacturedFieldsTest.ScalarForcingExact ................................................................   Passed    0.50 sec
+1623/1646 Test #1235: ManufacturedFieldsTest.CompressibleForcingExact ..........................................................   Passed    0.49 sec
+1624/1646 Test #1236: ManufacturedFieldsTest.ExactFaceFluxIsDiscretelyDivergenceFree ...........................................   Passed    0.49 sec
+1625/1646 Test #1237: MMSSourceTest.CellVolumeScaling ..........................................................................   Passed    0.50 sec
+1626/1646 Test #1238: MMSSourceTest.RelaxedMomentumSourceIsAPureRhsTerm ........................................................   Passed    0.49 sec
+1627/1646 Test #1239: MMSSourceTest.SolversRejectMalformedSourceFields .........................................................   Passed    0.49 sec
+1628/1646 Test #1240: MMSErrorNormsTest.KnownField .............................................................................   Passed    0.50 sec
+1629/1646 Test #1241: MMSErrorNormsTest.PressureGaugeRemoval ...................................................................   Passed    0.50 sec
+1630/1646 Test #1242: MMSStudyTest.OrdersComeFromTheSharedGridConvergenceAnalysis ..............................................   Passed    0.50 sec
+1631/1646 Test #1243: MMSStudyTest.ReportIsDeterministicExceptRuntime ..........................................................   Passed    0.50 sec
+1632/1646 Test #1436: CompressibleSimpleTest.InitialStateOutsideEosDomainReportsInvalidConfiguration ...........................   Passed    0.50 sec
+1633/1646 Test #1437: CompressibleSimpleTest.NonPhysicalPressureTransientReportsNonFiniteState .................................   Passed    0.50 sec
+1638/1646 Test #1599: SIMPLEMMS.VelocityConvergesAtExpectedOrder ...............................................................   Passed  396.09 sec
+1639/1646 Test #1600: SIMPLEMMS.PressureConvergesAtExpectedOrder ...............................................................   Passed  396.33 sec
+1644/1646 Test #1604: SIMPLEMMS.DistortedMesh ..................................................................................   Passed  574.46 sec
+100% tests passed, 0 tests failed out of 1634
+Total Test time (real) = 776.79 sec

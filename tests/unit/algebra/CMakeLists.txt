@@ -8,6 +8,8 @@ add_executable(CFDAlgebraTests
   test_solver_failures.cpp
   test_solver_determinism.cpp
   test_linear_solver_factory.cpp
+  test_gmres.cpp
+  test_linear_solver_fallback.cpp
 )
 
 target_link_libraries(CFDAlgebraTests

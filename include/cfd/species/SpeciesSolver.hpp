@@ -4,6 +4,7 @@
 
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -44,6 +45,11 @@ struct SpeciesSolverSettings {
   cfd::algebra::LinearSolverSettings linearSolver;
   Index maxIterations{2000};
   Real tolerance{1e-8};  // max absolute concentration change between outer iterations.
+  // P12-NUM-003: non-orthogonal correction of the diffusion term (default
+  // disabled -- exactly the pre-existing operator). The outer Picard loop
+  // above re-evaluates the explicit S_nonorth . grad(Y) term every
+  // iteration, so a converged solve satisfies the fully corrected equation.
+  cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonal;
 };
 
 struct SpeciesResult {

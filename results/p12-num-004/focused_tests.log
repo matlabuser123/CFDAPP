@@ -1,0 +1,201 @@
+# P12-NUM-004 focused test output (WSL2 Ubuntu, GCC, build/debug, captured 2026-09-13)
+# gtest per-test RUN/OK lines stripped; printed measurements, FAILED lines and totals kept.
+
+## CFDAlgebraTests --gtest_filter=*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 90 tests from 12 test suites.
+[----------] Global test environment set-up.
+[----------] 10 tests from AlgebraVector
+[----------] 10 tests from AlgebraVector (0 ms total)
+
+[----------] 16 tests from SparseMatrixTest
+[----------] 16 tests from SparseMatrixTest (0 ms total)
+
+[----------] 1 test from SparseMatrixBuilderTest
+[----------] 1 test from SparseMatrixBuilderTest (0 ms total)
+
+[----------] 3 tests from LinearSystemTest
+[----------] 3 tests from LinearSystemTest (0 ms total)
+
+[----------] 6 tests from JacobiTest
+[----------] 6 tests from JacobiTest (0 ms total)
+
+[----------] 9 tests from CGTest
+[----------] 9 tests from CGTest (0 ms total)
+
+[----------] 6 tests from BiCGSTABTest
+[----------] 6 tests from BiCGSTABTest (0 ms total)
+
+[----------] 6 tests from SolverFailureTest
+[----------] 6 tests from SolverFailureTest (0 ms total)
+
+[----------] 2 tests from SolverDeterminismTest
+[----------] 2 tests from SolverDeterminismTest (0 ms total)
+
+[----------] 8 tests from LinearSolverFactoryTest
+[WARNING] makeLinearSolver: GPU backend requested but unavailable (no CUDA support in this build, or no usable device at runtime) -- falling back to the CPU-equivalent solver
+[WARNING] makeLinearSolver: GPU backend requested but unavailable (no CUDA support in this build, or no usable device at runtime) -- falling back to the CPU-equivalent solver
+[WARNING] makeLinearSolver: GPU backend requested but unavailable (no CUDA support in this build, or no usable device at runtime) -- falling back to the CPU-equivalent solver
+[WARNING] makeLinearSolver: GPU backend requested but unavailable (no CUDA support in this build, or no usable device at runtime) -- falling back to the CPU-equivalent solver
+[----------] 8 tests from LinearSolverFactoryTest (0 ms total)
+
+[----------] 10 tests from GMRESTest
+[WARNING] makeLinearSolver: GPU backend requested but unavailable (no CUDA support in this build, or no usable device at runtime) -- falling back to the CPU-equivalent solver
+[----------] 10 tests from GMRESTest (18 ms total)
+
+[----------] 13 tests from LinearFallbackTest
+[----------] 13 tests from LinearFallbackTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 90 tests from 12 test suites ran. (20 ms total)
+[  PASSED  ] 90 tests.
+
+## CFDSolverTests --gtest_filter=ResidualNormalization.*:ResidualTrend.*:ConvergencePolicy.*:AdaptiveRelaxation.*:SolverRobustness*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ResidualNormalization.*:ResidualTrend.*:ConvergencePolicy.*:AdaptiveRelaxation.*:SolverRobustness*
+[==========] Running 28 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from ResidualNormalization
+[----------] 5 tests from ResidualNormalization (1 ms total)
+
+[----------] 8 tests from ResidualTrend
+[----------] 8 tests from ResidualTrend (3 ms total)
+
+[----------] 4 tests from ConvergencePolicy
+[----------] 4 tests from ConvergencePolicy (10 ms total)
+
+[----------] 8 tests from AdaptiveRelaxation
+[----------] 8 tests from AdaptiveRelaxation (0 ms total)
+
+[----------] 2 tests from SolverRobustnessSettingsTest
+[----------] 2 tests from SolverRobustnessSettingsTest (0 ms total)
+
+[----------] 1 test from SolverRobustnessPerformance
+
+OuterIterationMonitor: 100000 updates (stagnation window 50, divergence window 5, adaptive on): 0.095 s total, 0.947 us per outer iteration
+[----------] 1 test from SolverRobustnessPerformance (95 ms total)
+
+[----------] Global test environment tear-down
+[==========] 28 tests from 6 test suites ran. (110 ms total)
+[  PASSED  ] 28 tests.
+
+## CFDSimpleTests --gtest_filter=SIMPLERobustnessTest.*:SIMPLESettingsTest.*:SIMPLEConvergence*:SIMPLEFailure*:SIMPLENonFinite*:SIMPLEDeterminism*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SIMPLERobustnessTest.*:SIMPLESettingsTest.*:SIMPLEConvergence*:SIMPLEFailure*:SIMPLENonFinite*:SIMPLEDeterminism*
+[==========] Running 34 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 11 tests from SIMPLESettingsTest
+[----------] 11 tests from SIMPLESettingsTest (1 ms total)
+
+[----------] 2 tests from SIMPLEConvergenceTest
+[----------] 2 tests from SIMPLEConvergenceTest (29960 ms total)
+
+[----------] 7 tests from SIMPLEFailureTest
+[----------] 7 tests from SIMPLEFailureTest (4 ms total)
+
+[----------] 2 tests from SIMPLENonFiniteTest
+[----------] 2 tests from SIMPLENonFiniteTest (0 ms total)
+
+[----------] 2 tests from SIMPLEDeterminismTest
+[----------] 2 tests from SIMPLEDeterminismTest (681 ms total)
+
+[----------] 10 tests from SIMPLERobustnessTest
+
+Cavity 8x8 Re=100: absolute (1e-8) 1728 iterations; normalized (1e-4, references u 0.05657 v 0.007178 p 0.06286) 754 iterations, final normalized u 3.82e-06 v 3.02e-05 p 9.94e-05
+
+Round-off plateau, detection off: status 1, 6000 iterations, final u 8.25e-13 v 7.84e-13 p 9.81e-13 continuity 6.68e-13, alpha 0.7/0.3 (min 0.7), increases 0 decreases 0, fallbacks 0 (recovered 0)
+Round-off plateau, detection on: status 7, 3151 iterations, final u 8.25e-13 v 7.84e-13 p 9.81e-13 continuity 6.68e-13, alpha 0.7/0.3 (min 0.7), increases 0 decreases 0, fallbacks 0 (recovered 0)
+  detail: stagnation: the best convergence distance improved by 0% over the last 50 iterations (9811 -> 9811; threshold 1%, converged at 1)
+
+Aggressive fixed relaxation 0.9/0.9, divergence detection on: status 8, 20 iterations, final u 1.48e+11 v 3.44e+10 p 1.34e+06 continuity 1.62e-05, alpha 0.9/0.9 (min 0.9), increases 0 decreases 0, fallbacks 0 (recovered 0)
+  detail: divergence: every one of the last 10 u residuals is >= 10 x its best value since iteration 10 (4811); window minimum 9.786e+04, latest 1.483e+11
+
+Fixed 0.9/0.9: status 8, 20 iterations, final u 1.48e+11 v 3.44e+10 p 1.34e+06 continuity 1.62e-05, alpha 0.9/0.9 (min 0.9), increases 0 decreases 0, fallbacks 0 (recovered 0)
+  detail: divergence: every one of the last 10 u residuals is >= 10 x its best value since iteration 10 (4811); window minimum 9.786e+04, latest 1.483e+11
+Adaptive from 0.9/0.9: status 0, 672 iterations, final u 2.35e-08 v 2.36e-08 p 9.89e-07 continuity 1.14e-13, alpha 0.567/0.567 (min 0.441), increases 6 decreases 2, fallbacks 0 (recovered 0)
+Fixed 0.7/0.3 (conservative reference): status 0, 1032 iterations, final u 3.43e-08 v 3.45e-08 p 9.95e-07 continuity 1.12e-13, alpha 0.7/0.3 (min 0.7), increases 0 decreases 0, fallbacks 0 (recovered 0)
+
+P12-COMP-002 channel, BiCGSTAB pressure, fallback off: status 3, 32 iterations, final u 0.127 v 0.245 p 0.00828 continuity 4.95e-10, alpha 0.7/0.3 (min 0.7), increases 0 decreases 0, fallbacks 0 (recovered 0)
+  detail: pressure-correction linear solve failed: BiCGSTAB Breakdown after 104 iterations
+P12-COMP-002 channel, BiCGSTAB pressure, fallback on: status 1, 60 iterations, final u 0.0533 v 0.0894 p 0.00462 continuity 4.74e-10, alpha 0.7/0.3 (min 0.7), increases 0 decreases 0, fallbacks 8 (recovered 8)
+
+Cavity 8x8, 1032 iterations: robustness off 1.653 s, detectors+fallback on 1.718 s (ratio 1.039)
+[----------] 10 tests from SIMPLERobustnessTest (29540 ms total)
+
+[----------] Global test environment tear-down
+[==========] 34 tests from 6 test suites ran. (60188 ms total)
+[  PASSED  ] 34 tests.
+
+## CFDCompressibleSimpleTests --gtest_filter=*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 26 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from CompressibleRelaxedMomentumTest
+[----------] 5 tests from CompressibleRelaxedMomentumTest (1 ms total)
+
+[----------] 6 tests from CompressiblePressureCorrectionTest
+[----------] 6 tests from CompressiblePressureCorrectionTest (0 ms total)
+
+[----------] 5 tests from CompressibleSimpleTest
+[----------] 5 tests from CompressibleSimpleTest (626 ms total)
+
+[----------] 3 tests from CompressibleSimpleSettingsTest
+[----------] 3 tests from CompressibleSimpleSettingsTest (0 ms total)
+
+[----------] 4 tests from CompressibleSIMPLENonOrthogonalTest
+
+Compressible air cavity, distorted 8x8 0.45h N=0: 394 iterations, final continuity 2.22e-11, global imbalance 0, max cell imbalance 1.54e-10, max |wall flux| 0, density [1.17662427, 1.17662429], pressure passes 394
+
+Compressible air cavity, distorted 8x8 0.45h N=2: 394 iterations, final continuity 1.31e-11, global imbalance 0, max cell imbalance 6.78e-11, max |wall flux| 0, density [1.17662427, 1.17662429], pressure passes 788
+
+Compressible open channel, distorted 12x6 0.3h N=2: 2214 iterations, inlet flux -0.294156073, outlet flux 0.294156074, global net 7.37e-10, max cell imbalance 1.79e-11
+
+Low-Mach limit, distorted 6x6 0.3h N=2 LS: max |u_compressible - u_SIMPLE| 7.75e-10, max |rho - 1| 6.73e-14 (iterations: SIMPLE 816, compressible 584)
+[----------] 4 tests from CompressibleSIMPLENonOrthogonalTest (13365 ms total)
+
+[----------] 3 tests from CompressibleSIMPLERobustnessTest
+
+Compressible air cavity 8x8: fixed 0.7/0.3 440 iterations; adaptive 296 iterations (alpha 0.95/0.95 at the end, 24 increases, 0 decreases); max |rho - rho_0| 1.4e-08
+Converged to 1e-11: fixed 1324 iterations, adaptive 913 iterations, max |u_fixed - u_adaptive| 1.5e-09
+
+P12-COMP-002 channel, CompressibleSIMPLE from rest, BiCGSTAB pressure: fallback off -> status 3 after 63 iterations (pressure-correction linear solve failed: BiCGSTAB Breakdown after 199 iterations); fallback on -> status 1 after 80 iterations, 1 fallback(s), 1 recovered
+
+Low-Mach limit with adaptive relaxation + normalized criterion: max |u_c - u_SIMPLE| 7.04e-08; iterations SIMPLE 615 / compressible 461; identical relaxation history for the first 8 iterations (of 461); decreases 2 / 0, increases 21 / 15
+[----------] 3 tests from CompressibleSIMPLERobustnessTest (9179 ms total)
+
+[----------] Global test environment tear-down
+[==========] 26 tests from 6 test suites ran. (23173 ms total)
+[  PASSED  ] 26 tests.
+
+## CFDIoTests --gtest_filter=RobustnessConfig*:JSONWriter*:CaseReader*:CaseWriter*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = RobustnessConfig*:JSONWriter*:CaseReader*:CaseWriter*
+[==========] Running 48 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 21 tests from CaseReaderTest
+[----------] 21 tests from CaseReaderTest (20 ms total)
+
+[----------] 7 tests from CaseWriterTest
+[----------] 7 tests from CaseWriterTest (10 ms total)
+
+[----------] 14 tests from JSONWriterTest
+[----------] 14 tests from JSONWriterTest (5 ms total)
+
+[----------] 6 tests from RobustnessConfigTest
+[----------] 6 tests from RobustnessConfigTest (19 ms total)
+
+[----------] Global test environment tear-down
+[==========] 48 tests from 4 test suites ran. (57 ms total)
+[  PASSED  ] 48 tests.
+
+## CFDAppLayerTests --gtest_filter=ProjectRunnerTest.*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ProjectRunnerTest.*
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from ProjectRunnerTest
+[----------] 6 tests from ProjectRunnerTest (1954 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (1954 ms total)
+[  PASSED  ] 6 tests.

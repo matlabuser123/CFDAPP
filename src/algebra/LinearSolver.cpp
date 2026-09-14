@@ -20,6 +20,9 @@ void validateSettings(const LinearSolverSettings& settings) {
   if (settings.maxIterations == 0) {
     throw InvalidArgumentError("LinearSolverSettings: maxIterations must be >= 1");
   }
+  if (settings.gmresRestart == 0) {
+    throw InvalidArgumentError("LinearSolverSettings: gmresRestart must be >= 1");
+  }
 }
 
 }  // namespace

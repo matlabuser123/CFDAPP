@@ -36,9 +36,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "ChannelFlowValidationUtils.hpp"
 #include "ChannelReTau180.hpp"
@@ -55,6 +58,8 @@
 #include "cfd/turbulence/KOmegaModel.hpp"
 #include "cfd/turbulence/LaminarModel.hpp"
 #include "cfd/turbulence/SSTModel.hpp"
+#include "cfd/validation/ErrorNorms.hpp"
+#include "cfd/validation/ProductionValidation.hpp"
 
 using cfd::Index;
 using cfd::Real;
@@ -259,10 +264,13 @@ struct ModelFields {
 // writes CSV/JSON evidence under results/validation/turbulence/
 // channel_flow/<model>/<grid>/, and returns the outcome record. Shared
 // by every model-specific TEST below (kepsilon/komega/sst/laminar).
+// P12-NUM-007: `resultOut`, when given, receives the SIMPLEResult (for the
+// production-validation metrics below).
 cfd::validation::ChannelFlowValidationRecord runAndValidate(const std::string& modelDirName,
                                                             const GridCase& grid,
                                                             TurbulenceModel* activeModel,
-                                                            const ModelFields& fields) {
+                                                            const ModelFields& fields,
+                                                            SIMPLEResult* resultOut = nullptr) {
   using namespace cfd::validation;
   using namespace cfd::validation::channel_re_tau_180;
 
@@ -432,6 +440,7 @@ cfd::validation::ChannelFlowValidationRecord runAndValidate(const std::string& m
   EXPECT_LT(record.wallShearAsymmetry, 0.05)
       << fields.name << " " << grid.label << " top/bottom wall shear should agree by symmetry";
 
+  if (resultOut != nullptr) *resultOut = result;
   return record;
 }
 
@@ -904,4 +913,330 @@ TEST(ChannelFlowValidation, SSTIsDeterministic) {
     EXPECT_EQ(modelA.omega()[i], modelB.omega()[i]);
     EXPECT_EQ(modelA.f1()[i], modelB.f1()[i]);
   }
+}
+
+// =====================================================================
+// P12-NUM-007 -- production-validation metrics for the Re_tau = 180
+// channel. Same case, runner and gates as above (runAndValidate; the
+// per-grid Re_tau / log-law thresholds are the P2-TURB-007 locked values,
+// reused unchanged); added: the report record (cfd/validation/
+// ProductionValidation.hpp) with u_tau, tau_w, Re_tau, Cf, U_c+, U_b+,
+// first-cell y+, and the log-law comparison -- each with the wall shear
+// from TWO estimators:
+//   * secant: tau_w = mu U(y1)/y1 (computeWallShearStress, P2-TURB-007),
+//     documented to under-estimate tau_w when y1 lies outside the viscous
+//     sublayer;
+//   * momentum balance: in FULLY developed channel flow -dp/dx * delta =
+//     tau_w exactly (total, molecular + turbulent, stress balance), dp/dx
+//     from the checkerboard-immune pair-averaged gradient between the two
+//     development stations (0.8 L, 0.9 L). Measured: this estimate gives
+//     Re_tau 204-448, far ABOVE 180 -- at L = 8H the core is still
+//     accelerating (the profile-shape criterion < 5 % holds, the momentum
+//     balance does not), so -dp/dx also carries the streamwise momentum-
+//     flux change and over-estimates tau_w.
+// The two estimates therefore bracket the wall shear from below (secant)
+// and above (balance); they close in with refinement (SST: 116/316 ->
+// 132/257 -> 161/204, bracketing 180 on the fine grid). Reported, not
+// gated. No turbulence model is changed.
+// =====================================================================
+
+namespace {
+
+cfd::validation::ErrorNorms toErrorNorms(const cfd::validation::ErrorMetrics& m) {
+  cfd::validation::ErrorNorms norms;
+  norms.l1 = m.meanAbsolute;
+  norms.l2 = m.l2;
+  norms.linf = m.lInf;
+  norms.cells = m.sampleCount;
+  norms.volume = static_cast<Real>(m.sampleCount);
+  return norms;
+}
+
+struct ChannelThresholds {
+  Real reTauError;
+  Real outerL2;
+};
+
+ChannelThresholds thresholdsFor(const GridCase& grid) {
+  if (grid.ny == kCoarse.ny) return {kReTauErrorThresholdCoarse, kOuterL2ThresholdCoarse};
+  if (grid.ny == kMedium.ny) return {kReTauErrorThresholdMedium, kOuterL2ThresholdMedium};
+  return {kReTauErrorThresholdFine, kOuterL2ThresholdFine};
+}
+
+// Runs one (model, grid) through runAndValidate and records it.
+cfd::validation::ValidationRun runChannelValidation(const std::string& modelName,
+                                                    const GridCase& grid) {
+  using namespace cfd::validation::channel_re_tau_180;
+  const Mesh mesh =
+      MeshGeometry::createCartesian2D(grid.nx, grid.ny, kChannelLength, kChannelHeight);
+  const auto velocityBoundaries = makeVelocityBoundaries(mesh);
+  const auto kBoundaries = makeKBoundaries(mesh);
+  const FluidProperties fluid(kDensity, kDynamicViscosity);
+  SIMPLEResult result;
+  cfd::validation::ChannelFlowValidationRecord record;
+  const auto start = std::chrono::steady_clock::now();
+  if (modelName == "kEpsilon") {
+    KEpsilonConfig config;
+    config.initialK = inletK();
+    config.initialEpsilon = inletEpsilon();
+    const auto epsBoundaries = makeEpsilonBoundaries(mesh);
+    KEpsilonModel model(mesh, fluid, velocityBoundaries, kBoundaries, epsBoundaries, config);
+    record = runAndValidate("k_epsilon", grid, &model,
+                            ModelFields{"kEpsilon", &model.k(), &model.epsilon(), "epsilon",
+                                        &model.turbulentViscosity(), nullptr, nullptr, nullptr},
+                            &result);
+  } else if (modelName == "kOmega") {
+    KOmegaConfig config;
+    config.initialK = inletK();
+    config.initialOmega = inletOmega();
+    const auto omegaBoundaries = makeOmegaZeroGradientBoundaries(mesh);
+    KOmegaModel model(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config);
+    record = runAndValidate("k_omega", grid, &model,
+                            ModelFields{"kOmega", &model.k(), &model.omega(), "omega",
+                                        &model.turbulentViscosity(), nullptr, nullptr, nullptr},
+                            &result);
+  } else {
+    SSTConfig config;
+    config.initialK = inletK();
+    config.initialOmega = inletOmega();
+    const auto omegaBoundaries = makeOmegaWallBoundaries(mesh, config.coefficients.beta1);
+    SSTModel model(mesh, fluid, velocityBoundaries, kBoundaries, omegaBoundaries, config);
+    record = runAndValidate(
+        "sst", grid, &model,
+        ModelFields{"SST", &model.k(), &model.omega(), "omega", &model.turbulentViscosity(),
+                    &model.f1(), &model.f2(), &model.wallDistance()},
+        &result);
+  }
+  const double seconds =
+      std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+
+  cfd::validation::ValidationRun run = cfd::validation::makeSimpleValidationRun(
+      "turbulent_channel_re_tau_180_" + modelName, kReTau, "upwind",
+      cfd::validation::GridSpec{grid.label, grid.nx, grid.ny, kChannelLength, kChannelHeight},
+      result, 1e-6, seconds);
+  run.checks.push_back({"solve_accepted", run.level.accepted,
+                        run.level.solverStatus + " " + run.level.rejectionReason});
+  if (!run.level.accepted) return run;
+
+  const Real delta = 0.5 * kChannelHeight;
+  const Real nu = kDynamicViscosity / kDensity;
+  const Real dynamicPressure = 0.5 * kDensity * kBulkVelocity * kBulkVelocity;
+  const auto profileB = cfd::validation::extractVerticalProfileU(
+      mesh, grid.nx, grid.ny, result.velocity, kStationB, kChannelHeight);
+  const Real uCenter = cfd::validation::interpolateProfile(profileB, delta);
+
+  // Momentum-balance wall shear.
+  const Real dpdx = cfd::validation::pairAveragedPressureGradient(
+      mesh, grid.nx, grid.ny, result.pressure, kStationA, kStationB);
+  const Real tauBalance = -dpdx * delta;
+  const Real uTauBalance = std::sqrt(std::max(tauBalance, 0.0) / kDensity);
+
+  // Log law with the momentum-balance u_tau (same bottom-half samples as
+  // runAndValidate's own wall-units profile).
+  std::vector<cfd::validation::ProfileSample> wallUnits;
+  for (Index j = 0; j < grid.ny / 2; ++j) {
+    const Real y = (static_cast<Real>(j) + 0.5) * (kChannelHeight / static_cast<Real>(grid.ny));
+    wallUnits.push_back({cfd::validation::computeYPlus(y, uTauBalance, nu),
+                         cfd::validation::computeUPlus(
+                             cfd::validation::interpolateProfile(profileB, y), uTauBalance)});
+  }
+  const auto balanceErrors = cfd::validation::computeWallUnitsErrors(
+      wallUnits, kKappa, kB, kViscousSublayerMaxYPlus, kBufferLayerMaxYPlus);
+
+  run.level.errors.emplace_back("u_plus_log_region", toErrorNorms(record.wallUnitsError.outer));
+  run.level.errors.emplace_back("u_plus_all_regions", toErrorNorms(record.wallUnitsError.overall));
+  run.level.errors.emplace_back("u_plus_log_region_momentum_balance_u_tau",
+                                toErrorNorms(balanceErrors.outer));
+  auto& d = run.level.diagnostics;
+  d.emplace_back("wall_shear_bottom", record.wallShearBottom);
+  d.emplace_back("wall_shear_top", record.wallShearTop);
+  d.emplace_back("friction_velocity", record.frictionVelocity);
+  d.emplace_back("re_tau", record.achievedReTau);
+  d.emplace_back("re_tau_reference", kReTau);
+  d.emplace_back("re_tau_relative_error", record.reTauRelativeError);
+  d.emplace_back("skin_friction_coefficient", std::abs(record.wallShearBottom) / dynamicPressure);
+  d.emplace_back("skin_friction_coefficient_reference", kSkinFrictionCoefficient);
+  d.emplace_back("u_centerline_plus", uCenter / record.frictionVelocity);
+  d.emplace_back("u_centerline_plus_reference", kUCenterlinePlus);
+  d.emplace_back("u_bulk_plus", kBulkVelocity / record.frictionVelocity);
+  d.emplace_back("u_bulk_plus_reference", kUBulkPlus);
+  d.emplace_back("first_cell_y_plus", record.firstCellYPlus);
+  d.emplace_back("development_relative_difference", record.developmentRelativeDiff);
+  d.emplace_back("pressure_gradient", dpdx);
+  d.emplace_back("wall_shear_momentum_balance", tauBalance);
+  d.emplace_back("friction_velocity_momentum_balance", uTauBalance);
+  d.emplace_back("re_tau_momentum_balance", uTauBalance * delta / nu);
+  d.emplace_back("skin_friction_coefficient_momentum_balance", tauBalance / dynamicPressure);
+  d.emplace_back("u_bulk_plus_momentum_balance",
+                 uTauBalance > 0.0 ? kBulkVelocity / uTauBalance : 0.0);
+  d.emplace_back("log_region_samples", static_cast<Real>(record.wallUnitsError.outer.sampleCount));
+  // 1 if [secant Re_tau, momentum-balance Re_tau] contains 180.
+  d.emplace_back("re_tau_bracket_contains_reference",
+                 record.achievedReTau <= kReTau && uTauBalance * delta / nu >= kReTau ? 1.0 : 0.0);
+
+  const ChannelThresholds t = thresholdsFor(grid);
+  char buffer[200];
+  std::snprintf(buffer, sizeof(buffer),
+                "achieved Re_tau %.2f vs 180: relative error %.4f (bound %.2f)",
+                record.achievedReTau, record.reTauRelativeError, t.reTauError);
+  run.checks.push_back({"re_tau", record.reTauRelativeError < t.reTauError, buffer});
+  std::snprintf(
+      buffer, sizeof(buffer), "u+ vs log law, y+ > 30: L2 %.3f over %llu samples (bound %.1f)",
+      record.wallUnitsError.outer.l2,
+      static_cast<unsigned long long>(record.wallUnitsError.outer.sampleCount), t.outerL2);
+  run.checks.push_back(
+      {"log_law",
+       record.wallUnitsError.outer.sampleCount > 0 && record.wallUnitsError.outer.l2 < t.outerL2,
+       buffer});
+  std::snprintf(buffer, sizeof(buffer), "profile change 0.8 L -> 0.9 L %.4f (bound 0.05)",
+                record.developmentRelativeDiff);
+  run.checks.push_back({"developed", record.developmentRelativeDiff < 0.05, buffer});
+  std::printf(
+      "%s: Re_tau %.2f (balance %.2f), Cf %.4e (balance %.4e, ref 8.2e-3), log-law L2 %.3f "
+      "(balance u_tau %.3f), %.1f s\n",
+      run.id().c_str(), record.achievedReTau, uTauBalance * delta / nu,
+      std::abs(record.wallShearBottom) / dynamicPressure, tauBalance / dynamicPressure,
+      record.wallUnitsError.outer.l2, balanceErrors.outer.l2, seconds);
+  return run;
+}
+
+void describeChannel(cfd::validation::ValidationReport& report) {
+  using namespace cfd::validation::channel_re_tau_180;
+  report.reference =
+      "Kim, Moin & Moser (1987) J. Fluid Mech. 177; Moser, Kim & Mansour (1999) Phys. Fluids 11: "
+      "Re_tau 180 summary statistics (Re_tau 180, Re_bulk 5600, U_c+ 18.2, U_b+ 15.6, Cf 8.2e-3) "
+      "and the log law u+ = ln(y+)/0.41 + 5.0 (validation/data/turbulence/channel_flow/)";
+  report.coefficients = {{"re_bulk", kReBulk},
+                         {"re_tau_reference", kReTau},
+                         {"channel_height", kChannelHeight},
+                         {"channel_length", kChannelLength},
+                         {"density", kDensity},
+                         {"viscosity", kDynamicViscosity},
+                         {"bulk_velocity", kBulkVelocity}};
+  report.configuration = {
+      {"formulation",
+       "inlet/outlet channel (no periodic BCs in CFDApp), L = 8H, uniform inlet, "
+       "5 % intensity, mixing length 0.07 H; comparison station 0.9 L"},
+      {"algorithm",
+       "SIMPLE, upwind convection, alpha 0.5/0.3, u/p gates 2e-5/5e-4, continuity "
+       "1e-6, turbulence 1e-5 (P2-TURB-007 settings)"},
+      {"wall_shear",
+       "secant mu U(y1)/y1 (P2-TURB-007) and momentum balance -dp/dx delta "
+       "(pair-averaged dp/dx between 0.8 L and 0.9 L)"},
+      {"thresholds", "P2-TURB-007 locked Re_tau / log-law bounds per grid, reused unchanged"}};
+  report.limitations = {
+      "No velocity wall function: on these grids the first cell is outside the viscous sublayer "
+      "and the secant wall shear under-estimates tau_w -- Re_tau, Cf and u+ carry that bias; the "
+      "momentum-balance values bound it from the other side.",
+      "Inlet/outlet channel instead of a periodic one: at 0.8-0.9 L the profile shape has "
+      "stopped changing (< 5 %) but the flow is not momentum-developed -- the momentum-balance "
+      "wall shear (-dp/dx delta) includes the still-accelerating core and over-estimates tau_w "
+      "(Re_tau 204-448); secant and balance values bracket the true wall shear.",
+      "The reference is a set of DNS summary statistics plus the log law, not a point-by-point "
+      "DNS profile (see validation/data/turbulence/channel_flow/README.md).",
+      "Runtimes are wall-clock and not deterministic."};
+}
+
+void writeChannelReport(const cfd::validation::ValidationReport& report, const std::string& stem) {
+  const std::string base = std::string("results/validation/production/") + stem;
+  cfd::validation::writeValidationReport(base + ".json", report);
+  std::ofstream md(base + ".md", std::ios::binary);
+  md << cfd::validation::validationReportMarkdown(report);
+}
+
+void expectChannelRunPassed(const cfd::validation::ValidationRun& run) {
+  for (const auto& check : run.checks) {
+    EXPECT_TRUE(check.passed) << run.id() << " " << check.name << ": " << check.detail;
+  }
+}
+
+Real channelDiagnostic(const cfd::validation::ValidationRun& run, const std::string& name) {
+  for (const auto& [key, value] : run.level.diagnostics) {
+    if (key == name) return value;
+  }
+  ADD_FAILURE() << "missing diagnostic " << name;
+  return 0.0;
+}
+
+}  // namespace
+
+// Default suite: SST (the most accurate of the three models here), medium
+// grid -- Re_tau, u_tau, tau_w, Cf, U_c+, U_b+ against the DNS summary.
+TEST(TurbulentChannelValidation, ReTau180) {
+  cfd::validation::ValidationReport report;
+  report.name = "turbulent_channel_re_tau_180_ci";
+  report.description = "Turbulent channel Re_tau = 180, SST, medium grid (default suite)";
+  describeChannel(report);
+  report.runs.push_back(runChannelValidation("SST", kMedium));
+  const auto& run = report.runs.back();
+  expectChannelRunPassed(run);
+  ASSERT_TRUE(run.level.accepted);
+  // Consistency of the derived quantities (exact identities of their
+  // definitions, not tuned values): Cf = 2 (u_tau / U_b)^2, U_b+ = U_b / u_tau.
+  const Real uTau = channelDiagnostic(run, "friction_velocity");
+  EXPECT_NEAR(channelDiagnostic(run, "skin_friction_coefficient"),
+              2.0 * uTau * uTau / (kBulkVelocity * kBulkVelocity), 1e-12);
+  EXPECT_NEAR(channelDiagnostic(run, "u_bulk_plus") * uTau, kBulkVelocity, 1e-12);
+  // Top / bottom wall symmetry and a positive momentum-balance shear.
+  EXPECT_GT(channelDiagnostic(run, "wall_shear_momentum_balance"), 0.0);
+  writeChannelReport(report, "turbulent_channel_ci");
+}
+
+// Default suite: the log-law comparison (y+ > 30) with both u_tau
+// estimates, SST medium grid.
+TEST(TurbulentChannelValidation, LogLaw) {
+  const auto run = runChannelValidation("SST", kMedium);
+  expectChannelRunPassed(run);
+  ASSERT_TRUE(run.level.accepted);
+  // The log region must actually be sampled on this grid.
+  EXPECT_GE(channelDiagnostic(run, "log_region_samples"), 3.0);
+  const cfd::validation::ErrorNorms* secant = nullptr;
+  const cfd::validation::ErrorNorms* balance = nullptr;
+  for (const auto& [name, norms] : run.level.errors) {
+    if (name == "u_plus_log_region") secant = &norms;
+    if (name == "u_plus_log_region_momentum_balance_u_tau") balance = &norms;
+  }
+  ASSERT_NE(secant, nullptr);
+  ASSERT_NE(balance, nullptr);
+  EXPECT_TRUE(std::isfinite(balance->l2));
+  std::printf(
+      "log law, y+ > 30: secant u_tau L2 %.3f Linf %.3f; momentum-balance u_tau L2 %.3f "
+      "Linf %.3f\n",
+      secant->l2, secant->linf, balance->l2, balance->linf);
+}
+
+// turbulent_channel.json: k-epsilon, k-omega and SST on coarse / medium /
+// fine. Gate: the P2-TURB-007 trend -- each model's Re_tau error falls
+// with refinement (the near-wall resolution improves).
+TEST(TurbulentChannelValidation, DISABLED_Study) {
+  cfd::validation::ValidationReport report;
+  report.name = "turbulent_channel";
+  report.description =
+      "Turbulent channel Re_tau = 180: k-epsilon, k-omega, SST on coarse (48x12), "
+      "medium (64x16), fine (96x24)";
+  describeChannel(report);
+  for (const char* model : {"kEpsilon", "kOmega", "SST"}) {
+    for (const GridCase& grid : {kCoarse, kMedium, kFine}) {
+      report.runs.push_back(runChannelValidation(model, grid));
+    }
+  }
+  for (std::size_t m = 0; m < 3; ++m) {
+    const auto& c = report.runs[3 * m];
+    const auto& f = report.runs[3 * m + 2];
+    const auto& med = report.runs[3 * m + 1];
+    if (!c.level.accepted || !med.level.accepted || !f.level.accepted) {
+      report.gates.push_back({c.caseName + "_re_tau_trend", false, "a run was rejected"});
+      continue;
+    }
+    const Real ec = channelDiagnostic(c, "re_tau_relative_error");
+    const Real em = channelDiagnostic(med, "re_tau_relative_error");
+    const Real ef = channelDiagnostic(f, "re_tau_relative_error");
+    report.gates.push_back({c.caseName + "_re_tau_trend", em < ec && ef < em,
+                            "Re_tau error " + std::to_string(ec) + " -> " + std::to_string(em) +
+                                " -> " + std::to_string(ef)});
+  }
+  writeChannelReport(report, "turbulent_channel");
+  for (const auto& run : report.runs) expectChannelRunPassed(run);
+  for (const auto& gate : report.gates)
+    EXPECT_TRUE(gate.passed) << gate.name << ": " << gate.detail;
 }

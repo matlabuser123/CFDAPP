@@ -185,12 +185,12 @@ void SSTModel::correct(const Mesh& mesh, const VectorField& velocity,
   // either throws, every member stays exactly as it was on entry (see
   // this class's own header comment). Not `const`: both are moved from
   // below once the whole update has succeeded.
-  ScalarField newK =
-      solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
-                                  config_.kRelaxation, config_.kFloor, config_.kSolver);
+  ScalarField newK = solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
+                                                 config_.kRelaxation, config_.kFloor,
+                                                 config_.kSolver, config_.nonOrthogonal);
   ScalarField newOmega = solveRelaxedScalarTransport(
       mesh, omega_, massFlux, gammaOmega, omegaBoundaries_, suOmega, spOmega,
-      config_.omegaRelaxation, config_.omegaFloor, config_.omegaSolver);
+      config_.omegaRelaxation, config_.omegaFloor, config_.omegaSolver, config_.nonOrthogonal);
 
   // New mu_t from the freshly-solved k/omega, reusing *this call's*
   // strain/F2 (computed above from the pre-update state/current

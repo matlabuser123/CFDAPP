@@ -184,7 +184,56 @@ ThermalResult ThermalSolver::solve(const Mesh& mesh, const ScalarField& initialT
 
   const auto assemble = [&](const ScalarField& temperature) {
     return assembleEnergyEquation(mesh, temperature, massFlux, thermal, temperatureBoundaries,
-                                  volumetricHeatSource);
+                                  volumetricHeatSource, settings_.nonOrthogonal);
+  };
+  return runPicardLoop(settings_, *linearSolver, initialTemperature, assemble);
+}
+
+ThermalResult ThermalSolver::solve(const Mesh& mesh, const ScalarField& initialTemperature,
+                                   const SurfaceField& massFlux, const ThermalProperties& thermal,
+                                   const BoundaryConditionSet& temperatureBoundaries,
+                                   const ScalarField& volumetricHeatSource) const {
+  ThermalResult result;
+  result.temperature = initialTemperature;
+
+  bool configurationValid = true;
+  std::optional<BiCGSTAB> linearSolver;
+  try {
+    if (settings_.maxIterations == 0) {
+      throw InvalidArgumentError("ThermalSolver::solve: maxIterations must be >= 1");
+    }
+    if (!std::isfinite(settings_.tolerance) || !(settings_.tolerance > 0.0)) {
+      throw InvalidArgumentError("ThermalSolver::solve: tolerance must be finite and > 0");
+    }
+    if (initialTemperature.size() != mesh.numberOfCells()) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve: initialTemperature size does not match mesh cell count");
+    }
+    if (massFlux.size() != mesh.numberOfFaces()) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve: massFlux size does not match mesh face count");
+    }
+    if (volumetricHeatSource.size() != mesh.numberOfCells()) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve: volumetricHeatSource size does not match mesh cell count");
+    }
+    linearSolver.emplace(settings_.linearSolver);
+  } catch (const InvalidArgumentError&) {
+    configurationValid = false;
+  }
+  if (!configurationValid) {
+    result.status = ThermalStatus::InvalidConfiguration;
+    return result;
+  }
+
+  if (!allFinite(initialTemperature) || !allFinite(massFlux) || !allFinite(volumetricHeatSource)) {
+    result.status = ThermalStatus::NonFiniteState;
+    return result;
+  }
+
+  const auto assemble = [&](const ScalarField& temperature) {
+    return assembleEnergyEquation(mesh, temperature, massFlux, thermal, temperatureBoundaries,
+                                  volumetricHeatSource, settings_.nonOrthogonal);
   };
   return runPicardLoop(settings_, *linearSolver, initialTemperature, assemble);
 }
@@ -251,7 +300,8 @@ ThermalResult ThermalSolver::solve(const Mesh& mesh, const ScalarField& initialT
       throw NumericalError(std::string("ThermalSolver::solve (variable properties): ") + e.what());
     }
     return assembleEnergyEquation(mesh, temperature, massFlux, conductivity, specificHeat,
-                                  temperatureBoundaries, volumetricHeatSource);
+                                  temperatureBoundaries, volumetricHeatSource,
+                                  settings_.nonOrthogonal);
   };
   return runPicardLoop(settings_, *linearSolver, initialTemperature, assemble);
 }

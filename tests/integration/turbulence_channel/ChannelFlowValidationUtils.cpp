@@ -84,6 +84,37 @@ std::vector<ProfileSample> extractVerticalProfileScalar(const Mesh& mesh, Index 
   return profile;
 }
 
+Real pairAveragedPressureGradient(const Mesh& mesh, Index nx, Index ny, const ScalarField& pressure,
+                                  Real x1, Real x2) {
+  if (nx < 3) throw std::invalid_argument("pairAveragedPressureGradient: need nx >= 3");
+  const std::vector<Real> xCenters = columnCentersX(mesh, nx);
+  std::vector<Real> averages(nx, 0.0);
+  for (Index j = 0; j < ny; ++j) {
+    for (Index i = 0; i < nx; ++i) averages[i] += pressure[(j * nx) + i];
+  }
+  for (Real& a : averages) a /= static_cast<Real>(ny);
+  const auto nearestFace = [&](Real x) {
+    Index best = 0;
+    Real bestDistance = 1e300;
+    for (Index i = 0; i + 1 < nx; ++i) {
+      const Real distance = std::abs(0.5 * (xCenters[i] + xCenters[i + 1]) - x);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = i;
+      }
+    }
+    return best;
+  };
+  const Index i1 = nearestFace(x1);
+  const Index i2 = nearestFace(x2);
+  if (i1 == i2) throw std::invalid_argument("pairAveragedPressureGradient: stations coincide");
+  const Real p1 = 0.5 * (averages[i1] + averages[i1 + 1]);
+  const Real p2 = 0.5 * (averages[i2] + averages[i2 + 1]);
+  const Real xf1 = 0.5 * (xCenters[i1] + xCenters[i1 + 1]);
+  const Real xf2 = 0.5 * (xCenters[i2] + xCenters[i2 + 1]);
+  return (p2 - p1) / (xf2 - xf1);
+}
+
 Real interpolateProfile(const std::vector<ProfileSample>& profile, Real coordinate) {
   if (profile.size() < 2)
     throw std::invalid_argument("interpolateProfile: need at least two samples");

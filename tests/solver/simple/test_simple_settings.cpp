@@ -68,3 +68,17 @@ TEST(SIMPLESettingsTest, RejectsNonFiniteContinuityTolerance) {
   settings.continuityTolerance = std::numeric_limits<Real>::infinity();
   EXPECT_THROW(validateSIMPLESettings(settings), InvalidArgumentError);
 }
+
+// P12-NUM-003: the options thermal / species / turbulence diffusion are
+// assembled with derive from the same two SIMPLE settings momentum uses.
+TEST(SIMPLESettingsTest, NonOrthogonalOptionsFollowTheCorrectionCountAndGradientScheme) {
+  cfd::pressure_velocity::SIMPLESettings settings;
+  EXPECT_FALSE(cfd::pressure_velocity::nonOrthogonalOptions(settings).enabled);
+  settings.nonOrthogonalCorrections = 1;
+  settings.gradientScheme = cfd::discretization::GradientScheme::LeastSquares;
+  const auto options = cfd::pressure_velocity::nonOrthogonalOptions(settings);
+  EXPECT_TRUE(options.enabled);
+  EXPECT_EQ(options.gradientScheme, cfd::discretization::GradientScheme::LeastSquares);
+  settings.nonOrthogonalCorrections = 5;
+  EXPECT_TRUE(cfd::pressure_velocity::nonOrthogonalOptions(settings).enabled);
+}

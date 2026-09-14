@@ -7,6 +7,7 @@
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
+#include "cfd/solver/SolverRobustness.hpp"
 
 namespace cfd::pressure_velocity {
 
@@ -33,6 +34,16 @@ enum class SIMPLEStatus {
   // existing exhaustive switch over SIMPLEStatus needed a new case added
   // once this value existed, but no prior *behavior* changed.
   Cancelled,
+  // P12-NUM-004 (appended, so every existing value keeps its number):
+  // produced only when the corresponding detector is enabled in
+  // SIMPLESettings::robustness (default off). Stagnated: the residuals
+  // plateaued materially above convergence (no material improvement over
+  // the stagnation window) -- stopped before maxIterations instead of being
+  // reported as MaxIterations. Diverging: a finite but clearly diverging
+  // residual history (see cfd::solver::OuterIterationMonitor for both exact
+  // criteria). SIMPLEResult::robustness.statusDetail says why.
+  Stagnated,
+  Diverging,
 };
 
 // residualHistory[k] (all four histories, plus continuityHistory) is the
@@ -57,10 +68,13 @@ enum class SIMPLEStatus {
 // (section 38). Continuity is computed from the corrected (not
 // predictor) face flux (section 39).
 //
-// All four gates plus globalMassImbalance use plain absolute tolerances
-// against SIMPLESettings -- no baseline normalization in this phase
-// (TODO.md section 44 explicitly allows this for early strict P0
-// regression testing).
+// By default all four gates plus globalMassImbalance use plain absolute
+// tolerances against SIMPLESettings (the P0 rule). P12-NUM-004: with
+// SIMPLESettings::robustness.convergenceCriterion == Normalized the u/v/p
+// gates are judged against their normalization references instead
+// (continuity and globalMassImbalance keep their absolute gates) -- see
+// cfd::solver::OuterIterationMonitor. The normalized histories are always
+// reported in `robustness`.
 struct SIMPLEResult {
   cfd::fields::VectorField velocity;
   cfd::fields::ScalarField pressure;
@@ -85,10 +99,30 @@ struct SIMPLEResult {
   // precedent).
   std::optional<Real> finalTurbulenceResidual;
 
+  // P12-NUM-003: total number of momentum-predictor solves (each a u and a
+  // v linear solve) and pressure-correction solves over the whole run --
+  // iterations * max(1, SIMPLESettings::nonOrthogonalCorrections) each on
+  // a completed run, the observable that pins the correction pass count.
+  Index momentumPredictorPasses{0};
+  Index pressureCorrectionPasses{0};
+
+  // P12-NUM-007: total inner linear-solver iterations over the whole run --
+  // every successful u and v momentum solve (non-orthogonal passes
+  // included) and every pressure-correction solve, each counted as its
+  // SolverResult::iterations (so linear-solver fallback attempts are
+  // included). A cost observable only; nothing reads it back.
+  Index momentumLinearIterations{0};
+  Index pressureLinearIterations{0};
+
   std::vector<Real> uResidualHistory;
   std::vector<Real> vResidualHistory;
   std::vector<Real> pressureResidualHistory;
   std::vector<Real> continuityHistory;
+
+  // P12-NUM-004: normalized residual histories and references, the
+  // relaxation factors used each iteration, linear-solver fallback events,
+  // and the reason for a Stagnated/Diverging/linear-failure status.
+  cfd::solver::OuterIterationDiagnostics robustness;
 
   [[nodiscard]] bool converged() const noexcept { return status == SIMPLEStatus::Converged; }
 };

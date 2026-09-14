@@ -5,6 +5,7 @@
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -59,12 +60,22 @@ struct ScalarTransportAssembly {
 // Throws InvalidArgumentError if phi.size()/diffusivity.size() !=
 // mesh.numberOfCells(), or if any diffusivity entry is not finite or not
 // > 0.
-void assembleScalarDiffusionContribution(const cfd::mesh::Mesh& mesh,
-                                         const cfd::fields::ScalarField& diffusivity,
-                                         const cfd::fields::ScalarField& phi,
-                                         const cfd::boundary::BoundaryConditionSet& boundaries,
-                                         cfd::algebra::SparseMatrixBuilder& builder,
-                                         cfd::algebra::Vector& rhs);
+//
+// P12-NUM-003: `nonOrthogonal` (default disabled -- exactly the
+// pre-existing operator) applies the shared non-orthogonal correction
+// (cfd::discretization::NonOrthogonalDiffusion.hpp, the one
+// implementation): every internal face, and every boundary face whose
+// condition prescribes the value (FixedValue, WallOmega); zero-gradient
+// faces never. grad(phi) from cfd::discretization::gradient with
+// nonOrthogonal.gradientScheme, lagged at the phi passed in. This is the
+// diffusion operator of k, epsilon and omega in every turbulence model
+// (KEpsilonModel/KOmegaModel/SSTModel all reach it through
+// solveRelaxedScalarTransport), so the correction is wired once here.
+void assembleScalarDiffusionContribution(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& diffusivity,
+    const cfd::fields::ScalarField& phi, const cfd::boundary::BoundaryConditionSet& boundaries,
+    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // Patankar-style implicit linearized source S = Su + Sp*phi, added into
 // an *already assembled* (diffusion + convection present, not yet
@@ -114,7 +125,8 @@ void applyImplicitScalarSource(const cfd::mesh::Mesh& mesh,
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phi,
     const cfd::fields::SurfaceField& massFlux, const cfd::fields::ScalarField& diffusivity,
     const cfd::boundary::BoundaryConditionSet& boundaries, const cfd::fields::ScalarField& Su,
-    const cfd::fields::ScalarField& Sp);
+    const cfd::fields::ScalarField& Sp,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // One relaxed scalar-transport solve: assemble (diffusion + convection +
 // implicit source, the three pieces above), apply Patankar implicit
@@ -145,6 +157,7 @@ void applyImplicitScalarSource(const cfd::mesh::Mesh& mesh,
     const cfd::fields::SurfaceField& massFlux, const cfd::fields::ScalarField& diffusivity,
     const cfd::boundary::BoundaryConditionSet& boundaries, const cfd::fields::ScalarField& Su,
     const cfd::fields::ScalarField& Sp, Real alpha, Real floorValue,
-    const cfd::algebra::LinearSolverSettings& solverSettings);
+    const cfd::algebra::LinearSolverSettings& solverSettings,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 }  // namespace cfd::turbulence

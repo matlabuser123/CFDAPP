@@ -9,6 +9,7 @@
 #include "cfd/boundary/FixedGradient.hpp"
 #include "cfd/boundary/FixedValue.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/MomentumEquation.hpp"
 
@@ -141,6 +142,47 @@ TEST(MomentumPressureTest, AddingConstantToPressureDoesNotChangeSource) {
 
   for (Index i = 0; i < rhsLow.size(); ++i) {
     EXPECT_NEAR(rhsLow[i], rhsHigh[i], 1e-8);
+  }
+}
+
+TEST(MomentumPressureTest, DefaultGradientSchemeArgumentMatchesExplicitGreenGauss) {
+  // P12-NUM-002: the new `scheme` parameter defaults to GreenGauss, so
+  // every pre-P12-NUM-002 call site (which never passes it) is
+  // byte-identical.
+  const Mesh mesh = perFaceBoundaryMesh(6, 6, 1.0, 1.0);
+  const auto boundaries = makeExactPressureBoundaries(mesh, [](const Vector2& p) { return p.x; });
+  ScalarField pressure(mesh.numberOfCells());
+  for (const auto& cell : mesh.cells()) pressure[cell.id()] = cell.centroid().x;
+
+  Vector rhsDefault(mesh.numberOfCells(), 0.0);
+  Vector rhsExplicit(mesh.numberOfCells(), 0.0);
+  assemblePressureSourceContribution(mesh, pressure, boundaries, VelocityComponent::U, rhsDefault);
+  assemblePressureSourceContribution(mesh, pressure, boundaries, VelocityComponent::U, rhsExplicit,
+                                     cfd::discretization::GradientScheme::GreenGauss);
+
+  for (Index i = 0; i < mesh.numberOfCells(); ++i) {
+    EXPECT_DOUBLE_EQ(rhsDefault[i], rhsExplicit[i]);
+  }
+}
+
+TEST(MomentumPressureTest, LeastSquaresSchemeIsWiredThroughAndAlsoExactForALinearPressureField) {
+  // Both schemes are exact for a linear field, so this cannot show a
+  // *different* result -- but it does prove `scheme` actually reaches
+  // the gradient computation (a typo/no-op wiring bug would still
+  // "pass" a same-result check only by accident; this uses the same
+  // exactness argument test_gradient.cpp's LeastSquaresTest already
+  // verifies directly for cfd::discretization::leastSquaresGradient
+  // itself, applied here at the production call site).
+  const Mesh mesh = perFaceBoundaryMesh(6, 6, 1.0, 1.0);
+  const auto boundaries = makeExactPressureBoundaries(mesh, [](const Vector2& p) { return p.x; });
+  ScalarField pressure(mesh.numberOfCells());
+  for (const auto& cell : mesh.cells()) pressure[cell.id()] = cell.centroid().x;
+
+  Vector rhs(mesh.numberOfCells(), 0.0);
+  assemblePressureSourceContribution(mesh, pressure, boundaries, VelocityComponent::U, rhs,
+                                     cfd::discretization::GradientScheme::LeastSquares);
+  for (const auto& cell : mesh.cells()) {
+    EXPECT_NEAR(rhs[cell.id()], -cell.volume(), 1e-9);
   }
 }
 

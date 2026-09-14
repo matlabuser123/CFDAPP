@@ -31,6 +31,10 @@ enum class SolverStatus {
 enum class LinearSolverType {
   CG,
   BiCGSTAB,
+  // P12-NUM-004: restarted GMRES(m) (GMRES.hpp) -- CPU only. Selectable as
+  // a primary solver and used by the linear-solver fallback policy
+  // (LinearSolverFallback.hpp) as the general (non-symmetric) fallback.
+  GMRES,
 };
 
 // Which execution backend actually ran (or should be requested to run)
@@ -58,6 +62,39 @@ enum class PreconditionerType {
   Jacobi,
 };
 
+// P12-NUM-004: one solve attempt made by the linear-solver fallback policy
+// (LinearSolverFallback.hpp) after the primary solver failed.
+struct LinearSolverAttempt {
+  LinearSolverType type{LinearSolverType::BiCGSTAB};
+  PreconditionerType preconditioner{PreconditionerType::None};
+  SolverStatus status{SolverStatus::MaxIterations};
+  Index iterations{0};
+  Real finalResidual{};
+};
+
+// P12-NUM-004: what the fallback policy did for one solve. Default-
+// constructed (attempted == false) for every solve that did not go through
+// the policy or whose primary solve did not need it -- so a SolverResult
+// from any pre-P12-NUM-004 code path carries an empty report.
+struct LinearSolverFallbackReport {
+  // True once at least one fallback solve ran.
+  bool attempted{false};
+  LinearSolverType primaryType{LinearSolverType::BiCGSTAB};
+  SolverStatus primaryStatus{SolverStatus::Converged};
+  Index primaryIterations{0};
+  // Whether analyzeMatrix() established the CG requirements for this
+  // matrix (only evaluated when a fallback is needed).
+  bool cgEligible{false};
+  std::vector<LinearSolverAttempt> attempts;
+
+  [[nodiscard]] bool recovered() const noexcept {
+    return attempted && !attempts.empty() && attempts.back().status == SolverStatus::Converged;
+  }
+  [[nodiscard]] LinearSolverType finalType() const noexcept {
+    return attempts.empty() ? primaryType : attempts.back().type;
+  }
+};
+
 // residualHistory stores the absolute residual norm ||b - A x||_2 --
 // element 0 is the initial residual, element k is the residual after
 // iteration k, so residualHistory.size() == iterations + 1 for an
@@ -80,6 +117,14 @@ struct SolverResult {
   // latter reports CPU here even though LinearSolverSettings::backend
   // said GPU (see makeLinearSolver()'s own header comment).
   LinearSolverBackend backendUsed{LinearSolverBackend::CPU};
+
+  // P12-NUM-004: filled in only by FallbackLinearSolver when the primary
+  // solve failed with a fallback-eligible status (see
+  // LinearSolverFallback.hpp). For such a result, `status`/`solution`/
+  // `finalResidual` are the LAST attempt's, `initialResidual` stays the
+  // primary solve's ||b - A x0||, and `iterations` is the total over the
+  // primary solve and every attempt.
+  LinearSolverFallbackReport fallback;
 
   [[nodiscard]] bool converged() const noexcept { return status == SolverStatus::Converged; }
 };
@@ -107,6 +152,13 @@ struct LinearSolverSettings {
   // existing behavior unless a caller explicitly sets it. See
   // PreconditionerType's own header comment.
   PreconditionerType preconditioner{PreconditionerType::None};
+
+  // P12-NUM-004: Krylov subspace dimension between restarts for
+  // LinearSolverType::GMRES (ignored by CG/BiCGSTAB). 30 is the common
+  // textbook default (Saad, "Iterative Methods for Sparse Linear Systems",
+  // ch. 6) -- EMPIRICAL, not tuned for this codebase; the effective value is
+  // min(gmresRestart, n). Must be >= 1.
+  Index gmresRestart{30};
 };
 
 // Common base for iterative Krylov solvers (CG, BiCGSTAB). Settings are

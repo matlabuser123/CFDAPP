@@ -1,10 +1,12 @@
 #include "cfd/thermal/EnergyEquation.hpp"
 
 #include <cmath>
+#include <optional>
 #include <utility>
 
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/Interpolation.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::thermal {
@@ -42,16 +44,37 @@ Real boundaryTemperatureValue(const Mesh& mesh, const Face& face, const ScalarFi
   return scalarBc->boundaryValue(ownerValue, distance);
 }
 
+// P12-NUM-003: grad(T) for the explicit non-orthogonal term, computed once
+// per assembly and only when the correction is enabled.
+std::optional<cfd::fields::VectorField> correctionGradient(
+    const Mesh& mesh, const ScalarField& temperature,
+    const BoundaryConditionSet& temperatureBoundaries,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& options) {
+  if (!options.enabled) {
+    return std::nullopt;
+  }
+  return cfd::discretization::gradient(mesh, temperature, temperatureBoundaries,
+                                       options.gradientScheme);
+}
+
+bool prescribesTemperature(const Mesh& mesh, const Face& face,
+                           const BoundaryConditionSet& temperatureBoundaries) {
+  return cfd::discretization::prescribesBoundaryValue(
+      cfd::boundary::boundaryConditionForFace(mesh, face.id(), temperatureBoundaries).type());
+}
+
 }  // namespace
 
-void assembleThermalDiffusionContribution(const Mesh& mesh, Real conductivity,
-                                          const ScalarField& temperature,
-                                          const BoundaryConditionSet& temperatureBoundaries,
-                                          SparseMatrixBuilder& builder, Vector& rhs) {
+void assembleThermalDiffusionContribution(
+    const Mesh& mesh, Real conductivity, const ScalarField& temperature,
+    const BoundaryConditionSet& temperatureBoundaries, SparseMatrixBuilder& builder, Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleThermalDiffusionContribution: temperature size does not match mesh cell count");
   }
+  const auto gradT = correctionGradient(mesh, temperature, temperatureBoundaries, nonOrthogonal);
+  const cfd::fields::VectorField* gradTPtr = gradT.has_value() ? &(*gradT) : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -59,9 +82,15 @@ void assembleThermalDiffusionContribution(const Mesh& mesh, Real conductivity,
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
       const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const Real diffusionCoefficient = conductivity * face.area() / distance;
+      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+          mesh, face, conductivity, distance, gradTPtr,
+          gradTPtr != nullptr && prescribesTemperature(mesh, face, temperatureBoundaries));
+      const Real diffusionCoefficient = terms.coefficient;
 
       const Real tB = boundaryTemperatureValue(mesh, face, temperature, temperatureBoundaries);
+      if (gradTPtr != nullptr) {
+        rhs[ownerId] += terms.explicitFlux;
+      }
 
       // A(P,P) += Df; the -Df*tB (known) part of the boundary flux moves
       // to the RHS as +Df*tB -- same derivation as
@@ -75,7 +104,13 @@ void assembleThermalDiffusionContribution(const Mesh& mesh, Real conductivity,
     const Index ownerId = face.owner();
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
-    const Real diffusionCoefficient = conductivity * face.area() / dPN;
+    const auto terms =
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, conductivity, dPN, gradTPtr);
+    const Real diffusionCoefficient = terms.coefficient;
+    if (gradTPtr != nullptr) {
+      rhs[ownerId] += terms.explicitFlux;
+      rhs[neighborId] -= terms.explicitFlux;
+    }
 
     // Face-once assembly: both rows' equal/opposite contributions are
     // added right here, from a single face visit (same convention as
@@ -87,10 +122,10 @@ void assembleThermalDiffusionContribution(const Mesh& mesh, Real conductivity,
   }
 }
 
-void assembleThermalDiffusionContribution(const Mesh& mesh, const ScalarField& conductivity,
-                                          const ScalarField& temperature,
-                                          const BoundaryConditionSet& temperatureBoundaries,
-                                          SparseMatrixBuilder& builder, Vector& rhs) {
+void assembleThermalDiffusionContribution(
+    const Mesh& mesh, const ScalarField& conductivity, const ScalarField& temperature,
+    const BoundaryConditionSet& temperatureBoundaries, SparseMatrixBuilder& builder, Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleThermalDiffusionContribution: temperature size does not match mesh cell count");
@@ -111,6 +146,9 @@ void assembleThermalDiffusionContribution(const Mesh& mesh, const ScalarField& c
     }
   }
 
+  const auto gradT = correctionGradient(mesh, temperature, temperatureBoundaries, nonOrthogonal);
+  const cfd::fields::VectorField* gradTPtr = gradT.has_value() ? &(*gradT) : nullptr;
+
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
 
@@ -121,9 +159,15 @@ void assembleThermalDiffusionContribution(const Mesh& mesh, const ScalarField& c
       // the owner cell's own conductivity (see this overload's header
       // comment).
       const Real kFace = conductivity[ownerId];
-      const Real diffusionCoefficient = kFace * face.area() / distance;
+      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+          mesh, face, kFace, distance, gradTPtr,
+          gradTPtr != nullptr && prescribesTemperature(mesh, face, temperatureBoundaries));
+      const Real diffusionCoefficient = terms.coefficient;
 
       const Real tB = boundaryTemperatureValue(mesh, face, temperature, temperatureBoundaries);
+      if (gradTPtr != nullptr) {
+        rhs[ownerId] += terms.explicitFlux;
+      }
 
       builder.add(ownerId, ownerId, diffusionCoefficient);
       rhs[ownerId] += diffusionCoefficient * tB;
@@ -134,7 +178,13 @@ void assembleThermalDiffusionContribution(const Mesh& mesh, const ScalarField& c
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
     const Real kFace = cfd::discretization::interpolateInternalFace(mesh, face, conductivity);
-    const Real diffusionCoefficient = kFace * face.area() / dPN;
+    const auto terms =
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, kFace, dPN, gradTPtr);
+    const Real diffusionCoefficient = terms.coefficient;
+    if (gradTPtr != nullptr) {
+      rhs[ownerId] += terms.explicitFlux;
+      rhs[neighborId] -= terms.explicitFlux;
+    }
 
     builder.add(ownerId, ownerId, diffusionCoefficient);
     builder.add(ownerId, neighborId, -diffusionCoefficient);
@@ -272,11 +322,35 @@ void assembleThermalSourceContribution(const Mesh& mesh, Real volumetricHeatSour
   }
 }
 
-EnergyAssembly assembleEnergyEquation(const Mesh& mesh, const ScalarField& temperature,
-                                      const SurfaceField& massFlux,
-                                      const ThermalProperties& thermal,
-                                      const BoundaryConditionSet& temperatureBoundaries,
-                                      Real volumetricHeatSource) {
+void assembleThermalSourceContribution(const Mesh& mesh, const ScalarField& volumetricHeatSource,
+                                       Vector& rhs) {
+  if (volumetricHeatSource.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleThermalSourceContribution: volumetricHeatSource size does not match mesh cell "
+        "count");
+  }
+  for (const auto& cell : mesh.cells()) {
+    const Real source = volumetricHeatSource[cell.id()];
+    if (!std::isfinite(source)) {
+      throw InvalidArgumentError(
+          "assembleThermalSourceContribution: volumetricHeatSource must be finite");
+    }
+    rhs[cell.id()] += source * cell.volume();
+  }
+}
+
+namespace {
+
+// The constant-property energy assembly shared by the uniform-source and
+// the per-cell-source (P12-NUM-006) overloads: diffusion, convection, then
+// `addSource` -- the same contribution order as before the field overload
+// existed, so the uniform-source result is unchanged.
+template <typename AddSource>
+EnergyAssembly assembleConstantPropertyEnergyEquation(
+    const Mesh& mesh, const ScalarField& temperature, const SurfaceField& massFlux,
+    const ThermalProperties& thermal, const BoundaryConditionSet& temperatureBoundaries,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    const AddSource& addSource) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleEnergyEquation: temperature size does not match mesh cell count");
@@ -291,10 +365,10 @@ EnergyAssembly assembleEnergyEquation(const Mesh& mesh, const ScalarField& tempe
   Vector rhs(n, 0.0);
 
   assembleThermalDiffusionContribution(mesh, thermal.conductivity(), temperature,
-                                       temperatureBoundaries, builder, rhs);
+                                       temperatureBoundaries, builder, rhs, nonOrthogonal);
   assembleThermalConvectionContribution(mesh, thermal.specificHeat(), massFlux, temperature,
                                         temperatureBoundaries, builder, rhs);
-  assembleThermalSourceContribution(mesh, volumetricHeatSource, rhs);
+  addSource(rhs);
 
   SparseMatrix matrix = builder.build();
 
@@ -310,11 +384,33 @@ EnergyAssembly assembleEnergyEquation(const Mesh& mesh, const ScalarField& tempe
   return EnergyAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs), std::move(diagonal)};
 }
 
-EnergyAssembly assembleEnergyEquation(const Mesh& mesh, const ScalarField& temperature,
-                                      const SurfaceField& massFlux, const ScalarField& conductivity,
-                                      const ScalarField& specificHeat,
-                                      const BoundaryConditionSet& temperatureBoundaries,
-                                      Real volumetricHeatSource) {
+}  // namespace
+
+EnergyAssembly assembleEnergyEquation(
+    const Mesh& mesh, const ScalarField& temperature, const SurfaceField& massFlux,
+    const ThermalProperties& thermal, const BoundaryConditionSet& temperatureBoundaries,
+    Real volumetricHeatSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
+  return assembleConstantPropertyEnergyEquation(
+      mesh, temperature, massFlux, thermal, temperatureBoundaries, nonOrthogonal,
+      [&](Vector& rhs) { assembleThermalSourceContribution(mesh, volumetricHeatSource, rhs); });
+}
+
+EnergyAssembly assembleEnergyEquation(
+    const Mesh& mesh, const ScalarField& temperature, const SurfaceField& massFlux,
+    const ThermalProperties& thermal, const BoundaryConditionSet& temperatureBoundaries,
+    const ScalarField& volumetricHeatSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
+  return assembleConstantPropertyEnergyEquation(
+      mesh, temperature, massFlux, thermal, temperatureBoundaries, nonOrthogonal,
+      [&](Vector& rhs) { assembleThermalSourceContribution(mesh, volumetricHeatSource, rhs); });
+}
+
+EnergyAssembly assembleEnergyEquation(
+    const Mesh& mesh, const ScalarField& temperature, const SurfaceField& massFlux,
+    const ScalarField& conductivity, const ScalarField& specificHeat,
+    const BoundaryConditionSet& temperatureBoundaries, Real volumetricHeatSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleEnergyEquation: temperature size does not match mesh cell count");
@@ -329,7 +425,7 @@ EnergyAssembly assembleEnergyEquation(const Mesh& mesh, const ScalarField& tempe
   Vector rhs(n, 0.0);
 
   assembleThermalDiffusionContribution(mesh, conductivity, temperature, temperatureBoundaries,
-                                       builder, rhs);
+                                       builder, rhs, nonOrthogonal);
   assembleThermalConvectionContribution(mesh, specificHeat, massFlux, temperature,
                                         temperatureBoundaries, builder, rhs);
   assembleThermalSourceContribution(mesh, volumetricHeatSource, rhs);

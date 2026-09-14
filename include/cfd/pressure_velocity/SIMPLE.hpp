@@ -2,6 +2,7 @@
 
 #include "cfd/core/Types.hpp"
 #include "cfd/fields/ScalarField.hpp"
+#include "cfd/fields/VectorField.hpp"
 #include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/pressure_velocity/PressureVelocitySolver.hpp"
 #include "cfd/pressure_velocity/SIMPLEProgress.hpp"
@@ -79,6 +80,17 @@ class SIMPLE final : public PressureVelocitySolver {
   [[nodiscard]] const SIMPLESettings& settings() const noexcept;
   [[nodiscard]] Index referenceCell() const noexcept;
 
+  // P12-NUM-006: an optional, non-owning, prescribed body force per unit
+  // volume (one Vector2 per cell), added to both momentum components every
+  // outer iteration through cfd::physics::assembleMomentumSourceContribution
+  // (all predictor passes included). Held fixed for the whole solve() --
+  // like temperature/buoyancy above. Null (the default) leaves every
+  // assembly structurally identical to before this existed. A size that
+  // does not match the mesh, or a non-finite value, makes solve() report
+  // InvalidConfiguration. The caller keeps the field alive for the solve.
+  void setMomentumSource(const cfd::fields::VectorField* source) noexcept;
+  [[nodiscard]] const cfd::fields::VectorField* momentumSource() const noexcept;
+
  private:
   SIMPLESettings settings_;
   Index referenceCell_;
@@ -87,6 +99,7 @@ class SIMPLE final : public PressureVelocitySolver {
   const cfd::physics::BoussinesqBuoyancy* buoyancy_;
   SIMPLEProgressCallback progressCallback_;
   SIMPLECancellationCheck cancellationCheck_;
+  const cfd::fields::VectorField* momentumSource_{nullptr};
 };
 
 }  // namespace cfd::pressure_velocity

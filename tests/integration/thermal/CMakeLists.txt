@@ -62,8 +62,9 @@ gtest_discover_tests(CFDBoussinesqCouplingTests
 )
 
 # P3-PHYS-002: differentially-heated-cavity natural-convection validation
-# vs. the de Vahl Davis (1983) benchmark. Grid20x20/grid-refinement cases
-# are marked DISABLED_ in the test bodies (runtime: minutes, diagnosed
+# vs. the de Vahl Davis (1983) benchmark, plus the P12-NUM-005 three-grid
+# convergence study (GridConvergence, enabled, ~400 s Debug). The per-grid
+# Grid20x20 case is marked DISABLED_ in the test body (runtime: minutes, diagnosed
 # solver-robustness sensitivity at this benchmark's required source
 # magnitude -- see test_natural_convection_validation.cpp's own header
 # comment) -- run explicitly with --gtest_also_run_disabled_tests when

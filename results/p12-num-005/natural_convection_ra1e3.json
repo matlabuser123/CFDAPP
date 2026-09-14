@@ -1,0 +1,229 @@
+{
+  "format_version": 1,
+  "study": "natural_convection_ra1e3",
+  "description": "Differentially heated square cavity, Ra = 1e3, Pr = 0.71, SIMPLE + ThermalSolver Picard coupling (first-order upwind convection); references: de Vahl Davis (1983) benchmark data",
+  "method": {
+    "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+    "indexing": "1 = fine, 2 = medium, 3 = coarse",
+    "grid_size": "h = sqrt(domain area / cells)",
+    "relative_quantity_units": "fraction",
+    "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+    "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+  },
+  "all_solves_accepted": true,
+  "rejection_reason": "",
+  "grids": [
+    {
+      "level": "coarse",
+      "name": "coarse",
+      "nx": 10,
+      "ny": 10,
+      "cells": 100,
+      "h": 0.1,
+      "runtime_seconds": 22.040146286,
+      "solver_status": "Converged",
+      "solver_iterations": 50,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "nu_avg": 1.1743838559462114,
+        "u_max": 3.2545386882908787,
+        "v_max": 3.432000428090677,
+        "heat_imbalance": 2.2309642789828635e-09
+      }
+    },
+    {
+      "level": "medium",
+      "name": "medium",
+      "nx": 15,
+      "ny": 15,
+      "cells": 225,
+      "h": 0.06666666666666667,
+      "runtime_seconds": 119.237866238,
+      "solver_status": "Converged",
+      "solver_iterations": 50,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "nu_avg": 1.1504708830266162,
+        "u_max": 3.5392580605771387,
+        "v_max": 3.542769326820691,
+        "heat_imbalance": 5.622248574690752e-09
+      }
+    },
+    {
+      "level": "fine",
+      "name": "fine",
+      "nx": 20,
+      "ny": 20,
+      "cells": 400,
+      "h": 0.05,
+      "runtime_seconds": 211.116242413,
+      "solver_status": "Converged",
+      "solver_iterations": 50,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "nu_avg": 1.1406737528144606,
+        "u_max": 3.493678581870375,
+        "v_max": 3.5632985429958106,
+        "heat_imbalance": 8.396020885421446e-09
+      }
+    }
+  ],
+  "quantities": [
+    {
+      "name": "nu_avg",
+      "description": "average hot-wall Nusselt number",
+      "values": {
+        "coarse": 1.1743838559462114,
+        "medium": 1.1504708830266162,
+        "fine": 1.1406737528144606
+      },
+      "reference": {
+        "value": 1.12,
+        "kind": "benchmark",
+        "error_coarse": 0.05438385594621131,
+        "error_medium": 0.030470883026616047,
+        "error_fine": 0.02067375281446049,
+        "relative_error_coarse": 0.04855701423768867,
+        "relative_error_medium": 0.02720614555947861,
+        "relative_error_fine": 0.018458707870054006,
+        "error_extrapolated": 0.003386796146034099
+      },
+      "analysis": {
+        "status": "monotonic_not_asymptotic",
+        "convergence": "monotonic",
+        "diagnostic": "monotonic convergence, observed order 1.56073 (formal 1); asymptotic ratio 1.22041 outside 1 +/- 0.1",
+        "warnings": [],
+        "r21": 1.3333333333333333,
+        "r32": 1.5,
+        "epsilon21": 0.009797130212155558,
+        "epsilon32": 0.023912972919595266,
+        "convergence_ratio": 0.40969938138170137,
+        "observed_order": 1.5607301639356086,
+        "formal_order": 1.0,
+        "order_ratio": 1.5607301639356086,
+        "richardson_extrapolated": 1.1233867961460342,
+        "richardson_extrapolated_32": 1.1233867961460342,
+        "approximate_relative_error_21": 0.008588897735204692,
+        "approximate_relative_error_32": 0.020785378641383693,
+        "extrapolated_relative_error_21": 0.015388249824310005,
+        "extrapolated_relative_error_32": 0.02410931566357948,
+        "uncertainty_21": 0.02160869583553297,
+        "uncertainty_32": 0.033855108600727414,
+        "gci_fine_medium": 0.018943800348010454,
+        "gci_medium_coarse": 0.02942717551587455,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": 1.2204070172470405,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": null,
+        "grid_independence_threshold": 0.01,
+        "grid_independent": false,
+        "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+      }
+    },
+    {
+      "name": "u_max",
+      "description": "max u on the vertical mid-line (sampled at cell centres)",
+      "values": {
+        "coarse": 3.2545386882908787,
+        "medium": 3.5392580605771387,
+        "fine": 3.493678581870375
+      },
+      "reference": {
+        "value": 3.634,
+        "kind": "benchmark",
+        "error_coarse": -0.37946131170912123,
+        "error_medium": -0.09474193942286124,
+        "error_fine": -0.14032141812962484,
+        "relative_error_coarse": 0.10441973354681378,
+        "relative_error_medium": 0.02607097947794751,
+        "relative_error_fine": 0.0386134887533365,
+        "error_extrapolated": null
+      },
+      "analysis": {
+        "status": "oscillatory",
+        "convergence": "oscillatory",
+        "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.160086): oscillatory convergence -- no observed order or Richardson extrapolation is reported",
+        "warnings": [],
+        "r21": 1.3333333333333333,
+        "r32": 1.5,
+        "epsilon21": 0.0455794787067636,
+        "epsilon32": -0.28471937228626,
+        "convergence_ratio": -0.16008562515703179,
+        "observed_order": null,
+        "formal_order": 1.0,
+        "order_ratio": null,
+        "richardson_extrapolated": null,
+        "richardson_extrapolated_32": null,
+        "approximate_relative_error_21": null,
+        "approximate_relative_error_32": null,
+        "extrapolated_relative_error_21": null,
+        "extrapolated_relative_error_32": null,
+        "uncertainty_21": null,
+        "uncertainty_32": null,
+        "gci_fine_medium": null,
+        "gci_medium_coarse": null,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": null,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": 0.14235968614313,
+        "grid_independence_threshold": 0.01,
+        "grid_independent": false,
+        "grid_independence_reason": "oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.14236 is available"
+      }
+    },
+    {
+      "name": "v_max",
+      "description": "max v on the horizontal mid-line (sampled at cell centres)",
+      "values": {
+        "coarse": 3.432000428090677,
+        "medium": 3.542769326820691,
+        "fine": 3.5632985429958106
+      },
+      "reference": {
+        "value": 3.679,
+        "kind": "benchmark",
+        "error_coarse": -0.24699957190932276,
+        "error_medium": -0.13623067317930904,
+        "error_fine": -0.11570145700418921,
+        "relative_error_coarse": 0.06713769282667105,
+        "relative_error_medium": 0.03702926696909732,
+        "relative_error_fine": 0.03144915928355238,
+        "error_extrapolated": -0.10507911341195575
+      },
+      "analysis": {
+        "status": "monotonic_not_asymptotic",
+        "convergence": "monotonic",
+        "diagnostic": "monotonic convergence, observed order 3.73991 (formal 1); asymptotic ratio 2.69784 outside 1 +/- 0.1",
+        "warnings": [],
+        "r21": 1.3333333333333333,
+        "r32": 1.5,
+        "epsilon21": -0.020529216175119824,
+        "epsilon32": -0.11076889873001372,
+        "convergence_ratio": 0.18533375713301434,
+        "observed_order": 3.7399085695389367,
+        "formal_order": 1.0,
+        "order_ratio": 3.7399085695389367,
+        "richardson_extrapolated": 3.573920886588044,
+        "richardson_extrapolated_32": 3.573920886588044,
+        "approximate_relative_error_21": 0.005761295588177148,
+        "approximate_relative_error_32": 0.03126618995242871,
+        "extrapolated_relative_error_21": 0.0029721820737823933,
+        "extrapolated_relative_error_32": 0.0087163540424906,
+        "uncertainty_21": 0.013277929490292035,
+        "uncertainty_32": 0.038939449709191686,
+        "gci_fine_medium": 0.003726302842738722,
+        "gci_medium_coarse": 0.010991246145889,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": 2.69783555750801,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": null,
+        "grid_independence_threshold": 0.01,
+        "grid_independent": false,
+        "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+      }
+    }
+  ]
+}

@@ -286,13 +286,15 @@ TEST(CaseValidationTest, ZeroMaxIterationsIsRejected) {
   expectRejected(fixture);
 }
 
+// P12-NUM-004 made "GMRES" a supported type (restarted GMRES, CPU only), so
+// the unsupported example is now "MINRES" -- still not implemented.
 TEST(CaseValidationTest, UnsupportedLinearSolverTypeIsRejected) {
   CaseFixture fixture;
   fixture.write("solver.json", R"({
     "type": "SIMPLE", "max_iterations": 100,
     "velocity_relaxation": 0.7, "pressure_relaxation": 0.3,
     "velocity_tolerance": 1e-6, "pressure_tolerance": 1e-6, "continuity_tolerance": 1e-6,
-    "momentum_linear_solver": {"type": "GMRES", "absolute_tolerance": 1e-10,
+    "momentum_linear_solver": {"type": "MINRES", "absolute_tolerance": 1e-10,
                                 "relative_tolerance": 1e-8, "max_iterations": 500},
     "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
                                 "relative_tolerance": 1e-8, "max_iterations": 2000}

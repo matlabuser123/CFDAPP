@@ -64,6 +64,8 @@ target_sources(cfdcore
     algebra/CG.cpp
     algebra/BiCGSTAB.cpp
     algebra/LinearSolverFactory.cpp
+    algebra/GMRES.cpp
+    algebra/LinearSolverFallback.cpp
 )
 
 target_sources(cfdcore
@@ -95,6 +97,7 @@ target_sources(cfdcore
     discretization/Gradient.cpp
     discretization/Divergence.cpp
     discretization/Diffusion.cpp
+    discretization/NonOrthogonalDiffusion.cpp
     discretization/Laplacian.cpp
     discretization/Convection.cpp
     # P2 -- Transient CFD, TASK P2-002: implicit Euler time derivative.
@@ -143,6 +146,12 @@ target_sources(cfdcore
     solver/CFL.cpp
     solver/TransientSolver.cpp
     solver/RestartSnapshot.cpp
+    solver/SolverRobustness.cpp
+    validation/GridConvergence.cpp
+    validation/GridConvergenceStudy.cpp
+  validation/ErrorNorms.cpp
+  validation/ManufacturedSolutionStudy.cpp
+  validation/ProductionValidation.cpp
 )
 
 # io/case/*Parser.cpp and io/case/JsonUtil.cpp are compiled into cfdcore

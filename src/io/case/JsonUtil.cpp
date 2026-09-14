@@ -158,6 +158,17 @@ int getOptionalInt(const nlohmann::json& node, const std::filesystem::path& path
   return value.get<int>();
 }
 
+bool getOptionalBool(const nlohmann::json& node, const std::filesystem::path& path,
+                     std::string_view field, bool fallback, std::string_view label) {
+  if (!node.contains(field)) return fallback;
+  const auto& value = node.at(field);
+  if (!value.is_boolean()) {
+    throwConfigError(path, resolveLabel(field, label), "be a boolean (true or false)",
+                     describeJsonValue(value));
+  }
+  return value.get<bool>();
+}
+
 std::array<Real, 2> getRequiredVector2(const nlohmann::json& node,
                                        const std::filesystem::path& path, std::string_view field,
                                        std::string_view label) {

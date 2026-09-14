@@ -3,6 +3,7 @@ add_executable(CFDSolverTests
   test_cfl.cpp
   test_transient_solver.cpp
   test_restart_snapshot.cpp
+  test_solver_robustness.cpp
 )
 
 target_link_libraries(CFDSolverTests

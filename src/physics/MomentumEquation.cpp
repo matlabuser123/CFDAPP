@@ -1,11 +1,16 @@
 #include "cfd/physics/MomentumEquation.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <optional>
 #include <utility>
 
 #include "cfd/core/Exception.hpp"
+#include "cfd/discretization/Convection.hpp"
 #include "cfd/discretization/Gradient.hpp"
 #include "cfd/discretization/Interpolation.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
+#include "cfd/discretization/VectorGradient.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::physics {
@@ -50,17 +55,40 @@ Vector2 boundaryVelocity(const Mesh& mesh, const Face& face, const VectorField& 
   return vectorBc->boundaryValue(ownerValue, distance, unitNormal);
 }
 
+// P12-NUM-003: whether `face`'s velocity condition prescribes the boundary
+// value (Wall/MovingWall/Inlet) -- see
+// cfd::discretization::prescribesBoundaryValue.
+bool prescribesVelocity(const Mesh& mesh, const Face& face,
+                        const BoundaryConditionSet& velocityBoundaries) {
+  return cfd::discretization::prescribesBoundaryValue(
+      cfd::boundary::boundaryConditionForFace(mesh, face.id(), velocityBoundaries).type());
+}
+
 }  // namespace
 
 void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
                                    const VectorField& velocity,
                                    const BoundaryConditionSet& velocityBoundaries,
                                    VelocityComponent component, SparseMatrixBuilder& builder,
-                                   Vector& rhs) {
+                                   Vector& rhs, bool applyNonOrthogonalCorrection,
+                                   cfd::discretization::GradientScheme correctionGradientScheme) {
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleDiffusionContribution: velocity size does not match mesh cell count");
   }
+
+  // P12-NUM-003: computed once, only when requested -- every pre-
+  // P12-NUM-003 call site (which never passes this flag) pays no extra
+  // cost at all and is byte-identical to before this parameter existed.
+  std::optional<cfd::discretization::VelocityGradientField> velocityGradient;
+  if (applyNonOrthogonalCorrection) {
+    velocityGradient = cfd::discretization::computeVelocityGradient(
+        mesh, velocity, velocityBoundaries, correctionGradientScheme);
+  }
+  const VectorField* gradPhi = velocityGradient.has_value() ? ((component == VelocityComponent::U)
+                                                                   ? &velocityGradient->gradU
+                                                                   : &velocityGradient->gradV)
+                                                            : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -68,10 +96,19 @@ void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
       const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const Real diffusionCoefficient = dynamicViscosity * face.area() / distance;
+      // P12-NUM-003: the shared face-diffusion geometry (corrected only for a
+      // Dirichlet-type velocity face when the correction is enabled;
+      // otherwise exactly the pre-existing mu*|Sf|/distance).
+      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+          mesh, face, dynamicViscosity, distance, gradPhi,
+          gradPhi != nullptr && prescribesVelocity(mesh, face, velocityBoundaries));
+      const Real diffusionCoefficient = terms.coefficient;
 
       const Vector2 uB = boundaryVelocity(mesh, face, velocity, velocityBoundaries);
       const Real phiB = selectComponent(uB, component);
+      if (gradPhi != nullptr) {
+        rhs[ownerId] += terms.explicitFlux;
+      }
 
       // A(P,P) += Df; the -Df*phiB (known) part of the boundary flux
       // moves to the RHS as +Df*phiB (see TODO.md section 10/26 sign
@@ -84,7 +121,16 @@ void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
     const Index ownerId = face.owner();
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
-    const Real diffusionCoefficient = dynamicViscosity * face.area() / dPN;
+    // P12-NUM-003: shared face-diffusion geometry -- see
+    // NonOrthogonalDiffusion.hpp. The known part moves to the RHS
+    // face-once, equal/opposite (sign derivation: this function's header).
+    const auto terms =
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, dynamicViscosity, dPN, gradPhi);
+    const Real diffusionCoefficient = terms.coefficient;
+    if (gradPhi != nullptr) {
+      rhs[ownerId] += terms.explicitFlux;
+      rhs[neighborId] -= terms.explicitFlux;
+    }
 
     // Face-once assembly: both rows' equal/opposite contributions are
     // added right here, from a single face visit (TODO.md section 51).
@@ -99,10 +145,16 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
                                    const VectorField& velocity,
                                    const BoundaryConditionSet& velocityBoundaries,
                                    VelocityComponent component, SparseMatrixBuilder& builder,
-                                   Vector& rhs) {
+                                   Vector& rhs, bool applyNonOrthogonalCorrection,
+                                   cfd::discretization::GradientScheme correctionGradientScheme,
+                                   const VectorField* correctionVelocity) {
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleDiffusionContribution: velocity size does not match mesh cell count");
+  }
+  if (correctionVelocity != nullptr && correctionVelocity->size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleDiffusionContribution: correctionVelocity size does not match mesh cell count");
   }
   if (effectiveViscosity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
@@ -124,6 +176,19 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
     }
   }
 
+  // P12-NUM-003: same as the constant-viscosity overload above, except
+  // the gradient may come from `correctionVelocity` (see header comment).
+  std::optional<cfd::discretization::VelocityGradientField> velocityGradient;
+  if (applyNonOrthogonalCorrection) {
+    velocityGradient = cfd::discretization::computeVelocityGradient(
+        mesh, (correctionVelocity != nullptr) ? *correctionVelocity : velocity, velocityBoundaries,
+        correctionGradientScheme);
+  }
+  const VectorField* gradPhi = velocityGradient.has_value() ? ((component == VelocityComponent::U)
+                                                                   ? &velocityGradient->gradU
+                                                                   : &velocityGradient->gradV)
+                                                            : nullptr;
+
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
 
@@ -134,10 +199,16 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
       // the owner cell's own effective viscosity (see this overload's
       // header comment).
       const Real muFace = effectiveViscosity[ownerId];
-      const Real diffusionCoefficient = muFace * face.area() / distance;
+      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+          mesh, face, muFace, distance, gradPhi,
+          gradPhi != nullptr && prescribesVelocity(mesh, face, velocityBoundaries));
+      const Real diffusionCoefficient = terms.coefficient;
 
       const Vector2 uB = boundaryVelocity(mesh, face, velocity, velocityBoundaries);
       const Real phiB = selectComponent(uB, component);
+      if (gradPhi != nullptr) {
+        rhs[ownerId] += terms.explicitFlux;
+      }
 
       builder.add(ownerId, ownerId, diffusionCoefficient);
       rhs[ownerId] += diffusionCoefficient * phiB;
@@ -149,10 +220,14 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
     const Real muFace =
         cfd::discretization::interpolateInternalFace(mesh, face, effectiveViscosity);
-    const Real diffusionCoefficient = muFace * face.area() / dPN;
+    const auto terms =
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, muFace, dPN, gradPhi);
+    const Real diffusionCoefficient = terms.coefficient;
+    if (gradPhi != nullptr) {
+      rhs[ownerId] += terms.explicitFlux;
+      rhs[neighborId] -= terms.explicitFlux;
+    }
 
-    // Face-once assembly: both rows' equal/opposite contributions are
-    // added right here, from a single face visit (TODO.md section 51).
     builder.add(ownerId, ownerId, diffusionCoefficient);
     builder.add(ownerId, neighborId, -diffusionCoefficient);
     builder.add(neighborId, neighborId, diffusionCoefficient);
@@ -164,7 +239,7 @@ void assembleConvectionContribution(const Mesh& mesh, const SurfaceField& massFl
                                     const VectorField& velocity,
                                     const BoundaryConditionSet& velocityBoundaries,
                                     VelocityComponent component, SparseMatrixBuilder& builder,
-                                    Vector& rhs) {
+                                    Vector& rhs, cfd::discretization::ConvectionScheme scheme) {
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleConvectionContribution: velocity size does not match mesh cell count");
@@ -173,6 +248,21 @@ void assembleConvectionContribution(const Mesh& mesh, const SurfaceField& massFl
     throw InvalidArgumentError(
         "assembleConvectionContribution: massFlux size does not match mesh face count");
   }
+
+  // P12-NUM-001: computed once, only for LinearUpwind -- Upwind (the
+  // default, every pre-P12-NUM-001 call site) pays no extra cost at all
+  // and is byte-identical to before this parameter existed. Reuses
+  // computeVelocityGradient (VectorGradient.hpp) rather than a second
+  // gradient implementation here.
+  std::optional<cfd::discretization::VelocityGradientField> velocityGradient;
+  if (scheme == cfd::discretization::ConvectionScheme::LinearUpwind) {
+    velocityGradient =
+        cfd::discretization::computeVelocityGradient(mesh, velocity, velocityBoundaries);
+  }
+  const VectorField* gradPhi = velocityGradient.has_value() ? ((component == VelocityComponent::U)
+                                                                   ? &velocityGradient->gradU
+                                                                   : &velocityGradient->gradV)
+                                                            : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -189,13 +279,18 @@ void assembleConvectionContribution(const Mesh& mesh, const SurfaceField& massFl
         const Real phiB = selectComponent(uB, component);
         rhs[ownerId] -= ownerFlux * phiB;
       }
+      // Boundary faces are unaffected by `scheme` regardless of choice
+      // (P12-NUM-001 explicit scope limit -- results/p12-num-001/summary.md).
       continue;
     }
 
     const Index ownerId = face.owner();
     const Index neighborId = *face.neighbor();
     // Single upwind decision per face, reused for both rows (matches
-    // cfd::discretization::convection's face-once evaluation).
+    // cfd::discretization::convection's face-once evaluation). These
+    // implicit coefficients are ALWAYS plain upwind, regardless of
+    // `scheme` -- see this function's own header comment on deferred
+    // correction.
     if (ownerFlux >= 0.0) {
       builder.add(ownerId, ownerId, ownerFlux);
       builder.add(neighborId, ownerId, -ownerFlux);
@@ -203,18 +298,108 @@ void assembleConvectionContribution(const Mesh& mesh, const SurfaceField& massFl
       builder.add(ownerId, neighborId, ownerFlux);
       builder.add(neighborId, neighborId, -ownerFlux);
     }
+
+    if (scheme == cfd::discretization::ConvectionScheme::Upwind) {
+      continue;
+    }
+
+    // P12-NUM-001: explicit deferred correction, evaluated from the
+    // current/lagged `velocity` -- the same lagged-current-state
+    // convention this file's boundaryVelocity() already uses for
+    // Outlet/Symmetry. Face-once, equal/opposite between the two rows,
+    // matching every other contribution in this file.
+    const bool ownerIsUpwind = ownerFlux >= 0.0;
+    const Index upwindId = ownerIsUpwind ? ownerId : neighborId;
+    const Index downwindId = ownerIsUpwind ? neighborId : ownerId;
+    const Real phiUpwind = selectComponent(velocity[upwindId], component);
+    const Real phiDownwind = selectComponent(velocity[downwindId], component);
+    const Vector2 upwindCentroid = mesh.cell(upwindId).centroid();
+
+    // Far-upstream cell (QUICK's own "C"), shared with the TVD limiter
+    // below -- see cfd::discretization::smoothnessRatio's own header
+    // comment for why every scheme (not just QUICK) needs it.
+    std::optional<Index> farCellId;
+    Real hCU = 0.0;
+    if (const std::optional<Index> farFaceId =
+            MeshGeometry::oppositeInteriorFace(mesh, mesh.cell(upwindId), face);
+        farFaceId.has_value()) {
+      const Face& farFace = mesh.face(*farFaceId);
+      farCellId = (farFace.owner() == upwindId) ? *farFace.neighbor() : farFace.owner();
+      hCU = MeshGeometry::ownerNeighborDistance(mesh, farFace);
+    }
+
+    Real phiHighOrder = phiUpwind;
+    switch (scheme) {
+      case cfd::discretization::ConvectionScheme::Upwind:
+        break;  // unreachable: handled by the `continue` above.
+      case cfd::discretization::ConvectionScheme::Central: {
+        const Vector2 uFace = cfd::discretization::interpolateInternalFace(mesh, face, velocity);
+        phiHighOrder = selectComponent(uFace, component);
+        break;
+      }
+      case cfd::discretization::ConvectionScheme::LinearUpwind: {
+        phiHighOrder = cfd::discretization::linearUpwindFaceValue(phiUpwind, (*gradPhi)[upwindId],
+                                                                  upwindCentroid, face.centroid());
+        break;
+      }
+      case cfd::discretization::ConvectionScheme::QUICK: {
+        if (farCellId.has_value()) {
+          const Real hUf = MeshGeometry::distance(upwindCentroid, face.centroid());
+          const Real hfD =
+              MeshGeometry::distance(face.centroid(), mesh.cell(downwindId).centroid());
+          const Real phiC = selectComponent(velocity[*farCellId], component);
+          phiHighOrder =
+              cfd::discretization::quickFaceValue(phiC, hCU, phiUpwind, hUf, phiDownwind, hfD);
+        }
+        // else: no further-upstream interior neighbor for this upwind
+        // cell -- documented deterministic fallback, phiHighOrder stays
+        // phiUpwind (zero correction), never an out-of-bounds read.
+        break;
+      }
+    }
+
+    // P12-NUM-001 boundedness: Sweby (1984) TVD blend -- see
+    // cfd::discretization::smoothnessRatio/vanLeerLimiter's own header
+    // comment. A raw per-face clip is NOT sufficient on its own (two
+    // independently-clipped faces of the same cell can still combine
+    // into an out-of-bounds update) -- this blend is, plus the final
+    // clamp below as an unconditional safety net. psi is 0 (pure upwind)
+    // whenever no far-upstream cell exists -- NOT 1 ("assume smooth"):
+    // at a boundary-adjacent cell, the boundary's own face already uses
+    // an upwind-consistent stand-in value whose accuracy relies on
+    // EVERY face of that cell using the same convention (a telescoping-
+    // cancellation property, see upwindBoundaryFaceValue/
+    // upwindFaceValue's own comments) -- blending the other face toward
+    // a genuinely higher-order value there breaks that cancellation and
+    // introduces a bias that does not shrink under refinement (see
+    // cfd::discretization::convection's identical policy and
+    // results/p12-num-001/summary.md for the full derivation).
+    const std::optional<Real> r =
+        farCellId.has_value()
+            ? cfd::discretization::smoothnessRatio(selectComponent(velocity[*farCellId], component),
+                                                   phiUpwind, phiDownwind)
+            : std::nullopt;
+    const Real psi = cfd::discretization::vanLeerLimiter(r);
+    const Real blended = phiUpwind + (psi * (phiHighOrder - phiUpwind));
+    const Real phiFace =
+        std::clamp(blended, std::min(phiUpwind, phiDownwind), std::max(phiUpwind, phiDownwind));
+    const Real correction = ownerFlux * (phiFace - phiUpwind);
+    rhs[ownerId] -= correction;
+    rhs[neighborId] += correction;
   }
 }
 
 void assemblePressureSourceContribution(const Mesh& mesh, const ScalarField& pressure,
                                         const BoundaryConditionSet& pressureBoundaries,
-                                        VelocityComponent component, Vector& rhs) {
+                                        VelocityComponent component, Vector& rhs,
+                                        cfd::discretization::GradientScheme scheme) {
   if (pressure.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assemblePressureSourceContribution: pressure size does not match mesh cell count");
   }
 
-  const VectorField gradP = cfd::discretization::gradient(mesh, pressure, pressureBoundaries);
+  const VectorField gradP =
+      cfd::discretization::gradient(mesh, pressure, pressureBoundaries, scheme);
   for (const auto& cell : mesh.cells()) {
     const Real gradComponent = selectComponent(gradP[cell.id()], component);
     rhs[cell.id()] += -cell.volume() * gradComponent;
@@ -231,6 +416,21 @@ void assembleBuoyancySourceContribution(const Mesh& mesh, const ScalarField& tem
   for (const auto& cell : mesh.cells()) {
     const Vector2 sourcePerVolume = buoyancy.source(temperature[cell.id()]);
     rhs[cell.id()] += cell.volume() * selectComponent(sourcePerVolume, component);
+  }
+}
+
+void assembleMomentumSourceContribution(const Mesh& mesh, const VectorField& sourcePerUnitVolume,
+                                        VelocityComponent component, Vector& rhs) {
+  if (sourcePerUnitVolume.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleMomentumSourceContribution: source size does not match mesh cell count");
+  }
+  for (const auto& cell : mesh.cells()) {
+    const Vector2& source = sourcePerUnitVolume[cell.id()];
+    if (!std::isfinite(source.x) || !std::isfinite(source.y)) {
+      throw InvalidArgumentError("assembleMomentumSourceContribution: source must be finite");
+    }
+    rhs[cell.id()] += cell.volume() * selectComponent(source, component);
   }
 }
 

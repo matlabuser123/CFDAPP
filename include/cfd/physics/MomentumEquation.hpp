@@ -4,6 +4,8 @@
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/Convection.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
@@ -52,13 +54,52 @@ struct MomentumSystems {
 // mu * Af / d diffusion contribution, symmetric internal-face
 // contribution (equal/opposite to owner and neighbor rows -- TODO.md
 // section 10/45), Dirichlet-style boundary contribution added to the RHS.
+//
+// P12-NUM-003: `applyNonOrthogonalCorrection` (default false, exactly
+// today's only behavior for every pre-P12-NUM-003 call site) replaces
+// each internal face's implicit coefficient basis `face.area()` with
+// `|S_orth|` (MeshGeometry::decomposeFaceArea's over-relaxed orthogonal
+// part -- identical to `face.area()` on an orthogonal face, see that
+// function's own header comment) and adds the corresponding explicit
+// deferred correction `mu * S_nonorth . grad(component)_f` to the RHS,
+// face-once and equal/opposite between the owner and neighbor rows (same
+// sign derivation as this file's own boundary-flux comment: the
+// assembled row represents -[physical flux into the owner cell], so a
+// known correction term moves to the RHS with a flipped sign). The
+// component gradient is reconstructed via
+// cfd::discretization::computeVelocityGradient (VectorGradient.hpp) with
+// `correctionGradientScheme` -- reused directly, not a second gradient
+// implementation (velocity boundary conditions are vector-valued, so
+// Gradient.hpp's scalar gradient() does not apply; computeVelocityGradient
+// is its vector-BC counterpart, and its LeastSquares option shares
+// Gradient.hpp's own solveLeastSquaresGradient primitive). Production
+// (RelaxedMomentum/SIMPLE) passes the case's `gradient_scheme`. Measured on
+// a distorted mesh (linear velocity): LeastSquares makes the corrected
+// operator exact to round-off; the skewness-corrected GreenGauss to
+// ~3e-13 (plain GreenGauss: 1.3e-4) -- see results/p12-num-003/summary.md.
+// A face whose geometry is too
+// degenerate for the decomposition (`valid = false`) falls back to the
+// plain `face.area()`-based coefficient for that one face, never NaN/Inf.
+// Boundary faces: a Dirichlet-type velocity face (Wall/MovingWall/Inlet)
+// gets the same split against d = x_face - x_owner (MeshGeometry::
+// decomposeBoundaryFaceArea): coefficient mu*|S_orth,b|/|d| and explicit
+// mu * S_nonorth,b . grad(component)_P on the RHS; Outlet/Symmetry faces
+// are never corrected -- same policy, and the same reason (a half-
+// corrected boundary cell does not converge), as
+// cfd::discretization::diffusion. Every decomposition is exactly
+// {Sf, 0} on an orthogonal mesh, so the assembled system is then
+// bit-identical to the uncorrected one.
+//
 // Throws InvalidArgumentError if velocity.size() != mesh.numberOfCells().
 void assembleDiffusionContribution(const cfd::mesh::Mesh& mesh, Real dynamicViscosity,
                                    const cfd::fields::VectorField& velocity,
                                    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
                                    VelocityComponent component,
                                    cfd::algebra::SparseMatrixBuilder& builder,
-                                   cfd::algebra::Vector& rhs);
+                                   cfd::algebra::Vector& rhs,
+                                   bool applyNonOrthogonalCorrection = false,
+                                   cfd::discretization::GradientScheme correctionGradientScheme =
+                                       cfd::discretization::GradientScheme::GreenGauss);
 
 // P2-TURB-003: same physics as the constant-viscosity overload above, but
 // with a per-cell effective viscosity field (mu_eff = mu + mu_t, from
@@ -77,36 +118,67 @@ void assembleDiffusionContribution(const cfd::mesh::Mesh& mesh, Real dynamicVisc
 // The scalar overload above is intentionally left as a separate,
 // untouched code path (not reimplemented in terms of this one) -- callers
 // that only ever pass a single constant viscosity keep their existing,
-// exact floating-point behavior. Throws InvalidArgumentError if
-// velocity.size() or effectiveViscosity.size() != mesh.numberOfCells().
+// exact floating-point behavior. `applyNonOrthogonalCorrection` -- see the
+// scalar overload's own header comment above for the full formulation;
+// identical here, just using the per-cell effective viscosity at the face
+// (already the pre-existing muFace interpolation this overload uses for
+// its orthogonal coefficient too). `correctionVelocity` (default null ->
+// `velocity` itself) optionally supplies a DIFFERENT field to reconstruct
+// the explicit correction's component gradient from -- used only by
+// SIMPLE's own N-pass non-orthogonal correction loop (passes 2..N
+// re-evaluate the correction from the latest predictor velocity while
+// every other lagged term, e.g. boundary values, still uses `velocity`;
+// see SIMPLE.cpp). Ignored when applyNonOrthogonalCorrection is false.
+// Throws InvalidArgumentError if velocity.size(), effectiveViscosity.size()
+// or (when given) correctionVelocity->size() != mesh.numberOfCells().
 void assembleDiffusionContribution(const cfd::mesh::Mesh& mesh,
                                    const cfd::fields::ScalarField& effectiveViscosity,
                                    const cfd::fields::VectorField& velocity,
                                    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
                                    VelocityComponent component,
                                    cfd::algebra::SparseMatrixBuilder& builder,
-                                   cfd::algebra::Vector& rhs);
+                                   cfd::algebra::Vector& rhs,
+                                   bool applyNonOrthogonalCorrection = false,
+                                   cfd::discretization::GradientScheme correctionGradientScheme =
+                                       cfd::discretization::GradientScheme::GreenGauss,
+                                   const cfd::fields::VectorField* correctionVelocity = nullptr);
 
-// First-order upwind convection contribution using the already-computed
-// face mass flux (see MassFlux.hpp) -- TODO.md section 11/25/53. Throws
+// Convection contribution using the already-computed face mass flux (see
+// MassFlux.hpp) -- TODO.md section 11/25/53. `scheme` (default Upwind,
+// exactly today's behavior for every pre-P12-NUM-001 call site, which
+// never passes one) selects the INTERNAL-face treatment -- see
+// cfd::discretization::ConvectionScheme's own header comment. The
+// implicit matrix coefficients are always the first-order upwind ones
+// regardless of scheme (deferred correction, P12-NUM-001 requirement 7):
+// a higher-order scheme instead adds an EXPLICIT correction
+// (highOrderFace - upwindFace, boundedness-limited, evaluated from the
+// current/lagged `velocity`) to the RHS, face-once and equal/opposite
+// between the owner and neighbor rows, the same convention every other
+// contribution in this file already uses. Boundary faces are completely
+// unaffected by `scheme` (always the pre-existing upwind treatment) --
+// see results/p12-num-001/summary.md for why. Throws
 // InvalidArgumentError if velocity.size() != mesh.numberOfCells() or
 // massFlux.size() != mesh.numberOfFaces().
-void assembleConvectionContribution(const cfd::mesh::Mesh& mesh,
-                                    const cfd::fields::SurfaceField& massFlux,
-                                    const cfd::fields::VectorField& velocity,
-                                    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
-                                    VelocityComponent component,
-                                    cfd::algebra::SparseMatrixBuilder& builder,
-                                    cfd::algebra::Vector& rhs);
+void assembleConvectionContribution(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::SurfaceField& massFlux,
+    const cfd::fields::VectorField& velocity,
+    const cfd::boundary::BoundaryConditionSet& velocityBoundaries, VelocityComponent component,
+    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
+    cfd::discretization::ConvectionScheme scheme = cfd::discretization::ConvectionScheme::Upwind);
 
-// -V_P * (dp/dx or dp/dy)_P, using the verified Gauss gradient operator
+// -V_P * (dp/dx or dp/dy)_P, using the verified gradient operator
 // (TODO.md section 26-29). Purely a source: adds to rhs only, no matrix
-// contribution (pressure is not an unknown of this equation). Throws
-// InvalidArgumentError if pressure.size() != mesh.numberOfCells().
+// contribution (pressure is not an unknown of this equation). `scheme`
+// (default GreenGauss, exactly today's only behavior for every
+// pre-P12-NUM-002 call site, which never passes one) selects
+// cfd::discretization::gradient's own reconstruction -- see that
+// function's header comment. Throws InvalidArgumentError if
+// pressure.size() != mesh.numberOfCells().
 void assemblePressureSourceContribution(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& pressure,
     const cfd::boundary::BoundaryConditionSet& pressureBoundaries, VelocityComponent component,
-    cfd::algebra::Vector& rhs);
+    cfd::algebra::Vector& rhs,
+    cfd::discretization::GradientScheme scheme = cfd::discretization::GradientScheme::GreenGauss);
 
 // P3-PHYS-001: Boussinesq buoyancy body-force contribution -- a pure
 // source, same shape as assemblePressureSourceContribution above (adds
@@ -123,6 +195,20 @@ void assemblePressureSourceContribution(
 void assembleBuoyancySourceContribution(const cfd::mesh::Mesh& mesh,
                                         const cfd::fields::ScalarField& temperature,
                                         const BoussinesqBuoyancy& buoyancy,
+                                        VelocityComponent component, cfd::algebra::Vector& rhs);
+
+// P12-NUM-006: a generic, prescribed volumetric momentum source (a body
+// force per unit volume, one Vector2 per cell -- e.g. a driving pressure
+// gradient, or a manufactured-solution forcing term). Pure source, same
+// "per-volume source times cellVolume" convention as the pressure and
+// buoyancy contributions above: rhs[P] += V_P * f_P (component). The value
+// is the source at the cell centroid (midpoint-rule volume integral, second
+// order); the caller owns what the field means -- nothing here is specific
+// to any physics or to verification. Throws InvalidArgumentError if
+// sourcePerUnitVolume.size() != mesh.numberOfCells() or any value is
+// non-finite.
+void assembleMomentumSourceContribution(const cfd::mesh::Mesh& mesh,
+                                        const cfd::fields::VectorField& sourcePerUnitVolume,
                                         VelocityComponent component, cfd::algebra::Vector& rhs);
 
 // Combines the three contributions above into the full u- and v-momentum

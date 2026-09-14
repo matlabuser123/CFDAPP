@@ -29,7 +29,9 @@ MomentumAssembly assembleRelaxedCompressibleMomentumComponent(
     const SurfaceField& massFlux, const ScalarField& densityOld, const ScalarField& densityNew,
     Real dynamicViscosity, const BoundaryConditionSet& velocityBoundaries,
     const BoundaryConditionSet& pressureBoundaries, VelocityComponent component,
-    const ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep) {
+    const ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    cfd::discretization::GradientScheme pressureGradientScheme, const VectorField* momentumSource) {
   const Index n = mesh.numberOfCells();
   if (velocity.size() != n || pressure.size() != n) {
     throw InvalidArgumentError(
@@ -54,10 +56,14 @@ MomentumAssembly assembleRelaxedCompressibleMomentumComponent(
   // needed there" precedent, see CompressibleMomentum.hpp's own header
   // comment).
   assembleDiffusionContribution(mesh, dynamicViscosity, velocity, velocityBoundaries, component,
-                                builder, rhs);
+                                builder, rhs, nonOrthogonal.enabled, nonOrthogonal.gradientScheme);
   assembleConvectionContribution(mesh, massFlux, velocity, velocityBoundaries, component, builder,
                                  rhs);
-  assemblePressureSourceContribution(mesh, pressure, pressureBoundaries, component, rhs);
+  assemblePressureSourceContribution(mesh, pressure, pressureBoundaries, component, rhs,
+                                     pressureGradientScheme);
+  if (momentumSource != nullptr) {
+    cfd::physics::assembleMomentumSourceContribution(mesh, *momentumSource, component, rhs);
+  }
 
   // compressibleMomentumTimeDerivative validates velocityOldComponent/
   // densityOld/densityNew/pseudoTimeStep itself.

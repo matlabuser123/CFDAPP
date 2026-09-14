@@ -46,6 +46,17 @@ struct ProfileSample {
     const cfd::mesh::Mesh& mesh, cfd::Index nx, cfd::Index ny,
     const cfd::fields::ScalarField& field, cfd::Real xFixed);
 
+// P12-NUM-007: mean axial pressure gradient between the internal faces
+// nearest x1 and x2 from pair-averaged column pressures, P(i) = (pbar_i +
+// pbar_{i+1})/2 at x_{i+1/2} -- the checkerboard-immune estimator of
+// PoiseuilleValidationUtils::pairAveragedPressureGradient (the collocated
+// SIMPLE has no Rhie-Chow interpolation; an odd-even mode a*(-1)^i cancels
+// exactly in each pair). Structured createCartesian2D mesh (cell = j*nx+i).
+[[nodiscard]] cfd::Real pairAveragedPressureGradient(const cfd::mesh::Mesh& mesh, cfd::Index nx,
+                                                     cfd::Index ny,
+                                                     const cfd::fields::ScalarField& pressure,
+                                                     cfd::Real x1, cfd::Real x2);
+
 // Linearly interpolates `profile` (sorted by coordinate) at `coordinate`.
 [[nodiscard]] cfd::Real interpolateProfile(const std::vector<ProfileSample>& profile,
                                            cfd::Real coordinate);

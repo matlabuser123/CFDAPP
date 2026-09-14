@@ -86,6 +86,106 @@ Real numericalPressureGradient(const Mesh& mesh, Index nx, Index ny, const Scala
   return (p2 - p1) / (x2 - x1);
 }
 
+namespace {
+
+std::vector<Real> columnAverages(Index nx, Index ny, const ScalarField& pressure) {
+  std::vector<Real> averages(nx, 0.0);
+  for (Index j = 0; j < ny; ++j) {
+    for (Index i = 0; i < nx; ++i) averages[i] += pressure[(j * nx) + i];
+  }
+  for (Real& a : averages) a /= static_cast<Real>(ny);
+  return averages;
+}
+
+// Index i of the internal face x_{i+1/2} (between columns i and i+1)
+// nearest x.
+Index nearestInternalFace(const std::vector<Real>& xCenters, Real x) {
+  Index best = 0;
+  Real bestDistance = 1e300;
+  for (Index i = 0; i + 1 < xCenters.size(); ++i) {
+    const Real distance = std::abs(0.5 * (xCenters[i] + xCenters[i + 1]) - x);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = i;
+    }
+  }
+  return best;
+}
+
+bool isVerticalInternalFace(const cfd::mesh::Face& face) {
+  return !face.isBoundary() && std::abs(face.areaVector().x) > std::abs(face.areaVector().y);
+}
+
+}  // namespace
+
+PairAveragedPressureGradient pairAveragedPressureGradient(const Mesh& mesh, Index nx, Index ny,
+                                                          const ScalarField& pressure, Real x1,
+                                                          Real x2) {
+  if (nx < 3) throw std::invalid_argument("pairAveragedPressureGradient: need nx >= 3");
+  std::vector<Real> xCenters(nx);
+  for (Index i = 0; i < nx; ++i) xCenters[i] = mesh.cell(i).centroid().x;
+  const auto averages = columnAverages(nx, ny, pressure);
+  const Index i1 = nearestInternalFace(xCenters, x1);
+  const Index i2 = nearestInternalFace(xCenters, x2);
+  if (i1 == i2) throw std::invalid_argument("pairAveragedPressureGradient: stations coincide");
+  PairAveragedPressureGradient result;
+  result.x1Face = 0.5 * (xCenters[i1] + xCenters[i1 + 1]);
+  result.x2Face = 0.5 * (xCenters[i2] + xCenters[i2 + 1]);
+  const Real p1 = 0.5 * (averages[i1] + averages[i1 + 1]);
+  const Real p2 = 0.5 * (averages[i2] + averages[i2 + 1]);
+  result.drop = p2 - p1;
+  result.gradient = result.drop / (result.x2Face - result.x1Face);
+  return result;
+}
+
+Real pressureOddEvenAmplitude(const Mesh& mesh, Index nx, Index ny, const ScalarField& pressure,
+                              Real x1, Real x2) {
+  const auto averages = columnAverages(nx, ny, pressure);
+  Real amplitude = 0.0;
+  for (Index i = 1; i + 1 < nx; ++i) {
+    const Real x = mesh.cell(i).centroid().x;
+    if (x < x1 || x > x2) continue;
+    amplitude = std::max(amplitude,
+                         0.5 * std::abs(averages[i] - 0.5 * (averages[i - 1] + averages[i + 1])));
+  }
+  return amplitude;
+}
+
+Real sectionMassFlow(const Mesh& mesh, const cfd::fields::SurfaceField& massFlux, Real x) {
+  Real bestX = 0.0;
+  Real bestDistance = 1e300;
+  for (const auto& face : mesh.faces()) {
+    if (!isVerticalInternalFace(face)) continue;
+    const Real distance = std::abs(face.centroid().x - x);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestX = face.centroid().x;
+    }
+  }
+  Real flow = 0.0;
+  for (const auto& face : mesh.faces()) {
+    if (!isVerticalInternalFace(face)) continue;
+    if (std::abs(face.centroid().x - bestX) > 1e-9 * (1.0 + std::abs(bestX))) continue;
+    flow += face.areaVector().x > 0.0 ? massFlux[face.id()] : -massFlux[face.id()];
+  }
+  return flow;
+}
+
+Real discretePressureGradient(Real dynamicViscosity, Real meanVelocity, Real channelHeight,
+                              Index ny) {
+  const Real n2 = static_cast<Real>(ny) * static_cast<Real>(ny);
+  return analyticalPressureGradient(dynamicViscosity, meanVelocity, channelHeight) * n2 /
+         (n2 + 2.0);
+}
+
+Real discretePoiseuilleVelocity(Real y, Real channelHeight, Real meanVelocity, Index ny) {
+  const Real dy = channelHeight / static_cast<Real>(ny);
+  // G = -(dp/dx)/mu with dp/dx from discretePressureGradient (mu cancels).
+  const Real n2 = static_cast<Real>(ny) * static_cast<Real>(ny);
+  const Real g = 12.0 * meanVelocity / (channelHeight * channelHeight) * n2 / (n2 + 2.0);
+  return 0.5 * g * y * (channelHeight - y) + g * dy * dy / 8.0;
+}
+
 Real interpolateProfile(const std::vector<ProfileSample>& profile, Real coordinate) {
   if (profile.size() < 2)
     throw std::invalid_argument("interpolateProfile: need at least two samples");

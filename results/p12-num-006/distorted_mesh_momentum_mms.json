@@ -1,0 +1,882 @@
+{
+  "format_version": 1,
+  "study": "distorted_mesh_momentum_mms",
+  "description": "Momentum-only MMS (central convection) on Cartesian vs distorted (0.25 h) meshes, uncorrected (Green-Gauss) vs non-orthogonal-corrected (least-squares); level status/iterations are the corrected distorted solve",
+  "manufactured_solution": "mms::velocity / mms::pressure (as momentum_mms)",
+  "method": {
+    "error_norms": "volume-weighted over the selected cells: L1 = sum|e|V/sumV, L2 = sqrt(sum e^2 V/sumV), Linf = max|e| (cfd/validation/ErrorNorms.hpp)",
+    "pressure_gauge": "numerical and exact pressure each shifted to zero volume-weighted mean over all cells before comparison",
+    "observed_order": "P12-NUM-005 analyzeGridConvergence on each consecutive triplet of error values (exact limit 0); reduction factor = E_coarse/E_fine",
+    "indexing": "levels listed coarse -> fine"
+  },
+  "coefficients": {
+    "density": 1.0,
+    "viscosity": 0.1,
+    "distortion_fraction_of_h": 0.25
+  },
+  "configuration": {},
+  "levels": [
+    {
+      "name": "16x16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 256,
+      "h": 0.0625,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 14,
+      "mass_imbalance": 1.5407439555097887e-33,
+      "errors": {
+        "u_cartesian": {
+          "l1": 0.0014623980769970255,
+          "l2": 0.0018275170063073649,
+          "linf": 0.005679664811723439,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "v_cartesian": {
+          "l1": 0.002785993533425855,
+          "l2": 0.003300880603427854,
+          "linf": 0.007901837308299853,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "velocity_cartesian": {
+          "l1": 0.003411191893258548,
+          "l2": 0.0037730135391261022,
+          "linf": 0.00851589853817347,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "u_interior_cartesian": {
+          "l1": 0.0014051829646100423,
+          "l2": 0.0017747296879512793,
+          "linf": 0.005679664811723439,
+          "cells": 196,
+          "volume": 0.765625
+        },
+        "v_interior_cartesian": {
+          "l1": 0.0027776880374923915,
+          "l2": 0.0032862690098004973,
+          "linf": 0.007846133233908592,
+          "cells": 196,
+          "volume": 0.765625
+        },
+        "u_boundary_ring_cartesian": {
+          "l1": 0.0016493007774611714,
+          "l2": 0.001990222271245804,
+          "linf": 0.004705076027254229,
+          "cells": 60,
+          "volume": 0.234375
+        },
+        "v_boundary_ring_cartesian": {
+          "l1": 0.002813124820141839,
+          "l2": 0.003348167461796947,
+          "linf": 0.007901837308299853,
+          "cells": 60,
+          "volume": 0.234375
+        },
+        "u_distorted_uncorrected": {
+          "l1": 0.006790753213312267,
+          "l2": 0.008970822374488114,
+          "linf": 0.022404934335475468,
+          "cells": 256,
+          "volume": 1.0000000000000007
+        },
+        "v_distorted_uncorrected": {
+          "l1": 0.005788140342281303,
+          "l2": 0.006998226974498315,
+          "linf": 0.017483855633094455,
+          "cells": 256,
+          "volume": 1.0000000000000007
+        },
+        "velocity_distorted_uncorrected": {
+          "l1": 0.009693367311566442,
+          "l2": 0.011377646279490871,
+          "linf": 0.02347338841650311,
+          "cells": 256,
+          "volume": 1.0000000000000007
+        },
+        "u_interior_distorted_uncorrected": {
+          "l1": 0.00802520105222114,
+          "l2": 0.01009834919106057,
+          "linf": 0.022404934335475468,
+          "cells": 196,
+          "volume": 0.7656250000000002
+        },
+        "v_interior_distorted_uncorrected": {
+          "l1": 0.0066667801110855,
+          "l2": 0.007760356408804445,
+          "linf": 0.017483855633094455,
+          "cells": 196,
+          "volume": 0.7656250000000002
+        },
+        "u_boundary_ring_distorted_uncorrected": {
+          "l1": 0.002758223606209965,
+          "l2": 0.003199851016639914,
+          "linf": 0.00624240001089249,
+          "cells": 60,
+          "volume": 0.23437500000000008
+        },
+        "v_boundary_ring_distorted_uncorrected": {
+          "l1": 0.002917917097520925,
+          "l2": 0.003497409730550085,
+          "linf": 0.007756109432195402,
+          "cells": 60,
+          "volume": 0.23437500000000008
+        },
+        "u_distorted_corrected": {
+          "l1": 0.0016070218101271036,
+          "l2": 0.0019226270937419746,
+          "linf": 0.00499265830323159,
+          "cells": 256,
+          "volume": 1.0000000000000007
+        },
+        "v_distorted_corrected": {
+          "l1": 0.002425074504746215,
+          "l2": 0.00284077700942439,
+          "linf": 0.00600045392697468,
+          "cells": 256,
+          "volume": 1.0000000000000007
+        },
+        "velocity_distorted_corrected": {
+          "l1": 0.003149220544865866,
+          "l2": 0.0034302345340901826,
+          "linf": 0.00652704148303662,
+          "cells": 256,
+          "volume": 1.0000000000000007
+        },
+        "u_interior_distorted_corrected": {
+          "l1": 0.0015127455741861303,
+          "l2": 0.0018200640192007921,
+          "linf": 0.004306672999701389,
+          "cells": 196,
+          "volume": 0.7656250000000002
+        },
+        "v_interior_distorted_corrected": {
+          "l1": 0.0023879031203525745,
+          "l2": 0.0027809559364852694,
+          "linf": 0.005836826246232163,
+          "cells": 196,
+          "volume": 0.7656250000000002
+        },
+        "u_boundary_ring_distorted_corrected": {
+          "l1": 0.0019149908475342855,
+          "l2": 0.0022249592894601875,
+          "linf": 0.00499265830323159,
+          "cells": 60,
+          "volume": 0.23437500000000008
+        },
+        "v_boundary_ring_distorted_corrected": {
+          "l1": 0.002546501027098781,
+          "l2": 0.003027967602122885,
+          "linf": 0.00600045392697468,
+          "cells": 60,
+          "volume": 0.23437500000000008
+        }
+      },
+      "diagnostics": {}
+    },
+    {
+      "name": "32x32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 1024,
+      "h": 0.03125,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 10,
+      "mass_imbalance": 7.703719777548943e-34,
+      "errors": {
+        "u_cartesian": {
+          "l1": 0.0002895487302473869,
+          "l2": 0.000369640462620299,
+          "linf": 0.0013330671013098705,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "v_cartesian": {
+          "l1": 0.0006958021283397003,
+          "l2": 0.0008319468439600189,
+          "linf": 0.00181642009450389,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "velocity_cartesian": {
+          "l1": 0.0008148370532708523,
+          "l2": 0.0009103678502567986,
+          "linf": 0.0018214600979790977,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "u_interior_cartesian": {
+          "l1": 0.0002650015619929616,
+          "l2": 0.00033133192002900955,
+          "linf": 0.0011268687046543657,
+          "cells": 900,
+          "volume": 0.87890625
+        },
+        "v_interior_cartesian": {
+          "l1": 0.0007140798624245879,
+          "l2": 0.000845750863164104,
+          "linf": 0.00181642009450389,
+          "cells": 900,
+          "volume": 0.87890625
+        },
+        "u_boundary_ring_cartesian": {
+          "l1": 0.00046771366112628016,
+          "l2": 0.0005757921067033766,
+          "linf": 0.0013330671013098705,
+          "cells": 124,
+          "volume": 0.12109375
+        },
+        "v_boundary_ring_cartesian": {
+          "l1": 0.0005631411551429343,
+          "l2": 0.0007239103831693695,
+          "linf": 0.0016295090562843395,
+          "cells": 124,
+          "volume": 0.12109375
+        },
+        "u_distorted_uncorrected": {
+          "l1": 0.0032353577397103736,
+          "l2": 0.00441954315518152,
+          "linf": 0.011548624579538092,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "v_distorted_uncorrected": {
+          "l1": 0.002575455947577201,
+          "l2": 0.003251183860196433,
+          "linf": 0.00827705622191701,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "velocity_distorted_uncorrected": {
+          "l1": 0.00450633696880458,
+          "l2": 0.005486579826568968,
+          "linf": 0.011965960802342827,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "u_interior_distorted_uncorrected": {
+          "l1": 0.003578819417679068,
+          "l2": 0.004703434995889503,
+          "linf": 0.011548624579538092,
+          "cells": 900,
+          "volume": 0.8789062499999998
+        },
+        "v_interior_distorted_uncorrected": {
+          "l1": 0.0028335857350763665,
+          "l2": 0.003453311192172451,
+          "linf": 0.00827705622191701,
+          "cells": 900,
+          "volume": 0.8789062499999998
+        },
+        "u_boundary_ring_distorted_uncorrected": {
+          "l1": 0.0007424907221956442,
+          "l2": 0.000856981277422901,
+          "linf": 0.0014109623093871981,
+          "cells": 124,
+          "volume": 0.12109375000000003
+        },
+        "v_boundary_ring_distorted_uncorrected": {
+          "l1": 0.0007019332963735777,
+          "l2": 0.0008569395923108337,
+          "linf": 0.002062002737565294,
+          "cells": 124,
+          "volume": 0.12109375000000003
+        },
+        "u_distorted_corrected": {
+          "l1": 0.0003061011940242089,
+          "l2": 0.0003814740254840362,
+          "linf": 0.0013413103681589877,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "v_distorted_corrected": {
+          "l1": 0.0006404163119900295,
+          "l2": 0.0007637588150935501,
+          "linf": 0.00160796401120189,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "velocity_distorted_corrected": {
+          "l1": 0.0007703002953063509,
+          "l2": 0.0008537270991084325,
+          "linf": 0.0016305472571630716,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "u_interior_distorted_corrected": {
+          "l1": 0.00028032988129606787,
+          "l2": 0.0003417376959365499,
+          "linf": 0.0010576104059418778,
+          "cells": 900,
+          "volume": 0.8789062499999998
+        },
+        "v_interior_distorted_corrected": {
+          "l1": 0.0006539121978031024,
+          "l2": 0.0007731113608778559,
+          "linf": 0.00160796401120189,
+          "cells": 900,
+          "volume": 0.8789062499999998
+        },
+        "u_boundary_ring_distorted_corrected": {
+          "l1": 0.0004931510444703978,
+          "l2": 0.000595065616795482,
+          "linf": 0.0013413103681589877,
+          "cells": 124,
+          "volume": 0.12109375000000003
+        },
+        "v_boundary_ring_distorted_corrected": {
+          "l1": 0.0005424623020564342,
+          "l2": 0.0006921001792681312,
+          "linf": 0.0015422937737699094,
+          "cells": 124,
+          "volume": 0.12109375000000003
+        }
+      },
+      "diagnostics": {}
+    },
+    {
+      "name": "64x64",
+      "nx": 64,
+      "ny": 64,
+      "cells": 4096,
+      "h": 0.015625,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 9,
+      "mass_imbalance": 7.703719777548943e-34,
+      "errors": {
+        "u_cartesian": {
+          "l1": 6.692415824903716e-05,
+          "l2": 8.690589926920205e-05,
+          "linf": 0.00035222872830997787,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "v_cartesian": {
+          "l1": 0.00017627321647562948,
+          "l2": 0.00021204836796675667,
+          "linf": 0.0004395646400245923,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "velocity_cartesian": {
+          "l1": 0.00020386765081135575,
+          "l2": 0.00022916619664591385,
+          "linf": 0.00044239222462100095,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "u_interior_cartesian": {
+          "l1": 6.314505222115992e-05,
+          "l2": 8.035388333185517e-05,
+          "linf": 0.0003089159935807384,
+          "cells": 3844,
+          "volume": 0.9384765625
+        },
+        "v_interior_cartesian": {
+          "l1": 0.00017948082474474023,
+          "l2": 0.00021451185416345301,
+          "linf": 0.0004395646400245923,
+          "cells": 3844,
+          "volume": 0.9384765625
+        },
+        "u_boundary_ring_cartesian": {
+          "l1": 0.00012457052162665648,
+          "l2": 0.0001557860317943298,
+          "linf": 0.00035222872830997787,
+          "cells": 252,
+          "volume": 0.0615234375
+        },
+        "v_boundary_ring_cartesian": {
+          "l1": 0.00012734446176744732,
+          "l2": 0.0001701036619889109,
+          "linf": 0.00039205456365287716,
+          "cells": 252,
+          "volume": 0.0615234375
+        },
+        "u_distorted_uncorrected": {
+          "l1": 0.001578672483415361,
+          "l2": 0.0021883919745559676,
+          "linf": 0.0057669921293078685,
+          "cells": 4096,
+          "volume": 0.999999999999999
+        },
+        "v_distorted_uncorrected": {
+          "l1": 0.0012442185987312055,
+          "l2": 0.0016030883793891162,
+          "linf": 0.004045321253746459,
+          "cells": 4096,
+          "volume": 0.999999999999999
+        },
+        "velocity_distorted_uncorrected": {
+          "l1": 0.002192967615648518,
+          "l2": 0.0027127387980477227,
+          "linf": 0.006048658237987618,
+          "cells": 4096,
+          "volume": 0.999999999999999
+        },
+        "u_interior_distorted_uncorrected": {
+          "l1": 0.0016696928298111852,
+          "l2": 0.0022582759045228894,
+          "linf": 0.0057669921293078685,
+          "cells": 3844,
+          "volume": 0.9384765624999993
+        },
+        "v_interior_distorted_uncorrected": {
+          "l1": 0.0013145586153261084,
+          "l2": 0.0016538970671938628,
+          "linf": 0.004045321253746459,
+          "cells": 3844,
+          "volume": 0.9384765624999993
+        },
+        "u_boundary_ring_distorted_uncorrected": {
+          "l1": 0.0001902510090282401,
+          "l2": 0.0002210865000764762,
+          "linf": 0.00037857074415081904,
+          "cells": 252,
+          "volume": 0.061523437499999833
+        },
+        "v_boundary_ring_distorted_uncorrected": {
+          "l1": 0.00017125421860895025,
+          "l2": 0.00021358261318136845,
+          "linf": 0.0005238549242063684,
+          "cells": 252,
+          "volume": 0.061523437499999833
+        },
+        "u_distorted_corrected": {
+          "l1": 6.739933937236983e-05,
+          "l2": 8.753644881920525e-05,
+          "linf": 0.00035195790362085866,
+          "cells": 4096,
+          "volume": 0.999999999999999
+        },
+        "v_distorted_corrected": {
+          "l1": 0.0001684916310802805,
+          "l2": 0.00020280111090700595,
+          "linf": 0.0004117223640907053,
+          "cells": 4096,
+          "volume": 0.999999999999999
+        },
+        "velocity_distorted_corrected": {
+          "l1": 0.00019716729249624992,
+          "l2": 0.00022088666880776885,
+          "linf": 0.0004118754437615085,
+          "cells": 4096,
+          "volume": 0.999999999999999
+        },
+        "u_interior_distorted_corrected": {
+          "l1": 6.357242091534848e-05,
+          "l2": 8.091267120221794e-05,
+          "linf": 0.0003103778433779514,
+          "cells": 3844,
+          "volume": 0.9384765624999993
+        },
+        "v_interior_distorted_corrected": {
+          "l1": 0.00017117818948731193,
+          "l2": 0.00020493908213862886,
+          "linf": 0.0004117223640907053,
+          "cells": 3844,
+          "volume": 0.9384765624999993
+        },
+        "u_boundary_ring_distorted_corrected": {
+          "l1": 0.0001257750320262984,
+          "l2": 0.00015710678714922718,
+          "linf": 0.00035195790362085866,
+          "cells": 252,
+          "volume": 0.061523437499999833
+        },
+        "v_boundary_ring_distorted_corrected": {
+          "l1": 0.0001275109544269903,
+          "l2": 0.00016682579258254064,
+          "linf": 0.0003816815353023806,
+          "cells": 252,
+          "volume": 0.061523437499999833
+        }
+      },
+      "diagnostics": {}
+    },
+    {
+      "name": "128x128",
+      "nx": 128,
+      "ny": 128,
+      "cells": 16384,
+      "h": 0.0078125,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 8,
+      "mass_imbalance": 9.62964972193618e-34,
+      "errors": {
+        "u_cartesian": {
+          "l1": 1.699984196980491e-05,
+          "l2": 2.2017456891078898e-05,
+          "linf": 9.021983184798188e-05,
+          "cells": 16384,
+          "volume": 1.0
+        },
+        "v_cartesian": {
+          "l1": 4.47988103405366e-05,
+          "l2": 5.390135171340997e-05,
+          "linf": 0.0001096435584750921,
+          "cells": 16384,
+          "volume": 1.0
+        },
+        "velocity_cartesian": {
+          "l1": 5.180344200386054e-05,
+          "l2": 5.822477242963892e-05,
+          "linf": 0.00011103683565667501,
+          "cells": 16384,
+          "volume": 1.0
+        },
+        "u_interior_cartesian": {
+          "l1": 1.651790252644561e-05,
+          "l2": 2.1169786409838572e-05,
+          "linf": 8.434903395837523e-05,
+          "cells": 15876,
+          "volume": 0.968994140625
+        },
+        "v_interior_cartesian": {
+          "l1": 4.5232763683841666e-05,
+          "l2": 5.4253006702683714e-05,
+          "linf": 0.0001096435584750921,
+          "cells": 15876,
+          "volume": 0.968994140625
+        },
+        "u_boundary_ring_cartesian": {
+          "l1": 3.206139827447544e-05,
+          "l2": 4.0359109263439636e-05,
+          "linf": 9.021983184798188e-05,
+          "cells": 508,
+          "volume": 0.031005859375
+        },
+        "v_boundary_ring_cartesian": {
+          "l1": 3.123691412338999e-05,
+          "l2": 4.1433669656887953e-05,
+          "linf": 9.6440820685606e-05,
+          "cells": 508,
+          "volume": 0.031005859375
+        },
+        "u_distorted_uncorrected": {
+          "l1": 0.0007778022357501017,
+          "l2": 0.0010854876745072211,
+          "linf": 0.002872716078179627,
+          "cells": 16384,
+          "volume": 1.0000000000000013
+        },
+        "v_distorted_uncorrected": {
+          "l1": 0.0006154155025841087,
+          "l2": 0.0008012651899550882,
+          "linf": 0.0020084055327320386,
+          "cells": 16384,
+          "volume": 1.0000000000000013
+        },
+        "velocity_distorted_uncorrected": {
+          "l1": 0.001083158679465439,
+          "l2": 0.0013491884212892033,
+          "linf": 0.0030322572311565804,
+          "cells": 16384,
+          "volume": 1.0000000000000013
+        },
+        "u_interior_distorted_uncorrected": {
+          "l1": 0.0008011494517551987,
+          "l2": 0.0011026721031652709,
+          "linf": 0.002872716078179627,
+          "cells": 15876,
+          "volume": 0.9689941406250009
+        },
+        "v_interior_distorted_uncorrected": {
+          "l1": 0.0006337504237839926,
+          "l2": 0.000813927626312199,
+          "linf": 0.0020084055327320386,
+          "cells": 15876,
+          "volume": 0.9689941406250009
+        },
+        "u_boundary_ring_distorted_uncorrected": {
+          "l1": 4.815577650420879e-05,
+          "l2": 5.6021058852793025e-05,
+          "linf": 9.867172563837734e-05,
+          "cells": 508,
+          "volume": 0.031005859374999764
+        },
+        "v_boundary_ring_distorted_uncorrected": {
+          "l1": 4.241312272316635e-05,
+          "l2": 5.340422954702994e-05,
+          "linf": 0.00013163188008391558,
+          "cells": 508,
+          "volume": 0.031005859374999764
+        },
+        "u_distorted_corrected": {
+          "l1": 1.692179984937799e-05,
+          "l2": 2.203752644399032e-05,
+          "linf": 9.007066083310811e-05,
+          "cells": 16384,
+          "volume": 1.0000000000000013
+        },
+        "v_distorted_corrected": {
+          "l1": 4.369442077109206e-05,
+          "l2": 5.269117489710959e-05,
+          "linf": 0.00010618654098482061,
+          "cells": 16384,
+          "volume": 1.0000000000000013
+        },
+        "velocity_distorted_corrected": {
+          "l1": 5.0901991828517244e-05,
+          "l2": 5.711403053372604e-05,
+          "linf": 0.00010717754096847749,
+          "cells": 16384,
+          "volume": 1.0000000000000013
+        },
+        "u_interior_distorted_corrected": {
+          "l1": 1.6438739496295475e-05,
+          "l2": 2.1185359345892863e-05,
+          "linf": 8.438173597768994e-05,
+          "cells": 15876,
+          "volume": 0.9689941406250009
+        },
+        "v_interior_distorted_corrected": {
+          "l1": 4.409405465144246e-05,
+          "l2": 5.302100317762095e-05,
+          "linf": 0.00010618654098482061,
+          "cells": 15876,
+          "volume": 0.9689941406250009
+        },
+        "u_boundary_ring_distorted_corrected": {
+          "l1": 3.201838678941552e-05,
+          "l2": 4.045689204580873e-05,
+          "linf": 9.007066083310811e-05,
+          "cells": 508,
+          "volume": 0.031005859374999764
+        },
+        "v_boundary_ring_distorted_corrected": {
+          "l1": 3.120507532927862e-05,
+          "l2": 4.106947426453889e-05,
+          "linf": 9.51985404384903e-05,
+          "cells": 508,
+          "volume": 0.031005859374999764
+        }
+      },
+      "diagnostics": {}
+    }
+  ],
+  "orders": [
+    {
+      "quantity": "u_distorted_corrected",
+      "norm": "l2",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        5.039994771078934,
+        4.357887835636552,
+        3.972154000208886
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 2.390428449836053,
+          "asymptotic_ratio": 1.3107826207052744,
+          "extrapolated_error": 1.8262694958729313e-05,
+          "diagnostic": "monotonic convergence, observed order 2.39043 (formal 2); asymptotic ratio 1.31078 outside 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 2.1659667274322825,
+          "asymptotic_ratio": 1.1219176056858997,
+          "extrapolated_error": 3.2573911570987695e-06,
+          "diagnostic": "monotonic convergence, observed order 2.16597 (formal 2); asymptotic ratio 1.12192 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 2.1659667274322825
+    },
+    {
+      "quantity": "u_distorted_uncorrected",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.029807620267408,
+        2.019539098373024,
+        2.0160449777096106
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.028483825330011,
+          "asymptotic_ratio": 1.019939674825294,
+          "extrapolated_error": 4.2805391482411085e-05,
+          "diagnostic": "monotonic convergence, observed order 1.02848 (formal 1); asymptotic ratio 1.01994 within 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.0164806600263576,
+          "asymptotic_ratio": 1.0114890206371212,
+          "extrapolated_error": 7.356712209202884e-06,
+          "diagnostic": "monotonic convergence, observed order 1.01648 (formal 1); asymptotic ratio 1.01149 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.0164806600263576
+    },
+    {
+      "quantity": "v_distorted_corrected",
+      "norm": "l2",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        3.7194687030570424,
+        3.7660484781257937,
+        3.848862951016314
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.8885499521409077,
+          "asymptotic_ratio": 0.9256572192652053,
+          "extrapolated_error": -4.758909245150197e-06,
+          "diagnostic": "monotonic convergence, observed order 1.88855 (formal 2); asymptotic ratio 0.925657 within 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.9018725224052968,
+          "asymptotic_ratio": 0.934244792679083,
+          "extrapolated_error": -2.1539396057567573e-06,
+          "diagnostic": "monotonic convergence, observed order 1.90187 (formal 2); asymptotic ratio 0.934245 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.9018725224052968
+    },
+    {
+      "quantity": "v_distorted_uncorrected",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.1525165218049187,
+        2.028075246503472,
+        2.0006963980039756
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.1849527516537561,
+          "asymptotic_ratio": 1.1367797430238686,
+          "extrapolated_error": 0.0003090023952927801,
+          "diagnostic": "monotonic convergence, observed order 1.18495 (formal 1); asymptotic ratio 1.13678 outside 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.0394437788570565,
+          "asymptotic_ratio": 1.0277175208481035,
+          "extrapolated_error": 4.155648429623245e-05,
+          "diagnostic": "monotonic convergence, observed order 1.03944 (formal 1); asymptotic ratio 1.02772 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.0394437788570565
+    }
+  ],
+  "gates": [
+    {
+      "name": "distorted: u_distorted_corrected l2 observed order in [1.80, 2.40]",
+      "passed": true,
+      "detail": "finest-triplet observed order 2.166 (monotonic_not_asymptotic vs formal 2); reduction factors 5.040 4.358 3.972"
+    },
+    {
+      "name": "distorted: u_distorted_uncorrected l2 observed order in [0.70, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.016 (asymptotic vs formal 1); reduction factors 2.030 2.020 2.016"
+    },
+    {
+      "name": "distorted: u corrected L2 within 10% of Cartesian (finest grid)",
+      "passed": true,
+      "detail": "corrected 2.2038e-05, Cartesian 2.2017e-05"
+    },
+    {
+      "name": "distorted: u uncorrected L2 >= 3x corrected (finest grid)",
+      "passed": true,
+      "detail": "ratio 49.3"
+    },
+    {
+      "name": "distorted: v_distorted_corrected l2 observed order in [1.80, 2.40]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.902 (asymptotic vs formal 2); reduction factors 3.719 3.766 3.849"
+    },
+    {
+      "name": "distorted: v_distorted_uncorrected l2 observed order in [0.70, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.039 (asymptotic vs formal 1); reduction factors 2.153 2.028 2.001"
+    },
+    {
+      "name": "distorted: v corrected L2 within 10% of Cartesian (finest grid)",
+      "passed": true,
+      "detail": "corrected 5.2691e-05, Cartesian 5.3901e-05"
+    },
+    {
+      "name": "distorted: v uncorrected L2 >= 3x corrected (finest grid)",
+      "passed": true,
+      "detail": "ratio 15.2"
+    }
+  ],
+  "all_gates_passed": true,
+  "runtime": {
+    "note": "measured wall time -- the only non-deterministic part of this report",
+    "levels": [
+      {
+        "name": "16x16",
+        "seconds": 0.754972317
+      },
+      {
+        "name": "32x32",
+        "seconds": 3.438682321
+      },
+      {
+        "name": "64x64",
+        "seconds": 21.507678836000004
+      },
+      {
+        "name": "128x128",
+        "seconds": 145.526909829
+      }
+    ]
+  }
+}

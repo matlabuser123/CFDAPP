@@ -2,6 +2,10 @@
 
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/core/Types.hpp"
+#include "cfd/discretization/Convection.hpp"
+#include "cfd/discretization/Gradient.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
+#include "cfd/solver/SolverRobustness.hpp"
 
 namespace cfd::pressure_velocity {
 
@@ -35,6 +39,38 @@ struct SIMPLESettings {
   cfd::algebra::LinearSolverSettings momentumSolver;
   cfd::algebra::LinearSolverSettings pressureSolver;
 
+  // P12-NUM-001: which convection scheme assembleRelaxedMomentumComponent
+  // uses for the u/v momentum equations. Defaults to Upwind -- exactly
+  // the only scheme that existed before this field, so every pre-
+  // P12-NUM-001 caller (which never sets this) gets byte-identical
+  // behavior. See cfd::discretization::ConvectionScheme's own header
+  // comment.
+  cfd::discretization::ConvectionScheme convectionScheme{
+      cfd::discretization::ConvectionScheme::Upwind};
+
+  // P12-NUM-002: which gradient reconstruction the pressure-source term
+  // (assembleRelaxedMomentumComponent) and the velocity-correction step
+  // (correctVelocity) use. Defaults to GreenGauss -- exactly the only
+  // scheme that existed before this field, so every pre-P12-NUM-002
+  // caller (which never sets this) gets byte-identical behavior. See
+  // cfd::discretization::GradientScheme's own header comment.
+  cfd::discretization::GradientScheme gradientScheme{
+      cfd::discretization::GradientScheme::GreenGauss};
+
+  // P12-NUM-003: the non-orthogonal correction switch AND pass count.
+  //   0 (default, exactly the pre-P12-NUM-003 solver): uncorrected two-
+  //     point diffusion everywhere; two-point pressure-correction coupling.
+  //   N >= 1: every diffusion term is corrected (momentum here; thermal/
+  //     species/turbulence through nonOrthogonalOptions() below), and each
+  //     outer iteration runs N momentum-predictor passes
+  //     (runNonOrthogonalCorrectionPasses) and N pressure-correction passes
+  //     (over-relaxed implicit coefficient; passes 2..N add the explicit
+  //     -rho_f T . grad(p') term) -- see SIMPLE.cpp. SIMPLEResult's
+  //     momentumPredictorPasses / pressureCorrectionPasses count them.
+  // On an orthogonal (Cartesian) mesh every correction term is exactly
+  // zero: N = 1 is bit-identical to N = 0.
+  Index nonOrthogonalCorrections{0};
+
   // P6-GPU-001 -- Performance: opt-in only, default false, so every
   // existing caller's behavior (CPU-only build or not) is unchanged
   // unless it deliberately sets this. When true, SIMPLE::solve() mirrors
@@ -51,6 +87,15 @@ struct SIMPLESettings {
   // calls at all) in a CPU-only build, or a CUDA build with no usable
   // device at runtime -- see GpuResidencyManager::active().
   bool enableGpuResidency{false};
+
+  // P12-NUM-004: normalized residuals / convergence criterion, stagnation
+  // and divergence detection, adaptive under-relaxation and the linear-
+  // solver fallback (cfd/solver/SolverRobustness.hpp). Default-constructed:
+  // absolute criterion, every feature off -- exactly the pre-P12-NUM-004
+  // solver (velocityRelaxation/pressureRelaxation above stay fixed; with
+  // the adaptive controller enabled they are its INITIAL values). The
+  // normalized residual histories are always reported.
+  cfd::solver::SolverRobustnessSettings robustness;
 };
 
 // Throws InvalidArgumentError if:
@@ -62,6 +107,17 @@ struct SIMPLESettings {
 //     reports a residual -- keeping every tolerance field uniformly
 //     validated is simpler and safer than special-casing the one that is
 //     sometimes inert)
+//   - P12-NUM-004: `robustness` is invalid
+//     (cfd::solver::validateSolverRobustnessSettings)
 void validateSIMPLESettings(const SIMPLESettings& settings);
+
+// P12-NUM-003: the non-orthogonal-correction options every OTHER implicit
+// diffusion term of a case (thermal conduction, species diffusion, k/
+// epsilon/omega diffusion) is assembled with -- derived from the same two
+// case settings the momentum path uses (nonOrthogonalCorrections >= 1 ->
+// enabled; gradientScheme -> the correction's gradient), so one
+// solver.json switch controls every diffusion term consistently.
+[[nodiscard]] cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonalOptions(
+    const SIMPLESettings& settings) noexcept;
 
 }  // namespace cfd::pressure_velocity

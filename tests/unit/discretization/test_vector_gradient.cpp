@@ -4,10 +4,14 @@
 // TurbulenceProduction tests build on top of these same fixtures).
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "DistortedMesh.hpp"
 #include "cfd/boundary/MovingWall.hpp"
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/VectorGradient.hpp"
@@ -96,6 +100,50 @@ TEST(VectorGradientTest, UniformVelocityGivesZeroGradientEverywhere) {
     EXPECT_NEAR(gradient.gradV[i].x, 0.0, 1e-12) << "cell " << i;
     EXPECT_NEAR(gradient.gradV[i].y, 0.0, 1e-12) << "cell " << i;
   }
+}
+
+// P12-NUM-003: the LeastSquares option (reusing Gradient.hpp's
+// solveLeastSquaresGradient) is exact for a general linear velocity field
+// on a DISTORTED mesh, at every cell including boundary-adjacent ones; the
+// (skewness-corrected) GreenGauss default is close (~1e-9) but not exact
+// (measured, printed). The explicit GreenGauss call equals the
+// default-argument call bit-for-bit.
+TEST(VectorGradientTest, LeastSquaresIsExactForLinearFieldOnDistortedMesh) {
+  const Mesh mesh = makePerFaceMesh(cfd::test::createDistortedQuad2D(9, 9, 1.0, 1.0, 0.4 / 9.0));
+  const auto u = [](const Vector2& p) {
+    return Vector2{(2.0 * p.x) + (3.0 * p.y) + 1.0, (-1.5 * p.x) + (0.5 * p.y) - 4.0};
+  };
+  BoundaryConditionSet boundaries;
+  for (const auto& patch : mesh.boundaryPatches()) {
+    const Index faceId = patch.faceIds().front();
+    boundaries.set(mesh, patch.name(),
+                   std::make_unique<MovingWall>(u(mesh.face(faceId).centroid())));
+  }
+  VectorField velocity(mesh.numberOfCells());
+  for (const auto& cell : mesh.cells()) velocity[cell.id()] = u(cell.centroid());
+
+  const auto ls = computeVelocityGradient(mesh, velocity, boundaries,
+                                          cfd::discretization::GradientScheme::LeastSquares);
+  const auto gg = computeVelocityGradient(mesh, velocity, boundaries);
+  const auto ggExplicit = computeVelocityGradient(mesh, velocity, boundaries,
+                                                  cfd::discretization::GradientScheme::GreenGauss);
+  Real maxLsError = 0.0;
+  Real maxGgError = 0.0;
+  for (Index i = 0; i < mesh.numberOfCells(); ++i) {
+    maxLsError = std::max({maxLsError, std::abs(ls.gradU[i].x - 2.0), std::abs(ls.gradU[i].y - 3.0),
+                           std::abs(ls.gradV[i].x + 1.5), std::abs(ls.gradV[i].y - 0.5)});
+    maxGgError = std::max({maxGgError, std::abs(gg.gradU[i].x - 2.0), std::abs(gg.gradU[i].y - 3.0),
+                           std::abs(gg.gradV[i].x + 1.5), std::abs(gg.gradV[i].y - 0.5)});
+    EXPECT_EQ(gg.gradU[i].x, ggExplicit.gradU[i].x);
+    EXPECT_EQ(gg.gradV[i].y, ggExplicit.gradV[i].y);
+  }
+  std::printf(
+      "\nVelocity gradient, linear field, distorted 9x9 (0.4h): max component error "
+      "GreenGauss %.4g, LeastSquares %.3g\n",
+      maxGgError, maxLsError);
+  EXPECT_LT(maxLsError, 1e-11);
+  EXPECT_LT(maxGgError, 1e-8);
+  EXPECT_GT(maxGgError, maxLsError);
 }
 
 TEST(VectorGradientTest, MismatchedVelocitySizeThrows) {

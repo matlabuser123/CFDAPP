@@ -93,12 +93,59 @@ commit `c25115faefd676ce59ce04d83769c80b9a2d2d3c`. Template-selection
 option confirmed present. Evidence:
 `results/release/p8-hardening/gui_acceptance.md`'s P11-GUI-005 addendum.
 
+**P12-NUM — Numerical Methods & Robustness** ✅. Completed 2026-09-14
+(authorized 2026-09-13 for NUM-001 to NUM-007 only).
+
+- **NUM-001 — Higher-order convection:** upwind, central, linear-upwind
+  and QUICK via bounded (TVD-limited) deferred correction, selectable in
+  `solver.json`.
+- **NUM-002 — Gradient reconstruction:** Green–Gauss and weighted
+  least-squares reconstruction, with distorted-mesh verification.
+- **NUM-003 — Non-orthogonal/skewness correction:** corrected diffusion,
+  pressure correction, momentum and thermal/species/turbulence transport;
+  distorted-mesh SIMPLE and CompressibleSIMPLE.
+- **NUM-004 — Solver robustness:** normalized residuals,
+  stagnation/divergence detection, adaptive under-relaxation, GMRES and
+  automatic linear-solver fallback.
+- **NUM-005 — Grid convergence:** observed order, Richardson
+  extrapolation, GCI, asymptotic-range analysis and automated three-grid
+  studies.
+- **NUM-006 — Manufactured solutions:** system-level MMS with analytically
+  derived forcing — scalar, momentum, pressure/continuity, SIMPLE (Cartesian
+  and distorted) and CompressibleSIMPLE.
+- **NUM-007 — Production validation:** Ghia cavity Re = 100/1000,
+  analytical Poiseuille, turbulent channel Re_τ = 180, a four-scheme
+  accuracy/cost comparison and the Gartling Re = 800 backward-facing step.
+  The final step refinement (50 cells per channel height H) gives
+  lower-wall reattachment x_r/h = 11.932 (published 11.48–12.20, pass) and
+  an upper-wall bubble length (x_rs − x_s)/h = 11.506 (published
+  10.60–11.52, pass). Lengths are in step heights h = H/2.
+
+Final regression after P12-NUM: 1654/1654 passed (1679 listed, 25
+explicit/disabled). Evidence: `results/p12-num-001/` through
+`results/p12-num-007/`; method notes in `docs/validation/`. Not yet
+committed or CI-confirmed as of 2026-09-14 — see `TODO.md`.
+
+*Disclosed limitations* (details in each phase's evidence):
+- production cases still use uniform Cartesian grids, so the
+  non-orthogonal machinery is exercised only on test-generated meshes;
+- no Rhie–Chow interpolation (undamped odd-even pressure mode on open
+  domains);
+- first-order boundary-ring truncation in some operators;
+- scalar transport remains upwind-only;
+- capabilities deliberately deferred, such as multigrid, additional
+  preconditioners and a coupled pressure-based solver.
+
+The P12-NUM scope ends here.
+
 ---
 
 ## Current — P12
 
-Begin after production integration is stable. Only `P12-COMP` is an active
-commitment right now; the rest are planned directions, not commitments.
+No P12 work is authorized right now. P12-NUM is complete (see Completed).
+P12-COMP-001/002 are complete, and its remaining items are explicitly
+deferred. Starting anything below needs a new explicit scope decision
+recorded in `TODO.md`.
 
 ### P12-COMP — Compressible CFD
 
@@ -131,17 +178,28 @@ commitment right now; the rest are planned directions, not commitments.
 
 ### Other planned P12 directions
 
-Not started, not scoped in detail yet:
+These are not started. Only P12-MESH has been sketched in any detail.
 
-- **P12-NUM** — higher-order convection schemes, additional
-  preconditioners, multigrid, a fully coupled pressure-based solver.
+- **P12-MESH** — proposed next. The P12-NUM work repeatedly ran into one
+  constraint: production cases still use uniform Cartesian grids. Proposed
+  sequence (not authorized):
+  1. MESH-001 — production non-orthogonal structured meshes (case format →
+     mesh builder), so the NUM-003 corrections act on real cases;
+  2. MESH-002 — stretched/graded meshes;
+  3. MESH-003 — general 2D multi-block / body-fitted geometry;
+  4. MESH-004 — mesh-quality and validation campaign;
+  5. MESH-005 — 3D mesh and data-structure foundation;
+  6. MESH-006 — 3D operators and solver foundation;
+  7. MESH-007 — moving/deforming mesh foundation.
 - **P12-TURB** — advanced turbulence validation, additional production
   turbulence capabilities where justified.
 - **P12-SPECIES** — additional species models, reaction/source-term
   framework.
 - **P12-MULTI** — advanced interface methods, surface tension, interface
   reconstruction.
-- **P12-MESH** — moving/deforming meshes, 3D foundation.
+- **Numerical follow-ups not covered by P12-NUM-001..007** — Rhie–Chow
+  interpolation, additional preconditioners, multigrid, a fully coupled
+  pressure-based solver.
 
 Do not silently start any of these, or compressible energy/higher-Mach
 work, without an explicit scope decision recorded in `TODO.md`.

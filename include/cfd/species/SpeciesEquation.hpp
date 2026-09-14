@@ -4,6 +4,7 @@
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -92,7 +93,12 @@ void assembleSpeciesDiffusionContribution(
     const cfd::mesh::Mesh& mesh, Real diffusionCoefficient,
     const cfd::fields::ScalarField& concentration,
     const cfd::boundary::BoundaryConditionSet& concentrationBoundaries,
-    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs);
+    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
+    // P12-NUM-003: shared non-orthogonal correction (default disabled --
+    // exactly the pre-existing operator); FixedValue boundary faces are
+    // corrected, FixedGradient faces never are. See
+    // cfd::discretization::NonOrthogonalDiffusion.hpp.
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // Upwind-face-mass-flux convection contribution, coefficient 1 (Y is the
 // transported quantity directly -- unlike EnergyEquation's convection,
@@ -136,8 +142,8 @@ void assembleSpeciesSourceContribution(const cfd::mesh::Mesh& mesh, Real volumet
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& concentration,
     const cfd::fields::SurfaceField& massFlux, const cfd::physics::FluidProperties& fluid,
     const SpeciesProperties& species,
-    const cfd::boundary::BoundaryConditionSet& concentrationBoundaries,
-    Real volumetricSource = 0.0);
+    const cfd::boundary::BoundaryConditionSet& concentrationBoundaries, Real volumetricSource = 0.0,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
 
 // Reporting-only boundedness diagnostic (this task's own section 17):
 // returns {min, max} over `concentration`. Never clips or modifies the

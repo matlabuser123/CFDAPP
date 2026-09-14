@@ -35,6 +35,14 @@ void validateSIMPLESettings(const SIMPLESettings& settings) {
   validateTolerance(settings.pressureTolerance, "pressureTolerance");
   validateTolerance(settings.continuityTolerance, "continuityTolerance");
   validateTolerance(settings.turbulenceTolerance, "turbulenceTolerance");
+  cfd::solver::validateSolverRobustnessSettings(settings.robustness, settings.velocityRelaxation,
+                                                settings.pressureRelaxation);
+}
+
+cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonalOptions(
+    const SIMPLESettings& settings) noexcept {
+  return cfd::discretization::NonOrthogonalCorrectionOptions{settings.nonOrthogonalCorrections > 0,
+                                                             settings.gradientScheme};
 }
 
 }  // namespace cfd::pressure_velocity

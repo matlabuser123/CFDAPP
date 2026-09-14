@@ -1,0 +1,115 @@
+{
+  "format_version": 1,
+  "kind": "production_validation",
+  "study": "cavity_re100/40x40/upwind",
+  "description": "Lid-driven cavity, single grid",
+  "reference": "Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Table I (u(0.5, y)) and Table II (v(x, 0.5)), Re = 100 column, 17 stations each (validation/ghia/ghia_re100_{u,v}.csv)",
+  "method": {
+    "error_norms": "against sample-point reference data (benchmark tables): unweighted L1 = mean|e|, L2 = sqrt(mean e^2), Linf = max|e| over the tabulated stations; against a field: volume-weighted (cfd/validation/ErrorNorms.hpp)",
+    "solve_acceptance": "a run is accepted only if SIMPLE Converged, every field is finite and the global mass imbalance is within tolerance (P12-NUM-005 assessSimpleSolve)",
+    "grid_convergence": "P12-NUM-005 three-grid study of this code's own solutions (observed order, Richardson extrapolation, GCI) -- separate from the error against the reference",
+    "indexing": "runs listed in execution order; grid sequences coarse -> fine"
+  },
+  "coefficients": {
+    "reynolds": 100.0,
+    "lid_velocity": 1.0,
+    "density": 1.0,
+    "viscosity": 0.01,
+    "cavity_size": 1.0
+  },
+  "configuration": {
+    "geometry": "unit square, n x n uniform Cartesian cells",
+    "boundaries": "no-slip walls, lid y = 1 moving at (1, 0); zero-gradient pressure",
+    "algorithm": "SIMPLE, collocated, alpha_u 0.7, alpha_p 0.3, outer tolerances 1e-6",
+    "linear_solvers": "BiCGSTAB; momentum 1e-10/1e-8; pressure per grid (20: 1e-10/1e-8, 40: 1e-8/1e-6, >= 80: 1e-7/1e-5); P12-NUM-004 fallback enabled",
+    "initial_condition": "u = 0, p = 0",
+    "sampling": "centerlines by linear interpolation between the straddling cell columns/rows, exact wall/lid values as end anchors; errors at Ghia's stations"
+  },
+  "runs": [
+    {
+      "id": "cavity_re100/40x40/upwind",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "40x40",
+      "nx": 40,
+      "ny": 40,
+      "cells": 1600,
+      "h": 0.025,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 5615,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.007615653890935718,
+          "l2": 0.010168968645871954,
+          "linf": 0.018791616182843474,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.004920845489413542,
+          "l2": 0.006447694551861849,
+          "linf": 0.01678570161426088,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 59881.0,
+        "pressure_linear_iterations": 54988.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 2.8028635913030034e-08,
+        "final_v_residual": 1.6046103054641523e-08,
+        "final_pressure_residual": 9.996566233463158e-07,
+        "final_continuity_residual": 7.305206296046455e-09,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.9177787564244911,
+        "u_center": -0.19005545281062433,
+        "v_center": 0.047946089326221936,
+        "u_y0.4531": -0.19210838381715653,
+        "v_x0.2344": 0.1667362476566897,
+        "v_x0.8047": -0.22854429838573911
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 5615 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 1.0169e-02 (bound 0.0135), v L2 6.4477e-03 (bound 0.0085)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.917779 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "orders": [],
+  "grid_convergence": [],
+  "gates": [],
+  "limitations": [],
+  "passed": true,
+  "runtime": {
+    "note": "measured wall time -- with grid_convergence[*].grids[*].runtime_seconds, the only non-deterministic part of this report",
+    "runs": [
+      {
+        "id": "cavity_re100/40x40/upwind",
+        "seconds": 25.291096304
+      }
+    ]
+  }
+}

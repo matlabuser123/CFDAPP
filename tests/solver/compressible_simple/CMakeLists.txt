@@ -7,6 +7,8 @@ add_executable(CFDCompressibleSimpleTests
   test_compressible_relaxed_momentum.cpp
   test_compressible_pressure_correction.cpp
   test_compressible_simple.cpp
+  test_compressible_non_orthogonal.cpp
+  test_compressible_robustness.cpp
 )
 
 target_link_libraries(CFDCompressibleSimpleTests
@@ -14,6 +16,12 @@ target_link_libraries(CFDCompressibleSimpleTests
     cfdapp::core
     cfdapp::compiler_warnings
     GTest::gtest_main
+)
+
+# P12-NUM-003: reuses tests/unit/discretization/DistortedMesh.hpp.
+target_include_directories(CFDCompressibleSimpleTests
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../unit/discretization
 )
 
 gtest_discover_tests(CFDCompressibleSimpleTests PROPERTIES LABELS "solver")

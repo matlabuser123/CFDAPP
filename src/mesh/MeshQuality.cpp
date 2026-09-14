@@ -9,6 +9,7 @@
 #include "cfd/mesh/Cell.hpp"
 #include "cfd/mesh/Face.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::mesh {
 
@@ -65,6 +66,12 @@ MeshQualityReport MeshQuality::evaluate(const Mesh& mesh) {
     }
   }
 
+  // P12-NUM-003: accumulated over internal faces only -- see this
+  // struct's own header comment.
+  Real sumNonOrthogonality = 0.0;
+  Real sumSkewness = 0.0;
+  Index internalFaceCount = 0;
+
   for (const Face& face : mesh.faces()) {
     if (!std::isfinite(face.area()) || !(face.area() > 0.0)) {
       report.valid = false;
@@ -82,6 +89,48 @@ MeshQualityReport MeshQuality::evaluate(const Mesh& mesh) {
         report.valid = false;
       }
     }
+
+    // Non-orthogonality/skewness are undefined for a boundary face (no
+    // neighbor) -- and, independently of any OTHER cell/face's own
+    // defects (which must not suppress THIS face's own otherwise-valid
+    // metric), an out-of-range owner/neighbor id on THIS face would make
+    // mesh.cell(...) itself throw, so skip only in that specific case.
+    if (face.isBoundary()) {
+      continue;
+    }
+    if (face.owner() >= mesh.numberOfCells() || *face.neighbor() >= mesh.numberOfCells()) {
+      continue;  // already recorded as report.valid = false above.
+    }
+    // decomposeFaceArea's own `valid` flag is the single source of
+    // truth for "is this face's geometry well-posed enough to measure"
+    // -- nonOrthogonalityAngleDegrees/skewness share the exact same
+    // underlying degeneracy condition (see MeshGeometry.cpp's
+    // isFaceGeometryWellPosed), so checking it once here avoids ever
+    // reaching either function's own throw/nullopt path for a face
+    // already known to be degenerate -- detected and reported via
+    // `report.valid = false`, never a silent NaN/Inf or an uncaught
+    // exception out of this evaluate() call.
+    const auto decomposition = MeshGeometry::decomposeFaceArea(mesh, face);
+    if (!decomposition.valid) {
+      report.valid = false;
+      continue;
+    }
+
+    ++internalFaceCount;
+    const Real angle = MeshGeometry::nonOrthogonalityAngleDegrees(mesh, face);
+    report.maxNonOrthogonalityDegrees = std::max(report.maxNonOrthogonalityDegrees, angle);
+    sumNonOrthogonality += angle;
+
+    const auto skew = MeshGeometry::skewness(mesh, face);
+    if (skew.has_value()) {
+      report.maxSkewness = std::max(report.maxSkewness, *skew);
+      sumSkewness += *skew;
+    }
+  }
+
+  if (internalFaceCount > 0) {
+    report.meanNonOrthogonalityDegrees = sumNonOrthogonality / static_cast<Real>(internalFaceCount);
+    report.meanSkewness = sumSkewness / static_cast<Real>(internalFaceCount);
   }
 
   return report;

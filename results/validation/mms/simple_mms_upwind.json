@@ -1,0 +1,747 @@
+{
+  "format_version": 1,
+  "study": "simple_mms_upwind",
+  "description": "Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes",
+  "manufactured_solution": "mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)",
+  "method": {
+    "error_norms": "volume-weighted over the selected cells: L1 = sum|e|V/sumV, L2 = sqrt(sum e^2 V/sumV), Linf = max|e| (cfd/validation/ErrorNorms.hpp)",
+    "pressure_gauge": "numerical and exact pressure each shifted to zero volume-weighted mean over all cells before comparison",
+    "observed_order": "P12-NUM-005 analyzeGridConvergence on each consecutive triplet of error values (exact limit 0); reduction factor = E_coarse/E_fine",
+    "indexing": "levels listed coarse -> fine"
+  },
+  "coefficients": {
+    "density": 1.0,
+    "viscosity": 0.1
+  },
+  "configuration": {
+    "solver": "cfd::pressure_velocity::SIMPLE + setMomentumSource",
+    "convection": "upwind",
+    "gradient": "green_gauss",
+    "relaxation": "velocity 0.8, pressure 0.4",
+    "outer_tolerance": "1e-8 (velocity, pressure, continuity; absolute)",
+    "inner_solvers": "BiCGSTAB rel 1e-3 / abs 1e-12 (pressure: Jacobi), P12-NUM-004 fallback",
+    "velocity_bc": "exact Dirichlet (Inlet) on every boundary face",
+    "pressure_bc": "exact Neumann FixedGradient(grad p . n) per face; reference cell 0",
+    "pressure_gauge": "zero volume-weighted mean for both fields",
+    "initial_condition": "U = 0, p = 0",
+    "forcing": "analytical at cell centroids; never discrete_operator(exact_solution)",
+    "solve_gate": "assessSimpleSolve: Converged, finite, global mass imbalance <= 1e-10"
+  },
+  "levels": [
+    {
+      "name": "8x8",
+      "nx": 8,
+      "ny": 8,
+      "cells": 64,
+      "h": 0.125,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 600,
+      "mass_imbalance": 3.200245976022833e-19,
+      "errors": {
+        "u": {
+          "l1": 0.026711737212573815,
+          "l2": 0.034809817265305375,
+          "linf": 0.0817337297149342,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.026631026472482625,
+          "l2": 0.03483588486166851,
+          "linf": 0.0810424898570774,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.04275520300304919,
+          "l2": 0.0492469517040332,
+          "linf": 0.0831643343348457,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "u_interior": {
+          "l1": 0.03898705115462464,
+          "l2": 0.04440043301228296,
+          "linf": 0.0817337297149342,
+          "cells": 36,
+          "volume": 0.5625
+        },
+        "v_interior": {
+          "l1": 0.03714221011532819,
+          "l2": 0.04297130318399292,
+          "linf": 0.0810424898570774,
+          "cells": 36,
+          "volume": 0.5625
+        },
+        "u_boundary_ring": {
+          "l1": 0.01092919071565134,
+          "l2": 0.01532965372639949,
+          "linf": 0.04058749817543639,
+          "cells": 28,
+          "volume": 0.4375
+        },
+        "v_boundary_ring": {
+          "l1": 0.013116647503109757,
+          "l2": 0.01999223388343959,
+          "linf": 0.05773145355514453,
+          "cells": 28,
+          "volume": 0.4375
+        },
+        "p": {
+          "l1": 0.05573654090815427,
+          "l2": 0.07288979230416402,
+          "linf": 0.23629975663949843,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "p_interior": {
+          "l1": 0.0551203294066178,
+          "l2": 0.06805354640015007,
+          "linf": 0.15709892036111028,
+          "cells": 36,
+          "volume": 0.5625
+        },
+        "p_boundary_ring": {
+          "l1": 0.05652881283870113,
+          "l2": 0.07867217928628198,
+          "linf": 0.23629975663949843,
+          "cells": 28,
+          "volume": 0.4375
+        },
+        "continuity": {
+          "l1": 1.1894329958956973e-10,
+          "l2": 4.6027376889360974e-10,
+          "linf": 3.6292577831886774e-09,
+          "cells": 64,
+          "volume": 1.0
+        },
+        "face_flux": {
+          "l1": 0.027144528083749273,
+          "l2": 0.037791741040906435,
+          "linf": 0.09369034977608548,
+          "cells": 144,
+          "volume": 18.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 3.200245976022833e-19,
+        "final_u_residual": 1.351693759446563e-09,
+        "final_v_residual": 1.992063834694612e-09,
+        "final_pressure_residual": 9.936278965299884e-09,
+        "final_continuity_residual": 7.191777638962652e-12
+      }
+    },
+    {
+      "name": "16x16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 256,
+      "h": 0.0625,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1493,
+      "mass_imbalance": 7.947813428286786e-20,
+      "errors": {
+        "u": {
+          "l1": 0.015436255675110571,
+          "l2": 0.020507738302758663,
+          "linf": 0.046359584732079795,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.015688734681417207,
+          "l2": 0.02076916904100652,
+          "linf": 0.05130326949437414,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.024884064884240192,
+          "l2": 0.029187766494686414,
+          "linf": 0.05133022363561932,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "u_interior": {
+          "l1": 0.019172114753736064,
+          "l2": 0.02327564946277192,
+          "linf": 0.046359584732079795,
+          "cells": 196,
+          "volume": 0.765625
+        },
+        "v_interior": {
+          "l1": 0.01943250620113154,
+          "l2": 0.02351919565012034,
+          "linf": 0.05130326949437414,
+          "cells": 196,
+          "volume": 0.765625
+        },
+        "u_boundary_ring": {
+          "l1": 0.003232449351600624,
+          "l2": 0.004968380695732537,
+          "linf": 0.014844091398636294,
+          "cells": 60,
+          "volume": 0.234375
+        },
+        "v_boundary_ring": {
+          "l1": 0.0034590810503503816,
+          "l2": 0.0057876929914345765,
+          "linf": 0.018937960377241714,
+          "cells": 60,
+          "volume": 0.234375
+        },
+        "p": {
+          "l1": 0.024666115339003862,
+          "l2": 0.03156331912430548,
+          "linf": 0.11466916675806482,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "p_interior": {
+          "l1": 0.024197962145800365,
+          "l2": 0.03059658548456646,
+          "linf": 0.07270584337977531,
+          "cells": 196,
+          "volume": 0.765625
+        },
+        "p_boundary_ring": {
+          "l1": 0.026195415770135268,
+          "l2": 0.03453322861895112,
+          "linf": 0.11466916675806482,
+          "cells": 60,
+          "volume": 0.234375
+        },
+        "continuity": {
+          "l1": 3.0354356813756397e-10,
+          "l2": 2.4334204554205884e-09,
+          "linf": 3.885357680033508e-08,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "face_flux": {
+          "l1": 0.015778090030752628,
+          "l2": 0.02142309627042813,
+          "linf": 0.05424538612153329,
+          "cells": 544,
+          "volume": 34.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 7.947813428286786e-20,
+        "final_u_residual": 9.124491444931354e-10,
+        "final_v_residual": 1.7437913465266025e-09,
+        "final_pressure_residual": 9.967000966492008e-09,
+        "final_continuity_residual": 9.505548653986673e-12
+      }
+    },
+    {
+      "name": "32x32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 1024,
+      "h": 0.03125,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 2974,
+      "mass_imbalance": 1.9836712091456227e-20,
+      "errors": {
+        "u": {
+          "l1": 0.008457795311653188,
+          "l2": 0.011259609146602664,
+          "linf": 0.026199612332681088,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.008545580086511687,
+          "l2": 0.011410118659815791,
+          "linf": 0.028229479023466286,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.013591176727717858,
+          "l2": 0.01603027154995618,
+          "linf": 0.028288676880137562,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "u_interior": {
+          "l1": 0.00950579739883245,
+          "l2": 0.01199988049716168,
+          "linf": 0.026199612332681088,
+          "cells": 900,
+          "volume": 0.87890625
+        },
+        "v_interior": {
+          "l1": 0.009602811955999293,
+          "l2": 0.012157710942965656,
+          "linf": 0.028229479023466286,
+          "cells": 900,
+          "volume": 0.87890625
+        },
+        "u_boundary_ring": {
+          "l1": 0.0008513285498682239,
+          "l2": 0.0013442546139857466,
+          "linf": 0.00420242312845831,
+          "cells": 124,
+          "volume": 0.12109375
+        },
+        "v_boundary_ring": {
+          "l1": 0.0008721229692629,
+          "l2": 0.0015198826981110667,
+          "linf": 0.0052077848274747485,
+          "cells": 124,
+          "volume": 0.12109375
+        },
+        "p": {
+          "l1": 0.012127432769863741,
+          "l2": 0.015269561464930574,
+          "linf": 0.05303873194834474,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "p_interior": {
+          "l1": 0.012020837427701762,
+          "l2": 0.015107672940641562,
+          "linf": 0.038243040302546216,
+          "cells": 900,
+          "volume": 0.87890625
+        },
+        "p_boundary_ring": {
+          "l1": 0.012901108640394251,
+          "l2": 0.016396727642151197,
+          "linf": 0.05303873194834474,
+          "cells": 124,
+          "volume": 0.12109375
+        },
+        "continuity": {
+          "l1": 5.638245154256557e-10,
+          "l2": 8.937107441363169e-09,
+          "linf": 2.8580671074251995e-07,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "face_flux": {
+          "l1": 0.008558107811725791,
+          "l2": 0.011533565150185502,
+          "linf": 0.02909144812137676,
+          "cells": 2112,
+          "volume": 66.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 1.9836712091456227e-20,
+        "final_u_residual": 1.2907629748910319e-09,
+        "final_v_residual": 1.6886266100318998e-09,
+        "final_pressure_residual": 9.992197296320197e-09,
+        "final_continuity_residual": 8.72764398570622e-12
+      }
+    }
+  ],
+  "orders": [
+    {
+      "quantity": "u",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.6973991354581905,
+        1.821354368143979
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.6289914223746473,
+          "asymptotic_ratio": 0.7732417400889434,
+          "extrapolated_error": -0.005663371129298229,
+          "diagnostic": "monotonic convergence, observed order 0.628991 (formal 1); asymptotic ratio 0.773242 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.6289914223746473
+    },
+    {
+      "quantity": "u",
+      "norm": "l1",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.7304544427599653,
+        1.8250921317334825
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.6922083681701663,
+          "asymptotic_ratio": 0.807877450770313,
+          "extrapolated_error": -0.0028753834352754186,
+          "diagnostic": "monotonic convergence, observed order 0.692208 (formal 1); asymptotic ratio 0.807877 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.6922083681701663
+    },
+    {
+      "quantity": "v",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.6772883302595665,
+        1.82024128409387
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.5878514806290314,
+          "asymptotic_ratio": 0.7515033709473585,
+          "extrapolated_error": -0.00719609394468586,
+          "diagnostic": "monotonic convergence, observed order 0.587851 (formal 1); asymptotic ratio 0.751503 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.5878514806290314
+    },
+    {
+      "quantity": "v",
+      "norm": "l1",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.6974617146165525,
+        1.8358887895954832
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.6152816826257235,
+          "asymptotic_ratio": 0.765928529593174,
+          "extrapolated_error": -0.0048850108430011085,
+          "diagnostic": "monotonic convergence, observed order 0.615282 (formal 1); asymptotic ratio 0.765929 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.6152816826257235
+    },
+    {
+      "quantity": "velocity",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.6872463233183164,
+        1.8207905214660072
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.60837816530523,
+          "asymptotic_ratio": 0.762272198986509,
+          "extrapolated_error": -0.009053391521414645,
+          "diagnostic": "monotonic convergence, observed order 0.608378 (formal 1); asymptotic ratio 0.762272 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.60837816530523
+    },
+    {
+      "quantity": "u",
+      "norm": "linf",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.7630384350353399,
+        1.769475980919435
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.8112016137702538,
+          "asymptotic_ratio": 0.8773361461523994,
+          "extrapolated_error": -0.0005139328775574069,
+          "diagnostic": "monotonic convergence, observed order 0.811202 (formal 1); asymptotic ratio 0.877336 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.8112016137702538
+    },
+    {
+      "quantity": "p",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.309319625642124,
+        2.0670743686252284
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.3427468927668906,
+          "asymptotic_ratio": 1.2681688915411298,
+          "extrapolated_error": 0.004663978604964926,
+          "diagnostic": "monotonic convergence, observed order 1.34275 (formal 1); asymptotic ratio 1.26817 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.3427468927668906
+    },
+    {
+      "quantity": "p",
+      "norm": "l1",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.259640001764671,
+        2.033910705347163
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.3091562289595826,
+          "asymptotic_ratio": 1.238982859555761,
+          "extrapolated_error": 0.003643688927227256,
+          "diagnostic": "monotonic convergence, observed order 1.30916 (formal 1); asymptotic ratio 1.23898 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.3091562289595826
+    },
+    {
+      "quantity": "p",
+      "norm": "linf",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.0607087617376374,
+        2.1619892208158924
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "asymptotic",
+          "observed_order": 0.9807912350719983,
+          "asymptotic_ratio": 0.9867737446357474,
+          "extrapolated_error": -0.01026627935196453,
+          "diagnostic": "monotonic convergence, observed order 0.980791 (formal 1); asymptotic ratio 0.986774 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.9807912350719983
+    },
+    {
+      "quantity": "p_interior",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.224220295250843,
+        2.025234832974028
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.2739979927607825,
+          "asymptotic_ratio": 1.2091539935214846,
+          "extrapolated_error": 0.004186975401443629,
+          "diagnostic": "monotonic convergence, observed order 1.274 (formal 1); asymptotic ratio 1.20915 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.2739979927607825
+    },
+    {
+      "quantity": "p_boundary_ring",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.278158817826501,
+        2.1061049114566175
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.283156184578389,
+          "asymptotic_ratio": 1.2168540867886557,
+          "extrapolated_error": 0.0037466630676103816,
+          "diagnostic": "monotonic convergence, observed order 1.28316 (formal 1); asymptotic ratio 1.21685 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.283156184578389
+    },
+    {
+      "quantity": "face_flux",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.764065313615434,
+        1.8574565619099632
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "8x8",
+            "16x16",
+            "32x32"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 0.7269608528615779,
+          "asymptotic_ratio": 0.8275743597678632,
+          "extrapolated_error": -0.0035615282619649857,
+          "diagnostic": "monotonic convergence, observed order 0.726961 (formal 1); asymptotic ratio 0.827574 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.7269608528615779
+    }
+  ],
+  "gates": [
+    {
+      "name": "velocity: u L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "velocity: u l2 observed order in [0.55, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.629 (monotonic_not_asymptotic vs formal 1); reduction factors 1.697 1.821"
+    },
+    {
+      "name": "velocity: u l1 observed order in [0.55, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.692 (monotonic_not_asymptotic vs formal 1); reduction factors 1.730 1.825"
+    },
+    {
+      "name": "velocity: v L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "velocity: v l2 observed order in [0.55, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.588 (monotonic_not_asymptotic vs formal 1); reduction factors 1.677 1.820"
+    },
+    {
+      "name": "velocity: v l1 observed order in [0.55, 1.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.615 (monotonic_not_asymptotic vs formal 1); reduction factors 1.697 1.836"
+    },
+    {
+      "name": "velocity: u L2 finest reduction factor >= 1.6",
+      "passed": true,
+      "detail": "E_coarse/E_fine = 1.821"
+    },
+    {
+      "name": "pressure: p L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "pressure: p l2 observed order in [0.80, 1.60]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.343 (monotonic_not_asymptotic vs formal 1); reduction factors 2.309 2.067"
+    },
+    {
+      "name": "pressure: p l1 observed order in [0.80, 1.60]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.309 (monotonic_not_asymptotic vs formal 1); reduction factors 2.260 2.034"
+    },
+    {
+      "name": "continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8",
+      "passed": true,
+      "detail": "Linf 3.63e-09, L2 4.60e-10"
+    },
+    {
+      "name": "continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16",
+      "passed": true,
+      "detail": "Linf 3.89e-08, L2 2.43e-09"
+    },
+    {
+      "name": "continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32",
+      "passed": true,
+      "detail": "Linf 2.86e-07, L2 8.94e-09"
+    },
+    {
+      "name": "continuity: face_flux L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    },
+    {
+      "name": "continuity: face_flux l2 observed order in [0.55, 4.00]",
+      "passed": true,
+      "detail": "finest-triplet observed order 0.727 (monotonic_not_asymptotic vs formal 1); reduction factors 1.764 1.857"
+    },
+    {
+      "name": "mass: global mass imbalance <= 1e-14 at 8x8",
+      "passed": true,
+      "detail": "3.20e-19"
+    },
+    {
+      "name": "mass: global mass imbalance <= 1e-14 at 16x16",
+      "passed": true,
+      "detail": "7.95e-20"
+    },
+    {
+      "name": "mass: global mass imbalance <= 1e-14 at 32x32",
+      "passed": true,
+      "detail": "1.98e-20"
+    }
+  ],
+  "all_gates_passed": true,
+  "runtime": {
+    "note": "measured wall time -- the only non-deterministic part of this report",
+    "levels": [
+      {
+        "name": "8x8",
+        "seconds": 6.979819518
+      },
+      {
+        "name": "16x16",
+        "seconds": 57.636369815
+      },
+      {
+        "name": "32x32",
+        "seconds": 404.994611099
+      }
+    ]
+  }
+}

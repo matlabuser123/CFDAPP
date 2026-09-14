@@ -7,10 +7,12 @@
 #include "cfd/boundary/BoundaryCondition.hpp"
 #include "cfd/compressible/ThermodynamicProperties.hpp"
 #include "cfd/core/Types.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/solver/SolverRobustness.hpp"
 
 namespace cfd::compressible {
 
@@ -41,12 +43,28 @@ struct CompressibleSIMPLESettings {
 
   cfd::algebra::LinearSolverSettings momentumSolver;
   cfd::algebra::LinearSolverSettings pressureSolver;
+
+  // P12-NUM-003: same meaning as SIMPLESettings::nonOrthogonalCorrections /
+  // gradientScheme (defaults: 0 and GreenGauss -- exactly the
+  // pre-P12-NUM-003 solver). N >= 1 corrects the viscous term (evaluated
+  // from the lagged velocity, once per outer iteration) and runs N
+  // pressure-correction passes per outer iteration, passes 2..N with the
+  // explicit non-orthogonal term; gradientScheme is also the pressure-
+  // source and velocity-correction gradient, as in SIMPLE.
+  Index nonOrthogonalCorrections{0};
+  cfd::discretization::GradientScheme gradientScheme{
+      cfd::discretization::GradientScheme::GreenGauss};
+
+  // P12-NUM-004: same meaning as SIMPLESettings::robustness, through the
+  // same shared cfd::solver::OuterIterationMonitor (default: absolute
+  // criterion, every feature off -- exactly the pre-P12-NUM-004 solver).
+  cfd::solver::SolverRobustnessSettings robustness;
 };
 
 // Throws InvalidArgumentError if maxIterations == 0; velocityRelaxation
 // or pressureRelaxation is not finite or not in (0, 1]; pseudoTimeStep is
-// not finite or <= 0; or any tolerance is not finite and > 0. Same
-// validation style as validateSIMPLESettings.
+// not finite or <= 0; or any tolerance is not finite and > 0; or (P12-NUM-004)
+// `robustness` is invalid. Same validation style as validateSIMPLESettings.
 void validateCompressibleSIMPLESettings(const CompressibleSIMPLESettings& settings);
 
 // Mirrors cfd::pressure_velocity::SIMPLEStatus exactly (no turbulence-
@@ -59,6 +77,10 @@ enum class CompressibleSIMPLEStatus {
   PressureCorrectionFailure,
   NonFiniteState,
   InvalidConfiguration,
+  // P12-NUM-004 (appended): same meaning as SIMPLEStatus::Stagnated/
+  // Diverging -- only with the corresponding detector enabled.
+  Stagnated,
+  Diverging,
 };
 
 // Mirrors cfd::pressure_velocity::SIMPLEResult, with `density` added as
@@ -82,10 +104,17 @@ struct CompressibleSIMPLEResult {
   Real finalContinuityResidual{};
   Real globalMassImbalance{};
 
+  // P12-NUM-003: total pressure-correction solves over the run (see
+  // SIMPLEResult::pressureCorrectionPasses).
+  Index pressureCorrectionPasses{0};
+
   std::vector<Real> uResidualHistory;
   std::vector<Real> vResidualHistory;
   std::vector<Real> pressureResidualHistory;
   std::vector<Real> continuityHistory;
+
+  // P12-NUM-004: see SIMPLEResult::robustness.
+  cfd::solver::OuterIterationDiagnostics robustness;
 
   [[nodiscard]] bool converged() const noexcept {
     return status == CompressibleSIMPLEStatus::Converged;
@@ -149,11 +178,20 @@ class CompressibleSIMPLE final {
   [[nodiscard]] const CompressibleSIMPLESettings& settings() const noexcept;
   [[nodiscard]] Index referenceCell() const noexcept;
 
+  // P12-NUM-006: optional, non-owning, prescribed body force per unit
+  // volume -- the same generic momentum source as
+  // cfd::pressure_velocity::SIMPLE::setMomentumSource (null by default:
+  // assembly structurally unchanged; a wrongly sized or non-finite field
+  // makes solve() report InvalidConfiguration).
+  void setMomentumSource(const cfd::fields::VectorField* source) noexcept;
+  [[nodiscard]] const cfd::fields::VectorField* momentumSource() const noexcept;
+
  private:
   CompressibleSIMPLESettings settings_;
   ThermodynamicProperties thermodynamics_;
   Real referencePressure_;
   Index referenceCell_;
+  const cfd::fields::VectorField* momentumSource_{nullptr};
 };
 
 }  // namespace cfd::compressible

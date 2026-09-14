@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <memory>
 
 #include "cfd/algebra/SparseMatrix.hpp"
@@ -168,6 +169,116 @@ TEST(MomentumConvectionTest, ConstantFieldGivesZeroNetContribution) {
   const Vector residual = matrix.multiply(uExact) - rhs;
   for (Index i = 0; i < n; ++i) {
     EXPECT_NEAR(residual[i], 0.0, 1e-12);
+  }
+}
+
+TEST(MomentumConvectionTest, DefaultSchemeArgumentMatchesExplicitUpwind) {
+  // P12-NUM-001: the new `scheme` parameter defaults to Upwind, so every
+  // pre-P12-NUM-001 call site (which never passes it) is byte-identical.
+  const Mesh mesh = makeChannelMesh();
+  const auto boundaries = makeChannelBoundaries(mesh, Vector2{1.0, 0.0});
+  const Index n = mesh.numberOfCells();
+  const VectorField velocity(n, Vector2{1.0, 0.0});
+  SurfaceField massFlux(mesh.numberOfFaces(), 0.0);
+  for (const auto& face : mesh.faces()) {
+    if (!face.isBoundary()) massFlux[face.id()] = 5.0;
+  }
+
+  SparseMatrixBuilder builderDefault(n, n);
+  Vector rhsDefault(n, 0.0);
+  assembleConvectionContribution(mesh, massFlux, velocity, boundaries, VelocityComponent::U,
+                                 builderDefault, rhsDefault);
+
+  SparseMatrixBuilder builderExplicit(n, n);
+  Vector rhsExplicit(n, 0.0);
+  assembleConvectionContribution(mesh, massFlux, velocity, boundaries, VelocityComponent::U,
+                                 builderExplicit, rhsExplicit,
+                                 cfd::discretization::ConvectionScheme::Upwind);
+
+  const auto matrixDefault = builderDefault.build();
+  const auto matrixExplicit = builderExplicit.build();
+  Vector probe(n, 0.0);
+  for (Index i = 0; i < n; ++i) {
+    probe[i] = 1.0;
+    const Vector rowDefault = matrixDefault.multiply(probe);
+    const Vector rowExplicit = matrixExplicit.multiply(probe);
+    for (Index row = 0; row < n; ++row) {
+      EXPECT_DOUBLE_EQ(rowDefault[row], rowExplicit[row]);
+    }
+    probe[i] = 0.0;
+  }
+  for (Index i = 0; i < n; ++i) {
+    EXPECT_DOUBLE_EQ(rhsDefault[i], rhsExplicit[i]);
+  }
+}
+
+TEST(MomentumConvectionTest, NonUpwindSchemeAddsAnExplicitCorrectionOnlyOnInternalFaces) {
+  // A QUICK/Central/LinearUpwind scheme must NOT change the implicit
+  // matrix coefficients (always plain upwind, for robustness -- deferred
+  // correction) but DOES add a nonzero RHS correction on internal faces
+  // with a genuine higher-order value to blend toward, and must NEVER
+  // touch boundary-face rows differently from plain Upwind.
+  const Mesh mesh = MeshGeometry::createCartesian2D(5, 1, 5.0, 1.0);
+  BoundaryConditionSet boundaries;
+  boundaries.set(mesh, "left", std::make_unique<Inlet>(Vector2{1.0, 0.0}));
+  boundaries.set(mesh, "right", std::make_unique<Outlet>());
+  boundaries.set(mesh, "bottom", std::make_unique<MovingWall>(Vector2{0.0, 0.0}));
+  boundaries.set(mesh, "top", std::make_unique<MovingWall>(Vector2{0.0, 0.0}));
+
+  const Index n = mesh.numberOfCells();
+  VectorField velocity(n, Vector2{1.0, 0.0});
+  // A smooth, monotone, non-linear profile (matches
+  // ConvectionSchemeTest's own smooth-monotone choice in
+  // test_convection.cpp) -- avoids driving the TVD limiter's r <= 0
+  // everywhere, which would degrade every face back to plain Upwind and
+  // make this test vacuous.
+  velocity[0] = Vector2{0.0, 0.0};
+  velocity[1] = Vector2{1.0, 0.0};
+  velocity[2] = Vector2{4.0, 0.0};
+  velocity[3] = Vector2{9.0, 0.0};
+  velocity[4] = Vector2{16.0, 0.0};
+
+  SurfaceField massFlux(mesh.numberOfFaces(), 0.0);
+  for (const auto& face : mesh.faces()) {
+    massFlux[face.id()] = cfd::dot(Vector2{1.0, 0.0}, face.areaVector());
+  }
+
+  for (const auto scheme : {cfd::discretization::ConvectionScheme::Central,
+                            cfd::discretization::ConvectionScheme::LinearUpwind,
+                            cfd::discretization::ConvectionScheme::QUICK}) {
+    SparseMatrixBuilder builderUpwind(n, n);
+    Vector rhsUpwind(n, 0.0);
+    assembleConvectionContribution(mesh, massFlux, velocity, boundaries, VelocityComponent::U,
+                                   builderUpwind, rhsUpwind);
+
+    SparseMatrixBuilder builderScheme(n, n);
+    Vector rhsScheme(n, 0.0);
+    assembleConvectionContribution(mesh, massFlux, velocity, boundaries, VelocityComponent::U,
+                                   builderScheme, rhsScheme, scheme);
+
+    const auto matrixUpwind = builderUpwind.build();
+    const auto matrixScheme = builderScheme.build();
+    Vector probe(n, 0.0);
+    for (Index i = 0; i < n; ++i) {
+      probe[i] = 1.0;
+      // Implicit coefficients unchanged regardless of scheme.
+      const Vector rowUpwind = matrixUpwind.multiply(probe);
+      const Vector rowScheme = matrixScheme.multiply(probe);
+      for (Index row = 0; row < n; ++row) {
+        EXPECT_DOUBLE_EQ(rowUpwind[row], rowScheme[row])
+            << "scheme index " << static_cast<int>(scheme) << " col " << i << " row " << row;
+      }
+      probe[i] = 0.0;
+    }
+
+    // The RHS must differ somewhere in the interior (a genuine
+    // correction was applied) -- not vacuously identical to Upwind.
+    bool anyDifference = false;
+    for (Index i = 0; i < n; ++i) {
+      if (std::abs(rhsScheme[i] - rhsUpwind[i]) > 1e-9) anyDifference = true;
+    }
+    EXPECT_TRUE(anyDifference) << "scheme index " << static_cast<int>(scheme)
+                               << " produced no correction at all";
   }
 }
 

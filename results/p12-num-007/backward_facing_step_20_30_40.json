@@ -1,0 +1,498 @@
+{
+  "format_version": 1,
+  "kind": "production_validation",
+  "study": "backward_facing_step",
+  "description": "Laminar backward-facing step (Gartling 1990, ER = 2): Re = 800 on 20/30/40 cells per H, L = 15H, QUICK; Re = 100 on 20 cells per H",
+  "reference": "Re = 800: published 2D numerical x_r/h in [11.48, 12.20] and (x_rs - x_s)/h in [10.60, 11.52] (ten studies, compiled in arXiv:2507.16509 Table 2; Gartling (1990) Int. J. Numer. Meth. Fluids 11, 953-967: x_r/h = 12.20). Re = 100: x_r/h = 3.00 (arXiv:2507.16509 Table 1, single source, context only)",
+  "method": {
+    "error_norms": "against sample-point reference data (benchmark tables): unweighted L1 = mean|e|, L2 = sqrt(mean e^2), Linf = max|e| over the tabulated stations; against a field: volume-weighted (cfd/validation/ErrorNorms.hpp)",
+    "solve_acceptance": "a run is accepted only if SIMPLE Converged, every field is finite and the global mass imbalance is within tolerance (P12-NUM-005 assessSimpleSolve)",
+    "grid_convergence": "P12-NUM-005 three-grid study of this code's own solutions (observed order, Richardson extrapolation, GCI) -- separate from the error against the reference",
+    "indexing": "runs listed in execution order; grid sequences coarse -> fine"
+  },
+  "coefficients": {
+    "channel_height": 1.0,
+    "step_height": 0.5,
+    "expansion_ratio": 2.0,
+    "mean_inlet_velocity": 1.0,
+    "density": 1.0
+  },
+  "configuration": {
+    "geometry": "fluid domain [0, L] x [0, H] downstream of the step, uniform Cartesian cells; the left boundary split into a no-slip step face (y < h) and per-face inlet patches (y > h)",
+    "inflow": "u = 24 (y - h)(H - y) (mean 1, max 1.5) as exact face averages; v = 0",
+    "outflow": "zero-gradient velocity, p = 0",
+    "algorithm": "SIMPLE, QUICK convection, alpha 0.7/0.3, outer tolerances 1e-6, BiCGSTAB (pressure Jacobi 1e-12/1e-6, momentum 1e-12/1e-8), P12-NUM-004 fallback",
+    "reattachment": "downstream-most negative -> positive zero crossing of the bottom-wall shear mu u_P/(dy/2), linear interpolation between wall-adjacent cell centres"
+  },
+  "runs": [
+    {
+      "id": "backward_facing_step_re800/300x20/quick",
+      "case": "backward_facing_step_re800",
+      "reynolds": 800.0,
+      "mesh": "300x20",
+      "nx": 300,
+      "ny": 20,
+      "cells": 6000,
+      "h": 0.05,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 4739,
+      "mass_imbalance": 1.0718509413365496e-13,
+      "errors": {},
+      "diagnostics": {
+        "momentum_linear_iterations": 520468.0,
+        "pressure_linear_iterations": 2291284.0,
+        "linear_solver_fallbacks": 1315.0,
+        "final_u_residual": 3.7928558973321814e-08,
+        "final_v_residual": 3.0655611788340034e-08,
+        "final_pressure_residual": 9.99922471204391e-07,
+        "final_continuity_residual": 1.1724307196342963e-14,
+        "inflow": 0.5000000000000001,
+        "outflow": 0.5000000000001074,
+        "section_flow_x0.10L": 0.5000000000000748,
+        "section_flow_x0.25L": 0.4999999999997686,
+        "section_flow_x0.50L": 0.5000000000001164,
+        "section_flow_x0.75L": 0.5000000000001444,
+        "max_flow_error": 2.314259894831139e-13,
+        "max_wall_normal_flux": 0.0,
+        "reattachment_length_over_h": 10.085191168174957,
+        "corner_eddy_end_over_h": 0.1703377822911495,
+        "upper_separation_over_h": 7.669936466328827,
+        "upper_reattachment_over_h": 19.812391480835764,
+        "upper_bubble_length_over_h": 12.142455014506936,
+        "bottom_shear_zero_crossings": 3.0,
+        "top_shear_zero_crossings": 2.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - 0.5| over inflow, outflow and 4 sections 2.31e-13 (bound 1e-6)"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "reattachment_detected",
+          "passed": true,
+          "detail": "x_r/h = 10.0852"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "backward_facing_step_re800/450x30/quick",
+      "case": "backward_facing_step_re800",
+      "reynolds": 800.0,
+      "mesh": "450x30",
+      "nx": 450,
+      "ny": 30,
+      "cells": 13500,
+      "h": 0.03333333333333333,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 3840,
+      "mass_imbalance": 5.430699293040853e-13,
+      "errors": {},
+      "diagnostics": {
+        "momentum_linear_iterations": 460967.0,
+        "pressure_linear_iterations": 2977681.0,
+        "linear_solver_fallbacks": 390.0,
+        "final_u_residual": 9.599382209141161e-07,
+        "final_v_residual": 8.541410528220974e-07,
+        "final_pressure_residual": 9.95777573438659e-07,
+        "final_continuity_residual": 8.55139443640658e-15,
+        "inflow": 0.5000000000000002,
+        "outflow": 0.49999999999945716,
+        "section_flow_x0.10L": 0.49999999999964684,
+        "section_flow_x0.25L": 0.5000000000010808,
+        "section_flow_x0.50L": 0.500000000000067,
+        "section_flow_x0.75L": 0.5000000000000736,
+        "max_flow_error": 1.0808021144725899e-12,
+        "max_wall_normal_flux": 0.0,
+        "reattachment_length_over_h": 11.404549294805102,
+        "corner_eddy_end_over_h": 0.1386560462227412,
+        "upper_separation_over_h": 8.925614463199063,
+        "upper_reattachment_over_h": 20.788977869605734,
+        "upper_bubble_length_over_h": 11.863363406406672,
+        "bottom_shear_zero_crossings": 3.0,
+        "top_shear_zero_crossings": 2.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - 0.5| over inflow, outflow and 4 sections 1.08e-12 (bound 1e-6)"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "reattachment_detected",
+          "passed": true,
+          "detail": "x_r/h = 11.4045"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "backward_facing_step_re800/600x40/quick",
+      "case": "backward_facing_step_re800",
+      "reynolds": 800.0,
+      "mesh": "600x40",
+      "nx": 600,
+      "ny": 40,
+      "cells": 24000,
+      "h": 0.025,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 10711,
+      "mass_imbalance": 8.359524010514985e-13,
+      "errors": {},
+      "diagnostics": {
+        "momentum_linear_iterations": 1111429.0,
+        "pressure_linear_iterations": 11188433.0,
+        "linear_solver_fallbacks": 2191.0,
+        "final_u_residual": 9.752712531345508e-07,
+        "final_v_residual": 9.330409674568446e-07,
+        "final_pressure_residual": 6.577073163989213e-07,
+        "final_continuity_residual": 6.1970265192589625e-15,
+        "inflow": 0.5000000000000001,
+        "outflow": 0.49999999999916434,
+        "section_flow_x0.10L": 0.4999999999998278,
+        "section_flow_x0.25L": 0.5000000000004426,
+        "section_flow_x0.50L": 0.5000000000002656,
+        "section_flow_x0.75L": 0.49999999999977796,
+        "max_flow_error": 8.356648706353553e-13,
+        "max_wall_normal_flux": 0.0,
+        "reattachment_length_over_h": 11.779800625145462,
+        "corner_eddy_end_over_h": 0.17939966153063414,
+        "upper_separation_over_h": 9.299282682378076,
+        "upper_reattachment_over_h": 20.92516384230869,
+        "upper_bubble_length_over_h": 11.625881159930616,
+        "bottom_shear_zero_crossings": 3.0,
+        "top_shear_zero_crossings": 2.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - 0.5| over inflow, outflow and 4 sections 8.36e-13 (bound 1e-6)"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "reattachment_detected",
+          "passed": true,
+          "detail": "x_r/h = 11.7798"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "backward_facing_step_re100/300x20/quick",
+      "case": "backward_facing_step_re100",
+      "reynolds": 100.0,
+      "mesh": "300x20",
+      "nx": 300,
+      "ny": 20,
+      "cells": 6000,
+      "h": 0.05,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 2373,
+      "mass_imbalance": 2.6816743270430266e-13,
+      "errors": {},
+      "diagnostics": {
+        "momentum_linear_iterations": 66985.0,
+        "pressure_linear_iterations": 761960.0,
+        "linear_solver_fallbacks": 647.0,
+        "final_u_residual": 2.4797596145686797e-08,
+        "final_v_residual": 4.562648273721107e-08,
+        "final_pressure_residual": 9.993521920805422e-07,
+        "final_continuity_residual": 1.2593486084601699e-14,
+        "inflow": 0.5000000000000001,
+        "outflow": 0.5000000000002683,
+        "section_flow_x0.10L": 0.5000000000000379,
+        "section_flow_x0.25L": 0.5000000000000727,
+        "section_flow_x0.50L": 0.49999999999976624,
+        "section_flow_x0.75L": 0.5000000000000211,
+        "max_flow_error": 2.6834090505190034e-13,
+        "max_wall_normal_flux": 0.0,
+        "reattachment_length_over_h": 3.1886827807155442,
+        "corner_eddy_end_over_h": 0.06698456239201797,
+        "bottom_shear_zero_crossings": 2.0,
+        "top_shear_zero_crossings": 0.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - 0.5| over inflow, outflow and 4 sections 2.68e-13 (bound 1e-6)"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "reattachment_detected",
+          "passed": true,
+          "detail": "x_r/h = 3.1887"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "orders": [],
+  "grid_convergence": [
+    {
+      "format_version": 1,
+      "study": "backward_facing_step_re800",
+      "description": "Re = 800, QUICK, 20/30/40 cells per H",
+      "method": {
+        "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+        "indexing": "1 = fine, 2 = medium, 3 = coarse",
+        "grid_size": "h = sqrt(domain area / cells)",
+        "relative_quantity_units": "fraction",
+        "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+        "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+      },
+      "all_solves_accepted": true,
+      "rejection_reason": "",
+      "grids": [
+        {
+          "level": "coarse",
+          "name": "300x20",
+          "nx": 300,
+          "ny": 20,
+          "cells": 6000,
+          "h": 0.05,
+          "runtime_seconds": 938.338970833,
+          "solver_status": "Converged",
+          "solver_iterations": 4739,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "reattachment_length_over_h": 10.085191168174957,
+            "upper_bubble_length_over_h": 12.142455014506936
+          }
+        },
+        {
+          "level": "medium",
+          "name": "450x30",
+          "nx": 450,
+          "ny": 30,
+          "cells": 13500,
+          "h": 0.03333333333333333,
+          "runtime_seconds": 1954.723284355,
+          "solver_status": "Converged",
+          "solver_iterations": 3840,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "reattachment_length_over_h": 11.404549294805102,
+            "upper_bubble_length_over_h": 11.863363406406672
+          }
+        },
+        {
+          "level": "fine",
+          "name": "600x40",
+          "nx": 600,
+          "ny": 40,
+          "cells": 24000,
+          "h": 0.025,
+          "runtime_seconds": 8808.786814662,
+          "solver_status": "Converged",
+          "solver_iterations": 10711,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "reattachment_length_over_h": 11.779800625145462,
+            "upper_bubble_length_over_h": 11.625881159930616
+          }
+        }
+      ],
+      "quantities": [
+        {
+          "name": "reattachment_length_over_h",
+          "description": "x_r/h, lower-wall primary eddy (published range [11.48, 12.20])",
+          "values": {
+            "coarse": 10.085191168174957,
+            "medium": 11.404549294805102,
+            "fine": 11.779800625145462
+          },
+          "reference": {
+            "value": 11.84,
+            "kind": "benchmark",
+            "error_coarse": -1.7548088318250432,
+            "error_medium": -0.4354507051948975,
+            "error_fine": -0.060199374854537524,
+            "relative_error_coarse": 0.14821020539062865,
+            "relative_error_medium": 0.036777931182001476,
+            "relative_error_fine": 0.005084406660011615,
+            "error_extrapolated": 0.28197923698859384
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.57347 (formal 2); asymptotic ratio 1.23058 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 1.3333333333333333,
+            "r32": 1.5,
+            "epsilon21": -0.37525133034035996,
+            "epsilon32": -1.3193581266301457,
+            "convergence_ratio": 0.28441961493716084,
+            "observed_order": 2.573474382381926,
+            "formal_order": 2.0,
+            "order_ratio": 1.286737191190963,
+            "richardson_extrapolated": 12.121979236988594,
+            "richardson_extrapolated_32": 12.121979236988594,
+            "approximate_relative_error_21": 0.031855490791528246,
+            "approximate_relative_error_32": 0.11568700283764198,
+            "extrapolated_relative_error_21": 0.028227949013393722,
+            "extrapolated_relative_error_32": 0.05918422463506208,
+            "uncertainty_21": 0.42772326480391365,
+            "uncertainty_32": 0.8967874277293633,
+            "gci_fine_medium": 0.03630988999006356,
+            "gci_medium_coarse": 0.07863418400390972,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.230576168515411,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        },
+        {
+          "name": "upper_bubble_length_over_h",
+          "description": "(x_rs - x_s)/h, upper-wall bubble (published range [10.60, 11.52])",
+          "values": {
+            "coarse": 12.142455014506936,
+            "medium": 11.863363406406672,
+            "fine": 11.625881159930616
+          },
+          "reference": {
+            "value": 11.059999999999999,
+            "kind": "benchmark",
+            "error_coarse": 1.0824550145069374,
+            "error_medium": 0.8033634064066728,
+            "error_fine": 0.5658811599306173,
+            "relative_error_coarse": 0.09787115863534697,
+            "relative_error_medium": 0.07263683602230316,
+            "relative_error_fine": 0.051164661838211334,
+            "error_extrapolated": null
+          },
+          "analysis": {
+            "status": "divergent",
+            "convergence": "divergent",
+            "diagnostic": "monotonic but the differences do not shrink fast enough for a positive order (epsilon32/epsilon21 = 1.17521 <= ln r32 / ln r21 = 1.40942)",
+            "warnings": [],
+            "r21": 1.3333333333333333,
+            "r32": 1.5,
+            "epsilon21": 0.23748224647605554,
+            "epsilon32": 0.27909160810026457,
+            "convergence_ratio": 0.8509114555344827,
+            "observed_order": null,
+            "formal_order": 2.0,
+            "order_ratio": null,
+            "richardson_extrapolated": null,
+            "richardson_extrapolated_32": null,
+            "approximate_relative_error_21": null,
+            "approximate_relative_error_32": null,
+            "extrapolated_relative_error_21": null,
+            "extrapolated_relative_error_32": null,
+            "uncertainty_21": null,
+            "uncertainty_32": null,
+            "gci_fine_medium": null,
+            "gci_medium_coarse": null,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": null,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "divergent sequence: monotonic but the differences do not shrink fast enough for a positive order (epsilon32/epsilon21 = 1.17521 <= ln r32 / ln r21 = 1.40942)"
+          }
+        }
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "name": "reattachment_length_over_h_within_published_range",
+      "passed": true,
+      "detail": "finest-grid 11.7798 vs published [11.48, 12.20] (status monotonic_not_asymptotic)"
+    },
+    {
+      "name": "upper_bubble_length_over_h_within_published_range",
+      "passed": false,
+      "detail": "finest-grid 11.6259 vs published [10.60, 11.52] (status divergent)"
+    }
+  ],
+  "limitations": [
+    "Re = 100 (20 cells/H): x_r/h = 3.1887 vs 3.00 in arXiv:2507.16509 Table 1 (single source with an upstream inlet section; reported, not gated)",
+    "Uniform Cartesian grids only (no clustering at the step corner or walls); the finest grid here has 40 cells per H.",
+    "Collocated SIMPLE without Rhie-Chow interpolation; the pressure field is not validated.",
+    "Reattachment from the wall-adjacent cell velocity (first-order one-sided wall shear): the zero crossing itself is independent of that approximation's magnitude error.",
+    "Runtimes are wall-clock and not deterministic."
+  ],
+  "passed": false,
+  "runtime": {
+    "note": "measured wall time -- with grid_convergence[*].grids[*].runtime_seconds, the only non-deterministic part of this report",
+    "runs": [
+      {
+        "id": "backward_facing_step_re800/300x20/quick",
+        "seconds": 938.338970833
+      },
+      {
+        "id": "backward_facing_step_re800/450x30/quick",
+        "seconds": 1954.723284355
+      },
+      {
+        "id": "backward_facing_step_re800/600x40/quick",
+        "seconds": 8808.786814662
+      },
+      {
+        "id": "backward_facing_step_re100/300x20/quick",
+        "seconds": 153.064146198
+      }
+    ]
+  }
+}

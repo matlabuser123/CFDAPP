@@ -4,6 +4,7 @@
 
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/physics/FluidProperties.hpp"
@@ -32,6 +33,12 @@ struct KEpsilonConfig {
 
   cfd::algebra::LinearSolverSettings kSolver{};
   cfd::algebra::LinearSolverSettings epsilonSolver{};
+
+  // P12-NUM-003: non-orthogonal correction of the k/epsilon diffusion terms
+  // (default disabled -- exactly the pre-existing operator). Evaluated once
+  // per model correct() call from the lagged field; SIMPLE's outer
+  // iteration converges the lag. See assembleScalarDiffusionContribution.
+  cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonal{};
 
   // Patankar implicit under-relaxation (reusing
   // cfd::pressure_velocity::applyImplicitUnderRelaxation -- see

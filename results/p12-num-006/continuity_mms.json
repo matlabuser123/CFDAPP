@@ -1,0 +1,444 @@
+{
+  "format_version": 1,
+  "study": "continuity_mms",
+  "description": "Production face-flux interpolation (calculateMassFlux) and continuity evaluation (evaluateContinuity) of the exact divergence-free velocity",
+  "manufactured_solution": "mms::velocity (streamfunction curl; div U = 0 analytically)",
+  "method": {
+    "error_norms": "volume-weighted over the selected cells: L1 = sum|e|V/sumV, L2 = sqrt(sum e^2 V/sumV), Linf = max|e| (cfd/validation/ErrorNorms.hpp)",
+    "pressure_gauge": "numerical and exact pressure each shifted to zero volume-weighted mean over all cells before comparison",
+    "observed_order": "P12-NUM-005 analyzeGridConvergence on each consecutive triplet of error values (exact limit 0); reduction factor = E_coarse/E_fine",
+    "indexing": "levels listed coarse -> fine"
+  },
+  "coefficients": {
+    "density": 1.0
+  },
+  "configuration": {
+    "face_velocity": "linear interpolation (internal), exact Inlet value (boundary)",
+    "divergence": "cell mass imbalance / (rho V)",
+    "face_flux": "(F_interpolated - F_exact) / (rho A) vs exact face integral"
+  },
+  "levels": [
+    {
+      "name": "16x16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 256,
+      "h": 0.0625,
+      "solver_status": "Evaluated",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": 7.947813428286786e-20,
+      "errors": {
+        "divergence": {
+          "l1": 0.006512504180629031,
+          "l2": 0.009531516226857314,
+          "linf": 0.04666623473803679,
+          "cells": 256,
+          "volume": 1.0
+        },
+        "divergence_interior": {
+          "l1": 0.003928954910857848,
+          "l2": 0.004435386508502154,
+          "linf": 0.007630837558768366,
+          "cells": 196,
+          "volume": 0.765625
+        },
+        "divergence_boundary_ring": {
+          "l1": 0.01495209846188155,
+          "l2": 0.01798226400427506,
+          "linf": 0.04666623473803679,
+          "cells": 60,
+          "volume": 0.234375
+        },
+        "face_flux": {
+          "l1": 0.0016234563319817786,
+          "l2": 0.0020444263713127755,
+          "linf": 0.004821954008394691,
+          "cells": 480,
+          "volume": 30.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": -7.947813428286786e-20,
+        "exact_flux_max_cell_imbalance": 1.3877787807814457e-17,
+        "exact_flux_global_imbalance": 1.5407439555097887e-33
+      }
+    },
+    {
+      "name": "32x32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 1024,
+      "h": 0.03125,
+      "solver_status": "Evaluated",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": 1.9836712091456227e-20,
+      "errors": {
+        "divergence": {
+          "l1": 0.0017925832661905509,
+          "l2": 0.003269437249732439,
+          "linf": 0.02406423732606174,
+          "cells": 1024,
+          "volume": 1.0
+        },
+        "divergence_interior": {
+          "l1": 0.0009992510820533381,
+          "l2": 0.0011249740342224636,
+          "linf": 0.0020386845552771843,
+          "cells": 900,
+          "volume": 0.87890625
+        },
+        "divergence_boundary_ring": {
+          "l1": 0.007550639441379986,
+          "l2": 0.008893070557366578,
+          "linf": 0.02406423732606174,
+          "cells": 124,
+          "volume": 0.12109375
+        },
+        "face_flux": {
+          "l1": 0.00040079371569148875,
+          "l2": 0.0005058838302232307,
+          "linf": 0.0012266187621550184,
+          "cells": 1984,
+          "volume": 62.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": -1.9836712091456227e-20,
+        "exact_flux_max_cell_imbalance": 6.938893903907228e-18,
+        "exact_flux_global_imbalance": 7.703719777548943e-34
+      }
+    },
+    {
+      "name": "64x64",
+      "nx": 64,
+      "ny": 64,
+      "cells": 4096,
+      "h": 0.015625,
+      "solver_status": "Evaluated",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": 4.957129471116767e-21,
+      "errors": {
+        "divergence": {
+          "l1": 0.0004692892298601258,
+          "l2": 0.0011325846578408042,
+          "linf": 0.012143543422910087,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "divergence_interior": {
+          "l1": 0.00025090957280985625,
+          "l2": 0.00028249653680751877,
+          "linf": 0.0005240397854098938,
+          "cells": 3844,
+          "volume": 0.9384765625
+        },
+        "divergence_boundary_ring": {
+          "l1": 0.0038004455858174136,
+          "l2": 0.004430847913191284,
+          "linf": 0.012143543422910087,
+          "cells": 252,
+          "volume": 0.0615234375
+        },
+        "face_flux": {
+          "l1": 9.958331476672237e-05,
+          "l2": 0.00012580505195436826,
+          "linf": 0.000308382476957636,
+          "cells": 8064,
+          "volume": 126.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": -4.957129471116767e-21,
+        "exact_flux_max_cell_imbalance": 3.469446951953614e-18,
+        "exact_flux_global_imbalance": 7.703719777548943e-34
+      }
+    },
+    {
+      "name": "128x128",
+      "nx": 128,
+      "ny": 128,
+      "cells": 16384,
+      "h": 0.0078125,
+      "solver_status": "Evaluated",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": 1.2391543768752418e-21,
+      "errors": {
+        "divergence": {
+          "l1": 0.00012002258670485414,
+          "l2": 0.0003957819050530238,
+          "linf": 0.006090509852783097,
+          "cells": 16384,
+          "volume": 1.0
+        },
+        "divergence_interior": {
+          "l1": 6.281358643517142e-05,
+          "l2": 7.073870506332653e-05,
+          "linf": 0.00013271192946456845,
+          "cells": 15876,
+          "volume": 0.968994140625
+        },
+        "divergence_boundary_ring": {
+          "l1": 0.001907916461274704,
+          "l2": 0.0022126164530248764,
+          "linf": 0.006090509852783097,
+          "cells": 508,
+          "volume": 0.031005859375
+        },
+        "face_flux": {
+          "l1": 2.4819627424955714e-05,
+          "l2": 3.136717705637269e-05,
+          "linf": 7.729133367817553e-05,
+          "cells": 32512,
+          "volume": 254.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": -1.2391543768752418e-21,
+        "exact_flux_max_cell_imbalance": 1.734723475976807e-18,
+        "exact_flux_global_imbalance": 9.62964972193618e-34
+      }
+    }
+  ],
+  "orders": [
+    {
+      "quantity": "face_flux",
+      "norm": "l2",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        4.041296141864495,
+        4.021172618781031,
+        4.010722792435961
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "asymptotic",
+          "observed_order": 2.0171939555448315,
+          "asymptotic_ratio": 1.0119892434517885,
+          "extrapolated_error": 1.1055297711157804e-06,
+          "diagnostic": "monotonic convergence, observed order 2.01719 (formal 2); asymptotic ratio 1.01199 within 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 2.008860991857828,
+          "asymptotic_ratio": 1.006160872106117,
+          "extrapolated_error": 1.4436509211424595e-07,
+          "diagnostic": "monotonic convergence, observed order 2.00886 (formal 2); asymptotic ratio 1.00616 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 2.008860991857828
+    },
+    {
+      "quantity": "divergence_interior",
+      "norm": "l2",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        3.9426567845787774,
+        3.982257789549376,
+        3.9935214611947294
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.9743009291588276,
+          "asymptotic_ratio": 0.9823444793591964,
+          "extrapolated_error": -5.099506161259336e-06,
+          "diagnostic": "monotonic convergence, observed order 1.9743 (formal 2); asymptotic ratio 0.982344 within 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.992222824597496,
+          "asymptotic_ratio": 0.9946237766930324,
+          "extrapolated_error": -3.5687312403477774e-07,
+          "diagnostic": "monotonic convergence, observed order 1.99222 (formal 2); asymptotic ratio 0.994624 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.992222824597496
+    },
+    {
+      "quantity": "divergence",
+      "norm": "l1",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        3.6330274322312874,
+        3.819783519696031,
+        3.9100076305983
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.8346290219233818,
+          "asymptotic_ratio": 0.891699196258586,
+          "extrapolated_error": -4.625373951160392e-05,
+          "diagnostic": "monotonic convergence, observed order 1.83463 (formal 2); asymptotic ratio 0.891699 outside 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 1.9217328952249435,
+          "asymptotic_ratio": 0.9471946879723461,
+          "extrapolated_error": -5.217410522836605e-06,
+          "diagnostic": "monotonic convergence, observed order 1.92173 (formal 2); asymptotic ratio 0.947195 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.9217328952249435
+    },
+    {
+      "quantity": "divergence_boundary_ring",
+      "norm": "linf",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        1.9392359751828465,
+        1.981648723770526,
+        1.9938467741515955
+      ],
+      "triplets": [
+        {
+          "levels": [
+            "16x16",
+            "32x32",
+            "64x64"
+          ],
+          "status": "asymptotic",
+          "observed_order": 0.9229820564549795,
+          "asymptotic_ratio": 0.9480151740998661,
+          "extrapolated_error": -0.0011603518381177926,
+          "diagnostic": "monotonic convergence, observed order 0.922982 (formal 1); asymptotic ratio 0.948015 within 1 +/- 0.1"
+        },
+        {
+          "levels": [
+            "32x32",
+            "64x64",
+            "128x128"
+          ],
+          "status": "asymptotic",
+          "observed_order": 0.9777379600991098,
+          "asymptotic_ratio": 0.98468757566312,
+          "extrapolated_error": -0.00015375333247140757,
+          "diagnostic": "monotonic convergence, observed order 0.977738 (formal 1); asymptotic ratio 0.984688 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.9777379600991098
+    }
+  ],
+  "gates": [
+    {
+      "name": "continuity: exact face flux divergence-free per cell at 16x16",
+      "passed": true,
+      "detail": "max |imbalance| 1.39e-17"
+    },
+    {
+      "name": "continuity: global mass imbalance ~ 0 at 16x16",
+      "passed": true,
+      "detail": "-7.95e-20 (zero normal wall velocity)"
+    },
+    {
+      "name": "continuity: exact face flux divergence-free per cell at 32x32",
+      "passed": true,
+      "detail": "max |imbalance| 6.94e-18"
+    },
+    {
+      "name": "continuity: global mass imbalance ~ 0 at 32x32",
+      "passed": true,
+      "detail": "-1.98e-20 (zero normal wall velocity)"
+    },
+    {
+      "name": "continuity: exact face flux divergence-free per cell at 64x64",
+      "passed": true,
+      "detail": "max |imbalance| 3.47e-18"
+    },
+    {
+      "name": "continuity: global mass imbalance ~ 0 at 64x64",
+      "passed": true,
+      "detail": "-4.96e-21 (zero normal wall velocity)"
+    },
+    {
+      "name": "continuity: exact face flux divergence-free per cell at 128x128",
+      "passed": true,
+      "detail": "max |imbalance| 1.73e-18"
+    },
+    {
+      "name": "continuity: global mass imbalance ~ 0 at 128x128",
+      "passed": true,
+      "detail": "-1.24e-21 (zero normal wall velocity)"
+    },
+    {
+      "name": "continuity: face_flux l2 observed order in [1.80, 2.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 2.009 (asymptotic vs formal 2); reduction factors 4.041 4.021 4.011"
+    },
+    {
+      "name": "continuity: divergence_interior l2 observed order in [1.80, 2.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.992 (asymptotic vs formal 2); reduction factors 3.943 3.982 3.994"
+    },
+    {
+      "name": "continuity: divergence l1 observed order in [1.50, 2.30]",
+      "passed": true,
+      "detail": "finest-triplet observed order 1.922 (asymptotic vs formal 2); reduction factors 3.633 3.820 3.910"
+    },
+    {
+      "name": "continuity: divergence L1/L2/Linf decrease on every refinement",
+      "passed": true,
+      "detail": "monotone"
+    }
+  ],
+  "all_gates_passed": true,
+  "runtime": {
+    "note": "measured wall time -- the only non-deterministic part of this report",
+    "levels": [
+      {
+        "name": "16x16",
+        "seconds": 0.0
+      },
+      {
+        "name": "32x32",
+        "seconds": 0.0
+      },
+      {
+        "name": "64x64",
+        "seconds": 0.0
+      },
+      {
+        "name": "128x128",
+        "seconds": 0.0
+      }
+    ]
+  }
+}

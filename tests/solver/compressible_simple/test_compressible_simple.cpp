@@ -117,7 +117,7 @@ TEST(CompressibleSimpleTest, ReducesToIncompressibleSimpleWithNegligibleCompress
   const SIMPLE simple(makeIncompressibleSettings(1000, 1e-6), /*referenceCell=*/0);
   const SIMPLEResult reference =
       simple.solve(mesh, fluid, velocityBoundaries, pressureBoundaries,
-                  VectorField(n, Vector2{0.0, 0.0}), ScalarField(n, 0.0));
+                   VectorField(n, Vector2{0.0, 0.0}), ScalarField(n, 0.0));
   ASSERT_EQ(reference.status, SIMPLEStatus::Converged);
 
   // CompressibleSIMPLE at the physical near-incompressible-gas limit: a
@@ -136,10 +136,10 @@ TEST(CompressibleSimpleTest, ReducesToIncompressibleSimpleWithNegligibleCompress
 
   const ScalarField temperatureField(n, temperature);
   const ScalarField initialDensity(n, rho);
-  const CompressibleSIMPLEResult result = compressibleSimple.solve(
-      mesh, mu, velocityBoundaries, pressureBoundaries, temperatureField,
-      /*temperatureBoundaries=*/nullptr, VectorField(n, Vector2{0.0, 0.0}), ScalarField(n, 0.0),
-      initialDensity);
+  const CompressibleSIMPLEResult result =
+      compressibleSimple.solve(mesh, mu, velocityBoundaries, pressureBoundaries, temperatureField,
+                               /*temperatureBoundaries=*/nullptr, VectorField(n, Vector2{0.0, 0.0}),
+                               ScalarField(n, 0.0), initialDensity);
 
   ASSERT_EQ(result.status, CompressibleSIMPLEStatus::Converged)
       << "CompressibleSIMPLE did not converge";
@@ -269,6 +269,58 @@ TEST(CompressibleSimpleTest, InvalidSettingsReportInvalidConfiguration) {
       VectorField(n, Vector2{0.0, 0.0}), ScalarField(n, 0.0), initialDensity);
 
   EXPECT_EQ(result.status, CompressibleSIMPLEStatus::InvalidConfiguration);
+}
+
+// P12-NUM-006 (found by the CompressibleSIMPLE MMS): solve() "throws nothing
+// itself" -- an EOS evaluation outside the EOS domain (non-positive
+// absolute pressure) used to escape as InvalidArgumentError. An initial
+// state outside the domain is InvalidConfiguration; an iterate that leaves
+// it is NonFiniteState; the EOS message is kept in robustness.statusDetail.
+TEST(CompressibleSimpleTest, InitialStateOutsideEosDomainReportsInvalidConfiguration) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(3, 3, 1.0, 1.0);
+  const auto velocityBoundaries = makeCavityVelocityBoundaries(mesh, Vector2{1.0, 0.0});
+  const auto pressureBoundaries = makeZeroGradientPressureBoundaries(mesh);
+  const Index n = mesh.numberOfCells();
+  const ThermodynamicProperties thermodynamics(287.05, 1005.0);
+  const CompressibleSIMPLE compressibleSimple(makeCompressibleSettings(100, 1e-6, 1.0),
+                                              thermodynamics, 101325.0, 0);
+  CompressibleSIMPLEResult result;
+  // Gauge pressure -2 p_ref: absolute pressure -101325 Pa.
+  EXPECT_NO_THROW(result = compressibleSimple.solve(
+                      mesh, 1.8e-5, velocityBoundaries, pressureBoundaries, ScalarField(n, 300.0),
+                      nullptr, VectorField(n, Vector2{0.0, 0.0}), ScalarField(n, -2.0 * 101325.0),
+                      ScalarField(n, 1.2)));
+  EXPECT_EQ(result.status, CompressibleSIMPLEStatus::InvalidConfiguration);
+  EXPECT_NE(result.robustness.statusDetail.find("initial state rejected"), std::string::npos)
+      << result.robustness.statusDetail;
+}
+
+TEST(CompressibleSimpleTest, NonPhysicalPressureTransientReportsNonFiniteState) {
+  // A reference (absolute) pressure of 1e-3 Pa with rho0 = 1: the cavity's
+  // O(0.1) gauge-pressure field drives the absolute pressure below zero on
+  // the first corrections.
+  const Mesh mesh = MeshGeometry::createCartesian2D(6, 6, 1.0, 1.0);
+  const auto velocityBoundaries = makeCavityVelocityBoundaries(mesh, Vector2{1.0, 0.0});
+  const auto pressureBoundaries = makeZeroGradientPressureBoundaries(mesh);
+  const Index n = mesh.numberOfCells();
+  const ThermodynamicProperties thermodynamics(1.0, 1005.0);
+  const Real referencePressure = 1e-3;
+  const Real temperature = 1e-3;  // rho0 = p / (R T) = 1
+  const CompressibleSIMPLE compressibleSimple(makeCompressibleSettings(200, 1e-6, 1.0),
+                                              thermodynamics, referencePressure, 0);
+  CompressibleSIMPLEResult result;
+  EXPECT_NO_THROW(result = compressibleSimple.solve(mesh, 0.01, velocityBoundaries,
+                                                    pressureBoundaries, ScalarField(n, temperature),
+                                                    nullptr, VectorField(n, Vector2{0.0, 0.0}),
+                                                    ScalarField(n, 0.0), ScalarField(n, 1.0)));
+  EXPECT_EQ(result.status, CompressibleSIMPLEStatus::NonFiniteState);
+  EXPECT_NE(result.robustness.statusDetail.find("non-physical thermodynamic state"),
+            std::string::npos)
+      << result.robustness.statusDetail;
+  for (Index i = 0; i < n; ++i) {
+    EXPECT_TRUE(std::isfinite(result.pressure[i]));  // the last valid iterate
+    EXPECT_GT(result.density[i], 0.0);
+  }
 }
 
 TEST(CompressibleSimpleTest, MismatchedInitialFieldSizeReportsInvalidConfiguration) {

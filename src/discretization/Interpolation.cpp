@@ -40,6 +40,56 @@ Vector2 interpolateInternalFace(const Mesh& mesh, const Face& face, const Vector
   return ((uP * dNf) + (uN * dPf)) * (1.0 / (dPf + dNf));
 }
 
+Real interpolateInternalFaceSkewCorrected(const Mesh& mesh, const Face& face,
+                                          const ScalarField& field, const VectorField& gradient) {
+  if (face.isBoundary()) {
+    throw InvalidArgumentError("interpolateInternalFaceSkewCorrected: face is a boundary face");
+  }
+  if (field.size() != mesh.numberOfCells() || gradient.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "interpolateInternalFaceSkewCorrected: field/gradient size does not match mesh cell count");
+  }
+  const auto crossing = MeshGeometry::ownerNeighborCrossing(mesh, face);
+  // Undefined crossing, or an unskewed face (skew vector exactly zero):
+  // the plain interpolation, bit-for-bit.
+  if (!crossing.has_value() || (crossing->skewVector.x == 0.0 && crossing->skewVector.y == 0.0)) {
+    return interpolateInternalFace(mesh, face, field);
+  }
+  const Index ownerId = face.owner();
+  const Index neighborId = *face.neighbor();
+  const Real t = crossing->t;
+  const Real phiCrossing = field[ownerId] + (t * (field[neighborId] - field[ownerId]));
+  const Vector2 gradCrossing = gradient[ownerId] + ((gradient[neighborId] - gradient[ownerId]) * t);
+  return phiCrossing + dot(gradCrossing, crossing->skewVector);
+}
+
+Vector2 interpolateInternalFaceSkewCorrected(const Mesh& mesh, const Face& face,
+                                             const VectorField& field, const VectorField& gradientX,
+                                             const VectorField& gradientY) {
+  if (face.isBoundary()) {
+    throw InvalidArgumentError("interpolateInternalFaceSkewCorrected: face is a boundary face");
+  }
+  if (field.size() != mesh.numberOfCells() || gradientX.size() != mesh.numberOfCells() ||
+      gradientY.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "interpolateInternalFaceSkewCorrected: field/gradient size does not match mesh cell count");
+  }
+  const auto crossing = MeshGeometry::ownerNeighborCrossing(mesh, face);
+  if (!crossing.has_value() || (crossing->skewVector.x == 0.0 && crossing->skewVector.y == 0.0)) {
+    return interpolateInternalFace(mesh, face, field);
+  }
+  const Index ownerId = face.owner();
+  const Index neighborId = *face.neighbor();
+  const Real t = crossing->t;
+  const Vector2 valueCrossing = field[ownerId] + ((field[neighborId] - field[ownerId]) * t);
+  const Vector2 gradXCrossing =
+      gradientX[ownerId] + ((gradientX[neighborId] - gradientX[ownerId]) * t);
+  const Vector2 gradYCrossing =
+      gradientY[ownerId] + ((gradientY[neighborId] - gradientY[ownerId]) * t);
+  return Vector2{valueCrossing.x + dot(gradXCrossing, crossing->skewVector),
+                 valueCrossing.y + dot(gradYCrossing, crossing->skewVector)};
+}
+
 Real interpolateBoundaryFace(const Mesh& mesh, const Face& face, const ScalarField& field,
                              const ScalarBoundaryCondition& bc) {
   if (!face.isBoundary()) {

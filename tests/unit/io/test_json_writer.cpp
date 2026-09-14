@@ -278,3 +278,43 @@ TEST(JSONWriterTest, RepeatedWriteIsByteIdentical) {
                              std::istreambuf_iterator<char>());
   EXPECT_EQ(contentA, contentB);
 }
+
+// P12-NUM-004: the two new statuses keep their own names, and the additive
+// "robustness" diagnostics object carries the result's own values.
+TEST(JSONWriterTest, RobustnessStatusesAndDiagnosticsAreExported) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  for (const auto& [status, name] : std::vector<std::pair<SIMPLEStatus, std::string>>{
+           {SIMPLEStatus::Stagnated, "Stagnated"}, {SIMPLEStatus::Diverging, "Diverging"}}) {
+    auto result = makeConvergedResultFor2x2();
+    result.status = status;
+    const auto path = tempFile("status_" + name + ".json");
+    JSONWriter::writeMetadata(path, makeMetadata(), mesh, result);
+    EXPECT_EQ(readJson(path)["solver"]["status"], name);
+  }
+  auto result = makeConvergedResultFor2x2();
+  result.robustness.convergenceCriterion = cfd::solver::ConvergenceCriterion::Normalized;
+  result.robustness.statusDetail = "stagnation: example";
+  result.robustness.uNormalizedHistory = {1.0, 0.25};
+  result.robustness.vNormalizedHistory = {1.0, 0.5};
+  result.robustness.pressureNormalizedHistory = {1.0, 0.125};
+  result.robustness.continuityNormalizedHistory = {1.0, 2.0};
+  result.robustness.velocityRelaxationHistory = {0.7, 0.49};
+  result.robustness.pressureRelaxationHistory = {0.3, 0.21};
+  result.robustness.relaxationDecreases = 1;
+  result.robustness.linearSolverFallbacks = 3;
+  result.robustness.linearSolverFallbackRecoveries = 2;
+  const auto path = tempFile("robustness.json");
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, result);
+  const auto r = readJson(path)["robustness"];
+  EXPECT_EQ(r["convergence_criterion"], "normalized");
+  EXPECT_EQ(r["status_detail"], "stagnation: example");
+  EXPECT_DOUBLE_EQ(r["normalized_residuals"]["u"].get<double>(), 0.25);
+  EXPECT_DOUBLE_EQ(r["normalized_residuals"]["v"].get<double>(), 0.5);
+  EXPECT_DOUBLE_EQ(r["normalized_residuals"]["p"].get<double>(), 0.125);
+  EXPECT_DOUBLE_EQ(r["normalized_residuals"]["continuity"].get<double>(), 2.0);
+  EXPECT_DOUBLE_EQ(r["final_velocity_relaxation"].get<double>(), 0.49);
+  EXPECT_DOUBLE_EQ(r["final_pressure_relaxation"].get<double>(), 0.21);
+  EXPECT_EQ(r["relaxation_decreases"], 1);
+  EXPECT_EQ(r["linear_solver_fallbacks"], 3);
+  EXPECT_EQ(r["linear_solver_fallback_recoveries"], 2);
+}

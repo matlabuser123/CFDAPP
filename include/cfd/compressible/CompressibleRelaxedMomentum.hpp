@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
@@ -49,6 +50,20 @@ namespace cfd::compressible {
     Real dynamicViscosity, const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
     const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
     cfd::physics::VelocityComponent component,
-    const cfd::fields::ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep);
+    const cfd::fields::ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep,
+    // P12-NUM-003: forwarded to physics::assembleDiffusionContribution
+    // (default disabled -- exactly the pre-existing viscous operator).
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {},
+    // P12-NUM-003: the pressure-source gradient (default GreenGauss --
+    // exactly the pre-existing term), forwarded to
+    // physics::assemblePressureSourceContribution, so CompressibleSIMPLE's
+    // gradientScheme drives the pressure source exactly as SIMPLE's does.
+    cfd::discretization::GradientScheme pressureGradientScheme =
+        cfd::discretization::GradientScheme::GreenGauss,
+    // P12-NUM-006: optional prescribed body force per unit volume
+    // (cfd::physics::assembleMomentumSourceContribution), added to the RHS
+    // with the pressure source, before relaxation. Null (default): the
+    // assembly is structurally identical to before.
+    const cfd::fields::VectorField* momentumSource = nullptr);
 
 }  // namespace cfd::compressible

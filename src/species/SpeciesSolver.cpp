@@ -172,7 +172,8 @@ SpeciesResult SpeciesSolver::solve(const Mesh& mesh, const ScalarField& initialC
 
   const auto assemble = [&](const ScalarField& concentration) {
     return assembleSpeciesTransportEquation(mesh, concentration, massFlux, fluid, species,
-                                            concentrationBoundaries, volumetricSource);
+                                            concentrationBoundaries, volumetricSource,
+                                            settings_.nonOrthogonal);
   };
   return runPicardLoop(settings_, *linearSolver, initialConcentration, assemble);
 }

@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <utility>
 
 #include "cfd/algebra/BiCGSTAB.hpp"
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/Interpolation.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/pressure_velocity/UnderRelaxation.hpp"
 #include "cfd/thermal/EnergyEquation.hpp"
@@ -68,10 +70,10 @@ ScalarField computeEffectiveDiffusivity(Real molecularViscosity,
   return gamma;
 }
 
-void assembleScalarDiffusionContribution(const Mesh& mesh, const ScalarField& diffusivity,
-                                         const ScalarField& phi,
-                                         const BoundaryConditionSet& boundaries,
-                                         SparseMatrixBuilder& builder, Vector& rhs) {
+void assembleScalarDiffusionContribution(
+    const Mesh& mesh, const ScalarField& diffusivity, const ScalarField& phi,
+    const BoundaryConditionSet& boundaries, SparseMatrixBuilder& builder, Vector& rhs,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   const Index n = mesh.numberOfCells();
   if (phi.size() != n) {
     throw InvalidArgumentError(
@@ -89,6 +91,14 @@ void assembleScalarDiffusionContribution(const Mesh& mesh, const ScalarField& di
     }
   }
 
+  // P12-NUM-003: grad(phi) for the explicit non-orthogonal term, only when
+  // enabled.
+  std::optional<cfd::fields::VectorField> gradPhi;
+  if (nonOrthogonal.enabled) {
+    gradPhi = cfd::discretization::gradient(mesh, phi, boundaries, nonOrthogonal.gradientScheme);
+  }
+  const cfd::fields::VectorField* gradPhiPtr = gradPhi.has_value() ? &(*gradPhi) : nullptr;
+
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
 
@@ -96,7 +106,6 @@ void assembleScalarDiffusionContribution(const Mesh& mesh, const ScalarField& di
       const Index ownerId = face.owner();
       const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
       const Real gammaFace = diffusivity[ownerId];
-      const Real diffusionCoefficient = gammaFace * face.area() / distance;
 
       const auto& bc = cfd::boundary::boundaryConditionForFace(mesh, face.id(), boundaries);
       const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc);
@@ -104,7 +113,14 @@ void assembleScalarDiffusionContribution(const Mesh& mesh, const ScalarField& di
         throw InvalidArgumentError(
             "assembleScalarDiffusionContribution: boundary condition is not scalar-valued");
       }
+      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+          mesh, face, gammaFace, distance, gradPhiPtr,
+          gradPhiPtr != nullptr && cfd::discretization::prescribesBoundaryValue(bc.type()));
+      const Real diffusionCoefficient = terms.coefficient;
       const Real phiB = scalarBc->boundaryValue(phi[ownerId], distance);
+      if (gradPhiPtr != nullptr) {
+        rhs[ownerId] += terms.explicitFlux;
+      }
 
       builder.add(ownerId, ownerId, diffusionCoefficient);
       rhs[ownerId] += diffusionCoefficient * phiB;
@@ -115,7 +131,13 @@ void assembleScalarDiffusionContribution(const Mesh& mesh, const ScalarField& di
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
     const Real gammaFace = cfd::discretization::interpolateInternalFace(mesh, face, diffusivity);
-    const Real diffusionCoefficient = gammaFace * face.area() / dPN;
+    const auto terms =
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, gammaFace, dPN, gradPhiPtr);
+    const Real diffusionCoefficient = terms.coefficient;
+    if (gradPhiPtr != nullptr) {
+      rhs[ownerId] += terms.explicitFlux;
+      rhs[neighborId] -= terms.explicitFlux;
+    }
 
     builder.add(ownerId, ownerId, diffusionCoefficient);
     builder.add(ownerId, neighborId, -diffusionCoefficient);
@@ -141,12 +163,11 @@ void applyImplicitScalarSource(const Mesh& mesh, SparseMatrixBuilder& builder, V
   }
 }
 
-ScalarTransportAssembly assembleScalarTransportEquation(const Mesh& mesh, const ScalarField& phi,
-                                                        const SurfaceField& massFlux,
-                                                        const ScalarField& diffusivity,
-                                                        const BoundaryConditionSet& boundaries,
-                                                        const ScalarField& Su,
-                                                        const ScalarField& Sp) {
+ScalarTransportAssembly assembleScalarTransportEquation(
+    const Mesh& mesh, const ScalarField& phi, const SurfaceField& massFlux,
+    const ScalarField& diffusivity, const BoundaryConditionSet& boundaries, const ScalarField& Su,
+    const ScalarField& Sp,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   const Index n = mesh.numberOfCells();
   if (phi.size() != n) {
     throw InvalidArgumentError(
@@ -160,7 +181,8 @@ ScalarTransportAssembly assembleScalarTransportEquation(const Mesh& mesh, const 
   SparseMatrixBuilder builder(n, n);
   Vector rhs(n, 0.0);
 
-  assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder, rhs);
+  assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder, rhs,
+                                      nonOrthogonal);
   // specificHeat = 1.0: see this file's own header comment on why this
   // reuse is exact for a bare (non-cp-weighted) transported scalar.
   cfd::thermal::assembleThermalConvectionContribution(mesh, /*specificHeat=*/1.0, massFlux, phi,
@@ -182,18 +204,18 @@ ScalarTransportAssembly assembleScalarTransportEquation(const Mesh& mesh, const 
                                  std::move(diagonal)};
 }
 
-ScalarField solveRelaxedScalarTransport(const Mesh& mesh, const ScalarField& phi,
-                                        const SurfaceField& massFlux,
-                                        const ScalarField& diffusivity,
-                                        const BoundaryConditionSet& boundaries,
-                                        const ScalarField& Su, const ScalarField& Sp, Real alpha,
-                                        Real floorValue,
-                                        const cfd::algebra::LinearSolverSettings& solverSettings) {
+ScalarField solveRelaxedScalarTransport(
+    const Mesh& mesh, const ScalarField& phi, const SurfaceField& massFlux,
+    const ScalarField& diffusivity, const BoundaryConditionSet& boundaries, const ScalarField& Su,
+    const ScalarField& Sp, Real alpha, Real floorValue,
+    const cfd::algebra::LinearSolverSettings& solverSettings,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
   const Index n = mesh.numberOfCells();
   SparseMatrixBuilder builder(n, n);
   Vector rhs(n, 0.0);
 
-  assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder, rhs);
+  assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder, rhs,
+                                      nonOrthogonal);
   // specificHeat = 1.0: see this file's own header comment on why this
   // reuse is exact for a bare (non-cp-weighted) transported scalar.
   cfd::thermal::assembleThermalConvectionContribution(mesh, /*specificHeat=*/1.0, massFlux, phi,

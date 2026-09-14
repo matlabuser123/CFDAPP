@@ -47,6 +47,10 @@ std::string_view statusLabel(cfd::pressure_velocity::SIMPLEStatus status) {
       return "no (invalid solver configuration)";
     case SIMPLEStatus::Cancelled:
       return "no (cancelled)";
+    case SIMPLEStatus::Stagnated:
+      return "no (stagnated)";
+    case SIMPLEStatus::Diverging:
+      return "no (diverging)";
   }
   return "no (unknown status)";
 }
@@ -109,6 +113,20 @@ void printReport(std::ostream& out, const ProjectRunResult& run) {
       << "Continuity: " << run.simpleResult->finalContinuityResidual << "\n"
       << "Mass imbalance: " << run.simpleResult->globalMassImbalance << "\n"
       << "NaN/Inf: " << (anyNonFinite(*run.simpleResult) ? "yes" : "no") << "\n\n";
+  // P12-NUM-004: printed only when there is something to report, so the
+  // report of a default (robustness features off, no failure) run is
+  // unchanged.
+  const auto& robustness = run.simpleResult->robustness;
+  if (!robustness.statusDetail.empty()) {
+    out << "Status detail: " << robustness.statusDetail << "\n";
+  }
+  if (robustness.linearSolverFallbacks > 0) {
+    out << "Linear-solver fallbacks: " << robustness.linearSolverFallbacks << " ("
+        << robustness.linearSolverFallbackRecoveries << " recovered)\n";
+  }
+  if (!robustness.statusDetail.empty() || robustness.linearSolverFallbacks > 0) {
+    out << "\n";
+  }
   if (run.thermalResult.has_value()) {
     out << "Thermal converged: " << thermalStatusLabel(run.thermalResult->status) << "\n"
         << "Thermal iterations: " << run.thermalResult->iterations << "\n\n";

@@ -1,0 +1,2449 @@
+# P12-NUM-007 explicit (DISABLED_) validation runs -- build/release, --gtest_also_run_disabled_tests, from the repository root.
+# gtest's own (N ms) timings are authoritative; the shell elapsed times in the index below are unreliable (WSL clock jumps).
+# The first batch overlapped with a Debug ctest -j32 (inflated wall times). scheme_full was killed (exit 143) in that batch and rerun
+# alone (load ~2); cavity_re100_study's first attempt failed two gates (log kept below) and passed on its rerun.
+
+## index
+start 2026-09-14T03:06:27+10:00 nproc 32
+cavity_Re1000Grid40 exit 0 42s
+cavity_Re100Grid40 exit 0 55s
+channel_study exit 0 145s
+cavity_Re1000Grid80 exit 0 181s
+bfs_converges exit 0 208s
+bfs_mass exit 0 211s
+cavity_Re100Grid80 exit 0 317s
+cavity_Re1000Grid160 exit 0 634s
+cavity_re1000_study exit 0 5011s
+cavity_Re100Grid160 exit 0 5022s
+scheme_full exit 143 5243s
+cavity_re100_study exit 1 39712s
+cavity_re100_study exit 0 1101s (rerun 2026-09-14T14:35:07+10:00, load: 3.01 3.13 6.16 3/545 58885)
+scheme_full exit 0 1706s (rerun 2026-09-14T14:45:12+10:00, load: 2.00 2.16 4.25 2/543 58964)
+bfs_reattachment exit 1 50166s
+end 2026-09-14T17:02:33+10:00
+
+################ cavity_re100_study_first_attempt.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re100Study
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re100Study
+cavity_re100/20x20/quick: Converged, 3083 iterations, 9.1 s
+  u_centerline: L1 4.8012e-03  L2 5.6901e-03  Linf 1.0462e-02
+  v_centerline: L1 3.4504e-03  L2 4.8236e-03  Linf 1.2624e-02
+cavity_re100/40x40/quick: Converged, 5500 iterations, 54.7 s
+  u_centerline: L1 1.0455e-03  L2 1.4519e-03  Linf 4.6064e-03
+  v_centerline: L1 2.4766e-03  L2 2.9903e-03  Linf 6.5190e-03
+cavity_re100/80x80/quick: Converged, 9258 iterations, 327.8 s
+  u_centerline: L1 1.5255e-03  L2 2.0904e-03  Linf 5.0344e-03
+  v_centerline: L1 3.8586e-03  L2 4.5102e-03  Linf 8.7131e-03
+cavity_re100/160x160/quick: Converged, 5084 iterations, 830.1 s
+  u_centerline: L1 1.5899e-03  L2 2.1526e-03  Linf 4.4610e-03
+  v_centerline: L1 3.6932e-03  L2 4.3661e-03  Linf 8.6666e-03
+cavity_re100/20x20/upwind: Converged, 3036 iterations, 4.2 s
+  u_centerline: L1 1.6212e-02  L2 2.1050e-02  Linf 3.7223e-02
+  v_centerline: L1 1.0872e-02  L2 1.4460e-02  Linf 4.0414e-02
+cavity_re100/40x40/upwind: Converged, 5615 iterations, 56.0 s
+  u_centerline: L1 7.6157e-03  L2 1.0169e-02  Linf 1.8792e-02
+  v_centerline: L1 4.9208e-03  L2 6.4477e-03  Linf 1.6786e-02
+cavity_re100/80x80/upwind: Converged, 9643 iterations, 449.9 s
+  u_centerline: L1 3.2852e-03  L2 4.3361e-03  Linf 8.4948e-03
+  v_centerline: L1 2.7510e-03  L2 3.5693e-03  Linf 6.9850e-03
+
+### Validation: cavity_re100
+
+Lid-driven cavity Re = 100: QUICK (configuration of record) 20/40/80/160 and first-order upwind 20/40/80
+
+Reference: Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Table I (u(0.5, y)) and Table II (v(x, 0.5)), Re = 100 column, 17 stations each (validation/ghia/ghia_re100_{u,v}.csv)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3083 | 36967 / 151537 | 0 | 9.1 | yes |
+| cavity_re100/40x40/quick | 100 | 40x40 | quick | Converged | 5500 | 59761 / 58120 | 0 | 54.7 | yes |
+| cavity_re100/80x80/quick | 100 | 80x80 | quick | Converged | 9258 | 81177 / 50041 | 0 | 327.8 | yes |
+| cavity_re100/160x160/quick | 100 | 160x160 | quick | Converged | 5084 | 71849 / 60434 | 0 | 830.1 | yes |
+| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3036 | 34136 / 150550 | 0 | 4.2 | yes |
+| cavity_re100/40x40/upwind | 100 | 40x40 | upwind | Converged | 5615 | 59881 / 54988 | 0 | 56.0 | yes |
+| cavity_re100/80x80/upwind | 100 | 80x80 | upwind | Converged | 9643 | 79024 / 48522 | 0 | 449.9 | yes |
+
+**u_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re100/20x20/quick | 4.8012e-03 | 5.6901e-03 | 1.0462e-02 |
+| cavity_re100/40x40/quick | 1.0455e-03 | 1.4519e-03 | 4.6064e-03 |
+| cavity_re100/80x80/quick | 1.5255e-03 | 2.0904e-03 | 5.0344e-03 |
+| cavity_re100/160x160/quick | 1.5899e-03 | 2.1526e-03 | 4.4610e-03 |
+| cavity_re100/20x20/upwind | 1.6212e-02 | 2.1050e-02 | 3.7223e-02 |
+| cavity_re100/40x40/upwind | 7.6157e-03 | 1.0169e-02 | 1.8792e-02 |
+| cavity_re100/80x80/upwind | 3.2852e-03 | 4.3361e-03 | 8.4948e-03 |
+
+**v_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re100/20x20/quick | 3.4504e-03 | 4.8236e-03 | 1.2624e-02 |
+| cavity_re100/40x40/quick | 2.4766e-03 | 2.9903e-03 | 6.5190e-03 |
+| cavity_re100/80x80/quick | 3.8586e-03 | 4.5102e-03 | 8.7131e-03 |
+| cavity_re100/160x160/quick | 3.6932e-03 | 4.3661e-03 | 8.6666e-03 |
+| cavity_re100/20x20/upwind | 1.0872e-02 | 1.4460e-02 | 4.0414e-02 |
+| cavity_re100/40x40/upwind | 4.9208e-03 | 6.4477e-03 | 1.6786e-02 |
+| cavity_re100/80x80/upwind | 2.7510e-03 | 3.5693e-03 | 6.9850e-03 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u_centerline | l2 | -- | 3.919, 0.695, 0.971 | --, 3.361 | monotonic_asymptotic_range_unknown |
+| u_centerline | l2 | 1 | 2.070, 2.345 | 0.900 | asymptotic |
+| v_centerline | l2 | -- | 1.613, 0.663, 1.033 | --, -- | oscillatory |
+| v_centerline | l2 | 1 | 2.243, 1.806 | 1.477 | monotonic_not_asymptotic |
+
+### Grid convergence: cavity_re100_quick_20_40_80
+
+Re = 100, QUICK, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 9.1 | Converged (3083 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 54.7 | Converged (5500 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 327.8 | Converged (9258 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20060482 | -0.20581 (benchmark) | 0.005205 | 0.02529 |
+| medium | -0.20717103 | -0.20581 (benchmark) | -0.001361 | 0.006613 |
+| fine | -0.20867366 | -0.20581 (benchmark) | -0.002864 | 0.01391 |
+| extrapolated | -0.20911956 | | -0.00331 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.1276 | 2 | -0.20911956 | 0.0005574 | 0.002671 | 0.01176 | 1.0925 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.12758 (formal 2); asymptotic ratio 1.09246 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00267107 <= threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.0527948 | 0.05454 (benchmark) | -0.001745 | 0.032 |
+| medium | 0.056427914 | 0.05454 (benchmark) | 0.001888 | 0.03462 |
+| fine | 0.05736678 | 0.05454 (benchmark) | 0.002827 | 0.05183 |
+| extrapolated | 0.057693947 | | 0.003154 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9522 | 2 | 0.057693947 | 0.000409 | 0.007129 | 0.02805 | 0.9674 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.95222 (formal 2); asymptotic ratio 0.967421 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00712885 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20369058 | -0.2109 (benchmark) | 0.007209 | 0.03418 |
+| medium | -0.21181989 | -0.2109 (benchmark) | -0.0009199 | 0.004362 |
+| fine | -0.21355167 | -0.2109 (benchmark) | -0.002652 | 0.01257 |
+| extrapolated | -0.21402046 | | -0.00312 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.2309 | 2 | -0.21402046 | 0.000586 | 0.002744 | 0.01299 | 1.1735 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.23088 (formal 2); asymptotic ratio 1.17355 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.16808884 | 0.17527 (benchmark) | -0.007181 | 0.04097 |
+| medium | 0.17685157 | 0.17527 (benchmark) | 0.001582 | 0.009024 |
+| fine | 0.17912148 | 0.17527 (benchmark) | 0.003851 | 0.02197 |
+| extrapolated | 0.17991505 | | 0.004645 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9487 | 2 | 0.17991505 | 0.000992 | 0.005538 | 0.02165 | 0.9651 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.94875 (formal 2); asymptotic ratio 0.965097 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00553792 <= threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.23270556 | -0.24533 (benchmark) | 0.01262 | 0.05146 |
+| medium | -0.24932676 | -0.24533 (benchmark) | -0.003997 | 0.01629 |
+| fine | -0.2528728 | -0.24533 (benchmark) | -0.007543 | 0.03075 |
+| extrapolated | -0.2538345 | | -0.008505 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.2287 | 2 | -0.2538345 | 0.001202 | 0.004754 | 0.0226 | 1.1718 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.22874 (formal 2); asymptotic ratio 1.17181 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+
+### Grid convergence: cavity_re100_quick_40_80_160
+
+Re = 100, QUICK, grids 40/80/160
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 40x40 | 40 x 40 | 1600 | 0.025 | 54.7 | Converged (5500 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 327.8 | Converged (9258 it) | yes |
+| 160x160 | 160 x 160 | 25600 | 0.00625 | 830.1 | Converged (5084 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20717103 | -0.20581 (benchmark) | -0.001361 | 0.006613 |
+| medium | -0.20867366 | -0.20581 (benchmark) | -0.002864 | 0.01391 |
+| fine | -0.20891834 | -0.20581 (benchmark) | -0.003108 | 0.0151 |
+| extrapolated | -0.20896594 | | -0.003156 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.6185 | 2 | -0.20896594 | 5.949e-05 | 0.0002848 | 0.001751 | 1.5353 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.61848 (formal 2); asymptotic ratio 1.53526 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.056427914 | 0.05454 (benchmark) | 0.001888 | 0.03462 |
+| medium | 0.05736678 | 0.05454 (benchmark) | 0.002827 | 0.05183 |
+| fine | 0.05758161 | 0.05454 (benchmark) | 0.003042 | 0.05577 |
+| extrapolated | 0.057645353 | | 0.003105 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.1277 | 2 | 0.057645353 | 7.968e-05 | 0.001384 | 0.00607 | 1.0926 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.12772 (formal 2); asymptotic ratio 1.09257 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00138375 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.21181989 | -0.2109 (benchmark) | -0.0009199 | 0.004362 |
+| medium | -0.21355167 | -0.2109 (benchmark) | -0.002652 | 0.01257 |
+| fine | -0.21359178 | -0.2109 (benchmark) | -0.002692 | 0.01276 |
+| extrapolated | -0.21359273 | | -0.002693 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 5.4323 | 2 | -0.21359273 | 1.189e-06 | 5.565e-06 | 0.0002403 | 10.7950 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 5.43229 (formal 2); asymptotic ratio 10.795 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.17685157 | 0.17527 (benchmark) | 0.001582 | 0.009024 |
+| medium | 0.17912148 | 0.17527 (benchmark) | 0.003851 | 0.02197 |
+| fine | 0.17882592 | 0.17527 (benchmark) | 0.003556 | 0.02029 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | -- | 2 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -0.130207): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00113496 is available
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.24932676 | -0.24533 (benchmark) | -0.003997 | 0.01629 |
+| medium | -0.2528728 | -0.24533 (benchmark) | -0.007543 | 0.03075 |
+| fine | -0.2527926 | -0.24533 (benchmark) | -0.007463 | 0.03042 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | -- | 2 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -0.0226182): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00177302 is available
+
+
+### Grid convergence: cavity_re100_upwind_20_40_80
+
+Re = 100, first-order upwind, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 4.2 | Converged (3036 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 56.0 | Converged (5615 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 449.9 | Converged (9643 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17281389 | -0.20581 (benchmark) | 0.033 | 0.1603 |
+| medium | -0.19005545 | -0.20581 (benchmark) | 0.01575 | 0.07655 |
+| fine | -0.19931506 | -0.20581 (benchmark) | 0.006495 | 0.03156 |
+| extrapolated | -0.21005682 | | -0.004247 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8969 | 1 | -0.21005682 | 0.01343 | 0.06737 | 0.1315 | 0.9310 | asymptotic | no |
+
+- monotonic convergence, observed order 0.896868 (formal 1); asymptotic ratio 0.93101 within 1 +/- 0.1
+- grid independence: GCI21 0.0673667 > threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.041916274 | 0.05454 (benchmark) | -0.01262 | 0.2315 |
+| medium | 0.047946089 | 0.05454 (benchmark) | -0.006594 | 0.1209 |
+| fine | 0.052239178 | 0.05454 (benchmark) | -0.002301 | 0.04219 |
+| extrapolated | 0.062851441 | | 0.008311 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.4901 | 1 | 0.062851441 | 0.01327 | 0.2539 | 0.3886 | 0.7023 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.490098 (formal 1); asymptotic ratio 0.70227 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17367706 | -0.2109 (benchmark) | 0.03722 | 0.1765 |
+| medium | -0.19210838 | -0.2109 (benchmark) | 0.01879 | 0.0891 |
+| fine | -0.20250534 | -0.2109 (benchmark) | 0.008395 | 0.0398 |
+| extrapolated | -0.2159596 | | -0.00506 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8260 | 1 | -0.2159596 | 0.01682 | 0.08305 | 0.1552 | 0.8864 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.825999 (formal 1); asymptotic ratio 0.886381 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.15464404 | 0.17527 (benchmark) | -0.02063 | 0.1177 |
+| medium | 0.16673625 | 0.17527 (benchmark) | -0.008534 | 0.04869 |
+| fine | 0.17328827 | 0.17527 (benchmark) | -0.001982 | 0.01131 |
+| extrapolated | 0.18103693 | | 0.005767 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8841 | 1 | 0.18103693 | 0.009686 | 0.05589 | 0.1072 | 0.9228 | asymptotic | no |
+
+- monotonic convergence, observed order 0.884065 (formal 1); asymptotic ratio 0.922784 within 1 +/- 0.1
+- grid independence: GCI21 0.0558943 > threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20491551 | -0.24533 (benchmark) | 0.04041 | 0.1647 |
+| medium | -0.2285443 | -0.24533 (benchmark) | 0.01679 | 0.06842 |
+| fine | -0.24078047 | -0.24533 (benchmark) | 0.00455 | 0.01854 |
+| extrapolated | -0.25392267 | | -0.008593 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.9494 | 1 | -0.25392267 | 0.01643 | 0.06823 | 0.1388 | 0.9655 | asymptotic | no |
+
+- monotonic convergence, observed order 0.949393 (formal 1); asymptotic ratio 0.96553 within 1 +/- 0.1
+- grid independence: GCI21 0.0682271 > threshold 0.01
+
+
+- [x] cavity_re100/20x20/quick: solve_accepted: Converged after 3083 iterations
+- [x] cavity_re100/20x20/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/quick: ghia_error: u L2 5.6901e-03 (bound 0.0075), v L2 4.8236e-03 (bound 0.0065)
+- [x] cavity_re100/20x20/quick: bounded: max |U| 0.839325 vs lid speed 1
+- [x] cavity_re100/40x40/quick: solve_accepted: Converged after 5500 iterations
+- [x] cavity_re100/40x40/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/quick: ghia_error: u L2 1.4519e-03 (bound 0.002), v L2 2.9903e-03 (bound 0.004)
+- [x] cavity_re100/40x40/quick: bounded: max |U| 0.923609 vs lid speed 1
+- [x] cavity_re100/80x80/quick: solve_accepted: Converged after 9258 iterations
+- [x] cavity_re100/80x80/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/quick: ghia_error: u L2 2.0904e-03 (bound 0.003), v L2 4.5102e-03 (bound 0.006)
+- [x] cavity_re100/80x80/quick: bounded: max |U| 0.961956 vs lid speed 1
+- [x] cavity_re100/160x160/quick: solve_accepted: Converged after 5084 iterations
+- [x] cavity_re100/160x160/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/160x160/quick: ghia_error: u L2 2.1526e-03 (bound 0.003), v L2 4.3661e-03 (bound 0.006)
+- [x] cavity_re100/160x160/quick: bounded: max |U| 0.980968 vs lid speed 1
+- [x] cavity_re100/20x20/upwind: solve_accepted: Converged after 3036 iterations
+- [x] cavity_re100/20x20/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/upwind: ghia_error: u L2 2.1050e-02 (bound 0.0275), v L2 1.4460e-02 (bound 0.019)
+- [x] cavity_re100/20x20/upwind: bounded: max |U| 0.818643 vs lid speed 1
+- [x] cavity_re100/40x40/upwind: solve_accepted: Converged after 5615 iterations
+- [x] cavity_re100/40x40/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/upwind: ghia_error: u L2 1.0169e-02 (bound 0.0135), v L2 6.4477e-03 (bound 0.0085)
+- [x] cavity_re100/40x40/upwind: bounded: max |U| 0.917779 vs lid speed 1
+- [x] cavity_re100/80x80/upwind: solve_accepted: Converged after 9643 iterations
+- [x] cavity_re100/80x80/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/upwind: ghia_error: u L2 4.3361e-03 (bound 0.0057), v L2 3.5693e-03 (bound 0.0047)
+- [x] cavity_re100/80x80/upwind: bounded: max |U| 0.960425 vs lid speed 1
+- [x] upwind_monotone_u_centerline: upwind L2 0.021050 -> 0.010169 -> 0.004336
+- [x] higher_order_closer_u_centerline: QUICK 160 L2 0.002153 < upwind 80 L2 0.004336
+- [x] upwind_monotone_v_centerline: upwind L2 0.014460 -> 0.006448 -> 0.003569
+- [ ] higher_order_closer_v_centerline: QUICK 160 L2 0.004366 < upwind 80 L2 0.003569
+- [ ] quick_solution_converged_40_80_160: u_center GCI21 0.000285; v_center GCI21 0.001384; u_y0.4531 GCI21 0.000006; v_x0.2344 GCI21 n/a; v_x0.8047 GCI21 n/a;
+
+Limitations:
+
+- Ghia et al. is itself a 129x129 numerical solution tabulated to 5 digits; beyond 40x40 the higher-order error vs Ghia plateaus at ~2e-3 (u) / ~4.4e-3 (v): a benchmark/comparison floor, not solution error (tightening the outer tolerance 1e-6 -> 1e-8 changes it by < 1e-5; 160x160 gives the same value).
+- Collocated SIMPLE without Rhie-Chow interpolation (no pressure-checkerboard damping); the closed cavity's velocity is unaffected but the pressure field is not validated here.
+- Runtimes are wall-clock of the build that ran the study (see summary) and are not deterministic.
+
+Overall: FAILED
+
+<repo>/tests/integration/cavity/test_cavity_production_validation.cpp:273: Failure
+Value of: gate.passed
+  Actual: false
+Expected: true
+higher_order_closer_v_centerline: QUICK 160 L2 0.004366 < upwind 80 L2 0.003569
+
+<repo>/tests/integration/cavity/test_cavity_production_validation.cpp:273: Failure
+Value of: gate.passed
+  Actual: false
+Expected: true
+quick_solution_converged_40_80_160: u_center GCI21 0.000285; v_center GCI21 0.001384; u_y0.4531 GCI21 0.000006; v_x0.2344 GCI21 n/a; v_x0.8047 GCI21 n/a;
+
+[  FAILED  ] CavityGhiaValidation.DISABLED_Re100Study (1732326 ms)
+[----------] 1 test from CavityGhiaValidation (1732327 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1732329 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] CavityGhiaValidation.DISABLED_Re100Study
+
+ 1 FAILED TEST
+
+################ cavity_re100_study.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re100Study
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re100Study
+cavity_re100/20x20/quick: Converged, 3083 iterations, 5.6 s
+  u_centerline: L1 4.8012e-03  L2 5.6901e-03  Linf 1.0462e-02
+  v_centerline: L1 3.4504e-03  L2 4.8236e-03  Linf 1.2624e-02
+cavity_re100/40x40/quick: Converged, 5500 iterations, 32.2 s
+  u_centerline: L1 1.0455e-03  L2 1.4519e-03  Linf 4.6064e-03
+  v_centerline: L1 2.4766e-03  L2 2.9903e-03  Linf 6.5190e-03
+cavity_re100/80x80/quick: Converged, 9258 iterations, 206.3 s
+  u_centerline: L1 1.5255e-03  L2 2.0904e-03  Linf 5.0344e-03
+  v_centerline: L1 3.8586e-03  L2 4.5102e-03  Linf 8.7131e-03
+cavity_re100/160x160/quick: Converged, 5084 iterations, 587.2 s
+  u_centerline: L1 1.5899e-03  L2 2.1526e-03  Linf 4.4610e-03
+  v_centerline: L1 3.6932e-03  L2 4.3661e-03  Linf 8.6666e-03
+cavity_re100/20x20/upwind: Converged, 3036 iterations, 4.9 s
+  u_centerline: L1 1.6212e-02  L2 2.1050e-02  Linf 3.7223e-02
+  v_centerline: L1 1.0872e-02  L2 1.4460e-02  Linf 4.0414e-02
+cavity_re100/40x40/upwind: Converged, 5615 iterations, 25.3 s
+  u_centerline: L1 7.6157e-03  L2 1.0169e-02  Linf 1.8792e-02
+  v_centerline: L1 4.9208e-03  L2 6.4477e-03  Linf 1.6786e-02
+cavity_re100/80x80/upwind: Converged, 9643 iterations, 175.5 s
+  u_centerline: L1 3.2852e-03  L2 4.3361e-03  Linf 8.4948e-03
+  v_centerline: L1 2.7510e-03  L2 3.5693e-03  Linf 6.9850e-03
+
+### Validation: cavity_re100
+
+Lid-driven cavity Re = 100: QUICK (configuration of record) 20/40/80/160 and first-order upwind 20/40/80
+
+Reference: Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Table I (u(0.5, y)) and Table II (v(x, 0.5)), Re = 100 column, 17 stations each (validation/ghia/ghia_re100_{u,v}.csv)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3083 | 36967 / 151537 | 0 | 5.6 | yes |
+| cavity_re100/40x40/quick | 100 | 40x40 | quick | Converged | 5500 | 59761 / 58120 | 0 | 32.2 | yes |
+| cavity_re100/80x80/quick | 100 | 80x80 | quick | Converged | 9258 | 81177 / 50041 | 0 | 206.3 | yes |
+| cavity_re100/160x160/quick | 100 | 160x160 | quick | Converged | 5084 | 71849 / 60434 | 0 | 587.2 | yes |
+| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3036 | 34136 / 150550 | 0 | 4.9 | yes |
+| cavity_re100/40x40/upwind | 100 | 40x40 | upwind | Converged | 5615 | 59881 / 54988 | 0 | 25.3 | yes |
+| cavity_re100/80x80/upwind | 100 | 80x80 | upwind | Converged | 9643 | 79024 / 48522 | 0 | 175.5 | yes |
+
+**u_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re100/20x20/quick | 4.8012e-03 | 5.6901e-03 | 1.0462e-02 |
+| cavity_re100/40x40/quick | 1.0455e-03 | 1.4519e-03 | 4.6064e-03 |
+| cavity_re100/80x80/quick | 1.5255e-03 | 2.0904e-03 | 5.0344e-03 |
+| cavity_re100/160x160/quick | 1.5899e-03 | 2.1526e-03 | 4.4610e-03 |
+| cavity_re100/20x20/upwind | 1.6212e-02 | 2.1050e-02 | 3.7223e-02 |
+| cavity_re100/40x40/upwind | 7.6157e-03 | 1.0169e-02 | 1.8792e-02 |
+| cavity_re100/80x80/upwind | 3.2852e-03 | 4.3361e-03 | 8.4948e-03 |
+
+**v_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re100/20x20/quick | 3.4504e-03 | 4.8236e-03 | 1.2624e-02 |
+| cavity_re100/40x40/quick | 2.4766e-03 | 2.9903e-03 | 6.5190e-03 |
+| cavity_re100/80x80/quick | 3.8586e-03 | 4.5102e-03 | 8.7131e-03 |
+| cavity_re100/160x160/quick | 3.6932e-03 | 4.3661e-03 | 8.6666e-03 |
+| cavity_re100/20x20/upwind | 1.0872e-02 | 1.4460e-02 | 4.0414e-02 |
+| cavity_re100/40x40/upwind | 4.9208e-03 | 6.4477e-03 | 1.6786e-02 |
+| cavity_re100/80x80/upwind | 2.7510e-03 | 3.5693e-03 | 6.9850e-03 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u_centerline | l2 | -- | 3.919, 0.695, 0.971 | --, 3.361 | monotonic_asymptotic_range_unknown |
+| u_centerline | l2 | 1 | 2.070, 2.345 | 0.900 | asymptotic |
+| v_centerline | l2 | -- | 1.613, 0.663, 1.033 | --, -- | oscillatory |
+| v_centerline | l2 | 1 | 2.243, 1.806 | 1.477 | monotonic_not_asymptotic |
+
+### Grid convergence: cavity_re100_quick_20_40_80
+
+Re = 100, QUICK, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 5.6 | Converged (3083 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 32.2 | Converged (5500 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 206.3 | Converged (9258 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20060482 | -0.20581 (benchmark) | 0.005205 | 0.02529 |
+| medium | -0.20717103 | -0.20581 (benchmark) | -0.001361 | 0.006613 |
+| fine | -0.20867366 | -0.20581 (benchmark) | -0.002864 | 0.01391 |
+| extrapolated | -0.20911956 | | -0.00331 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.1276 | 2 | -0.20911956 | 0.0005574 | 0.002671 | 0.01176 | 1.0925 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.12758 (formal 2); asymptotic ratio 1.09246 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00267107 <= threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.0527948 | 0.05454 (benchmark) | -0.001745 | 0.032 |
+| medium | 0.056427914 | 0.05454 (benchmark) | 0.001888 | 0.03462 |
+| fine | 0.05736678 | 0.05454 (benchmark) | 0.002827 | 0.05183 |
+| extrapolated | 0.057693947 | | 0.003154 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9522 | 2 | 0.057693947 | 0.000409 | 0.007129 | 0.02805 | 0.9674 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.95222 (formal 2); asymptotic ratio 0.967421 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00712885 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20369058 | -0.2109 (benchmark) | 0.007209 | 0.03418 |
+| medium | -0.21181989 | -0.2109 (benchmark) | -0.0009199 | 0.004362 |
+| fine | -0.21355167 | -0.2109 (benchmark) | -0.002652 | 0.01257 |
+| extrapolated | -0.21402046 | | -0.00312 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.2309 | 2 | -0.21402046 | 0.000586 | 0.002744 | 0.01299 | 1.1735 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.23088 (formal 2); asymptotic ratio 1.17355 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.16808884 | 0.17527 (benchmark) | -0.007181 | 0.04097 |
+| medium | 0.17685157 | 0.17527 (benchmark) | 0.001582 | 0.009024 |
+| fine | 0.17912148 | 0.17527 (benchmark) | 0.003851 | 0.02197 |
+| extrapolated | 0.17991505 | | 0.004645 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9487 | 2 | 0.17991505 | 0.000992 | 0.005538 | 0.02165 | 0.9651 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.94875 (formal 2); asymptotic ratio 0.965097 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00553792 <= threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.23270556 | -0.24533 (benchmark) | 0.01262 | 0.05146 |
+| medium | -0.24932676 | -0.24533 (benchmark) | -0.003997 | 0.01629 |
+| fine | -0.2528728 | -0.24533 (benchmark) | -0.007543 | 0.03075 |
+| extrapolated | -0.2538345 | | -0.008505 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.2287 | 2 | -0.2538345 | 0.001202 | 0.004754 | 0.0226 | 1.1718 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.22874 (formal 2); asymptotic ratio 1.17181 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+
+### Grid convergence: cavity_re100_quick_40_80_160
+
+Re = 100, QUICK, grids 40/80/160
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 40x40 | 40 x 40 | 1600 | 0.025 | 32.2 | Converged (5500 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 206.3 | Converged (9258 it) | yes |
+| 160x160 | 160 x 160 | 25600 | 0.00625 | 587.2 | Converged (5084 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20717103 | -0.20581 (benchmark) | -0.001361 | 0.006613 |
+| medium | -0.20867366 | -0.20581 (benchmark) | -0.002864 | 0.01391 |
+| fine | -0.20891834 | -0.20581 (benchmark) | -0.003108 | 0.0151 |
+| extrapolated | -0.20896594 | | -0.003156 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.6185 | 2 | -0.20896594 | 5.949e-05 | 0.0002848 | 0.001751 | 1.5353 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.61848 (formal 2); asymptotic ratio 1.53526 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.056427914 | 0.05454 (benchmark) | 0.001888 | 0.03462 |
+| medium | 0.05736678 | 0.05454 (benchmark) | 0.002827 | 0.05183 |
+| fine | 0.05758161 | 0.05454 (benchmark) | 0.003042 | 0.05577 |
+| extrapolated | 0.057645353 | | 0.003105 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.1277 | 2 | 0.057645353 | 7.968e-05 | 0.001384 | 0.00607 | 1.0926 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.12772 (formal 2); asymptotic ratio 1.09257 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00138375 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.21181989 | -0.2109 (benchmark) | -0.0009199 | 0.004362 |
+| medium | -0.21355167 | -0.2109 (benchmark) | -0.002652 | 0.01257 |
+| fine | -0.21359178 | -0.2109 (benchmark) | -0.002692 | 0.01276 |
+| extrapolated | -0.21359273 | | -0.002693 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 5.4323 | 2 | -0.21359273 | 1.189e-06 | 5.565e-06 | 0.0002403 | 10.7950 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 5.43229 (formal 2); asymptotic ratio 10.795 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.17685157 | 0.17527 (benchmark) | 0.001582 | 0.009024 |
+| medium | 0.17912148 | 0.17527 (benchmark) | 0.003851 | 0.02197 |
+| fine | 0.17882592 | 0.17527 (benchmark) | 0.003556 | 0.02029 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | -- | 2 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -0.130207): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00113496 is available
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.24932676 | -0.24533 (benchmark) | -0.003997 | 0.01629 |
+| medium | -0.2528728 | -0.24533 (benchmark) | -0.007543 | 0.03075 |
+| fine | -0.2527926 | -0.24533 (benchmark) | -0.007463 | 0.03042 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | -- | 2 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -0.0226182): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00177302 is available
+
+
+### Grid convergence: cavity_re100_upwind_20_40_80
+
+Re = 100, first-order upwind, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 4.9 | Converged (3036 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 25.3 | Converged (5615 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 175.5 | Converged (9643 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17281389 | -0.20581 (benchmark) | 0.033 | 0.1603 |
+| medium | -0.19005545 | -0.20581 (benchmark) | 0.01575 | 0.07655 |
+| fine | -0.19931506 | -0.20581 (benchmark) | 0.006495 | 0.03156 |
+| extrapolated | -0.21005682 | | -0.004247 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8969 | 1 | -0.21005682 | 0.01343 | 0.06737 | 0.1315 | 0.9310 | asymptotic | no |
+
+- monotonic convergence, observed order 0.896868 (formal 1); asymptotic ratio 0.93101 within 1 +/- 0.1
+- grid independence: GCI21 0.0673667 > threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.041916274 | 0.05454 (benchmark) | -0.01262 | 0.2315 |
+| medium | 0.047946089 | 0.05454 (benchmark) | -0.006594 | 0.1209 |
+| fine | 0.052239178 | 0.05454 (benchmark) | -0.002301 | 0.04219 |
+| extrapolated | 0.062851441 | | 0.008311 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.4901 | 1 | 0.062851441 | 0.01327 | 0.2539 | 0.3886 | 0.7023 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.490098 (formal 1); asymptotic ratio 0.70227 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17367706 | -0.2109 (benchmark) | 0.03722 | 0.1765 |
+| medium | -0.19210838 | -0.2109 (benchmark) | 0.01879 | 0.0891 |
+| fine | -0.20250534 | -0.2109 (benchmark) | 0.008395 | 0.0398 |
+| extrapolated | -0.2159596 | | -0.00506 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8260 | 1 | -0.2159596 | 0.01682 | 0.08305 | 0.1552 | 0.8864 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.825999 (formal 1); asymptotic ratio 0.886381 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.15464404 | 0.17527 (benchmark) | -0.02063 | 0.1177 |
+| medium | 0.16673625 | 0.17527 (benchmark) | -0.008534 | 0.04869 |
+| fine | 0.17328827 | 0.17527 (benchmark) | -0.001982 | 0.01131 |
+| extrapolated | 0.18103693 | | 0.005767 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8841 | 1 | 0.18103693 | 0.009686 | 0.05589 | 0.1072 | 0.9228 | asymptotic | no |
+
+- monotonic convergence, observed order 0.884065 (formal 1); asymptotic ratio 0.922784 within 1 +/- 0.1
+- grid independence: GCI21 0.0558943 > threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20491551 | -0.24533 (benchmark) | 0.04041 | 0.1647 |
+| medium | -0.2285443 | -0.24533 (benchmark) | 0.01679 | 0.06842 |
+| fine | -0.24078047 | -0.24533 (benchmark) | 0.00455 | 0.01854 |
+| extrapolated | -0.25392267 | | -0.008593 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.9494 | 1 | -0.25392267 | 0.01643 | 0.06823 | 0.1388 | 0.9655 | asymptotic | no |
+
+- monotonic convergence, observed order 0.949393 (formal 1); asymptotic ratio 0.96553 within 1 +/- 0.1
+- grid independence: GCI21 0.0682271 > threshold 0.01
+
+
+- [x] cavity_re100/20x20/quick: solve_accepted: Converged after 3083 iterations
+- [x] cavity_re100/20x20/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/quick: ghia_error: u L2 5.6901e-03 (bound 0.0075), v L2 4.8236e-03 (bound 0.0065)
+- [x] cavity_re100/20x20/quick: bounded: max |U| 0.839325 vs lid speed 1
+- [x] cavity_re100/40x40/quick: solve_accepted: Converged after 5500 iterations
+- [x] cavity_re100/40x40/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/quick: ghia_error: u L2 1.4519e-03 (bound 0.002), v L2 2.9903e-03 (bound 0.004)
+- [x] cavity_re100/40x40/quick: bounded: max |U| 0.923609 vs lid speed 1
+- [x] cavity_re100/80x80/quick: solve_accepted: Converged after 9258 iterations
+- [x] cavity_re100/80x80/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/quick: ghia_error: u L2 2.0904e-03 (bound 0.003), v L2 4.5102e-03 (bound 0.006)
+- [x] cavity_re100/80x80/quick: bounded: max |U| 0.961956 vs lid speed 1
+- [x] cavity_re100/160x160/quick: solve_accepted: Converged after 5084 iterations
+- [x] cavity_re100/160x160/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/160x160/quick: ghia_error: u L2 2.1526e-03 (bound 0.003), v L2 4.3661e-03 (bound 0.006)
+- [x] cavity_re100/160x160/quick: bounded: max |U| 0.980968 vs lid speed 1
+- [x] cavity_re100/20x20/upwind: solve_accepted: Converged after 3036 iterations
+- [x] cavity_re100/20x20/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/upwind: ghia_error: u L2 2.1050e-02 (bound 0.0275), v L2 1.4460e-02 (bound 0.019)
+- [x] cavity_re100/20x20/upwind: bounded: max |U| 0.818643 vs lid speed 1
+- [x] cavity_re100/40x40/upwind: solve_accepted: Converged after 5615 iterations
+- [x] cavity_re100/40x40/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/upwind: ghia_error: u L2 1.0169e-02 (bound 0.0135), v L2 6.4477e-03 (bound 0.0085)
+- [x] cavity_re100/40x40/upwind: bounded: max |U| 0.917779 vs lid speed 1
+- [x] cavity_re100/80x80/upwind: solve_accepted: Converged after 9643 iterations
+- [x] cavity_re100/80x80/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/upwind: ghia_error: u L2 4.3361e-03 (bound 0.0057), v L2 3.5693e-03 (bound 0.0047)
+- [x] cavity_re100/80x80/upwind: bounded: max |U| 0.960425 vs lid speed 1
+- [x] upwind_monotone_u_centerline: upwind L2 0.021050 -> 0.010169 -> 0.004336
+- [x] upwind_monotone_v_centerline: upwind L2 0.014460 -> 0.006448 -> 0.003569
+- [x] higher_order_smaller_discretisation_error_80x80: u_center |QUICK80 - QUICK160| 0.000245 vs |upwind80 - QUICK160| 0.009603; v_center |QUICK80 - QUICK160| 0.000215 vs |upwind80 - QUICK160| 0.005342; u_y0.4531 |QUICK80 - QUICK160| 0.000040 vs |upwind80 - QUICK160| 0.011086; v_x0.2344 |QUICK80 - QUICK160| 0.000296 vs |upwind80 - QUICK160| 0.005538; v_x0.8047 |QUICK80 - QUICK160| 0.000080 vs |upwind80 - QUICK160| 0.012012;
+- [x] quick_solution_converged_40_80_160: u_center GCI21 0.000285; v_center GCI21 0.001384; u_y0.4531 GCI21 0.000006; v_x0.2344 oscillatory U 0.006347; v_x0.8047 oscillatory U 0.007014;
+
+Limitations:
+
+- Ghia et al. is itself a 129x129 numerical solution tabulated to 5 digits; beyond 40x40 the higher-order error vs Ghia plateaus at ~2e-3 (u) / ~4.4e-3 (v): a benchmark/comparison floor, not solution error (tightening the outer tolerance 1e-6 -> 1e-8 changes it by < 1e-5; 160x160 gives the same value).
+- Collocated SIMPLE without Rhie-Chow interpolation (no pressure-checkerboard damping); the closed cavity's velocity is unaffected but the pressure field is not validated here.
+- Runtimes are wall-clock of the build that ran the study (see summary) and are not deterministic.
+
+Overall: PASSED
+
+[       OK ] CavityGhiaValidation.DISABLED_Re100Study (1037359 ms)
+[----------] 1 test from CavityGhiaValidation (1037359 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1037360 ms total)
+[  PASSED  ] 1 test.
+
+################ cavity_re1000_study.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re1000Study
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re1000Study
+cavity_re1000/40x40/quick: Converged, 3582 iterations, 41.6 s
+  u_centerline: L1 3.7027e-02  L2 5.4440e-02  Linf 1.1275e-01
+  v_centerline: L1 3.9242e-02  L2 5.1738e-02  Linf 1.0454e-01
+cavity_re1000/80x80/quick: Converged, 4289 iterations, 208.0 s
+  u_centerline: L1 6.4485e-03  L2 9.5906e-03  Linf 1.9936e-02
+  v_centerline: L1 4.6408e-03  L2 7.6264e-03  Linf 1.6652e-02
+cavity_re1000/160x160/quick: Converged, 2748 iterations, 740.0 s
+  u_centerline: L1 2.0263e-03  L2 2.5192e-03  Linf 4.0764e-03
+  v_centerline: L1 3.9562e-03  L2 5.4121e-03  Linf 1.0725e-02
+
+### Validation: cavity_re1000
+
+Lid-driven cavity Re = 1000: QUICK (configuration of record) 40/80/160
+
+Reference: Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Table I (u(0.5, y)) and Table II (v(x, 0.5)), Re = 1000 column, 17 stations each (validation/ghia/ghia_re1000_{u,v}.csv)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| cavity_re1000/40x40/quick | 1000 | 40x40 | quick | Converged | 3582 | 74028 / 99660 | 0 | 41.6 | yes |
+| cavity_re1000/80x80/quick | 1000 | 80x80 | quick | Converged | 4289 | 102277 / 114476 | 0 | 208.0 | yes |
+| cavity_re1000/160x160/quick | 1000 | 160x160 | quick | Converged | 2748 | 71576 / 149259 | 0 | 740.0 | yes |
+
+**u_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re1000/40x40/quick | 3.7027e-02 | 5.4440e-02 | 1.1275e-01 |
+| cavity_re1000/80x80/quick | 6.4485e-03 | 9.5906e-03 | 1.9936e-02 |
+| cavity_re1000/160x160/quick | 2.0263e-03 | 2.5192e-03 | 4.0764e-03 |
+
+**v_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re1000/40x40/quick | 3.9242e-02 | 5.1738e-02 | 1.0454e-01 |
+| cavity_re1000/80x80/quick | 4.6408e-03 | 7.6264e-03 | 1.6652e-02 |
+| cavity_re1000/160x160/quick | 3.9562e-03 | 5.4121e-03 | 1.0725e-02 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u_centerline | l2 | -- | 5.676, 3.807 | 2.665 | monotonic_asymptotic_range_unknown |
+| v_centerline | l2 | -- | 6.784, 1.409 | 4.316 | monotonic_asymptotic_range_unknown |
+
+### Grid convergence: cavity_re1000_quick_40_80_160
+
+Re = 1000, QUICK, grids 40/80/160
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 40x40 | 40 x 40 | 1600 | 0.025 | 41.6 | Converged (3582 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 208.0 | Converged (4289 it) | yes |
+| 160x160 | 160 x 160 | 25600 | 0.00625 | 740.0 | Converged (2748 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.081408592 | -0.0608 (benchmark) | -0.02061 | 0.339 |
+| medium | -0.064468519 | -0.0608 (benchmark) | -0.003669 | 0.06034 |
+| fine | -0.061566823 | -0.0608 (benchmark) | -0.0007668 | 0.01261 |
+| extrapolated | -0.06096705 | | -0.0001671 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.5455 | 2 | -0.06096705 | 0.0007497 | 0.01218 | 0.06789 | 1.4595 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.54547 (formal 2); asymptotic ratio 1.4595 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.020914317 | 0.02526 (benchmark) | -0.004346 | 0.172 |
+| medium | 0.023704896 | 0.02526 (benchmark) | -0.001555 | 0.06156 |
+| fine | 0.02514988 | 0.02526 (benchmark) | -0.0001101 | 0.004359 |
+| extrapolated | 0.026701591 | | 0.001442 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.9495 | 2 | 0.026701591 | 0.00194 | 0.07712 | 0.158 | 0.4828 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.949512 (formal 2); asymptotic ratio 0.482805 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**u_y0.1719** -- u(0.5, 0.1719), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.32091201 | -0.38289 (benchmark) | 0.06198 | 0.1619 |
+| medium | -0.37998334 | -0.38289 (benchmark) | 0.002907 | 0.007591 |
+| fine | -0.38598968 | -0.38289 (benchmark) | -0.0031 | 0.008095 |
+| extrapolated | -0.38666953 | | -0.00378 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 3.2979 | 2 | -0.38666953 | 0.0008498 | 0.002202 | 0.02199 | 2.4587 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 3.2979 (formal 2); asymptotic ratio 2.45871 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.1563** -- v(0.1563, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.33179694 | 0.37095 (benchmark) | -0.03915 | 0.1055 |
+| medium | 0.36959733 | 0.37095 (benchmark) | -0.001353 | 0.003647 |
+| fine | 0.37381089 | 0.37095 (benchmark) | 0.002861 | 0.007712 |
+| extrapolated | 0.37433949 | | 0.003389 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 3.1653 | 2 | 0.37433949 | 0.0006608 | 0.001768 | 0.01604 | 2.2428 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 3.16529 (formal 2); asymptotic ratio 2.24278 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.9063** -- v(0.9063, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.43934811 | -0.5155 (benchmark) | 0.07615 | 0.1477 |
+| medium | -0.51201884 | -0.5155 (benchmark) | 0.003481 | 0.006753 |
+| fine | -0.52206203 | -0.5155 (benchmark) | -0.006562 | 0.01273 |
+| extrapolated | -0.5236726 | | -0.008173 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.8552 | 2 | -0.5236726 | 0.002013 | 0.003856 | 0.02845 | 1.8090 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.85516 (formal 2); asymptotic ratio 1.80895 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+
+- [x] cavity_re1000/40x40/quick: solve_accepted: Converged after 3582 iterations
+- [x] cavity_re1000/40x40/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/40x40/quick: ghia_error: u L2 5.4440e-02 (bound 0.07), v L2 5.1738e-02 (bound 0.07)
+- [x] cavity_re1000/40x40/quick: bounded: max |U| 0.808984 vs lid speed 1
+- [x] cavity_re1000/80x80/quick: solve_accepted: Converged after 4289 iterations
+- [x] cavity_re1000/80x80/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/80x80/quick: ghia_error: u L2 9.5906e-03 (bound 0.0125), v L2 7.6264e-03 (bound 0.01)
+- [x] cavity_re1000/80x80/quick: bounded: max |U| 0.911642 vs lid speed 1
+- [x] cavity_re1000/160x160/quick: solve_accepted: Converged after 2748 iterations
+- [x] cavity_re1000/160x160/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/160x160/quick: ghia_error: u L2 2.5192e-03 (bound 0.0035), v L2 5.4121e-03 (bound 0.007)
+- [x] cavity_re1000/160x160/quick: bounded: max |U| 0.956270 vs lid speed 1
+- [x] monotone_u_centerline: QUICK L2 0.054440 -> 0.009591 -> 0.002519
+- [x] monotone_v_centerline: QUICK L2 0.051738 -> 0.007626 -> 0.005412
+
+Limitations:
+
+- Ghia et al. is itself a 129x129 numerical solution; at Re = 1000 its own discretisation error is larger than at Re = 100, so agreement is judged as convergence toward the table, not as an exact target.
+- Collocated SIMPLE without Rhie-Chow interpolation; the pressure field is not validated.
+- Runtimes are wall-clock and not deterministic.
+
+Overall: PASSED
+
+[       OK ] CavityGhiaValidation.DISABLED_Re1000Study (989719 ms)
+[----------] 1 test from CavityGhiaValidation (989720 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (989722 ms total)
+[  PASSED  ] 1 test.
+
+################ scheme_full.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SchemeValidation.DISABLED_AccuracyCostComparisonFull
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SchemeValidation
+[ RUN      ] SchemeValidation.DISABLED_AccuracyCostComparisonFull
+cavity_re100/20x20/upwind: Converged, 3036 it, 4.9 s
+cavity_re100/20x20/central: Converged, 2954 it, 5.5 s
+cavity_re100/20x20/linear_upwind: Converged, 3091 it, 6.0 s
+cavity_re100/20x20/quick: Converged, 3083 it, 5.9 s
+cavity_re100/40x40/upwind: Converged, 5615 it, 29.0 s
+cavity_re100/40x40/central: Converged, 5479 it, 30.5 s
+cavity_re100/40x40/linear_upwind: Converged, 5517 it, 31.6 s
+cavity_re100/40x40/quick: Converged, 5500 it, 28.7 s
+cavity_re100/80x80/upwind: Converged, 9643 it, 206.5 s
+cavity_re100/80x80/central: Converged, 9507 it, 221.2 s
+cavity_re100/80x80/linear_upwind: Converged, 9083 it, 225.5 s
+cavity_re100/80x80/quick: Converged, 9258 it, 218.1 s
+cavity_re1000/40x40/upwind: Converged, 4691 it, 23.4 s
+cavity_re1000/40x40/central: Converged, 3389 it, 20.4 s
+cavity_re1000/40x40/linear_upwind: Converged, 3614 it, 22.0 s
+cavity_re1000/40x40/quick: Converged, 3582 it, 20.9 s
+cavity_re1000/80x80/upwind: Converged, 6547 it, 145.3 s
+cavity_re1000/80x80/central: Converged, 4637 it, 124.7 s
+cavity_re1000/80x80/linear_upwind: Converged, 4105 it, 117.6 s
+cavity_re1000/80x80/quick: Converged, 4289 it, 117.0 s
+
+### Validation: scheme_comparison
+
+Convection-scheme accuracy / cost, lid-driven cavity: Re = 100 on 20/40/80, Re = 1000 on 40/80
+
+Reference: Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Tables I/II (Re = 100 and 1000 columns; validation/ghia/)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3036 | 34136 / 150550 | 0 | 4.9 | yes |
+| cavity_re100/20x20/central | 100 | 20x20 | central | Converged | 2954 | 34253 / 147733 | 0 | 5.5 | yes |
+| cavity_re100/20x20/linear_upwind | 100 | 20x20 | linear_upwind | Converged | 3091 | 36061 / 151816 | 0 | 6.0 | yes |
+| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3083 | 36967 / 151537 | 0 | 5.9 | yes |
+| cavity_re100/40x40/upwind | 100 | 40x40 | upwind | Converged | 5615 | 59881 / 54988 | 0 | 29.0 | yes |
+| cavity_re100/40x40/central | 100 | 40x40 | central | Converged | 5479 | 59808 / 58387 | 0 | 30.5 | yes |
+| cavity_re100/40x40/linear_upwind | 100 | 40x40 | linear_upwind | Converged | 5517 | 60599 / 58271 | 0 | 31.6 | yes |
+| cavity_re100/40x40/quick | 100 | 40x40 | quick | Converged | 5500 | 59761 / 58120 | 0 | 28.7 | yes |
+| cavity_re100/80x80/upwind | 100 | 80x80 | upwind | Converged | 9643 | 79024 / 48522 | 0 | 206.5 | yes |
+| cavity_re100/80x80/central | 100 | 80x80 | central | Converged | 9507 | 84393 / 50485 | 0 | 221.2 | yes |
+| cavity_re100/80x80/linear_upwind | 100 | 80x80 | linear_upwind | Converged | 9083 | 81038 / 50069 | 0 | 225.5 | yes |
+| cavity_re100/80x80/quick | 100 | 80x80 | quick | Converged | 9258 | 81177 / 50041 | 0 | 218.1 | yes |
+| cavity_re1000/40x40/upwind | 1000 | 40x40 | upwind | Converged | 4691 | 72866 / 72936 | 0 | 23.4 | yes |
+| cavity_re1000/40x40/central | 1000 | 40x40 | central | Converged | 3389 | 65941 / 100207 | 0 | 20.4 | yes |
+| cavity_re1000/40x40/linear_upwind | 1000 | 40x40 | linear_upwind | Converged | 3614 | 66889 / 97266 | 0 | 22.0 | yes |
+| cavity_re1000/40x40/quick | 1000 | 40x40 | quick | Converged | 3582 | 74028 / 99660 | 0 | 20.9 | yes |
+| cavity_re1000/80x80/upwind | 1000 | 80x80 | upwind | Converged | 6547 | 82642 / 87149 | 0 | 145.3 | yes |
+| cavity_re1000/80x80/central | 1000 | 80x80 | central | Converged | 4637 | 102500 / 113552 | 0 | 124.7 | yes |
+| cavity_re1000/80x80/linear_upwind | 1000 | 80x80 | linear_upwind | Converged | 4105 | 100113 / 114274 | 0 | 117.6 | yes |
+| cavity_re1000/80x80/quick | 1000 | 80x80 | quick | Converged | 4289 | 102277 / 114476 | 0 | 117.0 | yes |
+
+**u_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re100/20x20/upwind | 1.6212e-02 | 2.1050e-02 | 3.7223e-02 |
+| cavity_re100/20x20/central | 5.1650e-03 | 6.2556e-03 | 1.0712e-02 |
+| cavity_re100/20x20/linear_upwind | 4.6777e-03 | 5.5470e-03 | 1.0372e-02 |
+| cavity_re100/20x20/quick | 4.8012e-03 | 5.6901e-03 | 1.0462e-02 |
+| cavity_re100/40x40/upwind | 7.6157e-03 | 1.0169e-02 | 1.8792e-02 |
+| cavity_re100/40x40/central | 8.4752e-04 | 1.2278e-03 | 3.7062e-03 |
+| cavity_re100/40x40/linear_upwind | 1.2295e-03 | 1.7063e-03 | 5.3301e-03 |
+| cavity_re100/40x40/quick | 1.0455e-03 | 1.4519e-03 | 4.6064e-03 |
+| cavity_re100/80x80/upwind | 3.2852e-03 | 4.3361e-03 | 8.4948e-03 |
+| cavity_re100/80x80/central | 1.4596e-03 | 2.0093e-03 | 4.7906e-03 |
+| cavity_re100/80x80/linear_upwind | 1.5851e-03 | 2.1660e-03 | 5.2582e-03 |
+| cavity_re100/80x80/quick | 1.5255e-03 | 2.0904e-03 | 5.0344e-03 |
+| cavity_re1000/40x40/upwind | 7.0340e-02 | 8.5459e-02 | 1.7414e-01 |
+| cavity_re1000/40x40/central | 3.5334e-02 | 4.9915e-02 | 1.0401e-01 |
+| cavity_re1000/40x40/linear_upwind | 3.8094e-02 | 5.6487e-02 | 1.1622e-01 |
+| cavity_re1000/40x40/quick | 3.7027e-02 | 5.4440e-02 | 1.1275e-01 |
+| cavity_re1000/80x80/upwind | 4.2096e-02 | 5.1644e-02 | 1.0615e-01 |
+| cavity_re1000/80x80/central | 6.1973e-03 | 9.0858e-03 | 1.8523e-02 |
+| cavity_re1000/80x80/linear_upwind | 6.8544e-03 | 1.0172e-02 | 2.0951e-02 |
+| cavity_re1000/80x80/quick | 6.4485e-03 | 9.5906e-03 | 1.9936e-02 |
+
+**v_centerline**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| cavity_re100/20x20/upwind | 1.0872e-02 | 1.4460e-02 | 4.0414e-02 |
+| cavity_re100/20x20/central | 4.1999e-03 | 5.6347e-03 | 1.4095e-02 |
+| cavity_re100/20x20/linear_upwind | 3.1654e-03 | 4.5023e-03 | 1.2378e-02 |
+| cavity_re100/20x20/quick | 3.4504e-03 | 4.8236e-03 | 1.2624e-02 |
+| cavity_re100/40x40/upwind | 4.9208e-03 | 6.4477e-03 | 1.6786e-02 |
+| cavity_re100/40x40/central | 2.3645e-03 | 2.9875e-03 | 6.4198e-03 |
+| cavity_re100/40x40/linear_upwind | 2.5186e-03 | 2.9752e-03 | 6.5404e-03 |
+| cavity_re100/40x40/quick | 2.4766e-03 | 2.9903e-03 | 6.5190e-03 |
+| cavity_re100/80x80/upwind | 2.7510e-03 | 3.5693e-03 | 6.9850e-03 |
+| cavity_re100/80x80/central | 3.8243e-03 | 4.4893e-03 | 8.7197e-03 |
+| cavity_re100/80x80/linear_upwind | 3.8868e-03 | 4.5280e-03 | 8.7107e-03 |
+| cavity_re100/80x80/quick | 3.8586e-03 | 4.5102e-03 | 8.7131e-03 |
+| cavity_re1000/40x40/upwind | 9.4732e-02 | 1.0824e-01 | 1.7155e-01 |
+| cavity_re1000/40x40/central | 3.9816e-02 | 5.0319e-02 | 9.6260e-02 |
+| cavity_re1000/40x40/linear_upwind | 3.8988e-02 | 5.2075e-02 | 1.0726e-01 |
+| cavity_re1000/40x40/quick | 3.9242e-02 | 5.1738e-02 | 1.0454e-01 |
+| cavity_re1000/80x80/upwind | 5.3233e-02 | 6.2553e-02 | 1.0527e-01 |
+| cavity_re1000/80x80/central | 5.1947e-03 | 6.9259e-03 | 1.3713e-02 |
+| cavity_re1000/80x80/linear_upwind | 4.9489e-03 | 8.5669e-03 | 1.8763e-02 |
+| cavity_re1000/80x80/quick | 4.6408e-03 | 7.6264e-03 | 1.6652e-02 |
+
+### Grid convergence: cavity_re100_upwind_20_40_80
+
+Re = 100, upwind, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 4.9 | Converged (3036 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 29.0 | Converged (5615 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 206.5 | Converged (9643 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17281389 | -0.20581 (benchmark) | 0.033 | 0.1603 |
+| medium | -0.19005545 | -0.20581 (benchmark) | 0.01575 | 0.07655 |
+| fine | -0.19931506 | -0.20581 (benchmark) | 0.006495 | 0.03156 |
+| extrapolated | -0.21005682 | | -0.004247 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8969 | 1 | -0.21005682 | 0.01343 | 0.06737 | 0.1315 | 0.9310 | asymptotic | no |
+
+- monotonic convergence, observed order 0.896868 (formal 1); asymptotic ratio 0.93101 within 1 +/- 0.1
+- grid independence: GCI21 0.0673667 > threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.041916274 | 0.05454 (benchmark) | -0.01262 | 0.2315 |
+| medium | 0.047946089 | 0.05454 (benchmark) | -0.006594 | 0.1209 |
+| fine | 0.052239178 | 0.05454 (benchmark) | -0.002301 | 0.04219 |
+| extrapolated | 0.062851441 | | 0.008311 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.4901 | 1 | 0.062851441 | 0.01327 | 0.2539 | 0.3886 | 0.7023 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.490098 (formal 1); asymptotic ratio 0.70227 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17367706 | -0.2109 (benchmark) | 0.03722 | 0.1765 |
+| medium | -0.19210838 | -0.2109 (benchmark) | 0.01879 | 0.0891 |
+| fine | -0.20250534 | -0.2109 (benchmark) | 0.008395 | 0.0398 |
+| extrapolated | -0.2159596 | | -0.00506 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8260 | 1 | -0.2159596 | 0.01682 | 0.08305 | 0.1552 | 0.8864 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.825999 (formal 1); asymptotic ratio 0.886381 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.15464404 | 0.17527 (benchmark) | -0.02063 | 0.1177 |
+| medium | 0.16673625 | 0.17527 (benchmark) | -0.008534 | 0.04869 |
+| fine | 0.17328827 | 0.17527 (benchmark) | -0.001982 | 0.01131 |
+| extrapolated | 0.18103693 | | 0.005767 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8841 | 1 | 0.18103693 | 0.009686 | 0.05589 | 0.1072 | 0.9228 | asymptotic | no |
+
+- monotonic convergence, observed order 0.884065 (formal 1); asymptotic ratio 0.922784 within 1 +/- 0.1
+- grid independence: GCI21 0.0558943 > threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20491551 | -0.24533 (benchmark) | 0.04041 | 0.1647 |
+| medium | -0.2285443 | -0.24533 (benchmark) | 0.01679 | 0.06842 |
+| fine | -0.24078047 | -0.24533 (benchmark) | 0.00455 | 0.01854 |
+| extrapolated | -0.25392267 | | -0.008593 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.9494 | 1 | -0.25392267 | 0.01643 | 0.06823 | 0.1388 | 0.9655 | asymptotic | no |
+
+- monotonic convergence, observed order 0.949393 (formal 1); asymptotic ratio 0.96553 within 1 +/- 0.1
+- grid independence: GCI21 0.0682271 > threshold 0.01
+
+
+### Grid convergence: cavity_re100_central_20_40_80
+
+Re = 100, central, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 5.5 | Converged (2954 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 30.5 | Converged (5479 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 221.2 | Converged (9507 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.19792784 | -0.20581 (benchmark) | 0.007882 | 0.0383 |
+| medium | -0.20637026 | -0.20581 (benchmark) | -0.0005603 | 0.002722 |
+| fine | -0.20846919 | -0.20581 (benchmark) | -0.002659 | 0.01292 |
+| extrapolated | -0.20916367 | | -0.003354 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.0080 | 2 | -0.20916367 | 0.0008681 | 0.004164 | 0.01692 | 1.0056 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.00801 (formal 2); asymptotic ratio 1.00557 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00416421 <= threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.053231499 | 0.05454 (benchmark) | -0.001309 | 0.02399 |
+| medium | 0.056515764 | 0.05454 (benchmark) | 0.001976 | 0.03623 |
+| fine | 0.057389768 | 0.05454 (benchmark) | 0.00285 | 0.05225 |
+| extrapolated | 0.057706697 | | 0.003167 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9099 | 2 | 0.057706697 | 0.0003962 | 0.006903 | 0.02634 | 0.9394 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.90986 (formal 2); asymptotic ratio 0.939431 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00690301 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20093432 | -0.2109 (benchmark) | 0.009966 | 0.04725 |
+| medium | -0.21089078 | -0.2109 (benchmark) | 9.218e-06 | 4.371e-05 |
+| fine | -0.21330398 | -0.2109 (benchmark) | -0.002404 | 0.0114 |
+| extrapolated | -0.21407599 | | -0.003176 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.0447 | 2 | -0.21407599 | 0.000965 | 0.004524 | 0.01888 | 1.0315 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.04469 (formal 2); asymptotic ratio 1.03146 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00452414 <= threshold 0.01
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.16665522 | 0.17527 (benchmark) | -0.008615 | 0.04915 |
+| medium | 0.17630009 | 0.17527 (benchmark) | 0.00103 | 0.005877 |
+| fine | 0.1789717 | 0.17527 (benchmark) | 0.003702 | 0.02112 |
+| extrapolated | 0.17999525 | | 0.004725 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.8521 | 2 | 0.17999525 | 0.001279 | 0.007149 | 0.0262 | 0.9025 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.85205 (formal 2); asymptotic ratio 0.902534 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00714884 <= threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.23123537 | -0.24533 (benchmark) | 0.01409 | 0.05745 |
+| medium | -0.24861837 | -0.24533 (benchmark) | -0.003288 | 0.0134 |
+| fine | -0.25269309 | -0.24533 (benchmark) | -0.007363 | 0.03001 |
+| extrapolated | -0.25394069 | | -0.008611 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.0929 | 2 | -0.25394069 | 0.001559 | 0.006172 | 0.02676 | 1.0665 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.0929 (formal 2); asymptotic ratio 1.06651 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.0061715 <= threshold 0.01
+
+
+### Grid convergence: cavity_re100_linear_upwind_20_40_80
+
+Re = 100, linear_upwind, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 6.0 | Converged (3091 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 31.6 | Converged (5517 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 225.5 | Converged (9083 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20260558 | -0.20581 (benchmark) | 0.003204 | 0.01557 |
+| medium | -0.20784437 | -0.20581 (benchmark) | -0.002034 | 0.009885 |
+| fine | -0.20886247 | -0.20581 (benchmark) | -0.003052 | 0.01483 |
+| extrapolated | -0.20910805 | | -0.003298 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.3634 | 2 | -0.20910805 | 0.000307 | 0.00147 | 0.0076 | 1.2864 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.36336 (formal 2); asymptotic ratio 1.28642 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.052115253 | 0.05454 (benchmark) | -0.002425 | 0.04446 |
+| medium | 0.056262661 | 0.05454 (benchmark) | 0.001723 | 0.03159 |
+| fine | 0.057339128 | 0.05454 (benchmark) | 0.002799 | 0.05132 |
+| extrapolated | 0.057716464 | | 0.003176 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9459 | 2 | 0.057716464 | 0.0004717 | 0.008226 | 0.0323 | 0.9632 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.94591 (formal 2); asymptotic ratio 0.9632 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00822599 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20560653 | -0.2109 (benchmark) | 0.005293 | 0.0251 |
+| medium | -0.21256816 | -0.2109 (benchmark) | -0.001668 | 0.00791 |
+| fine | -0.21377823 | -0.2109 (benchmark) | -0.002878 | 0.01365 |
+| extrapolated | -0.21403282 | | -0.003133 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.5243 | 2 | -0.21403282 | 0.0003182 | 0.001489 | 0.008613 | 1.4383 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.52434 (formal 2); asymptotic ratio 1.43827 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.16882982 | 0.17527 (benchmark) | -0.00644 | 0.03674 |
+| medium | 0.17725148 | 0.17527 (benchmark) | 0.001981 | 0.01131 |
+| fine | 0.17925272 | 0.17527 (benchmark) | 0.003983 | 0.02272 |
+| extrapolated | 0.17987651 | | 0.004607 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.0732 | 2 | 0.17987651 | 0.0007797 | 0.00435 | 0.01851 | 1.0521 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.07321 (formal 2); asymptotic ratio 1.05205 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00434992 <= threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.2329522 | -0.24533 (benchmark) | 0.01238 | 0.05045 |
+| medium | -0.24967469 | -0.24533 (benchmark) | -0.004345 | 0.01771 |
+| fine | -0.25301509 | -0.24533 (benchmark) | -0.007685 | 0.03133 |
+| extrapolated | -0.25384891 | | -0.008519 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.3237 | 2 | -0.25384891 | 0.001042 | 0.004119 | 0.0209 | 1.2515 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.3237 (formal 2); asymptotic ratio 1.25153 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+
+### Grid convergence: cavity_re100_quick_20_40_80
+
+Re = 100, quick, grids 20/40/80
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 20x20 | 20 x 20 | 400 | 0.05 | 5.9 | Converged (3083 it) | yes |
+| 40x40 | 40 x 40 | 1600 | 0.025 | 28.7 | Converged (5500 it) | yes |
+| 80x80 | 80 x 80 | 6400 | 0.0125 | 218.1 | Converged (9258 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20060482 | -0.20581 (benchmark) | 0.005205 | 0.02529 |
+| medium | -0.20717103 | -0.20581 (benchmark) | -0.001361 | 0.006613 |
+| fine | -0.20867366 | -0.20581 (benchmark) | -0.002864 | 0.01391 |
+| extrapolated | -0.20911956 | | -0.00331 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.1276 | 2 | -0.20911956 | 0.0005574 | 0.002671 | 0.01176 | 1.0925 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.12758 (formal 2); asymptotic ratio 1.09246 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00267107 <= threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.0527948 | 0.05454 (benchmark) | -0.001745 | 0.032 |
+| medium | 0.056427914 | 0.05454 (benchmark) | 0.001888 | 0.03462 |
+| fine | 0.05736678 | 0.05454 (benchmark) | 0.002827 | 0.05183 |
+| extrapolated | 0.057693947 | | 0.003154 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9522 | 2 | 0.057693947 | 0.000409 | 0.007129 | 0.02805 | 0.9674 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.95222 (formal 2); asymptotic ratio 0.967421 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00712885 <= threshold 0.01
+
+**u_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20369058 | -0.2109 (benchmark) | 0.007209 | 0.03418 |
+| medium | -0.21181989 | -0.2109 (benchmark) | -0.0009199 | 0.004362 |
+| fine | -0.21355167 | -0.2109 (benchmark) | -0.002652 | 0.01257 |
+| extrapolated | -0.21402046 | | -0.00312 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.2309 | 2 | -0.21402046 | 0.000586 | 0.002744 | 0.01299 | 1.1735 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.23088 (formal 2); asymptotic ratio 1.17355 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.16808884 | 0.17527 (benchmark) | -0.007181 | 0.04097 |
+| medium | 0.17685157 | 0.17527 (benchmark) | 0.001582 | 0.009024 |
+| fine | 0.17912148 | 0.17527 (benchmark) | 0.003851 | 0.02197 |
+| extrapolated | 0.17991505 | | 0.004645 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 1.9487 | 2 | 0.17991505 | 0.000992 | 0.005538 | 0.02165 | 0.9651 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.94875 (formal 2); asymptotic ratio 0.965097 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00553792 <= threshold 0.01
+
+**v_x0.8047** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.23270556 | -0.24533 (benchmark) | 0.01262 | 0.05146 |
+| medium | -0.24932676 | -0.24533 (benchmark) | -0.003997 | 0.01629 |
+| fine | -0.2528728 | -0.24533 (benchmark) | -0.007543 | 0.03075 |
+| extrapolated | -0.2538345 | | -0.008505 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 2.2287 | 2 | -0.2538345 | 0.001202 | 0.004754 | 0.0226 | 1.1718 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.22874 (formal 2); asymptotic ratio 1.17181 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+
+- [x] cavity_re100/20x20/upwind: solve_accepted: Converged after 3036 iterations
+- [x] cavity_re100/20x20/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/upwind: bounded: max |U| 0.818643 vs lid speed 1
+- [x] cavity_re100/20x20/central: solve_accepted: Converged after 2954 iterations
+- [x] cavity_re100/20x20/central: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/linear_upwind: solve_accepted: Converged after 3091 iterations
+- [x] cavity_re100/20x20/linear_upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/quick: solve_accepted: Converged after 3083 iterations
+- [x] cavity_re100/20x20/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/20x20/quick: bounded: max |U| 0.839325 vs lid speed 1
+- [x] cavity_re100/40x40/upwind: solve_accepted: Converged after 5615 iterations
+- [x] cavity_re100/40x40/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/upwind: bounded: max |U| 0.917779 vs lid speed 1
+- [x] cavity_re100/40x40/central: solve_accepted: Converged after 5479 iterations
+- [x] cavity_re100/40x40/central: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/linear_upwind: solve_accepted: Converged after 5517 iterations
+- [x] cavity_re100/40x40/linear_upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/quick: solve_accepted: Converged after 5500 iterations
+- [x] cavity_re100/40x40/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/40x40/quick: bounded: max |U| 0.923609 vs lid speed 1
+- [x] cavity_re100/80x80/upwind: solve_accepted: Converged after 9643 iterations
+- [x] cavity_re100/80x80/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/upwind: bounded: max |U| 0.960425 vs lid speed 1
+- [x] cavity_re100/80x80/central: solve_accepted: Converged after 9507 iterations
+- [x] cavity_re100/80x80/central: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/linear_upwind: solve_accepted: Converged after 9083 iterations
+- [x] cavity_re100/80x80/linear_upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/quick: solve_accepted: Converged after 9258 iterations
+- [x] cavity_re100/80x80/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re100/80x80/quick: bounded: max |U| 0.961956 vs lid speed 1
+- [x] cavity_re1000/40x40/upwind: solve_accepted: Converged after 4691 iterations
+- [x] cavity_re1000/40x40/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/40x40/upwind: bounded: max |U| 0.786494 vs lid speed 1
+- [x] cavity_re1000/40x40/central: solve_accepted: Converged after 3389 iterations
+- [x] cavity_re1000/40x40/central: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/40x40/linear_upwind: solve_accepted: Converged after 3614 iterations
+- [x] cavity_re1000/40x40/linear_upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/40x40/quick: solve_accepted: Converged after 3582 iterations
+- [x] cavity_re1000/40x40/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/40x40/quick: bounded: max |U| 0.808984 vs lid speed 1
+- [x] cavity_re1000/80x80/upwind: solve_accepted: Converged after 6547 iterations
+- [x] cavity_re1000/80x80/upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/80x80/upwind: bounded: max |U| 0.902085 vs lid speed 1
+- [x] cavity_re1000/80x80/central: solve_accepted: Converged after 4637 iterations
+- [x] cavity_re1000/80x80/central: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/80x80/linear_upwind: solve_accepted: Converged after 4105 iterations
+- [x] cavity_re1000/80x80/linear_upwind: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/80x80/quick: solve_accepted: Converged after 4289 iterations
+- [x] cavity_re1000/80x80/quick: wall_normal_flux: max |mass flux| through the walls 0 (bound 1e-6)
+- [x] cavity_re1000/80x80/quick: bounded: max |U| 0.911642 vs lid speed 1
+- [x] re100_20x20_central_below_upwind_u_centerline: 0.006256 < upwind 0.021050
+- [x] re100_20x20_linear_upwind_below_upwind_u_centerline: 0.005547 < upwind 0.021050
+- [x] re100_20x20_quick_below_upwind_u_centerline: 0.005690 < upwind 0.021050
+- [x] re100_20x20_central_below_upwind_v_centerline: 0.005635 < upwind 0.014460
+- [x] re100_20x20_linear_upwind_below_upwind_v_centerline: 0.004502 < upwind 0.014460
+- [x] re100_20x20_quick_below_upwind_v_centerline: 0.004824 < upwind 0.014460
+- [x] re1000_40x40_central_below_upwind_u_centerline: 0.049915 < upwind 0.085459
+- [x] re1000_40x40_linear_upwind_below_upwind_u_centerline: 0.056487 < upwind 0.085459
+- [x] re1000_40x40_quick_below_upwind_u_centerline: 0.054440 < upwind 0.085459
+- [x] re1000_40x40_central_below_upwind_v_centerline: 0.050319 < upwind 0.108243
+- [x] re1000_40x40_linear_upwind_below_upwind_v_centerline: 0.052075 < upwind 0.108243
+- [x] re1000_40x40_quick_below_upwind_v_centerline: 0.051738 < upwind 0.108243
+- [x] re1000_80x80_central_below_upwind_u_centerline: 0.009086 < upwind 0.051644
+- [x] re1000_80x80_linear_upwind_below_upwind_u_centerline: 0.010172 < upwind 0.051644
+- [x] re1000_80x80_quick_below_upwind_u_centerline: 0.009591 < upwind 0.051644
+- [x] re1000_80x80_central_below_upwind_v_centerline: 0.006926 < upwind 0.062553
+- [x] re1000_80x80_linear_upwind_below_upwind_v_centerline: 0.008567 < upwind 0.062553
+- [x] re1000_80x80_quick_below_upwind_v_centerline: 0.007626 < upwind 0.062553
+
+Limitations:
+
+- At Re = 100 beyond 40x40 the second-order-type schemes reach the Ghia comparison floor (~2e-3 u, ~4.4e-3 v); there v can be further from Ghia than first-order upwind's error -- an artefact of comparing against a numerical benchmark, not a scheme defect.
+- central and linear_upwind are unbounded schemes: boundedness is recorded (max_velocity_magnitude), not required.
+- Runtimes: Release build, runs sequential in one process on an otherwise idle machine (see summary.md); wall-clock, not deterministic.
+
+Overall: PASSED
+
+[       OK ] SchemeValidation.DISABLED_AccuracyCostComparisonFull (1604784 ms)
+[----------] 1 test from SchemeValidation (1604784 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1604785 ms total)
+[  PASSED  ] 1 test.
+
+################ channel_study.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = TurbulentChannelValidation.DISABLED_Study
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from TurbulentChannelValidation
+[ RUN      ] TurbulentChannelValidation.DISABLED_Study
+turbulent_channel_re_tau_180_kEpsilon/coarse/upwind: Re_tau 111.43 (balance 448.37), Cf 3.1673e-03 (balance 5.1284e-02, ref 8.2e-3), log-law L2 15.451 (balance u_tau 11.349), 3.0 s
+turbulent_channel_re_tau_180_kEpsilon/medium/upwind: Re_tau 121.02 (balance 425.26), Cf 3.7360e-03 (balance 4.6134e-02, ref 8.2e-3), log-law L2 11.985 (balance u_tau 10.846), 6.1 s
+turbulent_channel_re_tau_180_kEpsilon/fine/upwind: Re_tau 136.41 (balance 396.19), Cf 4.7468e-03 (balance 4.0043e-02, ref 8.2e-3), log-law L2 8.368 (balance u_tau 10.181), 17.9 s
+turbulent_channel_re_tau_180_kOmega/coarse/upwind: Re_tau 108.15 (balance 426.16), Cf 2.9838e-03 (balance 4.6330e-02, ref 8.2e-3), log-law L2 16.400 (balance u_tau 10.902), 5.6 s
+turbulent_channel_re_tau_180_kOmega/medium/upwind: Re_tau 115.12 (balance 391.51), Cf 3.3806e-03 (balance 3.9103e-02, ref 8.2e-3), log-law L2 13.534 (balance u_tau 9.993), 10.3 s
+turbulent_channel_re_tau_180_kOmega/fine/upwind: Re_tau 126.41 (balance 354.22), Cf 4.0766e-03 (balance 3.2009e-02, ref 8.2e-3), log-law L2 10.479 (balance u_tau 8.994), 27.4 s
+turbulent_channel_re_tau_180_SST/coarse/upwind: Re_tau 116.27 (balance 316.39), Cf 3.4484e-03 (balance 2.5536e-02, ref 8.2e-3), log-law L2 13.070 (balance u_tau 7.592), 9.4 s
+turbulent_channel_re_tau_180_SST/medium/upwind: Re_tau 131.71 (balance 256.71), Cf 4.4253e-03 (balance 1.6811e-02, ref 8.2e-3), log-law L2 8.624 (balance u_tau 4.990), 16.6 s
+turbulent_channel_re_tau_180_SST/fine/upwind: Re_tau 160.66 (balance 204.42), Cf 6.5848e-03 (balance 1.0660e-02, ref 8.2e-3), log-law L2 3.165 (balance u_tau 1.599), 45.4 s
+[       OK ] TurbulentChannelValidation.DISABLED_Study (141670 ms)
+[----------] 1 test from TurbulentChannelValidation (141671 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (141673 ms total)
+[  PASSED  ] 1 test.
+
+################ bfs_converges.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BackwardFacingStep.DISABLED_Converges
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BackwardFacingStep
+[ RUN      ] BackwardFacingStep.DISABLED_Converges
+backward_facing_step_re100/100x10/quick: Converged, 16451 it, 203.5 s, reattachment_length_over_h 2.9650
+[       OK ] BackwardFacingStep.DISABLED_Converges (203550 ms)
+[----------] 1 test from BackwardFacingStep (203551 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (203554 ms total)
+[  PASSED  ] 1 test.
+
+################ bfs_mass.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BackwardFacingStep.DISABLED_MassConservation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BackwardFacingStep
+[ RUN      ] BackwardFacingStep.DISABLED_MassConservation
+[       OK ] BackwardFacingStep.DISABLED_MassConservation (206682 ms)
+[----------] 1 test from BackwardFacingStep (206683 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (206685 ms total)
+[  PASSED  ] 1 test.
+
+################ bfs_reattachment.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BackwardFacingStep.DISABLED_ReattachmentLength
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BackwardFacingStep
+[ RUN      ] BackwardFacingStep.DISABLED_ReattachmentLength
+backward_facing_step_re800/300x20/quick: Converged, 4739 it, 938.3 s, reattachment_length_over_h 10.0852, corner_eddy_end_over_h 0.1703, upper_separation_over_h 7.6699, upper_reattachment_over_h 19.8124, upper_bubble_length_over_h 12.1425
+backward_facing_step_re800/450x30/quick: Converged, 3840 it, 1954.7 s, reattachment_length_over_h 11.4045, corner_eddy_end_over_h 0.1387, upper_separation_over_h 8.9256, upper_reattachment_over_h 20.7890, upper_bubble_length_over_h 11.8634
+backward_facing_step_re800/600x40/quick: Converged, 10711 it, 8808.8 s, reattachment_length_over_h 11.7798, corner_eddy_end_over_h 0.1794, upper_separation_over_h 9.2993, upper_reattachment_over_h 20.9252, upper_bubble_length_over_h 11.6259
+backward_facing_step_re100/300x20/quick: Converged, 2373 it, 153.1 s, reattachment_length_over_h 3.1887, corner_eddy_end_over_h 0.0670
+
+### Validation: backward_facing_step
+
+Laminar backward-facing step (Gartling 1990, ER = 2): Re = 800 on 20/30/40 cells per H, L = 15H, QUICK; Re = 100 on 20 cells per H
+
+Reference: Re = 800: published 2D numerical x_r/h in [11.48, 12.20] and (x_rs - x_s)/h in [10.60, 11.52] (ten studies, compiled in arXiv:2507.16509 Table 2; Gartling (1990) Int. J. Numer. Meth. Fluids 11, 953-967: x_r/h = 12.20). Re = 100: x_r/h = 3.00 (arXiv:2507.16509 Table 1, single source, context only)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| backward_facing_step_re800/300x20/quick | 800 | 300x20 | quick | Converged | 4739 | 520468 / 2291284 | 1.07e-13 | 938.3 | yes |
+| backward_facing_step_re800/450x30/quick | 800 | 450x30 | quick | Converged | 3840 | 460967 / 2977681 | 5.43e-13 | 1954.7 | yes |
+| backward_facing_step_re800/600x40/quick | 800 | 600x40 | quick | Converged | 10711 | 1111429 / 11188433 | 8.36e-13 | 8808.8 | yes |
+| backward_facing_step_re100/300x20/quick | 100 | 300x20 | quick | Converged | 2373 | 66985 / 761960 | 2.68e-13 | 153.1 | yes |
+
+### Grid convergence: backward_facing_step_re800
+
+Re = 800, QUICK, 20/30/40 cells per H
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 300x20 | 300 x 20 | 6000 | 0.05 | 938.3 | Converged (4739 it) | yes |
+| 450x30 | 450 x 30 | 13500 | 0.0333333 | 1954.7 | Converged (3840 it) | yes |
+| 600x40 | 600 x 40 | 24000 | 0.025 | 8808.8 | Converged (10711 it) | yes |
+
+**reattachment_length_over_h** -- x_r/h, lower-wall primary eddy (published range [11.48, 12.20])
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 10.085191 | 11.84 (benchmark) | -1.755 | 0.1482 |
+| medium | 11.404549 | 11.84 (benchmark) | -0.4355 | 0.03678 |
+| fine | 11.779801 | 11.84 (benchmark) | -0.0602 | 0.005084 |
+| extrapolated | 12.121979 | | 0.282 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | 2.5735 | 2 | 12.121979 | 0.4277 | 0.03631 | 0.07863 | 1.2306 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.57347 (formal 2); asymptotic ratio 1.23058 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**upper_bubble_length_over_h** -- (x_rs - x_s)/h, upper-wall bubble (published range [10.60, 11.52])
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 12.142455 | 11.06 (benchmark) | 1.082 | 0.09787 |
+| medium | 11.863363 | 11.06 (benchmark) | 0.8034 | 0.07264 |
+| fine | 11.625881 | 11.06 (benchmark) | 0.5659 | 0.05116 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | -- | 2 | -- | -- | -- | -- | -- | divergent | no |
+
+- monotonic but the differences do not shrink fast enough for a positive order (epsilon32/epsilon21 = 1.17521 <= ln r32 / ln r21 = 1.40942)
+- grid independence: divergent sequence: monotonic but the differences do not shrink fast enough for a positive order (epsilon32/epsilon21 = 1.17521 <= ln r32 / ln r21 = 1.40942)
+
+
+- [x] backward_facing_step_re800/300x20/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/300x20/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.31e-13 (bound 1e-6)
+- [x] backward_facing_step_re800/300x20/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/300x20/quick: reattachment_detected: x_r/h = 10.0852
+- [x] backward_facing_step_re800/450x30/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/450x30/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 1.08e-12 (bound 1e-6)
+- [x] backward_facing_step_re800/450x30/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/450x30/quick: reattachment_detected: x_r/h = 11.4045
+- [x] backward_facing_step_re800/600x40/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/600x40/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 8.36e-13 (bound 1e-6)
+- [x] backward_facing_step_re800/600x40/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/600x40/quick: reattachment_detected: x_r/h = 11.7798
+- [x] backward_facing_step_re100/300x20/quick: solve_accepted: Converged
+- [x] backward_facing_step_re100/300x20/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.68e-13 (bound 1e-6)
+- [x] backward_facing_step_re100/300x20/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re100/300x20/quick: reattachment_detected: x_r/h = 3.1887
+- [x] reattachment_length_over_h_within_published_range: finest-grid 11.7798 vs published [11.48, 12.20] (status monotonic_not_asymptotic)
+- [ ] upper_bubble_length_over_h_within_published_range: finest-grid 11.6259 vs published [10.60, 11.52] (status divergent)
+
+Limitations:
+
+- Re = 100 (20 cells/H): x_r/h = 3.1887 vs 3.00 in arXiv:2507.16509 Table 1 (single source with an upstream inlet section; reported, not gated)
+- Uniform Cartesian grids only (no clustering at the step corner or walls); the finest grid here has 40 cells per H.
+- Collocated SIMPLE without Rhie-Chow interpolation; the pressure field is not validated.
+- Reattachment from the wall-adjacent cell velocity (first-order one-sided wall shear): the zero crossing itself is independent of that approximation's magnitude error.
+- Runtimes are wall-clock and not deterministic.
+
+Overall: FAILED
+
+<repo>/tests/integration/backward_facing_step/test_backward_facing_step.cpp:309: Failure
+Value of: gate.passed
+  Actual: false
+Expected: true
+upper_bubble_length_over_h_within_published_range: finest-grid 11.6259 vs published [10.60, 11.52] (status divergent)
+
+[  FAILED  ] BackwardFacingStep.DISABLED_ReattachmentLength (11854951 ms)
+[----------] 1 test from BackwardFacingStep (11854951 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (11854953 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] BackwardFacingStep.DISABLED_ReattachmentLength
+
+ 1 FAILED TEST
+
+################ cavity_Re100Grid40.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re100Grid40
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re100Grid40
+cavity_re100/40x40/quick: Converged, 5500 iterations, 53.5 s
+  u_centerline: L1 1.0455e-03  L2 1.4519e-03  Linf 4.6064e-03
+  v_centerline: L1 2.4766e-03  L2 2.9903e-03  Linf 6.5190e-03
+[       OK ] CavityGhiaValidation.DISABLED_Re100Grid40 (53553 ms)
+[----------] 1 test from CavityGhiaValidation (53554 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (53556 ms total)
+[  PASSED  ] 1 test.
+
+################ cavity_Re100Grid80.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re100Grid80
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re100Grid80
+cavity_re100/80x80/quick: Converged, 9258 iterations, 310.3 s
+  u_centerline: L1 1.5255e-03  L2 2.0904e-03  Linf 5.0344e-03
+  v_centerline: L1 3.8586e-03  L2 4.5102e-03  Linf 8.7131e-03
+[       OK ] CavityGhiaValidation.DISABLED_Re100Grid80 (310322 ms)
+[----------] 1 test from CavityGhiaValidation (310324 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (310326 ms total)
+[  PASSED  ] 1 test.
+
+################ cavity_Re100Grid160.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re100Grid160
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re100Grid160
+cavity_re100/160x160/quick: Converged, 5084 iterations, 1000.7 s
+  u_centerline: L1 1.5899e-03  L2 2.1526e-03  Linf 4.4610e-03
+  v_centerline: L1 3.6932e-03  L2 4.3661e-03  Linf 8.6666e-03
+[       OK ] CavityGhiaValidation.DISABLED_Re100Grid160 (1000751 ms)
+[----------] 1 test from CavityGhiaValidation (1000752 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1000754 ms total)
+[  PASSED  ] 1 test.
+
+################ cavity_Re1000Grid40.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re1000Grid40
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re1000Grid40
+cavity_re1000/40x40/quick: Converged, 3582 iterations, 40.6 s
+  u_centerline: L1 3.7027e-02  L2 5.4440e-02  Linf 1.1275e-01
+  v_centerline: L1 3.9242e-02  L2 5.1738e-02  Linf 1.0454e-01
+[       OK ] CavityGhiaValidation.DISABLED_Re1000Grid40 (40631 ms)
+[----------] 1 test from CavityGhiaValidation (40632 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (40633 ms total)
+[  PASSED  ] 1 test.
+
+################ cavity_Re1000Grid80.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re1000Grid80
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re1000Grid80
+cavity_re1000/80x80/quick: Converged, 4289 iterations, 176.8 s
+  u_centerline: L1 6.4485e-03  L2 9.5906e-03  Linf 1.9936e-02
+  v_centerline: L1 4.6408e-03  L2 7.6264e-03  Linf 1.6652e-02
+[       OK ] CavityGhiaValidation.DISABLED_Re1000Grid80 (176844 ms)
+[----------] 1 test from CavityGhiaValidation (176846 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (176847 ms total)
+[  PASSED  ] 1 test.
+
+################ cavity_Re1000Grid160.log
+Running main() from <repo>/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_Re1000Grid160
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_Re1000Grid160
+cavity_re1000/160x160/quick: Converged, 2748 iterations, 619.6 s
+  u_centerline: L1 2.0263e-03  L2 2.5192e-03  Linf 4.0764e-03
+  v_centerline: L1 3.9562e-03  L2 5.4121e-03  Linf 1.0725e-02
+[       OK ] CavityGhiaValidation.DISABLED_Re1000Grid160 (619684 ms)
+[----------] 1 test from CavityGhiaValidation (619686 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (619688 ms total)
+[  PASSED  ] 1 test.
+
+################################################################
+# P12-NUM-007 follow-up (2026-09-14): BFS Re = 800 at 50 cells/H -- pure grid refinement
+# Driver bfs50.cpp linked against the UNCHANGED Release object
+#   build/release/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/BackwardFacingStepCase.cpp.o
+# and build/release/src/libcfdcore.a (build verified up to date: 'ninja: no work to do').
+# Run alone on a P-core (WSL load 1.0); no repository source changed.
+
+################ run50.meta
+start 2026-09-14T17:10:51+10:00 load 0.12 0.21 0.58 1/538 60129
+end 2026-09-14T19:35:12+10:00
+
+################ run50.log (50 cells/H)
+backward_facing_step_re800/750x50/quick: Converged, accepted 1, 5410 it, 8596.2 s, mass imbalance 6.9e-13
+  momentum_linear_iterations = 498226
+  pressure_linear_iterations = 7419652
+  linear_solver_fallbacks = 1886
+  final_u_residual = 9.822550711e-07
+  final_v_residual = 8.053863416e-07
+  final_pressure_residual = 6.972153973e-07
+  final_continuity_residual = 5.049502981e-15
+  inflow = 0.5
+  outflow = 0.5
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  max_flow_error = 8.471001678e-13
+  max_wall_normal_flux = 0
+  reattachment_length_over_h = 11.93230406
+  corner_eddy_end_over_h = 0.1622714735
+  upper_separation_over_h = 9.451105814
+  upper_reattachment_over_h = 20.95692593
+  upper_bubble_length_over_h = 11.50582012
+  bottom_shear_zero_crossings = 3
+  top_shear_zero_crossings = 2
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 8.47e-13 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 11.9323
+
+################ run20_repro.log (reproduction check; identical to the recorded 20 cells/H run in all 22 diagnostics, iterations, mass imbalance, checks)
+backward_facing_step_re800/300x20/quick: Converged, accepted 1, 4739 it, 553.4 s, mass imbalance 1.07e-13
+  momentum_linear_iterations = 520468
+  pressure_linear_iterations = 2291284
+  linear_solver_fallbacks = 1315
+  final_u_residual = 3.792855897e-08
+  final_v_residual = 3.065561179e-08
+  final_pressure_residual = 9.999224712e-07
+  final_continuity_residual = 1.17243072e-14
+  inflow = 0.5
+  outflow = 0.5
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  max_flow_error = 2.314259895e-13
+  max_wall_normal_flux = 0
+  reattachment_length_over_h = 10.08519117
+  corner_eddy_end_over_h = 0.1703377823
+  upper_separation_over_h = 7.669936466
+  upper_reattachment_over_h = 19.81239148
+  upper_bubble_length_over_h = 12.14245501
+  bottom_shear_zero_crossings = 3
+  top_shear_zero_crossings = 2
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.31e-13 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 10.0852
+
+################ combine log (backward_facing_step.json = recorded 20/30/40 + Re100 runs + the 50 cells/H run)
+backward_facing_step_re800/300x20/quick: Converged, accepted 1, 4739 it, 938.3 s, mass imbalance 1.07e-13
+  bottom_shear_zero_crossings = 3
+  corner_eddy_end_over_h = 0.1703377823
+  final_continuity_residual = 1.17243072e-14
+  final_pressure_residual = 9.999224712e-07
+  final_u_residual = 3.792855897e-08
+  final_v_residual = 3.065561179e-08
+  inflow = 0.5
+  linear_solver_fallbacks = 1315
+  max_flow_error = 2.314259895e-13
+  max_wall_normal_flux = 0
+  momentum_linear_iterations = 520468
+  outflow = 0.5
+  pressure_linear_iterations = 2291284
+  reattachment_length_over_h = 10.08519117
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  top_shear_zero_crossings = 2
+  upper_bubble_length_over_h = 12.14245501
+  upper_reattachment_over_h = 19.81239148
+  upper_separation_over_h = 7.669936466
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.31e-13 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 10.0852
+backward_facing_step_re800/450x30/quick: Converged, accepted 1, 3840 it, 1954.7 s, mass imbalance 5.43e-13
+  bottom_shear_zero_crossings = 3
+  corner_eddy_end_over_h = 0.1386560462
+  final_continuity_residual = 8.551394436e-15
+  final_pressure_residual = 9.957775734e-07
+  final_u_residual = 9.599382209e-07
+  final_v_residual = 8.541410528e-07
+  inflow = 0.5
+  linear_solver_fallbacks = 390
+  max_flow_error = 1.080802114e-12
+  max_wall_normal_flux = 0
+  momentum_linear_iterations = 460967
+  outflow = 0.5
+  pressure_linear_iterations = 2977681
+  reattachment_length_over_h = 11.40454929
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  top_shear_zero_crossings = 2
+  upper_bubble_length_over_h = 11.86336341
+  upper_reattachment_over_h = 20.78897787
+  upper_separation_over_h = 8.925614463
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 1.08e-12 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 11.4045
+backward_facing_step_re800/600x40/quick: Converged, accepted 1, 10711 it, 8808.8 s, mass imbalance 8.36e-13
+  bottom_shear_zero_crossings = 3
+  corner_eddy_end_over_h = 0.1793996615
+  final_continuity_residual = 6.197026519e-15
+  final_pressure_residual = 6.577073164e-07
+  final_u_residual = 9.752712531e-07
+  final_v_residual = 9.330409675e-07
+  inflow = 0.5
+  linear_solver_fallbacks = 2191
+  max_flow_error = 8.356648706e-13
+  max_wall_normal_flux = 0
+  momentum_linear_iterations = 1111429
+  outflow = 0.5
+  pressure_linear_iterations = 11188433
+  reattachment_length_over_h = 11.77980063
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  top_shear_zero_crossings = 2
+  upper_bubble_length_over_h = 11.62588116
+  upper_reattachment_over_h = 20.92516384
+  upper_separation_over_h = 9.299282682
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 8.36e-13 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 11.7798
+backward_facing_step_re800/750x50/quick: Converged, accepted 1, 5410 it, 8596.2 s, mass imbalance 6.9e-13
+  bottom_shear_zero_crossings = 3
+  corner_eddy_end_over_h = 0.1622714735
+  final_continuity_residual = 5.049502981e-15
+  final_pressure_residual = 6.972153973e-07
+  final_u_residual = 9.822550711e-07
+  final_v_residual = 8.053863416e-07
+  inflow = 0.5
+  linear_solver_fallbacks = 1886
+  max_flow_error = 8.471001678e-13
+  max_wall_normal_flux = 0
+  momentum_linear_iterations = 498226
+  outflow = 0.5
+  pressure_linear_iterations = 7419652
+  reattachment_length_over_h = 11.93230406
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  top_shear_zero_crossings = 2
+  upper_bubble_length_over_h = 11.50582012
+  upper_reattachment_over_h = 20.95692593
+  upper_separation_over_h = 9.451105814
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 8.47e-13 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 11.9323
+backward_facing_step_re100/300x20/quick: Converged, accepted 1, 2373 it, 153.1 s, mass imbalance 2.68e-13
+  bottom_shear_zero_crossings = 2
+  corner_eddy_end_over_h = 0.06698456239
+  final_continuity_residual = 1.259348608e-14
+  final_pressure_residual = 9.993521921e-07
+  final_u_residual = 2.479759615e-08
+  final_v_residual = 4.562648274e-08
+  inflow = 0.5
+  linear_solver_fallbacks = 647
+  max_flow_error = 2.683409051e-13
+  max_wall_normal_flux = 0
+  momentum_linear_iterations = 66985
+  outflow = 0.5
+  pressure_linear_iterations = 761960
+  reattachment_length_over_h = 3.188682781
+  section_flow_x0.10L = 0.5
+  section_flow_x0.25L = 0.5
+  section_flow_x0.50L = 0.5
+  section_flow_x0.75L = 0.5
+  top_shear_zero_crossings = 0
+  [x] solve_accepted: Converged
+  [x] mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.68e-13 (bound 1e-6)
+  [x] wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+  [x] reattachment_detected: x_r/h = 3.1887
+
+### Validation: backward_facing_step
+
+Laminar backward-facing step (Gartling 1990, ER = 2): Re = 800 on 20/30/40/50 cells per H, L = 15H, QUICK; Re = 100 on 20 cells per H
+
+Reference: Re = 800: published 2D numerical x_r/h in [11.48, 12.20] and (x_rs - x_s)/h in [10.60, 11.52] (ten studies, compiled in arXiv:2507.16509 Table 2; Gartling (1990) Int. J. Numer. Meth. Fluids 11, 953-967: x_r/h = 12.20). Re = 100: x_r/h = 3.00 (arXiv:2507.16509 Table 1, single source, context only)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| backward_facing_step_re800/300x20/quick | 800 | 300x20 | quick | Converged | 4739 | 520468 / 2291284 | 1.07e-13 | 938.3 | yes |
+| backward_facing_step_re800/450x30/quick | 800 | 450x30 | quick | Converged | 3840 | 460967 / 2977681 | 5.43e-13 | 1954.7 | yes |
+| backward_facing_step_re800/600x40/quick | 800 | 600x40 | quick | Converged | 10711 | 1111429 / 11188433 | 8.36e-13 | 8808.8 | yes |
+| backward_facing_step_re800/750x50/quick | 800 | 750x50 | quick | Converged | 5410 | 498226 / 7419652 | 6.9e-13 | 8596.2 | yes |
+| backward_facing_step_re100/300x20/quick | 100 | 300x20 | quick | Converged | 2373 | 66985 / 761960 | 2.68e-13 | 153.1 | yes |
+
+### Grid convergence: backward_facing_step_re800_20_30_40
+
+Re = 800, QUICK, 20/30/40 cells per H
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 300x20 | 300 x 20 | 6000 | 0.05 | 938.3 | Converged (4739 it) | yes |
+| 450x30 | 450 x 30 | 13500 | 0.0333333 | 1954.7 | Converged (3840 it) | yes |
+| 600x40 | 600 x 40 | 24000 | 0.025 | 8808.8 | Converged (10711 it) | yes |
+
+**reattachment_length_over_h** -- x_r/h, lower-wall primary eddy (published range [11.48, 12.20])
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 10.085191 | 11.84 (benchmark) | -1.755 | 0.1482 |
+| medium | 11.404549 | 11.84 (benchmark) | -0.4355 | 0.03678 |
+| fine | 11.779801 | 11.84 (benchmark) | -0.0602 | 0.005084 |
+| extrapolated | 12.121979 | | 0.282 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | 2.5735 | 2 | 12.121979 | 0.4277 | 0.03631 | 0.07863 | 1.2306 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.57347 (formal 2); asymptotic ratio 1.23058 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**upper_bubble_length_over_h** -- (x_rs - x_s)/h, upper-wall bubble (published range [10.60, 11.52])
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 12.142455 | 11.06 (benchmark) | 1.082 | 0.09787 |
+| medium | 11.863363 | 11.06 (benchmark) | 0.8034 | 0.07264 |
+| fine | 11.625881 | 11.06 (benchmark) | 0.5659 | 0.05116 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | -- | 2 | -- | -- | -- | -- | -- | divergent | no |
+
+- monotonic but the differences do not shrink fast enough for a positive order (epsilon32/epsilon21 = 1.17521 <= ln r32 / ln r21 = 1.40942)
+- grid independence: divergent sequence: monotonic but the differences do not shrink fast enough for a positive order (epsilon32/epsilon21 = 1.17521 <= ln r32 / ln r21 = 1.40942)
+
+**upper_separation_over_h** -- x_s/h, upper-wall separation (reported)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 7.6699365 | -- | -- | -- |
+| medium | 8.9256145 | -- | -- | -- |
+| fine | 9.2992827 | -- | -- | -- |
+| extrapolated | 9.6646015 | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | 2.4489 | 2 | 9.6646015 | 0.4566 | 0.04911 | 0.1035 | 1.1761 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.44892 (formal 2); asymptotic ratio 1.17614 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**upper_reattachment_over_h** -- x_rs/h, upper-wall reattachment (reported)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 19.812391 | -- | -- | -- |
+| medium | 20.788978 | -- | -- | -- |
+| fine | 20.925164 | -- | -- | -- |
+| extrapolated | 20.976506 | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | 4.5029 | 2 | 20.976506 | 0.06418 | 0.003067 | 0.01128 | 2.5098 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 4.50295 (formal 2); asymptotic ratio 2.50984 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+
+### Grid convergence: backward_facing_step_re800_30_40_50
+
+Re = 800, QUICK, 30/40/50 cells per H
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 450x30 | 450 x 30 | 13500 | 0.0333333 | 1954.7 | Converged (3840 it) | yes |
+| 600x40 | 600 x 40 | 24000 | 0.025 | 8808.8 | Converged (10711 it) | yes |
+| 750x50 | 750 x 50 | 37500 | 0.02 | 8596.2 | Converged (5410 it) | yes |
+
+**reattachment_length_over_h** -- x_r/h, lower-wall primary eddy (published range [11.48, 12.20])
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 11.404549 | 11.84 (benchmark) | -0.4355 | 0.03678 |
+| medium | 11.779801 | 11.84 (benchmark) | -0.0602 | 0.005084 |
+| fine | 11.932304 | 11.84 (benchmark) | 0.0923 | 0.007796 |
+| extrapolated | 12.136759 | | 0.2968 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.25 | 1.333 | 2.4974 | 2 | 12.136759 | 0.2556 | 0.02142 | 0.03788 | 1.1389 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.49737 (formal 2); asymptotic ratio 1.13891 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+- warning: refinement ratio below 1.3 (Celik et al. recommend r > 1.3)
+
+**upper_bubble_length_over_h** -- (x_rs - x_s)/h, upper-wall bubble (published range [10.60, 11.52])
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 11.863363 | 11.06 (benchmark) | 0.8034 | 0.07264 |
+| medium | 11.625881 | 11.06 (benchmark) | 0.5659 | 0.05116 |
+| fine | 11.50582 | 11.06 (benchmark) | 0.4458 | 0.04031 |
+| extrapolated | 11.238247 | | 0.1782 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.25 | 1.333 | 1.6611 | 2 | 11.238247 | 0.3345 | 0.02907 | 0.04168 | 0.9155 | asymptotic | no |
+
+- monotonic convergence, observed order 1.66113 (formal 2); asymptotic ratio 0.915537 within 1 +/- 0.1
+- grid independence: GCI21 0.0290693 > threshold 0.01
+- warning: refinement ratio below 1.3 (Celik et al. recommend r > 1.3)
+
+**upper_separation_over_h** -- x_s/h, upper-wall separation (reported)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 8.9256145 | -- | -- | -- |
+| medium | 9.2992827 | -- | -- | -- |
+| fine | 9.4511058 | -- | -- | -- |
+| extrapolated | 9.6545503 | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.25 | 1.333 | 2.4983 | 2 | 9.6545503 | 0.2543 | 0.02691 | 0.04775 | 1.1392 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 2.49829 (formal 2); asymptotic ratio 1.13919 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+- warning: refinement ratio below 1.3 (Celik et al. recommend r > 1.3)
+
+**upper_reattachment_over_h** -- x_rs/h, upper-wall reattachment (reported)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 20.788978 | -- | -- | -- |
+| medium | 20.925164 | -- | -- | -- |
+| fine | 20.956926 | -- | -- | -- |
+| extrapolated | 20.974696 | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.25 | 1.333 | 4.5940 | 2 | 20.974696 | 0.02221 | 0.00106 | 0.002959 | 1.9846 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 4.59401 (formal 2); asymptotic ratio 1.98459 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+- warning: refinement ratio below 1.3 (Celik et al. recommend r > 1.3)
+
+
+- [x] backward_facing_step_re800/300x20/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/300x20/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.31e-13 (bound 1e-6)
+- [x] backward_facing_step_re800/300x20/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/300x20/quick: reattachment_detected: x_r/h = 10.0852
+- [x] backward_facing_step_re800/450x30/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/450x30/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 1.08e-12 (bound 1e-6)
+- [x] backward_facing_step_re800/450x30/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/450x30/quick: reattachment_detected: x_r/h = 11.4045
+- [x] backward_facing_step_re800/600x40/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/600x40/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 8.36e-13 (bound 1e-6)
+- [x] backward_facing_step_re800/600x40/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/600x40/quick: reattachment_detected: x_r/h = 11.7798
+- [x] backward_facing_step_re800/750x50/quick: solve_accepted: Converged
+- [x] backward_facing_step_re800/750x50/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 8.47e-13 (bound 1e-6)
+- [x] backward_facing_step_re800/750x50/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re800/750x50/quick: reattachment_detected: x_r/h = 11.9323
+- [x] backward_facing_step_re100/300x20/quick: solve_accepted: Converged
+- [x] backward_facing_step_re100/300x20/quick: mass_flow: max |Q - 0.5| over inflow, outflow and 4 sections 2.68e-13 (bound 1e-6)
+- [x] backward_facing_step_re100/300x20/quick: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] backward_facing_step_re100/300x20/quick: reattachment_detected: x_r/h = 3.1887
+- [x] reattachment_length_over_h_within_published_range: finest-grid (50 cells/H) 11.9323 vs published [11.48, 12.20] (30/40/50 status monotonic_not_asymptotic)
+- [x] upper_bubble_length_over_h_within_published_range: Richardson-extrapolated 11.2382 vs published [10.60, 11.52] (30/40/50 status asymptotic)
+
+Limitations:
+
+- Re = 100 (20 cells/H): x_r/h = 3.1887 vs 3.00 in arXiv:2507.16509 Table 1 (single source with an upstream inlet section; reported, not gated)
+- Uniform Cartesian grids only (no clustering at the step corner or walls); the finest grid here has 50 cells per H.
+- Collocated SIMPLE without Rhie-Chow interpolation; the pressure field is not validated.
+- Reattachment from the wall-adjacent cell velocity (first-order one-sided wall shear): the zero crossing itself is independent of that approximation's magnitude error.
+- Runtimes are wall-clock and not deterministic.
+
+Overall: PASSED
+
+
+################ BFS focused tests (build/debug)
+ninja: no work to do.
+4/5 Test #1635: BackwardFacingStep.Geometry ................   Passed    0.04 sec
+5/5 Test #1636: BackwardFacingStep.ReattachmentDetection ...   Passed    0.03 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Label Time Summary:
+validation    =   0.07 sec*proc (5 tests)
+
+Total Test time (real) =   1.88 sec
+
+The following tests did not run:
+	1637 - BackwardFacingStep.Converges (Disabled)
+	1638 - BackwardFacingStep.MassConservation (Disabled)
+	1639 - BackwardFacingStep.ReattachmentLength (Disabled)
+
+################ driver source: bfs50.cpp
+// P12-NUM-007 follow-up: the Gartling Re = 800 backward-facing step at 50
+// cells per H with EXACTLY the existing implementation -- this driver links
+// the unchanged Release object of tests/integration/backward_facing_step/
+// BackwardFacingStepCase.cpp and calls step::runStep({800, 50, 15}) (same
+// Re, geometry, inlet, L = 15H, BCs, QUICK, SIMPLE settings, tolerances and
+// extraction as BackwardFacingStep.DISABLED_ReattachmentLength). No
+// repository source is changed.
+//
+//   bfs50 run <single-run.json>
+//       solve 50 cells/H, write a single-run ValidationReport.
+//   bfs50 combine <existing report.json> <single-run.json> <out stem>
+//       rebuild the recorded 20/30/40 (+ Re = 100) runs from the existing
+//       report, insert the 50 cells/H run, re-analyse grid convergence with
+//       the NUM-005 library on (20,30,40) and (30,40,50), apply the same gate
+//       rule as the test (Richardson value if the finest triplet is
+//       asymptotic, else the finest-grid value) on the finest triplet, and
+//       write <out stem>.json / .md.
+#include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
+
+#include "BackwardFacingStepCase.hpp"
+#include "cfd/validation/GridConvergenceStudy.hpp"
+#include "cfd/validation/ProductionValidation.hpp"
+
+using cfd::Real;
+namespace v = cfd::validation;
+using Json = nlohmann::json;
+
+namespace {
+
+v::ValidationRun runFromJson(const Json& r, const Json& doc) {
+  v::ValidationRun run;
+  run.caseName = r["case"].get<std::string>();
+  if (!r["reynolds"].is_null()) run.reynolds = r["reynolds"].get<Real>();
+  run.scheme = r["scheme"].get<std::string>();
+  auto& l = run.level;
+  l.name = r["mesh"].get<std::string>();
+  l.nx = r["nx"].get<cfd::Index>();
+  l.ny = r["ny"].get<cfd::Index>();
+  l.cells = r["cells"].get<cfd::Index>();
+  l.h = r["h"].get<Real>();
+  l.solverStatus = r["solver_status"].get<std::string>();
+  l.accepted = r["accepted"].get<bool>();
+  l.rejectionReason = r["rejection_reason"].get<std::string>();
+  l.iterations = r["iterations"].get<cfd::Index>();
+  if (!r["mass_imbalance"].is_null()) l.massImbalance = r["mass_imbalance"].get<Real>();
+  for (const auto& [name, e] : r["errors"].items()) {
+    v::ErrorNorms n;
+    n.l1 = e["l1"].get<Real>();
+    n.l2 = e["l2"].get<Real>();
+    n.linf = e["linf"].get<Real>();
+    n.cells = e["samples"].get<cfd::Index>();
+    n.volume = e["weight"].get<Real>();
+    l.errors.emplace_back(name, n);
+  }
+  for (const auto& [name, value] : r["diagnostics"].items()) {
+    if (!value.is_null()) l.diagnostics.emplace_back(name, value.get<Real>());
+  }
+  for (const auto& c : r["checks"]) {
+    run.checks.push_back({c["name"].get<std::string>(), c["passed"].get<bool>(),
+                          c["detail"].get<std::string>()});
+  }
+  for (const auto& t : doc["runtime"]["runs"]) {
+    if (t["id"] == r["id"]) l.runtimeSeconds = t["seconds"].get<double>();
+  }
+  return run;
+}
+
+Json load(const std::string& path) {
+  std::ifstream in(path);
+  return Json::parse(in);
+}
+
+void print(const v::ValidationRun& run) {
+  std::printf("%s: %s, accepted %d, %llu it, %.1f s, mass imbalance %.3g\n", run.id().c_str(),
+              run.level.solverStatus.c_str(), run.level.accepted ? 1 : 0,
+              static_cast<unsigned long long>(run.level.iterations), run.level.runtimeSeconds,
+              run.level.massImbalance.value_or(std::nan("")));
+  for (const auto& [k, value] : run.level.diagnostics) std::printf("  %s = %.10g\n", k.c_str(), value);
+  for (const auto& c : run.checks) std::printf("  [%s] %s: %s\n", c.passed ? "x" : " ", c.name.c_str(), c.detail.c_str());
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+  if (argc >= 3 && std::string(argv[1]) == "run") {
+    // Optional argv[3]: cells per H (default 50; 20 = reproduction check).
+    const cfd::Index perH = argc >= 4 ? static_cast<cfd::Index>(std::stoul(argv[3])) : 50;
+    const v::ValidationRun run = v::step::runStep({800.0, perH, 15.0});
+    print(run);
+    v::ValidationReport single;
+    single.name = "backward_facing_step_re800_50";
+    single.description = "Gartling backward-facing step, Re = 800, 50 cells per H (750x50), L = 15H, QUICK";
+    single.reference = "see backward_facing_step.json";
+    single.runs.push_back(run);
+    v::writeValidationReport(argv[2], single);
+    return run.passed() ? 0 : 1;
+  }
+  if (argc >= 5 && std::string(argv[1]) == "combine") {
+    const Json old = load(argv[2]);
+    const Json add = load(argv[3]);
+    v::ValidationReport report;
+    report.name = old["study"].get<std::string>();
+    report.description =
+        "Laminar backward-facing step (Gartling 1990, ER = 2): Re = 800 on 20/30/40/50 cells per H, "
+        "L = 15H, QUICK; Re = 100 on 20 cells per H";
+    report.reference = old["reference"].get<std::string>();
+    for (const auto& [k, value] : old["coefficients"].items()) report.coefficients.emplace_back(k, value.get<Real>());
+    for (const auto& [k, value] : old["configuration"].items()) report.configuration.emplace_back(k, value.get<std::string>());
+    report.configuration.emplace_back(
+        "provenance",
+        "20/30/40 cells/H and Re = 100: BackwardFacingStep.DISABLED_ReattachmentLength (Release). 50 "
+        "cells/H: standalone driver linking the unchanged Release object of BackwardFacingStepCase.cpp, "
+        "step::runStep({800, 50, 15}) -- identical case, settings and extraction");
+    std::vector<v::ValidationRun> oldRuns;
+    for (const auto& r : old["runs"]) oldRuns.push_back(runFromJson(r, old));
+    const v::ValidationRun newRun = runFromJson(add["runs"][0], add);
+    // Order: Re 800 20, 30, 40, 50, then Re 100.
+    report.runs = {oldRuns[0], oldRuns[1], oldRuns[2], newRun, oldRuns[3]};
+    for (const auto& r : report.runs) print(r);
+
+    v::QuantitySpec reattachment;
+    reattachment.name = "reattachment_length_over_h";
+    reattachment.description = "x_r/h, lower-wall primary eddy (published range [11.48, 12.20])";
+    reattachment.reference = 0.5 * (11.48 + 12.20);
+    reattachment.referenceKind = "benchmark";
+    reattachment.options.formalOrder = 2.0;
+    reattachment.options.absoluteNoise = 1e-4;
+    reattachment.options.gridIndependenceThreshold = 0.01;
+    v::QuantitySpec bubble = reattachment;
+    bubble.name = "upper_bubble_length_over_h";
+    bubble.description = "(x_rs - x_s)/h, upper-wall bubble (published range [10.60, 11.52])";
+    bubble.reference = 0.5 * (10.60 + 11.52);
+    // Components of the bubble length: reported (no published per-point range used).
+    v::QuantitySpec separation = reattachment;
+    separation.name = "upper_separation_over_h";
+    separation.description = "x_s/h, upper-wall separation (reported)";
+    separation.reference.reset();
+    separation.referenceKind = "";
+    v::QuantitySpec upperReattachment = separation;
+    upperReattachment.name = "upper_reattachment_over_h";
+    upperReattachment.description = "x_rs/h, upper-wall reattachment (reported)";
+    const std::vector<std::string> names = {"reattachment_length_over_h", "upper_bubble_length_over_h",
+                                            "upper_separation_over_h", "upper_reattachment_over_h"};
+    const std::vector<v::QuantitySpec> quantities = {reattachment, bubble, separation, upperReattachment};
+    const auto study = [&](int a, int b, int c, const char* name, const char* description) {
+      std::vector<v::GridStudyEntry> entries;
+      for (const int k : {a, b, c}) entries.push_back(v::toGridStudyEntry(report.runs[static_cast<std::size_t>(k)], 15.0, 1.0, names));
+      return v::analyzeGridStudy(name, description, std::move(entries), quantities);
+    };
+    report.gridConvergence.push_back(study(0, 1, 2, "backward_facing_step_re800_20_30_40", "Re = 800, QUICK, 20/30/40 cells per H"));
+    report.gridConvergence.push_back(study(1, 2, 3, "backward_facing_step_re800_30_40_50", "Re = 800, QUICK, 30/40/50 cells per H"));
+
+    // Same gate rule as the test, on the finest triplet (30, 40, 50).
+    const auto& finest = report.gridConvergence[1];
+    for (const auto& q : finest.quantities) {
+      Real lo = 0.0, hi = 0.0;
+      if (q.spec.name == "reattachment_length_over_h") {
+        lo = 11.48;
+        hi = 12.20;
+      } else if (q.spec.name == "upper_bubble_length_over_h") {
+        lo = 10.60;
+        hi = 11.52;
+      } else {
+        continue;
+      }
+      const auto& a = q.analysis;
+      const bool useExtrapolated = a.extrapolated21.has_value() && a.status == v::GridConvergenceStatus::Asymptotic;
+      const std::optional<Real> value = useExtrapolated ? a.extrapolated21 : q.values[2];
+      const bool inRange = value.has_value() && *value >= lo && *value <= hi;
+      char detail[256];
+      std::snprintf(detail, sizeof(detail), "%s %.4f vs published [%.2f, %.2f] (30/40/50 status %s)",
+                    useExtrapolated ? "Richardson-extrapolated" : "finest-grid (50 cells/H)",
+                    value.value_or(std::nan("")), lo, hi,
+                    std::string(v::gridConvergenceStatusName(a.status)).c_str());
+      report.gates.push_back({q.spec.name + "_within_published_range", inRange, detail});
+    }
+    for (const auto& text : old["limitations"]) report.limitations.push_back(text.get<std::string>());
+    for (auto& text : report.limitations) {
+      if (text.rfind("Uniform Cartesian grids only", 0) == 0) {
+        text = "Uniform Cartesian grids only (no clustering at the step corner or walls); the finest grid "
+               "here has 50 cells per H.";
+      }
+    }
+    v::writeValidationReport(std::string(argv[4]) + ".json", report);
+    std::ofstream md(std::string(argv[4]) + ".md", std::ios::binary);
+    md << v::validationReportMarkdown(report);
+    std::printf("\n%s", v::validationReportMarkdown(report).c_str());
+    return report.passed() ? 0 : 1;
+  }
+  std::fprintf(stderr, "usage: bfs50 run <out.json> | bfs50 combine <old.json> <single.json> <out stem>\n");
+  return 2;
+}

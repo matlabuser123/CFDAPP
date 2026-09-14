@@ -1,0 +1,468 @@
+# P12-NUM-003 focused test output (WSL2 Ubuntu, GCC, build/debug, captured 2026-09-13)
+# gtest per-test RUN/OK lines stripped; printed measurements, FAILED lines and totals kept.
+
+## CFDMeshTests --gtest_filter=MeshQuality.*:MeshGeometry*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQuality.*:MeshGeometry*
+[==========] Running 18 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from MeshGeometry
+[----------] 4 tests from MeshGeometry (0 ms total)
+
+[----------] 5 tests from MeshGeometryNonOrthogonal
+[----------] 5 tests from MeshGeometryNonOrthogonal (0 ms total)
+
+[----------] 9 tests from MeshQuality
+
+level      amp/h     maxNonOrth     meanNonOrth    maxSkew      meanSkew     minVolume
+cartesian  0.00      0              0              0            0            0.00390625
+mild       0.10      2.45144        1.05684        0.00384443   0.00106428   0.0038123
+moderate   0.25      6.119          2.64151        0.00981648   0.00266405   0.00367275
+strong     0.45      10.9764        4.75183        0.0181881    0.00480607   0.00348924
+[----------] 9 tests from MeshQuality (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 18 tests from 3 test suites ran. (3 ms total)
+[  PASSED  ] 18 tests.
+
+## CFDDiscretizationTests --gtest_filter=DiffusionTest.*:GridRefinementTest.Diffusion*:GridRefinementTest.Laplacian*:InterpolationTest.*:VectorGradientTest.*:GradientTest.*:SkewnessTest.*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DiffusionTest.*:GridRefinementTest.Diffusion*:GridRefinementTest.Laplacian*:InterpolationTest.*:VectorGradientTest.*:GradientTest.*:SkewnessTest.*
+[==========] Running 55 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from InterpolationTest
+
+Skew-corrected interpolation, phi=2x+3y+5, distorted 10x10 (0.3h, max skewness 0.02924): max face error plain 0.00838, skew-corrected 1.78e-15
+[----------] 7 tests from InterpolationTest (1 ms total)
+
+[----------] 5 tests from GradientTest
+[----------] 5 tests from GradientTest (1 ms total)
+
+[----------] 2 tests from SkewnessTest
+
+Green-Gauss gradient, linear field, distorted 10x10 (0.10h): max error by sweep: 0:0.0173 1:1.67e-05 2:5.71e-08 3:9.08e-11 4:4.68e-13 5:3.54e-14
+
+Green-Gauss gradient, linear field, distorted 10x10 (0.25h): max error by sweep: 0:0.0459 1:0.000114 2:9.68e-07 3:3.97e-09 4:5.17e-11 5:1.96e-13
+
+Green-Gauss gradient, linear field, distorted 10x10 (0.45h): max error by sweep: 0:0.0876 1:0.000408 2:6.27e-06 3:4.82e-08 4:1.13e-09 5:8.26e-12
+[----------] 2 tests from SkewnessTest (7 ms total)
+
+[----------] 23 tests from DiffusionTest
+
+Closed-domain global balance (distorted 10x10, 0.4h, green_gauss): sum(diff*V) uncorrected 0.030125142782892134, corrected 0.030125142782893244, sum|diff*V| 28.5563
+
+Closed-domain global balance (distorted 10x10, 0.4h, least_squares): sum(diff*V) uncorrected 0.030125142782892134, corrected 0.03012514278289502, sum|diff*V| 28.5563
+Closed-domain global balance (Cartesian 10x10, uncorrected, pre-existing operator): sum(diff*V) -3.7747582837255322e-15
+
+phi=2x+3y+5, distorted 12x12 (0.3h), green_gauss gradient: max interior |lap|: uncorrected 2.91703, corrected 9.25e-12
+
+phi=2x+3y+5, distorted 12x12 (0.3h), least_squares gradient: max interior |lap|: uncorrected 2.91703, corrected 7.04e-13
+
+Net Dirichlet boundary flux, distorted 10x10 (0.3h), exact 0: uncorrected 0.0138968, corrected 0.000520808
+
+Boundary ring, distorted 0.15h n=16, corrected(LS): max truncation error ring-0 0.3175, ring-0 with exact boundary flux 0.0826, interior 0.06181 | max|boundary flux err|/V 0.3401, max|internal flux err|/V (ring-0 cells) 0.0801
+Boundary ring, distorted 0.15h n=32, corrected(LS): max truncation error ring-0 0.1505, ring-0 with exact boundary flux 0.04062, interior 0.01575 | max|boundary flux err|/V 0.1553, max|internal flux err|/V (ring-0 cells) 0.04032
+Boundary ring, distorted 0.15h n=64, corrected(LS): max truncation error ring-0 0.0736, ring-0 with exact boundary flux 0.02022, interior 0.003956 | max|boundary flux err|/V 0.07524, max|internal flux err|/V (ring-0 cells) 0.02018
+  orders (16->32, 32->64): ring-0 1.077 1.032 | ring-0 exact-boundary 1.024 1.006 | interior 1.973 1.993
+[----------] 23 tests from DiffusionTest (76 ms total)
+
+[----------] 14 tests from GridRefinementTest
+
+Laplacian (phi = sin(pi x) cos(pi y))
+Grid       h            L2 Error         Observed p
+8x8        0.125        0.0938975        --
+16x16      0.0625       0.0277444        1.75889
+32x32      0.03125      0.00744658       1.89755
+64x64      0.015625     0.00192272       1.95343
+
+Diffusion, Orthogonal/Uncorrected (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.072895     --       0.093898     --       0.20581      --
+16x16    0.021766     1.744    0.027744     1.759    0.060317     1.771
+32x32    0.0059369    1.874    0.0074466    1.898    0.015659     1.946
+64x64    0.0015461    1.941    0.0019227    1.953    0.0039513    1.987
+
+Diffusion, Orthogonal/Correction-flag-on (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.072895     --       0.093898     --       0.20581      --
+16x16    0.021766     1.744    0.027744     1.759    0.060317     1.771
+32x32    0.0059369    1.874    0.0074466    1.898    0.015659     1.946
+64x64    0.0015461    1.941    0.0019227    1.953    0.0039513    1.987
+
+Diffusion, Distorted(0.15h)/Uncorrected GLOBAL (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.64847      --       0.83795      --       1.9848       --
+16x16    0.37448      0.792    0.48583      0.786    1.1454       0.793
+32x32    0.19439      0.946    0.25256      0.944    0.6019       0.928
+64x64    0.098403     0.982    0.12775      0.983    0.30271      0.992
+
+Diffusion, Distorted(0.15h)/Uncorrected INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.72527      --       0.89217      --       1.9848       --
+16x16    0.38369      0.919    0.48963      0.866    1.1454       0.793
+32x32    0.19607      0.969    0.25319      0.951    0.6019       0.928
+64x64    0.098768     0.989    0.1279       0.985    0.30271      0.992
+
+Diffusion, Distorted(0.15h)/Corrected(LS) GLOBAL (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.14471      --       0.20562      --       0.6173       --
+16x16    0.042655     1.762    0.073183     1.490    0.3175       0.959
+32x32    0.011147     1.936    0.024173     1.598    0.15049      1.077
+64x64    0.0028482    1.969    0.0082406    1.553    0.073605     1.032
+
+Diffusion, Distorted(0.45h)/Corrected(LS) GLOBAL (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.33795      --       0.59313      --       2.2628       --
+16x16    0.08884      1.928    0.20632      1.523    1.0155       1.156
+32x32    0.022087     2.008    0.069477     1.570    0.46532      1.126
+64x64    0.0055129    2.002    0.024124     1.526    0.22414      1.054
+
+Diffusion, Distorted(0.45h)/Uncorrected GLOBAL (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      1.9024       --       2.4872       --       6.1675       --
+16x16    1.115        0.771    1.4495       0.779    3.5269       0.806
+32x32    0.58183      0.938    0.75654      0.938    1.8287       0.948
+64x64    0.29505      0.980    0.38311      0.982    0.9138       1.001
+
+Diffusion, Distorted(0.15h)/Corrected(LS) INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.10541      --       0.12234      --       0.21448      --
+16x16    0.026964     1.967    0.031653     1.951    0.061813     1.795
+32x32    0.0066206    2.026    0.0079326    1.996    0.015747     1.973
+64x64    0.0016314    2.021    0.0019824    2.001    0.0039562    1.993
+
+Diffusion, Distorted(0.15h)/Corrected(GG) INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.10502      --       0.12155      --       0.21218      --
+16x16    0.026974     1.961    0.031644     1.942    0.061702     1.782
+32x32    0.0066228    2.026    0.0079328    1.996    0.015754     1.970
+64x64    0.0016316    2.021    0.0019824    2.001    0.0039581    1.993
+
+Diffusion, Distorted(0.25h)/Uncorrected INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      1.1836       --       1.474        --       3.3422       --
+16x16    0.63681      0.894    0.81431      0.856    1.9222       0.798
+32x32    0.32634      0.965    0.42175      0.949    1.007        0.933
+64x64    0.16456      0.988    0.21313      0.985    0.50542      0.995
+
+Diffusion, Distorted(0.25h)/Corrected(LS) INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.10995      --       0.12854      --       0.22797      --
+16x16    0.027707     1.988    0.032222     1.996    0.063487     1.844
+32x32    0.0067083    2.046    0.0079784    2.014    0.015897     1.998
+64x64    0.0016401    2.032    0.0019856    2.007    0.0039652    2.003
+
+Diffusion, Distorted(0.45h)/Uncorrected INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      2.0719       --       2.6226       --       6.1675       --
+16x16    1.142        0.859    1.461        0.844    3.5046       0.815
+32x32    0.58685      0.960    0.75845      0.946    1.8287       0.938
+64x64    0.29614      0.987    0.38354      0.984    0.9138       1.001
+
+Diffusion, Distorted(0.45h)/Corrected(LS) INTERIOR-ONLY (phi = sin(pi x) cos(pi y))
+Grid     L1           p(L1)    L2           p(L2)    Linf         p(Linf)
+8x8      0.14341      --       0.16702      --       0.32151      --
+16x16    0.030261     2.245    0.034592     2.271    0.069331     2.213
+32x32    0.0069713    2.118    0.0081435    2.087    0.016315     2.087
+64x64    0.0016657    2.065    0.0019969    2.028    0.0039922    2.031
+[----------] 14 tests from GridRefinementTest (299 ms total)
+
+[----------] 4 tests from VectorGradientTest
+
+Velocity gradient, linear field, distorted 9x9 (0.4h): max component error GreenGauss 1.517e-09, LeastSquares 7.77e-15
+[----------] 4 tests from VectorGradientTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 55 tests from 6 test suites ran. (388 ms total)
+[  PASSED  ] 55 tests.
+
+## CFDPhysicsTests --gtest_filter=MomentumNonOrthogonalTest.*:MomentumDiffusion*:MomentumVariableViscosity*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MomentumNonOrthogonalTest.*:MomentumDiffusion*:MomentumVariableViscosity*
+[==========] Running 17 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 9 tests from MomentumDiffusionTest
+[----------] 9 tests from MomentumDiffusionTest (2 ms total)
+
+[----------] 4 tests from MomentumVariableViscosityTest
+[----------] 4 tests from MomentumVariableViscosityTest (0 ms total)
+
+[----------] 4 tests from MomentumNonOrthogonalTest
+
+Momentum diffusion, linear velocity, distorted 10x10 (0.3h), component U: max|Au-b| uncorrected 0.01294, corrected(GG) 3.097e-13, corrected(LS) 5.33e-15
+
+Momentum diffusion, linear velocity, distorted 10x10 (0.3h), component V: max|Au-b| uncorrected 0.01813, corrected(GG) 3.911e-13, corrected(LS) 1.33e-15
+[----------] 4 tests from MomentumNonOrthogonalTest (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 3 test suites ran. (11 ms total)
+[  PASSED  ] 17 tests.
+
+## CFDSimpleTests --gtest_filter=PressureCorrectionNonOrthogonalTest.*:SIMPLENonOrthogonalTest.*:NonOrthogonalCorrectionPassesTest.*:SIMPLESettingsTest.*:PressureCorrection*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PressureCorrectionNonOrthogonalTest.*:SIMPLENonOrthogonalTest.*:NonOrthogonalCorrectionPassesTest.*:SIMPLESettingsTest.*:PressureCorrection*
+[==========] Running 39 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 11 tests from SIMPLESettingsTest
+[----------] 11 tests from SIMPLESettingsTest (1 ms total)
+
+[----------] 9 tests from PressureCorrectionTest
+[----------] 9 tests from PressureCorrectionTest (0 ms total)
+
+[----------] 10 tests from SIMPLENonOrthogonalTest
+
+Cartesian cavity 4x4: N=0 390 iterations, N=3 390 iterations, max|du| 5.72e-17
+
+Distorted cavity 8x8 0.45h: max|u(N=0) - u(N=1)| = 0.012
+
+Distorted cavity 10x10 mild 0.10h LS N=0: 1001 iterations, final continuity 7.99e-11, global imbalance 0, max continuity over history 3.64e-10, ||b_p|| 0.0503 -> 9.98e-07, passes p/u 1001/1001
+
+Distorted cavity 10x10 mild 0.10h LS N=1: 1002 iterations, final continuity 9.63e-11, global imbalance 0, max continuity over history 2.07e-10, ||b_p|| 0.0503 -> 9.99e-07, passes p/u 1002/1002
+
+Distorted cavity 10x10 mild 0.10h LS N=2: 1002 iterations, final continuity 7.71e-11, global imbalance 0, max continuity over history 3.2e-10, ||b_p|| 0.0503 -> 9.98e-07, passes p/u 2004/2004
+
+Distorted cavity 10x10 moderate 0.25h LS N=0: 1006 iterations, final continuity 7.96e-11, global imbalance 0, max continuity over history 2.24e-10, ||b_p|| 0.0503 -> 9.97e-07, passes p/u 1006/1006
+
+Distorted cavity 10x10 moderate 0.25h LS N=1: 1010 iterations, final continuity 9.64e-11, global imbalance 0, max continuity over history 2.43e-10, ||b_p|| 0.0502 -> 9.99e-07, passes p/u 1010/1010
+
+Distorted cavity 10x10 moderate 0.25h LS N=2: 1010 iterations, final continuity 7.22e-11, global imbalance 0, max continuity over history 1.84e-10, ||b_p|| 0.0502 -> 9.97e-07, passes p/u 2020/2020
+
+Distorted cavity 10x10 strong 0.45h GG N=0: 996 iterations, final continuity 9.36e-11, global imbalance 0, max continuity over history 4.07e-10, ||b_p|| 0.0502 -> 9.97e-07, passes p/u 996/996
+
+Distorted cavity 10x10 strong 0.45h GG N=1: 1004 iterations, final continuity 7.13e-11, global imbalance 0, max continuity over history 2.65e-10, ||b_p|| 0.0501 -> 9.97e-07, passes p/u 1004/1004
+
+Distorted cavity 10x10 strong 0.45h GG N=2: 1004 iterations, final continuity 7.06e-11, global imbalance 0, max continuity over history 2.52e-10, ||b_p|| 0.0501 -> 9.95e-07, passes p/u 2008/2008
+
+Distorted cavity 10x10 strong 0.45h LS N=0: 1007 iterations, final continuity 9.25e-11, global imbalance 0, max continuity over history 4.07e-10, ||b_p|| 0.0502 -> 9.99e-07, passes p/u 1007/1007
+
+Distorted cavity 10x10 strong 0.45h LS N=1: 1015 iterations, final continuity 9.84e-11, global imbalance 0, max continuity over history 2.01e-10, ||b_p|| 0.0501 -> 9.96e-07, passes p/u 1015/1015
+
+Distorted cavity 10x10 strong 0.45h LS N=2: 1013 iterations, final continuity 7.93e-11, global imbalance 0, max continuity over history 2.76e-10, ||b_p|| 0.0501 -> 9.99e-07, passes p/u 2026/2026
+
+Mass conservation, distorted cavity 10x10 0.45h N=2 LS: max cell imbalance 7.87e-10, global net flux 0, max |wall face flux| 0
+
+Couette u=(y,0), distorted 0.25h, SIMPLE L2 velocity error: uncorrected 0.00267 -> 0.000691 (order 1.950), corrected 0.002353 -> 0.0002949 (order 2.996)
+[----------] 10 tests from SIMPLENonOrthogonalTest (114639 ms total)
+
+[----------] 4 tests from NonOrthogonalCorrectionPassesTest
+
+Non-orthogonal corrector passes, distorted 12x12 (0.4h): increments 0.00111 3.62e-05 1.15e-06 5.2e-08 2.53e-09 1.01e-10 6.32e-12
+  fully-corrected residual max|Au-b|: after pass 1 0.000322, after pass 8 1.66e-13
+[----------] 4 tests from NonOrthogonalCorrectionPassesTest (77 ms total)
+
+[----------] 5 tests from PressureCorrectionNonOrthogonalTest
+
+Pressure correction pass 2, distorted 9x9 0.45h: max |explicit face flux| 0.03; max cell continuity with explicit terms in the flux update 5.24e-13, without 0.0157
+[----------] 5 tests from PressureCorrectionNonOrthogonalTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 39 tests from 5 test suites ran. (114722 ms total)
+[  PASSED  ] 39 tests.
+
+## CFDCompressibleSimpleTests --gtest_filter=*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 23 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from CompressibleRelaxedMomentumTest
+[----------] 5 tests from CompressibleRelaxedMomentumTest (2 ms total)
+
+[----------] 6 tests from CompressiblePressureCorrectionTest
+[----------] 6 tests from CompressiblePressureCorrectionTest (0 ms total)
+
+[----------] 5 tests from CompressibleSimpleTest
+[----------] 5 tests from CompressibleSimpleTest (623 ms total)
+
+[----------] 3 tests from CompressibleSimpleSettingsTest
+[----------] 3 tests from CompressibleSimpleSettingsTest (0 ms total)
+
+[----------] 4 tests from CompressibleSIMPLENonOrthogonalTest
+
+Compressible air cavity, distorted 8x8 0.45h N=0: 394 iterations, final continuity 2.22e-11, global imbalance 0, max cell imbalance 1.54e-10, max |wall flux| 0, density [1.17662427, 1.17662429], pressure passes 394
+
+Compressible air cavity, distorted 8x8 0.45h N=2: 394 iterations, final continuity 1.31e-11, global imbalance 0, max cell imbalance 6.78e-11, max |wall flux| 0, density [1.17662427, 1.17662429], pressure passes 788
+
+Compressible open channel, distorted 12x6 0.3h N=2: 2214 iterations, inlet flux -0.294156073, outlet flux 0.294156074, global net 7.37e-10, max cell imbalance 1.79e-11
+
+Low-Mach limit, distorted 6x6 0.3h N=2 LS: max |u_compressible - u_SIMPLE| 7.75e-10, max |rho - 1| 6.73e-14 (iterations: SIMPLE 816, compressible 584)
+[----------] 4 tests from CompressibleSIMPLENonOrthogonalTest (14622 ms total)
+
+[----------] Global test environment tear-down
+[==========] 23 tests from 5 test suites ran. (15248 ms total)
+[  PASSED  ] 23 tests.
+
+## CFDThermalTests --gtest_filter=*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 83 tests from 13 test suites.
+[----------] Global test environment set-up.
+[----------] 11 tests from ThermalPropertiesTest
+[----------] 11 tests from ThermalPropertiesTest (0 ms total)
+
+[----------] 5 tests from EnergyEquationDiffusionTest
+[----------] 5 tests from EnergyEquationDiffusionTest (0 ms total)
+
+[----------] 6 tests from EnergyEquationConvectionTest
+[----------] 6 tests from EnergyEquationConvectionTest (0 ms total)
+
+[----------] 3 tests from EnergyEquationSourceTest
+[----------] 3 tests from EnergyEquationSourceTest (0 ms total)
+
+[----------] 8 tests from EnergyEquationAssemblyTest
+[----------] 8 tests from EnergyEquationAssemblyTest (0 ms total)
+
+[----------] 2 tests from EnergyEquationThermalBCIntegrationTest
+[----------] 2 tests from EnergyEquationThermalBCIntegrationTest (0 ms total)
+
+[----------] 13 tests from EnergyEquationVariablePropertiesTest
+[----------] 13 tests from EnergyEquationVariablePropertiesTest (0 ms total)
+
+[----------] 11 tests from ThermalSolverTest
+[----------] 11 tests from ThermalSolverTest (186 ms total)
+
+[----------] 5 tests from ThermalSolverVariablePropertiesTest
+[----------] 5 tests from ThermalSolverVariablePropertiesTest (2645 ms total)
+
+[----------] 6 tests from ThermalRegionMapTest
+[----------] 6 tests from ThermalRegionMapTest (0 ms total)
+
+[----------] 5 tests from InterfaceConductanceTest
+[----------] 5 tests from InterfaceConductanceTest (0 ms total)
+
+[----------] 5 tests from RegionAwareThermalDiffusionTest
+[----------] 5 tests from RegionAwareThermalDiffusionTest (0 ms total)
+
+[----------] 3 tests from ThermalNonOrthogonalTest
+
+Conduction, distorted 0.45h, uncorrected: L1 0.02703 0.012 0.005651 (p 1.172 1.086) | L2 0.03536 0.01619 0.007677 (p 1.127 1.077) | Linf 0.07606 0.03641 0.01761 (p 1.063 1.048)
+  energy balance sum(A T - b): 1.31e-11 -3.4e-12 7.08e-11
+
+Conduction, distorted 0.45h, corrected(GG): L1 0.004982 0.001266 0.0003173 (p 1.976 1.996) | L2 0.005428 0.001353 0.0003374 (p 2.004 2.004) | Linf 0.008263 0.002674 0.0007485 (p 1.628 1.837)
+  energy balance sum(A T - b): 1.41e-11 3.13e-12 -2.29e-12
+
+Conduction, distorted 0.45h, corrected(LS): L1 0.005172 0.001278 0.0003181 (p 2.017 2.006) | L2 0.005619 0.001364 0.0003381 (p 2.042 2.013) | Linf 0.008712 0.002681 0.0007487 (p 1.700 1.840)
+  energy balance sum(A T - b): 1.4e-11 1.18e-11 1.36e-11
+
+Prescribed-flux walls, distorted 10x10 0.4h, corrected(LS): 533 iterations, energy balance sum(A T - b) -1.39e-09
+[----------] 3 tests from ThermalNonOrthogonalTest (1589 ms total)
+
+[----------] Global test environment tear-down
+[==========] 83 tests from 13 test suites ran. (4424 ms total)
+[  PASSED  ] 83 tests.
+
+## CFDSpeciesTests --gtest_filter=*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 37 tests from 9 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from SpeciesPropertiesTest
+[----------] 6 tests from SpeciesPropertiesTest (0 ms total)
+
+[----------] 5 tests from SpeciesEquationDiffusionTest
+[----------] 5 tests from SpeciesEquationDiffusionTest (0 ms total)
+
+[----------] 4 tests from SpeciesEquationConvectionTest
+[----------] 4 tests from SpeciesEquationConvectionTest (0 ms total)
+
+[----------] 2 tests from SpeciesEquationSourceTest
+[----------] 2 tests from SpeciesEquationSourceTest (0 ms total)
+
+[----------] 6 tests from SpeciesEquationAssemblyTest
+[----------] 6 tests from SpeciesEquationAssemblyTest (0 ms total)
+
+[----------] 2 tests from SpeciesBoundaryConditionTest
+[----------] 2 tests from SpeciesBoundaryConditionTest (0 ms total)
+
+[----------] 2 tests from ConcentrationBoundsTest
+[----------] 2 tests from ConcentrationBoundsTest (0 ms total)
+
+[----------] 8 tests from SpeciesSolverTest
+[----------] 8 tests from SpeciesSolverTest (143 ms total)
+
+[----------] 2 tests from SpeciesNonOrthogonalTest
+
+Species balance sum(A c - b), distorted 0.45h n=8: uncorrected 1.4e-11, corrected 2.04e-10
+Species balance sum(A c - b), distorted 0.45h n=16: uncorrected 5.84e-11, corrected 4.74e-10
+Species balance sum(A c - b), distorted 0.45h n=32: uncorrected 1.8e-10, corrected 1.18e-09
+Species diffusion, distorted 0.45h, L2: uncorrected 0.1086 0.05219 0.02532 (p 1.057 1.043), corrected 0.01504 0.003547 0.000864 (p 2.084 2.037)
+[----------] 2 tests from SpeciesNonOrthogonalTest (317 ms total)
+
+[----------] Global test environment tear-down
+[==========] 37 tests from 9 test suites ran. (462 ms total)
+[  PASSED  ] 37 tests.
+
+## CFDTurbulenceTests --gtest_filter=*
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 134 tests from 17 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from TurbulenceModelTest
+[----------] 7 tests from TurbulenceModelTest (0 ms total)
+
+[----------] 4 tests from ValidateTurbulentViscosityFieldTest
+[----------] 4 tests from ValidateTurbulentViscosityFieldTest (0 ms total)
+
+[----------] 5 tests from EffectiveViscosityTest
+[----------] 5 tests from EffectiveViscosityTest (0 ms total)
+
+[----------] 10 tests from LaminarModelTest
+[----------] 10 tests from LaminarModelTest (0 ms total)
+
+[----------] 1 test from KEpsilonCoefficientsTest
+[----------] 1 test from KEpsilonCoefficientsTest (0 ms total)
+
+[----------] 4 tests from TurbulenceProductionTest
+[----------] 4 tests from TurbulenceProductionTest (0 ms total)
+
+[----------] 11 tests from KEpsilonEquationTest
+[----------] 11 tests from KEpsilonEquationTest (0 ms total)
+
+[----------] 13 tests from KEpsilonModelTest
+[----------] 13 tests from KEpsilonModelTest (1 ms total)
+
+[----------] 1 test from KOmegaCoefficientsTest
+[----------] 1 test from KOmegaCoefficientsTest (0 ms total)
+
+[----------] 6 tests from KOmegaEquationTest
+[----------] 6 tests from KOmegaEquationTest (0 ms total)
+
+[----------] 13 tests from KOmegaModelTest
+[----------] 13 tests from KOmegaModelTest (0 ms total)
+
+[----------] 1 test from SSTCoefficientsTest
+[----------] 1 test from SSTCoefficientsTest (0 ms total)
+
+[----------] 5 tests from WallDistanceTest
+[----------] 5 tests from WallDistanceTest (0 ms total)
+
+[----------] 26 tests from SSTEquationTest
+[----------] 26 tests from SSTEquationTest (0 ms total)
+
+[----------] 16 tests from SSTModelTest
+[----------] 16 tests from SSTModelTest (1 ms total)
+
+[----------] 9 tests from TurbulenceModelFactoryTest
+[----------] 9 tests from TurbulenceModelFactoryTest (0 ms total)
+
+[----------] 2 tests from TurbulenceNonOrthogonalTest
+
+k/epsilon/omega diffusion operator, linear scalar, distorted 10x10 (0.4h): max|A phi - b| uncorrected 0.0002399, corrected(GG) 2.11e-14, corrected(LS) 4.16e-17
+[----------] 2 tests from TurbulenceNonOrthogonalTest (12 ms total)
+
+[----------] Global test environment tear-down
+[==========] 134 tests from 17 test suites ran. (18 ms total)
+[  PASSED  ] 134 tests.
+
+## CFDIoTests --gtest_filter=*NonOrthogonal*:CaseWriterTest.BasicCaseRoundTripsExactly
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = *NonOrthogonal*:CaseWriterTest.BasicCaseRoundTripsExactly
+[==========] Running 6 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from CaseReaderTest
+[----------] 3 tests from CaseReaderTest (9 ms total)
+
+[----------] 2 tests from CaseWriterTest
+[----------] 2 tests from CaseWriterTest (3 ms total)
+
+[----------] 1 test from TurbulenceCaseTest
+[----------] 1 test from TurbulenceCaseTest (4 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 3 test suites ran. (16 ms total)
+[  PASSED  ] 6 tests.

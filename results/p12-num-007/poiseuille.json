@@ -1,0 +1,582 @@
+{
+  "format_version": 1,
+  "kind": "production_validation",
+  "study": "poiseuille",
+  "description": "Planar Poiseuille channel L = 8H, Re = 10: grids 64x8, 96x12, 144x18",
+  "reference": "Continuous planar Poiseuille solution u = 6U(y/H)(1-y/H), dp/dx = -12 mu U/H^2 (analytical); and the exact fully developed solution of the discretisation, dp/dx scaled by ny^2/(ny^2+2) (derived, PoiseuilleValidationUtils.hpp)",
+  "method": {
+    "error_norms": "against sample-point reference data (benchmark tables): unweighted L1 = mean|e|, L2 = sqrt(mean e^2), Linf = max|e| over the tabulated stations; against a field: volume-weighted (cfd/validation/ErrorNorms.hpp)",
+    "solve_acceptance": "a run is accepted only if SIMPLE Converged, every field is finite and the global mass imbalance is within tolerance (P12-NUM-005 assessSimpleSolve)",
+    "grid_convergence": "P12-NUM-005 three-grid study of this code's own solutions (observed order, Richardson extrapolation, GCI) -- separate from the error against the reference",
+    "indexing": "runs listed in execution order; grid sequences coarse -> fine"
+  },
+  "coefficients": {
+    "reynolds": 10.0,
+    "length": 8.0,
+    "height": 1.0,
+    "density": 1.0,
+    "viscosity": 0.1,
+    "mean_velocity": 1.0
+  },
+  "configuration": {
+    "boundaries": "uniform Inlet U = 1 (left), zero-gradient Outlet with p = 0 (right), no-slip walls",
+    "algorithm": "SIMPLE, upwind convection, central diffusion, alpha 0.7/0.3, outer gates u 2e-5, p 5e-4, continuity 1e-6",
+    "stations": "profile at x = 0.75 L; pressure gradient between the faces nearest 0.40 L and 0.75 L; mass flow at 0.25/0.50/0.75 L and both ends",
+    "pressure_estimator": "pair-averaged column pressures (odd-even mode cancels exactly)"
+  },
+  "runs": [
+    {
+      "id": "poiseuille_re10/64x8/upwind",
+      "case": "poiseuille_re10",
+      "reynolds": 10.0,
+      "mesh": "64x8",
+      "nx": 64,
+      "ny": 8,
+      "cells": 512,
+      "h": 0.125,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1319,
+      "mass_imbalance": 1.9706217213588673e-10,
+      "errors": {
+        "u_profile": {
+          "l1": 0.013848605007761638,
+          "l2": 0.01518211733494454,
+          "linf": 0.022015483511429235,
+          "samples": 8,
+          "weight": 8.0
+        },
+        "u_profile_vs_discrete_exact": {
+          "l1": 1.7474944974393836e-06,
+          "l2": 1.7527948668093256e-06,
+          "linf": 1.90902123886616e-06,
+          "samples": 8,
+          "weight": 8.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 18247.0,
+        "pressure_linear_iterations": 101503.0,
+        "linear_solver_fallbacks": 2.0,
+        "final_u_residual": 1.9998444620708195e-05,
+        "final_v_residual": 4.1890234509429976e-07,
+        "final_pressure_residual": 0.00020776182961737856,
+        "final_continuity_residual": 4.2675308925911345e-12,
+        "centerline_velocity": 1.4545470164886543,
+        "centerline_velocity_exact": 1.5,
+        "centerline_velocity_discrete_exact": 1.4545454545454546,
+        "inlet_flow": 1.0,
+        "outlet_flow": 0.9999999998029379,
+        "section_flow_x0.25L": 1.000000000000209,
+        "section_flow_x0.50L": 1.0000000003728136,
+        "section_flow_x0.75L": 0.9999999996409883,
+        "max_flow_error": 3.7281355780294234e-10,
+        "max_wall_normal_flux": 0.0,
+        "pressure_gradient": -1.1629182893233574,
+        "pressure_gradient_exact": -1.2000000000000002,
+        "pressure_gradient_discrete_exact": -1.1636363636363638,
+        "pressure_gradient_relative_error": 0.030901425563868986,
+        "pressure_gradient_relative_error_vs_discrete": 0.0006170951127398848,
+        "pressure_drop": -3.1980252956392325,
+        "pressure_drop_exact": -3.3000000000000007,
+        "pressure_drop_x1": 3.25,
+        "pressure_drop_x2": 6.0,
+        "pressure_gradient_two_station_legacy": -1.155135319839672,
+        "pressure_odd_even_amplitude": 0.025378990621477637
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - U H| over inlet, outlet and sections 3.73e-10 (bound 1e-6)"
+        },
+        {
+          "name": "profile_matches_discrete_exact",
+          "passed": true,
+          "detail": "max |u - u_discrete| 1.91e-06 (bound 1e-4)"
+        },
+        {
+          "name": "pressure_gradient_matches_discrete_exact",
+          "passed": true,
+          "detail": "|dp/dx - discrete exact| / |discrete exact| 0.000617 (bound 1e-3)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "poiseuille_re10/96x12/upwind",
+      "case": "poiseuille_re10",
+      "reynolds": 10.0,
+      "mesh": "96x12",
+      "nx": 96,
+      "ny": 12,
+      "cells": 1152,
+      "h": 0.08333333333333333,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 985,
+      "mass_imbalance": 2.4903490727923305e-09,
+      "errors": {
+        "u_profile": {
+          "l1": 0.006230986497305753,
+          "l2": 0.006949185660456829,
+          "linf": 0.01013131483687646,
+          "samples": 12,
+          "weight": 12.0
+        },
+        "u_profile_vs_discrete_exact": {
+          "l1": 3.855838241750842e-08,
+          "l2": 3.8644656582578365e-08,
+          "linf": 4.290469346468484e-08,
+          "samples": 12,
+          "weight": 12.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 14149.0,
+        "pressure_linear_iterations": 103166.0,
+        "linear_solver_fallbacks": 5.0,
+        "final_u_residual": 1.9976847940596112e-05,
+        "final_v_residual": 4.0855436052319306e-07,
+        "final_pressure_residual": 0.00014843437595481282,
+        "final_continuity_residual": 2.7345263486681657e-12,
+        "centerline_velocity": 1.4794520184965314,
+        "centerline_velocity_exact": 1.5,
+        "centerline_velocity_discrete_exact": 1.4794520547945205,
+        "inlet_flow": 1.0,
+        "outlet_flow": 1.000000002490349,
+        "section_flow_x0.25L": 1.0000000000221645,
+        "section_flow_x0.50L": 1.0000000005308751,
+        "section_flow_x0.75L": 1.0000000016954305,
+        "max_flow_error": 2.490349038097861e-09,
+        "max_wall_normal_flux": 0.0,
+        "pressure_gradient": -1.18350928951624,
+        "pressure_gradient_exact": -1.2000000000000002,
+        "pressure_gradient_discrete_exact": -1.1835616438356165,
+        "pressure_gradient_relative_error": 0.0137422587364668,
+        "pressure_gradient_relative_error_vs_discrete": 4.423455225093273e-05,
+        "pressure_drop": -3.353276320296014,
+        "pressure_drop_exact": -3.400000000000001,
+        "pressure_drop_x1": 3.1666666666666665,
+        "pressure_drop_x2": 6.0,
+        "pressure_gradient_two_station_legacy": -1.1838551709207716,
+        "pressure_odd_even_amplitude": 0.0010775966163114603
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - U H| over inlet, outlet and sections 2.49e-09 (bound 1e-6)"
+        },
+        {
+          "name": "profile_matches_discrete_exact",
+          "passed": true,
+          "detail": "max |u - u_discrete| 4.29e-08 (bound 1e-4)"
+        },
+        {
+          "name": "pressure_gradient_matches_discrete_exact",
+          "passed": true,
+          "detail": "|dp/dx - discrete exact| / |discrete exact| 4.42e-05 (bound 1e-3)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "poiseuille_re10/144x18/upwind",
+      "case": "poiseuille_re10",
+      "reynolds": 10.0,
+      "mesh": "144x18",
+      "nx": 144,
+      "ny": 18,
+      "cells": 2592,
+      "h": 0.05555555555555555,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 744,
+      "mass_imbalance": 3.832722072008576e-09,
+      "errors": {
+        "u_profile": {
+          "l1": 0.0027866131449570367,
+          "l2": 0.003129405107246735,
+          "linf": 0.004572820208415873,
+          "samples": 18,
+          "weight": 18.0
+        },
+        "u_profile_vs_discrete_exact": {
+          "l1": 4.389151371057369e-09,
+          "l2": 4.431461378672053e-09,
+          "linf": 5.739035052743091e-09,
+          "samples": 18,
+          "weight": 18.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 12018.0,
+        "pressure_linear_iterations": 105811.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.998349065094405e-05,
+        "final_v_residual": 3.568997196800442e-06,
+        "final_pressure_residual": 0.00010185312037046109,
+        "final_continuity_residual": 1.6467245405327219e-12,
+        "centerline_velocity": 1.4907975501620223,
+        "centerline_velocity_exact": 1.5,
+        "centerline_velocity_discrete_exact": 1.4907975460122702,
+        "inlet_flow": 1.0000000000000002,
+        "outlet_flow": 1.0000000038327221,
+        "section_flow_x0.25L": 1.0000000008677974,
+        "section_flow_x0.50L": 1.0000000020482795,
+        "section_flow_x0.75L": 1.0000000031999783,
+        "max_flow_error": 3.832722139662792e-09,
+        "max_wall_normal_flux": 0.0,
+        "pressure_gradient": -1.1926382256472958,
+        "pressure_gradient_exact": -1.2000000000000002,
+        "pressure_gradient_discrete_exact": -1.1926380368098162,
+        "pressure_gradient_relative_error": 0.00613481196058696,
+        "pressure_gradient_relative_error_vs_discrete": 1.5833595258992378e-07,
+        "pressure_drop": -3.3128839601313773,
+        "pressure_drop_exact": -3.333333333333334,
+        "pressure_drop_x1": 3.2222222222222223,
+        "pressure_drop_x2": 6.0,
+        "pressure_gradient_two_station_legacy": -1.192638182898748,
+        "pressure_odd_even_amplitude": 3.2334342456863396e-06
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |wall mass flux| 0 (bound 1e-6)"
+        },
+        {
+          "name": "mass_flow",
+          "passed": true,
+          "detail": "max |Q - U H| over inlet, outlet and sections 3.83e-09 (bound 1e-6)"
+        },
+        {
+          "name": "profile_matches_discrete_exact",
+          "passed": true,
+          "detail": "max |u - u_discrete| 5.74e-09 (bound 1e-4)"
+        },
+        {
+          "name": "pressure_gradient_matches_discrete_exact",
+          "passed": true,
+          "detail": "|dp/dx - discrete exact| / |discrete exact| 1.58e-07 (bound 1e-3)"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "orders": [
+    {
+      "quantity": "u_profile",
+      "norm": "l1",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        2.22253811876333,
+        2.236042885458297
+      ],
+      "triplets": [
+        {
+          "status": "asymptotic",
+          "observed_order": 1.9575588287296508,
+          "asymptotic_ratio": 0.9829388049819391,
+          "extrapolated_error": -5.61884017776168e-05,
+          "diagnostic": "monotonic convergence, observed order 1.95756 (formal 2); asymptotic ratio 0.982939 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.9575588287296508
+    },
+    {
+      "quantity": "u_profile",
+      "norm": "l2",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        2.184733302109889,
+        2.2206091644589776
+      ],
+      "triplets": [
+        {
+          "status": "asymptotic",
+          "observed_order": 1.8939957588929435,
+          "asymptotic_ratio": 0.9579295703628096,
+          "extrapolated_error": -0.00017678656254089186,
+          "diagnostic": "monotonic convergence, observed order 1.894 (formal 2); asymptotic ratio 0.95793 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.8939957588929435
+    },
+    {
+      "quantity": "u_profile",
+      "norm": "linf",
+      "formal_order": 2.0,
+      "reduction_factors": [
+        2.173013460335493,
+        2.215550661325076
+      ],
+      "triplets": [
+        {
+          "status": "asymptotic",
+          "observed_order": 1.8740942547059536,
+          "asymptotic_ratio": 0.9502307904016948,
+          "extrapolated_error": -0.00031153872463924627,
+          "diagnostic": "monotonic convergence, observed order 1.87409 (formal 2); asymptotic ratio 0.950231 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.8740942547059536
+    }
+  ],
+  "grid_convergence": [
+    {
+      "format_version": 1,
+      "study": "poiseuille_production",
+      "description": "Poiseuille Re = 10, grids 64x8 / 96x12 / 144x18",
+      "method": {
+        "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+        "indexing": "1 = fine, 2 = medium, 3 = coarse",
+        "grid_size": "h = sqrt(domain area / cells)",
+        "relative_quantity_units": "fraction",
+        "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+        "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+      },
+      "all_solves_accepted": true,
+      "rejection_reason": "",
+      "grids": [
+        {
+          "level": "coarse",
+          "name": "64x8",
+          "nx": 64,
+          "ny": 8,
+          "cells": 512,
+          "h": 0.125,
+          "runtime_seconds": 67.125335608,
+          "solver_status": "Converged",
+          "solver_iterations": 1319,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "centerline_velocity": 1.4545470164886543,
+            "pressure_gradient": -1.1629182893233574
+          }
+        },
+        {
+          "level": "medium",
+          "name": "96x12",
+          "nx": 96,
+          "ny": 12,
+          "cells": 1152,
+          "h": 0.08333333333333333,
+          "runtime_seconds": 138.920733819,
+          "solver_status": "Converged",
+          "solver_iterations": 985,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "centerline_velocity": 1.4794520184965314,
+            "pressure_gradient": -1.18350928951624
+          }
+        },
+        {
+          "level": "fine",
+          "name": "144x18",
+          "nx": 144,
+          "ny": 18,
+          "cells": 2592,
+          "h": 0.05555555555555555,
+          "runtime_seconds": 272.316339799,
+          "solver_status": "Converged",
+          "solver_iterations": 744,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "centerline_velocity": 1.4907975501620223,
+            "pressure_gradient": -1.1926382256472958
+          }
+        }
+      ],
+      "quantities": [
+        {
+          "name": "centerline_velocity",
+          "description": "u(0.75 L, H/2); exact 1.5 U",
+          "values": {
+            "coarse": 1.4545470164886543,
+            "medium": 1.4794520184965314,
+            "fine": 1.4907975501620223
+          },
+          "reference": {
+            "value": 1.5,
+            "kind": "analytical",
+            "error_coarse": -0.045452983511345746,
+            "error_medium": -0.020547981503468593,
+            "error_fine": -0.009202449837977689,
+            "relative_error_coarse": 0.03030198900756383,
+            "relative_error_medium": 0.01369865433564573,
+            "relative_error_fine": 0.006134966558651793,
+            "error_extrapolated": 0.0002906266260993551
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 1.93912 (formal 2); asymptotic ratio 0.975617 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 1.5,
+            "r32": 1.5,
+            "epsilon21": -0.011345531665490904,
+            "epsilon32": -0.024905002007877153,
+            "convergence_ratio": 0.45555232888166197,
+            "observed_order": 1.9391179928212043,
+            "formal_order": 2.0,
+            "order_ratio": 0.9695589964106022,
+            "richardson_extrapolated": 1.5002906266260994,
+            "richardson_extrapolated_32": 1.5002906266260991,
+            "approximate_relative_error_21": 0.007610377186532037,
+            "approximate_relative_error_32": 0.016833936955377875,
+            "extrapolated_relative_error_21": 0.006327491684344768,
+            "extrapolated_relative_error_32": 0.01388971427251415,
+            "uncertainty_21": 0.011866345580096199,
+            "uncertainty_32": 0.026048260161959786,
+            "gci_fine_medium": 0.00795972972910141,
+            "gci_medium_coarse": 0.017606694800707968,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.9756166663344992,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": true,
+            "grid_independence_reason": "asymptotic and GCI21 0.00795973 <= threshold 0.01"
+          }
+        },
+        {
+          "name": "pressure_gradient",
+          "description": "dp/dx, pair-averaged between 0.40 L and 0.75 L; exact -12 mu U / H^2",
+          "values": {
+            "coarse": -1.1629182893233574,
+            "medium": -1.18350928951624,
+            "fine": -1.1926382256472958
+          },
+          "reference": {
+            "value": -1.2000000000000002,
+            "kind": "analytical",
+            "error_coarse": 0.03708171067664279,
+            "error_medium": 0.016490710483760163,
+            "error_fine": 0.007361774352704353,
+            "relative_error_coarse": 0.030901425563868986,
+            "relative_error_medium": 0.0137422587364668,
+            "relative_error_fine": 0.00613481196058696,
+            "error_extrapolated": 9.105291585220776e-05
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.0061 (formal 2); asymptotic ratio 1.00248 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 1.5,
+            "r32": 1.5,
+            "epsilon21": 0.00912893613105581,
+            "epsilon32": 0.020591000192882625,
+            "convergence_ratio": 0.44334593004429523,
+            "observed_order": 2.006103403075974,
+            "formal_order": 2.0,
+            "order_ratio": 1.003051701537987,
+            "richardson_extrapolated": -1.199908947084148,
+            "richardson_extrapolated_32": -1.199908947084148,
+            "approximate_relative_error_21": 0.007654405111911573,
+            "approximate_relative_error_32": 0.017398258193055,
+            "extrapolated_relative_error_21": 0.006059394301976365,
+            "extrapolated_relative_error_32": 0.013667418355167802,
+            "uncertainty_21": 0.009088401796065152,
+            "uncertainty_32": 0.02049957195988496,
+            "gci_fine_medium": 0.007620417994847086,
+            "gci_medium_coarse": 0.017321006384549944,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.002477781627632,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": true,
+            "grid_independence_reason": "asymptotic and GCI21 0.00762042 <= threshold 0.01"
+          }
+        }
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "name": "centerline_velocity_asymptotic",
+      "passed": true,
+      "detail": "monotonic convergence, observed order 1.93912 (formal 2); asymptotic ratio 0.975617 within 1 +/- 0.1"
+    },
+    {
+      "name": "centerline_velocity_gci_bounds_true_error",
+      "passed": true,
+      "detail": "fine relative error 0.006135 <= GCI21 0.007960"
+    },
+    {
+      "name": "pressure_gradient_asymptotic",
+      "passed": true,
+      "detail": "monotonic convergence, observed order 2.0061 (formal 2); asymptotic ratio 1.00248 within 1 +/- 0.1"
+    },
+    {
+      "name": "pressure_gradient_gci_bounds_true_error",
+      "passed": true,
+      "detail": "fine relative error 0.006135 <= GCI21 0.007620"
+    },
+    {
+      "name": "u_profile_l2_asymptotic",
+      "passed": true,
+      "detail": "monotonic convergence, observed order 1.894 (formal 2); asymptotic ratio 0.95793 within 1 +/- 0.1"
+    }
+  ],
+  "limitations": [
+    "Collocated SIMPLE without Rhie-Chow interpolation: an odd-even pressure mode grows on the residual plateau (amplitude reported per run as pressure_odd_even_amplitude). The pair-averaged estimator is immune to it; the legacy two-column estimate is not (reported as pressure_gradient_two_station_legacy).",
+    "Outer u/p gates 2e-5 / 5e-4 (the case's documented residual plateau); continuity and mass flow are converged to 1e-6.",
+    "Runtimes are wall-clock and not deterministic."
+  ],
+  "passed": true,
+  "runtime": {
+    "note": "measured wall time -- with grid_convergence[*].grids[*].runtime_seconds, the only non-deterministic part of this report",
+    "runs": [
+      {
+        "id": "poiseuille_re10/64x8/upwind",
+        "seconds": 67.125335608
+      },
+      {
+        "id": "poiseuille_re10/96x12/upwind",
+        "seconds": 138.920733819
+      },
+      {
+        "id": "poiseuille_re10/144x18/upwind",
+        "seconds": 272.316339799
+      }
+    ]
+  }
+}

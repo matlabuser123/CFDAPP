@@ -438,18 +438,133 @@ result).
   "pressure_linear_solver": {
     "type": "BiCGSTAB", "absolute_tolerance": 1e-10,
     "relative_tolerance": 1e-8, "max_iterations": 2000
-  }
+  },
+  "convection_scheme": "upwind",
+  "gradient_scheme": "green_gauss",
+  "non_orthogonal_corrections": 0
 }
 ```
 
 `type` must be `SIMPLE` (the only implemented pressure-velocity coupling
-algorithm); both linear solvers' `type` must be `BiCGSTAB`. Relaxation
-factors must satisfy `0 < value <= 1`; every tolerance and every
-`max_iterations` must be `> 0`.
+algorithm); each linear solver's own `type` is `BiCGSTAB`, `CG`, or
+`GMRES` (P12-NUM-004: restarted GMRES(30), CPU only -- a `GPU` request for
+it falls back to the CPU with a logged warning; valid for any nonsingular
+matrix) (its optional `backend` is `CPU`, the default, or `GPU`). Relaxation factors
+must satisfy `0 < value <= 1`; every tolerance and every `max_iterations`
+must be `> 0`.
+
+`convection_scheme` (P12-NUM-001, optional, default `upwind`) selects the
+momentum-equation convection scheme: `upwind` / `central` /
+`linear_upwind` / `quick`. Only `upwind`'s implicit coefficients ever
+differ; the other three add an explicit, boundedness-limited correction
+on top of the same upwind matrix (see `results/p12-num-001/summary.md`
+for the full formulation and measured convergence behavior, including
+why higher-order schemes measure a *lower* global grid-refinement order
+than `upwind` due to boundary treatment).
+
+`gradient_scheme` (P12-NUM-002, optional, default `green_gauss`) selects
+the reconstruction used by the pressure-gradient source term and the
+SIMPLE velocity-correction step: `green_gauss` or `least_squares`. Both
+are exact for a linear field on any mesh (including a distorted one);
+`least_squares` additionally stays exact for a linear field where
+`green_gauss` does not (a distorted/non-orthogonal mesh) -- see
+`results/p12-num-002/summary.md`.
+
+`non_orthogonal_corrections` (P12-NUM-003, optional, integer `>= 0`,
+default `0`; a negative value is rejected) controls the non-orthogonal
+mesh correction. `0` is the uncorrected solver, exactly the behavior
+before this key existed. `N >= 1` enables the over-relaxed non-orthogonal
+correction (orthogonal part implicit, `S_nonorth . grad(phi)` explicit, on
+internal faces and on value-prescribing boundary faces) in every diffusion
+term -- momentum viscous terms, thermal conduction, species diffusion and
+the k/epsilon/omega diffusion of every turbulence model -- and runs `N`
+momentum-predictor passes and `N` pressure-correction passes per SIMPLE
+(and compressible SIMPLE) iteration; pressure passes 2..N add the explicit
+non-orthogonal part of the pressure-correction flux. Unlike OpenFOAM's
+`nNonOrthogonalCorrectors`, `0` here means *off*, not "one corrected
+solve". The correction's gradient is the one selected by `gradient_scheme`:
+`least_squares` makes the corrected operators exact for linear fields on a
+skewed mesh; `green_gauss` (skewness-corrected) is within ~1e-9. On a
+structured Cartesian grid -- every mesh a case file can currently build --
+every correction term is exactly zero (results are bit-identical for
+`0` and `1`). See `results/p12-num-003/summary.md`.
 
 The pressure-correction reference cell (null-space gauge for a fully
 closed domain) is *not* configurable here -- it stays the deterministic
 default, cell `0`.
+
+### `robustness` (P12-NUM-004, optional)
+
+Every key is optional. **An absent block, an empty block, or any absent
+key keeps today's behavior**: the absolute convergence criterion and every
+feature below disabled (results are bit-identical to a file without the
+block). The same settings apply to SIMPLE and, for a
+`compressible.coupled` case, to the coupled compressible solve.
+
+```json
+"robustness": {
+  "convergence_criterion": "absolute",
+  "normalization": {"reference_iterations": 5, "velocity_tolerance": 1e-4,
+                    "pressure_tolerance": 1e-4},
+  "stagnation_detection": {"enabled": false, "window": 50,
+                           "min_relative_improvement": 0.01, "start_iteration": 100},
+  "divergence_detection": {"enabled": false, "window": 10, "growth_factor": 10.0,
+                           "start_iteration": 10},
+  "adaptive_relaxation": {"enabled": false, "min_velocity": 0.1, "max_velocity": 0.9,
+                          "min_pressure": 0.05, "max_pressure": 0.7},
+  "linear_solver_fallback": {"enabled": false, "max_attempts": 1}
+}
+```
+
+(the values shown are the defaults).
+
+- **Normalized residuals** are always computed and reported (results JSON
+  `robustness.normalized_residuals`): each residual divided by its
+  *reference*, the largest value over the first `reference_iterations`
+  outer iterations, floored at that residual's absolute tolerance (so a
+  residual that starts at exactly 0 never divides by zero -- it is then
+  measured in multiples of its tolerance).
+- `convergence_criterion`: `absolute` (default) -- converged when every
+  residual is below its absolute tolerance (the pre-existing rule);
+  `normalized` -- u, v and p converge when `residual <= max(tolerance_n x
+  reference, absolute tolerance)` with the `normalization` tolerances
+  (`0 < value < 1`), while continuity and global mass imbalance keep their
+  **absolute** `continuity_tolerance` gate (a small normalized residual
+  never converges a solve whose mass conservation is unacceptable).
+- `stagnation_detection`: stops the solve with status **Stagnated**
+  (instead of running to `max_iterations`) when the best "convergence
+  distance" (the largest residual/tolerance ratio) improved by less than
+  `min_relative_improvement` (`0 < value < 1`) over the last `window`
+  (`2..10000`) iterations, from `start_iteration` on. A solve contracting
+  by a factor `rho` per iteration is classified slow-but-converging, not
+  stagnating, while `1 - rho^window >= min_relative_improvement`.
+- `divergence_detection`: stops with status **Diverging** when, from
+  `start_iteration + window` on, a residual stayed `>= growth_factor`
+  (`> 1`) times its best value (since `start_iteration`) for `window`
+  consecutive iterations, or increased at every one of the last `window`
+  iterations by `>= growth_factor` in total, or its norm overflowed. A
+  single spike never triggers it.
+- `adaptive_relaxation`: `velocity_relaxation`/`pressure_relaxation`
+  become the **initial** values (they must lie within the bounds, each
+  bound `0 < value <= 1`, min <= max). After each completed iteration the
+  factors are reduced by 30% on a >20% residual jump or a growing
+  oscillation, and raised by 5% after 5 consecutive improvements, never
+  above 90% of a factor that previously proved unstable. The factors never
+  change inside an iteration.
+- `linear_solver_fallback`: when a momentum or pressure-correction linear
+  solve fails with a *Breakdown* (or a non-finite residual from finite
+  inputs), retry with up to `max_attempts` (`0..3`) alternative methods:
+  CG only if the matrix is proven symmetric positive definite, otherwise
+  GMRES (a BiCGSTAB primary tries CG then GMRES on an SPD matrix). Each
+  retry keeps the same accuracy target and preconditioner. Fallbacks are
+  counted in the results JSON (`robustness.linear_solver_fallbacks`,
+  `..._recoveries`) and printed by the CLI; a failed fallback still ends
+  the solve as a momentum/pressure-correction failure.
+
+Invalid values (for example a `window` below 2, `growth_factor <= 1`, a
+relaxation bound outside `(0, 1]`, `min > max`, `max_attempts` outside
+`0..3`, a non-boolean `enabled`, or an unknown key) are rejected with the
+offending field named. See `results/p12-num-004/summary.md`.
 
 ## Exit codes
 
@@ -458,5 +573,5 @@ default, cell `0`.
 | 0 | Converged |
 | 1 | CLI usage error (missing/unknown argument) |
 | 2 | Invalid case (a file could not be read/parsed, or its content failed validation) |
-| 3 | Solver did not converge within `max_iterations` |
-| 4 | Solver numerical failure (momentum/pressure-correction solve failure, non-finite state, invalid solver configuration) |
+| 3 | Solver did not converge within `max_iterations`, or stopped as stagnated (P12-NUM-004 stagnation detection) |
+| 4 | Solver numerical failure (momentum/pressure-correction solve failure, non-finite state, invalid solver configuration, or a diverging residual history detected by P12-NUM-004 divergence detection) |

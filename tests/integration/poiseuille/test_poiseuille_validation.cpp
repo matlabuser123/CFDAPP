@@ -31,7 +31,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 
 #include "PoiseuilleValidationUtils.hpp"
@@ -43,6 +45,7 @@
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/pressure_velocity/SIMPLE.hpp"
+#include "cfd/validation/GridConvergenceStudy.hpp"
 
 using cfd::Index;
 using cfd::Real;
@@ -287,20 +290,128 @@ TEST(PoiseuilleValidation, DISABLED_Grid256x32ConvergesAndMatchesAnalyticalProfi
       &outcome);
 }
 
-// Error against the closed-form analytical solution should not grow with
-// refinement. Disabled alongside the 128x16/256x32 runs above since it
-// depends on both.
-TEST(PoiseuilleValidation, DISABLED_GridRefinementReducesVelocityError) {
-  PoiseuilleRunOutcome coarse, medium, fine;
-  runGridAndValidate(GridCase{64, 8, 6000, 2000, 1e-8, 1e-6, 2e-5, 5e-4}, &coarse);
-  ASSERT_FALSE(::testing::Test::HasFatalFailure());
-  runGridAndValidate(GridCase{128, 16, 8000, 2000, 1e-8, 1e-6, 2e-5, 5e-4}, &medium);
-  ASSERT_FALSE(::testing::Test::HasFatalFailure());
-  runGridAndValidate(GridCase{256, 32, 20000, 5000, 1e-7, 1e-5, 2e-5, 5e-4}, &fine);
-  ASSERT_FALSE(::testing::Test::HasFatalFailure());
+// P12-NUM-005: three-grid convergence study (replaces the former
+// DISABLED_GridRefinementReducesVelocityError, which only checked that the
+// error did not grow). Grids 64x8 / 96x12 / 144x18 on the same channel
+// (r21 = r32 = 1.5, square cells, h = sqrt(A/N) = H/ny), run through the
+// shared cfd::validation::runGridConvergenceStudy with its solver-status
+// gate. Enabled in the default suite (~3 min Debug).
+//
+// Quantity: the fully-developed centerline velocity u(0.75 L, H/2), exact
+// value 1.5 U_mean (analytical), formal order 2 (second-order central
+// diffusion; the upwind convection term vanishes for fully developed flow).
+// Measured iterative sensitivity: stopping at the u-residual gate 2e-5 vs.
+// 40000 iterations changes it by 1.2e-6 on 64x8 -- far below the grid
+// differences (~1e-2), hence absoluteNoise = 1e-5. The pressure gradient is
+// deliberately NOT used: the same comparison moves it by 7 % on 64x8 (the
+// pressure level drifts on this case's residual plateau), i.e. it is not
+// iteratively converged at the validation gates (results/p12-num-005).
+// Second quantity: the L2 error of the profile against the analytical one
+// (exact limit 0) -- its Richardson extrapolation must approach 0.
+//
+// Pressure solve: Jacobi-preconditioned BiCGSTAB with the P12-NUM-004
+// linear-solver fallback -- unpreconditioned BiCGSTAB broke down 70 times
+// on the 144x18 grid (all recovered by the fallback; measured), a linear-
+// solver issue, not part of the discretization being studied.
+TEST(PoiseuilleValidation, GridConvergence) {
+  using cfd::validation::GridConvergenceStatus;
+  using cfd::validation::GridSolveOutput;
+  using cfd::validation::GridSpec;
 
-  EXPECT_LE(medium.velocityError.l2, coarse.velocityError.l2);
-  EXPECT_LE(fine.velocityError.l2, medium.velocityError.l2);
+  const auto solve = [](const GridSpec& spec) {
+    // Inner pressure tolerance 1e-10 / 1e-8 (tighter than the per-grid
+    // tests above) -- the setting the iterative sensitivity was measured with.
+    GridCase grid{spec.nx, spec.ny, /*maxOuter=*/8000, /*pressureInner=*/5000, 1e-10, 1e-8,
+                  2e-5,    5e-4};
+    SIMPLESettings settings = makeSettings(grid);
+    settings.pressureSolver.preconditioner = cfd::algebra::PreconditionerType::Jacobi;
+    settings.robustness.linearSolverFallback.enabled = true;
+    const Mesh mesh = MeshGeometry::createCartesian2D(spec.nx, spec.ny, spec.lengthX, spec.lengthY);
+    const SIMPLE simple(settings, /*referenceCell=*/0);
+    const SIMPLEResult result = simple.solve(
+        mesh, FluidProperties(kDensity, kViscosity), makeChannelVelocityBoundaries(mesh),
+        makeChannelPressureBoundaries(mesh), VectorField(mesh.numberOfCells(), Vector2{0.0, 0.0}),
+        ScalarField(mesh.numberOfCells(), 0.0));
+    GridSolveOutput out;
+    out.acceptance = cfd::validation::assessSimpleSolve(result, 1e-6);
+    out.solverIterations = result.iterations;
+    if (!out.acceptance.accepted) return out;
+    const auto profile = cfd::validation::extractVerticalProfileU(
+        mesh, spec.nx, spec.ny, result.velocity, kProfileStationX, kChannelHeight);
+    out.quantities.emplace_back("centerline_velocity",
+                                cfd::validation::interpolateProfile(profile, 0.5 * kChannelHeight));
+    out.quantities.emplace_back(
+        "velocity_profile_l2_error",
+        cfd::validation::computeVelocityProfileErrors(profile, kChannelHeight, kMeanVelocity).l2);
+    return out;
+  };
+
+  cfd::validation::QuantitySpec centerline;
+  centerline.name = "centerline_velocity";
+  centerline.description = "u(0.75 L, H/2), fully developed; exact 1.5 U_mean";
+  centerline.reference = 1.5 * kMeanVelocity;
+  centerline.referenceKind = "analytical";
+  centerline.options.formalOrder = 2.0;
+  centerline.options.absoluteNoise = 1e-5;
+  // 1 %: the customary engineering target for the numerical uncertainty of
+  // a validation quantity; fixed with the method, not fitted to the result.
+  centerline.options.gridIndependenceThreshold = 0.01;
+  cfd::validation::QuantitySpec l2;
+  l2.name = "velocity_profile_l2_error";
+  l2.description = "RMS error of u(0.75 L, y) vs. the analytical profile (exact limit 0)";
+  l2.reference = 0.0;
+  l2.referenceKind = "analytical";
+  l2.options.formalOrder = 2.0;
+  l2.options.absoluteNoise = 1e-5;
+
+  const auto study = cfd::validation::runGridConvergenceStudy(
+      "poiseuille_flow",
+      "Planar Poiseuille channel L = 8H, Re = 10, SIMPLE (upwind convection, central diffusion)",
+      {GridSpec{"coarse", 64, 8, kChannelLength, kChannelHeight},
+       GridSpec{"medium", 96, 12, kChannelLength, kChannelHeight},
+       GridSpec{"fine", 144, 18, kChannelLength, kChannelHeight}},
+      solve, {centerline, l2});
+  cfd::validation::writeGridConvergenceReport(
+      "results/validation/grid_convergence/poiseuille_flow.json", study);
+  {
+    std::ofstream md("results/validation/grid_convergence/poiseuille_flow.md");
+    md << cfd::validation::gridConvergenceReportMarkdown(study);
+  }
+  std::printf("\n%s", cfd::validation::gridConvergenceReportMarkdown(study).c_str());
+  // The written report passes the schema / consistency validator.
+  const auto reportProblems = cfd::validation::validateGridConvergenceReportFile(
+      "results/validation/grid_convergence/poiseuille_flow.json");
+  EXPECT_TRUE(reportProblems.empty()) << reportProblems.front();
+
+  ASSERT_TRUE(study.allSolvesAccepted) << study.rejectionReason;
+  const auto& u = study.quantities[0];
+  const auto& a = u.analysis;
+  // In the asymptotic range of the formal second order (ratio within
+  // 1 +/- 0.1 -- the library default band, equivalent to p in [1.74, 2.24]
+  // at r = 1.5).
+  ASSERT_EQ(a.status, GridConvergenceStatus::Asymptotic) << a.diagnostic;
+  ASSERT_TRUE(a.observedOrder.has_value() && a.gci21.has_value() && a.gci32.has_value());
+  EXPECT_LT(*a.gci21, *a.gci32);
+  // Richardson extrapolation removes most of the fine-grid error against
+  // the exact value: for a sequence of order p the extrapolated error is of
+  // higher order, so requiring it to be below 20 % of the fine error is a
+  // loose, method-derived bound.
+  const Real fineError = std::abs(*u.errorVsReference[2]);
+  EXPECT_LT(std::abs(*u.extrapolatedErrorVsReference), 0.2 * fineError);
+  // The GCI is a conservative estimate: it must bound the TRUE relative
+  // fine-grid error (known here, since the exact value is known).
+  EXPECT_LE(*u.relativeErrorVsReference[2], *a.gci21);
+  // Errors against the exact value decrease monotonically.
+  EXPECT_LT(std::abs(*u.errorVsReference[2]), std::abs(*u.errorVsReference[1]));
+  EXPECT_LT(std::abs(*u.errorVsReference[1]), std::abs(*u.errorVsReference[0]));
+  EXPECT_TRUE(a.gridIndependent) << a.gridIndependenceReason;
+
+  // The profile error norm converges and extrapolates toward its exact
+  // limit 0 (well below the fine-grid norm).
+  const auto& e = study.quantities[1];
+  ASSERT_TRUE(e.analysis.observedOrder.has_value()) << e.analysis.diagnostic;
+  ASSERT_TRUE(e.analysis.extrapolated21.has_value());
+  EXPECT_LT(std::abs(*e.analysis.extrapolated21), 0.2 * *e.values[2]);
 }
 
 // Repeat runs, require identical results -- same determinism guarantee

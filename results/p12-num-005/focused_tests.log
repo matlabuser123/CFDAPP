@@ -1,0 +1,343 @@
+# P12-NUM-005 focused tests (2026-09-13, WSL2 Ubuntu, GCC, build/debug)
+# Final binaries (after the last source change), run from the repository root.
+
+################ 1. CFDValidationUnitTests (all 22)
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 22 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 16 tests from GridConvergenceTest
+[ RUN      ] GridConvergenceTest.RepresentativeGridSize
+[       OK ] GridConvergenceTest.RepresentativeGridSize (0 ms)
+[ RUN      ] GridConvergenceTest.FirstOrderSynthetic
+[       OK ] GridConvergenceTest.FirstOrderSynthetic (0 ms)
+[ RUN      ] GridConvergenceTest.SecondOrderSynthetic
+[       OK ] GridConvergenceTest.SecondOrderSynthetic (0 ms)
+[ RUN      ] GridConvergenceTest.ThirdOrderSynthetic
+[       OK ] GridConvergenceTest.ThirdOrderSynthetic (0 ms)
+[ RUN      ] GridConvergenceTest.UnequalRefinementRatios
+[       OK ] GridConvergenceTest.UnequalRefinementRatios (0 ms)
+[ RUN      ] GridConvergenceTest.RichardsonExactRecovery
+[       OK ] GridConvergenceTest.RichardsonExactRecovery (0 ms)
+[ RUN      ] GridConvergenceTest.GCIKnownCase
+[       OK ] GridConvergenceTest.GCIKnownCase (0 ms)
+[ RUN      ] GridConvergenceTest.AsymptoticRatio
+[       OK ] GridConvergenceTest.AsymptoticRatio (0 ms)
+[ RUN      ] GridConvergenceTest.OscillatorySequenceDetected
+[       OK ] GridConvergenceTest.OscillatorySequenceDetected (0 ms)
+[ RUN      ] GridConvergenceTest.DivergingSequenceDetected
+[       OK ] GridConvergenceTest.DivergingSequenceDetected (0 ms)
+[ RUN      ] GridConvergenceTest.ZeroDifferenceHandled
+[       OK ] GridConvergenceTest.ZeroDifferenceHandled (0 ms)
+[ RUN      ] GridConvergenceTest.ZeroSolutionQuantityHasNoRelativeMetrics
+[       OK ] GridConvergenceTest.ZeroSolutionQuantityHasNoRelativeMetrics (0 ms)
+[ RUN      ] GridConvergenceTest.InvalidGridSpacingRejected
+[       OK ] GridConvergenceTest.InvalidGridSpacingRejected (0 ms)
+[ RUN      ] GridConvergenceTest.NonFiniteInputRejected
+[       OK ] GridConvergenceTest.NonFiniteInputRejected (0 ms)
+[ RUN      ] GridConvergenceTest.GridIndependenceCriterion
+[       OK ] GridConvergenceTest.GridIndependenceCriterion (0 ms)
+[ RUN      ] GridConvergenceTest.ObservedOrderSolverMatchesClosedFormForEqualRatios
+[       OK ] GridConvergenceTest.ObservedOrderSolverMatchesClosedFormForEqualRatios (0 ms)
+[----------] 16 tests from GridConvergenceTest (6 ms total)
+
+[----------] 6 tests from GridConvergenceStudyTest
+[ RUN      ] GridConvergenceStudyTest.RunsCoarseToFineAndAnalysesEveryQuantity
+[       OK ] GridConvergenceStudyTest.RunsCoarseToFineAndAnalysesEveryQuantity (0 ms)
+[ RUN      ] GridConvergenceStudyTest.RejectedSolveInvalidatesTheStudy
+[       OK ] GridConvergenceStudyTest.RejectedSolveInvalidatesTheStudy (0 ms)
+[ RUN      ] GridConvergenceStudyTest.MissingQuantityIsInvalid
+[       OK ] GridConvergenceStudyTest.MissingQuantityIsInvalid (0 ms)
+[ RUN      ] GridConvergenceStudyTest.SimpleSolveGateRejectsInvalidSolves
+[       OK ] GridConvergenceStudyTest.SimpleSolveGateRejectsInvalidSolves (0 ms)
+[ RUN      ] GridConvergenceStudyTest.DeterministicReport
+[       OK ] GridConvergenceStudyTest.DeterministicReport (2 ms)
+[ RUN      ] GridConvergenceStudyTest.ReportSchemaValidation
+[       OK ] GridConvergenceStudyTest.ReportSchemaValidation (19 ms)
+[----------] 6 tests from GridConvergenceStudyTest (25 ms total)
+
+[----------] Global test environment tear-down
+[==========] 22 tests from 2 test suites ran. (33 ms total)
+[  PASSED  ] 22 tests.
+
+################ 2. PoiseuilleValidation.GridConvergence (enabled in CI)
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PoiseuilleValidation.GridConvergence
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PoiseuilleValidation
+[ RUN      ] PoiseuilleValidation.GridConvergence
+
+### Grid convergence: poiseuille_flow
+
+Planar Poiseuille channel L = 8H, Re = 10, SIMPLE (upwind convection, central diffusion)
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 64 x 8 | 512 | 0.125 | 23.4 | Converged (1319 it) | yes |
+| medium | 96 x 12 | 1152 | 0.0833333 | 44.2 | Converged (985 it) | yes |
+| fine | 144 x 18 | 2592 | 0.0555556 | 88.4 | Converged (744 it) | yes |
+
+**centerline_velocity** -- u(0.75 L, H/2), fully developed; exact 1.5 U_mean
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 1.454547 | 1.5 (analytical) | -0.04545 | 0.0303 |
+| medium | 1.479452 | 1.5 (analytical) | -0.02055 | 0.0137 |
+| fine | 1.4907976 | 1.5 (analytical) | -0.009202 | 0.006135 |
+| extrapolated | 1.5002906 | | 0.0002906 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.9391 | 2 | 1.5002906 | 0.01187 | 0.00796 | 0.01761 | 0.9756 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.93912 (formal 2); asymptotic ratio 0.975617 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.00795973 <= threshold 0.01
+
+**velocity_profile_l2_error** -- RMS error of u(0.75 L, y) vs. the analytical profile (exact limit 0)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.013579299 | 0 (analytical) | 0.01358 | -- |
+| medium | 0.0064336958 | 0 (analytical) | 0.006434 | -- |
+| fine | 0.0029688144 | 0 (analytical) | 0.002969 | -- |
+| extrapolated | -0.00029288406 | | -0.0002929 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.7852 | 2 | -0.00029288406 | 0.004077 | 1.373 | 1.307 | 0.9166 | asymptotic | no |
+
+- monotonic convergence, observed order 1.78516 (formal 2); asymptotic ratio 0.916575 within 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+[       OK ] PoiseuilleValidation.GridConvergence (155995 ms)
+[----------] 1 test from PoiseuilleValidation (155996 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (155997 ms total)
+[  PASSED  ] 1 test.
+
+real	2m38.927s
+user	2m36.925s
+sys	0m1.844s
+
+################ 3. NaturalConvectionValidation.GridConvergence (enabled in CI)
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = NaturalConvectionValidation.GridConvergence
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from NaturalConvectionValidation
+[ RUN      ] NaturalConvectionValidation.GridConvergence
+
+### Grid convergence: natural_convection_ra1e3
+
+Differentially heated square cavity, Ra = 1e3, Pr = 0.71, SIMPLE + ThermalSolver Picard coupling (first-order upwind convection); references: de Vahl Davis (1983) benchmark data
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 10 x 10 | 100 | 0.1 | 22.0 | Converged (50 it) | yes |
+| medium | 15 x 15 | 225 | 0.0666667 | 119.2 | Converged (50 it) | yes |
+| fine | 20 x 20 | 400 | 0.05 | 211.1 | Converged (50 it) | yes |
+
+**nu_avg** -- average hot-wall Nusselt number
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 1.1743839 | 1.12 (benchmark) | 0.05438 | 0.04856 |
+| medium | 1.1504709 | 1.12 (benchmark) | 0.03047 | 0.02721 |
+| fine | 1.1406738 | 1.12 (benchmark) | 0.02067 | 0.01846 |
+| extrapolated | 1.1233868 | | 0.003387 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | 1.5607 | 1 | 1.1233868 | 0.02161 | 0.01894 | 0.02943 | 1.2204 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 1.56073 (formal 1); asymptotic ratio 1.22041 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**u_max** -- max u on the vertical mid-line (sampled at cell centres)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 3.2545387 | 3.634 (benchmark) | -0.3795 | 0.1044 |
+| medium | 3.5392581 | 3.634 (benchmark) | -0.09474 | 0.02607 |
+| fine | 3.4936786 | 3.634 (benchmark) | -0.1403 | 0.03861 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | -- | 1 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -0.160086): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.14236 is available
+
+**v_max** -- max v on the horizontal mid-line (sampled at cell centres)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 3.4320004 | 3.679 (benchmark) | -0.247 | 0.06714 |
+| medium | 3.5427693 | 3.679 (benchmark) | -0.1362 | 0.03703 |
+| fine | 3.5632985 | 3.679 (benchmark) | -0.1157 | 0.03145 |
+| extrapolated | 3.5739209 | | -0.1051 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.333 | 1.5 | 3.7399 | 1 | 3.5739209 | 0.01328 | 0.003726 | 0.01099 | 2.6978 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 3.73991 (formal 1); asymptotic ratio 2.69784 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+[       OK ] NaturalConvectionValidation.GridConvergence (352410 ms)
+[----------] 1 test from NaturalConvectionValidation (352411 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (352411 ms total)
+[  PASSED  ] 1 test.
+
+real	5m58.911s
+user	5m55.482s
+sys	0m3.250s
+
+################ 4. CavityGhiaValidation.DISABLED_GridConvergence (explicit, --gtest_also_run_disabled_tests)
+# Run 2 (report files in this directory). Binary built before the in-test report-validation
+# line was added; its report is validated in section 5 instead. Run 1 JSON differs only in runtime_seconds.
+Running main() from <repo>/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = CavityGhiaValidation.DISABLED_GridConvergence
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from CavityGhiaValidation
+[ RUN      ] CavityGhiaValidation.DISABLED_GridConvergence
+
+### Grid convergence: cavity_re100
+
+Lid-driven cavity Re = 100, SIMPLE (first-order upwind convection); references: Ghia, Ghia & Shin (1982) Table I/II (benchmark data)
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 20 x 20 | 400 | 0.05 | 29.9 | Converged (3036 it) | yes |
+| medium | 40 x 40 | 1600 | 0.025 | 165.6 | Converged (5615 it) | yes |
+| fine | 80 x 80 | 6400 | 0.0125 | 1364.8 | Converged (9643 it) | yes |
+
+**u_center** -- u(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17281389 | -0.20581 (benchmark) | 0.033 | 0.1603 |
+| medium | -0.19005545 | -0.20581 (benchmark) | 0.01575 | 0.07655 |
+| fine | -0.19931506 | -0.20581 (benchmark) | 0.006495 | 0.03156 |
+| extrapolated | -0.21005682 | | -0.004247 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8969 | 1 | -0.21005682 | 0.01343 | 0.06737 | 0.1315 | 0.9310 | asymptotic | no |
+
+- monotonic convergence, observed order 0.896868 (formal 1); asymptotic ratio 0.93101 within 1 +/- 0.1
+- grid independence: GCI21 0.0673667 > threshold 0.01
+
+**v_center** -- v(0.5, 0.5)
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.041916274 | 0.05454 (benchmark) | -0.01262 | 0.2315 |
+| medium | 0.047946089 | 0.05454 (benchmark) | -0.006594 | 0.1209 |
+| fine | 0.052239178 | 0.05454 (benchmark) | -0.002301 | 0.04219 |
+| extrapolated | 0.062851441 | | 0.008311 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.4901 | 1 | 0.062851441 | 0.01327 | 0.2539 | 0.3886 | 0.7023 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.490098 (formal 1); asymptotic ratio 0.70227 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**u_x0.5_y0.4531** -- u(0.5, 0.4531), Ghia station near u_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.17367706 | -0.2109 (benchmark) | 0.03722 | 0.1765 |
+| medium | -0.19210838 | -0.2109 (benchmark) | 0.01879 | 0.0891 |
+| fine | -0.20250534 | -0.2109 (benchmark) | 0.008395 | 0.0398 |
+| extrapolated | -0.2159596 | | -0.00506 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8260 | 1 | -0.2159596 | 0.01682 | 0.08305 | 0.1552 | 0.8864 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.825999 (formal 1); asymptotic ratio 0.886381 outside 1 +/- 0.1
+- grid independence: status is monotonic_not_asymptotic, not asymptotic
+
+**v_x0.2344_y0.5** -- v(0.2344, 0.5), Ghia station near v_max
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.15464404 | 0.17527 (benchmark) | -0.02063 | 0.1177 |
+| medium | 0.16673625 | 0.17527 (benchmark) | -0.008534 | 0.04869 |
+| fine | 0.17328827 | 0.17527 (benchmark) | -0.001982 | 0.01131 |
+| extrapolated | 0.18103693 | | 0.005767 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.8841 | 1 | 0.18103693 | 0.009686 | 0.05589 | 0.1072 | 0.9228 | asymptotic | no |
+
+- monotonic convergence, observed order 0.884065 (formal 1); asymptotic ratio 0.922784 within 1 +/- 0.1
+- grid independence: GCI21 0.0558943 > threshold 0.01
+
+**v_x0.8047_y0.5** -- v(0.8047, 0.5), Ghia station near v_min
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -0.20491551 | -0.24533 (benchmark) | 0.04041 | 0.1647 |
+| medium | -0.2285443 | -0.24533 (benchmark) | 0.01679 | 0.06842 |
+| fine | -0.24078047 | -0.24533 (benchmark) | 0.00455 | 0.01854 |
+| extrapolated | -0.25392267 | | -0.008593 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.9494 | 1 | -0.25392267 | 0.01643 | 0.06823 | 0.1388 | 0.9655 | asymptotic | no |
+
+- monotonic convergence, observed order 0.949393 (formal 1); asymptotic ratio 0.96553 within 1 +/- 0.1
+- grid independence: GCI21 0.0682271 > threshold 0.01
+
+[       OK ] CavityGhiaValidation.DISABLED_GridConvergence (1560362 ms)
+[----------] 1 test from CavityGhiaValidation (1560362 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1560364 ms total)
+[  PASSED  ] 1 test.
+
+real	26m27.833s
+user	25m35.197s
+sys	0m48.710s
+
+################ 5. Report validation (validateGridConvergenceReportFile via scratch validate_reports.cpp)
+results/p12-num-005/poiseuille_flow.json: VALID
+results/p12-num-005/natural_convection_ra1e3.json: VALID
+results/p12-num-005/cavity_re100.json: VALID
+
+################ 6. Full-regression lines for the NUM-005 tests (ctest -j32, see summary.md section 11)
+1568/1614 Test #1208: GridConvergenceTest.RepresentativeGridSize ...............................................................   Passed    0.37 sec
+1569/1614 Test #1209: GridConvergenceTest.FirstOrderSynthetic ..................................................................   Passed    0.37 sec
+1570/1614 Test #1210: GridConvergenceTest.SecondOrderSynthetic .................................................................   Passed    0.37 sec
+1573/1614 Test #1436: CavityGhiaValidation.GridConvergence .....................................................................***Not Run (Disabled)   0.00 sec
+1576/1614 Test #1211: GridConvergenceTest.ThirdOrderSynthetic ..................................................................   Passed    0.45 sec
+1578/1614 Test #1212: GridConvergenceTest.UnequalRefinementRatios ..............................................................   Passed    0.47 sec
+1584/1614 Test #1213: GridConvergenceTest.RichardsonExactRecovery ..............................................................   Passed    0.55 sec
+1585/1614 Test #1214: GridConvergenceTest.GCIKnownCase .........................................................................   Passed    0.54 sec
+1586/1614 Test #1215: GridConvergenceTest.AsymptoticRatio ......................................................................   Passed    0.54 sec
+1587/1614 Test #1216: GridConvergenceTest.OscillatorySequenceDetected ..........................................................   Passed    0.54 sec
+1588/1614 Test #1217: GridConvergenceTest.DivergingSequenceDetected ............................................................   Passed    0.54 sec
+1589/1614 Test #1218: GridConvergenceTest.ZeroDifferenceHandled ................................................................   Passed    0.54 sec
+1590/1614 Test #1219: GridConvergenceTest.ZeroSolutionQuantityHasNoRelativeMetrics .............................................   Passed    0.54 sec
+1591/1614 Test #1220: GridConvergenceTest.InvalidGridSpacingRejected ...........................................................   Passed    0.54 sec
+1592/1614 Test #1221: GridConvergenceTest.NonFiniteInputRejected ...............................................................   Passed    0.54 sec
+1593/1614 Test #1222: GridConvergenceTest.GridIndependenceCriterion ............................................................   Passed    0.53 sec
+1594/1614 Test #1223: GridConvergenceTest.ObservedOrderSolverMatchesClosedFormForEqualRatios ...................................   Passed    0.53 sec
+1595/1614 Test #1224: GridConvergenceStudyTest.RunsCoarseToFineAndAnalysesEveryQuantity ........................................   Passed    0.53 sec
+1596/1614 Test #1225: GridConvergenceStudyTest.RejectedSolveInvalidatesTheStudy ................................................   Passed    0.53 sec
+1597/1614 Test #1226: GridConvergenceStudyTest.MissingQuantityIsInvalid ........................................................   Passed    0.53 sec
+1598/1614 Test #1227: GridConvergenceStudyTest.SimpleSolveGateRejectsInvalidSolves .............................................   Passed    0.53 sec
+1599/1614 Test #1228: GridConvergenceStudyTest.DeterministicReport .............................................................   Passed    0.52 sec
+1600/1614 Test #1229: GridConvergenceStudyTest.ReportSchemaValidation ..........................................................   Passed    0.53 sec
+1608/1614 Test #1443: PoiseuilleValidation.GridConvergence .....................................................................   Passed  240.57 sec
+1613/1614 Test #1468: NaturalConvectionValidation.GridConvergence ..............................................................   Passed  487.58 sec
+100% tests passed, 0 tests failed out of 1603
+Total Test time (real) = 754.10 sec

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
 
@@ -28,7 +29,12 @@ struct VelocityGradientField {
 // the assigned VectorBoundaryCondition) -- reusing that already-verified
 // building block rather than duplicating face-value logic.
 //
-// Deliberately the PLAIN Green-Gauss formula, not Gradient.hpp's
+// P12-NUM-003: on a skewed mesh the internal-face values are skewness-
+// corrected exactly like Gradient.hpp's greenGaussGradient (same
+// kGreenGaussSkewCorrectionSweeps; bit-identical to the plain formula on
+// any mesh without skewed faces).
+//
+// Deliberately without Gradient.hpp's
 // boundary-exact quadratic-fit refinement (Gradient.cpp's
 // tryPairedBoundaryContribution): that refinement is built specifically
 // around a *scalar* ScalarBoundaryCondition::boundaryValue(ownerValue,
@@ -45,9 +51,23 @@ struct VelocityGradientField {
 // boundary cells included -- a linear field has no curvature for the
 // quadratic-fit refinement to correct.
 //
+// P12-NUM-003: `scheme` (default GreenGauss -- exactly the formula
+// described above, unchanged, for every pre-P12-NUM-003 caller, which
+// never passes one) may select GradientScheme::LeastSquares: the same
+// weighted least-squares reconstruction as Gradient.hpp's
+// leastSquaresGradient (same stencil, same solveLeastSquaresGradient()
+// primitive, same GreenGauss fallback for an ill-conditioned cell), with
+// boundary "virtual neighbor" values taken from the vector boundary
+// condition. Unlike the plain GreenGauss formula, it is exact for a
+// linear velocity field on a distorted (non-orthogonal/skewed) mesh --
+// the property the momentum equation's non-orthogonal diffusion
+// correction needs there (see MomentumEquation.hpp and
+// results/p12-num-003/summary.md).
+//
 // Throws InvalidArgumentError if velocity.size() != mesh.numberOfCells().
 [[nodiscard]] VelocityGradientField computeVelocityGradient(
     const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
-    const cfd::boundary::BoundaryConditionSet& velocityBoundaries);
+    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
+    GradientScheme scheme = GradientScheme::GreenGauss);
 
 }  // namespace cfd::discretization

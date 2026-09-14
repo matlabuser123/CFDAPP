@@ -27,7 +27,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 
 #include "CavityValidationUtils.hpp"
@@ -38,6 +40,7 @@
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/pressure_velocity/SIMPLE.hpp"
+#include "cfd/validation/GridConvergenceStudy.hpp"
 
 using cfd::Index;
 using cfd::Real;
@@ -222,24 +225,120 @@ TEST(CavityGhiaValidation, DISABLED_Grid80x80ConvergesAndMatchesGhia) {
                      &outcome);
 }
 
-// TODO.md sections 30-32: error against the published benchmark should
-// not grow with refinement, and the coarse-to-fine trend is itself
-// evidence of grid convergence independent of the external benchmark's
-// own sampling density. Disabled alongside the 40x40/80x80 runs above
-// since it depends on both.
-TEST(CavityGhiaValidation, DISABLED_GridRefinementReducesGhiaError) {
-  CavityRunOutcome r20, r40, r80;
-  runGridAndValidate(GridCase{20, 6000, 2000, 1e-10, 1e-8}, &r20);
-  ASSERT_FALSE(::testing::Test::HasFatalFailure());
-  runGridAndValidate(GridCase{40, 8000, 2000, 1e-8, 1e-6}, &r40);
-  ASSERT_FALSE(::testing::Test::HasFatalFailure());
-  runGridAndValidate(GridCase{80, 20000, 5000, 1e-7, 1e-5}, &r80);
-  ASSERT_FALSE(::testing::Test::HasFatalFailure());
+// P12-NUM-005: three-grid convergence study (replaces the former
+// DISABLED_GridRefinementReducesGhiaError, which only checked that the
+// Ghia error did not grow). Grids 20 / 40 / 80 (r = 2), each with the same
+// SIMPLE settings as its per-grid test above, through the shared
+// cfd::validation::runGridConvergenceStudy with its solver-status gate.
+//
+// Two SEPARATE questions:
+//   1. grid convergence of THIS code's solution -- observed order,
+//      Richardson extrapolation and GCI computed only from our three
+//      solutions at fixed points (Ghia stations), formal order 1 (first-
+//      order upwind convection);
+//   2. the distance to Ghia et al. (1982) -- benchmark data, themselves a
+//      numerical solution, reported per grid but never used to infer order.
+// Still DISABLED_ (heavy: the 80x80 solve alone takes tens of minutes in
+// Debug, ~9600 outer iterations) -- run with --gtest_also_run_disabled_tests;
+// the measured evidence is in results/p12-num-005/. The default suite's
+// enabled three-grid study is PoiseuilleValidation.GridConvergence.
+TEST(CavityGhiaValidation, DISABLED_GridConvergence) {
+  using cfd::validation::GridSolveOutput;
+  using cfd::validation::GridSpec;
+  const auto settingsFor = [](Index n) {
+    if (n == 20) return GridCase{20, 6000, 2000, 1e-10, 1e-8};
+    if (n == 40) return GridCase{40, 8000, 2000, 1e-8, 1e-6};
+    return GridCase{80, 20000, 5000, 1e-7, 1e-5};
+  };
+  const auto solve = [&](const GridSpec& spec) {
+    const GridCase grid = settingsFor(spec.nx);
+    SIMPLESettings settings = makeSettings(grid);
+    // P12-NUM-004 fallback: a BiCGSTAB breakdown must not end a study run.
+    settings.robustness.linearSolverFallback.enabled = true;
+    const Mesh mesh = MeshGeometry::createCartesian2D(grid.n, grid.n, 1.0, 1.0);
+    const SIMPLE simple(settings, /*referenceCell=*/0);
+    const SIMPLEResult result =
+        simple.solve(mesh, FluidProperties(kDensity, kViscosity),
+                     makeCavityVelocityBoundaries(mesh), makeZeroGradientPressureBoundaries(mesh),
+                     VectorField(mesh.numberOfCells(), Vector2{0.0, 0.0}),
+                     ScalarField(mesh.numberOfCells(), 0.0));
+    GridSolveOutput out;
+    out.acceptance = cfd::validation::assessSimpleSolve(result, 1e-6);
+    out.solverIterations = result.iterations;
+    if (!out.acceptance.accepted) return out;
+    const auto u = cfd::validation::extractVerticalProfileU(mesh, grid.n, grid.n, result.velocity,
+                                                            0.5, kLidVelocity);
+    const auto v =
+        cfd::validation::extractHorizontalProfileV(mesh, grid.n, grid.n, result.velocity, 0.5);
+    out.quantities.emplace_back("u_center", cfd::validation::interpolateProfile(u, 0.5));
+    out.quantities.emplace_back("v_center", cfd::validation::interpolateProfile(v, 0.5));
+    out.quantities.emplace_back("u_x0.5_y0.4531", cfd::validation::interpolateProfile(u, 0.4531));
+    out.quantities.emplace_back("v_x0.2344_y0.5", cfd::validation::interpolateProfile(v, 0.2344));
+    out.quantities.emplace_back("v_x0.8047_y0.5", cfd::validation::interpolateProfile(v, 0.8047));
+    // Benchmark distance (reported per grid, not analysed for order).
+    out.quantities.emplace_back(
+        "ghia_u_l2_error",
+        cfd::validation::computeGhiaErrors(u, cfd::validation::ghia_re100::kCenterlineU).l2);
+    out.quantities.emplace_back(
+        "ghia_v_l2_error",
+        cfd::validation::computeGhiaErrors(v, cfd::validation::ghia_re100::kCenterlineV).l2);
+    return out;
+  };
+  const auto quantity = [](const char* name, const char* description, Real ghia) {
+    cfd::validation::QuantitySpec q;
+    q.name = name;
+    q.description = description;
+    q.reference = ghia;
+    q.referenceKind = "benchmark";
+    q.options.formalOrder = 1.0;
+    q.options.absoluteNoise = 1e-5;  // outer tolerance 1e-6 -> values reproducible to ~1e-6
+    q.options.gridIndependenceThreshold = 0.01;
+    return q;
+  };
+  const auto study = cfd::validation::runGridConvergenceStudy(
+      "cavity_re100",
+      "Lid-driven cavity Re = 100, SIMPLE (first-order upwind convection); references: Ghia, Ghia "
+      "& "
+      "Shin (1982) Table I/II (benchmark data)",
+      {GridSpec{"coarse", 20, 20, 1.0, 1.0}, GridSpec{"medium", 40, 40, 1.0, 1.0},
+       GridSpec{"fine", 80, 80, 1.0, 1.0}},
+      solve,
+      {quantity("u_center", "u(0.5, 0.5)", -0.20581), quantity("v_center", "v(0.5, 0.5)", 0.05454),
+       quantity("u_x0.5_y0.4531", "u(0.5, 0.4531), Ghia station near u_min", -0.21090),
+       quantity("v_x0.2344_y0.5", "v(0.2344, 0.5), Ghia station near v_max", 0.17527),
+       quantity("v_x0.8047_y0.5", "v(0.8047, 0.5), Ghia station near v_min", -0.24533)});
+  cfd::validation::writeGridConvergenceReport(
+      "results/validation/grid_convergence/cavity_re100.json", study);
+  {
+    std::ofstream md("results/validation/grid_convergence/cavity_re100.md");
+    md << cfd::validation::gridConvergenceReportMarkdown(study);
+  }
+  std::printf("\n%s", cfd::validation::gridConvergenceReportMarkdown(study).c_str());
+  // The written report passes the schema / consistency validator.
+  const auto reportProblems = cfd::validation::validateGridConvergenceReportFile(
+      "results/validation/grid_convergence/cavity_re100.json");
+  EXPECT_TRUE(reportProblems.empty()) << reportProblems.front();
 
-  EXPECT_LE(r40.ghiaU.l2, r20.ghiaU.l2);
-  EXPECT_LE(r80.ghiaU.l2, r40.ghiaU.l2);
-  EXPECT_LE(r40.ghiaV.l2, r20.ghiaV.l2);
-  EXPECT_LE(r80.ghiaV.l2, r40.ghiaV.l2);
+  ASSERT_TRUE(study.allSolvesAccepted) << study.rejectionReason;
+  for (const auto& q : study.quantities) {
+    const auto& a = q.analysis;
+    EXPECT_NE(a.status, cfd::validation::GridConvergenceStatus::Invalid)
+        << q.spec.name << ": " << a.diagnostic;
+    if (!a.observedOrder.has_value()) continue;
+    // Consequences of monotonic convergence with p > 0 (not tuned values):
+    // the fine-pair uncertainty is the smaller one, and the fine value lies
+    // closer to the extrapolated value than the coarse one.
+    ASSERT_TRUE(a.gci21.has_value() && a.gci32.has_value() && a.extrapolated21.has_value());
+    EXPECT_LT(*a.gci21, *a.gci32) << q.spec.name;
+    EXPECT_LT(std::abs(*q.values[2] - *a.extrapolated21),
+              std::abs(*q.values[0] - *a.extrapolated21))
+        << q.spec.name;
+  }
+  // The benchmark comparison, separately: refinement moves every sampled
+  // value toward the (highly resolved) Ghia data.
+  for (const auto& q : study.quantities) {
+    EXPECT_LT(std::abs(*q.errorVsReference[2]), std::abs(*q.errorVsReference[0])) << q.spec.name;
+  }
 }
 
 // TODO.md section 35: repeat runs, require identical results. 20x20 only

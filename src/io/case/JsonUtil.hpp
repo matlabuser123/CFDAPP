@@ -88,6 +88,11 @@ void requireField(const nlohmann::json& node, const std::filesystem::path& path,
                                    std::string_view label = {});
 [[nodiscard]] int getOptionalInt(const nlohmann::json& node, const std::filesystem::path& path,
                                  std::string_view field, int fallback, std::string_view label = {});
+// P12-NUM-004: a JSON boolean (true/false only -- 0/1 or "true" are
+// rejected, not coerced).
+[[nodiscard]] bool getOptionalBool(const nlohmann::json& node, const std::filesystem::path& path,
+                                   std::string_view field, bool fallback,
+                                   std::string_view label = {});
 
 // A required 2-component finite array, e.g. "velocity": [1.0, 0.0].
 [[nodiscard]] std::array<Real, 2> getRequiredVector2(const nlohmann::json& node,

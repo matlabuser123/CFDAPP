@@ -4,6 +4,7 @@
 
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/boundary/BoundaryCondition.hpp"
+#include "cfd/discretization/NonOrthogonalDiffusion.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -50,6 +51,15 @@ struct ThermalSolverSettings {
   cfd::algebra::LinearSolverSettings linearSolver;
   Index maxIterations{2000};
   Real tolerance{1e-8};  // max absolute temperature change between outer iterations.
+  // P12-NUM-003: non-orthogonal correction of the conduction term (default
+  // disabled -- exactly the pre-existing operator). The outer Picard loop
+  // above is also the correction's lag-convergence loop: each iteration
+  // re-evaluates the explicit S_nonorth . grad(T) term from the latest
+  // temperature, so a converged solve satisfies the fully corrected
+  // equation. Applies to solve() (both overloads); the conjugate-
+  // conduction path is NOT corrected -- see summary.md (material-interface
+  // faces need an interface-temperature reconstruction first).
+  cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonal;
 };
 
 // linearIterations/initialResidual/finalResidual/residualHistory describe
@@ -94,6 +104,17 @@ class ThermalSolver {
       const cfd::fields::SurfaceField& massFlux, const ThermalProperties& thermal,
       const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
       Real volumetricHeatSource = 0.0) const;
+
+  // P12-NUM-006: the same solve (same equation, outer Picard loop and
+  // status reporting) with a per-cell volumetric heat source instead of a
+  // uniform one (assembleEnergyEquation's field overload). A source field
+  // of the wrong size is InvalidConfiguration; a non-finite source value
+  // is NonFiniteState.
+  [[nodiscard]] ThermalResult solve(
+      const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& initialTemperature,
+      const cfd::fields::SurfaceField& massFlux, const ThermalProperties& thermal,
+      const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
+      const cfd::fields::ScalarField& volumetricHeatSource) const;
 
   // P3-PHYS-003: the temperature-dependent-property counterpart of
   // solve() above -- same single-material convection-diffusion equation

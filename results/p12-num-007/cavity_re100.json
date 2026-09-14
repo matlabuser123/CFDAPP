@@ -1,0 +1,1686 @@
+{
+  "format_version": 1,
+  "kind": "production_validation",
+  "study": "cavity_re100",
+  "description": "Lid-driven cavity Re = 100: QUICK (configuration of record) 20/40/80/160 and first-order upwind 20/40/80",
+  "reference": "Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Table I (u(0.5, y)) and Table II (v(x, 0.5)), Re = 100 column, 17 stations each (validation/ghia/ghia_re100_{u,v}.csv)",
+  "method": {
+    "error_norms": "against sample-point reference data (benchmark tables): unweighted L1 = mean|e|, L2 = sqrt(mean e^2), Linf = max|e| over the tabulated stations; against a field: volume-weighted (cfd/validation/ErrorNorms.hpp)",
+    "solve_acceptance": "a run is accepted only if SIMPLE Converged, every field is finite and the global mass imbalance is within tolerance (P12-NUM-005 assessSimpleSolve)",
+    "grid_convergence": "P12-NUM-005 three-grid study of this code's own solutions (observed order, Richardson extrapolation, GCI) -- separate from the error against the reference",
+    "indexing": "runs listed in execution order; grid sequences coarse -> fine"
+  },
+  "coefficients": {
+    "reynolds": 100.0,
+    "lid_velocity": 1.0,
+    "density": 1.0,
+    "viscosity": 0.01,
+    "cavity_size": 1.0
+  },
+  "configuration": {
+    "geometry": "unit square, n x n uniform Cartesian cells",
+    "boundaries": "no-slip walls, lid y = 1 moving at (1, 0); zero-gradient pressure",
+    "algorithm": "SIMPLE, collocated, alpha_u 0.7, alpha_p 0.3, outer tolerances 1e-6",
+    "linear_solvers": "BiCGSTAB; momentum 1e-10/1e-8; pressure per grid (20: 1e-10/1e-8, 40: 1e-8/1e-6, >= 80: 1e-7/1e-5); P12-NUM-004 fallback enabled",
+    "initial_condition": "u = 0, p = 0",
+    "sampling": "centerlines by linear interpolation between the straddling cell columns/rows, exact wall/lid values as end anchors; errors at Ghia's stations"
+  },
+  "runs": [
+    {
+      "id": "cavity_re100/20x20/quick",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "20x20",
+      "nx": 20,
+      "ny": 20,
+      "cells": 400,
+      "h": 0.05,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 3083,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.004801219899257335,
+          "l2": 0.00569006894783233,
+          "linf": 0.010461946239352038,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.003450428501114988,
+          "l2": 0.004823609845695717,
+          "linf": 0.012624435344222112,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 36967.0,
+        "pressure_linear_iterations": 151537.0,
+        "linear_solver_fallbacks": 1.0,
+        "final_u_residual": 3.547376782910683e-08,
+        "final_v_residual": 3.5511609237780424e-08,
+        "final_pressure_residual": 9.993506186651279e-07,
+        "final_continuity_residual": 8.466226460756104e-11,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.83932457686545,
+        "u_center": -0.20060482096146526,
+        "v_center": 0.05279480031349154,
+        "u_y0.4531": -0.20369057526501175,
+        "v_x0.2344": 0.1680888377377446,
+        "v_x0.8047": -0.23270556465577788
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 3083 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 5.6901e-03 (bound 0.0075), v L2 4.8236e-03 (bound 0.0065)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.839325 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "cavity_re100/40x40/quick",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "40x40",
+      "nx": 40,
+      "ny": 40,
+      "cells": 1600,
+      "h": 0.025,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 5500,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.0010455414015153478,
+          "l2": 0.0014518926723775907,
+          "linf": 0.004606448001024915,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.002476599297730385,
+          "l2": 0.00299034246695872,
+          "linf": 0.0065189713404557315,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 59761.0,
+        "pressure_linear_iterations": 58120.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 2.9549423335893782e-08,
+        "final_v_residual": 1.614884870574453e-08,
+        "final_pressure_residual": 9.99834923728344e-07,
+        "final_continuity_residual": 8.31452839677647e-09,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.9236090963143303,
+        "u_center": -0.20717103125125932,
+        "v_center": 0.05642791393022217,
+        "u_y0.4531": -0.21181989124446282,
+        "v_x0.2344": 0.1768515684363252,
+        "v_x0.8047": -0.24932676273075463
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 5500 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 1.4519e-03 (bound 0.002), v L2 2.9903e-03 (bound 0.004)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.923609 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "cavity_re100/80x80/quick",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "80x80",
+      "nx": 80,
+      "ny": 80,
+      "cells": 6400,
+      "h": 0.0125,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 9258,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.0015255270013561164,
+          "l2": 0.002090422383924283,
+          "linf": 0.0050344003773460655,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.003858555614767691,
+          "l2": 0.0045102326657043244,
+          "linf": 0.008713138119536501,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 81177.0,
+        "pressure_linear_iterations": 50041.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 2.7822847429888707e-08,
+        "final_v_residual": 1.0910585202931652e-08,
+        "final_pressure_residual": 9.998394034206364e-07,
+        "final_continuity_residual": 3.702213645790866e-08,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.9619560675209075,
+        "u_center": -0.2086736553911706,
+        "v_center": 0.05736678011196191,
+        "u_y0.4531": -0.21355167323352786,
+        "v_x0.2344": 0.17912147875333886,
+        "v_x0.8047": -0.2528728020147141
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 9258 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 2.0904e-03 (bound 0.003), v L2 4.5102e-03 (bound 0.006)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.961956 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "cavity_re100/160x160/quick",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "160x160",
+      "nx": 160,
+      "ny": 160,
+      "cells": 25600,
+      "h": 0.00625,
+      "scheme": "quick",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 5084,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.0015899016725446856,
+          "l2": 0.0021525507320983347,
+          "linf": 0.004460977324828086,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.0036932200366452846,
+          "l2": 0.004366069107339137,
+          "linf": 0.0086665883223154,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 71849.0,
+        "pressure_linear_iterations": 60434.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 9.99234395414525e-07,
+        "final_v_residual": 9.366825705259196e-07,
+        "final_pressure_residual": 9.616937319540935e-07,
+        "final_continuity_residual": 1.7202027272295178e-08,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.9809683669860044,
+        "u_center": -0.20891834168145368,
+        "v_center": 0.05758161035938958,
+        "u_y0.4531": -0.21359177943259824,
+        "v_x0.2344": 0.1788259202295921,
+        "v_x0.8047": -0.2527925971057651
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 5084 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 2.1526e-03 (bound 0.003), v L2 4.3661e-03 (bound 0.006)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.980968 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "cavity_re100/20x20/upwind",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "20x20",
+      "nx": 20,
+      "ny": 20,
+      "cells": 400,
+      "h": 0.05,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 3036,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.016212301057224644,
+          "l2": 0.02105010006246979,
+          "linf": 0.03722294231073364,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.010871906441678495,
+          "l2": 0.014460169428001804,
+          "linf": 0.04041448615965271,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 34136.0,
+        "pressure_linear_iterations": 150550.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 3.362647751530624e-08,
+        "final_v_residual": 3.29209019738299e-08,
+        "final_pressure_residual": 9.998544396547803e-07,
+        "final_continuity_residual": 3.968215786537667e-11,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.8186429484864461,
+        "u_center": -0.17281388810769815,
+        "v_center": 0.041916273621498204,
+        "u_y0.4531": -0.17367705768926636,
+        "v_x0.2344": 0.15464404157373396,
+        "v_x0.8047": -0.20491551384034729
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 3036 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 2.1050e-02 (bound 0.0275), v L2 1.4460e-02 (bound 0.019)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.818643 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "cavity_re100/40x40/upwind",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "40x40",
+      "nx": 40,
+      "ny": 40,
+      "cells": 1600,
+      "h": 0.025,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 5615,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.007615653890935718,
+          "l2": 0.010168968645871954,
+          "linf": 0.018791616182843474,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.004920845489413542,
+          "l2": 0.006447694551861849,
+          "linf": 0.01678570161426088,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 59881.0,
+        "pressure_linear_iterations": 54988.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 2.8028635913030034e-08,
+        "final_v_residual": 1.6046103054641523e-08,
+        "final_pressure_residual": 9.996566233463158e-07,
+        "final_continuity_residual": 7.305206296046455e-09,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.9177787564244911,
+        "u_center": -0.19005545281062433,
+        "v_center": 0.047946089326221936,
+        "u_y0.4531": -0.19210838381715653,
+        "v_x0.2344": 0.1667362476566897,
+        "v_x0.8047": -0.22854429838573911
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 5615 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 1.0169e-02 (bound 0.0135), v L2 6.4477e-03 (bound 0.0085)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.917779 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "cavity_re100/80x80/upwind",
+      "case": "cavity_re100",
+      "reynolds": 100.0,
+      "mesh": "80x80",
+      "nx": 80,
+      "ny": 80,
+      "cells": 6400,
+      "h": 0.0125,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 9643,
+      "mass_imbalance": 0.0,
+      "errors": {
+        "u_centerline": {
+          "l1": 0.0032851574847189,
+          "l2": 0.004336095751074788,
+          "linf": 0.008494784035089433,
+          "samples": 17,
+          "weight": 17.0
+        },
+        "v_centerline": {
+          "l1": 0.002751043823353373,
+          "l2": 0.0035693412406514044,
+          "linf": 0.006985043467829161,
+          "samples": 17,
+          "weight": 17.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 79024.0,
+        "pressure_linear_iterations": 48522.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 2.6760450123545063e-08,
+        "final_v_residual": 9.672516486603995e-09,
+        "final_pressure_residual": 9.999140666125246e-07,
+        "final_continuity_residual": 3.4250718049242243e-08,
+        "max_wall_normal_flux": 0.0,
+        "max_velocity_magnitude": 0.9604245311788827,
+        "u_center": -0.1993150579316858,
+        "v_center": 0.05223917768537616,
+        "u_y0.4531": -0.20250533508414217,
+        "v_x0.2344": 0.17328827041247874,
+        "v_x0.8047": -0.24078047104570705
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged after 9643 iterations"
+        },
+        {
+          "name": "wall_normal_flux",
+          "passed": true,
+          "detail": "max |mass flux| through the walls 0 (bound 1e-6)"
+        },
+        {
+          "name": "ghia_error",
+          "passed": true,
+          "detail": "u L2 4.3361e-03 (bound 0.0057), v L2 3.5693e-03 (bound 0.0047)"
+        },
+        {
+          "name": "bounded",
+          "passed": true,
+          "detail": "max |U| 0.960425 vs lid speed 1"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "orders": [
+    {
+      "quantity": "u_centerline",
+      "norm": "l2",
+      "formal_order": null,
+      "reduction_factors": [
+        3.9190699533694775,
+        0.6945451232932164,
+        0.9711373361623454
+      ],
+      "triplets": [
+        {
+          "status": "oscillatory",
+          "observed_order": null,
+          "asymptotic_ratio": null,
+          "extrapolated_error": null,
+          "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.150661): oscillatory convergence -- no observed order or Richardson extrapolation is reported"
+        },
+        {
+          "status": "monotonic_asymptotic_range_unknown",
+          "observed_order": 3.361430149290525,
+          "asymptotic_ratio": null,
+          "extrapolated_error": 0.0021592473360484902,
+          "diagnostic": "monotonic convergence, observed order 3.36143; no formal order given, so the asymptotic range is not assessed"
+        }
+      ],
+      "finest_observed_order": 3.361430149290525
+    },
+    {
+      "quantity": "u_centerline",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.070032939969284,
+        2.3451900579804703
+      ],
+      "triplets": [
+        {
+          "status": "asymptotic",
+          "observed_order": 0.8995500337865225,
+          "asymptotic_ratio": 0.9327420306298496,
+          "extrapolated_error": -0.002403338463701505,
+          "diagnostic": "monotonic convergence, observed order 0.89955 (formal 1); asymptotic ratio 0.932742 within 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 0.8995500337865225
+    },
+    {
+      "quantity": "v_centerline",
+      "norm": "l2",
+      "formal_order": null,
+      "reduction_factors": [
+        1.6130626839545548,
+        0.6630129061183906,
+        1.0330190738673504
+      ],
+      "triplets": [
+        {
+          "status": "oscillatory",
+          "observed_order": null,
+          "asymptotic_ratio": null,
+          "extrapolated_error": null,
+          "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.829061): oscillatory convergence -- no observed order or Richardson extrapolation is reported"
+        },
+        {
+          "status": "oscillatory",
+          "observed_order": null,
+          "asymptotic_ratio": null,
+          "extrapolated_error": null,
+          "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.0948513): oscillatory convergence -- no observed order or Richardson extrapolation is reported"
+        }
+      ],
+      "finest_observed_order": null
+    },
+    {
+      "quantity": "v_centerline",
+      "norm": "l2",
+      "formal_order": 1.0,
+      "reduction_factors": [
+        2.2426883456857083,
+        1.8064102357120513
+      ],
+      "triplets": [
+        {
+          "status": "monotonic_not_asymptotic",
+          "observed_order": 1.4770042376074999,
+          "asymptotic_ratio": 1.3918504800875953,
+          "extrapolated_error": 0.0019556440035720804,
+          "diagnostic": "monotonic convergence, observed order 1.477 (formal 1); asymptotic ratio 1.39185 outside 1 +/- 0.1"
+        }
+      ],
+      "finest_observed_order": 1.4770042376074999
+    }
+  ],
+  "grid_convergence": [
+    {
+      "format_version": 1,
+      "study": "cavity_re100_quick_20_40_80",
+      "description": "Re = 100, QUICK, grids 20/40/80",
+      "method": {
+        "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+        "indexing": "1 = fine, 2 = medium, 3 = coarse",
+        "grid_size": "h = sqrt(domain area / cells)",
+        "relative_quantity_units": "fraction",
+        "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+        "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+      },
+      "all_solves_accepted": true,
+      "rejection_reason": "",
+      "grids": [
+        {
+          "level": "coarse",
+          "name": "20x20",
+          "nx": 20,
+          "ny": 20,
+          "cells": 400,
+          "h": 0.05,
+          "runtime_seconds": 5.625444461,
+          "solver_status": "Converged",
+          "solver_iterations": 3083,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.20060482096146526,
+            "v_center": 0.05279480031349154,
+            "u_y0.4531": -0.20369057526501175,
+            "v_x0.2344": 0.1680888377377446,
+            "v_x0.8047": -0.23270556465577788
+          }
+        },
+        {
+          "level": "medium",
+          "name": "40x40",
+          "nx": 40,
+          "ny": 40,
+          "cells": 1600,
+          "h": 0.025,
+          "runtime_seconds": 32.203851737,
+          "solver_status": "Converged",
+          "solver_iterations": 5500,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.20717103125125932,
+            "v_center": 0.05642791393022217,
+            "u_y0.4531": -0.21181989124446282,
+            "v_x0.2344": 0.1768515684363252,
+            "v_x0.8047": -0.24932676273075463
+          }
+        },
+        {
+          "level": "fine",
+          "name": "80x80",
+          "nx": 80,
+          "ny": 80,
+          "cells": 6400,
+          "h": 0.0125,
+          "runtime_seconds": 206.327300371,
+          "solver_status": "Converged",
+          "solver_iterations": 9258,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.2086736553911706,
+            "v_center": 0.05736678011196191,
+            "u_y0.4531": -0.21355167323352786,
+            "v_x0.2344": 0.17912147875333886,
+            "v_x0.8047": -0.2528728020147141
+          }
+        }
+      ],
+      "quantities": [
+        {
+          "name": "u_center",
+          "description": "u(0.5, 0.5)",
+          "values": {
+            "coarse": -0.20060482096146526,
+            "medium": -0.20717103125125932,
+            "fine": -0.2086736553911706
+          },
+          "reference": {
+            "value": -0.20581,
+            "kind": "benchmark",
+            "error_coarse": 0.005205179038534735,
+            "error_medium": -0.0013610312512593314,
+            "error_fine": -0.0028636553911706164,
+            "relative_error_coarse": 0.025291186232616177,
+            "relative_error_medium": 0.006613047234144753,
+            "relative_error_fine": 0.01391407313138631,
+            "error_extrapolated": -0.003309560573586917
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.12758 (formal 2); asymptotic ratio 1.09246 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.001502624139911285,
+            "epsilon32": 0.006566210289794067,
+            "convergence_ratio": 0.22884191544197577,
+            "observed_order": 2.1275767697733183,
+            "formal_order": 2.0,
+            "order_ratio": 1.0637883848866592,
+            "richardson_extrapolated": -0.2091195605735869,
+            "richardson_extrapolated_32": -0.2091195605735869,
+            "approximate_relative_error_21": 0.007200832980543379,
+            "approximate_relative_error_32": 0.03169463534614786,
+            "extrapolated_relative_error_21": 0.0021322978165851277,
+            "extrapolated_relative_error_32": 0.0093177764766865,
+            "uncertainty_21": 0.0005573814780203717,
+            "uncertainty_32": 0.0024356616529094695,
+            "gci_fine_medium": 0.002671067782732461,
+            "gci_medium_coarse": 0.011756767527770193,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.0924572079252195,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": true,
+            "grid_independence_reason": "asymptotic and GCI21 0.00267107 <= threshold 0.01"
+          }
+        },
+        {
+          "name": "v_center",
+          "description": "v(0.5, 0.5)",
+          "values": {
+            "coarse": 0.05279480031349154,
+            "medium": 0.05642791393022217,
+            "fine": 0.05736678011196191
+          },
+          "reference": {
+            "value": 0.05454,
+            "kind": "benchmark",
+            "error_coarse": -0.001745199686508457,
+            "error_medium": 0.001887913930222175,
+            "error_fine": 0.002826780111961913,
+            "relative_error_coarse": 0.03199852743873225,
+            "relative_error_medium": 0.034615216909097454,
+            "relative_error_fine": 0.051829485001135184,
+            "error_extrapolated": 0.003153947429917453
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 1.95222 (formal 2); asymptotic ratio 0.967421 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": -0.0009388661817397378,
+            "epsilon32": -0.003633113616730632,
+            "convergence_ratio": 0.2584191635010317,
+            "observed_order": 1.9522150354485124,
+            "formal_order": 2.0,
+            "order_ratio": 0.9761075177242562,
+            "richardson_extrapolated": 0.05769394742991745,
+            "richardson_extrapolated_32": 0.05769394742991745,
+            "approximate_relative_error_21": 0.01636602542285564,
+            "approximate_relative_error_32": 0.06438504214816944,
+            "extrapolated_relative_error_21": 0.005670739003479697,
+            "extrapolated_relative_error_32": 0.02194395696763801,
+            "uncertainty_21": 0.00040895914744442144,
+            "uncertainty_32": 0.0015825418746190961,
+            "gci_fine_medium": 0.007128849599825226,
+            "gci_medium_coarse": 0.028045372660347526,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.9674205140711319,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": true,
+            "grid_independence_reason": "asymptotic and GCI21 0.00712885 <= threshold 0.01"
+          }
+        },
+        {
+          "name": "u_y0.4531",
+          "description": "u(0.5, 0.4531), Ghia station near u_min",
+          "values": {
+            "coarse": -0.20369057526501175,
+            "medium": -0.21181989124446282,
+            "fine": -0.21355167323352786
+          },
+          "reference": {
+            "value": -0.2109,
+            "kind": "benchmark",
+            "error_coarse": 0.007209424734988257,
+            "error_medium": -0.0009198912444628171,
+            "error_fine": -0.002651673233527857,
+            "relative_error_coarse": 0.034184090730148206,
+            "relative_error_medium": 0.004361741320354751,
+            "relative_error_fine": 0.012573130552526585,
+            "error_extrapolated": -0.0031204583720135515
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.23088 (formal 2); asymptotic ratio 1.17355 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.0017317819890650399,
+            "epsilon32": 0.008129315979451074,
+            "convergence_ratio": 0.21302923806167234,
+            "observed_order": 2.2308766423153426,
+            "formal_order": 2.0,
+            "order_ratio": 1.1154383211576713,
+            "richardson_extrapolated": -0.21402045837201356,
+            "richardson_extrapolated_32": -0.21402045837201356,
+            "approximate_relative_error_21": 0.008109428331059071,
+            "approximate_relative_error_32": 0.038378435243689994,
+            "extrapolated_relative_error_21": 0.002190375359681013,
+            "extrapolated_relative_error_32": 0.010282040998742633,
+            "uncertainty_21": 0.0005859814231071165,
+            "uncertainty_32": 0.002750708909438402,
+            "gci_fine_medium": 0.0027439795447836215,
+            "gci_medium_coarse": 0.012986074599876881,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.1735478297473165,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        },
+        {
+          "name": "v_x0.2344",
+          "description": "v(0.2344, 0.5), Ghia station near v_max",
+          "values": {
+            "coarse": 0.1680888377377446,
+            "medium": 0.1768515684363252,
+            "fine": 0.17912147875333886
+          },
+          "reference": {
+            "value": 0.17527,
+            "kind": "benchmark",
+            "error_coarse": -0.007181162262255403,
+            "error_medium": 0.0015815684363252036,
+            "error_fine": 0.003851478753338855,
+            "relative_error_coarse": 0.040971998985881226,
+            "relative_error_medium": 0.009023611777972292,
+            "relative_error_fine": 0.021974546433153733,
+            "error_extrapolated": 0.004645046501171979
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 1.94875 (formal 2); asymptotic ratio 0.965097 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": -0.0022699103170136514,
+            "epsilon32": -0.008762730698580606,
+            "convergence_ratio": 0.25904143298405063,
+            "observed_order": 1.9487452233078617,
+            "formal_order": 2.0,
+            "order_ratio": 0.9743726116539309,
+            "richardson_extrapolated": 0.179915046501172,
+            "richardson_extrapolated_32": 0.179915046501172,
+            "approximate_relative_error_21": 0.012672463027951301,
+            "approximate_relative_error_32": 0.04954850429689911,
+            "extrapolated_relative_error_21": 0.004410791444438497,
+            "extrapolated_relative_error_32": 0.017027358880886148,
+            "uncertainty_21": 0.0009919596847913943,
+            "uncertainty_32": 0.0038293475810584707,
+            "gci_fine_medium": 0.005537915897609259,
+            "gci_medium_coarse": 0.02165289013219701,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.9650965759419369,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": true,
+            "grid_independence_reason": "asymptotic and GCI21 0.00553792 <= threshold 0.01"
+          }
+        },
+        {
+          "name": "v_x0.8047",
+          "description": "v(0.8047, 0.5), Ghia station near v_min",
+          "values": {
+            "coarse": -0.23270556465577788,
+            "medium": -0.24932676273075463,
+            "fine": -0.2528728020147141
+          },
+          "reference": {
+            "value": -0.24533,
+            "kind": "benchmark",
+            "error_coarse": 0.012624435344222112,
+            "error_medium": -0.003996762730754638,
+            "error_fine": -0.007542802014714134,
+            "relative_error_coarse": 0.05145899541116909,
+            "relative_error_medium": 0.01629137378532849,
+            "relative_error_fine": 0.03074553464604465,
+            "error_extrapolated": -0.008504503115585094
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.22874 (formal 2); asymptotic ratio 1.17181 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.0035460392839594956,
+            "epsilon32": 0.01662119807497675,
+            "convergence_ratio": 0.2133443851618654,
+            "observed_order": 2.2287439529713904,
+            "formal_order": 2.0,
+            "order_ratio": 1.1143719764856952,
+            "richardson_extrapolated": -0.2538345031155851,
+            "richardson_extrapolated_32": -0.2538345031155851,
+            "approximate_relative_error_21": 0.014023015744307525,
+            "approximate_relative_error_32": 0.06666431590789879,
+            "extrapolated_relative_error_21": 0.0037886933772476286,
+            "extrapolated_relative_error_32": 0.017758580214675655,
+            "uncertainty_21": 0.001202126376088698,
+            "uncertainty_32": 0.005634675481038036,
+            "gci_fine_medium": 0.004753877706542552,
+            "gci_medium_coarse": 0.022599561392143305,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.1718142936376028,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        }
+      ]
+    },
+    {
+      "format_version": 1,
+      "study": "cavity_re100_quick_40_80_160",
+      "description": "Re = 100, QUICK, grids 40/80/160",
+      "method": {
+        "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+        "indexing": "1 = fine, 2 = medium, 3 = coarse",
+        "grid_size": "h = sqrt(domain area / cells)",
+        "relative_quantity_units": "fraction",
+        "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+        "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+      },
+      "all_solves_accepted": true,
+      "rejection_reason": "",
+      "grids": [
+        {
+          "level": "coarse",
+          "name": "40x40",
+          "nx": 40,
+          "ny": 40,
+          "cells": 1600,
+          "h": 0.025,
+          "runtime_seconds": 32.203851737,
+          "solver_status": "Converged",
+          "solver_iterations": 5500,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.20717103125125932,
+            "v_center": 0.05642791393022217,
+            "u_y0.4531": -0.21181989124446282,
+            "v_x0.2344": 0.1768515684363252,
+            "v_x0.8047": -0.24932676273075463
+          }
+        },
+        {
+          "level": "medium",
+          "name": "80x80",
+          "nx": 80,
+          "ny": 80,
+          "cells": 6400,
+          "h": 0.0125,
+          "runtime_seconds": 206.327300371,
+          "solver_status": "Converged",
+          "solver_iterations": 9258,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.2086736553911706,
+            "v_center": 0.05736678011196191,
+            "u_y0.4531": -0.21355167323352786,
+            "v_x0.2344": 0.17912147875333886,
+            "v_x0.8047": -0.2528728020147141
+          }
+        },
+        {
+          "level": "fine",
+          "name": "160x160",
+          "nx": 160,
+          "ny": 160,
+          "cells": 25600,
+          "h": 0.00625,
+          "runtime_seconds": 587.188752337,
+          "solver_status": "Converged",
+          "solver_iterations": 5084,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.20891834168145368,
+            "v_center": 0.05758161035938958,
+            "u_y0.4531": -0.21359177943259824,
+            "v_x0.2344": 0.1788259202295921,
+            "v_x0.8047": -0.2527925971057651
+          }
+        }
+      ],
+      "quantities": [
+        {
+          "name": "u_center",
+          "description": "u(0.5, 0.5)",
+          "values": {
+            "coarse": -0.20717103125125932,
+            "medium": -0.2086736553911706,
+            "fine": -0.20891834168145368
+          },
+          "reference": {
+            "value": -0.20581,
+            "kind": "benchmark",
+            "error_coarse": -0.0013610312512593314,
+            "error_medium": -0.0028636553911706164,
+            "error_fine": -0.0031083416814536857,
+            "relative_error_coarse": 0.006613047234144753,
+            "relative_error_medium": 0.01391407313138631,
+            "relative_error_fine": 0.015102967209823069,
+            "error_extrapolated": -0.0031559365452779875
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.61848 (formal 2); asymptotic ratio 1.53526 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.0002446862902830693,
+            "epsilon32": 0.001502624139911285,
+            "convergence_ratio": 0.1628393180862352,
+            "observed_order": 2.6184790097833233,
+            "formal_order": 2.0,
+            "order_ratio": 1.3092395048916616,
+            "richardson_extrapolated": -0.20896593654527798,
+            "richardson_extrapolated_32": -0.20896593654527798,
+            "approximate_relative_error_21": 0.0011712054016595273,
+            "approximate_relative_error_32": 0.007200832980543379,
+            "extrapolated_relative_error_21": 0.00022776374279541537,
+            "extrapolated_relative_error_32": 0.0013987023863290785,
+            "uncertainty_21": 5.949357978037819e-05,
+            "uncertainty_32": 0.00036535144263421707,
+            "gci_fine_medium": 0.00028476953867023546,
+            "gci_medium_coarse": 0.001750826868630566,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.53525575357425,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        },
+        {
+          "name": "v_center",
+          "description": "v(0.5, 0.5)",
+          "values": {
+            "coarse": 0.05642791393022217,
+            "medium": 0.05736678011196191,
+            "fine": 0.05758161035938958
+          },
+          "reference": {
+            "value": 0.05454,
+            "kind": "benchmark",
+            "error_coarse": 0.001887913930222175,
+            "error_medium": 0.002826780111961913,
+            "error_fine": 0.0030416103593895807,
+            "relative_error_coarse": 0.034615216909097454,
+            "relative_error_medium": 0.051829485001135184,
+            "relative_error_fine": 0.055768433432152195,
+            "error_extrapolated": 0.003105353100630294
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 2.12772 (formal 2); asymptotic ratio 1.09257 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": -0.00021483024742766782,
+            "epsilon32": -0.0009388661817397378,
+            "convergence_ratio": 0.22881881529653467,
+            "observed_order": 2.127722408072872,
+            "formal_order": 2.0,
+            "order_ratio": 1.063861204036436,
+            "richardson_extrapolated": 0.05764535310063029,
+            "richardson_extrapolated_32": 0.05764535310063029,
+            "approximate_relative_error_21": 0.0037308829344443024,
+            "approximate_relative_error_32": 0.01636602542285564,
+            "extrapolated_relative_error_21": 0.0011057741485152991,
+            "extrapolated_relative_error_32": 0.004832531569059556,
+            "uncertainty_21": 7.967842655089274e-05,
+            "uncertainty_32": 0.00034821623583547776,
+            "gci_fine_medium": 0.0013837477981874457,
+            "gci_medium_coarse": 0.006069997917886784,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 1.0925674957105946,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": true,
+            "grid_independence_reason": "asymptotic and GCI21 0.00138375 <= threshold 0.01"
+          }
+        },
+        {
+          "name": "u_y0.4531",
+          "description": "u(0.5, 0.4531), Ghia station near u_min",
+          "values": {
+            "coarse": -0.21181989124446282,
+            "medium": -0.21355167323352786,
+            "fine": -0.21359177943259824
+          },
+          "reference": {
+            "value": -0.2109,
+            "kind": "benchmark",
+            "error_coarse": -0.0009198912444628171,
+            "error_medium": -0.002651673233527857,
+            "error_fine": -0.0026917794325982403,
+            "relative_error_coarse": 0.004361741320354751,
+            "relative_error_medium": 0.012573130552526585,
+            "relative_error_fine": 0.012763297451864582,
+            "error_extrapolated": -0.002692730269167165
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 5.43229 (formal 2); asymptotic ratio 10.795 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 4.0106199070383264e-05,
+            "epsilon32": 0.0017317819890650399,
+            "convergence_ratio": 0.023158919150115385,
+            "observed_order": 5.432288266894734,
+            "formal_order": 2.0,
+            "order_ratio": 2.716144133447367,
+            "richardson_extrapolated": -0.21359273026916717,
+            "richardson_extrapolated_32": -0.21359273026916717,
+            "approximate_relative_error_21": 0.0001877703307539479,
+            "approximate_relative_error_32": 0.008109428331059071,
+            "extrapolated_relative_error_21": 4.451633572577929e-06,
+            "extrapolated_relative_error_32": 0.00019222112844181753,
+            "uncertainty_21": 1.1885457111423471e-06,
+            "uncertainty_32": 5.132129454912085e-05,
+            "gci_fine_medium": 5.564566737070556e-06,
+            "gci_medium_coarse": 0.00024032260563465043,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 10.794977018552027,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        },
+        {
+          "name": "v_x0.2344",
+          "description": "v(0.2344, 0.5), Ghia station near v_max",
+          "values": {
+            "coarse": 0.1768515684363252,
+            "medium": 0.17912147875333886,
+            "fine": 0.1788259202295921
+          },
+          "reference": {
+            "value": 0.17527,
+            "kind": "benchmark",
+            "error_coarse": 0.0015815684363252036,
+            "error_medium": 0.003851478753338855,
+            "error_fine": 0.0035559202295920855,
+            "relative_error_coarse": 0.009023611777972292,
+            "relative_error_medium": 0.021974546433153733,
+            "relative_error_fine": 0.020288242309534348,
+            "error_extrapolated": null
+          },
+          "analysis": {
+            "status": "oscillatory",
+            "convergence": "oscillatory",
+            "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.130207): oscillatory convergence -- no observed order or Richardson extrapolation is reported",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.0002955585237467695,
+            "epsilon32": -0.0022699103170136514,
+            "convergence_ratio": -0.13020713705359663,
+            "observed_order": null,
+            "formal_order": 2.0,
+            "order_ratio": null,
+            "richardson_extrapolated": null,
+            "richardson_extrapolated_32": null,
+            "approximate_relative_error_21": null,
+            "approximate_relative_error_32": null,
+            "extrapolated_relative_error_21": null,
+            "extrapolated_relative_error_32": null,
+            "uncertainty_21": null,
+            "uncertainty_32": null,
+            "gci_fine_medium": null,
+            "gci_medium_coarse": null,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": null,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": 0.0011349551585068257,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00113496 is available"
+          }
+        },
+        {
+          "name": "v_x0.8047",
+          "description": "v(0.8047, 0.5), Ghia station near v_min",
+          "values": {
+            "coarse": -0.24932676273075463,
+            "medium": -0.2528728020147141,
+            "fine": -0.2527925971057651
+          },
+          "reference": {
+            "value": -0.24533,
+            "kind": "benchmark",
+            "error_coarse": -0.003996762730754638,
+            "error_medium": -0.007542802014714134,
+            "error_fine": -0.007462597105765134,
+            "relative_error_coarse": 0.01629137378532849,
+            "relative_error_medium": 0.03074553464604465,
+            "relative_error_fine": 0.03041860802089078,
+            "error_extrapolated": null
+          },
+          "analysis": {
+            "status": "oscillatory",
+            "convergence": "oscillatory",
+            "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.0226182): oscillatory convergence -- no observed order or Richardson extrapolation is reported",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": -8.020490894899979e-05,
+            "epsilon32": 0.0035460392839594956,
+            "convergence_ratio": -0.02261816706650899,
+            "observed_order": null,
+            "formal_order": 2.0,
+            "order_ratio": null,
+            "richardson_extrapolated": null,
+            "richardson_extrapolated_32": null,
+            "approximate_relative_error_21": null,
+            "approximate_relative_error_32": null,
+            "extrapolated_relative_error_21": null,
+            "extrapolated_relative_error_32": null,
+            "uncertainty_21": null,
+            "uncertainty_32": null,
+            "gci_fine_medium": null,
+            "gci_medium_coarse": null,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": null,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": 0.0017730196419797478,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00177302 is available"
+          }
+        }
+      ]
+    },
+    {
+      "format_version": 1,
+      "study": "cavity_re100_upwind_20_40_80",
+      "description": "Re = 100, first-order upwind, grids 20/40/80",
+      "method": {
+        "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+        "indexing": "1 = fine, 2 = medium, 3 = coarse",
+        "grid_size": "h = sqrt(domain area / cells)",
+        "relative_quantity_units": "fraction",
+        "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+        "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+      },
+      "all_solves_accepted": true,
+      "rejection_reason": "",
+      "grids": [
+        {
+          "level": "coarse",
+          "name": "20x20",
+          "nx": 20,
+          "ny": 20,
+          "cells": 400,
+          "h": 0.05,
+          "runtime_seconds": 4.851271963,
+          "solver_status": "Converged",
+          "solver_iterations": 3036,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.17281388810769815,
+            "v_center": 0.041916273621498204,
+            "u_y0.4531": -0.17367705768926636,
+            "v_x0.2344": 0.15464404157373396,
+            "v_x0.8047": -0.20491551384034729
+          }
+        },
+        {
+          "level": "medium",
+          "name": "40x40",
+          "nx": 40,
+          "ny": 40,
+          "cells": 1600,
+          "h": 0.025,
+          "runtime_seconds": 25.291096304,
+          "solver_status": "Converged",
+          "solver_iterations": 5615,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.19005545281062433,
+            "v_center": 0.047946089326221936,
+            "u_y0.4531": -0.19210838381715653,
+            "v_x0.2344": 0.1667362476566897,
+            "v_x0.8047": -0.22854429838573911
+          }
+        },
+        {
+          "level": "fine",
+          "name": "80x80",
+          "nx": 80,
+          "ny": 80,
+          "cells": 6400,
+          "h": 0.0125,
+          "runtime_seconds": 175.505930517,
+          "solver_status": "Converged",
+          "solver_iterations": 9643,
+          "accepted": true,
+          "rejection_reason": "",
+          "quantities": {
+            "u_center": -0.1993150579316858,
+            "v_center": 0.05223917768537616,
+            "u_y0.4531": -0.20250533508414217,
+            "v_x0.2344": 0.17328827041247874,
+            "v_x0.8047": -0.24078047104570705
+          }
+        }
+      ],
+      "quantities": [
+        {
+          "name": "u_center",
+          "description": "u(0.5, 0.5)",
+          "values": {
+            "coarse": -0.17281388810769815,
+            "medium": -0.19005545281062433,
+            "fine": -0.1993150579316858
+          },
+          "reference": {
+            "value": -0.20581,
+            "kind": "benchmark",
+            "error_coarse": 0.03299611189230184,
+            "error_medium": 0.01575454718937566,
+            "error_fine": 0.006494942068314191,
+            "relative_error_coarse": 0.16032317133424925,
+            "relative_error_medium": 0.07654898784984045,
+            "relative_error_fine": 0.031557951840601485,
+            "error_extrapolated": -0.004246817034650074
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 0.896868 (formal 1); asymptotic ratio 0.93101 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.00925960512106147,
+            "epsilon32": 0.017241564702926176,
+            "convergence_ratio": 0.5370513222323704,
+            "observed_order": 0.8968681318309324,
+            "formal_order": 1.0,
+            "order_ratio": 0.8968681318309324,
+            "richardson_extrapolated": -0.21005681703465007,
+            "richardson_extrapolated_32": -0.21005681703465012,
+            "approximate_relative_error_21": 0.04645712781136261,
+            "approximate_relative_error_32": 0.09071860053447701,
+            "extrapolated_relative_error_21": 0.05113739822684427,
+            "extrapolated_relative_error_32": 0.09521882939284207,
+            "uncertainty_21": 0.013427198878705344,
+            "uncertainty_32": 0.025001705280032226,
+            "gci_fine_medium": 0.06736670584772098,
+            "gci_medium_coarse": 0.13154952888904747,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.931009717882532,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "GCI21 0.0673667 > threshold 0.01"
+          }
+        },
+        {
+          "name": "v_center",
+          "description": "v(0.5, 0.5)",
+          "values": {
+            "coarse": 0.041916273621498204,
+            "medium": 0.047946089326221936,
+            "fine": 0.05223917768537616
+          },
+          "reference": {
+            "value": 0.05454,
+            "kind": "benchmark",
+            "error_coarse": -0.012623726378501794,
+            "error_medium": -0.0065939106737780626,
+            "error_fine": -0.002300822314623835,
+            "relative_error_coarse": 0.2314581294188081,
+            "relative_error_medium": 0.1209004523978376,
+            "relative_error_fine": 0.042185961030873395,
+            "error_extrapolated": 0.008311440863314389
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 0.490098 (formal 1); asymptotic ratio 0.70227 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": -0.004293088359154228,
+            "epsilon32": -0.006029815704723732,
+            "convergence_ratio": 0.7119767119567254,
+            "observed_order": 0.4900980420299694,
+            "formal_order": 1.0,
+            "order_ratio": 0.4900980420299694,
+            "richardson_extrapolated": 0.06285144086331439,
+            "richardson_extrapolated_32": 0.06285144086331441,
+            "approximate_relative_error_21": 0.08218139238351822,
+            "approximate_relative_error_32": 0.12576240918622736,
+            "extrapolated_relative_error_21": 0.16884677633750908,
+            "extrapolated_relative_error_32": 0.23715210554214267,
+            "uncertainty_21": 0.013265328972422783,
+            "uncertainty_32": 0.0186316894213656,
+            "gci_fine_medium": 0.2539344905526007,
+            "gci_medium_coarse": 0.3885966443393714,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.7022701608116508,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        },
+        {
+          "name": "u_y0.4531",
+          "description": "u(0.5, 0.4531), Ghia station near u_min",
+          "values": {
+            "coarse": -0.17367705768926636,
+            "medium": -0.19210838381715653,
+            "fine": -0.20250533508414217
+          },
+          "reference": {
+            "value": -0.2109,
+            "kind": "benchmark",
+            "error_coarse": 0.03722294231073364,
+            "error_medium": 0.018791616182843474,
+            "error_fine": 0.00839466491585783,
+            "relative_error_coarse": 0.17649569611538,
+            "relative_error_medium": 0.08910202078161912,
+            "relative_error_fine": 0.039804006239250025,
+            "error_extrapolated": -0.005059598486024941
+          },
+          "analysis": {
+            "status": "monotonic_not_asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 0.825999 (formal 1); asymptotic ratio 0.886381 outside 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.010396951266985643,
+            "epsilon32": 0.01843132612789017,
+            "convergence_ratio": 0.5640913298828261,
+            "observed_order": 0.8259993320824632,
+            "formal_order": 1.0,
+            "order_ratio": 0.8259993320824632,
+            "richardson_extrapolated": -0.21595959848602495,
+            "richardson_extrapolated_32": -0.21595959848602497,
+            "approximate_relative_error_21": 0.051341616568598786,
+            "approximate_relative_error_32": 0.09594233089500455,
+            "extrapolated_relative_error_21": 0.06229990931731342,
+            "extrapolated_relative_error_32": 0.11044294782948434,
+            "uncertainty_21": 0.016817829252353454,
+            "uncertainty_32": 0.029814018336085542,
+            "gci_fine_medium": 0.08304882064151814,
+            "gci_medium_coarse": 0.1551937387826952,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.8863812888311203,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "status is monotonic_not_asymptotic, not asymptotic"
+          }
+        },
+        {
+          "name": "v_x0.2344",
+          "description": "v(0.2344, 0.5), Ghia station near v_max",
+          "values": {
+            "coarse": 0.15464404157373396,
+            "medium": 0.1667362476566897,
+            "fine": 0.17328827041247874
+          },
+          "reference": {
+            "value": 0.17527,
+            "kind": "benchmark",
+            "error_coarse": -0.02062595842626605,
+            "error_medium": -0.008533752343310302,
+            "error_fine": -0.0019817295875212693,
+            "relative_error_coarse": 0.11768105452311318,
+            "relative_error_medium": 0.04868917865755863,
+            "relative_error_fine": 0.011306724411030235,
+            "error_extrapolated": 0.00576693136055087
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 0.884065 (formal 1); asymptotic ratio 0.922784 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": -0.006552022755789033,
+            "epsilon32": -0.012092206082955748,
+            "convergence_ratio": 0.5418384958741537,
+            "observed_order": 0.8840651988856463,
+            "formal_order": 1.0,
+            "order_ratio": 0.8840651988856463,
+            "richardson_extrapolated": 0.18103693136055088,
+            "richardson_extrapolated_32": 0.18103693136055088,
+            "approximate_relative_error_21": 0.037809961056182444,
+            "approximate_relative_error_32": 0.07252295918193881,
+            "extrapolated_relative_error_21": 0.042801548224654797,
+            "extrapolated_relative_error_32": 0.07899318440931873,
+            "uncertainty_21": 0.009685826185090188,
+            "uncertainty_32": 0.017875854629826448,
+            "gci_fine_medium": 0.05589429776196034,
+            "gci_medium_coarse": 0.10721036895728199,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.9227841945658454,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "GCI21 0.0558943 > threshold 0.01"
+          }
+        },
+        {
+          "name": "v_x0.8047",
+          "description": "v(0.8047, 0.5), Ghia station near v_min",
+          "values": {
+            "coarse": -0.20491551384034729,
+            "medium": -0.22854429838573911,
+            "fine": -0.24078047104570705
+          },
+          "reference": {
+            "value": -0.24533,
+            "kind": "benchmark",
+            "error_coarse": 0.04041448615965271,
+            "error_medium": 0.01678570161426088,
+            "error_fine": 0.004549528954292947,
+            "relative_error_coarse": 0.16473519813986348,
+            "relative_error_medium": 0.06842090903787094,
+            "relative_error_fine": 0.018544527592601587,
+            "error_extrapolated": -0.008592665554773782
+          },
+          "analysis": {
+            "status": "asymptotic",
+            "convergence": "monotonic",
+            "diagnostic": "monotonic convergence, observed order 0.949393 (formal 1); asymptotic ratio 0.96553 within 1 +/- 0.1",
+            "warnings": [],
+            "r21": 2.0,
+            "r32": 2.0,
+            "epsilon21": 0.012236172659967931,
+            "epsilon32": 0.02362878454539183,
+            "convergence_ratio": 0.5178502786066613,
+            "observed_order": 0.9493930501301273,
+            "formal_order": 1.0,
+            "order_ratio": 0.9493930501301273,
+            "richardson_extrapolated": -0.2539226655547738,
+            "richardson_extrapolated_32": -0.2539226655547737,
+            "approximate_relative_error_21": 0.050818791934521775,
+            "approximate_relative_error_32": 0.1033882040037199,
+            "extrapolated_relative_error_21": 0.0517566814303618,
+            "extrapolated_relative_error_32": 0.0999452613400525,
+            "uncertainty_21": 0.016427743136333404,
+            "uncertainty_32": 0.03172295896129327,
+            "gci_fine_medium": 0.06822705788799187,
+            "gci_medium_coarse": 0.1388044207856412,
+            "safety_factor": 1.25,
+            "asymptotic_ratio": 0.9655300395807653,
+            "asymptotic_tolerance": 0.1,
+            "oscillation_uncertainty": null,
+            "grid_independence_threshold": 0.01,
+            "grid_independent": false,
+            "grid_independence_reason": "GCI21 0.0682271 > threshold 0.01"
+          }
+        }
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "name": "upwind_monotone_u_centerline",
+      "passed": true,
+      "detail": "upwind L2 0.021050 -> 0.010169 -> 0.004336"
+    },
+    {
+      "name": "upwind_monotone_v_centerline",
+      "passed": true,
+      "detail": "upwind L2 0.014460 -> 0.006448 -> 0.003569"
+    },
+    {
+      "name": "higher_order_smaller_discretisation_error_80x80",
+      "passed": true,
+      "detail": "u_center |QUICK80 - QUICK160| 0.000245 vs |upwind80 - QUICK160| 0.009603; v_center |QUICK80 - QUICK160| 0.000215 vs |upwind80 - QUICK160| 0.005342; u_y0.4531 |QUICK80 - QUICK160| 0.000040 vs |upwind80 - QUICK160| 0.011086; v_x0.2344 |QUICK80 - QUICK160| 0.000296 vs |upwind80 - QUICK160| 0.005538; v_x0.8047 |QUICK80 - QUICK160| 0.000080 vs |upwind80 - QUICK160| 0.012012; "
+    },
+    {
+      "name": "quick_solution_converged_40_80_160",
+      "passed": true,
+      "detail": "u_center GCI21 0.000285; v_center GCI21 0.001384; u_y0.4531 GCI21 0.000006; v_x0.2344 oscillatory U 0.006347; v_x0.8047 oscillatory U 0.007014; "
+    }
+  ],
+  "limitations": [
+    "Ghia et al. is itself a 129x129 numerical solution tabulated to 5 digits; beyond 40x40 the higher-order error vs Ghia plateaus at ~2e-3 (u) / ~4.4e-3 (v): a benchmark/comparison floor, not solution error (tightening the outer tolerance 1e-6 -> 1e-8 changes it by < 1e-5; 160x160 gives the same value).",
+    "Collocated SIMPLE without Rhie-Chow interpolation (no pressure-checkerboard damping); the closed cavity's velocity is unaffected but the pressure field is not validated here.",
+    "Runtimes are wall-clock of the build that ran the study (see summary) and are not deterministic."
+  ],
+  "passed": true,
+  "runtime": {
+    "note": "measured wall time -- with grid_convergence[*].grids[*].runtime_seconds, the only non-deterministic part of this report",
+    "runs": [
+      {
+        "id": "cavity_re100/20x20/quick",
+        "seconds": 5.625444461
+      },
+      {
+        "id": "cavity_re100/40x40/quick",
+        "seconds": 32.203851737
+      },
+      {
+        "id": "cavity_re100/80x80/quick",
+        "seconds": 206.327300371
+      },
+      {
+        "id": "cavity_re100/160x160/quick",
+        "seconds": 587.188752337
+      },
+      {
+        "id": "cavity_re100/20x20/upwind",
+        "seconds": 4.851271963
+      },
+      {
+        "id": "cavity_re100/40x40/upwind",
+        "seconds": 25.291096304
+      },
+      {
+        "id": "cavity_re100/80x80/upwind",
+        "seconds": 175.505930517
+      }
+    ]
+  }
+}

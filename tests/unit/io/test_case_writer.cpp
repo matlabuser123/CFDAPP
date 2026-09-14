@@ -66,9 +66,88 @@ TEST(CaseWriterTest, BasicCaseRoundTripsExactly) {
   EXPECT_EQ(reread.solver.momentumSolver.backend, original.solver.momentumSolver.backend);
   EXPECT_DOUBLE_EQ(reread.solver.momentumSolver.absoluteTolerance,
                    original.solver.momentumSolver.absoluteTolerance);
+  // P12-NUM-001: absent from the fixture's solver.json -> defaults to
+  // "upwind" on both sides, and that default itself must round-trip.
+  EXPECT_EQ(reread.solver.convectionScheme, original.solver.convectionScheme);
+  EXPECT_EQ(reread.solver.convectionScheme, "upwind");
+  // P12-NUM-002: same reasoning, "green_gauss".
+  EXPECT_EQ(reread.solver.gradientScheme, original.solver.gradientScheme);
+  EXPECT_EQ(reread.solver.gradientScheme, "green_gauss");
+  // P12-NUM-003: same reasoning, 0.
+  EXPECT_EQ(reread.solver.nonOrthogonalCorrections, original.solver.nonOrthogonalCorrections);
+  EXPECT_EQ(reread.solver.nonOrthogonalCorrections, 0u);
 
   EXPECT_DOUBLE_EQ(reread.initialConditions.velocity.x, 0.0);
   EXPECT_DOUBLE_EQ(reread.initialConditions.pressure, 0.0);
+}
+
+TEST(CaseWriterTest, NonDefaultConvectionSchemeRoundTrips) {
+  CaseFixture source;
+  source.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "convection_scheme": "quick"
+  })");
+  const CaseDefinition original = CaseReader{}.read(source.directory());
+  ASSERT_EQ(original.solver.convectionScheme, "quick");
+
+  const CaseDefinition reread = roundTrip(original);
+  EXPECT_EQ(reread.solver.convectionScheme, "quick");
+}
+
+TEST(CaseWriterTest, NonDefaultGradientSchemeRoundTrips) {
+  CaseFixture source;
+  source.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "gradient_scheme": "least_squares"
+  })");
+  const CaseDefinition original = CaseReader{}.read(source.directory());
+  ASSERT_EQ(original.solver.gradientScheme, "least_squares");
+
+  const CaseDefinition reread = roundTrip(original);
+  EXPECT_EQ(reread.solver.gradientScheme, "least_squares");
+}
+
+TEST(CaseWriterTest, NonDefaultNonOrthogonalCorrectionsRoundTrips) {
+  CaseFixture source;
+  source.write("solver.json", R"({
+    "type": "SIMPLE",
+    "max_iterations": 1000,
+    "velocity_relaxation": 0.7,
+    "pressure_relaxation": 0.3,
+    "velocity_tolerance": 1e-6,
+    "pressure_tolerance": 1e-6,
+    "continuity_tolerance": 1e-6,
+    "momentum_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 500},
+    "pressure_linear_solver": {"type": "BiCGSTAB", "absolute_tolerance": 1e-10,
+                                "relative_tolerance": 1e-8, "max_iterations": 2000},
+    "non_orthogonal_corrections": 2
+  })");
+  const CaseDefinition original = CaseReader{}.read(source.directory());
+  ASSERT_EQ(original.solver.nonOrthogonalCorrections, 2u);
+
+  const CaseDefinition reread = roundTrip(original);
+  EXPECT_EQ(reread.solver.nonOrthogonalCorrections, 2u);
 }
 
 TEST(CaseWriterTest, ExplicitInitialConditionsRoundTrip) {

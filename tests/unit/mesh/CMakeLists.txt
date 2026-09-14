@@ -16,4 +16,13 @@ target_link_libraries(CFDMeshTests
     GTest::gtest_main
 )
 
+# P12-NUM-003: reuses tests/unit/discretization/DistortedMesh.hpp (the
+# P12-NUM-002 distorted-quad-mesh generator) rather than duplicating it --
+# that header lives one directory over, so it is not found by the
+# compiler's default same-directory quoted-include search.
+target_include_directories(CFDMeshTests
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../discretization
+)
+
 gtest_discover_tests(CFDMeshTests PROPERTIES LABELS "unit")

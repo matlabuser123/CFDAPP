@@ -149,12 +149,18 @@ ProjectRunStatus statusFor(SIMPLEStatus status) {
       return ProjectRunStatus::Converged;
     case SIMPLEStatus::MaxIterations:
       return ProjectRunStatus::DidNotConverge;
+    // P12-NUM-004: a stagnated solve ran correctly but stopped making
+    // progress -- "did not converge" (results are written); a diverging one
+    // is a numerical failure, like a non-finite state.
+    case SIMPLEStatus::Stagnated:
+      return ProjectRunStatus::DidNotConverge;
     case SIMPLEStatus::Cancelled:
       return ProjectRunStatus::Cancelled;
     case SIMPLEStatus::MomentumFailure:
     case SIMPLEStatus::PressureCorrectionFailure:
     case SIMPLEStatus::NonFiniteState:
     case SIMPLEStatus::InvalidConfiguration:
+    case SIMPLEStatus::Diverging:
       return ProjectRunStatus::NumericalFailure;
   }
   return ProjectRunStatus::NumericalFailure;
@@ -171,11 +177,13 @@ ProjectRunStatus statusFor(cfd::compressible::CompressibleSIMPLEStatus status) {
     case CompressibleSIMPLEStatus::Converged:
       return ProjectRunStatus::Converged;
     case CompressibleSIMPLEStatus::MaxIterations:
+    case CompressibleSIMPLEStatus::Stagnated:
       return ProjectRunStatus::DidNotConverge;
     case CompressibleSIMPLEStatus::MomentumFailure:
     case CompressibleSIMPLEStatus::PressureCorrectionFailure:
     case CompressibleSIMPLEStatus::NonFiniteState:
     case CompressibleSIMPLEStatus::InvalidConfiguration:
+    case CompressibleSIMPLEStatus::Diverging:
       return ProjectRunStatus::NumericalFailure;
   }
   return ProjectRunStatus::NumericalFailure;
@@ -196,6 +204,10 @@ std::string compressibleSimpleStatusName(cfd::compressible::CompressibleSIMPLESt
       return "NonFiniteState";
     case CompressibleSIMPLEStatus::InvalidConfiguration:
       return "InvalidConfiguration";
+    case CompressibleSIMPLEStatus::Stagnated:
+      return "Stagnated";
+    case CompressibleSIMPLEStatus::Diverging:
+      return "Diverging";
   }
   return "Unknown";
 }
@@ -289,7 +301,11 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
   std::optional<cfd::thermal::ThermalResult> thermalResult;
   std::optional<cfd::io::ThermalRunMetadata> thermalMetadata;
   if (setup.thermal.has_value() && massFlux.has_value()) {
-    const cfd::thermal::ThermalSolver thermalSolver{};
+    // P12-NUM-003: same non-orthogonal-correction switch as momentum.
+    cfd::thermal::ThermalSolverSettings thermalSettings;
+    thermalSettings.nonOrthogonal =
+        cfd::pressure_velocity::nonOrthogonalOptions(setup.solverSettings);
+    const cfd::thermal::ThermalSolver thermalSolver{thermalSettings};
     thermalResult = thermalSolver.solve(setup.mesh, *setup.initialTemperature, *massFlux,
                                         *setup.thermal, *setup.temperatureBoundaries);
     thermalMetadata = cfd::io::ThermalRunMetadata{setup.thermal->conductivity(),
@@ -322,7 +338,11 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
   std::vector<cfd::io::SpeciesRunMetadata> speciesMetadataForExport;
   std::vector<cfd::io::NamedScalarField> speciesForExport;
   if (massFlux.has_value()) {
-    const cfd::species::SpeciesSolver speciesSolver{};
+    // P12-NUM-003: same non-orthogonal-correction switch as momentum.
+    cfd::species::SpeciesSolverSettings speciesSettings;
+    speciesSettings.nonOrthogonal =
+        cfd::pressure_velocity::nonOrthogonalOptions(setup.solverSettings);
+    const cfd::species::SpeciesSolver speciesSolver{speciesSettings};
     for (const cfd::io::SpeciesSetup& speciesSetup : setup.species) {
       const cfd::species::SpeciesResult speciesResult =
           speciesSolver.solve(setup.mesh, speciesSetup.initialConcentration, *massFlux, setup.fluid,
@@ -451,6 +471,12 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
         compressibleSettings.continuityTolerance = setup.solverSettings.continuityTolerance;
         compressibleSettings.momentumSolver = setup.solverSettings.momentumSolver;
         compressibleSettings.pressureSolver = setup.solverSettings.pressureSolver;
+        // P12-NUM-003: same non-orthogonal-correction switch as SIMPLE.
+        compressibleSettings.nonOrthogonalCorrections =
+            setup.solverSettings.nonOrthogonalCorrections;
+        compressibleSettings.gradientScheme = setup.solverSettings.gradientScheme;
+        // P12-NUM-004: the same solver.json robustness settings.
+        compressibleSettings.robustness = setup.solverSettings.robustness;
         // compressibleSettings.pseudoTimeStep is left at its own default
         // (1.0) -- no case-format exposure for it in this phase (see
         // ROADMAP.md's P12-COMP-002 scope note).
@@ -486,7 +512,7 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
           pressureAbsolute[i] = c.referencePressure + result.pressure[i];
 
         density = cfd::compressible::evaluateDensityField(setup.mesh, pressureAbsolute,
-                                                           temperatureField, c.thermodynamics);
+                                                          temperatureField, c.thermodynamics);
 
         for (cfd::Index i = 0; i < n; ++i) {
           const Real speed = magnitude(result.velocity[i]);
