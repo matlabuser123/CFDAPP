@@ -27,6 +27,11 @@ directly.
 | `velocity_magnitude` | scalar | derived, `|velocity|` |
 | `temperature` | scalar | only present when the case has a `thermal` block in `physics.json` |
 
+A 3D case (P12-MESH-006) writes `VTK_HEXAHEDRON` cells (type 12) on the
+`(nx+1)(ny+1)(nz+1)` vertex grid, with `pressure`, `velocity_magnitude` and
+the full 3-component `velocity` (w is non-zero). Use *Slice* or *Clip* to
+look inside the box; *Glyph* and *Contour* work as in 2D.
+
 All four (when present) are `CELL_DATA` -- this solver's own fields are
 cell-centered, not interpolated to vertices, so ParaView will show
 per-cell (not smoothly-shaded) values unless you apply ParaView's own

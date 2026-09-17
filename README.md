@@ -19,12 +19,24 @@ anything beyond research/learning use.
 
 - **Incompressible flow**: structured 2D mesh, finite-volume
   discretization, SIMPLE (steady) and PISO (transient), sparse linear
-  algebra (CG/BiCGSTAB/GMRES) with restart support.
+  algebra (CG/BiCGSTAB/GMRES) with restart support. Steady laminar 3D
+  SIMPLE on uniform Cartesian boxes (P12-MESH-006; see
+  [Known limitations](#known-limitations)).
+- **Moving and deforming meshes** (P12-MESH-007, C++ API only):
+  - prescribed mesh motion (`cfd::mesh::MeshMotion`: stationary, affine and sinusoidal);
+  - geometry update with exact swept volumes and a discrete geometric conservation law;
+  - a 2D laminar arbitrary Lagrangian–Eulerian PISO (`cfd::pressure_velocity::AlePISO`) with
+    moving walls.
+
+  Uniform flow stays uniform to round-off under motion, and a translating cavity reproduces the
+  fixed one to 1.9e-13 (`results/p12-mesh-007/summary.md`).
 - **Numerical methods** (P12-NUM, `solver.json`):
   - upwind / central / linear-upwind / QUICK convection (bounded deferred
     correction);
   - Green–Gauss and weighted least-squares gradients;
   - non-orthogonal and skewness correction;
+  - face flux: linear, or Rhie–Chow momentum interpolation (`"face_flux"`,
+    P12-MESH-006; the default for 3D, opt-in for 2D);
   - solver robustness: normalized residuals, stagnation and divergence
     detection, adaptive under-relaxation, automatic linear-solver fallback.
 - **Thermal**: energy equation, thermal boundary conditions, conjugate
@@ -289,13 +301,44 @@ tests.
 - **Native Windows + CUDA is untested** — only WSL2/Linux+CUDA is verified.
 - **OpenMP covers one kernel** (`SparseMatrix::multiply`) — most of a
   production solve is single-threaded regardless of thread count.
-- **2D only.** No 3D mesh support.
+- **3D is laminar, incompressible, steady SIMPLE on uniform Cartesian boxes only.**
+  P12-MESH-006 adds 3D incompressible flow (w-momentum, 3D SIMPLE with
+  Rhie–Chow) through the production path: case files (`"box"` geometry,
+  `nz`, six patches), CLI, GUI and VTK/CSV/JSON exports. It is validated
+  against the analytical square duct and the Re = 1000 lid-driven cube
+  (`results/p12-mesh-006/summary.md`). The limits:
+  - PISO/transient, turbulence, thermal, species, multiphase and
+    compressible physics refuse a 3D case;
+  - there is no graded, non-orthogonal or multi-block 3D mesh, and no GPU
+    3D SIMPLE;
+  - the solve is single-threaded: a 64³ lid cube (262 144 cells) took
+    about 96 min on one core;
+  - the GUI edits, validates and runs 3D cases and shows their residuals,
+    but has no 3D field view. Contours, vectors and probes are empty for a
+    3D result; open `solution.vtk` in ParaView;
+  - the 3D scalar operators of P12-MESH-005 (gradients, diffusion,
+    convection, `ThermalSolver` assembly) are available through the C++ API
+    only.
+- **Moving meshes are a C++ API, not a product feature.** P12-MESH-007's
+  mesh motion and `AlePISO` cannot be selected from a case file, the CLI or
+  the GUI, which remain steady-SIMPLE only. The limits:
+  - `AlePISO` is 2D and laminar and uses PISO's discretization (implicit
+    Euler, upwind convection); its accuracy on deforming meshes is not
+    claimed, and no moving-mesh manufactured solution has been run;
+  - 3D motion is verified at the geometry, swept-volume and operator level
+    only;
+  - motion is prescribed (no fluid–structure coupling or remeshing),
+    `MovingWall` velocities are constant, and a moving-mesh run cannot be
+    restarted.
 - Mesh geometry is structured/Cartesian only — no unstructured or
   boundary-fitted meshing. Case files build uniform Cartesian meshes, so the
   non-orthogonal/skewness corrections are exercised only on test-generated
   distorted meshes so far.
-- **No Rhie–Chow interpolation** in the collocated pressure-velocity
-  coupling: pressure fields can carry an undamped odd-even mode on open
+- **Rhie–Chow interpolation is opt-in for 2D cases.** P12-MESH-006 added it
+  as a face-flux option (`solver.json` `"face_flux"`), the default for 3D
+  cases. Existing 2D cases keep the linear face flux (their results are
+  bitwise unchanged), so unless they select `"rhie_chow"` their
+  pressure fields can carry an undamped odd-even mode on open
   domains (velocity, mass flow and the checkerboard-immune pressure
   estimators used in validation are unaffected).
 

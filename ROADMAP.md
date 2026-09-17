@@ -1,238 +1,365 @@
 # CFDApp — Roadmap
 
-High-level development map. For live status, active gates, and blockers see
-`TODO.md`; for detailed verification evidence see `results/`.
+> **Where is the project going?** This file covers capability, direction and dependency order.
+> Current tasks: [TODO.md](TODO.md) · Rules: [CLAUDE.md](CLAUDE.md) · Evidence: [results/](results/)
+
+**Status legend** (shared with `TODO.md`):
+
+| Status | Meaning |
+| --- | --- |
+| **COMPLETE** | Implemented and verified with evidence. |
+| **ACTIVE** | Authorized and in progress. |
+| **BLOCKED** | Authorized, but stopped at a failed gate or waiting on a dependency. |
+| **PLANNED** | The next step in an agreed sequence, not yet authorized. |
+| **NOT AUTHORIZED** | A candidate direction only. |
+
+A phase listed here is **not** authorized. Work starts only after an explicit scope decision, which
+is recorded in `TODO.md`.
 
 ---
 
-## Released
+## Vision
 
-**v0.2.0** (commit `1e960c7`, tag `v0.2.0`,
-<https://github.com/matlabuser123/CFDAPP/releases/tag/v0.2.0>) — steady
-incompressible SIMPLE/transient PISO, thermal + Boussinesq buoyancy,
-laminar/k-ε/k-ω/SST turbulence, species/multiphase/compressible physics
-fully wired into the production case/CLI/GUI dispatch path, CPU/OpenMP/CUDA
-performance, a Qt6/QML case-authoring GUI, and CI/packaging/release
-automation. First release was v0.1.5 (build/CLI/core physics only, no GPU
-validation or production physics/GUI-authoring integration).
+CFDApp aims to be a **trustworthy general-purpose finite-volume CFD platform**. Every capability is:
 
-**Known documentation defect (disclosed, not corrected in place):** the
-published v0.2.0 release notes' "Known limitations" section says
-species/multiphase/compressible are "not yet reachable through
-`physics.json`/`ProjectRunner`'s production dispatch" — false against the
-source tree actually released (see P10 below). Release evidence is
-immutable; the correction applies to this document and future release
-notes only.
+* numerically verified (analytical solutions, MMS, grid convergence, conservation);
+* physically validated (literature benchmarks);
+* reachable through one production path, from case file to CLI/GUI to export.
+
+It grows from a validated 2D structured-mesh solver towards production meshes, 3D, moving
+geometry and richer physics — in that dependency order, with evidence at every step.
+
+---
+
+## Current Capability
+
+As of 2026-09-17. **Released** means tagged `v0.2.0`. **Main** means committed and pushed but not
+yet tagged. **Uncommitted** means verified in the working tree but not yet committed.
+
+| Area | Capability | Level | Main limits |
+| --- | --- | --- | --- |
+| Incompressible 2D | SIMPLE (steady), PISO (transient), CG/BiCGSTAB/GMRES | Released | — |
+| Thermal | Energy equation, Boussinesq buoyancy, conjugate heat-transfer foundation | Released | — |
+| Turbulence | k-ε, k-ω and SST RANS, validated on channel flow | Released | No DNS-profile or separated-flow validation |
+| Species / multiphase | Passive species; two-phase volume fraction with mixture viscosity | Released | Mixture density not coupled into continuity (deliberate) |
+| Compressible | Post-hoc EOS (default); coupled `CompressibleSIMPLE` (opt-in) | Main | No two-way energy coupling; higher Mach deferred; CPU only |
+| Numerics | Four convection schemes, Green–Gauss / least-squares gradients, non-orthogonal correction, robustness, GCI, MMS | Main | Scalar transport upwind-only; no multigrid |
+| Production meshes | Non-orthogonal, graded and multi-block 2D structured meshes; mesh-quality report | Uncommitted | Structured quads only; no unstructured meshes |
+| 3D | Cartesian hexahedral mesh and operators; steady laminar 3D SIMPLE with Rhie–Chow | Uncommitted | Uniform boxes; single-threaded; no 3D physics beyond laminar flow; no GUI 3D view |
+| Moving mesh | ALE/GCL library API: 2D `AlePISO`; 3D geometry, GCL and ALE operators | Uncommitted, complete | C++ API only (not in case format, CLI or GUI); no 3D ALE flow solver; no moving-mesh MMS |
+| Performance | GPU-resident CG/BiCGSTAB with CPU fallback; OpenMP SpMV | Released | GPU break-even ≈ 80×80; no GPU 3D |
+| Application | CLI and Qt6/QML GUI on one `ProjectRunner`; case authoring; VTK/CSV/JSON export | Released | Native Windows CUDA not validated |
+
+---
+
+## Development Principles
+
+1. **Numerical correctness before optimization.** Validation comes before any performance claim.
+2. **New physics needs independent physical validation.** New numerical methods need quantitative
+   convergence verification.
+3. **A capability is production capability only on the production path:** case format → parser →
+   builder → dispatch → export → CLI/GUI. A library API alone does not count.
+4. **The CPU implementation is the reference.** GPU and OpenMP paths must show verified equivalence.
+5. **Failed and excluded results stay documented.** Amendments are recorded, never rewritten.
+6. **Dependencies first.** A capability is built on a verified foundation, not ahead of it.
+
+The binding working rules are in [CLAUDE.md](CLAUDE.md).
 
 ---
 
 ## Completed
 
-**P0–P5 — Core CFDApp.** Numerical foundation (structured-mesh FVM, sparse
-linear algebra, SIMPLE), validation (Poiseuille, Ghia cavity), transient
-PISO, thermal transport, k-ε/k-ω/SST turbulence, Boussinesq buoyancy
-(validated against De Vahl Davis 1983), variable properties, a CLI +
-Qt/QML GUI on one shared solver backend, visualization/post-processing,
-and release v0.1.5.
+### P0–P5 — Core CFD — COMPLETE (v0.1.5)
 
-**P6 — GPU Performance.** Persistent GPU-resident pipeline, production
-GPU CG/BiCGSTAB with CPU fallback, GPU-resident Jacobi preconditioning.
-Evidence: `results/performance/preconditioner/`.
+Delivered:
 
-**P7 — Performance Validation.** CUDA end-to-end: GPU break-even 80×80,
-best speedup 2.01× at 320×320. OpenMP scaling: best 4 threads (1.33×),
-regresses at 16/32 threads (WSL2 thread-spawn overhead). Large-grid
-stress: stable to 480×480 (CPU) / 640×640 (GPU), memory never the limit.
-Evidence: `results/performance/{cuda_end_to_end,openmp_scaling,large_grid_stress}/`.
+* structured-mesh FVM, sparse linear algebra, SIMPLE and PISO;
+* thermal transport, k-ε/k-ω/SST turbulence and Boussinesq buoyancy;
+* variable properties;
+* a CLI and a Qt/QML GUI on one solver backend;
+* visualization and post-processing.
 
-**P8 — Production Hardening.** Full regression 1289/1289, parallel
-`ctest -j8` clean, ASan/UBSan zero diagnostics, clang-format/clang-tidy
-clean, native Windows (MSVC/Qt) and WSL2 (CPU+CUDA) builds verified,
-manual GUI acceptance 17/17. Evidence: `results/release/p8-hardening/`.
+Validated against Poiseuille flow, the Ghia cavity and de Vahl Davis (1983).
 
-**P9 — v0.2.0 Release.** Tagged/published at `1e960c7`; CI green on that
-exact commit (run `34617756507`); GUI acceptance 17/17; packaged CLI/GUI
-smoke-tested twice; release assets + checksums verified against GitHub's
-own digests (run `34675450224`). Evidence: `results/release/v0.2.0/`.
+### P6–P9 — Performance, Hardening, Release — COMPLETE (v0.2.0)
 
-**P10 — Production Physics Integration** (reconciled — see note below).
-Species (`P10-APP-001`), multiphase (`P10-APP-002`), and compressible
-(`P10-APP-003`, post-hoc scope) are each configurable via `physics.json`,
-dispatched by `ProjectRunner`, exposed in the GUI's `PhysicsEditor.qml`,
-and exported to CSV/VTK/JSON, each with a production example case and a
-7/7-passing end-to-end regression. `P10-APP-004` consolidated all
-cross-physics compatibility rules into one authoritative
-`validatePhysicsCompatibility` function, connected to CLI/GUI/JSON
-validation alike, 10/10 new tests. Evidence: `results/p10-app-004/summary.md`,
-`docs/user_guide/case_format.md`.
+* **P6 GPU performance.** A persistent GPU-resident pipeline, GPU CG/BiCGSTAB with CPU fallback,
+  and GPU Jacobi preconditioning.
+* **P7 performance validation.** End-to-end CUDA and OpenMP scaling, plus large-grid stress tests.
+  Evidence: `results/performance/`.
+* **P8 production hardening.** Full regression, sanitizers, clang-format/clang-tidy, native Windows
+  (MSVC/Qt) and WSL2 builds, and a manual GUI acceptance run. Evidence:
+  `results/release/p8-hardening/`.
+* **P9 release.** `v0.2.0` tagged at `1e960c7`, with CI green and verified assets. Evidence:
+  `results/release/v0.2.0/`.
 
-*Reconciliation note:* this phase's checklist was unchecked until this
-audit even though the work had already shipped in v0.2.0 under an earlier
-internal numbering (`P6-PHYS-001/002/003`) — a documentation refactor had
-renumbered a stale future-phase template onto already-completed work
-without checking the source tree. Re-verified fresh (full regression,
-targeted suites) before correcting the record; see `TODO.md`'s history for
-the exact commits/counts.
+*Disclosed documentation defect.* The published v0.2.0 release notes say that species, multiphase
+and compressible are not reachable through production dispatch. That is false for the released
+source (see P10). Release evidence is immutable, so the correction applies here and in future notes
+only.
 
-*Disclosed, deliberate scope limits (not gaps):* multiphase mixture
-density is not coupled into continuity, only viscosity feeds momentum
-(`MultiphaseProperties.hpp`'s own documented scope). Compressible's
-two-way energy/pressure-velocity coupling was deferred to `P12-COMP`
-rather than committed to under P10 — see below.
+### P10 — Production Physics Integration — COMPLETE
 
-**P11 — GUI Case Authoring** ✅. Mesh (`P11-GUI-001`), physics
-(`P11-GUI-002`), boundary-condition (`P11-GUI-003`), and solver-settings
-(`P11-GUI-004`) editors let a user build a full case without hand-editing
-JSON; backend logic for from-scratch case creation is verified
-(`CaseEditingTest.FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli`).
-`P11-GUI-005`'s human-executed pass through the actual new-case-creation
-workflow (New → mesh → physics → boundaries → solver → Save As → close →
-reopen → round-trip → Validate → Run → inspect residuals/results):
-13/13 PASS, tester: project owner, 2026-09-13, against a fresh binary at
-commit `c25115faefd676ce59ce04d83769c80b9a2d2d3c`. Template-selection
-option confirmed present. Evidence:
-`results/release/p8-hardening/gui_acceptance.md`'s P11-GUI-005 addendum.
+Delivered:
 
-**P12-NUM — Numerical Methods & Robustness** ✅. Completed 2026-09-14
-(authorized 2026-09-13 for NUM-001 to NUM-007 only).
+* species, multiphase and compressible physics, configured through `physics.json`, dispatched by
+  `ProjectRunner`, editable in the GUI and exported;
+* one authoritative cross-physics compatibility validator (`validatePhysicsCompatibility`).
 
-- **NUM-001 — Higher-order convection:** upwind, central, linear-upwind
-  and QUICK via bounded (TVD-limited) deferred correction, selectable in
-  `solver.json`.
-- **NUM-002 — Gradient reconstruction:** Green–Gauss and weighted
-  least-squares reconstruction, with distorted-mesh verification.
-- **NUM-003 — Non-orthogonal/skewness correction:** corrected diffusion,
-  pressure correction, momentum and thermal/species/turbulence transport;
-  distorted-mesh SIMPLE and CompressibleSIMPLE.
-- **NUM-004 — Solver robustness:** normalized residuals,
-  stagnation/divergence detection, adaptive under-relaxation, GMRES and
-  automatic linear-solver fallback.
-- **NUM-005 — Grid convergence:** observed order, Richardson
-  extrapolation, GCI, asymptotic-range analysis and automated three-grid
-  studies.
-- **NUM-006 — Manufactured solutions:** system-level MMS with analytically
-  derived forcing — scalar, momentum, pressure/continuity, SIMPLE (Cartesian
-  and distorted) and CompressibleSIMPLE.
-- **NUM-007 — Production validation:** Ghia cavity Re = 100/1000,
-  analytical Poiseuille, turbulent channel Re_τ = 180, a four-scheme
-  accuracy/cost comparison and the Gartling Re = 800 backward-facing step.
-  The final step refinement (50 cells per channel height H) gives
-  lower-wall reattachment x_r/h = 11.932 (published 11.48–12.20, pass) and
-  an upper-wall bubble length (x_rs − x_s)/h = 11.506 (published
-  10.60–11.52, pass). Lengths are in step heights h = H/2.
+Evidence: `results/p10-app-004/`. The work shipped in v0.2.0 under the earlier numbering
+`P6-PHYS-001/002/003`, and its record was reconciled afterwards.
 
-Final regression after P12-NUM: 1654/1654 passed (1679 listed, 25
-explicit/disabled). Evidence: `results/p12-num-001/` through
-`results/p12-num-007/`; method notes in `docs/validation/`. Committed as
-`105383d` (with CI fixes `44b996a`); CI run 34839669398 green on `44b996a`
-(all 7 jobs). Closeout record: `results/p12-num-closeout/summary.md`.
+### P11 — GUI Case Authoring — COMPLETE
 
-*Disclosed limitations* (details in each phase's evidence):
-- production cases still use uniform Cartesian grids, so the
-  non-orthogonal machinery is exercised only on test-generated meshes;
-- no Rhie–Chow interpolation (undamped odd-even pressure mode on open
-  domains);
-- first-order boundary-ring truncation in some operators;
-- scalar transport remains upwind-only;
-- capabilities deliberately deferred, such as multigrid, additional
-  preconditioners and a coupled pressure-based solver.
+Delivered:
 
-The P12-NUM scope ends here.
+* mesh, physics, boundary-condition and solver-settings editors;
+* new-case-from-scratch, verified by a human-executed acceptance pass.
+
+Evidence: `results/release/p8-hardening/gui_acceptance.md` (P11-GUI-005 addendum).
+
+### P12 — Numerical & Mesh Foundation
+
+#### P12-COMP — Compressible — COMPLETE (COMP-001, COMP-002)
+
+Delivered:
+
+* per-boundary-face EOS density;
+* a dedicated coupled `CompressibleSIMPLE`, with density as iterated state:
+  * opt-in via `compressible.coupled` (default behaviour unchanged);
+  * reduces to SIMPLE in the low-Mach limit;
+  * validated against the Arkilic et al. (1997) isothermal-channel solution.
+
+Limits:
+
+* no turbulence or buoyancy injection point;
+* CPU only;
+* energy coupling and higher Mach are deferred.
+
+Evidence: `results/p12-comp-001/`, `results/p12-comp-002/`.
+
+#### P12-NUM — Numerical Methods & Robustness — COMPLETE (committed `105383d`)
+
+Delivered:
+
+* upwind, central, linear-upwind and QUICK convection (bounded deferred correction);
+* Green–Gauss and weighted least-squares gradients;
+* non-orthogonal and skewness correction across all transport equations;
+* solver robustness: normalized residuals, stagnation/divergence detection, adaptive relaxation,
+  GMRES and linear-solver fallback;
+* a grid-convergence framework (observed order, Richardson extrapolation, GCI);
+* system-level MMS;
+* production validation: the Ghia cavity, Poiseuille flow, a turbulent channel at Re_τ = 180, and
+  the Gartling backward-facing step at Re = 800 (within published ranges).
+
+Evidence: `results/p12-num-001/` … `results/p12-num-007/`, `results/p12-num-closeout/`.
+
+#### P12-MESH-001–006 — Production Meshes and 3D Foundation — COMPLETE (verified, uncommitted)
+
+| Phase | Capability gained |
+| --- | --- |
+| MESH-001 | Non-orthogonal structured quad meshes through the production path (`"structured_quad"`), with a validated distorted-Poiseuille case |
+| MESH-002 | Geometric grading and wall clustering (`"grading"`); clustering shown to cut wall-shear error at equal cell count |
+| MESH-003 | Conformal 2D multi-block geometry (`"multiblock"`, named patches, holes); curved channel validated at second order; interfaces conservative |
+| MESH-004 | One authoritative mesh-quality report (CLI, GUI, JSON); invalid-mesh rejection; quantified degradation response; scale-invariant BiCGSTAB breakdown test |
+| MESH-005 | A dimension-independent `Vector3`/`Mesh` stack, Cartesian hexahedra, and 3D operators verified at the expected order (C++ API only) |
+| MESH-006 | 3D steady laminar SIMPLE: w-momentum, 3D Rhie–Chow, the 3D case format, CLI/GUI, conservation diagnostics; validated on a square duct, the Re = 1000 lid-driven cube and 3D MMS |
+
+Limits:
+
+* 3D covers uniform Cartesian boxes and steady laminar SIMPLE only;
+* PISO, turbulence, thermal, species, multiphase and compressible refuse 3D;
+* 3D is single-threaded, with no GPU 3D.
+
+MESH-006 passed under gate Amendment A3; its original failure stays on record. Evidence:
+`results/p12-mesh-001/` … `results/p12-mesh-006/`.
 
 ---
 
-## Current — P12
+## Current Numerical Foundation
 
-No P12 work is authorized right now. P12-NUM is complete (see Completed).
-P12-COMP-001/002 are complete, and its remaining items are explicitly
-deferred. Starting anything below needs a new explicit scope decision
-recorded in `TODO.md`.
+Moving meshes exposed a chain of pre-existing boundary-treatment defects. They were resolved in
+dependency order, and all three phases closed on 2026-09-17:
 
-### P12-COMP — Compressible CFD
+```text
+MESH-007 G6.3 fails (Galilean invariance)
+  └─ cause: Green–Gauss boundary gradient switches branch on exact alignment
+       └─ GRAD-002 removes the branch (continuous, second order)
+            └─ exposes a first-order Dirichlet wall flux (half-cell one-sided difference)
+                 └─ DIFF-002 makes the wall flux second order
+```
 
-- [x] **COMP-001 — EOS-based boundary-density model.** Replaced the
-  owner-cell-reuse simplification with a real per-boundary-face EOS
-  density evaluation, no new BC types or case-format keys needed. 50/50
-  `CFDCompressibleTests`, 7/7 `CFDLowMachRegressionTests` (unchanged),
-  full regression 1313/1313. Evidence: `results/p12-comp-001/summary.md`.
-- [x] **COMP-002 — coupled compressible pressure-velocity solver.** A
-  dedicated `CompressibleSIMPLE` path (new momentum/pressure-correction
-  modules, `CompressibleMomentum`/`IdealGasEOS::dDensityDPressure`
-  reused) with density as genuinely iterated state (EOS-updated from the
-  corrected pressure every outer iteration, not a post-hoc read after
-  the loop), gated behind `compressible.coupled` (default `false`,
-  today's post-hoc behavior byte-identical when absent). Reduces to
-  plain incompressible `SIMPLE` in the low-Mach limit (regression-tested).
-  Independent physical validation against Arkilic et al. (1997)'s
-  isothermal compressible-channel (lubrication) analytical solution:
-  L2/Linf pressure error 1.28%/2.55%, explained by the lubrication
-  approximation's own reduced-Reynolds-number error term, not FVM
-  discretization error. Root cause of an initial convergence failure
-  (unpreconditioned BiCGSTAB breakdown on the — symmetric —
-  pressure-correction matrix, right at the tail of convergence) found
-  and fixed via a pure case-configuration choice (CG instead of
-  BiCGSTAB for that case's pressure solve), not a solver-code change.
-  Evidence: `results/p12-comp-002/summary.md`.
-- [ ] Advanced compressible-energy formulation (two-way viscous-dissipation/
-  pressure-work coupling) — explicitly deferred past COMP-002.
-- [ ] Higher-Mach capability — explicitly deferred past COMP-002.
+Resolution order: **DIFF-002 → GRAD-002 → MESH-007**.
 
-### Other planned P12 directions
+### P12-DIFF-002 — Second-Order Dirichlet Boundary Diffusion — COMPLETE (2026-09-17, uncommitted)
 
-These are not started. Only P12-MESH has been sketched in any detail.
+Adds a one-sided quadratic wall reconstruction to momentum, thermal, species and k-ε, with a
+topology-based fallback.
 
-- **P12-MESH** — proposed next. The P12-NUM work repeatedly ran into one
-  constraint: production cases still use uniform Cartesian grids. Proposed
-  sequence (not authorized):
-  1. MESH-001 — production non-orthogonal structured meshes (case format →
-     mesh builder), so the NUM-003 corrections act on real cases;
-  2. MESH-002 — stretched/graded meshes;
-  3. MESH-003 — general 2D multi-block / body-fitted geometry;
-  4. MESH-004 — mesh-quality and validation campaign;
-  5. MESH-005 — 3D mesh and data-structure foundation;
-  6. MESH-006 — 3D operators and solver foundation;
-  7. MESH-007 — moving/deforming mesh foundation.
-- **P12-TURB** — advanced turbulence validation, additional production
-  turbulence capabilities where justified.
-- **P12-SPECIES** — additional species models, reaction/source-term
-  framework.
-- **P12-MULTI** — advanced interface methods, surface tension, interface
-  reconstruction.
-- **Numerical follow-ups not covered by P12-NUM-001..007** — Rhie–Chow
-  interpolation, additional preconditioners, multigrid, a fully coupled
-  pressure-based solver.
+* Wall-flux order rises from 1 to 2, and the reconstruction is exact for quadratic fields.
+* Production dp/dx error improves about 3×.
+* Outer-iteration counts stay within the frozen 1.25× convergence guard.
+* Two production defects found on the way were fixed: the conjugate thermal-interface wall flux,
+  and the divergence-detector floor.
+* Legacy validation tests that encoded the superseded scheme were migrated one at a time, each
+  against an independently derived reference.
+* The W8 grid-convergence validation passed under amendment W8B. It needed the two validation cases
+  to select Rhie–Chow (GRAD-002-DRIFT-001).
+* Backward compatibility passed under W9A.
+* The W10 full regression passes: Release 1923/1923, Debug + GUI 1975/1975, and ASan + UBSan
+  1923/1923 with 0 diagnostics.
 
-Do not silently start any of these, or compressible energy/higher-Mach
-work, without an explicit scope decision recorded in `TODO.md`.
+Every original failure stays on record. Evidence: `results/p12-diff-002/` (see `summary.md`).
+Superseded predecessor: P12-DIFF-001 (`results/p12-diff-001/`).
 
----
+### P12-GRAD-002 — Continuous Green–Gauss Boundary Treatment — COMPLETE (2026-09-17, uncommitted)
 
-## Future
+Replaces the exact-alignment branch with a continuous, boundary-consistent face value.
 
-**P13 — Production Maturity** (long-term hardening, not yet scoped in
-detail): crash reporting and structured diagnostic logging; long-duration
-and large-case stress tests; result-comparison tooling and a benchmark
-dashboard; backward-compatible case-schema migration; a plugin/model
-extension architecture; cross-platform (Linux) packaging and installer
-testing; a formal release-candidate qualification process.
+* It is translation-invariant and continuous in the geometry.
+* It keeps Cartesian second-order accuracy.
+* On distorted meshes, the boundary-ring gradient improves from first to second order.
+* On the closed DIFF-002 tree, the production-accuracy obstacle is gone: GRAD-002 changes the two
+  W8 cases by ≤ 1.3 % (mostly improvements).
+* It closed under Amendments A1–A3. The fresh gate passes, including the A1-form criteria rerun on
+  the final library.
+* The A3 full regression passes: Release 1932/1932, Debug + GUI 1984/1984, and ASan + UBSan
+  1932/1932 with 0 diagnostics.
 
-P13's reliability/compatibility/distribution items may proceed alongside
-later P10/P11 follow-ups once those are far enough along, without waiting
-for all of P12 — but only with explicit authorization in `TODO.md`, never
-silently.
+Every original failure stays on record. Evidence: `results/p12-grad-002/` (see `summary.md`).
+Superseded predecessor: P12-GRAD-001 (`results/p12-grad-001/`).
+
+### P12-MESH-007 — Moving / Deforming Mesh Foundation — COMPLETE (2026-09-17, uncommitted; library-level C++ API)
+
+Delivers an ALE transport foundation:
+
+* mesh velocity;
+* exact swept-volume geometric conservation;
+* moving walls;
+* a 2D `AlePISO`, with 3D covered at the geometry, GCL and operator level only.
+
+Results:
+
+* Uniform flow stays uniform to round-off under mesh motion.
+* The Galilean-invariance gate G6.3/G7.3, rerun unchanged after GRAD-002 and DIFF-002, passes at
+  1.9e-13 against 1e-8. The original 2.49e-2 failure stays on record.
+* G2.3, G9 (under Amendment A3: the reference is the current tree without MESH-007) and G10 pass.
+* A performance baseline is recorded.
+
+**Scope, by user decision: library/API only, not a production capability** (CLAUDE.md §9). The
+case format, CLI and GUI are unchanged and stay steady-SIMPLE only.
+
+Evidence: `results/p12-mesh-007/`.
 
 ---
 
-## Principles
+## Near-Term — PLANNED
 
-1. Numerical correctness before optimization; validation before
-   performance claims.
-2. New physics requires physical validation, not only unit tests, and
-   requires production-path integration (case format → dispatch → export),
-   not just an equation-level module.
-3. The CPU reference implementation is authoritative; GPU/OpenMP paths
-   require verified numerical equivalence, not just a successful build.
-4. Failed or excluded cases stay documented, not hidden.
-5. A roadmap item is complete only after implementation, testing,
-   validation, integration, documentation, and production usability — see
-   `CLAUDE.md` for what evidence that requires.
+The chain above is closed. Each item below still needs explicit authorization.
+
+1. **Commit and push the verified P12 lineage** (MESH-001 … MESH-007, GRAD-002, DIFF-002,
+   ASAN-001). The MESH-004 ASan test defect is fixed (P12-ASAN-001; 0 sanitizer diagnostics in
+   DIFF-002 W10 and GRAD-002 A3). A green CI run on the exact SHA is still required.
+2. **Numerical debt surfaced by P12.** Each item would be its own scoped phase:
+   * warped 3D face integration;
+   * CG scale-invariant breakdown;
+   * irregular-mesh convergence;
+   * the 2D default face flux (Linear) has an undamped odd-even pressure mode on open domains
+     (GRAD-002-DRIFT-001). The fix is a Rhie–Chow default, which changes every 2D result;
+   * the Green–Gauss gradient's fixed four-sweep loop does not converge on 3D meshes with
+     uniformly tilted boundaries (GRAD-002 A2; classified as debt in A3 §5);
+   * the CUDA toolchain (WSL nvcc 11.5, architecture 52) predates the Ada GPU (compute capability
+     8.9). It must be upgraded before producing GPU performance evidence;
+   * the explicit `diffusion()` two-cell defect;
+   * large-coordinate structured-quad geometry.
+   The full list is under Known Technical Debt in `TODO.md`.
+3. **A tagged release** containing P12, with release notes that disclose its limits.
+
+---
+
+## Medium-Term — NOT AUTHORIZED
+
+### P12-TURB — Turbulence validation
+
+* DNS-profile validation of a fully developed turbulent channel
+* Wall-treatment architecture, with wall functions where justified
+* Separated-flow validation
+* y⁺ / mesh sensitivity studies
+* Turbulence grid-convergence studies
+
+Do not add turbulence models merely to increase the model count.
+
+### P12-SPECIES — Reacting and multi-species transport
+
+* A general source-term framework
+* Species-dependent diffusivity
+* Reactions and coupled reactions
+* Thermal/species coupling
+* Conservation enforcement
+* MMS and production validation
+
+### P12-MULTI — Interface methods
+
+* Consistent mixture-density coupling, where physically required
+* Interface reconstruction and compression
+* Bounded volume-fraction transport
+* Surface tension, curvature and contact angle
+* Static-droplet, advection and capillary-wave validation
+
+Do not claim full multiphase CFD from the existing foundation alone.
+
+### P12-COMP — Compressible follow-ups
+
+* An advanced compressible-energy formulation
+* Pressure-work and viscous-dissipation coupling
+* Higher-Mach capability and benchmark validation
+
+### Numerical infrastructure
+
+* Rhie–Chow as the 2D default (currently opt-in for 2D, the default in 3D)
+* Multigrid and additional preconditioners
+* A fully coupled pressure-based solver
+* Higher-order scalar transport (currently upwind-only)
+
+---
+
+## Long-Term — NOT AUTHORIZED
+
+What remains before CFDApp is a serious general CFD platform:
+
+* **3D physics parity:** transient PISO, thermal, turbulence, species and compressible flow in 3D.
+* **General 3D geometry:** non-Cartesian and multi-block 3D meshes, and a 3D production mesh path.
+* **Moving-geometry production path:** ALE through the case format, CLI and GUI.
+* **Scalable 3D performance:** multithreaded and GPU 3D solves; removing the O(boundary faces)
+  boundary lookup.
+* **3D visualization in the GUI** (ParaView is used today).
+
+---
+
+## Production Maturity — P13 — NOT AUTHORIZED
+
+Production maturity means CFDApp can be relied on across versions, platforms and long runs:
+
+* structured diagnostic logging and crash reporting;
+* long-duration and large-case stress testing;
+* automated result comparison, a benchmark dashboard and performance-regression tracking;
+* case-schema versioning, migration and backward-compatibility testing;
+* a plugin/model extension architecture;
+* Linux packaging, cross-platform installer testing, and formal release-candidate qualification;
+* native Windows + CUDA validation (manual; only WSL2 CUDA is verified today).
+
+P13 reliability and distribution items may run alongside later P12 work, but only with explicit
+authorization.
+
+---
+
+## Explicit Non-Goals / Deferred Scope
+
+* **No silent turn to general unstructured meshing.** MESH-003 is conformal multi-block structured
+  meshing by design.
+* **No turbulence model proliferation** without a validation need.
+* **No full-multiphase claim** from the volume-fraction foundation. Mixture density stays
+  uncoupled from continuity by design.
+* **No moving-mesh case/CLI/GUI integration** in MESH-007 (library API only, by user decision).
+* **No higher-Mach or compressible-energy work** until explicitly scoped.
+* **No performance work that changes numerics** without equivalence evidence.

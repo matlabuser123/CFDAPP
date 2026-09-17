@@ -194,6 +194,42 @@ Markdown tables to the test log.
     the forcing manufactures the implemented μ∇²U.
   - Nor higher-order compressible convection, which is upwind-only, nor
     high Mach numbers.
-- **Mesh coverage:** meshes are 2D quadrilaterals, Cartesian or distorted
-  (`DistortedMesh.hpp`). Exact boundary data needs one patch per boundary
-  face.
+- **Mesh coverage:** the system studies above use 2D quadrilaterals,
+  Cartesian or distorted (`DistortedMesh.hpp`). The 3D operator study
+  below uses the uniform Cartesian hexahedral mesh only (no distorted 3D
+  mesh exists). Exact boundary data needs one patch per boundary face.
+
+## Three-dimensional operator MMS (P12-MESH-005)
+
+`tests/integration/mms/test_mms_3d.cpp` verifies the production operators
+on `MeshGeometry::createCartesian3D` against a genuinely three-dimensional
+manufactured solution on the unit cube. Every field varies in z, and the
+velocity has a z-component that varies in x, so nothing is a 2D field
+extruded in z:
+
+- φ = sin(πx) cos(πy/2) exp(z/2) + xyz;
+- u = (1 + y/2, 1 + z/2, 1 + x/2), divergence-free;
+- ψ = exp(0.3x + 0.5y + 0.7z), monotone along every grid line.
+
+The forcings are derived by hand and checked against 4th-order central
+differences of the closed forms (`MMS3DTest.ForcingMatchesFiniteDifferencesOfClosedForms`).
+
+The refinement study `MMS3DTest.DISABLED_OperatorRefinementStudy` uses
+n = 8, 16, 32, 64, and computes pairwise orders p = ln(E_c/E_f) / ln(h_c/h_f).
+It is run explicitly in Release; its reports are
+`results/p12-mesh-005/data/mms3d_operator_study.{json,md,txt}`. It covers:
+
+- Green–Gauss and least-squares gradients;
+- the explicit diffusion operator;
+- a Poisson solve and an upwind convection–diffusion solve (`ThermalSolver`, the implicit sparse assembly);
+- the explicit convection operator with upwind, central, linear_upwind and quick.
+
+Expected orders (pre-registered in `results/p12-mesh-005/acceptance_gate.md`):
+
+- second order for the gradients, diffusion and the Poisson solve;
+- first order for upwind;
+- second order for the three higher-order convection schemes in cells more than two layers from the boundary. Their global order is lower, the documented boundary-band upwind degradation of P12-NUM-001.
+
+The least-squares gradient is first order in L∞ at the boundary: its boundary neighbour lies at half the spacing.
+
+Results: `results/p12-mesh-005/summary.md`.

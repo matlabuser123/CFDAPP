@@ -51,6 +51,38 @@ itself defines.
 A trailing `*` after the case name means the in-memory case has unsaved
 edits (`isModified`).
 
+## Mesh quality (P12-MESH-004)
+
+The Mesh page's *Mesh quality* box shows the production mesh-quality
+report of the open (or last validated) case: status (`valid`,
+`valid_with_warnings`, `invalid`), the one-line summary and every issue.
+Warnings also appear in the validation panel (amber, section "Mesh"); they
+never block validation or a run. An invalid mesh is a validation error
+naming the defect and where it is, and is never solved. The report is the
+same one the CLI prints and `metadata.json` exports -- see *Mesh quality*
+in [case_format.md](case_format.md).
+
+## 3D cases (P12-MESH-006)
+
+A 3D case (a `geometry.json` box; see *Three-dimensional cases* in
+[case_format.md](case_format.md)) opens, validates, saves and runs like a 2D
+one:
+
+- **Mesh page:** also shows *Depth* and *nz* (grading is not available with
+  `nz`).
+- **Boundary page:** lists the six patches `xmin` .. `zmax` and a third
+  velocity component *Z*.
+- **Validation:** the mesh-quality map records `dimension` 3.
+- **Results:** the residual plot has a *w* series. The field map, contours,
+  vectors, probe and line sampler are 2D views and show nothing for a 3D
+  result; the Results page says so. Use `results/solution.vtk` in ParaView.
+  The GUI has no 3D viewer and no 3D mesh editor.
+
+The controller behaviour is covered by
+`CaseEditingTest.ThreeDimensionalCaseLoadsValidatesPreservesZAndRunsFromTheGui`.
+No human has visually inspected the QML pages: that is automated
+controller-level and `qmllint` evidence, not visual inspection.
+
 ## What's not built yet
 
 Interactive mesh/physics/boundary-condition *editing* inside the GUI
