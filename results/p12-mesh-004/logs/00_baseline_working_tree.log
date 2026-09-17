@@ -1,0 +1,270 @@
+# P12-MESH-004 starting state (after the TODO.md authorization edit, before any MESH-004 code change)
+$ git rev-parse HEAD
+b66310ca871811c4c7671056beec291a451af55c
+$ git status --short
+ M ROADMAP.md
+ M TODO.md
+ M apps/cli/main.cpp
+ M apps/gui/CaseModelAdapter.cpp
+ M apps/gui/CaseModelAdapter.hpp
+ M apps/gui/SimulationControllerEditing.cpp
+ M apps/gui/qml/BoundaryEditor.qml
+ M apps/gui/qml/MeshEditor.qml
+ M apps/gui/qml/ResultsPage.qml
+ M apps/gui/tests/test_case_editing.cpp
+ M cases/heated_cavity/results/fields.csv
+ M cases/heated_cavity/results/metadata.json
+ M cases/heated_cavity/results/solution.vtk
+ M docs/user_guide/case_format.md
+ M include/cfd/io/case/GeometryConfig.hpp
+ M include/cfd/io/case/MeshConfig.hpp
+ M include/cfd/mesh/Mesh.hpp
+ M include/cfd/mesh/MeshGeometry.hpp
+ M include/cfd/mesh/MeshQuality.hpp
+ M include/cfd/thermal/EnergyEquation.hpp
+ M include/cfd/thermal/ThermalSolver.hpp
+ M include/cfd/turbulence/WallDistance.hpp
+ M results/validation/conjugate_heat_transfer/20/validation.json
+ M results/validation/conjugate_heat_transfer/40/validation.json
+ M results/validation/conjugate_heat_transfer/80/validation.json
+ M results/validation/grid_convergence/natural_convection_ra1e3.json
+ M results/validation/grid_convergence/natural_convection_ra1e3.md
+ M results/validation/heated_cavity/20x20/validation.json
+ M results/validation/heated_cavity/40x40/validation.json
+ M results/validation/heated_cavity/80x80/validation.json
+ M results/validation/mms/distorted_mesh_momentum_mms.json
+ M results/validation/mms/distorted_mesh_momentum_mms.md
+ M results/validation/mms/distorted_mesh_simple_mms.json
+ M results/validation/mms/distorted_mesh_simple_mms.md
+ M results/validation/natural_convection/Ra1e3/10x10/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_det_a/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_det_b/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_sign_check/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
+ M results/validation/natural_convection/Ra1e3/15x15/u_centerline.csv
+ M results/validation/natural_convection/Ra1e3/15x15/v_centerline.csv
+ M results/validation/natural_convection/Ra1e3/15x15/validation.json
+ M results/validation/natural_convection/Ra1e3/20x20/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/20x20/u_centerline.csv
+ M results/validation/natural_convection/Ra1e3/20x20/validation.json
+ M src/CMakeLists.txt
+ M src/discretization/Gradient.cpp
+ M src/io/CaseBuilder.cpp
+ M src/io/CaseReader.cpp
+ M src/io/CaseWriter.cpp
+ M src/io/JSONWriter.cpp
+ M src/io/StructuredMeshInfo.cpp
+ M src/io/StructuredMeshInfo.hpp
+ M src/io/VTKWriter.cpp
+ M src/io/case/GeometryConfigParser.cpp
+ M src/io/case/MeshConfigParser.cpp
+ M src/mesh/Mesh.cpp
+ M src/mesh/MeshGeometry.cpp
+ M src/mesh/MeshQuality.cpp
+ M src/thermal/EnergyEquation.cpp
+ M src/thermal/ThermalInterface.cpp
+ M src/thermal/ThermalSolver.cpp
+ M src/turbulence/WallDistance.cpp
+ M tests/integration/case/CMakeLists.txt
+ M tests/unit/discretization/CMakeLists.txt
+ M tests/unit/discretization/DistortedMesh.hpp
+ M tests/unit/io/CMakeLists.txt
+ M tests/unit/mesh/CMakeLists.txt
+ M tests/unit/thermal/CMakeLists.txt
+ M tests/unit/thermal/test_energy_equation.cpp
+ M tests/unit/thermal/test_thermal_solver.cpp
+ M tests/unit/turbulence/test_wall_distance.cpp
+?? cases/annular_sector_conduction_multiblock/
+?? cases/channel_transpiration_graded/
+?? cases/curved_channel_multiblock/
+?? cases/obstacle_channel_multiblock/
+?? cases/poiseuille_distorted/
+?? cases/step_channel_multiblock/
+?? include/cfd/mesh/MeshGrading.hpp
+?? include/cfd/mesh/MultiBlockSpec.hpp
+?? include/cfd/mesh/StructuredGrid.hpp
+?? results/p12-mesh-001/
+?? results/p12-mesh-002/
+?? results/p12-mesh-003/
+?? results/p12-mesh-004/
+?? results/validation/production/channel_transpiration_graded_grid_convergence.json
+?? results/validation/production/curved_channel_multiblock_grid_convergence.json
+?? results/validation/production/poiseuille_distorted_grid_convergence.json
+?? src/mesh/MeshGrading.cpp
+?? tests/integration/case/test_graded_mesh_production_case.cpp
+?? tests/integration/case/test_multiblock_production_case.cpp
+?? tests/integration/case/test_structured_quad_production_case.cpp
+?? tests/unit/discretization/test_oblique_neumann_gradient.cpp
+?? tests/unit/io/test_graded_mesh_case.cpp
+?? tests/unit/io/test_multiblock_case.cpp
+?? tests/unit/io/test_structured_quad_case.cpp
+?? tests/unit/mesh/test_graded_mesh.cpp
+?? tests/unit/mesh/test_mesh_grading.cpp
+?? tests/unit/mesh/test_multiblock_mesh.cpp
+?? tests/unit/mesh/test_structured_quad_mesh.cpp
+?? tests/unit/thermal/test_thermal_boundary_consistency.cpp
+$ git diff --stat
+ ROADMAP.md                                         |  30 +-
+ TODO.md                                            | 180 +++--
+ apps/cli/main.cpp                                  |  11 +-
+ apps/gui/CaseModelAdapter.cpp                      | 109 ++-
+ apps/gui/CaseModelAdapter.hpp                      |   3 +-
+ apps/gui/SimulationControllerEditing.cpp           |  39 +-
+ apps/gui/qml/BoundaryEditor.qml                    |  18 +-
+ apps/gui/qml/MeshEditor.qml                        | 191 ++++-
+ apps/gui/qml/ResultsPage.qml                       |   9 +
+ apps/gui/tests/test_case_editing.cpp               | 216 ++++++
+ cases/heated_cavity/results/fields.csv             | 800 ++++++++++-----------
+ cases/heated_cavity/results/metadata.json          |   4 +-
+ cases/heated_cavity/results/solution.vtk           | 800 ++++++++++-----------
+ docs/user_guide/case_format.md                     | 245 ++++++-
+ include/cfd/io/case/GeometryConfig.hpp             |   4 +
+ include/cfd/io/case/MeshConfig.hpp                 |  83 ++-
+ include/cfd/mesh/Mesh.hpp                          |  24 +
+ include/cfd/mesh/MeshGeometry.hpp                  |  69 ++
+ include/cfd/mesh/MeshQuality.hpp                   |  28 +
+ include/cfd/thermal/EnergyEquation.hpp             |  37 +
+ include/cfd/thermal/ThermalSolver.hpp              |  15 +
+ include/cfd/turbulence/WallDistance.hpp            |  23 +-
+ .../conjugate_heat_transfer/20/validation.json     |   8 +-
+ .../conjugate_heat_transfer/40/validation.json     |   8 +-
+ .../conjugate_heat_transfer/80/validation.json     |   8 +-
+ .../grid_convergence/natural_convection_ra1e3.json | 162 ++---
+ .../grid_convergence/natural_convection_ra1e3.md   |  16 +-
+ .../validation/heated_cavity/20x20/validation.json |   8 +-
+ .../validation/heated_cavity/40x40/validation.json |   8 +-
+ .../validation/heated_cavity/80x80/validation.json |   8 +-
+ .../mms/distorted_mesh_momentum_mms.json           | 456 ++++++------
+ .../validation/mms/distorted_mesh_momentum_mms.md  | 144 ++--
+ .../validation/mms/distorted_mesh_simple_mms.json  | 444 ++++++------
+ .../validation/mms/distorted_mesh_simple_mms.md    | 124 ++--
+ .../Ra1e3/10x10/nusselt_hot_wall.csv               |   2 +-
+ .../natural_convection/Ra1e3/10x10/validation.json |  12 +-
+ .../Ra1e3/10x10_det_a/nusselt_hot_wall.csv         |   2 +-
+ .../Ra1e3/10x10_det_a/validation.json              |  12 +-
+ .../Ra1e3/10x10_det_b/nusselt_hot_wall.csv         |   2 +-
+ .../Ra1e3/10x10_det_b/validation.json              |  12 +-
+ .../Ra1e3/10x10_sign_check/nusselt_hot_wall.csv    |   2 +-
+ .../Ra1e3/10x10_sign_check/validation.json         |  12 +-
+ .../nusselt_hot_wall.csv                           |   2 +-
+ .../validation.json                                |  12 +-
+ .../Ra1e3/10x10_zero_beta/validation.json          |   6 +-
+ .../Ra1e3/15x15/u_centerline.csv                   |   4 +-
+ .../Ra1e3/15x15/v_centerline.csv                   |   2 +-
+ .../natural_convection/Ra1e3/15x15/validation.json |  10 +-
+ .../Ra1e3/20x20/nusselt_hot_wall.csv               |   4 +-
+ .../Ra1e3/20x20/u_centerline.csv                   |   2 +-
+ .../natural_convection/Ra1e3/20x20/validation.json |  10 +-
+ src/CMakeLists.txt                                 |   1 +
+ src/discretization/Gradient.cpp                    | 105 ++-
+ src/io/CaseBuilder.cpp                             | 118 ++-
+ src/io/CaseReader.cpp                              | 116 ++-
+ src/io/CaseWriter.cpp                              |  61 +-
+ src/io/JSONWriter.cpp                              |   9 +
+ src/io/StructuredMeshInfo.cpp                      |  26 +
+ src/io/StructuredMeshInfo.hpp                      |  39 +-
+ src/io/VTKWriter.cpp                               |  71 +-
+ src/io/case/GeometryConfigParser.cpp               |  15 +-
+ src/io/case/MeshConfigParser.cpp                   | 344 ++++++++-
+ src/mesh/Mesh.cpp                                  |  29 +
+ src/mesh/MeshGeometry.cpp                          | 648 ++++++++++++++++-
+ src/mesh/MeshQuality.cpp                           | 144 ++++
+ src/thermal/EnergyEquation.cpp                     |  57 +-
+ src/thermal/ThermalInterface.cpp                   |  35 +-
+ src/thermal/ThermalSolver.cpp                      |  20 +-
+ src/turbulence/WallDistance.cpp                    |  17 +-
+ tests/integration/case/CMakeLists.txt              |   6 +
+ tests/unit/discretization/CMakeLists.txt           |   1 +
+ tests/unit/discretization/DistortedMesh.hpp        | 133 +---
+ tests/unit/io/CMakeLists.txt                       |   3 +
+ tests/unit/mesh/CMakeLists.txt                     |   4 +
+ tests/unit/thermal/CMakeLists.txt                  |   1 +
+ tests/unit/thermal/test_energy_equation.cpp        |  52 +-
+ tests/unit/thermal/test_thermal_solver.cpp         |  11 +-
+ tests/unit/turbulence/test_wall_distance.cpp       |  73 ++
+ 78 files changed, 4623 insertions(+), 1956 deletions(-)
+$ git diff --name-status
+M	ROADMAP.md
+M	TODO.md
+M	apps/cli/main.cpp
+M	apps/gui/CaseModelAdapter.cpp
+M	apps/gui/CaseModelAdapter.hpp
+M	apps/gui/SimulationControllerEditing.cpp
+M	apps/gui/qml/BoundaryEditor.qml
+M	apps/gui/qml/MeshEditor.qml
+M	apps/gui/qml/ResultsPage.qml
+M	apps/gui/tests/test_case_editing.cpp
+M	cases/heated_cavity/results/fields.csv
+M	cases/heated_cavity/results/metadata.json
+M	cases/heated_cavity/results/solution.vtk
+M	docs/user_guide/case_format.md
+M	include/cfd/io/case/GeometryConfig.hpp
+M	include/cfd/io/case/MeshConfig.hpp
+M	include/cfd/mesh/Mesh.hpp
+M	include/cfd/mesh/MeshGeometry.hpp
+M	include/cfd/mesh/MeshQuality.hpp
+M	include/cfd/thermal/EnergyEquation.hpp
+M	include/cfd/thermal/ThermalSolver.hpp
+M	include/cfd/turbulence/WallDistance.hpp
+M	results/validation/conjugate_heat_transfer/20/validation.json
+M	results/validation/conjugate_heat_transfer/40/validation.json
+M	results/validation/conjugate_heat_transfer/80/validation.json
+M	results/validation/grid_convergence/natural_convection_ra1e3.json
+M	results/validation/grid_convergence/natural_convection_ra1e3.md
+M	results/validation/heated_cavity/20x20/validation.json
+M	results/validation/heated_cavity/40x40/validation.json
+M	results/validation/heated_cavity/80x80/validation.json
+M	results/validation/mms/distorted_mesh_momentum_mms.json
+M	results/validation/mms/distorted_mesh_momentum_mms.md
+M	results/validation/mms/distorted_mesh_simple_mms.json
+M	results/validation/mms/distorted_mesh_simple_mms.md
+M	results/validation/natural_convection/Ra1e3/10x10/nusselt_hot_wall.csv
+M	results/validation/natural_convection/Ra1e3/10x10/validation.json
+M	results/validation/natural_convection/Ra1e3/10x10_det_a/nusselt_hot_wall.csv
+M	results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
+M	results/validation/natural_convection/Ra1e3/10x10_det_b/nusselt_hot_wall.csv
+M	results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
+M	results/validation/natural_convection/Ra1e3/10x10_sign_check/nusselt_hot_wall.csv
+M	results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
+M	results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/nusselt_hot_wall.csv
+M	results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
+M	results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
+M	results/validation/natural_convection/Ra1e3/15x15/u_centerline.csv
+M	results/validation/natural_convection/Ra1e3/15x15/v_centerline.csv
+M	results/validation/natural_convection/Ra1e3/15x15/validation.json
+M	results/validation/natural_convection/Ra1e3/20x20/nusselt_hot_wall.csv
+M	results/validation/natural_convection/Ra1e3/20x20/u_centerline.csv
+M	results/validation/natural_convection/Ra1e3/20x20/validation.json
+M	src/CMakeLists.txt
+M	src/discretization/Gradient.cpp
+M	src/io/CaseBuilder.cpp
+M	src/io/CaseReader.cpp
+M	src/io/CaseWriter.cpp
+M	src/io/JSONWriter.cpp
+M	src/io/StructuredMeshInfo.cpp
+M	src/io/StructuredMeshInfo.hpp
+M	src/io/VTKWriter.cpp
+M	src/io/case/GeometryConfigParser.cpp
+M	src/io/case/MeshConfigParser.cpp
+M	src/mesh/Mesh.cpp
+M	src/mesh/MeshGeometry.cpp
+M	src/mesh/MeshQuality.cpp
+M	src/thermal/EnergyEquation.cpp
+M	src/thermal/ThermalInterface.cpp
+M	src/thermal/ThermalSolver.cpp
+M	src/turbulence/WallDistance.cpp
+M	tests/integration/case/CMakeLists.txt
+M	tests/unit/discretization/CMakeLists.txt
+M	tests/unit/discretization/DistortedMesh.hpp
+M	tests/unit/io/CMakeLists.txt
+M	tests/unit/mesh/CMakeLists.txt
+M	tests/unit/thermal/CMakeLists.txt
+M	tests/unit/thermal/test_energy_equation.cpp
+M	tests/unit/thermal/test_thermal_solver.cpp
+M	tests/unit/turbulence/test_wall_distance.cpp

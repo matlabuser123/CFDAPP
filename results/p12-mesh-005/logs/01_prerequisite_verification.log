@@ -1,0 +1,46 @@
+# P12-MESH-005 prerequisite verification: P12-MESH-001..004 [x] COMPLETE (checked 2026-09-15, before any MESH-005 change)
+
+## TODO.md status lines
+55:P12-MESH-001 — `[x]` COMPLETE (2026-09-15).
+56:P12-MESH-002 — `[x]` COMPLETE (2026-09-15).
+57:P12-MESH-003 — `[x]` COMPLETE (2026-09-15).
+58:P12-MESH-004 — `[x]` COMPLETE (2026-09-15).
+59:P12-MESH-005 — `[ ]` IN PROGRESS (authorized 2026-09-15).
+64:### P12-MESH-001 — Production Non-Orthogonal Structured Meshes — `[x]` COMPLETE (2026-09-15)
+102:### P12-MESH-002 — Stretched / Graded Meshes — `[x]` COMPLETE (2026-09-15)
+131:### P12-MESH-003 — General 2D Geometry — `[x]` COMPLETE (2026-09-15)
+185:### P12-MESH-004 — Mesh Quality & Validation — `[x]` COMPLETE (2026-09-15)
+
+## MESH-004 summary status line (results/p12-mesh-004/summary.md)
+Status: **`[x]` COMPLETE (2026-09-15)** — the unchanged pre-registered gate passes with the final code, and the full regression passes: Release 1787/1787, Debug + GUI 1837/1837 (§19).
+
+## (1) unchanged acceptance gate PASS -- results/p12-mesh-004/logs/29_gate_evaluation_rerun.log (tail)
+#       irregular (reported): see logs/23
+#
+# DECISION: every gate criterion PASSES (R1-R4, R6, R7, M1-M3, GC1; R5/M4 reported; GC2 not applicable by the gate's own
+# pre-registered rule). Thresholds and acceptance_gate.md unchanged.
+
+## (2) focused tests PASS -- results/p12-mesh-004/logs/26_ordered_focused_tests.log (last line)
+TOTAL: ran 831, passed 831, failed 0 (suites overlap: a test can be counted in two steps)
+
+## (3) backward compatibility PASS -- results/p12-mesh-004/logs/25_backward_compat_cli.log
+IDENTICAL verdict lines: 44; DIFFERENT verdict lines: 4
+39:head vs prefix  heated_cavity: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+44:head vs prefix  heated_species_diffusion: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+59:head vs new  heated_cavity: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+64:head vs new  heated_species_diffusion: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+(the 4 DIFFERENT lines are HEAD vs working tree on heated_cavity / heated_species_diffusion only: the documented
+ MESH-003 thermal gradient-BC fix, reproducing results/p12-mesh-003/logs/08; NEW vs PREFIX identical on all 22 cases)
+
+## (4) full regression PASS
+results/p12-mesh-004/logs/27_full_regression_release.log:100% tests passed, 0 tests failed out of 1787
+results/p12-mesh-004/logs/28_full_regression_debug_gui.log:100% tests passed, 0 tests failed out of 1837
+
+## (5) real evidence present
+results/p12-mesh-004/logs: 33 files; solver-robustness: 7 entries; data: 12 files
+
+## (6) TODO accurately [x]: the MESH-004 block
+[x] items: 17
+[ ] items: 0
+
+VERDICT: all six prerequisite conditions hold -> MESH-005 may start.

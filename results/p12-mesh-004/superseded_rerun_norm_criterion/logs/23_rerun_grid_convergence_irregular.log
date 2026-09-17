@@ -1,0 +1,65 @@
+# P12-MESH-004 UNCHANGED-GATE RERUN after the BiCGSTAB fix: MeshQualityCampaign.DISABLED_GridConvergenceIrregularFamily (acceptance_gate.md fixed before this run)
+# binary 9b6f0a18cdcad493, started 2026-09-14T22:45:53Z, 32 cores, run concurrently with the other campaign tests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQualityCampaign.DISABLED_GridConvergenceIrregularFamily
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshQualityCampaign
+[ RUN      ] MeshQualityCampaign.DISABLED_GridConvergenceIrregularFamily
+rough_f0.15_n16        valid               cells   256 | AR   1.626 nonorth  19.494 skew  0.1153 expan  1.629 | Converged      3526 it  18.14 s contr 0.99976 | u L2 2.1879e-02 Linf 7.0078e-02 | v L2 2.1969e-02 | p L2 2.4325e-01 | T L2 1.1927e-02 Linf 3.1382e-02 (Converged, 8 it, lin 1.5e-09->8.6e-13) | mass 0.0e+00 cell-cont 7.1e-08 energy 4.7e-12
+rough_f0.15_n32        valid               cells  1024 | AR   1.734 nonorth  19.494 skew  0.1302 expan  1.782 | Converged      9621 it 177.15 s contr 1.00001 | u L2 2.1469e-02 Linf 7.5809e-02 | v L2 2.0522e-02 | p L2 4.3228e-01 | T L2 6.3205e-03 Linf 1.6076e-02 (Converged, 8 it, lin 2.2e-09->9.8e-13) | mass 0.0e+00 cell-cont 1.4e-07 energy 6.6e-13
+rough_f0.15_n64        valid               cells  4096 | AR   1.755 nonorth  21.440 skew  0.1302 expan  1.802 | MaxIterations 20000 it 1288.46 s contr 1.00003 | u L2 1.3906e-02 Linf 6.8167e-02 | v L2 1.3802e-02 | p L2 5.0931e-01 | T L2 3.3551e-03 Linf 8.2428e-03 (Converged, 8 it, lin 3.4e-09->9.5e-13) | mass 0.0e+00 cell-cont 6.3e-07 energy 4.8e-13
+pair 16 -> 32: L2 order u 0.027 v 0.098 p -0.830 T 0.916
+
+### Grid convergence: p12_mesh_004_rough_f0.15_corrected
+
+P12-MESH-004 manufactured-solution cavity, family rough_f0.15_corrected
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| n16 | 16 x 16 | 256 | 0.0625 | 18.1 | Converged (3526 it) | yes |
+| n32 | 32 x 32 | 1024 | 0.03125 | 177.2 | Converged (9621 it) | yes |
+| n64 | 64 x 64 | 4096 | 0.015625 | 1288.5 | MaxIterations (20000 it) | no: solver status MaxIterations (not Converged) |
+
+**Study rejected:** grid n64 rejected: solver status MaxIterations (not Converged)
+
+**kinetic_energy** -- 1/2 sum |u_c|^2 V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.17620664 | 0.1875 (analytical) | -0.01129 | 0.06023 |
+| medium | 0.17443281 | 0.1875 (analytical) | -0.01307 | 0.06969 |
+| fine | -- | 0.1875 (analytical) | -- | -- |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0 | -- | 2 | -- | -- | -- | -- | -- | invalid | no |
+
+- study rejected: grid n64 rejected: solver status MaxIterations (not Converged)
+- grid independence: study rejected: grid n64 rejected: solver status MaxIterations (not Converged)
+
+**mean_temperature** -- sum T_c V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.39964328 | 0.40528473 (analytical) | -0.005641 | 0.01392 |
+| medium | 0.40181099 | 0.40528473 (analytical) | -0.003474 | 0.008571 |
+| fine | -- | 0.40528473 (analytical) | -- | -- |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0 | -- | 1 | -- | -- | -- | -- | -- | invalid | no |
+
+- study rejected: grid n64 rejected: solver status MaxIterations (not Converged)
+- grid independence: study rejected: grid n64 rejected: solver status MaxIterations (not Converged)
+GC rough_f0.15_corrected kinetic_energy: status invalid (no order / GCI computed)
+GC rough_f0.15_corrected mean_temperature: status invalid (no order / GCI computed)
+[       OK ] MeshQualityCampaign.DISABLED_GridConvergenceIrregularFamily (1483901 ms)
+[----------] 1 test from MeshQualityCampaign (1483901 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1483903 ms total)
+[  PASSED  ] 1 test.
+# exit 0 finished 2026-09-14T23:10:37Z

@@ -1,0 +1,31 @@
+P12-MESH-006 G5 -- analytical square duct, Re = 10 (acceptance_gate.md G5, A2)
+exact: K = 0.0351443, G = -dp/dx = 2.8454154, u_max = 2.096256
+
+n= 8 cells   3072 | Converged, rhie_chow, 67 it, 2.7 s | Linf 8.4997e-02 RMS 4.1910e-02 | dp/dx 2.687460 err 5.5512e-02 | u_max 1.95600 err 6.6907e-02 | cross-flow 1.43e-08 | sections 1.98e-12 global 1.93e-12
+n=16 cells  24576 | Converged, rhie_chow, 183 it, 98.6 s | Linf 2.3357e-02 RMS 1.1483e-02 | dp/dx 2.803468 err 1.4742e-02 | u_max 2.05903 err 1.7760e-02 | cross-flow 1.53e-08 | sections 7.98e-12 global 3.39e-12
+n=24 cells  82944 | Converged, rhie_chow, 362 it, 971.5 s | Linf 1.0577e-02 RMS 5.2021e-03 | dp/dx 2.826544 err 6.6323e-03 | u_max 2.07951 err 7.9896e-03 | cross-flow 1.35e-08 | sections 1.44e-11 global 3.52e-12
+
+FAIL G5.1 n=24 Linf <= 0.010: 1.0577e-02
+FAIL G5.1 n=24 RMS <= 0.005: 5.2021e-03
+PASS G5.1 n=24 |dp/dx error|/G <= 0.015: 6.6323e-03
+PASS G5.1 n=24 |u_max error|/u_max <= 0.010: 7.9896e-03
+FAIL G5.1 n=16 Linf <= 0.020: 2.3357e-02
+PASS G5.1 n=16 |dp/dx error|/G <= 0.030: 1.4742e-02
+PASS G5.2 rms decreasing 8 -> 16 -> 24: 4.1910e-02 -> 1.1483e-02 -> 5.2021e-03
+PASS G5.2 pressure_gradient_error decreasing 8 -> 16 -> 24: 5.5512e-02 -> 1.4742e-02 -> 6.6323e-03
+PASS G5.3 n=8 every section within 1e-6 of the inflow: 1.976e-12
+PASS G5.3 n=8 |m_in - m_out|/m_in <= 1e-6: 1.930e-12 (metadata relative_imbalance 1.930e-12)
+PASS G5.4 n=8 Converged from rest, finite, exported: Converged, rhie_chow, 67 iterations
+PASS G5.3 n=16 every section within 1e-6 of the inflow: 7.983e-12
+PASS G5.3 n=16 |m_in - m_out|/m_in <= 1e-6: 3.387e-12 (metadata relative_imbalance 3.387e-12)
+PASS G5.4 n=16 Converged from rest, finite, exported: Converged, rhie_chow, 183 iterations
+PASS G5.3 n=24 every section within 1e-6 of the inflow: 1.439e-11
+PASS G5.3 n=24 |m_in - m_out|/m_in <= 1e-6: 3.525e-12 (metadata relative_imbalance 3.524e-12)
+PASS G5.4 n=24 Converged from rest, finite, exported: Converged, rhie_chow, 362 iterations
+
+REPORTED: downstream plane (x = 4a + h/2) Linf / RMS; axis-velocity variation over x in [3a, 4.5a] relative to u_max; max cross-flow velocity on the plane
+  n=8: 8.4997e-02 / 4.1910e-02; 1.099e-06; 1.431e-08
+  n=16: 2.3357e-02 / 1.1483e-02; 1.610e-06; 1.528e-08
+  n=24: 1.0577e-02 / 5.2021e-03; 1.678e-06; 1.349e-08
+
+DECISION: G5 FAILED

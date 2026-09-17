@@ -1,0 +1,39 @@
+# P12-MESH-004 gate failure diagnosis (diagnostic only; NO code change): M1 failed on the smooth A = 0.05 MMS family
+# (logs/09): thermal solve LinearSolveFailure at n = 32 (16 outer it, linear 2.1e-08 -> 4.2e-11) and n = 64
+# (17 outer it, 1.4e-08 -> 6.7e-11); SIMPLE Converged on every level.
+# Replay of the production thermal Picard loop (runPicardLoop logic, production ThermalSolverSettings:
+# BiCGSTAB abs 1e-12 / rel 1e-10 / 1000 iterations, outer tolerance 1e-8) on the SAME flow field (the campaign
+# case rebuilt through CaseWriter/CaseReader/CaseBuilder, SIMPLE tol 1e-7, relaxation 0.8/0.4), n = 32.
+# The replay does not stop on a failed linear solve; it shows what the production loop sees:
+#   outer 16: BiCGSTAB status 2 (Breakdown) at residual 4.194e-11 (from 2.130e-8) -- above the absolute
+#             tolerance 1e-12 and above rel * r_ref = 6.214e-12, so runPicardLoop's attained-breakdown rule
+#             (P12-MESH-003) does not accept it -> ThermalStatus::LinearSolveFailure (matches logs/09 exactly:
+#             16 outer iterations, 2.1e-08 -> 4.2e-11). max |dT| of that iterate: 2.93e-8.
+#   outer 17: converges normally; outer 18: Breakdown at 5.592e-12 <= 6.214e-12 (attained) with max |dT|
+#             4.69e-9 < 1e-8 -> the loop would have ended Converged at outer 18.
+# Cause: src/algebra/BiCGSTAB.cpp tests its breakdown conditions against the ABSOLUTE constant
+# constants::tiny = 1e-30 on inner products that scale with the square of the residual; near round-off
+# (residual ~1e-11 .. 1e-8 against |rHat| ~ 2e-8) (rHat, r) can drop below it. The same mechanism as
+# logs/02 section 4 (smooth A = 0.08, SIMPLE tol 1e-6). Pre-existing (unchanged since before P12-MESH-004;
+# src/thermal/ThermalSolver.cpp is byte-identical to the MESH-003 snapshot).
+
+# replay: smooth A = 0.05, n = 32, SIMPLE tol 1e-07, relaxation 0.8/0.4
+# linear settings abs 1e-12 rel 1e-10 max 1000; outer tol 1e-08
+outer  1: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   82 it, 6.214e-02 -> 3.860e-12 | rel*r_ref 6.214e-12 | max dT 9.223e-01
+outer  2: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   96 it, 1.715e-02 -> 1.505e-13 | rel*r_ref 6.214e-12 | max dT 3.936e-02
+outer  3: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   96 it, 3.833e-03 -> 4.799e-13 | rel*r_ref 6.214e-12 | max dT 2.017e-02
+outer  4: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   90 it, 1.243e-03 -> 5.194e-13 | rel*r_ref 6.214e-12 | max dT 3.299e-03
+outer  5: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   89 it, 4.548e-04 -> 9.926e-13 | rel*r_ref 6.214e-12 | max dT 1.736e-03
+outer  6: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   82 it, 1.740e-04 -> 8.776e-13 | rel*r_ref 6.214e-12 | max dT 3.839e-04
+outer  7: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   77 it, 6.859e-05 -> 8.704e-13 | rel*r_ref 6.214e-12 | max dT 2.044e-04
+outer  8: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   79 it, 2.748e-05 -> 8.885e-13 | rel*r_ref 6.214e-12 | max dT 5.139e-05
+outer  9: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   68 it, 1.113e-05 -> 5.637e-13 | rel*r_ref 6.214e-12 | max dT 2.759e-05
+outer 10: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   61 it, 4.534e-06 -> 9.933e-13 | rel*r_ref 6.214e-12 | max dT 7.485e-06
+outer 11: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   64 it, 1.853e-06 -> 9.027e-13 | rel*r_ref 6.214e-12 | max dT 4.006e-06
+outer 12: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   58 it, 7.591e-07 -> 9.446e-13 | rel*r_ref 6.214e-12 | max dT 1.155e-06
+outer 13: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   48 it, 3.109e-07 -> 4.721e-13 | rel*r_ref 6.214e-12 | max dT 6.062e-07
+outer 14: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   46 it, 1.274e-07 -> 6.413e-13 | rel*r_ref 6.214e-12 | max dT 1.820e-07
+outer 15: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   44 it, 5.210e-08 -> 7.773e-13 | rel*r_ref 6.214e-12 | max dT 9.399e-08
+outer 16: linear status 2 (0 Converged, 1 MaxIterations, 2 Breakdown),   35 it, 2.130e-08 -> 4.194e-11 | rel*r_ref 6.214e-12 | max dT 2.930e-08
+outer 17: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   38 it, 8.694e-09 -> 8.833e-13 | rel*r_ref 6.214e-12 | max dT 1.451e-08
+outer 18: linear status 2 (0 Converged, 1 MaxIterations, 2 Breakdown),   35 it, 3.546e-09 -> 5.592e-12 | rel*r_ref 6.214e-12 | max dT 4.688e-09

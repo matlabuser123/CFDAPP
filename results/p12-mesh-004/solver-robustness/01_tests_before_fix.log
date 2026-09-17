@@ -1,0 +1,135 @@
+# P12-MESH-004 solver robustness -- new tests against the PRE-FIX BiCGSTAB.cpp
+# (= HEAD b66310c = the pre-MESH-004 solver: d33521c5150b2903)
+[3/3] Linking CXX executable tests/unit/algebra/CFDAlgebraTests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BiCGSTABBreakdown.*
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from BiCGSTABBreakdown
+[ RUN      ] BiCGSTABBreakdown.Mesh004ThermalSystemsConvergeToTheRequestedTolerance
+p12_mesh004_thermal_smooth_a005_n32.txt      status 2,   35 iterations, recursive residual 4.1945e-11, true residual 4.1945e-11
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:149: Failure
+Expected equality of these values:
+  r.status
+    Which is: 4-byte object <02-00 00-00>
+  SolverStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+p12_mesh004_thermal_smooth_a005_n32.txt
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:151: Failure
+Expected: (r.finalResidual) <= (settings.absoluteTolerance), actual: 4.1944622245391276e-11 vs 9.9999999999999998e-13
+p12_mesh004_thermal_smooth_a005_n32.txt
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:154: Failure
+Expected: (trueRes) <= (settings.absoluteTolerance), actual: 4.1944689793980425e-11 vs 9.9999999999999998e-13
+p12_mesh004_thermal_smooth_a005_n32.txt
+
+p12_mesh004_thermal_rough_f03_n32.txt        status 2,   37 iterations, recursive residual 9.4309e-12, true residual 9.4308e-12
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:149: Failure
+Expected equality of these values:
+  r.status
+    Which is: 4-byte object <02-00 00-00>
+  SolverStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+p12_mesh004_thermal_rough_f03_n32.txt
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:151: Failure
+Expected: (r.finalResidual) <= (settings.absoluteTolerance), actual: 9.4308513784823685e-12 vs 9.9999999999999998e-13
+p12_mesh004_thermal_rough_f03_n32.txt
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:154: Failure
+Expected: (trueRes) <= (settings.absoluteTolerance), actual: 9.4308300075818479e-12 vs 9.9999999999999998e-13
+p12_mesh004_thermal_rough_f03_n32.txt
+
+[  FAILED  ] BiCGSTABBreakdown.Mesh004ThermalSystemsConvergeToTheRequestedTolerance (33 ms)
+[ RUN      ] BiCGSTABBreakdown.ScalingTheSystemByAPowerOfTwoChangesNothing
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:176: Failure
+Expected equality of these values:
+  scaled.status
+    Which is: 4-byte object <02-00 00-00>
+  SolverStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+-100
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:177: Failure
+Expected equality of these values:
+  scaled.iterations
+    Which is: 0
+  reference.iterations
+    Which is: 64
+-100
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:178: Failure
+Expected equality of these values:
+  scaled.residualHistory.size()
+    Which is: 1
+  reference.residualHistory.size()
+    Which is: 65
+-100
+
+[  FAILED  ] BiCGSTABBreakdown.ScalingTheSystemByAPowerOfTwoChangesNothing (1 ms)
+[ RUN      ] BiCGSTABBreakdown.IllConditionedSystemIsSolvedAtAnyScale
+convection-diffusion n=200                   status 0,  244 iterations, recursive residual 6.3704e-10, true residual 6.3702e-10
+convection-diffusion n=200 scaled 2^-40      status 2,    0 iterations, recursive residual 8.9910e-12, true residual 8.9910e-12
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:204: Failure
+Expected equality of these values:
+  r->status
+    Which is: 4-byte object <02-00 00-00>
+  SolverStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:205: Failure
+Expected: (r->finalResidual) <= (1e-10 * r->initialResidual), actual: 8.9909748227153909e-12 vs 8.9909748227153921e-22
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:208: Failure
+Expected: (trueResidual(small, b.solution)) <= (1e-9 * b.initialResidual), actual: 8.9909748227153909e-12 vs 8.9909748227153921e-21
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:209: Failure
+Expected equality of these values:
+  a.iterations
+    Which is: 244
+  b.iterations
+    Which is: 0
+
+[  FAILED  ] BiCGSTABBreakdown.IllConditionedSystemIsSolvedAtAnyScale (2 ms)
+[ RUN      ] BiCGSTABBreakdown.TrueBreakdownWithoutProgressIsReported
+rotation: (rHat, v) = 0 at iteration 1       status 2, 0 iterations, 0 restarts, residual 1.000e+00 (true 1.000e+00)
+omega: (t, s) = 0 at iteration 1             status 2, 0 iterations, 0 restarts, residual 1.414e+00 (true 1.414e+00)
+rho = 0 at iteration 2, |r1| = |r0|          status 2, 1 iterations, 0 restarts, residual 1.000e+00 (true 1.000e+00)
+[       OK ] BiCGSTABBreakdown.TrueBreakdownWithoutProgressIsReported (0 ms)
+[ RUN      ] BiCGSTABBreakdown.BreakdownAfterProgressIsRecoveredByARestart
+(rHat, v) = 0 at iteration 2                 status 2, 1 iterations, 0 restarts, residual 1.225e+00 (true 1.225e+00)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:262: Failure
+Expected equality of these values:
+  r.status
+    Which is: 4-byte object <02-00 00-00>
+  SolverStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:263: Failure
+Expected equality of these values:
+  r.restarts
+    Which is: 0
+  1u
+    Which is: 1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/algebra/test_bicgstab_breakdown.cpp:266: Failure
+Expected: (trueResidual(system, r.solution)) <= (1e-13), actual: 1.2247448713915889 vs 1e-13
+
+[  FAILED  ] BiCGSTABBreakdown.BreakdownAfterProgressIsRecoveredByARestart (0 ms)
+[ RUN      ] BiCGSTABBreakdown.ExactTerminationIsConvergedNotBreakdown
+[       OK ] BiCGSTABBreakdown.ExactTerminationIsConvergedNotBreakdown (0 ms)
+[ RUN      ] BiCGSTABBreakdown.ZeroRhsAndExactGuessNeedNoIteration
+[       OK ] BiCGSTABBreakdown.ZeroRhsAndExactGuessNeedNoIteration (0 ms)
+[----------] 7 tests from BiCGSTABBreakdown (41 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (43 ms total)
+[  PASSED  ] 3 tests.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] BiCGSTABBreakdown.Mesh004ThermalSystemsConvergeToTheRequestedTolerance
+[  FAILED  ] BiCGSTABBreakdown.ScalingTheSystemByAPowerOfTwoChangesNothing
+[  FAILED  ] BiCGSTABBreakdown.IllConditionedSystemIsSolvedAtAnyScale
+[  FAILED  ] BiCGSTABBreakdown.BreakdownAfterProgressIsRecoveredByARestart
+
+ 4 FAILED TESTS

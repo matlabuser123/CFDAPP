@@ -1,0 +1,63 @@
+# A3 evaluation: 2026-09-15T12:48:48Z
+# a3_gate.py sha256 5de2f9e51daedec0e465bbdcfcf51beceb7dda2037d27d0e1ddd4947c30944c6; frozen_expected.json sha256 b0b68b6dfdb1ba5ea7b5ee0d249cd4d3e5914c2759818d4d2c8c95fb7da83577
+# command: A3_RUNS=/root/m6a3 python3 /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p12-mesh-006/a3/tools/a3_gate.py /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p12-mesh-006/a3/data/a3_gate_result
+
+P12-MESH-006 Amendment A3 -- fresh acceptance run (frozen expected sha256 b0b68b6dfdb1ba5ea7b5ee0d249cd4d3e5914c2759818d4d2c8c95fb7da83577)
+
+ n  | it  | Linf       RMS        L1         | dp/dx err  u_max err  | CFDApp-disc |du|  cross-flow  dG/G_disc
+  8 | 67 | 8.4997e-02 4.1910e-02 3.5688e-02 | 5.5512e-02 6.6907e-02 | 3.554e-08   1.431e-08   1.387e-06
+ 16 | 183 | 2.3357e-02 1.1483e-02 9.5308e-03 | 1.4742e-02 1.7760e-02 | 6.381e-08   1.528e-08   1.537e-06
+ 24 | 362 | 1.0577e-02 5.2021e-03 4.3589e-03 | 6.6323e-03 7.9897e-03 | 7.081e-08   1.349e-08   1.526e-06
+
+PASS G5.1-A n=8 max|u - u_disc|/U <= 1e-05: 3.554e-08
+PASS G5.1-A n=8 max cross-flow/U <= 1e-05: 1.431e-08
+PASS G5.1-A n=8 |dp/dx - G_disc|/G_disc <= 0.0001: 1.387e-06 (dp/dx 2.6874603075, G_disc 2.6874565805)
+PASS G5.1-A n=16 max|u - u_disc|/U <= 1e-05: 6.381e-08
+PASS G5.1-A n=16 max cross-flow/U <= 1e-05: 1.528e-08
+PASS G5.1-A n=16 |dp/dx - G_disc|/G_disc <= 0.0001: 1.537e-06 (dp/dx 2.8034681914, G_disc 2.8034638835)
+PASS G5.1-A n=24 max|u - u_disc|/U <= 1e-05: 7.081e-08
+PASS G5.1-A n=24 max cross-flow/U <= 1e-05: 1.349e-08
+PASS G5.1-A n=24 |dp/dx - G_disc|/G_disc <= 0.0001: 1.526e-06 (dp/dx 2.8265436586, G_disc 2.8265393445)
+PASS G5.1-B velocity Linf decreasing 8 -> 16 -> 24: 8.49967e-02 -> 2.33567e-02 -> 1.05773e-02
+PASS G5.1-B velocity RMS decreasing 8 -> 16 -> 24: 4.19098e-02 -> 1.14830e-02 -> 5.20207e-03
+PASS G5.1-B dp/dx decreasing 8 -> 16 -> 24: 5.55121e-02 -> 1.47420e-02 -> 6.63232e-03
+PASS G5.1-B u_max decreasing 8 -> 16 -> 24: 6.69071e-02 -> 1.77605e-02 -> 7.98965e-03
+PASS G5.1-C observed order of velocity Linf, 16 -> 24, in [1.8, 2.2]: p = 1.9537 (ln(E16/E24)/ln(24/16))
+  reported orders (8->16, 16->24; independent prediction 16->24): linf 1.8636, 1.9537 (1.9537); rms 1.8678, 1.9529 (1.9529); l1 1.9048, 1.9294 (1.9294); dpdx_rel 1.9129, 1.9700 (1.9696); u_max_rel 1.9135, 1.9702 (1.9702)
+PASS G5.1-D n=24 |dp/dx err|/G <= 0.015: 6.63232e-03
+PASS G5.1-D n=24 |u_max err|/u_max <= 0.01: 7.98965e-03
+PASS G5.1-D n=24 velocity Linf <= 1.25 x predicted scheme error: measured 1.057732e-02, predicted 1.057725e-02, allowed 1.322156e-02, margin 2.644e-03 (20.0 %)
+PASS G5.1-D n=24 velocity RMS <= 1.25 x predicted scheme error: measured 5.202066e-03, predicted 5.202053e-03, allowed 6.502566e-03, margin 1.301e-03 (20.0 %)
+PASS G5.1-E GCI asymptotic indicator (G) in [0.95, 1.05]: 1.0082 (p 1.8805, phi_ext 2.84672189, exact 2.84541538, GCI_fine 8.924e-03, GCI_coarse 1.929e-02, exact inside GCI_fine band: yes)
+PASS G5.1-E GCI asymptotic indicator (u_axis) in [0.95, 1.05]: 1.0099 (p 1.8814, phi_ext 2.09740640, exact 2.09625601, GCI_fine 1.076e-02, GCI_coarse 2.330e-02, exact inside GCI_fine band: yes)
+PASS G5.2 (unchanged) rms decreasing 8 -> 16 -> 24 (ProjectRunner level runs): 4.19098e-02 -> 1.14831e-02 -> 5.20211e-03
+PASS G5.2 (unchanged) pressure_gradient_error decreasing 8 -> 16 -> 24 (ProjectRunner level runs): 5.55121e-02 -> 1.47420e-02 -> 6.63234e-03
+PASS G5.3 (unchanged) n=8 every section within 1e-06 of the inflow: 1.976e-12
+PASS G5.3 (unchanged) n=8 |m_in - m_out|/m_in <= 1e-06: 1.930e-12 (level run); CLI metadata relative_imbalance 1.930e-12
+PASS G5.3 (unchanged) n=16 every section within 1e-06 of the inflow: 7.983e-12
+PASS G5.3 (unchanged) n=16 |m_in - m_out|/m_in <= 1e-06: 3.387e-12 (level run); CLI metadata relative_imbalance 3.387e-12
+PASS G5.3 (unchanged) n=24 every section within 1e-06 of the inflow: 1.439e-11
+PASS G5.3 (unchanged) n=24 |m_in - m_out|/m_in <= 1e-06: 3.525e-12 (level run); CLI metadata relative_imbalance 3.524e-12
+PASS G5.4 (unchanged) n=8 Converged from rest, finite, exported, rhie_chow: CLI Converged, 67 it; level run Converged, 67 it
+PASS G5.4 (unchanged) n=16 Converged from rest, finite, exported, rhie_chow: CLI Converged, 183 it; level run Converged, 183 it
+PASS G5.4 (unchanged) n=24 Converged from rest, finite, exported, rhie_chow: CLI Converged, 362 it; level run Converged, 362 it
+  consistency (reported): level run Linf (C++, D399 reference) vs CLI Linf (Python, truth): n=8: 8.49967998e-02 / 8.49967165e-02; n=16: 2.33567293e-02 / 2.33567039e-02; n=24: 1.05773173e-02 / 1.05773206e-02
+PASS G6.1 (unchanged) x vs y streamwise <= 1e-06: 2.346e-12
+PASS G6.1 (unchanged) x vs y cross1 <= 1e-06: 2.106e-13
+PASS G6.1 (unchanged) x vs y cross2 <= 1e-06: 2.085e-13
+PASS G6.1 (unchanged) x vs y pressure_over_range <= 1e-06: 1.736e-11
+PASS G6.1 (unchanged) x vs y G_rel <= 1e-06: 2.253e-11
+PASS G6.1 (unchanged) x vs z streamwise <= 1e-06: 3.436e-12
+PASS G6.1 (unchanged) x vs z cross1 <= 1e-06: 1.156e-13
+PASS G6.1 (unchanged) x vs z cross2 <= 1e-06: 1.156e-13
+PASS G6.1 (unchanged) x vs z pressure_over_range <= 1e-06: 2.127e-11
+PASS G6.1 (unchanged) x vs z G_rel <= 1e-06: 6.692e-11
+PASS G6 (unchanged) x-duct Converged, finite, rhie_chow: Converged, 183 it
+PASS G6 (unchanged) y-duct Converged, finite, rhie_chow: Converged, 183 it
+PASS G6 (unchanged) z-duct Converged, finite, rhie_chow: Converged, 183 it
+PASS G6.2-A3 z-duct n=16 max|w - u_disc|/U <= 1e-05: 6.381e-08
+PASS G6.2-A3 z-duct n=16 max cross-flow (u, v)/U <= 1e-05: 1.528e-08
+  reported: y-duct n=16 max|v - u_disc| 6.381e-08, cross-flow 1.528e-08, dG/G_disc 1.537e-06; z-duct dG/G_disc 1.537e-06
+
+DECISION: A3 G5 PASS, A3 G6 PASS (46/46 items pass)
+# exit: 0

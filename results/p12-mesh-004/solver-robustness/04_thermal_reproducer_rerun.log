@@ -1,0 +1,16 @@
+# P12-MESH-004 solver robustness step 7: the previously failing thermal cases rerun UNCHANGED (mesh, thermal
+# tolerances, MMS forcing, SIMPLE settings) through the campaign production path, with the fixed BiCGSTAB
+# (library ab21e831e28bbcfd). Before the fix all four ended thermal LinearSolveFailure
+# (logs/04, logs/05, logs/09 of the first campaign).
+smooth_n32             valid               cells  1024 | AR   1.179 nonorth  34.619 skew  0.0179 expan  1.041 | Converged      3840 it  72.63 s contr 1.00052 | u L2 2.0786e-03 Linf 5.1908e-03 | v L2 1.5248e-03 | p L2 4.5388e-03 | T L2 8.3251e-03 Linf 2.1863e-02 (Converged, 18 it, lin 3.5e-09->3.4e-13) | mass 0.0e+00 cell-cont 1.2e-06 energy 4.6e-12
+smooth_n32: SIMPLE Converged (3840 it); thermal Converged after 18 outer iterations; last linear solve 3.5461e-09 -> 3.3733e-13; T L2 8.325056e-03; energy imbalance 4.612e-12; mass imbalance 0.000e+00
+
+smooth_n64             valid               cells  4096 | AR   1.179 nonorth  34.815 skew  0.0090 expan  1.021 | Converged      1227 it 116.49 s contr 1.00121 | u L2 5.0846e-04 Linf 1.3803e-03 | v L2 3.6867e-04 | p L2 1.0869e-03 | T L2 4.3052e-03 Linf 1.1153e-02 (Converged, 19 it, lin 3.1e-09->9.0e-13) | mass 0.0e+00 cell-cont 1.3e-06 energy 2.2e-11
+smooth_n64: SIMPLE Converged (1227 it); thermal Converged after 19 outer iterations; last linear solve 3.0919e-09 -> 9.0082e-13; T L2 4.305214e-03; energy imbalance 2.213e-11; mass imbalance 0.000e+00
+
+D1_Q2                  valid               cells  1024 | AR   1.179 nonorth  34.619 skew  0.0179 expan  1.041 | Converged      3840 it  70.14 s contr 1.00052 | u L2 2.0786e-03 Linf 5.1908e-03 | v L2 1.5248e-03 | p L2 4.5388e-03 | T L2 8.3251e-03 Linf 2.1863e-02 (Converged, 18 it, lin 3.5e-09->3.4e-13) | mass 0.0e+00 cell-cont 1.2e-06 energy 4.6e-12
+D1_Q2: SIMPLE Converged (3840 it); thermal Converged after 18 outer iterations; last linear solve 3.5461e-09 -> 3.3733e-13; T L2 8.325056e-03; energy imbalance 4.612e-12; mass imbalance 0.000e+00
+
+D2_Q4                  valid_with_warnings cells  1024 | AR   3.005 nonorth  45.098 skew  0.2715 expan  3.284 | Converged      8931 it 163.55 s contr 0.99997 | u L2 4.9204e-02 Linf 1.4092e-01 | v L2 4.7224e-02 | p L2 4.4182e-01 | T L2 6.7356e-03 Linf 1.7237e-02 (Converged, 10 it, lin 1.0e-08->8.4e-13) | mass 0.0e+00 cell-cont 1.4e-07 energy 2.9e-11
+D2_Q4: SIMPLE Converged (8931 it); thermal Converged after 10 outer iterations; last linear solve 1.0430e-08 -> 8.3729e-13; T L2 6.735628e-03; energy imbalance 2.878e-11; mass imbalance 0.000e+00
+

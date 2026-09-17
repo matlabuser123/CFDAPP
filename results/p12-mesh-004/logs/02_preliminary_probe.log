@@ -1,0 +1,131 @@
+# P12-MESH-004 preliminary feasibility probe (scratch program probe.cpp + tests/integration/case/MeshQualityCampaign.cpp),
+# run BEFORE acceptance_gate.md was written. Used only to (1) check the hand-derived manufactured forcing, (2) see the
+# quality metrics of candidate degradation levels and where the builder rejects a family, (3) choose SIMPLE tolerance /
+# relaxation so that iteration error << discretization error, (4) find solver failures. Not gate evidence.
+
+## (2) quality metrics of candidate levels (probe.sh quality). The forcing check (1) is the regular test MeshQualityCampaign.ManufacturedForcingMatchesFiniteDifferences.
+smooth A=0.000000 n=16     valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 3.906e-03
+smooth A=0.000000 n=32     valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+smooth A=0.000000 n=64     valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 2.441e-04
+smooth A=0.020000 n=16     valid               AR    1.066 nonorth  13.875 (mean  4.495) skew  0.0136 (mean 0.0053) expan  1.032 minArea 3.549e-03
+smooth A=0.020000 n=32     valid               AR    1.066 nonorth  14.211 (mean  4.554) skew  0.0069 (mean 0.0027) expan  1.016 minArea 8.845e-04
+smooth A=0.020000 n=64     valid               AR    1.067 nonorth  14.296 (mean  4.571) skew  0.0035 (mean 0.0013) expan  1.008 minArea 2.210e-04
+smooth A=0.040000 n=16     valid               AR    1.138 nonorth  27.354 (mean  8.949) skew  0.0278 (mean 0.0108) expan  1.065 minArea 3.207e-03
+smooth A=0.040000 n=32     valid               AR    1.140 nonorth  27.999 (mean  9.065) skew  0.0141 (mean 0.0054) expan  1.033 minArea 7.961e-04
+smooth A=0.040000 n=64     valid               AR    1.140 nonorth  28.161 (mean  9.098) skew  0.0071 (mean 0.0027) expan  1.016 minArea 1.987e-04
+smooth A=0.060000 n=16     valid               AR    1.215 nonorth  40.106 (mean 13.322) skew  0.0429 (mean 0.0164) expan  1.102 minArea 2.876e-03
+smooth A=0.060000 n=32     valid               AR    1.219 nonorth  41.009 (mean 13.493) skew  0.0219 (mean 0.0081) expan  1.050 minArea 7.107e-04
+smooth A=0.060000 n=64     valid               AR    1.220 nonorth  41.236 (mean 13.541) skew  0.0110 (mean 0.0040) expan  1.025 minArea 1.772e-04
+smooth A=0.080000 n=16     valid               AR    1.297 nonorth  51.904 (mean 17.581) skew  0.0595 (mean 0.0223) expan  1.140 minArea 2.557e-03
+smooth A=0.080000 n=32     valid               AR    1.305 nonorth  53.004 (mean 17.802) skew  0.0304 (mean 0.0111) expan  1.070 minArea 6.277e-04
+smooth A=0.080000 n=64     valid               AR    1.305 nonorth  53.281 (mean 17.863) skew  0.0153 (mean 0.0055) expan  1.035 minArea 1.563e-04
+smooth A=0.100000 n=16     valid               AR    1.385 nonorth  62.630 (mean 21.697) skew  0.0786 (mean 0.0287) expan  1.186 minArea 2.239e-03
+smooth A=0.100000 n=32     valid               AR    1.394 nonorth  63.869 (mean 21.962) skew  0.0407 (mean 0.0142) expan  1.092 minArea 5.469e-04
+smooth A=0.100000 n=64     valid               AR    1.395 nonorth  64.180 (mean 22.035) skew  0.0205 (mean 0.0070) expan  1.045 minArea 1.361e-04
+smooth A=0.120000 n=16     valid_with_warnings AR    1.478 nonorth  72.262 (mean 25.648) skew  0.1049 (mean 0.0359) expan  1.311 minArea 1.783e-03
+smooth A=0.120000 n=32     valid_with_warnings AR    1.487 nonorth  73.589 (mean 25.949) skew  0.0537 (mean 0.0178) expan  1.151 minArea 4.276e-04
+smooth A=0.120000 n=64     valid_with_warnings AR    1.489 nonorth  73.921 (mean 26.033) skew  0.0270 (mean 0.0088) expan  1.074 minArea 1.057e-04
+smooth A=0.140000 n=16     valid_with_warnings AR    1.574 nonorth  80.842 (mean 29.417) skew  0.1419 (mean 0.0446) expan  1.558 minArea 1.027e-03
+smooth A=0.140000 n=32     valid_with_warnings AR    1.582 nonorth  82.216 (mean 29.748) skew  0.0740 (mean 0.0222) expan  1.287 minArea 2.301e-04
+smooth A=0.140000 n=64     valid_with_warnings AR    1.586 nonorth  82.559 (mean 29.838) skew  0.0374 (mean 0.0110) expan  1.137 minArea 5.580e-05
+smooth A=0.160000 n=16     valid_with_warnings AR    1.673 nonorth  88.454 (mean 32.993) skew  0.3347 (mean 0.0592) expan  4.482 minArea 1.557e-04
+smooth A=0.160000 n=32     valid_with_warnings AR    1.683 nonorth  89.843 (mean 33.345) skew  0.4488 (mean 0.0315) expan 17.706 minArea 2.215e-06
+smooth A=0.160000 n=64     REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (32,30) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero ar
+rough f=0.000000 n=16      valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 3.906e-03
+rough f=0.000000 n=32      valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+rough f=0.000000 n=64      valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 2.441e-04
+rough f=0.100000 n=16      valid               AR    1.383 nonorth  12.680 (mean  3.367) skew  0.0775 (mean 0.0195) expan  1.384 minArea 3.210e-03
+rough f=0.100000 n=32      valid               AR    1.442 nonorth  12.680 (mean  3.413) skew  0.0859 (mean 0.0199) expan  1.467 minArea 7.429e-04
+rough f=0.100000 n=64      valid               AR    1.455 nonorth  13.735 (mean  3.462) skew  0.0859 (mean 0.0202) expan  1.478 minArea 1.857e-04
+rough f=0.200000 n=16      valid               AR    1.936 nonorth  26.564 (mean  6.748) skew  0.1528 (mean 0.0392) expan  1.921 minArea 2.581e-03
+rough f=0.200000 n=32      valid_with_warnings AR    2.086 nonorth  27.042 (mean  6.903) skew  0.1756 (mean 0.0402) expan  2.173 minArea 5.396e-04
+rough f=0.200000 n=64      valid_with_warnings AR    2.150 nonorth  29.710 (mean  7.000) skew  0.1756 (mean 0.0410) expan  2.209 minArea 1.349e-04
+rough f=0.300000 n=16      valid_with_warnings AR    2.839 nonorth  41.122 (mean 10.189) skew  0.2287 (mean 0.0596) expan  2.703 minArea 2.017e-03
+rough f=0.300000 n=32      valid_with_warnings AR    3.005 nonorth  45.098 (mean 10.534) skew  0.2715 (mean 0.0617) expan  3.284 minArea 3.667e-04
+rough f=0.300000 n=64      valid_with_warnings AR    3.380 nonorth  48.385 (mean 10.678) skew  0.2888 (mean 0.0629) expan  3.410 minArea 9.031e-05
+rough f=0.400000 n=16      REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (2,14) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero are
+rough f=0.400000 n=32      REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (28,12) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero ar
+rough f=0.400000 n=64      REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (40,1) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero are
+rough f=0.450000 n=16      REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (10,5) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero are
+rough f=0.450000 n=32      REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (26,4) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero are
+rough f=0.450000 n=64      REJECTED mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (40,1) is not a strictly convex counter-clockwise quadrilateral (folded, self-intersecting, clockwise, degenerate edge or zero are
+graded r=1.000000          valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+graded r=1.050000          valid               AR    1.479 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.050 minArea 6.605e-04
+graded r=1.100000          valid               AR    2.247 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.100 minArea 4.346e-04
+graded r=1.150000          valid               AR    3.482 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.150 minArea 2.804e-04
+graded r=1.200000          valid               AR    5.465 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.200 minArea 1.787e-04
+graded r=1.300000          valid               AR   13.655 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.300 minArea 7.152e-05
+graded r=1.500000          valid               AR   81.980 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.500 minArea 1.191e-05
+aspect 32x32               valid               AR    1.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+aspect 45x23               valid               AR    1.957 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.662e-04
+aspect 64x16               valid               AR    4.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+aspect 91x11               valid               AR    8.273 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.990e-04
+aspect 128x8               valid               AR   16.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+aspect 256x4               valid               AR   64.000 nonorth   0.000 (mean  0.000) skew  0.0000 (mean 0.0000) expan  1.000 minArea 9.766e-04
+
+## (3a) first timed production-path runs (probe.sh runs). NOTE: this run used k = 0.05 (Pe = 20); the harness was then changed to
+## k = 0.2 (Pe = 5) because the production energy equation convects with FIRST-ORDER upwind (keep diffusion significant),
+## so the temperature errors below are not comparable with (3b). The uncorrected 'plain' recipe (0 corrections, Green-Gauss)
+## on the smooth A = 0.08 mesh (53 deg) failed: MomentumFailure after 183 iterations.
+cartesian32            valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      2563 it  19.13 s | u L2 1.5324e-03 Linf 3.2795e-03 | v L2 1.1884e-03 | p L2 5.6267e-03 | T L2 2.4008e-02 Linf 5.8932e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 1.3e-06 energy 1.2e-13
+smooth0.08 corr        valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged     12026 it 135.31 s | u L2 2.9805e-03 Linf 8.0371e-03 | v L2 2.4870e-03 | p L2 6.1295e-03 | T L2 3.9106e-02 Linf 1.0551e-01 (conv, 25 it) | mass 0.0e+00 cell-cont 5.4e-07 energy 5.5e-11
+smooth0.08 plain       valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | MomentumFailure   183 it   3.43 s | u L2 1.7363e+30 Linf 1.6430e+31 | v L2 1.8573e+30 | p L2 6.2353e+60 | T L2 4.9997e-01 Linf 9.9939e-01 (NOT conv, 1 it) | mass 0.0e+00 cell-cont 3.3e+24 energy 1.0e+00
+rough0.3 corr          valid_with_warnings cells  1024 | AR   3.005 nonorth  45.098 skew  0.2715 expan  3.284 | Converged     15748 it 194.08 s | u L2 4.9204e-02 Linf 1.4092e-01 | v L2 4.7225e-02 | p L2 4.4182e-01 | T L2 2.6139e-02 Linf 6.3244e-02 (conv, 10 it) | mass 0.0e+00 cell-cont 1.0e-07 energy 3.1e-11
+graded1.2              valid               cells  1024 | AR   5.465 nonorth   0.000 skew  0.0000 expan  1.200 | Converged      2713 it  23.00 s | u L2 1.0366e-02 Linf 3.2218e-02 | v L2 4.2159e-03 | p L2 2.4104e-02 | T L2 2.9131e-02 Linf 7.5810e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 3.1e-06 energy 2.0e-13
+aspect128x8            valid               cells  1024 | AR  16.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged     12189 it 101.47 s | u L2 4.1461e-02 Linf 9.7373e-02 | v L2 2.0688e-02 | p L2 6.8823e-02 | T L2 4.5241e-02 Linf 1.1647e-01 (conv, 2 it) | mass 0.0e+00 cell-cont 1.4e-06 energy 1.0e-12
+
+## (3b) solver-settings sensitivity at k = 0.2 (probe.sh settings): SIMPLE tolerance x relaxation, Cartesian 32x32 and smooth
+## A = 0.08 32x32, corrected recipe (2 corrections, least_squares). Iteration error: tol 1e-7 vs 1e-8 changes u L2 by < 0.01 %,
+## p L2 by 0.40 % (6.1051e-3 vs 6.1295e-3) and T not at all; tol 1e-6 changes p L2 by 3.7 %. Relaxation 0.8/0.4 is 15-20 % faster.
+cartesian32 tol1e-06 0.7/0.3 valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged       763 it   6.30 s | u L2 1.5324e-03 Linf 3.2756e-03 | v L2 1.1884e-03 | p L2 5.5330e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 3.9e-08 energy 1.1e-13
+smooth0.08 tol1e-06 0.7/0.3 valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged      1796 it  24.30 s | u L2 2.9804e-03 Linf 8.0414e-03 | v L2 2.4869e-03 | p L2 5.9002e-03 | T L2 1.1187e-02 Linf 3.1379e-02 (conv, 29 it) | mass 0.0e+00 cell-cont 4.3e-07 energy 3.3e-12
+cartesian32 tol1e-06 0.8/0.4 valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged       630 it   5.26 s | u L2 1.5324e-03 Linf 3.2751e-03 | v L2 1.1884e-03 | p L2 5.5296e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 1.1e-07 energy 6.4e-14
+smooth0.08 tol1e-06 0.8/0.4 valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged      1521 it  20.82 s | u L2 2.9804e-03 Linf 8.0415e-03 | v L2 2.4869e-03 | p L2 5.9000e-03 | T L2 1.1187e-02 Linf 3.1379e-02 (NOT conv, 27 it) | mass 0.0e+00 cell-cont 5.8e-07 energy 1.2e-11
+cartesian32 tol1e-07 0.7/0.3 valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      1461 it  11.30 s | u L2 1.5324e-03 Linf 3.2794e-03 | v L2 1.1884e-03 | p L2 5.6213e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 1.1e-08 energy 9.9e-14
+smooth0.08 tol1e-07 0.7/0.3 valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged      6776 it  79.32 s | u L2 2.9805e-03 Linf 8.0375e-03 | v L2 2.4869e-03 | p L2 6.1051e-03 | T L2 1.1187e-02 Linf 3.1379e-02 (conv, 29 it) | mass 0.0e+00 cell-cont 3.8e-07 energy 3.1e-12
+cartesian32 tol1e-07 0.8/0.4 valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      1177 it   9.23 s | u L2 1.5324e-03 Linf 3.2793e-03 | v L2 1.1884e-03 | p L2 5.6194e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 4.8e-07 energy 3.4e-13
+smooth0.08 tol1e-07 0.8/0.4 valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged      5791 it  69.23 s | u L2 2.9805e-03 Linf 8.0375e-03 | v L2 2.4869e-03 | p L2 6.1051e-03 | T L2 1.1187e-02 Linf 3.1379e-02 (conv, 29 it) | mass 0.0e+00 cell-cont 3.4e-07 energy 1.1e-11
+cartesian32 tol1e-08 0.7/0.3 valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      2563 it  18.67 s | u L2 1.5324e-03 Linf 3.2795e-03 | v L2 1.1884e-03 | p L2 5.6267e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 1.3e-06 energy 7.4e-14
+smooth0.08 tol1e-08 0.7/0.3 valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged     12026 it 135.46 s | u L2 2.9805e-03 Linf 8.0371e-03 | v L2 2.4870e-03 | p L2 6.1295e-03 | T L2 1.1187e-02 Linf 3.1379e-02 (conv, 29 it) | mass 0.0e+00 cell-cont 5.4e-07 energy 1.0e-11
+cartesian32 tol1e-08 0.8/0.4 valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      2024 it  15.12 s | u L2 1.5324e-03 Linf 3.2795e-03 | v L2 1.1884e-03 | p L2 5.6267e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (conv, 2 it) | mass 0.0e+00 cell-cont 1.9e-06 energy 1.8e-13
+smooth0.08 tol1e-08 0.8/0.4 valid               cells  1024 | AR   1.305 nonorth  53.004 skew  0.0304 expan  1.070 | Converged     10290 it 117.25 s | u L2 2.9805e-03 Linf 8.0371e-03 | v L2 2.4870e-03 | p L2 6.1295e-03 | T L2 1.1187e-02 Linf 3.1379e-02 (conv, 29 it) | mass 0.0e+00 cell-cont 5.5e-07 energy 1.2e-11
+
+## (4) thermal LinearSolveFailure seen in (3b) at 'smooth0.08 tol1e-06 0.8/0.4' (NOT conv, 27 it): replay of the production
+## Picard loop (ThermalSolver settings: BiCGSTAB abs 1e-12 / rel 1e-10 / 1000, outer tol 1e-8) on the same flow field.
+## Outer 27: BiCGSTAB Breakdown at residual 9.649e-12 (from 2.505e-8), above both the absolute tolerance 1e-12 and
+## rel * r_ref = 6.314e-12, so runPicardLoop reports LinearSolveFailure; a loop that continued would converge at outer 29.
+## Cause: BiCGSTAB's breakdown tests compare scale-dependent inner products with the absolute constants::tiny = 1e-30
+## (src/algebra/BiCGSTAB.cpp); near round-off (residual ~1e-11) the shadow-residual product (rHat, r) can fall below it.
+## This is a pre-existing thermal/linear-solver robustness limitation, not a mesh-quality defect; it is recorded as a
+## limitation (summary.md section 21) and NOT changed in P12-MESH-004 (no solver-behaviour change). The campaign settings
+## (acceptance_gate.md) are SIMPLE tolerance 1e-7, relaxation 0.8/0.4, at which the same case converged in (3b).
+# linear settings abs 1e-12 rel 1e-10 max 1000; outer tol 1e-08
+outer  1: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   93 it, 6.314e-02 -> 3.529e-12 | rel*r_ref 6.314e-12 | max dT 8.451e-01
+outer  2: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),  109 it, 2.739e-02 -> 2.524e-13 | rel*r_ref 6.314e-12 | max dT 5.826e-02
+outer  3: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),  102 it, 9.308e-03 -> 6.196e-13 | rel*r_ref 6.314e-12 | max dT 3.833e-02
+outer  4: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),  102 it, 4.475e-03 -> 9.091e-13 | rel*r_ref 6.314e-12 | max dT 1.235e-02
+outer  5: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),  105 it, 2.429e-03 -> 7.336e-13 | rel*r_ref 6.314e-12 | max dT 7.066e-03
+outer  6: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),  100 it, 1.365e-03 -> 8.615e-13 | rel*r_ref 6.314e-12 | max dT 3.103e-03
+outer  7: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   90 it, 7.921e-04 -> 9.760e-13 | rel*r_ref 6.314e-12 | max dT 1.790e-03
+outer  8: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   92 it, 4.645e-04 -> 8.954e-13 | rel*r_ref 6.314e-12 | max dT 8.852e-04
+outer  9: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   90 it, 2.760e-04 -> 4.920e-13 | rel*r_ref 6.314e-12 | max dT 5.184e-04
+outer 10: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   89 it, 1.646e-04 -> 9.761e-13 | rel*r_ref 6.314e-12 | max dT 2.726e-04
+outer 11: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   92 it, 9.865e-05 -> 3.764e-13 | rel*r_ref 6.314e-12 | max dT 1.612e-04
+outer 12: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   89 it, 5.915e-05 -> 8.421e-13 | rel*r_ref 6.314e-12 | max dT 8.782e-05
+outer 13: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   74 it, 3.552e-05 -> 9.668e-13 | rel*r_ref 6.314e-12 | max dT 5.227e-05
+outer 14: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   76 it, 2.130e-05 -> 7.759e-13 | rel*r_ref 6.314e-12 | max dT 2.908e-05
+outer 15: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   74 it, 1.278e-05 -> 7.001e-13 | rel*r_ref 6.314e-12 | max dT 1.736e-05
+outer 16: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   71 it, 7.651e-06 -> 6.558e-13 | rel*r_ref 6.314e-12 | max dT 9.788e-06
+outer 17: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   68 it, 4.577e-06 -> 7.083e-13 | rel*r_ref 6.314e-12 | max dT 5.852e-06
+outer 18: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   60 it, 2.734e-06 -> 8.083e-13 | rel*r_ref 6.314e-12 | max dT 3.328e-06
+outer 19: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   59 it, 1.631e-06 -> 9.565e-13 | rel*r_ref 6.314e-12 | max dT 1.990e-06
+outer 20: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   56 it, 9.714e-07 -> 8.339e-13 | rel*r_ref 6.314e-12 | max dT 1.139e-06
+outer 21: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   52 it, 5.780e-07 -> 8.628e-13 | rel*r_ref 6.314e-12 | max dT 6.806e-07
+outer 22: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   51 it, 3.434e-07 -> 9.386e-13 | rel*r_ref 6.314e-12 | max dT 3.911e-07
+outer 23: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   48 it, 2.038e-07 -> 9.876e-13 | rel*r_ref 6.314e-12 | max dT 2.336e-07
+outer 24: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   49 it, 1.208e-07 -> 5.244e-13 | rel*r_ref 6.314e-12 | max dT 1.346e-07
+outer 25: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   48 it, 7.158e-08 -> 8.563e-13 | rel*r_ref 6.314e-12 | max dT 8.032e-08
+outer 26: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   47 it, 4.236e-08 -> 5.961e-13 | rel*r_ref 6.314e-12 | max dT 4.641e-08
+outer 27: linear status 2 (0 Converged, 1 MaxIterations, 2 Breakdown),   40 it, 2.505e-08 -> 9.649e-12 | rel*r_ref 6.314e-12 | max dT 2.771e-08
+outer 28: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   45 it, 1.480e-08 -> 6.514e-13 | rel*r_ref 6.314e-12 | max dT 1.598e-08
+outer 29: linear status 0 (0 Converged, 1 MaxIterations, 2 Breakdown),   37 it, 8.744e-09 -> 8.882e-13 | rel*r_ref 6.314e-12 | max dT 9.535e-09

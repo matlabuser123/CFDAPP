@@ -1,0 +1,106 @@
+# P12-MESH-003 production tests (gate run), build/release, 2026-09-14T19:52:24Z
+# acceptance_gate.md unchanged (thresholds, references, meshes, error definitions). Re-run after the thermal fix.
+$ CFDCaseIntegrationTests --gtest_filter=MultiBlockProductionCase.*
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MultiBlockProductionCase.*
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from MultiBlockProductionCase
+[ RUN      ] MultiBlockProductionCase.CurvedChannelCommittedCaseGate
+curved channel mesh: 1080 cells, 2262 faces, max non-orthogonality 1.479e-06 deg, max skewness 1.021e-02, min/max volume 4.5431e-03/8.5409e-03
+committed 12x30 x3           cells  1080 | converged 1, 840 it, 6.27 s | mass imbalance 5.24e-11, max radial-line flow error 2.51e-10 (interfaces 2.14e-10), max block net flow 2.45e-10 | velocity L2 9.3895e-03, max |u_r| 3.124e-04 | G -1.800535 (exact -1.828221, rel err 1.5143e-02) | radial rise 0.823502 (exact 0.829445, rel err 7.1646e-03)
+[       OK ] MultiBlockProductionCase.CurvedChannelCommittedCaseGate (12550 ms)
+[ RUN      ] MultiBlockProductionCase.CurvedChannelInterfacesAreTransparent
+3 blocks                     cells  1080 | converged 1, 840 it, 6.90 s | mass imbalance 5.24e-11, max radial-line flow error 2.51e-10 (interfaces 2.14e-10), max block net flow 2.45e-10 | velocity L2 9.3895e-03, max |u_r| 3.124e-04 | G -1.800535 (exact -1.828221, rel err 1.5143e-02) | radial rise 0.823502 (exact 0.829445, rel err 7.1646e-03)
+1 block (same vertices)      cells  1080 | converged 1, 840 it, 6.97 s | mass imbalance 1.25e-10, max radial-line flow error 1.30e-10 (interfaces 6.57e-11), max block net flow 1.90e-10 | velocity L2 9.3895e-03, max |u_r| 3.124e-04 | G -1.800535 (exact -1.828221, rel err 1.5144e-02) | radial rise 0.823502 (exact 0.829445, rel err 7.1646e-03)
+3-block vs 1-block: max |du| 4.105e-10, max |dp| 3.984e-08 (4.624e-09 of the total pressure drop), iterations 840 vs 840
+[       OK ] MultiBlockProductionCase.CurvedChannelInterfacesAreTransparent (13918 ms)
+[ RUN      ] MultiBlockProductionCase.CurvedChannelGridConvergence
+8x20 x3                      cells   480 | converged 1, 778 it, 2.64 s | mass imbalance 8.02e-10, max radial-line flow error 8.02e-10 (interfaces 4.88e-10), max block net flow 3.14e-10 | velocity L2 2.0416e-02, max |u_r| 1.133e-03 | G -1.768087 (exact -1.828221, rel err 3.2892e-02) | radial rise 0.815050 (exact 0.825969, rel err 1.3220e-02)
+12x30 x3                     cells  1080 | converged 1, 840 it, 6.11 s | mass imbalance 4.97e-11, max radial-line flow error 2.60e-10 (interfaces 2.23e-10), max block net flow 2.55e-10 | velocity L2 9.3895e-03, max |u_r| 3.124e-04 | G -1.800535 (exact -1.828221, rel err 1.5143e-02) | radial rise 0.823502 (exact 0.829445, rel err 7.1646e-03)
+18x45 x3                     cells  2430 | converged 1, 1155 it, 21.75 s | mass imbalance 1.11e-10, max radial-line flow error 1.92e-10 (interfaces 5.04e-11), max block net flow 8.81e-11 | velocity L2 4.2280e-03, max |u_r| 1.506e-04 | G -1.815755 (exact -1.828221, rel err 6.8185e-03) | radial rise 0.827581 (exact 0.830537, rel err 3.5602e-03)
+
+### Grid convergence: curved_channel_multiblock
+
+270-degree curved channel, 3 conformal blocks, Re 10: 8x20 / 12x30 / 18x45 per block
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 8 x 60 | 480 | 0.121352 | 2.7 | Converged (778 it) | yes |
+| medium | 12 x 90 | 1080 | 0.0809011 | 6.1 | Converged (840 it) | yes |
+| fine | 18 x 135 | 2430 | 0.0539341 | 21.8 | Converged (1155 it) | yes |
+
+**velocity_l2_error** -- RMS |u - u_exact| over bend_b (90-180 deg); exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.020415753 | 0 (analytical) | 0.02042 | -- |
+| medium | 0.0093894754 | 0 (analytical) | 0.009389 | -- |
+| fine | 0.0042279932 | 0 (analytical) | 0.004228 | -- |
+| extrapolated | -0.00031451785 | | -0.0003145 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.8721 | 2 | -0.00031451785 | 0.005678 | 1.343 | 1.292 | 0.9494 | asymptotic | no |
+
+- monotonic convergence, observed order 1.87207 (formal 2); asymptotic ratio 0.94945 within 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**pressure_gradient** -- dp/dtheta over bend_b (mean per-ring LS slope); exact 2 mu A
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -1.7680868 | -1.8282207 (analytical) | 0.06013 | 0.03289 |
+| medium | -1.8005351 | -1.8282207 (analytical) | 0.02769 | 0.01514 |
+| fine | -1.8157551 | -1.8282207 (analytical) | 0.01247 | 0.006818 |
+| extrapolated | -1.829201 | | -0.0009802 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.8671 | 2 | -1.829201 | 0.01681 | 0.009256 | 0.0199 | 0.9475 | asymptotic | no |
+
+- monotonic convergence, observed order 1.86708 (formal 2); asymptotic ratio 0.947532 within 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**radial_pressure_rise_ratio** -- [p(outer cell) - p(inner cell)] / (rho int u^2/r dr between the same centroid radii) over bend_b (the radii move with the grid, so the ratio is analysed); exact 1
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.98677993 | 1 (analytical) | -0.01322 | 0.01322 |
+| medium | 0.99283535 | 1 (analytical) | -0.007165 | 0.007165 |
+| fine | 0.99643982 | 1 (analytical) | -0.00356 | 0.00356 |
+| extrapolated | 1.0017407 | | 0.001741 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.2795 | 2 | 1.0017407 | 0.006626 | 0.00665 | 0.01121 | 0.7467 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 1.27947 (formal 2); asymptotic ratio 0.746657 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+pair 0 observed order: velocity L2 1.916, G error 1.913, radial rise error 1.500
+pair 1 observed order: velocity L2 1.968, G error 1.968, radial rise error 1.722
+pressure_gradient: fine -1.81575507, exact -1.82822072, |error| 1.247e-02, U21 1.681e-02 (GCI21 9.256e-03), extrapolated -1.82920095
+radial_pressure_rise_ratio: fine 0.99643982, exact 1.00000000, |error| 3.560e-03, U21 6.626e-03 (GCI21 6.650e-03), extrapolated 1.00174066
+[       OK ] MultiBlockProductionCase.CurvedChannelGridConvergence (30595 ms)
+[ RUN      ] MultiBlockProductionCase.SectorConductionInterfaceConservation
+sector 8x20 x3: thermal converged 1 (2 it) | T L2 1.3060e-06 | heat flow hot end 0.1470345996, interface 1 0.1470345996, interface 2 0.1470345996, cold end 0.1470345996 (exact 0.1470904001, rel err 3.794e-04) | max spread 1.003e-13 (all lines 9.423e-13) = 6.820e-13 Q
+  energy balance: in 0.147034599578, out 0.147034599578, |in - out| = 2.264e-14 Q
+sector 12x30 x3: thermal converged 1 (2 it) | T L2 3.8679e-07 | heat flow hot end 0.1470654876, interface 1 0.1470654876, interface 2 0.1470654876, cold end 0.1470654876 (exact 0.1470904001, rel err 1.694e-04) | max spread 7.025e-13 (all lines 4.522e-12) = 4.776e-12 Q
+  energy balance: in 0.147065487589, out 0.147065487589, |in - out| = 5.718e-14 Q
+sector 18x45 x3: thermal converged 1 (2 it) | T L2 1.1459e-07 | heat flow hot end 0.1470793144, interface 1 0.1470793144, interface 2 0.1470793144, cold end 0.1470793144 (exact 0.1470904001, rel err 7.537e-05) | max spread 4.231e-13 (all lines 7.515e-11) = 2.877e-12 Q
+  energy balance: in 0.147079314370, out 0.147079314370, |in - out| = 1.579e-13 Q
+sector pair 0: temperature L2 observed order 3.001
+sector pair 1: temperature L2 observed order 3.000
+[       OK ] MultiBlockProductionCase.SectorConductionInterfaceConservation (180 ms)
+[ RUN      ] MultiBlockProductionCase.StepChannelRegression
+step channel: 535 it, mass imbalance 2.02e-11, max face-line flow error 2.97e-11, reversed bottom-row cells 11 (last at x = 3.3125), far-field max |u - 3y(1-y)| 2.885e-03, max |v| 3.274e-06
+[       OK ] MultiBlockProductionCase.StepChannelRegression (5869 ms)
+[ RUN      ] MultiBlockProductionCase.ObstacleChannelInternalSolid
+obstacle channel: 3412 it, mass imbalance 5.26e-12, max face-line flow error 3.37e-11, symmetry max |du| 3.76e-10 |dv| 6.13e-10 |dp| 5.51e-09
+[       OK ] MultiBlockProductionCase.ObstacleChannelInternalSolid (25693 ms)
+[----------] 6 tests from MultiBlockProductionCase (88814 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (88815 ms total)
+[  PASSED  ] 6 tests.
+exit 0

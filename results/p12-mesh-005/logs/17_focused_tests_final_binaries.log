@@ -1,0 +1,44 @@
+# P12-MESH-005 staged focused tests on the FINAL binaries (Release -O3), rerun of logs/11
+# test binaries built 2026-09-15 15:34:15 (after the last source edit)
+# P12-MESH-005 staged focused tests, Release; Tue Sep 15 05:40:11 UTC 2026
+1   geometry               CFDCoreTests                             Vector3Test.*                                                          ran    5 passed    5 failed 0
+1b  geometry               CFDMeshTests                             Cartesian3DMeshTest.TopologyCountsMatchIndependentFormulas:Cartesian3DMeshTest.BuildIsDeterministicAndFollowsTheDocumentedNumbering:Cartesian3DMeshTest.DimensionIsThreeFor3DMeshesAndTwoForEvery2DBuilder:Cartesian3DMeshTest.StructuredGridMustMatchTheMeshDimension:Cartesian3DMeshTest.InvalidDimensionsAndExtentsAreRejected:Cartesian3DMeshTest.FingerprintSeesZIn3DAndKeeps2DValues:Cartesian3DMeshTest.RequireTwoDimensionalNamesTheComponent ran    7 passed    7 failed 0
+2   volume                 CFDMeshTests                             Cartesian3DMeshTest.CellVolumesAreBoxVolumesAndSumToTheDomain          ran    1 passed    1 failed 0
+3   area-vector            CFDMeshTests                             Cartesian3DMeshTest.AreaVectorsHaveTheRightMagnitudeDirectionAndClosure ran    1 passed    1 failed 0
+4   centroid               CFDMeshTests                             Cartesian3DMeshTest.CentroidsAreBoxAndRectangleCentres                 ran    1 passed    1 failed 0
+5   connectivity           CFDMeshTests                             Cartesian3DMeshTest.EachCellHasSixFacesInCanonicalOrderAndEachFaceItsOwners ran    1 passed    1 failed 0
+6   boundary-patch         CFDMeshTests                             Cartesian3DMeshTest.SixPatchesPartitionTheBoundaryWithOutwardNormals   ran    1 passed    1 failed 0
+7   scalar-field           CFDFieldTests                            Fields3DTest.ScalarFieldsSampleLinearFieldsWithExactVolumeMeans        ran    1 passed    1 failed 0
+8   vector-field           CFDFieldTests                            Fields3DTest.VectorFieldsCarryThreeComponents                          ran    1 passed    1 failed 0
+9   interpolation          CFDDiscretizationTests                   Operators3DTest.InterpolationIsExactForConstantAndLinearFields         ran    1 passed    1 failed 0
+10  gradient               CFDDiscretizationTests                   Operators3DTest.GradientsAreExactForLinearFieldsInEveryCell:Operators3DTest.LeastSquaresPrimitiveSolvesTheThreeByThreeSystem ran    2 passed    2 failed 0
+11  diffusion              CFDDiscretizationTests                   Operators3DTest.ExplicitDiffusion*                                     ran    2 passed    2 failed 0
+12  convection             CFDDiscretizationTests                   Operators3DTest.DivergenceFreeMassFluxBalancesInEveryCell:Operators3DTest.ConvectionPreservesAConstantWithEveryScheme:Operators3DTest.HigherOrderConvectionIsExactForALinearFieldAwayFromTheBoundary ran    3 passed    3 failed 0
+12b 2D-only-guards         CFDDiscretizationTests                   Operators3DTest.TwoDimensionalOnlyComponentsRefuseA3DMesh              ran    1 passed    1 failed 0
+13  sparse-assembly        CFDThermalTests                          SparseAssembly3DTest.*                                                 ran    5 passed    5 failed 0
+14  VTK                    CFDIoTests                               VTK3DTest.*                                                            ran    3 passed    3 failed 0
+15  MMS                    CFDMMSValidationTests                    MMS3DTest.ForcingMatchesFiniteDifferencesOfClosedForms:MMS3DTest.OperatorErrorsDecreaseOnCoarseLevels ran    2 passed    2 failed 0
+16  convergence            CFDMMSValidationTests                    MMS3DTest.DISABLED_OperatorRefinementStudy                             ran    1 passed    1 failed 0
+17a MESH-001-distorted     CFDMeshTests                             StructuredQuadMesh.*:MeshValidity.*                                    ran   26 passed   26 failed 0
+17b MESH-001-distorted     CFDIoTests                               StructuredQuadCase.*                                                   ran   16 passed   16 failed 0
+17c MESH-001-distorted     CFDDiscretizationTests                   ObliqueNeumannGradient.*                                               ran    3 passed    3 failed 0
+17d MESH-001-distorted     CFDCaseIntegrationTests                  StructuredQuadProductionCase.*                                         ran    9 passed    9 failed 0
+17e MESH-002-graded        CFDMeshTests                             MeshGrading.*:AxisSpacing.*:GradedMesh.*                               ran   23 passed   23 failed 0
+17f MESH-002-graded        CFDIoTests                               GradedMeshCase.*                                                       ran   14 passed   14 failed 0
+17g MESH-002-graded        CFDCaseIntegrationTests                  GradedMeshProductionCase.*                                             ran    5 passed    5 failed 0
+17h MESH-003-multiblk      CFDMeshTests                             MultiBlockMesh.*:MultiBlockMeshInvalid.*                               ran   12 passed   12 failed 0
+17i MESH-003-multiblk      CFDIoTests                               MultiBlockCase.*                                                       ran    9 passed    9 failed 0
+17j MESH-003-multiblk      CFDCaseIntegrationTests                  MultiBlockProductionCase.*                                             ran    6 passed    6 failed 0
+17k MESH-004-quality       CFDMeshTests                             MeshQuality.*:MeshQualityReport.*                                      ran   27 passed   27 failed 0
+17l MESH-004-quality       CFDIoTests                               MeshQualityCase.*:JSONWriterTest.*                                     ran   21 passed   21 failed 0
+17m MESH-004-quality       CFDCaseIntegrationTests                  MeshQualityCampaign.*                                                  ran    5 passed    5 failed 0
+17n MESH-004-MMS           CFDMMSValidationTests                    *                                                                      ran   17 passed   17 failed 0
+17o whole-suites           CFDMeshTests                             *                                                                      ran  139 passed  139 failed 0
+17p whole-suites           CFDIoTests                               *                                                                      ran  269 passed  269 failed 0
+17q whole-suites           CFDDiscretizationTests                   *                                                                      ran  147 passed  147 failed 0
+17r whole-suites           CFDThermalTests                          *                                                                      ran   92 passed   92 failed 0
+17s whole-suites           CFDFieldTests                            *                                                                      ran   40 passed   40 failed 0
+17t whole-suites           CFDCoreTests                             *                                                                      ran   30 passed   30 failed 0
+17u whole-suites           CFDValidationUnitTests                   *                                                                      ran   42 passed   42 failed 0
+TOTAL: ran 991, passed 991, failed 0 (stages overlap: a test can be counted in two stages)
+focused exit 0

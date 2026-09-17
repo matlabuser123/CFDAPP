@@ -1,0 +1,34 @@
+# P12-MESH-004 solver robustness -- the same tests against the FIXED BiCGSTAB.cpp (8076cd4e00457756)
+[3/3] Linking CXX executable tests/unit/algebra/CFDAlgebraTests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BiCGSTABBreakdown.*
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from BiCGSTABBreakdown
+[ RUN      ] BiCGSTABBreakdown.Mesh004ThermalSystemsConvergeToTheRequestedTolerance
+p12_mesh004_thermal_smooth_a005_n32.txt      status 0,   44 iterations, recursive residual 8.9540e-13, true residual 8.9543e-13
+p12_mesh004_thermal_rough_f03_n32.txt        status 0,   53 iterations, recursive residual 8.8504e-13, true residual 8.8519e-13
+[       OK ] BiCGSTABBreakdown.Mesh004ThermalSystemsConvergeToTheRequestedTolerance (32 ms)
+[ RUN      ] BiCGSTABBreakdown.ScalingTheSystemByAPowerOfTwoChangesNothing
+[       OK ] BiCGSTABBreakdown.ScalingTheSystemByAPowerOfTwoChangesNothing (0 ms)
+[ RUN      ] BiCGSTABBreakdown.IllConditionedSystemIsSolvedAtAnyScale
+convection-diffusion n=200                   status 0,  244 iterations, recursive residual 6.3704e-10, true residual 6.3702e-10
+convection-diffusion n=200 scaled 2^-40      status 0,  244 iterations, recursive residual 5.7938e-22, true residual 5.7937e-22
+[       OK ] BiCGSTABBreakdown.IllConditionedSystemIsSolvedAtAnyScale (3 ms)
+[ RUN      ] BiCGSTABBreakdown.TrueBreakdownWithoutProgressIsReported
+rotation: (rHat, v) = 0 at iteration 1       status 2, 0 iterations, 0 restarts, residual 1.000e+00 (true 1.000e+00)
+omega: (t, s) = 0 at iteration 1             status 2, 0 iterations, 0 restarts, residual 1.414e+00 (true 1.414e+00)
+rho = 0 at iteration 2, |r1| = |r0|          status 2, 1 iterations, 0 restarts, residual 1.000e+00 (true 1.000e+00)
+[       OK ] BiCGSTABBreakdown.TrueBreakdownWithoutProgressIsReported (0 ms)
+[ RUN      ] BiCGSTABBreakdown.BreakdownAfterProgressIsRecoveredByARestart
+(rHat, v) = 0 at iteration 2                 status 0, 4 iterations, 1 restarts, residual 6.360e-17 (true 7.195e-16)
+[       OK ] BiCGSTABBreakdown.BreakdownAfterProgressIsRecoveredByARestart (0 ms)
+[ RUN      ] BiCGSTABBreakdown.ExactTerminationIsConvergedNotBreakdown
+[       OK ] BiCGSTABBreakdown.ExactTerminationIsConvergedNotBreakdown (0 ms)
+[ RUN      ] BiCGSTABBreakdown.ZeroRhsAndExactGuessNeedNoIteration
+[       OK ] BiCGSTABBreakdown.ZeroRhsAndExactGuessNeedNoIteration (0 ms)
+[----------] 7 tests from BiCGSTABBreakdown (40 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (41 ms total)
+[  PASSED  ] 7 tests.

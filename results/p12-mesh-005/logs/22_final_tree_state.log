@@ -1,0 +1,90 @@
+# P12-MESH-005 final tree state (end of phase; nothing committed or pushed); Tue Sep 15 06:18:23 UTC 2026
+$ git rev-parse HEAD
+b66310ca871811c4c7671056beec291a451af55c
+$ git rev-parse origin/main
+b66310ca871811c4c7671056beec291a451af55c
+$ git log -1 --format='%H %ad %s' --date=iso
+b66310ca871811c4c7671056beec291a451af55c 2026-09-15 00:35:22 +1000 docs(p12-num): record closeout commits and green CI
+$ git status --short | wc -l
+191
+  modified: 143  untracked: 48  staged: 0
+$ git diff --stat | tail -1
+ 143 files changed, 7590 insertions(+), 3050 deletions(-)
+
+# untracked entries added by MESH-005 (absent from the pre-MESH-005 snapshot):
+  include/cfd/core/Vector3.hpp
+  tests/integration/mms/test_mms_3d.cpp
+  tests/unit/core/test_vector3.cpp
+  tests/unit/discretization/test_operators3d.cpp
+  tests/unit/fields/test_fields3d.cpp
+  tests/unit/io/test_vtk3d.cpp
+  tests/unit/mesh/test_cartesian3d_mesh.cpp
+  tests/unit/thermal/test_sparse_assembly3d.cpp
+
+# MESH-005 change set: files differing from the pre-MESH-005 snapshot (src include apps tests docs, top-level md);
+# generated results/ are covered by logs/18 (all identical after the restore), case inputs by logs/14:
+Files src/discretization/Gradient.cpp and src/discretization/Gradient.cpp differ
+Files src/discretization/Interpolation.cpp and src/discretization/Interpolation.cpp differ
+Files src/discretization/VectorGradient.cpp and src/discretization/VectorGradient.cpp differ
+Files src/io/CSVWriter.cpp and src/io/CSVWriter.cpp differ
+Files src/io/StructuredMeshInfo.cpp and src/io/StructuredMeshInfo.cpp differ
+Files src/io/VTKWriter.cpp and src/io/VTKWriter.cpp differ
+Files src/mesh/Cell.cpp and src/mesh/Cell.cpp differ
+Files src/mesh/Face.cpp and src/mesh/Face.cpp differ
+Files src/mesh/Mesh.cpp and src/mesh/Mesh.cpp differ
+Files src/mesh/MeshFingerprint.cpp and src/mesh/MeshFingerprint.cpp differ
+Files src/mesh/MeshGeometry.cpp and src/mesh/MeshGeometry.cpp differ
+Files src/mesh/MeshQuality.cpp and src/mesh/MeshQuality.cpp differ
+Only in src: parallel
+Files src/physics/MomentumEquation.cpp and src/physics/MomentumEquation.cpp differ
+Files src/pressure_velocity/PressureCorrectionEquation.cpp and src/pressure_velocity/PressureCorrectionEquation.cpp differ
+Files src/solver/RestartSnapshot.cpp and src/solver/RestartSnapshot.cpp differ
+Files src/turbulence/WallDistance.cpp and src/turbulence/WallDistance.cpp differ
+Files src/validation/ErrorNorms.cpp and src/validation/ErrorNorms.cpp differ
+Files src/viz/DerivedFields.cpp and src/viz/DerivedFields.cpp differ
+Files include/cfd/core/Vector2.hpp and include/cfd/core/Vector2.hpp differ
+Only in include/cfd/core: Vector3.hpp
+Files include/cfd/discretization/Gradient.hpp and include/cfd/discretization/Gradient.hpp differ
+Files include/cfd/discretization/Interpolation.hpp and include/cfd/discretization/Interpolation.hpp differ
+Files include/cfd/discretization/VectorGradient.hpp and include/cfd/discretization/VectorGradient.hpp differ
+Files include/cfd/fields/VectorField.hpp and include/cfd/fields/VectorField.hpp differ
+Files include/cfd/io/VTKWriter.hpp and include/cfd/io/VTKWriter.hpp differ
+Files include/cfd/mesh/Mesh.hpp and include/cfd/mesh/Mesh.hpp differ
+Files include/cfd/mesh/MeshGeometry.hpp and include/cfd/mesh/MeshGeometry.hpp differ
+Files include/cfd/mesh/MeshQuality.hpp and include/cfd/mesh/MeshQuality.hpp differ
+Files include/cfd/mesh/StructuredGrid.hpp and include/cfd/mesh/StructuredGrid.hpp differ
+Only in include/cfd: parallel
+Files include/cfd/physics/MomentumEquation.hpp and include/cfd/physics/MomentumEquation.hpp differ
+Files include/cfd/validation/ErrorNorms.hpp and include/cfd/validation/ErrorNorms.hpp differ
+Only in tests/integration: channel
+Files tests/integration/mms/CMakeLists.txt and tests/integration/mms/CMakeLists.txt differ
+Only in tests/integration/mms: test_mms_3d.cpp
+Only in tests: numerical
+Only in tests: regression
+Only in tests/solver: linear
+Files tests/unit/core/CMakeLists.txt and tests/unit/core/CMakeLists.txt differ
+Only in tests/unit/core: test_vector3.cpp
+Files tests/unit/discretization/CMakeLists.txt and tests/unit/discretization/CMakeLists.txt differ
+Only in tests/unit/discretization: test_operators3d.cpp
+Files tests/unit/fields/CMakeLists.txt and tests/unit/fields/CMakeLists.txt differ
+Only in tests/unit/fields: test_fields3d.cpp
+Files tests/unit/io/CMakeLists.txt and tests/unit/io/CMakeLists.txt differ
+Only in tests/unit/io: test_vtk3d.cpp
+Files tests/unit/mesh/CMakeLists.txt and tests/unit/mesh/CMakeLists.txt differ
+Only in tests/unit/mesh: test_cartesian3d_mesh.cpp
+Files tests/unit/thermal/CMakeLists.txt and tests/unit/thermal/CMakeLists.txt differ
+Only in tests/unit/thermal: test_sparse_assembly3d.cpp
+Only in docs: api
+Only in docs: architecture
+Only in docs: numerical_methods
+Files docs/user_guide/case_format.md and docs/user_guide/case_format.md differ
+Files docs/validation/manufactured_solutions.md and docs/validation/manufactured_solutions.md differ
+Files README.md and README.md differ
+Files ROADMAP.md and ROADMAP.md differ
+Files TODO.md and TODO.md differ
+
+# compared with the change set recorded by the first session (logs/14):
+1a2,3
+> Files ROADMAP.md and ROADMAP.md differ
+> Files TODO.md and TODO.md differ
+  (lines marked > are new since logs/14)

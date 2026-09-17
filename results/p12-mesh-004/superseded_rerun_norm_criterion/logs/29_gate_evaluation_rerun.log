@@ -1,0 +1,31 @@
+# P12-MESH-004 evaluation of the pre-registered gate (acceptance_gate.md, UNCHANGED) against the rerun after the
+# BiCGSTAB scale-relative breakdown fix (logs 15-23, data/*.csv; the first run's data is kept in data_first_run/).
+# Machine-checked from the CSVs: 45 production-path runs (the irregular n=64 run is not in a gated family), 38 accepted
+# (SIMPLE Converged + thermal Converged + finite); every unaccepted run is an UNCORRECTED-recipe run (reported only);
+# max |global mass imbalance| over accepted runs 0.0; max energy imbalance over accepted runs 2.878e-11.
+#
+# R1  parameter strictly increasing, D1-D4                         PASS  (logs/15)
+# R2  targeted metric strictly increasing, Q0 ideal within 1e-9    PASS  (logs/15; same values as the first run)
+# R3  corrected Q0-Q4 converged + finite                           PASS  20/20 (logs/16-19)
+#       D1 Q2: thermal Converged, 18 outer iterations (was LinearSolveFailure); D2 Q4: thermal Converged, 10 outer
+#       iterations (was LinearSolveFailure)
+# R4  forcing vs central differences <= 1e-6                       PASS  (momentum 1.08e-7, heat 3.44e-7)
+# R5  quantitative report                                          REPORTED (logs/16-19 R5 tables; data/degradation_*.csv)
+# R6  invalid meshes rejected before solving, reason named         PASS  (11 cases; logs/15)
+# R7  conservation on every accepted run                           PASS  (mass 0.0 <= 1e-10; energy <= 2.9e-11 <= 1e-8)
+# M1  corrected MMS runs accepted                                  PASS  (Cartesian 4/4, smooth A = 0.05 4/4)
+# M2  L2 errors of u, v, T decrease over the 4 levels              PASS  (both families)
+# M3  finest-pair (32 -> 64) L2 orders                             PASS
+#       Cartesian: u 1.931 >= 1.5, v 1.889 >= 1.5, T 0.941 >= 0.75
+#       smooth A = 0.05 (35 deg): u 2.031 >= 1.5, v 2.048 >= 1.5, T 0.951 >= 0.75
+#       (pressure, reported: Cartesian 1.964, smooth 2.062)
+# M4  corrected vs uncorrected (reported)                          uncorrected diverged (MomentumFailure) at n >= 16
+# GC1 all grids accepted                                           PASS  (Cartesian and smooth: allSolvesAccepted)
+# GC2 asymptotic quantities bracket the exact value                NOT APPLICABLE: no quantity is classified asymptotic
+#       Cartesian: KE oscillatory (no GCI); <T> monotonic_not_asymptotic (p = 0.292)
+#       smooth:    KE monotonic_not_asymptotic (p = 4.115; U21 1.56e-5 does NOT bracket |fine - exact| 8.03e-5 --
+#                  consistent with its non-asymptotic classification, reported); <T> monotonic_not_asymptotic (p = 0.405)
+#       irregular (reported): study rejected (n = 64 SIMPLE MaxIterations; the thermal solve now converges)
+#
+# DECISION: every gate criterion PASSES (R1-R4, R6, R7, M1-M3, GC1; R5/M4 reported; GC2 not applicable by the
+# gate's own pre-registered rule). The thresholds and acceptance_gate.md are unchanged since before the first run.

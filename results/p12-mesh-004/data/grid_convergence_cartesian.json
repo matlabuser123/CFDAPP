@@ -1,0 +1,172 @@
+{
+  "format_version": 1,
+  "study": "p12_mesh_004_cartesian",
+  "description": "P12-MESH-004 manufactured-solution cavity, family cartesian",
+  "method": {
+    "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+    "indexing": "1 = fine, 2 = medium, 3 = coarse",
+    "grid_size": "h = sqrt(domain area / cells)",
+    "relative_quantity_units": "fraction",
+    "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+    "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+  },
+  "all_solves_accepted": true,
+  "rejection_reason": "",
+  "grids": [
+    {
+      "level": "coarse",
+      "name": "n16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 256,
+      "h": 0.0625,
+      "runtime_seconds": 1.433255914,
+      "solver_status": "Converged",
+      "solver_iterations": 584,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "kinetic_energy": 0.18526569952478786,
+        "mean_temperature": 0.4001161277092658
+      }
+    },
+    {
+      "level": "medium",
+      "name": "n32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 1024,
+      "h": 0.03125,
+      "runtime_seconds": 13.539133732,
+      "solver_status": "Converged",
+      "solver_iterations": 1177,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "kinetic_energy": 0.18766591037688551,
+        "mean_temperature": 0.40193958417439457
+      }
+    },
+    {
+      "level": "fine",
+      "name": "n64",
+      "nx": 64,
+      "ny": 64,
+      "cells": 4096,
+      "h": 0.015625,
+      "runtime_seconds": 93.369742232,
+      "solver_status": "Converged",
+      "solver_iterations": 1620,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "kinetic_energy": 0.18763442447085021,
+        "mean_temperature": 0.4034287830401769
+      }
+    }
+  ],
+  "quantities": [
+    {
+      "name": "kinetic_energy",
+      "description": "1/2 sum |u_c|^2 V_c of the manufactured-solution cavity",
+      "values": {
+        "coarse": 0.18526569952478786,
+        "medium": 0.18766591037688551,
+        "fine": 0.18763442447085021
+      },
+      "reference": {
+        "value": 0.1875,
+        "kind": "analytical",
+        "error_coarse": -0.002234300475212142,
+        "error_medium": 0.00016591037688551413,
+        "error_fine": 0.00013442447085021403,
+        "relative_error_coarse": 0.011916269201131424,
+        "relative_error_medium": 0.0008848553433894087,
+        "relative_error_fine": 0.0007169305112011415,
+        "error_extrapolated": null
+      },
+      "analysis": {
+        "status": "oscillatory",
+        "convergence": "oscillatory",
+        "diagnostic": "epsilon21 and epsilon32 have opposite signs (R = -0.013118): oscillatory convergence -- no observed order or Richardson extrapolation is reported",
+        "warnings": [],
+        "r21": 2.0,
+        "r32": 2.0,
+        "epsilon21": 3.1485906035300104e-05,
+        "epsilon32": -0.002400210852097656,
+        "convergence_ratio": -0.01311797503447795,
+        "observed_order": null,
+        "formal_order": 2.0,
+        "order_ratio": null,
+        "richardson_extrapolated": null,
+        "richardson_extrapolated_32": null,
+        "approximate_relative_error_21": null,
+        "approximate_relative_error_32": null,
+        "extrapolated_relative_error_21": null,
+        "extrapolated_relative_error_32": null,
+        "uncertainty_21": null,
+        "uncertainty_32": null,
+        "gci_fine_medium": null,
+        "gci_medium_coarse": null,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": null,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": 0.001200105426048828,
+        "grid_independence_threshold": null,
+        "grid_independent": false,
+        "grid_independence_reason": "oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00120011 is available"
+      }
+    },
+    {
+      "name": "mean_temperature",
+      "description": "sum T_c V_c of the manufactured-solution cavity",
+      "values": {
+        "coarse": 0.4001161277092658,
+        "medium": 0.40193958417439457,
+        "fine": 0.4034287830401769
+      },
+      "reference": {
+        "value": 0.4052847345693511,
+        "kind": "analytical",
+        "error_coarse": -0.005168606860085301,
+        "error_medium": -0.003345150394956531,
+        "error_fine": -0.0018559515291742268,
+        "relative_error_coarse": 0.012753026253449633,
+        "relative_error_medium": 0.008253827765092196,
+        "relative_error_fine": 0.004579376845136618,
+        "error_extrapolated": 0.004778791454032039
+      },
+      "analysis": {
+        "status": "monotonic_not_asymptotic",
+        "convergence": "monotonic",
+        "diagnostic": "monotonic convergence, observed order 0.292139 (formal 1); asymptotic ratio 0.612227 outside 1 +/- 0.1",
+        "warnings": [],
+        "r21": 2.0,
+        "r32": 2.0,
+        "epsilon21": -0.001489198865782304,
+        "epsilon32": -0.00182345646512877,
+        "convergence_ratio": 0.8166901125753715,
+        "observed_order": 0.29213933335778375,
+        "formal_order": 1.0,
+        "order_ratio": 0.29213933335778375,
+        "richardson_extrapolated": 0.41006352602338314,
+        "richardson_extrapolated_32": 0.41006352602338314,
+        "approximate_relative_error_21": 0.0036913550256873887,
+        "approximate_relative_error_32": 0.0045366431596286965,
+        "extrapolated_relative_error_21": 0.01617979303730596,
+        "extrapolated_relative_error_32": 0.019811422702650506,
+        "uncertainty_21": 0.008293428729007816,
+        "uncertainty_32": 0.010154927311235722,
+        "gci_fine_medium": 0.020557355046682144,
+        "gci_medium_coarse": 0.025264810212944036,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": 0.6122273213560615,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": null,
+        "grid_independence_threshold": null,
+        "grid_independent": false,
+        "grid_independence_reason": "no grid-independence threshold configured"
+      }
+    }
+  ]
+}

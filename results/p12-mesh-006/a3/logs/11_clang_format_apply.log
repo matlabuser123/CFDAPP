@@ -1,0 +1,61 @@
+# formatted: 16 files with clang-format-18 (Ubuntu clang-format version 18.1.8 (++20240731024944+3b5b5c1ec4a3-1~exp1~20240731145000.144))
+apps/cli/main.cpp: 6 changed lines; TOKENS DIFFER
+apps/gui/tests/test_case_editing.cpp: 9 changed lines; tokens identical
+src/app/VisualizationSnapshot.cpp: 11 changed lines; tokens identical
+src/io/CaseWriter.cpp: 2 changed lines; tokens identical
+src/io/ResultExporter.cpp: 6 changed lines; tokens identical
+src/io/case/MeshConfigParser.cpp: 6 changed lines; tokens identical
+src/io/case/SolverConfigParser.cpp: 3 changed lines; tokens identical
+src/physics/ContinuityEquation.cpp: 3 changed lines; tokens identical
+src/pressure_velocity/PressureCorrectionEquation.cpp: 24 changed lines; tokens identical
+src/pressure_velocity/SIMPLE.cpp: 24 changed lines; TOKENS DIFFER
+src/solver/SolverRobustness.cpp: 8 changed lines; tokens identical
+tests/integration/case/test_3d_production_cases.cpp: 197 changed lines; TOKENS DIFFER
+tests/integration/mms/test_mms_simple3d.cpp: 115 changed lines; TOKENS DIFFER
+tests/solver/simple/test_simple3d.cpp: 170 changed lines; TOKENS DIFFER
+tests/unit/discretization/test_operators3d.cpp: 14 changed lines; tokens identical
+tests/unit/io/test_case3d.cpp: 72 changed lines; tokens identical
+
+# classification of the non-whitespace changes (2026-09-15T13:09:25Z), tools/format_token_diff.sh:
+=== apps/cli/main.cpp
+  STILL DIFFERENT after removing comments/whitespace/literal splits:
+9d8
+< #include "cfd/physics/ContinuityEquation.hpp"
+11a11
+> #include "cfd/physics/ContinuityEquation.hpp"
+164,165c164,165
+<     out << "Face flux: "
+<         << cfd::pressure_velocity::faceFluxSchemeName(run.simpleResult->faceFlux) << "\n"
+---
+>     out << "Face flux: " << cfd::pressure_velocity::faceFluxSchemeName(run.simpleResult->faceFlux)
+>         << "\n"
+=== src/pressure_velocity/SIMPLE.cpp
+  STILL DIFFERENT after removing comments/whitespace/literal splits:
+10a11
+> #include "cfd/discretization/Gradient.hpp"
+14d14
+< #include "cfd/discretization/Gradient.hpp"
+334,335c334,335
+<             pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity,
+<             temperature_, buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+---
+>             pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity, temperature_,
+>             buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+416,418c416,417
+<         threeDimensional
+<             ? combineComponents(uResult.solution, vResult.solution, wResult->solution)
+<             : combineComponents(uResult.solution, vResult.solution);
+---
+>         threeDimensional ? combineComponents(uResult.solution, vResult.solution, wResult->solution)
+>                          : combineComponents(uResult.solution, vResult.solution);
+671,673c670,672
+<       progressCallback_(SIMPLEIterationProgress{
+<           result.iterations, settings_.maxIterations, uResidual, vResidual, pResidual,
+=== tests/integration/case/test_3d_production_cases.cpp
+  identical after removing comments, whitespace and string-literal splits ("" joins)
+=== tests/integration/mms/test_mms_simple3d.cpp
+  identical after removing comments, whitespace and string-literal splits ("" joins)
+=== tests/solver/simple/test_simple3d.cpp
+  identical after removing comments, whitespace and string-literal splits ("" joins)
+=== full diff of the two production files
+# => main.cpp and SIMPLE.cpp: the only token change is one #include line moved by SortIncludes each; the test files differ only by comment re-wrapping and string-literal splits.

@@ -1,0 +1,10 @@
+# P12-MESH-005 gate G4 (restart compatibility): the 2D golden fingerprints hard-coded in
+# Cartesian3DMeshTest.FingerprintSeesZIn3DAndKeeps2DValues, recomputed independently with the PRE-MESH-005
+# library ($HOME/m5ref/base/build/src/libcfdcore.a, built from the snapshot headers), 2026-09-15.
+# probe: results/p12-mesh-005/tools/fingerprint_probe.cpp
+BASE (pre-MESH-005) library:
+createCartesian2D(4, 3, 1.0, 1.0)   f6fc7c6e993bc9ac
+createCartesian2D(13, 7, 2.1, 0.9)  a267b75d368102a4
+# test golden values: "f6fc7c6e993bc9ac", "a267b75d368102a4" -> identical. The final library reproduces them
+# (the test passes: logs/17 stage 1b, logs/15, logs/16), so 2D mesh fingerprints -- and restart files that
+# store them -- are unchanged by MESH-005.

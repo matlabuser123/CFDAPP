@@ -1,0 +1,1563 @@
+# P12-MESH-003 G5 fix -- thermal solver instrumentation (scratch program thermal_instrument.cpp, linked against
+# build/release/src/libcfdcore.a). Part 1 replays the production ThermalSolver Picard loop (assembleEnergyEquation +
+# BiCGSTAB, default settings: outer tolerance 1e-8, linear abs 1e-12 / rel 1e-10) on the committed G5 case and records
+# per outer iteration: linear residual |b(T^k)-A(T^k)T^{k+1}|, CONSISTENT residual |b(T^{k+1})-A(T^{k+1})T^{k+1}| (the
+# equation assembled from the field being returned), field update max|dT|, max adiabatic boundary-value change,
+# heat in/out of T^{k+1}, G5 temperature L2 error and heat-flow spread. Part 2 sweeps the outer tolerance on the three
+# G5 grids with the production ThermalSolver (the real runPicardLoop).
+
+## BEFORE the fix (HEAD thermal solver). NOTE: the 'adiabatic wall flux' column of this first version summed over BOTH
+## halves of the sector; the hot-half leak and the cold-half gain cancel by symmetry (~1e-14). The leak itself is visible
+## as the heat-flow spread and in logs/04 (proportional to the outer tolerance).
+# part 1: production Picard loop replayed, sector 12x30x3, tolerance 1e-08, linear rel 1e-10
+# it | linear residual | consistent residual | max|dT| | max adiabatic dTb | adiabatic wall flux | heat in | heat out | T L2 err | spread/Q
+   1 | 2.285e-10 | 1.102e+00 | 4.617e-01 | 3.194e-01 | +1.044e-14 | 2.3227368965 | 2.3227368965 | 2.394e-01 | 7.892e+00
+   2 | 6.790e-11 | 6.184e-01 | 1.046e-01 | 1.046e-01 | +1.477e-14 | 1.6491430245 | 1.6491430245 | 2.318e-01 | 5.600e+00
+   3 | 5.885e-11 | 4.343e-01 | 5.845e-02 | 5.845e-02 | +1.493e-14 | 1.3189850029 | 1.3189850029 | 2.252e-01 | 4.475e+00
+   4 | 1.653e-11 | 3.414e-01 | 4.390e-02 | 4.390e-02 | -8.771e-15 | 1.1237823143 | 1.1237823143 | 2.193e-01 | 3.808e+00
+   5 | 2.243e-11 | 2.851e-01 | 3.315e-02 | 3.315e-02 | +8.889e-15 | 0.9933205853 | 0.9933205853 | 2.139e-01 | 3.361e+00
+  51 | 4.489e-12 | 4.525e-02 | 2.620e-03 | 2.620e-03 | -5.024e-15 | 0.2872894471 | 0.2872894471 | 9.542e-02 | 7.052e-01
+ 101 | 1.355e-12 | 1.988e-02 | 1.081e-03 | 1.081e-03 | +5.616e-16 | 0.2039913224 | 0.2039913224 | 4.345e-02 | 2.901e-01
+ 151 | 9.910e-13 | 9.065e-03 | 4.918e-04 | 4.918e-04 | +2.011e-16 | 0.1725388867 | 0.1725388867 | 1.984e-02 | 1.299e-01
+ 201 | 9.918e-13 | 4.139e-03 | 2.246e-04 | 2.246e-04 | -1.529e-15 | 0.1586542463 | 0.1586542463 | 9.057e-03 | 5.909e-02
+ 251 | 9.897e-13 | 1.890e-03 | 1.025e-04 | 1.025e-04 | +7.463e-15 | 0.1523533505 | 0.1523533505 | 4.136e-03 | 2.696e-02
+ 301 | 6.141e-13 | 8.629e-04 | 4.682e-05 | 4.682e-05 | -6.134e-15 | 0.1494796070 | 0.1494796070 | 1.888e-03 | 1.231e-02
+ 351 | 5.185e-13 | 3.940e-04 | 2.138e-05 | 2.138e-05 | +2.808e-15 | 0.1481677377 | 0.1481677377 | 8.624e-04 | 5.620e-03
+ 401 | 9.738e-13 | 1.799e-04 | 9.760e-06 | 9.760e-06 | +9.937e-15 | 0.1475687673 | 0.1475687673 | 3.939e-04 | 2.566e-03
+ 451 | 4.558e-13 | 8.214e-05 | 4.457e-06 | 4.457e-06 | -1.015e-14 | 0.1472952823 | 0.1472952823 | 1.800e-04 | 1.172e-03
+ 501 | 7.210e-13 | 3.750e-05 | 2.035e-06 | 2.035e-06 | -6.104e-15 | 0.1471704107 | 0.1471704107 | 8.235e-05 | 5.350e-04
+ 551 | 1.923e-13 | 1.712e-05 | 9.291e-07 | 9.291e-07 | +6.777e-15 | 0.1471133949 | 0.1471133949 | 3.776e-05 | 2.443e-04
+ 601 | 2.864e-13 | 7.819e-06 | 4.242e-07 | 4.242e-07 | -4.774e-15 | 0.1470873618 | 0.1470873618 | 1.740e-05 | 1.115e-04
+ 651 | 1.730e-13 | 3.570e-06 | 1.937e-07 | 1.937e-07 | -4.420e-15 | 0.1470754753 | 0.1470754753 | 8.102e-06 | 5.093e-05
+ 701 | 9.809e-13 | 1.630e-06 | 8.844e-08 | 8.844e-08 | -2.120e-15 | 0.1470700479 | 0.1470700479 | 3.862e-06 | 2.325e-05
+ 751 | 2.602e-13 | 7.443e-07 | 4.038e-08 | 4.038e-08 | -9.515e-15 | 0.1470675698 | 0.1470675698 | 1.932e-06 | 1.062e-05
+ 801 | 2.529e-13 | 3.398e-07 | 1.844e-08 | 1.844e-08 | -6.862e-15 | 0.1470664383 | 0.1470664383 | 1.062e-06 | 4.848e-06
+ 841 | 5.999e-14 | 1.815e-07 | 9.848e-09 | 9.848e-09 | -7.598e-16 | 0.1470659954 | 0.1470659954 | 7.311e-07 | 2.589e-06  <- converged (returned)
+
+# part 2: production ThermalSolver on the G5 grids, outer tolerance swept
+tol 1e-08 grid  8x20: converged 1,    577 it | T L2 1.5159e-06 | spread 1.752e-06 Q | adiabatic wall flux +0.000e+00
+tol 1e-08 grid 12x30: converged 1,    841 it | T L2 7.3111e-07 (order 1.798511) | spread 2.589e-06 Q | adiabatic wall flux +0.000e+00
+tol 1e-08 grid 18x45: converged 1,   1223 it | T L2 6.8884e-07 (order 0.146893) | spread 3.912e-06 Q | adiabatic wall flux +0.000e+00
+tol 1e-10 grid  8x20: converged 1,    773 it | T L2 1.3080e-06 | spread 1.737e-08 Q | adiabatic wall flux +0.000e+00
+tol 1e-10 grid 12x30: converged 1,   1134 it | T L2 3.8977e-07 (order 2.985929) | spread 2.619e-08 Q | adiabatic wall flux +0.000e+00
+tol 1e-10 grid 18x45: converged 1,   1664 it | T L2 1.1909e-07 (order 2.924277) | spread 3.915e-08 Q | adiabatic wall flux +0.000e+00
+tol 1e-12 grid  8x20: converged 1,    967 it | T L2 1.3060e-06 | spread 1.892e-10 Q | adiabatic wall flux +0.000e+00
+tol 1e-12 grid 12x30: converged 1,   1426 it | T L2 3.8682e-07 (order 3.000961) | spread 2.841e-10 Q | adiabatic wall flux +0.000e+00
+tol 1e-12 grid 18x45: converged 1,   2104 it | T L2 1.1463e-07 (order 2.999627) | spread 4.203e-10 Q | adiabatic wall flux +0.000e+00
+tol 1e-13 grid  8x20: converged 1,   1050 it | T L2 1.3060e-06 | spread 3.992e-11 Q | adiabatic wall flux +0.000e+00
+tol 1e-13 grid 12x30: converged 1,   1557 it | T L2 3.8680e-07 (order 3.001093) | spread 5.787e-11 Q | adiabatic wall flux +0.000e+00
+tol 1e-13 grid 18x45: converged 1,   2307 it | T L2 1.1459e-07 (order 3.000281) | spread 8.488e-11 Q | adiabatic wall flux +0.000e+00
+
+## AFTER the fix (final code): exact gradient-type boundary assembly (boundaryDiffusionContribution) + attained-breakdown
+## acceptance in runPicardLoop. Part 1 is an external replay of the loop with plain BiCGSTAB (it has the exact assembly but
+## not the breakdown rule); 'lagged adiabatic flux' = Df (T_P^{k+1} - T_P^k) over the hot half = the flux the PRE-fix
+## assembly would carry; in the fixed assembly the insulated faces contribute exactly nothing. Part 2 = production solver.
+# part 1: production Picard loop replayed, sector 12x30x3, tolerance 1e-08, linear rel 1e-10
+# it | linear residual | consistent residual | max|dT| | max adiabatic dTb | lagged adiabatic flux (hot half) | heat in | heat out | T L2 err | spread/Q
+     linear solve: status 0, 106 iterations, initial residual 5.511e+00, final 5.406e-10
+   1 | 5.406e-10 | 5.406e-10 | 4.944e-01 | 4.944e-01 | +4.244e+01 | 0.1470654883 | 0.1470654883 | 3.873e-07 | 3.864e-09
+     linear solve: status 0, 39 iterations, initial residual 5.406e-10, final 8.827e-13
+   2 | 8.832e-13 | 8.832e-13 | 1.410e-09 | 1.410e-09 | +1.167e-07 | 0.1470654876 | 0.1470654876 | 3.868e-07 | 4.776e-12  <- converged (returned)
+
+# part 2: production ThermalSolver on the G5 grids, outer tolerance swept
+tol 1e-08 grid  8x20: converged 1,      2 it | T L2 1.3060e-06 | spread 6.820e-13 Q | adiabatic wall flux +0.000e+00
+tol 1e-08 grid 12x30: converged 1,      2 it | T L2 3.8679e-07 (order 3.001126) | spread 4.776e-12 Q | adiabatic wall flux +0.000e+00
+tol 1e-08 grid 18x45: converged 1,      2 it | T L2 1.1459e-07 (order 3.000408) | spread 2.877e-12 Q | adiabatic wall flux +0.000e+00
+tol 1e-10 grid  8x20: converged 1,      3 it | T L2 1.3060e-06 | spread 6.820e-13 Q | adiabatic wall flux +0.000e+00
+tol 1e-10 grid 12x30: converged 1,      3 it | T L2 3.8679e-07 (order 3.001126) | spread 4.776e-12 Q | adiabatic wall flux +0.000e+00
+tol 1e-10 grid 18x45: converged 1,      3 it | T L2 1.1459e-07 (order 3.000379) | spread 4.129e-11 Q | adiabatic wall flux +0.000e+00
+tol 1e-12 grid  8x20: converged 1,      3 it | T L2 1.3060e-06 | spread 6.820e-13 Q | adiabatic wall flux +0.000e+00
+tol 1e-12 grid 12x30: converged 1,      3 it | T L2 3.8679e-07 (order 3.001126) | spread 4.776e-12 Q | adiabatic wall flux +0.000e+00
+tol 1e-12 grid 18x45: converged 1,      4 it | T L2 1.1459e-07 (order 3.000379) | spread 4.129e-11 Q | adiabatic wall flux +0.000e+00
+tol 1e-13 grid  8x20: converged 1,      3 it | T L2 1.3060e-06 | spread 6.820e-13 Q | adiabatic wall flux +0.000e+00
+tol 1e-13 grid 12x30: converged 1,      3 it | T L2 3.8679e-07 (order 3.001126) | spread 4.776e-12 Q | adiabatic wall flux +0.000e+00
+tol 1e-13 grid 18x45: converged 1,      4 it | T L2 1.1459e-07 (order 3.000379) | spread 4.129e-11 Q | adiabatic wall flux +0.000e+00
+
+## AFTER, 18x45 external replay: outer iteration 2 re-solves the already-solved system; BiCGSTAB reports status 2 =
+## Breakdown at 1.08e-11 (target rel 1e-10 of 4.5e-10 unreachable). 1.08e-11 <= rel 1e-10 x the first iteration's
+## initial residual 6.75 = 6.75e-10, so runPicardLoop accepts it as an attained solve (max|dT| 2.3e-9 < 1e-8 -> Converged,
+## part 2 above: 18x45 converged in 2 it); before that rule the production loop reported LinearSolveFailure here.
+# part 1: production Picard loop replayed, sector 18x45x3, tolerance 1e-08, linear rel 1e-10
+# it | linear residual | consistent residual | max|dT| | max adiabatic dTb | lagged adiabatic flux (hot half) | heat in | heat out | T L2 err | spread/Q
+     linear solve: status 0, 152 iterations, initial residual 6.751e+00, final 4.544e-10
+   1 | 4.544e-10 | 4.544e-10 | 4.963e-01 | 4.963e-01 | +6.363e+01 | 0.1470793157 | 0.1470793157 | 1.156e-07 | 6.952e-09
+     linear solve: status 2, 34 iterations, initial residual 4.544e-10, final 1.081e-11
+   2 | 1.081e-11 | 1.081e-11 | 2.290e-09 | 2.290e-09 | +3.208e-07 | 0.1470793144 | 0.1470793144 | 1.146e-07 | 2.877e-12  <- converged (returned)
+
+## A first attempt at the loop change (skip the re-solve when the field already met the FIRST solve's linear tolerance)
+## was rejected: it stopped cases run with a deliberately loose linear tolerance after one solve (HeatedCavity 80x80:
+## L2 error 3.1e-4 vs 1e-6; TwoMaterialConduction 40/80: 1.2e-4 / 9.1e-3 vs 5e-6) -- they rely on the outer loop
+## re-solving (refining) until max|dT| < 1e-8. The final rule keeps that loop unchanged and only accepts an attained breakdown.
+
+## The new regression tests (final version) run against the PRE-FIX solver (scratch copy, HEAD thermal sources;
+## prefix_check.sh): 3 of 4 fail exactly on the defect.
+$ CFDThermalTests --gtest_filter=ThermalBoundaryConsistency.*   [PRE-FIX solver]
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from ThermalBoundaryConsistency
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:133: Failure
+Expected equality of these values:
+  adiabatic.diagonal
+    Which is: 3.7
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:134: Failure
+Expected equality of these values:
+  adiabatic.source
+    Which is: -14.8
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:136: Failure
+Expected equality of these values:
+  gradient.diagonal
+    Which is: 3.7
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:137: Failure
+Expected equality of these values:
+  gradient.source
+    Which is: -14.75375
+  df * (0.4 * d)
+    Which is: 0.046250000000000006
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:139: Failure
+Expected equality of these values:
+  flux.diagonal
+    Which is: 3.7
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:140: Failure
+Expected equality of these values:
+  flux.source
+    Which is: -14.843359375
+  df * ((-kHeatFluxOut / kConductivity) * d)
+    Which is: -0.043359375000000006
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:133: Failure
+Expected equality of these values:
+  adiabatic.diagonal
+    Which is: 3.7
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:134: Failure
+Expected equality of these values:
+  adiabatic.source
+    Which is: 925
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:136: Failure
+Expected equality of these values:
+  gradient.diagonal
+    Which is: 3.7
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:137: Failure
+Expected equality of these values:
+  gradient.source
+    Which is: 925.04624999999999
+  df * (0.4 * d)
+    Which is: 0.046250000000000006
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:139: Failure
+Expected equality of these values:
+  flux.diagonal
+    Which is: 3.7
+  0.0
+    Which is: 0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:140: Failure
+Expected equality of these values:
+  flux.source
+    Which is: 924.95664062500009
+  df * ((-kHeatFluxOut / kConductivity) * d)
+    Which is: -0.043359375000000006
+
+[  FAILED  ] ThermalBoundaryConsistency.BoundaryDiffusionContributionIsExactPerConditionType (0 ms)
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:167: Failure
+Expected: (consistent) <= (1e-9 * initialImbalance), actual: 1.3302534472787534e-07 vs 1.0208519343543412e-08
+returned field does not satisfy its own equation (initial imbalance 10.208519343543411)
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:193: Failure
+Expected: (worstCell) <= (1e-9 * throughput), actual: 7.732512147251569e-08 vs 5.5287313952625816e-10
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:202: Failure
+Expected: (std::abs(in - out - fluxWall)) <= (1e-9 * in), actual: 5.5419525057942565e-07 vs 5.5647731334094918e-09
+in 5.5647731334094912, out 5.0022736876047418, heat-flux wall 0.5625
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:208: Failure
+Expected: (result.iterations) <= (3u), actual: 380 vs 3
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:215: Failure
+Expected: (tighter.iterations) <= (4u), actual: 705 vs 4
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.3899599793940638e-10, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.49946650479474708,
+t[c] evaluates to 0.49946650513374308, and
+1e-12 evaluates to 9.9999999999999998e-13.
+0
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0177512999032245e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.22516358672602452,
+t[c] evaluates to 0.22516358774377582, and
+1e-12 evaluates to 9.9999999999999998e-13.
+1
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6988109252658035e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.13115255859078684,
+t[c] evaluates to 0.13115256028959776, and
+1e-12 evaluates to 9.9999999999999998e-13.
+2
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.3837078838573333e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.089738440898879737,
+t[c] evaluates to 0.089738443282587621, and
+1e-12 evaluates to 9.9999999999999998e-13.
+3
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.0739959050452015e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.067115532249062082,
+t[c] evaluates to 0.067115535323057987, and
+1e-12 evaluates to 9.9999999999999998e-13.
+4
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.7712299186254405e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.052731192020825178,
+t[c] evaluates to 0.052731195792055097, and
+1e-12 evaluates to 9.9999999999999998e-13.
+5
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.4769897025731531e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.042622572521948017,
+t[c] evaluates to 0.04262257699893772, and
+1e-12 evaluates to 9.9999999999999998e-13.
+6
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.1928678579393761e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.035018901625266018,
+t[c] evaluates to 0.035018906818133876, and
+1e-12 evaluates to 9.9999999999999998e-13.
+7
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.9204853623817666e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.029005534006472565,
+t[c] evaluates to 0.029005539926957927, and
+1e-12 evaluates to 9.9999999999999998e-13.
+8
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.6614874380532818e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.024049179216214807,
+t[c] evaluates to 0.024049185877702245, and
+1e-12 evaluates to 9.9999999999999998e-13.
+9
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.4175513613272681e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.019798977195051526,
+t[c] evaluates to 0.019798984612602887, and
+1e-12 evaluates to 9.9999999999999998e-13.
+10
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.1903885930378895e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.01598363912196973,
+t[c] evaluates to 0.015983647312358323, and
+1e-12 evaluates to 9.9999999999999998e-13.
+11
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.9817466936148449e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.012331214171433879,
+t[c] evaluates to 0.012331223153180573, and
+1e-12 evaluates to 9.9999999999999998e-13.
+12
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.7934165516760929e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.0084421949539180436,
+t[c] evaluates to 0.0084422047473345953, and
+1e-12 evaluates to 9.9999999999999998e-13.
+13
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.062723059682899e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.0034262995324074509,
+t[c] evaluates to 0.0034263101596380477, and
+1e-12 evaluates to 9.9999999999999998e-13.
+14
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1485073437428328e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to -0.0054779967555516704,
+t[c] evaluates to -0.005477985270478233, and
+1e-12 evaluates to 9.9999999999999998e-13.
+15
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0162192198848174e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.77163544204245771,
+t[c] evaluates to 0.77163544305867693, and
+1e-12 evaluates to 9.9999999999999998e-13.
+16
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.0509595405625589e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.49519887024458831,
+t[c] evaluates to 0.49519887329554785, and
+1e-12 evaluates to 9.9999999999999998e-13.
+17
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.0925940131563152e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.3408607653290292,
+t[c] evaluates to 0.34086077042162322, and
+1e-12 evaluates to 9.9999999999999998e-13.
+18
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.1457438854949373e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.25042411365454864,
+t[c] evaluates to 0.25042412080029253, and
+1e-12 evaluates to 9.9999999999999998e-13.
+19
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.2150435893056937e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.19310802832560411,
+t[c] evaluates to 0.1931080375406477, and
+1e-12 evaluates to 9.9999999999999998e-13.
+20
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1305174241194038e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.153917855333114,
+t[c] evaluates to 0.15391786663828824, and
+1e-12 evaluates to 9.9999999999999998e-13.
+21
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3420855898838013e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.1253627689636469,
+t[c] evaluates to 0.1253627823845028, and
+1e-12 evaluates to 9.9999999999999998e-13.
+22
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.5566874456141022e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.10346640159790715,
+t[c] evaluates to 0.10346641716478161, and
+1e-12 evaluates to 9.9999999999999998e-13.
+23
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.7748081379553859e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.085959589190879357,
+t[c] evaluates to 0.085959606938960736, and
+1e-12 evaluates to 9.9999999999999998e-13.
+24
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.9969412859421887e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.071441384879547029,
+t[c] evaluates to 0.071441404848959889, and
+1e-12 evaluates to 9.9999999999999998e-13.
+25
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.2235895763556002e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.058962067637069904,
+t[c] evaluates to 0.058962089872965667, and
+1e-12 evaluates to 9.9999999999999998e-13.
+26
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.4552658996201959e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.047788004243359869,
+t[c] evaluates to 0.047788028796018865, and
+1e-12 evaluates to 9.9999999999999998e-13.
+27
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.692494512068766e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.037230236781278001,
+t[c] evaluates to 0.037230263706223121, and
+1e-12 evaluates to 9.9999999999999998e-13.
+28
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.9358117142191942e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.026453461065745119,
+t[c] evaluates to 0.026453490423862261, and
+1e-12 evaluates to 9.9999999999999998e-13.
+29
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.1857675223539994e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.014167299463667219,
+t[c] evaluates to 0.014167331321342442, and
+1e-12 evaluates to 9.9999999999999998e-13.
+30
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.4429261159705724e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to -0.0019007865546195549,
+t[c] evaluates to -0.0019007521253583952, and
+1e-12 evaluates to 9.9999999999999998e-13.
+31
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6911513300854608e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.86351183517295227,
+t[c] evaluates to 0.8635118368641036, and
+1e-12 evaluates to 9.9999999999999998e-13.
+32
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.0772762660855619e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.64313568688084022,
+t[c] evaluates to 0.64313569195811648, and
+1e-12 evaluates to 9.9999999999999998e-13.
+33
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.4748807416268335e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.48666751882619069,
+t[c] evaluates to 0.48666752730107143, and
+1e-12 evaluates to 9.9999999999999998e-13.
+34
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.189164022807887e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.37798922006467822,
+t[c] evaluates to 0.37798923195631845, and
+1e-12 evaluates to 9.9999999999999998e-13.
+35
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.533528171115961e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.30097461206568743,
+t[c] evaluates to 0.30097462740096914, and
+1e-12 evaluates to 9.9999999999999998e-13.
+36
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.8813582608467883e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.2444694320223747,
+t[c] evaluates to 0.24446945083595731, and
+1e-12 evaluates to 9.9999999999999998e-13.
+37
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.2334408211754919e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.20144424640161218,
+t[c] evaluates to 0.20144426873602039, and
+1e-12 evaluates to 9.9999999999999998e-13.
+38
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.5905715017593423e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.16752434661182933,
+t[c] evaluates to 0.16752437251754435, and
+1e-12 evaluates to 9.9999999999999998e-13.
+39
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.9535582535267224e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.1399250362795828,
+t[c] evaluates to 0.13992506581516534, and
+1e-12 evaluates to 9.9999999999999998e-13.
+40
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.3232222015899815e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.11679470347401533,
+t[c] evaluates to 0.11679473670623734, and
+1e-12 evaluates to 9.9999999999999998e-13.
+41
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.7003999753260075e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.096819904230311726,
+t[c] evaluates to 0.09681994123431148, and
+1e-12 evaluates to 9.9999999999999998e-13.
+42
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.0859451710950623e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.078976073433111652,
+t[c] evaluates to 0.078976114292563362, and
+1e-12 evaluates to 9.9999999999999998e-13.
+43
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.4807299898197428e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.062348267644562451,
+t[c] evaluates to 0.062348312451862349, and
+1e-12 evaluates to 9.9999999999999998e-13.
+44
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.8856472742442314e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.045974113064105822,
+t[c] evaluates to 0.045974161920578564, and
+1e-12 evaluates to 9.9999999999999998e-13.
+45
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.3016119654081262e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.028690223811125046,
+t[c] evaluates to 0.0286902768272447, and
+1e-12 evaluates to 9.9999999999999998e-13.
+46
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.729563522065273e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.0090458376280094146,
+t[c] evaluates to 0.0090458949236446352, and
+1e-12 evaluates to 9.9999999999999998e-13.
+47
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.362261719568437e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.90278804694146342,
+t[c] evaluates to 0.90278804930372514, and
+1e-12 evaluates to 9.9999999999999998e-13.
+48
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.0921285511005294e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.72716452327962722,
+t[c] evaluates to 0.72716453037175577, and
+1e-12 evaluates to 9.9999999999999998e-13.
+49
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1838023561416833e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.58468440303021119,
+t[c] evaluates to 0.58468441486823475, and
+1e-12 evaluates to 9.9999999999999998e-13.
+50
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6610679942630213e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.47389063571228046,
+t[c] evaluates to 0.4738906523229604, and
+1e-12 evaluates to 9.9999999999999998e-13.
+51
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.1420878126843235e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.38833176785008572,
+t[c] evaluates to 0.38833178927096385, and
+1e-12 evaluates to 9.9999999999999998e-13.
+52
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.6279493248182462e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.32154101428907644,
+t[c] evaluates to 0.32154104056856969, and
+1e-12 evaluates to 9.9999999999999998e-13.
+53
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.1197503136404237e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.26842043800858773,
+t[c] evaluates to 0.26842046920609086, and
+1e-12 evaluates to 9.9999999999999998e-13.
+54
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.6186029006568532e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.22526170216820349,
+t[c] evaluates to 0.22526173835423249, and
+1e-12 evaluates to 9.9999999999999998e-13.
+55
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.1256351723806262e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.18942150584159428,
+t[c] evaluates to 0.18942154709794601, and
+1e-12 evaluates to 9.9999999999999998e-13.
+56
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.6419944138564873e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.15899248850660533,
+t[c] evaluates to 0.15899253492654947, and
+1e-12 evaluates to 9.9999999999999998e-13.
+57
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.1688490737555881e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.13254677237703427,
+t[c] evaluates to 0.13254682406552501, and
+1e-12 evaluates to 9.9999999999999998e-13.
+58
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.7073913928284981e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.1089481176141958,
+t[c] evaluates to 0.10894817468810973, and
+1e-12 evaluates to 9.9999999999999998e-13.
+59
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.258839854722531e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.087212647299736504,
+t[c] evaluates to 0.087212709888135051, and
+1e-12 evaluates to 9.9999999999999998e-13.
+60
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.8244413647944313e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.066404499734971978,
+t[c] evaluates to 0.066404567979385626, and
+1e-12 evaluates to 9.9999999999999998e-13.
+61
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.4054743615104002e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.045573645088699669,
+t[c] evaluates to 0.045573719143443284, and
+1e-12 evaluates to 9.9999999999999998e-13.
+62
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.003250878685364e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.023785575627495836,
+t[c] evaluates to 0.023785655660004623, and
+1e-12 evaluates to 9.9999999999999998e-13.
+63
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.0280384866188115e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.92326387625473594,
+t[c] evaluates to 0.92326387928277442, and
+1e-12 evaluates to 9.9999999999999998e-13.
+64
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.0909562100449648e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.77804995626599116,
+t[c] evaluates to 0.77804996535694737, and
+1e-12 evaluates to 9.9999999999999998e-13.
+65
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.5174424938813047e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.65101493430274071,
+t[c] evaluates to 0.65101494947716565, and
+1e-12 evaluates to 9.9999999999999998e-13.
+66
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.129218890090101e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.54455715190413911,
+t[c] evaluates to 0.54455717319632801, and
+1e-12 evaluates to 9.9999999999999998e-13.
+67
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.7458079587816542e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.45692080933328871,
+t[c] evaluates to 0.4569208367913683, and
+1e-12 evaluates to 9.9999999999999998e-13.
+68
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.3686025358026228e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.3849424192752457,
+t[c] evaluates to 0.38494245296127105, and
+1e-12 evaluates to 9.9999999999999998e-13.
+69
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.9990107558729449e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.32543478917544466,
+t[c] evaluates to 0.32543482916555222, and
+1e-12 evaluates to 9.9999999999999998e-13.
+70
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.6384576346536477e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.27568051821078654,
+t[c] evaluates to 0.27568056459536289, and
+1e-12 evaluates to 9.9999999999999998e-13.
+71
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.2883896456412671e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.23350679641196731,
+t[c] evaluates to 0.23350684929586377, and
+1e-12 evaluates to 9.9999999999999998e-13.
+72
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.9502770183295084e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.19720697233375739,
+t[c] evaluates to 0.19720703183652757, and
+1e-12 evaluates to 9.9999999999999998e-13.
+73
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.6256176239898323e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.16542657915700268,
+t[c] evaluates to 0.16542664541317892, and
+1e-12 evaluates to 9.9999999999999998e-13.
+74
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.3159396735134052e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.13705697734687747,
+t[c] evaluates to 0.1370570505062742, and
+1e-12 evaluates to 9.9999999999999998e-13.
+75
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.022804881546719e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.1111497042051913,
+t[c] evaluates to 0.11114978443324011, and
+1e-12 evaluates to 9.9999999999999998e-13.
+76
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.7478118068751165e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.086857593487319723,
+t[c] evaluates to 0.086857680965437792, and
+1e-12 evaluates to 9.9999999999999998e-13.
+77
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.4925990290484208e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.063414281181181073,
+t[c] evaluates to 0.063414376107171364, and
+1e-12 evaluates to 9.9999999999999998e-13.
+78
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.025884895575202e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.040174744165740801,
+t[c] evaluates to 0.040174846754230359, and
+1e-12 evaluates to 9.9999999999999998e-13.
+79
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.6869693964547423e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.93548137806622367,
+t[c] evaluates to 0.93548138175319306, and
+1e-12 evaluates to 9.9999999999999998e-13.
+80
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1069242855654693e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.81075649122685689,
+t[c] evaluates to 0.81075650229609975, and
+1e-12 evaluates to 9.9999999999999998e-13.
+81
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.8476533414357732e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.6967682260106145,
+t[c] evaluates to 0.69676824448714791, and
+1e-12 evaluates to 9.9999999999999998e-13.
+82
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.5925584012931324e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.59640222826823708,
+t[c] evaluates to 0.59640225419382109, and
+1e-12 evaluates to 9.9999999999999998e-13.
+83
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.3433225854473392e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.50985189830367206,
+t[c] evaluates to 0.50985193173689791, and
+1e-12 evaluates to 9.9999999999999998e-13.
+84
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.1016430141205262e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.43587306430315798,
+t[c] evaluates to 0.43587310531958812, and
+1e-12 evaluates to 9.9999999999999998e-13.
+85
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.8692334442268503e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.37269578120714092,
+t[c] evaluates to 0.37269582989947536, and
+1e-12 evaluates to 9.9999999999999998e-13.
+86
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.6478296595052768e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.31851878508751041,
+t[c] evaluates to 0.31851884156580701, and
+1e-12 evaluates to 9.9999999999999998e-13.
+87
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.439192329343868e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.27171818926170821,
+t[c] evaluates to 0.2717182536536315, and
+1e-12 evaluates to 9.9999999999999998e-13.
+88
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.2451119714767032e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.23090202525942899,
+t[c] evaluates to 0.2309020977105487, and
+1e-12 evaluates to 9.9999999999999998e-13.
+89
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.0674121022417111e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.19489559457031405,
+t[c] evaluates to 0.19489567524443507, and
+1e-12 evaluates to 9.9999999999999998e-13.
+90
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.9079533943658973e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.16270350841109069,
+t[c] evaluates to 0.16270359749062463, and
+1e-12 evaluates to 9.9999999999999998e-13.
+91
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.7686374017635913e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.1334715986868002,
+t[c] evaluates to 0.13347169637317421, and
+1e-12 evaluates to 9.9999999999999998e-13.
+92
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0651410396744776e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.10646188882790193,
+t[c] evaluates to 0.1064619953420059, and
+1e-12 evaluates to 9.9999999999999998e-13.
+93
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1558267946909506e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.081051141982932187,
+t[c] evaluates to 0.081051257565611656, and
+1e-12 evaluates to 9.9999999999999998e-13.
+94
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.2491258539332195e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.056761875688498421,
+t[c] evaluates to 0.056762000601083815, and
+1e-12 evaluates to 9.9999999999999998e-13.
+95
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.3375686376023737e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.94338652284952407,
+t[c] evaluates to 0.9433865271870927, and
+1e-12 evaluates to 9.9999999999999998e-13.
+96
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3022506184512395e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.83272640456459324,
+t[c] evaluates to 0.83272641758709942, and
+1e-12 evaluates to 9.9999999999999998e-13.
+97
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.173687718709516e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.72889925024461544,
+t[c] evaluates to 0.72889927198149262, and
+1e-12 evaluates to 9.9999999999999998e-13.
+98
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.0500372449893121e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.63443163685451109,
+t[c] evaluates to 0.63443166735488354, and
+1e-12 evaluates to 9.9999999999999998e-13.
+99
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.9332799905977822e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.55021149130998959,
+t[c] evaluates to 0.55021153064278949, and
+1e-12 evaluates to 9.9999999999999998e-13.
+100
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.8254118978352523e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.47600215842655497,
+t[c] evaluates to 0.47600220668067394, and
+1e-12 evaluates to 9.9999999999999998e-13.
+101
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.728449875563868e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.41095648626242948,
+t[c] evaluates to 0.41095654354692823, and
+1e-12 evaluates to 9.9999999999999998e-13.
+102
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.6444354351880008e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.35398065167038156,
+t[c] evaluates to 0.35398071811473591, and
+1e-12 evaluates to 9.9999999999999998e-13.
+103
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.5754404638139761e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.30394515028789887,
+t[c] evaluates to 0.30394522604230351, and
+1e-12 evaluates to 9.9999999999999998e-13.
+104
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.5235709101905144e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.25978734487190597,
+t[c] evaluates to 0.25978743010761507, and
+1e-12 evaluates to 9.9999999999999998e-13.
+105
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.4909721165548078e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.22055026545370121,
+t[c] evaluates to 0.22055036036342238, and
+1e-12 evaluates to 9.9999999999999998e-13.
+106
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0479832826537638e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.18538986304033536,
+t[c] evaluates to 0.18538996783866363, and
+1e-12 evaluates to 9.9999999999999998e-13.
+107
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1492389984102402e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.15357129330298006,
+t[c] evaluates to 0.1535714082268799, and
+1e-12 evaluates to 9.9999999999999998e-13.
+108
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.2530933488075213e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.12446722115451561,
+t[c] evaluates to 0.12446734646385049, and
+1e-12 evaluates to 9.9999999999999998e-13.
+109
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3597810918919429e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.09756652223411022,
+t[c] evaluates to 0.097566658212219409, and
+1e-12 evaluates to 9.9999999999999998e-13.
+110
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.4695432960787347e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.072497240916764544,
+t[c] evaluates to 0.072497387871094152, and
+1e-12 evaluates to 9.9999999999999998e-13.
+111
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.978358392193627e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.94872483161680143,
+t[c] evaluates to 0.94872483659515983, and
+1e-12 evaluates to 9.9999999999999998e-13.
+112
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.4946327953069272e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.84786335393737067,
+t[c] evaluates to 0.84786336888369862, and
+1e-12 evaluates to 9.9999999999999998e-13.
+113
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.494807349595618e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.75167073354873337,
+t[c] evaluates to 0.75167075849680687, and
+1e-12 evaluates to 9.9999999999999998e-13.
+114
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.5006203935594726e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.66221357759518873,
+t[c] evaluates to 0.66221361260139266, and
+1e-12 evaluates to 9.9999999999999998e-13.
+115
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.5143445759343592e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.58056027165520363,
+t[c] evaluates to 0.58056031679864939, and
+1e-12 evaluates to 9.9999999999999998e-13.
+116
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.5382715635765578e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.50696759183062223,
+t[c] evaluates to 0.50696764721333787, and
+1e-12 evaluates to 9.9999999999999998e-13.
+117
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.5747156496875903e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.4411473537456162,
+t[c] evaluates to 0.4411474194927727, and
+1e-12 evaluates to 9.9999999999999998e-13.
+118
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.6260205206235554e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.38250218504365946,
+t[c] evaluates to 0.38250226130386467, and
+1e-12 evaluates to 9.9999999999999998e-13.
+119
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.6945636634805368e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.3302944153475682,
+t[c] evaluates to 0.33029450229320484, and
+1e-12 evaluates to 9.9999999999999998e-13.
+120
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.7827622225210575e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.28375193848656027,
+t[c] evaluates to 0.2837520363141825, and
+1e-12 evaluates to 9.9999999999999998e-13.
+121
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0893078136731127e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.2421282593322113,
+t[c] evaluates to 0.24212836826299267, and
+1e-12 evaluates to 9.9999999999999998e-13.
+122
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.202802331901065e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.20473438499352936,
+t[c] evaluates to 0.20473450527376255, and
+1e-12 evaluates to 9.9999999999999998e-13.
+123
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3190165004672849e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.17095649033022525,
+t[c] evaluates to 0.1709566222318753, and
+1e-12 evaluates to 9.9999999999999998e-13.
+124
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.4382131222068217e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.14026918025302576,
+t[c] evaluates to 0.14026932407433798, and
+1e-12 evaluates to 9.9999999999999998e-13.
+125
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.5606616837748888e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.11225048488218355,
+t[c] evaluates to 0.11225064094835192, and
+1e-12 evaluates to 9.9999999999999998e-13.
+126
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6866388598268944e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.086600824827621034,
+t[c] evaluates to 0.086600993491507017, and
+1e-12 evaluates to 9.9999999999999998e-13.
+127
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.6078923726943231e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.9523742812971101,
+t[c] evaluates to 0.95237428690500248, and
+1e-12 evaluates to 9.9999999999999998e-13.
+128
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6836348759596831e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.85833144601934874,
+t[c] evaluates to 0.8583314628556975, and
+1e-12 evaluates to 9.9999999999999998e-13.
+129
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.8102857485556854e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.76770675241774788,
+t[c] evaluates to 0.76770678052060537, and
+1e-12 evaluates to 9.9999999999999998e-13.
+130
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.9432876852707466e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.68219166832229228,
+t[c] evaluates to 0.68219170775516913, and
+1e-12 evaluates to 9.9999999999999998e-13.
+131
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.0852017818847628e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.60284842588499454,
+t[c] evaluates to 0.60284847673701236, and
+1e-12 evaluates to 9.9999999999999998e-13.
+132
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.2386088739430079e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.53016058349509076,
+t[c] evaluates to 0.5301606458811795, and
+1e-12 evaluates to 9.9999999999999998e-13.
+133
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.4061164812011526e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.46416315184572632,
+t[c] evaluates to 0.46416322590689113, and
+1e-12 evaluates to 9.9999999999999998e-13.
+134
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.590364281024776e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.40458631941104051,
+t[c] evaluates to 0.40458640531468332, and
+1e-12 evaluates to 9.9999999999999998e-13.
+135
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.7940306142962896e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.35097838757211935,
+t[c] evaluates to 0.3509784855124255, and
+1e-12 evaluates to 9.9999999999999998e-13.
+136
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1019837936609989e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.3027977343945164,
+t[c] evaluates to 0.30279784459289577, and
+1e-12 evaluates to 9.9999999999999998e-13.
+137
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.2270559279770055e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.25947644839501255,
+t[c] evaluates to 0.25947657110060535, and
+1e-12 evaluates to 9.9999999999999998e-13.
+138
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3549023844539043e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.22046292727129932,
+t[c] evaluates to 0.22046306276153776, and
+1e-12 evaluates to 9.9999999999999998e-13.
+139
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.4858123273397972e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.18525110277131909,
+t[c] evaluates to 0.18525125135255183, and
+1e-12 evaluates to 9.9999999999999998e-13.
+140
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.620081805930873e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.1534025246451258,
+t[c] evaluates to 0.15340268665330639, and
+1e-12 evaluates to 9.9999999999999998e-13.
+141
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.7580143572837326e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.12456541221393114,
+t[c] evaluates to 0.12456558801536687, and
+1e-12 evaluates to 9.9999999999999998e-13.
+142
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.8999217549220404e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.098492248683837991,
+t[c] evaluates to 0.098492438676013483, and
+1e-12 evaluates to 9.9999999999999998e-13.
+143
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.2247430543393989e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.95481512884939801,
+t[c] evaluates to 0.95481513507414106, and
+1e-12 evaluates to 9.9999999999999998e-13.
+144
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.8688299241453876e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.8653813964251591,
+t[c] evaluates to 0.86538141511345834, and
+1e-12 evaluates to 9.9999999999999998e-13.
+145
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.1194090421848841e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.77863316178060549,
+t[c] evaluates to 0.77863319297469591, and
+1e-12 evaluates to 9.9999999999999998e-13.
+146
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.3770384539065788e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.69599791739122197,
+t[c] evaluates to 0.6959979611616065, and
+1e-12 evaluates to 9.9999999999999998e-13.
+147
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.6445604190713539e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.61848118006737141,
+t[c] evaluates to 0.6184812365129756, and
+1e-12 evaluates to 9.9999999999999998e-13.
+148
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.9248402012611621e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.54666316441899498,
+t[c] evaluates to 0.546663233667397, and
+1e-12 evaluates to 9.9999999999999998e-13.
+149
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.2207720519811289e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.48075835073112838,
+t[c] evaluates to 0.4807584329388489, and
+1e-12 evaluates to 9.9999999999999998e-13.
+150
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.5352861440023418e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.42070155318262287,
+t[c] evaluates to 0.42070164853548431, and
+1e-12 evaluates to 9.9999999999999998e-13.
+151
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0871355060615429e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.36623508113531411,
+t[c] evaluates to 0.36623518984886472, and
+1e-12 evaluates to 9.9999999999999998e-13.
+152
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.2232000712320001e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.31698416312433148,
+t[c] evaluates to 0.3169842854443386, and
+1e-12 evaluates to 9.9999999999999998e-13.
+153
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3620300676198127e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.27251687258197621,
+t[c] evaluates to 0.27251700878498297, and
+1e-12 evaluates to 9.9999999999999998e-13.
+154
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.5039395070970407e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.23238977292528831,
+t[c] evaluates to 0.23238992331923902, and
+1e-12 evaluates to 9.9999999999999998e-13.
+155
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6492493479236536e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.19618246883857146,
+t[c] evaluates to 0.19618263376350625, and
+1e-12 evaluates to 9.9999999999999998e-13.
+156
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.7982881556077857e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.16352440334217555,
+t[c] evaluates to 0.16352458317099111, and
+1e-12 evaluates to 9.9999999999999998e-13.
+157
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.9513929452874557e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.13411639064451841,
+t[c] evaluates to 0.13411658578381294, and
+1e-12 evaluates to 9.9999999999999998e-13.
+158
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.1089096777227034e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.10774800900988893,
+t[c] evaluates to 0.1077482199008567, and
+1e-12 evaluates to 9.9999999999999998e-13.
+159
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.8275199938128139e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.95631996652471896,
+t[c] evaluates to 0.95631997335223895, and
+1e-12 evaluates to 9.9999999999999998e-13.
+160
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.0497991304324614e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.86974584905127716,
+t[c] evaluates to 0.86974586954926847, and
+1e-12 evaluates to 9.9999999999999998e-13.
+161
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.421479166654251e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.78544658088828034,
+t[c] evaluates to 0.78544661510307201, and
+1e-12 evaluates to 9.9999999999999998e-13.
+162
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 4.8008922726161529e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.70468565939460159,
+t[c] evaluates to 0.70468570740352432, and
+1e-12 evaluates to 9.9999999999999998e-13.
+163
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.1911566651140504e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.62841521257425204,
+t[c] evaluates to 0.62841527448581869, and
+1e-12 evaluates to 9.9999999999999998e-13.
+164
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.5954147860102239e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.55725254338236185,
+t[c] evaluates to 0.55725261933650971, and
+1e-12 evaluates to 9.9999999999999998e-13.
+165
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.0168414623725823e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.49150553347713749,
+t[c] evaluates to 0.49150562364555211, and
+1e-12 evaluates to 9.9999999999999998e-13.
+166
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.0458650323563745e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.43122646145297189,
+t[c] evaluates to 0.43122656603947512, and
+1e-12 evaluates to 9.9999999999999998e-13.
+167
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1924101933624698e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.37627622066214189,
+t[c] evaluates to 0.37627633990316123, and
+1e-12 evaluates to 9.9999999999999998e-13.
+168
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.3416510374897328e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.32638696438547304,
+t[c] evaluates to 0.32638709855057679, and
+1e-12 evaluates to 9.9999999999999998e-13.
+169
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.4939250958523331e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.28121710588322402,
+t[c] evaluates to 0.2812172552757336, and
+1e-12 evaluates to 9.9999999999999998e-13.
+170
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6495767662938476e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.24039682300925089,
+t[c] evaluates to 0.24039698796692752, and
+1e-12 evaluates to 9.9999999999999998e-13.
+171
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.8089580305913344e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.20356459631545012,
+t[c] evaluates to 0.20356477721125318, and
+1e-12 evaluates to 9.9999999999999998e-13.
+172
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.972429322649738e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.17039622924041989,
+t[c] evaluates to 0.17039642648335215, and
+1e-12 evaluates to 9.9999999999999998e-13.
+173
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.1403601677127959e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.14062773801203146,
+t[c] evaluates to 0.14062795204804823, and
+1e-12 evaluates to 9.9999999999999998e-13.
+174
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.3131303027168482e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.11407288770120795,
+t[c] evaluates to 0.11407311901423822, and
+1e-12 evaluates to 9.9999999999999998e-13.
+175
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 7.414859948262631e-09, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.95703885472291639,
+t[c] evaluates to 0.95703886213777634, and
+1e-12 evaluates to 9.9999999999999998e-13.
+176
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.2261342547125196e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.87183545236694315,
+t[c] evaluates to 0.8718354746282857, and
+1e-12 evaluates to 9.9999999999999998e-13.
+177
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 3.7158140120396865e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.78872165332662547,
+t[c] evaluates to 0.78872169048476559, and
+1e-12 evaluates to 9.9999999999999998e-13.
+178
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 5.213892706468215e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.70888292672463482,
+t[c] evaluates to 0.70888297886356189, and
+1e-12 evaluates to 9.9999999999999998e-13.
+179
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 6.7237564294053698e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.63324146745265208,
+t[c] evaluates to 0.63324153469021638, and
+1e-12 evaluates to 9.9999999999999998e-13.
+180
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 8.2488184616202886e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.56242626305903687,
+t[c] evaluates to 0.56242634554722148, and
+1e-12 evaluates to 9.9999999999999998e-13.
+181
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 9.7925264785914123e-08, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.49678477834205692,
+t[c] evaluates to 0.49678487626732171, and
+1e-12 evaluates to 9.9999999999999998e-13.
+182
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.1358370849423594e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.43642253848995011,
+t[c] evaluates to 0.4364226520736586, and
+1e-12 evaluates to 9.9999999999999998e-13.
+183
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.2949892275182506e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.38125637567476783,
+t[c] evaluates to 0.38125650517369059, and
+1e-12 evaluates to 9.9999999999999998e-13.
+184
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.4570689732540387e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.33107036787215161,
+t[c] evaluates to 0.33107051357904893, and
+1e-12 evaluates to 9.9999999999999998e-13.
+185
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.6224428683875303e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.28556776355614638,
+t[c] evaluates to 0.28556792580043322, and
+1e-12 evaluates to 9.9999999999999998e-13.
+186
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.7914848884914569e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.24441581691299227,
+t[c] evaluates to 0.24441599606148112, and
+1e-12 evaluates to 9.9999999999999998e-13.
+187
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 1.9645773258192278e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.20728286417349776,
+t[c] evaluates to 0.20728306063123034, and
+1e-12 evaluates to 9.9999999999999998e-13.
+188
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.1421114837494315e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.17386817929197498,
+t[c] evaluates to 0.17386839350312336, and
+1e-12 evaluates to 9.9999999999999998e-13.
+189
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.3244889177376216e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.14392544446190347,
+t[c] evaluates to 0.14392567691079525, and
+1e-12 evaluates to 9.9999999999999998e-13.
+190
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:216: Failure
+The difference between tighter.temperature[c] and t[c] is 2.5121214554391091e-07, which exceeds 1e-12, where
+tighter.temperature[c] evaluates to 0.11728041608165156,
+t[c] evaluates to 0.1172806672937971, and
+1e-12 evaluates to 9.9999999999999998e-13.
+191
+
+[  FAILED  ] ThermalBoundaryConsistency.ConvergedFieldIsConsistentWithItsBoundaryValues (221 ms)
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:233: Failure
+Expected: (result.iterations) <= (3u), actual: 380 vs 3
+
+/tmp/cfd_prefix/tests/unit/thermal/test_thermal_boundary_consistency.cpp:241: Failure
+Expected: (consistent) <= (1e-9 * initialImbalance), actual: 1.3302534472787534e-07 vs 1.0208519343543412e-08
+
+[  FAILED  ] ThermalBoundaryConsistency.ConjugateConductionPathIsConsistentToo (163 ms)
+[       OK ] ThermalBoundaryConsistency.SingularAllGradientCellReportsStatusInsteadOfThrowing (1 ms)
+[----------] 4 tests from ThermalBoundaryConsistency (387 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (387 ms total)
+[  PASSED  ] 1 test.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] ThermalBoundaryConsistency.BoundaryDiffusionContributionIsExactPerConditionType
+[  FAILED  ] ThermalBoundaryConsistency.ConvergedFieldIsConsistentWithItsBoundaryValues
+[  FAILED  ] ThermalBoundaryConsistency.ConjugateConductionPathIsConsistentToo
+
+ 3 FAILED TESTS

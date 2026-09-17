@@ -1,0 +1,126 @@
+# GradedMeshProductionCase tests, Release (first run after the gate was fixed; the GATE is GradedMeshBeatsUniformAtEqualCellCount)
+=== it_CommittedCaseRunsConservesAndExportsGradedGeometry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GradedMeshProductionCase
+[ RUN      ] GradedMeshProductionCase.CommittedCaseRunsConservesAndExportsGradedGeometry
+committed graded 48x24     cells  1152 | converged 1, 1563 it, 10.19 s | mass imbalance 3.19e-12, inlet 1.000000000, outlet 1.000000000, max column error 4.18e-11 | y1 0.00632 | velocity L1 5.0264e-03 L2 6.8090e-03 Linf 1.8297e-02 | dp/dx (integral wall shear) error 9.4032e-03 | suction-wall shear error 6.6716e-02
+[       OK ] GradedMeshProductionCase.CommittedCaseRunsConservesAndExportsGradedGeometry (21698 ms)
+[----------] 1 test from GradedMeshProductionCase (21699 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (21700 ms total)
+[  PASSED  ] 1 test.
+=== it_GradedMeshBeatsUniformAtEqualCellCount
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GradedMeshProductionCase
+[ RUN      ] GradedMeshProductionCase.GradedMeshBeatsUniformAtEqualCellCount
+uniform 48x24              cells  1152 | converged 1, 2047 it, 12.82 s | mass imbalance 7.46e-14, inlet 1.000000000, outlet 1.000000000, max column error 3.10e-11 | y1 0.02083 | velocity L1 2.0730e-02 L2 3.1002e-02 Linf 9.6154e-02 | dp/dx (integral wall shear) error 3.2287e-02 | suction-wall shear error 1.7452e-01
+graded 48x24 (both, 1.2)   cells  1152 | converged 1, 1563 it, 10.27 s | mass imbalance 3.19e-12, inlet 1.000000000, outlet 1.000000000, max column error 4.18e-11 | y1 0.00632 | velocity L1 5.0264e-03 L2 6.8090e-03 Linf 1.8297e-02 | dp/dx (integral wall shear) error 9.4032e-03 | suction-wall shear error 6.6716e-02
+graded / uniform: dp/dx error 0.291, suction-wall shear error 0.382, velocity L2 0.220, L1 0.242, Linf 0.190, iterations 0.764, time 0.801
+[       OK ] GradedMeshProductionCase.GradedMeshBeatsUniformAtEqualCellCount (23132 ms)
+[----------] 1 test from GradedMeshProductionCase (23133 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (23134 ms total)
+[  PASSED  ] 1 test.
+=== it_GradedGridConvergence
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GradedMeshProductionCase
+[ RUN      ] GradedMeshProductionCase.GradedGridConvergence
+32x16 (ratio 1.314534)     cells   512 | converged 1, 1538 it, 4.30 s | mass imbalance 1.34e-11, inlet 1.000000000, outlet 1.000000000, max column error 2.38e-11 | y1 0.00993 | velocity L1 9.8144e-03 L2 1.3758e-02 Linf 3.7074e-02 | dp/dx (integral wall shear) error 1.7890e-02 | suction-wall shear error 9.6410e-02
+48x24 (ratio 1.200000)     cells  1152 | converged 1, 1563 it, 10.73 s | mass imbalance 3.19e-12, inlet 1.000000000, outlet 1.000000000, max column error 4.18e-11 | y1 0.00632 | velocity L1 5.0264e-03 L2 6.8090e-03 Linf 1.8297e-02 | dp/dx (integral wall shear) error 9.4032e-03 | suction-wall shear error 6.6716e-02
+72x36 (ratio 1.129243)     cells  2592 | converged 1, 1452 it, 27.35 s | mass imbalance 1.36e-12, inlet 1.000000000, outlet 1.000000000, max column error 9.86e-11 | y1 0.00408 | velocity L1 2.4719e-03 L2 3.1302e-03 Linf 8.0528e-03 | dp/dx (integral wall shear) error 4.2114e-03 | suction-wall shear error 4.5601e-02
+
+### Grid convergence: channel_transpiration_graded
+
+Transpiration channel Re_w = 20, y-graded (both, r^m = 1.2^12): 32x16 / 48x24 / 72x36
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 32 x 16 | 512 | 0.0883883 | 4.3 | Converged (1538 it) | yes |
+| medium | 48 x 24 | 1152 | 0.0589256 | 10.7 | Converged (1563 it) | yes |
+| fine | 72 x 36 | 2592 | 0.0392837 | 27.4 | Converged (1452 it) | yes |
+
+**pressure_gradient_relative_error** -- pressure_gradient_relative_error vs the exact transpiration-channel solution; exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.017890328 | 0 (analytical) | 0.01789 | -- |
+| medium | 0.0094032163 | 0 (analytical) | 0.009403 | -- |
+| fine | 0.0042113726 | 0 (analytical) | 0.004211 | -- |
+| extrapolated | -0.0039686105 | | -0.003969 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.2121 | 2 | -0.0039686105 | 0.01022 | 2.428 | 1.778 | 0.7265 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 1.21209 (formal 2); asymptotic ratio 0.726534 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**suction_wall_shear_relative_error** -- suction_wall_shear_relative_error vs the exact transpiration-channel solution; exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.09641017 | 0 (analytical) | 0.09641 | -- |
+| medium | 0.066716227 | 0 (analytical) | 0.06672 | -- |
+| fine | 0.045601494 | 0 (analytical) | 0.0456 | -- |
+| extrapolated | -0.0063650574 | | -0.006365 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 0.8409 | 2 | -0.0063650574 | 0.06496 | 1.424 | 1.369 | 0.6250 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.840941 (formal 2); asymptotic ratio 0.625028 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**velocity_l2_error** -- velocity_l2_error vs the exact transpiration-channel solution; exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.013757513 | 0 (analytical) | 0.01376 | -- |
+| medium | 0.0068089919 | 0 (analytical) | 0.006809 | -- |
+| fine | 0.0031302053 | 0 (analytical) | 0.00313 | -- |
+| extrapolated | -0.0010088069 | | -0.001009 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.5684 | 2 | -0.0010088069 | 0.005174 | 1.653 | 1.435 | 0.8395 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 1.56844 (formal 2); asymptotic ratio 0.83947 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+pair 0 observed order: dp/dx 1.586, suction-wall shear 0.908, velocity L2 1.735
+pair 1 observed order: dp/dx 1.981, suction-wall shear 0.938, velocity L2 1.917
+[       OK ] GradedMeshProductionCase.GradedGridConvergence (42452 ms)
+[----------] 1 test from GradedMeshProductionCase (42452 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42453 ms total)
+[  PASSED  ] 1 test.
+=== it_XAndYGradingTogether
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GradedMeshProductionCase
+[ RUN      ] GradedMeshProductionCase.XAndYGradingTogether
+x(left 1.05) + y(both 1.2) cells  1152 | converged 1, 2085 it, 20.96 s | mass imbalance 5.06e-12, inlet 1.000000000, outlet 1.000000000, max column error 4.95e-11 | y1 0.00632 | velocity L1 4.9860e-03 L2 6.7837e-03 Linf 1.8012e-02 | dp/dx (integral wall shear) error 2.4330e-03 | suction-wall shear error 6.6738e-02
+[       OK ] GradedMeshProductionCase.XAndYGradingTogether (20989 ms)
+[----------] 1 test from GradedMeshProductionCase (20989 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (20992 ms total)
+[  PASSED  ] 1 test.
+=== it_GradedVertexGridOnNonOrthogonalStructuredQuad
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GradedMeshProductionCase
+[ RUN      ] GradedMeshProductionCase.GradedVertexGridOnNonOrthogonalStructuredQuad
+structured_quad graded     cells  1152 | converged 1, 1349 it, 13.61 s | mass imbalance 1.10e-11, inlet 1.000000000, outlet 1.000000000, max column error 3.78e-11 | y1 0.00627 | velocity L1 6.0611e-03 L2 7.8395e-03 Linf 2.1128e-02 | dp/dx (integral wall shear) error 1.8122e-02 | suction-wall shear error 6.6783e-02
+structured_quad uniform    cells  1152 | converged 1, 1514 it, 14.09 s | mass imbalance 3.67e-11, inlet 1.000000000, outlet 1.000000000, max column error 7.38e-11 | y1 0.02038 | velocity L1 2.0824e-02 L2 3.1018e-02 Linf 9.8788e-02 | dp/dx (integral wall shear) error 3.7321e-02 | suction-wall shear error 1.7365e-01
+[       OK ] GradedMeshProductionCase.GradedVertexGridOnNonOrthogonalStructuredQuad (27758 ms)
+[----------] 1 test from GradedMeshProductionCase (27759 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (27760 ms total)
+[  PASSED  ] 1 test.

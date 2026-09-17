@@ -1,0 +1,22 @@
+# G5 investigation: python3 tools/compare_cfdapp.py data/cfdapp_comparison.json x8 x12 x16 x24 x32 y16 z16 x8relax x8long x8linear x16tight x16relax
+# date 2026-09-15T12:17:09Z; python 3.10.12 numpy 1.24.3 scipy 1.11.3 mpmath 1.3.0
+
+x8   it 67 | point Linf 8.499672e-02 RMS 4.190979e-02 | avg Linf 6.649302e-02 RMS 3.758690e-02 | G err 5.55121e-02 u_axis err 6.69071e-02 | vs discrete: |du| 3.55e-08 G 1.39e-06 | vs gate C++: it 67, Linf 9.8e-07 (D399 ref: 3.7e-14), RMS 3.6e-07 (D399: 1.6e-13), dp/dx 1.7e-15, umax 0.0e+00
+x12  it 117 | point Linf 4.048381e-02 RMS 1.990685e-02 | avg Linf 3.225472e-02 RMS 1.812197e-02 | G err 2.57817e-02 u_axis err 3.10654e-02 | vs discrete: |du| 5.92e-08 G 1.49e-06
+x16  it 183 | point Linf 2.335670e-02 RMS 1.148304e-02 | avg Linf 1.872681e-02 RMS 1.050668e-02 | G err 1.47420e-02 u_axis err 1.77605e-02 | vs discrete: |du| 6.38e-08 G 1.54e-06 | vs gate C++: it 183, Linf 1.1e-06 (D399 ref: 1.1e-12), RMS 1.4e-06 (D399: 1.5e-12), dp/dx 3.3e-15, umax 0.0e+00
+x24  it 362 | point Linf 1.057732e-02 RMS 5.202066e-03 | avg Linf 8.519266e-03 RMS 4.777262e-03 | G err 6.63232e-03 u_axis err 7.98965e-03 | vs discrete: |du| 7.08e-08 G 1.53e-06 | vs gate C++: it 362, Linf 3.1e-07 (D399 ref: 1.2e-12), RMS 7.7e-06 (D399: 3.0e-12), dp/dx 1.7e-14, umax 0.0e+00
+x32  it 602 | point Linf 5.990340e-03 RMS 2.947018e-03 | avg Linf 4.832620e-03 RMS 2.709956e-03 | G err 3.74685e-03 u_axis err 4.51400e-03 | vs discrete: |du| 8.08e-08 G 1.51e-06
+y16  it 183 | point Linf 2.335670e-02 RMS 1.148304e-02 | avg Linf 1.872681e-02 RMS 1.050668e-02 | G err 1.47420e-02 u_axis err 1.77605e-02 | vs discrete: |du| 6.38e-08 G 1.54e-06
+z16  it 183 | point Linf 2.335670e-02 RMS 1.148304e-02 | avg Linf 1.872681e-02 RMS 1.050668e-02 | G err 1.47420e-02 u_axis err 1.77605e-02 | vs discrete: |du| 6.38e-08 G 1.54e-06
+x8relax it 142 | point Linf 8.499672e-02 RMS 4.190979e-02 | avg Linf 6.649302e-02 RMS 3.758690e-02 | G err 5.55121e-02 u_axis err 6.69071e-02 | vs discrete: |du| 3.57e-08 G 1.39e-06
+x8long it 69 | point Linf 8.499672e-02 RMS 4.190979e-02 | avg Linf 6.649302e-02 RMS 3.758690e-02 | G err 5.55121e-02 u_axis err 6.69071e-02 | vs discrete: |du| 3.47e-08 G 1.39e-06
+x8linear it 20000 | point Linf 8.481071e-02 RMS 4.182134e-02 | avg Linf 6.630702e-02 RMS 3.759703e-02 | G err 1.30175e-02 u_axis err 6.68184e-02 | vs discrete: |du| 2.52e-04 G 4.50e-02
+x16tight it 228 | point Linf 2.335670e-02 RMS 1.148304e-02 | avg Linf 1.872681e-02 RMS 1.050668e-02 | G err 1.47420e-02 u_axis err 1.77605e-02 | vs discrete: |du| 5.53e-08 G 1.54e-06
+x16relax it 413 | point Linf 2.335670e-02 RMS 1.148304e-02 | avg Linf 1.872681e-02 RMS 1.050668e-02 | G err 1.47420e-02 u_axis err 1.77605e-02 | vs discrete: |du| 6.39e-08 G 1.54e-06
+symmetry_n16 {"x vs y": {"streamwise": 2.345665328640223e-12, "cross1": 2.1062943103612671e-13, "cross2": 2.0848195448341207e-13, "pressure_over_range": 1.7363960517688838e-11, "G_rel": 2.2530998855486545e-11}, "x vs z": {"streamwise": 3.4361402612148595e-12, "cross1": 1.155736824275134e-13, "cross2": 1.1557819152774027e-13, "pressure_over_range": 2.1271565254003905e-11, "G_rel": 6.692204373173234e-11}}
+audit_x8relax_vs_x8 {"max_abs_du_measurement_plane": 1.3510814689254858e-10, "max_abs_dcross_measurement_plane": 1.0592503463385406e-10, "G_rel_diff": 5.920460344990043e-11, "linf_point": [0.08499671660165076, 0.08499671646655194], "iterations": [142, 67]}
+audit_x8long_vs_x8 {"max_abs_du_measurement_plane": 8.492260228365467e-10, "max_abs_dcross_measurement_plane": 7.253865720211376e-11, "G_rel_diff": 1.295770833924146e-10, "linf_point": [0.08499671561733435, 0.08499671646655194], "iterations": [69, 67]}
+audit_x8linear_vs_x8 {"max_abs_du_measurement_plane": 0.00025232488781501416, "max_abs_dcross_measurement_plane": 4.279257605466011e-07, "G_rel_diff": 0.04249464750640996, "linf_point": [0.08481071111085581, 0.08499671646655194], "iterations": [20000, 67]}
+audit_x16tight_vs_x16 {"max_abs_du_measurement_plane": 8.540779639076845e-09, "max_abs_dcross_measurement_plane": 5.984065694602506e-10, "G_rel_diff": 1.185416962837041e-09, "linf_point": [0.023356695384663784, 0.02335670392543099], "iterations": [228, 183]}
+audit_x16relax_vs_x16 {"max_abs_du_measurement_plane": 1.183897424539282e-10, "max_abs_dcross_measurement_plane": 1.1302052338423776e-10, "G_rel_diff": 1.0002207143460148e-10, "linf_point": [0.02335670404380963, 0.02335670392543099], "iterations": [413, 183]}
+# exit: 0

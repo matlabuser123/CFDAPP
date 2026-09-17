@@ -1,0 +1,153 @@
+# P12-MESH-006 focused 3D tests (Release), 2026-09-15T10:50:07Z
+# build warnings in this rebuild: 0
+
+## build/release/tests/solver/simple/CFDSimpleTests --gtest_filter='SIMPLE3D.*'
+[==========] Running 14 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 14 tests from SIMPLE3D
+[ RUN      ] SIMPLE3D.MomentumSystemsArePermutationSymmetric
+[       OK ] SIMPLE3D.MomentumSystemsArePermutationSymmetric (11 ms)
+[ RUN      ] SIMPLE3D.MonitorNeverConvergesWhileWIsUnconverged
+[       OK ] SIMPLE3D.MonitorNeverConvergesWhileWIsUnconverged (5 ms)
+[ RUN      ] SIMPLE3D.UniformFlowFluxIsExactOnEveryFaceOrientation
+[       OK ] SIMPLE3D.UniformFlowFluxIsExactOnEveryFaceOrientation (0 ms)
+[ RUN      ] SIMPLE3D.RhieChowVanishesForALinearPressureField
+[       OK ] SIMPLE3D.RhieChowVanishesForALinearPressureField (0 ms)
+[ RUN      ] SIMPLE3D.RhieChowSeesTheCheckerboardTheLinearFluxCannot
+[       OK ] SIMPLE3D.RhieChowSeesTheCheckerboardTheLinearFluxCannot (0 ms)
+[ RUN      ] SIMPLE3D.ReducedSystemTwoByOneByOneMatchesHandDerivation
+[       OK ] SIMPLE3D.ReducedSystemTwoByOneByOneMatchesHandDerivation (0 ms)
+[ RUN      ] SIMPLE3D.ReducedSystemOneByOneByTwoCouplesThroughZ
+[       OK ] SIMPLE3D.ReducedSystemOneByOneByTwoCouplesThroughZ (0 ms)
+[ RUN      ] SIMPLE3D.ReducedSystemTwoByTwoByTwoMatchesHandDerivation
+[       OK ] SIMPLE3D.ReducedSystemTwoByTwoByTwoMatchesHandDerivation (0 ms)
+[ RUN      ] SIMPLE3D.PressureReferenceDoesNotChangeVelocityOrFlux
+G3.2: max |du| 2.088e-14, max |dF| / max|F| 3.225e-14, gauge-removed |dp| / range 2.143e-14 (iterations 77 / 77)
+[       OK ] SIMPLE3D.PressureReferenceDoesNotChangeVelocityOrFlux (951 ms)
+[ RUN      ] SIMPLE3D.RhieChowRemovesACheckerboardPressure
+G3.3: Rhie-Chow: checkerboard amplitude 3.411e-14, max |u| 4.050e-13 (60 iterations); linear flux (reported): amplitude 6.220e-12, status 0 after 3702 iterations
+[       OK ] SIMPLE3D.RhieChowRemovesACheckerboardPressure (18985 ms)
+[ RUN      ] SIMPLE3D.NonOrthogonalCorrectionIsExactlyInertOnCartesianHexahedra
+[       OK ] SIMPLE3D.NonOrthogonalCorrectionIsExactlyInertOnCartesianHexahedra (202 ms)
+[ RUN      ] SIMPLE3D.NonOrthogonalCorrectionPassesAgreeWithUncorrectedOnCartesianHexahedra
+G3.4'(b): max |du| 2.220e-16, |dF|/max|F| 3.359e-16, |dp|/range 1.948e-16
+[       OK ] SIMPLE3D.NonOrthogonalCorrectionPassesAgreeWithUncorrectedOnCartesianHexahedra (1639 ms)
+[ RUN      ] SIMPLE3D.PlugFlowIsExactInAllSixDirections
+[       OK ] SIMPLE3D.PlugFlowIsExactInAllSixDirections (558 ms)
+[ RUN      ] SIMPLE3D.CouetteFlowIsExactForMovingWallsOnThreeAxes
+[       OK ] SIMPLE3D.CouetteFlowIsExactForMovingWallsOnThreeAxes (412 ms)
+[----------] 14 tests from SIMPLE3D (22767 ms total)
+[----------] Global test environment tear-down
+[==========] 14 tests from 1 test suite ran. (22767 ms total)
+[  PASSED  ] 14 tests.
+## exit: 0
+
+## build/release/tests/unit/discretization/CFDDiscretizationTests --gtest_filter='Operators3DTest.*'
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from Operators3DTest
+[ RUN      ] Operators3DTest.InterpolationIsExactForConstantAndLinearFields
+[       OK ] Operators3DTest.InterpolationIsExactForConstantAndLinearFields (2 ms)
+[ RUN      ] Operators3DTest.GradientsAreExactForLinearFieldsInEveryCell
+[       OK ] Operators3DTest.GradientsAreExactForLinearFieldsInEveryCell (15 ms)
+[ RUN      ] Operators3DTest.LeastSquaresPrimitiveSolvesTheThreeByThreeSystem
+[       OK ] Operators3DTest.LeastSquaresPrimitiveSolvesTheThreeByThreeSystem (0 ms)
+[ RUN      ] Operators3DTest.ExplicitDiffusionIsExactForAQuadraticField
+[       OK ] Operators3DTest.ExplicitDiffusionIsExactForAQuadraticField (1 ms)
+[ RUN      ] Operators3DTest.ExplicitDiffusionWithZeroFluxBoundariesConservesGlobally
+[       OK ] Operators3DTest.ExplicitDiffusionWithZeroFluxBoundariesConservesGlobally (0 ms)
+[ RUN      ] Operators3DTest.DivergenceFreeMassFluxBalancesInEveryCell
+[       OK ] Operators3DTest.DivergenceFreeMassFluxBalancesInEveryCell (0 ms)
+[ RUN      ] Operators3DTest.ConvectionPreservesAConstantWithEveryScheme
+[       OK ] Operators3DTest.ConvectionPreservesAConstantWithEveryScheme (4 ms)
+[ RUN      ] Operators3DTest.HigherOrderConvectionIsExactForALinearFieldAwayFromTheBoundary
+[       OK ] Operators3DTest.HigherOrderConvectionIsExactForALinearFieldAwayFromTheBoundary (3 ms)
+[ RUN      ] Operators3DTest.ThreeDimensionalCapableComponentsAcceptA3DMesh
+[       OK ] Operators3DTest.ThreeDimensionalCapableComponentsAcceptA3DMesh (3 ms)
+[ RUN      ] Operators3DTest.TwoDimensionalOnlyComponentsRefuseA3DMesh
+[       OK ] Operators3DTest.TwoDimensionalOnlyComponentsRefuseA3DMesh (0 ms)
+[----------] 10 tests from Operators3DTest (31 ms total)
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (31 ms total)
+[  PASSED  ] 10 tests.
+## exit: 0
+
+## build/release/tests/integration/mms/CFDMMSValidationTests --gtest_filter='MMSSimple3DTest.*'
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from MMSSimple3DTest
+[ RUN      ] MMSSimple3DTest.ForcingMatchesFiniteDifferencesOfClosedForms
+G4.0: worst relative deviation from 4th-order central differences 1.774e-10, max |div U| 1.965e-13
+[       OK ] MMSSimple3DTest.ForcingMatchesFiniteDifferencesOfClosedForms (0 ms)
+[ RUN      ] MMSSimple3DTest.ErrorsDecreaseOnCoarseLevels
+level 6x6x6: Converged, 33 iterations (0.1 s)
+level 12x12x12: Converged, 73 iterations (2.0 s)
+[       OK ] MMSSimple3DTest.ErrorsDecreaseOnCoarseLevels (2073 ms)
+[ DISABLED ] MMSSimple3DTest.DISABLED_RefinementStudy
+[----------] 2 tests from MMSSimple3DTest (2074 ms total)
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (2074 ms total)
+[  PASSED  ] 2 tests.
+  YOU HAVE 1 DISABLED TEST
+## exit: 0
+
+## build/release/tests/unit/io/CFDIoTests --gtest_filter='Case3DTest.*'
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from Case3DTest
+[ RUN      ] Case3DTest.ParsesTheThreeDimensionalCaseFormat
+[       OK ] Case3DTest.ParsesTheThreeDimensionalCaseFormat (2 ms)
+[ RUN      ] Case3DTest.FaceFluxKeyParsesEveryValueAndDefaultsToAutomatic
+[       OK ] Case3DTest.FaceFluxKeyParsesEveryValueAndDefaultsToAutomatic (5 ms)
+[ RUN      ] Case3DTest.CaseBuilderBuildsTheHexahedralMeshAndThreeComponentState
+[       OK ] Case3DTest.CaseBuilderBuildsTheHexahedralMeshAndThreeComponentState (0 ms)
+[ RUN      ] Case3DTest.CaseWriterRoundTripIsLossless
+[       OK ] Case3DTest.CaseWriterRoundTripIsLossless (1 ms)
+[ RUN      ] Case3DTest.TwoDimensionalCaseWritesNoThreeDimensionalKeys
+[       OK ] Case3DTest.TwoDimensionalCaseWritesNoThreeDimensionalKeys (0 ms)
+[ RUN      ] Case3DTest.RejectsMalformedMeshAndGeometry
+[       OK ] Case3DTest.RejectsMalformedMeshAndGeometry (11 ms)
+[ RUN      ] Case3DTest.RejectsVelocitiesOfTheWrongDimensionAndTwoDimensionalPatchNames
+[       OK ] Case3DTest.RejectsVelocitiesOfTheWrongDimensionAndTwoDimensionalPatchNames (3 ms)
+[ RUN      ] Case3DTest.RejectsPhysicsThat3DDoesNotSupport
+[       OK ] Case3DTest.RejectsPhysicsThat3DDoesNotSupport (7 ms)
+[----------] 8 tests from Case3DTest (34 ms total)
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (34 ms total)
+[  PASSED  ] 8 tests.
+## exit: 0
+
+## build/release/tests/integration/case/CFDCaseIntegrationTests --gtest_filter='Duct3DProductionCase.*:LidDrivenCube3DProductionCase.*'
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from Duct3DProductionCase
+[ RUN      ] Duct3DProductionCase.SeriesReproducesTheSquareDuctConstants
+K = 0.0351443, u_max/U = 2.096256, f Re = 56.9083
+[       OK ] Duct3DProductionCase.SeriesReproducesTheSquareDuctConstants (0 ms)
+[ RUN      ] Duct3DProductionCase.CommittedDuctRunsConservesAndExports
+committed duct 48x8x8: 67 iterations, W residual 1.896e-10, relative imbalance 1.930e-12
+n= 8 cells   3072 | Converged, rhie_chow, 67 it, 2.8 s | Linf 8.4997e-02 RMS 4.1910e-02 | dp/dx 2.687460 err 5.5512e-02 | u_max 1.95600 err 6.6907e-02 | cross-flow 1.43e-08 | sections 1.98e-12 global 1.93e-12
+[       OK ] Duct3DProductionCase.CommittedDuctRunsConservesAndExports (5751 ms)
+[ DISABLED ] Duct3DProductionCase.DISABLED_DuctLevel8
+[ DISABLED ] Duct3DProductionCase.DISABLED_DuctLevel16
+[ DISABLED ] Duct3DProductionCase.DISABLED_DuctLevel24
+[ DISABLED ] Duct3DProductionCase.DISABLED_DuctGate
+[ DISABLED ] Duct3DProductionCase.DISABLED_DirectionalSymmetry
+[----------] 2 tests from Duct3DProductionCase (5751 ms total)
+[----------] 2 tests from LidDrivenCube3DProductionCase
+[ RUN      ] LidDrivenCube3DProductionCase.CentrelineSamplerIsExactForLinearFields
+[       OK ] LidDrivenCube3DProductionCase.CentrelineSamplerIsExactForLinearFields (0 ms)
+[ RUN      ] LidDrivenCube3DProductionCase.CommittedLightCubeRunsAndIsMeasured
+light cube 16^3 Re=100: 85 iterations, symmetry 7.792e-08, net flux 0.000e+00, vortex (0.5938, 0.7500)
+[       OK ] LidDrivenCube3DProductionCase.CommittedLightCubeRunsAndIsMeasured (4929 ms)
+[ DISABLED ] LidDrivenCube3DProductionCase.DISABLED_CubeLevel32
+[ DISABLED ] LidDrivenCube3DProductionCase.DISABLED_CubeLevel48
+[ DISABLED ] LidDrivenCube3DProductionCase.DISABLED_CubeLevel64
+[ DISABLED ] LidDrivenCube3DProductionCase.DISABLED_CubeGate
+[----------] 2 tests from LidDrivenCube3DProductionCase (4930 ms total)
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (10681 ms total)
+[  PASSED  ] 4 tests.
+  YOU HAVE 9 DISABLED TESTS
+## exit: 0
+

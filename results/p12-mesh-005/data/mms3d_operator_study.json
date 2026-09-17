@@ -1,0 +1,679 @@
+{
+  "format_version": 1,
+  "study": "p12_mesh_005_operators_3d",
+  "description": "P12-MESH-005: production operators on the 3D Cartesian hexahedral mesh, unit cube, per-face exact Dirichlet data",
+  "manufactured_solution": "phi = sin(pi x) cos(pi y/2) exp(z/2) + x y z; u = (1 + y/2, 1 + z/2, 1 + x/2); psi = exp(0.3x + 0.5y + 0.7z)",
+  "method": {
+    "error_norms": "volume-weighted over the selected cells: L1 = sum|e|V/sumV, L2 = sqrt(sum e^2 V/sumV), Linf = max|e| (cfd/validation/ErrorNorms.hpp)",
+    "pressure_gauge": "numerical and exact pressure each shifted to zero volume-weighted mean over all cells before comparison",
+    "observed_order": "P12-NUM-005 analyzeGridConvergence on each consecutive triplet of error values (exact limit 0); reduction factor = E_coarse/E_fine",
+    "indexing": "levels listed coarse -> fine"
+  },
+  "coefficients": {
+    "poisson_conductivity": 1.0,
+    "density": 1.0,
+    "specific_heat": 1.0,
+    "transport_conductivity": 0.1
+  },
+  "configuration": {
+    "mesh": "MeshGeometry::createCartesian3D, n x n x n",
+    "h": "representativeGridSize(1, n^3, 3) = 1/n",
+    "order": "p = ln(Ec/Ef) / ln(hc/hf), consecutive pairs; gate on the finest pair",
+    "F1": "gradient(GreenGauss) vs grad(phi), global",
+    "F2/F3": "gradient(LeastSquares) vs grad(phi), interior (not boundary-adjacent) / global",
+    "F4": "diffusion(phi, 1) vs lap(phi), global",
+    "F5": "ThermalSolver, zero mass flux, k = 1, per-face Dirichlet: -k lap(phi) = Q",
+    "F6/F7": "convection(psi, rho u.Sf) vs rho u.grad(psi); F7 interior = >2 layers from boundary",
+    "F8": "ThermalSolver, upwind energy convection, k = 0.1: rho cp u.grad(phi) - k lap(phi) = Q",
+    "linear solver": "BiCGSTAB rel 1e-10, abs 1e-14, <= 20000; outer tolerance 1e-10"
+  },
+  "levels": [
+    {
+      "name": "8x8x8",
+      "nx": 8,
+      "ny": 8,
+      "cells": 512,
+      "h": 0.12500000000000003,
+      "solver_status": "poisson Converged, transport Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": null,
+      "errors": {
+        "F1_gg_gradient": {
+          "l1": 0.03541046637190936,
+          "l2": 0.042333647953180176,
+          "linf": 0.10594998959215704,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F1_gg_gradient_boundary_ring": {
+          "l1": 0.0335171728757252,
+          "l2": 0.04113435685651266,
+          "linf": 0.10594998959215704,
+          "cells": 296,
+          "volume": 0.578125
+        },
+        "F2_lsq_gradient_interior": {
+          "l1": 0.03800497968149497,
+          "l2": 0.04392397022109675,
+          "linf": 0.09573594783550178,
+          "cells": 216,
+          "volume": 0.421875
+        },
+        "F3_lsq_gradient": {
+          "l1": 0.04554900040450495,
+          "l2": 0.054336193199688944,
+          "linf": 0.12552663834095923,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F4_diffusion": {
+          "l1": 0.07105017428619552,
+          "l2": 0.08650636049881937,
+          "linf": 0.20106829130609682,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F5_poisson": {
+          "l1": 0.0025110209208186463,
+          "l2": 0.0032509404002469618,
+          "linf": 0.007769555149881091,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F6_convection_upwind": {
+          "l1": 0.13395295881932123,
+          "l2": 0.14337388319336192,
+          "linf": 0.3033317334756145,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F7_convection_central_interior": {
+          "l1": 0.0017238895180596917,
+          "l2": 0.0017448260204186372,
+          "linf": 0.002427460510233459,
+          "cells": 64,
+          "volume": 0.125
+        },
+        "F7_convection_central_global": {
+          "l1": 0.44540391870727825,
+          "l2": 0.7270889941737241,
+          "linf": 4.496992987162839,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F7_convection_linear_upwind_interior": {
+          "l1": 0.006508933996221412,
+          "l2": 0.006588011670989229,
+          "linf": 0.00916531846115376,
+          "cells": 64,
+          "volume": 0.125
+        },
+        "F7_convection_linear_upwind_global": {
+          "l1": 0.4324221043869199,
+          "l2": 0.7031719296920865,
+          "linf": 4.357972844864596,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F7_convection_quick_interior": {
+          "l1": 0.004116411757140594,
+          "l2": 0.00416641881180983,
+          "linf": 0.005796389485698938,
+          "cells": 64,
+          "volume": 0.125
+        },
+        "F7_convection_quick_global": {
+          "l1": 0.43891301154709905,
+          "l2": 0.715121134760284,
+          "linf": 4.427482916013714,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "F8_convection_diffusion": {
+          "l1": 0.04911769608670339,
+          "l2": 0.062194094987929924,
+          "linf": 0.1606236096818907,
+          "cells": 512,
+          "volume": 1.0
+        }
+      },
+      "diagnostics": {
+        "F5_outer_iterations": 3.0,
+        "F5_last_linear_iterations": 0.0,
+        "F8_outer_iterations": 2.0,
+        "F8_last_linear_iterations": 6.0
+      }
+    },
+    {
+      "name": "16x16x16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 4096,
+      "h": 0.06250000000000001,
+      "solver_status": "poisson Converged, transport Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": null,
+      "errors": {
+        "F1_gg_gradient": {
+          "l1": 0.009928758468871519,
+          "l2": 0.012016863164397741,
+          "linf": 0.031256790192905816,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F1_gg_gradient_boundary_ring": {
+          "l1": 0.008988912012338325,
+          "l2": 0.01139591145078373,
+          "linf": 0.031256790192905816,
+          "cells": 1352,
+          "volume": 0.330078125
+        },
+        "F2_lsq_gradient_interior": {
+          "l1": 0.0103918315043062,
+          "l2": 0.012311301230801527,
+          "linf": 0.03000383381264214,
+          "cells": 2744,
+          "volume": 0.669921875
+        },
+        "F3_lsq_gradient": {
+          "l1": 0.01158969544285389,
+          "l2": 0.01403486140697403,
+          "linf": 0.032649801777922635,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F4_diffusion": {
+          "l1": 0.017662432704270623,
+          "l2": 0.021845485863866986,
+          "linf": 0.05375080647376862,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F5_poisson": {
+          "l1": 0.0006086154483516586,
+          "l2": 0.0008032358561976201,
+          "linf": 0.001957554350511259,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F6_convection_upwind": {
+          "l1": 0.06953581640633001,
+          "l2": 0.07380112351532485,
+          "linf": 0.16262199540421918,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F7_convection_central_interior": {
+          "l1": 0.0004379560687886023,
+          "l2": 0.0004506063492143046,
+          "linf": 0.0008121387311055273,
+          "cells": 1728,
+          "volume": 0.421875
+        },
+        "F7_convection_central_global": {
+          "l1": 0.24516819056000794,
+          "l2": 0.5094973224392394,
+          "linf": 4.761411390000443,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F7_convection_linear_upwind_interior": {
+          "l1": 0.0017015379744733385,
+          "l2": 0.0017506945597615417,
+          "linf": 0.003155260759995393,
+          "cells": 1728,
+          "volume": 0.421875
+        },
+        "F7_convection_linear_upwind_global": {
+          "l1": 0.2418408847553694,
+          "l2": 0.5006023966288985,
+          "linf": 4.68356231529874,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F7_convection_quick_interior": {
+          "l1": 0.0010697470216308295,
+          "l2": 0.0011006504492407153,
+          "linf": 0.001983699745564671,
+          "cells": 1728,
+          "volume": 0.421875
+        },
+        "F7_convection_quick_global": {
+          "l1": 0.24350453765768845,
+          "l2": 0.5050484273646192,
+          "linf": 4.72248685264962,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "F8_convection_diffusion": {
+          "l1": 0.026584077571420037,
+          "l2": 0.0355773745126833,
+          "linf": 0.09740319890546378,
+          "cells": 4096,
+          "volume": 1.0
+        }
+      },
+      "diagnostics": {
+        "F5_outer_iterations": 3.0,
+        "F5_last_linear_iterations": 0.0,
+        "F8_outer_iterations": 3.0,
+        "F8_last_linear_iterations": 0.0
+      }
+    },
+    {
+      "name": "32x32x32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 32768,
+      "h": 0.03125000000000001,
+      "solver_status": "poisson Converged, transport Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": null,
+      "errors": {
+        "F1_gg_gradient": {
+          "l1": 0.0026204405179054476,
+          "l2": 0.0031733152030763616,
+          "linf": 0.008159930160531001,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F1_gg_gradient_boundary_ring": {
+          "l1": 0.002312251627843101,
+          "l2": 0.0029712311287492135,
+          "linf": 0.008159930160531001,
+          "cells": 5768,
+          "volume": 0.176025390625
+        },
+        "F2_lsq_gradient_interior": {
+          "l1": 0.00268627879634547,
+          "l2": 0.003214840040278682,
+          "linf": 0.008014077205690954,
+          "cells": 27000,
+          "volume": 0.823974609375
+        },
+        "F3_lsq_gradient": {
+          "l1": 0.002939317394404873,
+          "l2": 0.0036896281982638605,
+          "linf": 0.01580592779956554,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F4_diffusion": {
+          "l1": 0.004417838876441653,
+          "l2": 0.005492847075303605,
+          "linf": 0.013716301889445504,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F5_poisson": {
+          "l1": 0.00015091634672243978,
+          "l2": 0.0002003023205330049,
+          "linf": 0.000491459013831852,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F6_convection_upwind": {
+          "l1": 0.035406199617838294,
+          "l2": 0.037411744832698254,
+          "linf": 0.08419597227308984,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F7_convection_central_interior": {
+          "l1": 0.00011058982326593499,
+          "l2": 0.00011495585226078808,
+          "linf": 0.00023457740940102667,
+          "cells": 21952,
+          "volume": 0.669921875
+        },
+        "F7_convection_central_global": {
+          "l1": 0.12826318388445745,
+          "l2": 0.35738107552950643,
+          "linf": 4.8995846965306775,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F7_convection_linear_upwind_interior": {
+          "l1": 0.0004359343640377001,
+          "l2": 0.0004531461649300901,
+          "linf": 0.0009246725548734958,
+          "cells": 21952,
+          "volume": 0.669921875
+        },
+        "F7_convection_linear_upwind_global": {
+          "l1": 0.127431635478441,
+          "l2": 0.354153577616703,
+          "linf": 4.858392415730332,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F7_convection_quick_interior": {
+          "l1": 0.0002732620936517705,
+          "l2": 0.0002840510081377629,
+          "linf": 0.0005796249821798938,
+          "cells": 21952,
+          "volume": 0.669921875
+        },
+        "F7_convection_quick_global": {
+          "l1": 0.1278474096814482,
+          "l2": 0.3557670992490928,
+          "linf": 4.878988556130491,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "F8_convection_diffusion": {
+          "l1": 0.01453938771176855,
+          "l2": 0.019861595331903677,
+          "linf": 0.05458352597792582,
+          "cells": 32768,
+          "volume": 1.0
+        }
+      },
+      "diagnostics": {
+        "F5_outer_iterations": 3.0,
+        "F5_last_linear_iterations": 1.0,
+        "F8_outer_iterations": 3.0,
+        "F8_last_linear_iterations": 0.0
+      }
+    },
+    {
+      "name": "64x64x64",
+      "nx": 64,
+      "ny": 64,
+      "cells": 262144,
+      "h": 0.015625000000000003,
+      "solver_status": "poisson Converged, transport Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 0,
+      "mass_imbalance": null,
+      "errors": {
+        "F1_gg_gradient": {
+          "l1": 0.0006724871808840528,
+          "l2": 0.0008136441465771218,
+          "linf": 0.002065978705296736,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F1_gg_gradient_boundary_ring": {
+          "l1": 0.000585581956385592,
+          "l2": 0.0007569218075369822,
+          "linf": 0.002065978705296736,
+          "cells": 23816,
+          "volume": 0.090850830078125
+        },
+        "F2_lsq_gradient_interior": {
+          "l1": 0.0006811715772900822,
+          "l2": 0.0008190965357827295,
+          "linf": 0.0020486665287077492,
+          "cells": 238328,
+          "volume": 0.909149169921875
+        },
+        "F3_lsq_gradient": {
+          "l1": 0.0007432068084291543,
+          "l2": 0.001004602202348584,
+          "linf": 0.00794894487521829,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F4_diffusion": {
+          "l1": 0.0011058162653297683,
+          "l2": 0.0013771323136874778,
+          "linf": 0.003453418598041935,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F5_poisson": {
+          "l1": 3.7737273892471496e-05,
+          "l2": 5.004922485438491e-05,
+          "linf": 0.00012292957073234412,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F6_convection_upwind": {
+          "l1": 0.017862457604516116,
+          "l2": 0.018831499740004407,
+          "linf": 0.04283822651449576,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F7_convection_central_interior": {
+          "l1": 2.779964663428421e-05,
+          "l2": 2.9059697515364272e-05,
+          "linf": 6.301641723815976e-05,
+          "cells": 216000,
+          "volume": 0.823974609375
+        },
+        "F7_convection_central_global": {
+          "l1": 0.06555567160363356,
+          "l2": 0.25144325108673615,
+          "linf": 4.970216676438431,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F7_convection_linear_upwind_interior": {
+          "l1": 0.00011038622036051285,
+          "l2": 0.00011538979208577562,
+          "linf": 0.00025022281436726246,
+          "cells": 216000,
+          "volume": 0.823974609375
+        },
+        "F7_convection_linear_upwind_global": {
+          "l1": 0.06534836794416138,
+          "l2": 0.25028704059064644,
+          "linf": 4.949029193232766,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F7_convection_quick_interior": {
+          "l1": 6.909293349741784e-05,
+          "l2": 7.222474476737095e-05,
+          "linf": 0.0001566196154900723,
+          "cells": 216000,
+          "volume": 0.823974609375
+        },
+        "F7_convection_quick_global": {
+          "l1": 0.06545201977389675,
+          "l2": 0.25086510837062587,
+          "linf": 4.959622934835684,
+          "cells": 262144,
+          "volume": 1.0
+        },
+        "F8_convection_diffusion": {
+          "l1": 0.00779975642693379,
+          "l2": 0.01066520807974207,
+          "linf": 0.029109090569921392,
+          "cells": 262144,
+          "volume": 1.0
+        }
+      },
+      "diagnostics": {
+        "F5_outer_iterations": 3.0,
+        "F5_last_linear_iterations": 1.0,
+        "F8_outer_iterations": 3.0,
+        "F8_last_linear_iterations": 0.0
+      }
+    }
+  ],
+  "orders": [],
+  "gates": [
+    {
+      "name": "F1_gg_gradient L1",
+      "passed": true,
+      "detail": "pairwise p 1.834 1.922 1.962; finest 1.962 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F1_gg_gradient L2",
+      "passed": true,
+      "detail": "pairwise p 1.817 1.921 1.964; finest 1.964 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F1_gg_gradient Linf",
+      "passed": true,
+      "detail": "pairwise p 1.761 1.938 1.982; finest 1.982 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F2_lsq_gradient_interior L1",
+      "passed": true,
+      "detail": "pairwise p 1.871 1.952 1.980; finest 1.980 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F2_lsq_gradient_interior L2",
+      "passed": true,
+      "detail": "pairwise p 1.835 1.937 1.973; finest 1.973 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F2_lsq_gradient_interior Linf",
+      "passed": true,
+      "detail": "pairwise p 1.674 1.905 1.968; finest 1.968 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F3_lsq_gradient L1",
+      "passed": true,
+      "detail": "pairwise p 1.975 1.979 1.984; finest 1.984 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F3_lsq_gradient L2",
+      "passed": true,
+      "detail": "pairwise p 1.953 1.927 1.877; finest 1.877 vs threshold 1.125 (expected 1.5); decreasing"
+    },
+    {
+      "name": "F3_lsq_gradient Linf",
+      "passed": true,
+      "detail": "pairwise p 1.943 1.047 0.992; finest 0.992 vs threshold 0.750 (expected 1.0); decreasing"
+    },
+    {
+      "name": "F4_diffusion L1",
+      "passed": true,
+      "detail": "pairwise p 2.008 1.999 1.998; finest 1.998 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F4_diffusion L2",
+      "passed": true,
+      "detail": "pairwise p 1.985 1.992 1.996; finest 1.996 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F4_diffusion Linf",
+      "passed": true,
+      "detail": "pairwise p 1.903 1.970 1.990; finest 1.990 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F5_poisson L1",
+      "passed": true,
+      "detail": "pairwise p 2.045 2.012 2.000; finest 2.000 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F5_poisson L2",
+      "passed": true,
+      "detail": "pairwise p 2.017 2.004 2.001; finest 2.001 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F5_poisson Linf",
+      "passed": true,
+      "detail": "pairwise p 1.989 1.994 1.999; finest 1.999 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F6_convection_upwind L1",
+      "passed": true,
+      "detail": "pairwise p 0.946 0.974 0.987; finest 0.987 vs threshold 0.750 (expected 1.0); decreasing"
+    },
+    {
+      "name": "F6_convection_upwind L2",
+      "passed": true,
+      "detail": "pairwise p 0.958 0.980 0.990; finest 0.990 vs threshold 0.750 (expected 1.0); decreasing"
+    },
+    {
+      "name": "F6_convection_upwind Linf",
+      "passed": true,
+      "detail": "pairwise p 0.899 0.950 0.975; finest 0.975 vs threshold 0.750 (expected 1.0); decreasing"
+    },
+    {
+      "name": "F7_convection_central_interior L1",
+      "passed": true,
+      "detail": "pairwise p 1.977 1.986 1.992; finest 1.992 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_central_interior L2",
+      "passed": true,
+      "detail": "pairwise p 1.953 1.971 1.984; finest 1.984 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_central_interior Linf",
+      "passed": true,
+      "detail": "pairwise p 1.580 1.792 1.896; finest 1.896 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_linear_upwind_interior L1",
+      "passed": true,
+      "detail": "pairwise p 1.936 1.965 1.982; finest 1.982 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_linear_upwind_interior L2",
+      "passed": true,
+      "detail": "pairwise p 1.912 1.950 1.973; finest 1.973 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_linear_upwind_interior Linf",
+      "passed": true,
+      "detail": "pairwise p 1.538 1.771 1.886; finest 1.886 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_quick_interior L1",
+      "passed": true,
+      "detail": "pairwise p 1.944 1.969 1.984; finest 1.984 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_quick_interior L2",
+      "passed": true,
+      "detail": "pairwise p 1.920 1.954 1.976; finest 1.976 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F7_convection_quick_interior Linf",
+      "passed": true,
+      "detail": "pairwise p 1.547 1.775 1.888; finest 1.888 vs threshold 1.500 (expected 2.0); decreasing"
+    },
+    {
+      "name": "F8_convection_diffusion L1",
+      "passed": true,
+      "detail": "pairwise p 0.886 0.871 0.898; finest 0.898 vs threshold 0.750 (expected 1.0); decreasing"
+    },
+    {
+      "name": "F8_convection_diffusion L2",
+      "passed": true,
+      "detail": "pairwise p 0.806 0.841 0.897; finest 0.897 vs threshold 0.750 (expected 1.0); decreasing"
+    },
+    {
+      "name": "F8_convection_diffusion Linf",
+      "passed": true,
+      "detail": "pairwise p 0.722 0.836 0.907; finest 0.907 vs threshold 0.750 (expected 1.0); decreasing"
+    }
+  ],
+  "all_gates_passed": true,
+  "runtime": {
+    "note": "measured wall time -- the only non-deterministic part of this report",
+    "levels": [
+      {
+        "name": "8x8x8",
+        "seconds": 0.01687143
+      },
+      {
+        "name": "16x16x16",
+        "seconds": 0.08222404
+      },
+      {
+        "name": "32x32x32",
+        "seconds": 1.045099289
+      },
+      {
+        "name": "64x64x64",
+        "seconds": 15.843801049
+      }
+    ]
+  }
+}

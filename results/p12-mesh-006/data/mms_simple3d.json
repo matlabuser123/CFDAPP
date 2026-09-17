@@ -1,0 +1,409 @@
+{
+  "format_version": 1,
+  "study": "p12_mesh_006_simple_3d",
+  "description": "P12-MESH-006: production SIMPLE (u, v, w, p; Rhie-Chow) on the 3D Cartesian hexahedral mesh, closed unit cube, from rest",
+  "manufactured_solution": "U = curl(0, -F, G)/pi, G = sin(pi x) sin(pi y) e^{z/2}, F = sin(pi x) sin(pi z) e^{-y/2}; p = cos(pi x) cos(pi y) cos(pi z) + xyz/2 (compared modulo gauge)",
+  "method": {
+    "error_norms": "volume-weighted over the selected cells: L1 = sum|e|V/sumV, L2 = sqrt(sum e^2 V/sumV), Linf = max|e| (cfd/validation/ErrorNorms.hpp)",
+    "pressure_gauge": "numerical and exact pressure each shifted to zero volume-weighted mean over all cells before comparison",
+    "observed_order": "P12-NUM-005 analyzeGridConvergence on each consecutive triplet of error values (exact limit 0); reduction factor = E_coarse/E_fine",
+    "indexing": "levels listed coarse -> fine"
+  },
+  "coefficients": {
+    "density": 1.0,
+    "viscosity": 0.1
+  },
+  "configuration": {
+    "solver": "cfd::pressure_velocity::SIMPLE + setMomentumSource, face flux automatic (rhie_chow)",
+    "convection": "central",
+    "gradient": "green_gauss",
+    "relaxation": "velocity 0.8, pressure 0.4",
+    "outer_tolerance": "1e-8 (u, v, w, pressure, continuity; absolute)",
+    "inner_solvers": "BiCGSTAB rel 1e-3 / abs 1e-12 (pressure: Jacobi)",
+    "velocity_bc": "exact Dirichlet (Inlet) on every boundary face",
+    "pressure_bc": "exact FixedGradient(grad p . n) per face; reference cell 0",
+    "initial_condition": "U = 0, p = 0",
+    "h": "representativeGridSize(1, n^3, 3) = 1/n"
+  },
+  "levels": [
+    {
+      "name": "8x8x8",
+      "nx": 8,
+      "ny": 8,
+      "cells": 512,
+      "h": 0.12500000000000003,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 43,
+      "mass_imbalance": 2.1185229388259594e-33,
+      "errors": {
+        "u": {
+          "l1": 0.007558264571479187,
+          "l2": 0.012160616284505193,
+          "linf": 0.06463871993087861,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.005857706494864551,
+          "l2": 0.008531078911840158,
+          "linf": 0.029688173604613233,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "w": {
+          "l1": 0.0033009193929178795,
+          "l2": 0.004479154776836888,
+          "linf": 0.01819187819408291,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.012351268028369632,
+          "l2": 0.015515241646003364,
+          "linf": 0.06471251904591811,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "p": {
+          "l1": 0.021156115638161357,
+          "l2": 0.026125240221875606,
+          "linf": 0.09495909855588569,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "continuity": {
+          "l1": 3.0152588325318944e-11,
+          "l2": 1.4207310443042562e-10,
+          "linf": 3.1472633388318627e-09,
+          "cells": 512,
+          "volume": 1.0
+        },
+        "face_flux": {
+          "l1": 0.004945539101761431,
+          "l2": 0.00747614421209277,
+          "linf": 0.031074119338803996,
+          "cells": 1728,
+          "volume": 27.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 2.1185229388259594e-33,
+        "final_u_residual": 7.700831308481372e-09,
+        "final_v_residual": 7.624545669146191e-09,
+        "final_w_residual": 2.935925918620312e-09,
+        "final_pressure_residual": 1.477917417148076e-09,
+        "final_continuity_residual": 2.7748653209067504e-13
+      }
+    },
+    {
+      "name": "16x16x16",
+      "nx": 16,
+      "ny": 16,
+      "cells": 4096,
+      "h": 0.06250000000000001,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 113,
+      "mass_imbalance": 2.4459310293717895e-32,
+      "errors": {
+        "u": {
+          "l1": 0.0017968210045342058,
+          "l2": 0.0023566696303595363,
+          "linf": 0.013383259961068622,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.0013638462579122416,
+          "l2": 0.001829593678677319,
+          "linf": 0.006896100615568779,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "w": {
+          "l1": 0.0008594113724656335,
+          "l2": 0.0011221913339961086,
+          "linf": 0.003877836908940946,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.0028281197281531095,
+          "l2": 0.0031875724565585853,
+          "linf": 0.013439763401700767,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "p": {
+          "l1": 0.0053923390837210825,
+          "l2": 0.007620004102424299,
+          "linf": 0.033713180207855964,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "continuity": {
+          "l1": 9.973700241386405e-11,
+          "l2": 2.8784688590352276e-09,
+          "linf": 1.8417703451234502e-07,
+          "cells": 4096,
+          "volume": 1.0
+        },
+        "face_flux": {
+          "l1": 0.0006720352113992674,
+          "l2": 0.0010029647839915872,
+          "linf": 0.0050934259709483065,
+          "cells": 13056,
+          "volume": 51.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 2.4459310293717895e-32,
+        "final_u_residual": 9.111317803448423e-09,
+        "final_v_residual": 9.02182290519201e-09,
+        "final_w_residual": 2.701081820021845e-09,
+        "final_pressure_residual": 1.9392189825778932e-10,
+        "final_continuity_residual": 7.027511862878974e-13
+      }
+    },
+    {
+      "name": "32x32x32",
+      "nx": 32,
+      "ny": 32,
+      "cells": 32768,
+      "h": 0.03125000000000001,
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 368,
+      "mass_imbalance": 3.105562035324418e-33,
+      "errors": {
+        "u": {
+          "l1": 0.0004986212674230586,
+          "l2": 0.0006140506077842778,
+          "linf": 0.002082888024980356,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "v": {
+          "l1": 0.0003880652592414732,
+          "l2": 0.0005158145142492695,
+          "linf": 0.0018574257266892324,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "w": {
+          "l1": 0.0002449076507369906,
+          "l2": 0.0003208571189468574,
+          "linf": 0.0010644999133423427,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "velocity": {
+          "l1": 0.0007997721911215058,
+          "l2": 0.0008637546253475702,
+          "linf": 0.0020831881439191137,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "p": {
+          "l1": 0.0010280231425754316,
+          "l2": 0.0017406213663785043,
+          "linf": 0.011502571273146911,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "continuity": {
+          "l1": 2.866976497970124e-10,
+          "l2": 2.5490988320903295e-08,
+          "linf": 4.61425402775717e-06,
+          "cells": 32768,
+          "volume": 1.0
+        },
+        "face_flux": {
+          "l1": 0.00012367966065997315,
+          "l2": 0.0001932772888206499,
+          "linf": 0.001387281306843846,
+          "cells": 101376,
+          "volume": 99.0
+        }
+      },
+      "diagnostics": {
+        "global_mass_imbalance": 3.105562035324418e-33,
+        "final_u_residual": 9.671901608234721e-09,
+        "final_v_residual": 9.49126277136401e-09,
+        "final_w_residual": 2.780282221721235e-09,
+        "final_pressure_residual": 2.0521056897084667e-11,
+        "final_continuity_residual": 7.779232275666289e-13
+      }
+    }
+  ],
+  "orders": [],
+  "gates": [
+    {
+      "name": "G4.1 u L1 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 u L2 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 u Linf decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 u L1 order",
+      "passed": true,
+      "detail": "finest-pair p 1.849 in [1.6, 2.4]"
+    },
+    {
+      "name": "G4.1 u L2 order",
+      "passed": true,
+      "detail": "finest-pair p 1.940 in [1.6, 2.4]"
+    },
+    {
+      "name": "G4.1 v L1 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 v L2 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 v Linf decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 v L1 order",
+      "passed": true,
+      "detail": "finest-pair p 1.813 in [1.6, 2.4]"
+    },
+    {
+      "name": "G4.1 v L2 order",
+      "passed": true,
+      "detail": "finest-pair p 1.827 in [1.6, 2.4]"
+    },
+    {
+      "name": "G4.1 w L1 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 w L2 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 w Linf decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.1 w L1 order",
+      "passed": true,
+      "detail": "finest-pair p 1.811 in [1.6, 2.4]"
+    },
+    {
+      "name": "G4.1 w L2 order",
+      "passed": true,
+      "detail": "finest-pair p 1.806 in [1.6, 2.4]"
+    },
+    {
+      "name": "G4.2 p L1 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.2 p L2 decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.2 p Linf decreasing",
+      "passed": true,
+      "detail": "8 -> 16 -> 32"
+    },
+    {
+      "name": "G4.2 p L1 order",
+      "passed": true,
+      "detail": "finest-pair p 2.391 in [1.5, 2.4]"
+    },
+    {
+      "name": "G4.2 p L2 order",
+      "passed": true,
+      "detail": "finest-pair p 2.130 in [1.5, 2.4]"
+    },
+    {
+      "name": "G4.4 solve at 8x8x8",
+      "passed": true,
+      "detail": "Converged, finite, rhie_chow, 43 iterations from rest"
+    },
+    {
+      "name": "G4.3 continuity Linf per volume <= 1e-5 at 8x8x8",
+      "passed": true,
+      "detail": "3.147e-09"
+    },
+    {
+      "name": "G4.3 global mass imbalance <= 1e-14 at 8x8x8",
+      "passed": true,
+      "detail": "2.119e-33"
+    },
+    {
+      "name": "G4.4 solve at 16x16x16",
+      "passed": true,
+      "detail": "Converged, finite, rhie_chow, 113 iterations from rest"
+    },
+    {
+      "name": "G4.3 continuity Linf per volume <= 1e-5 at 16x16x16",
+      "passed": true,
+      "detail": "1.842e-07"
+    },
+    {
+      "name": "G4.3 global mass imbalance <= 1e-14 at 16x16x16",
+      "passed": true,
+      "detail": "2.446e-32"
+    },
+    {
+      "name": "G4.4 solve at 32x32x32",
+      "passed": true,
+      "detail": "Converged, finite, rhie_chow, 368 iterations from rest"
+    },
+    {
+      "name": "G4.3 continuity Linf per volume <= 1e-5 at 32x32x32",
+      "passed": true,
+      "detail": "4.614e-06"
+    },
+    {
+      "name": "G4.3 global mass imbalance <= 1e-14 at 32x32x32",
+      "passed": true,
+      "detail": "3.106e-33"
+    }
+  ],
+  "all_gates_passed": true,
+  "runtime": {
+    "note": "measured wall time -- the only non-deterministic part of this report",
+    "levels": [
+      {
+        "name": "8x8x8",
+        "seconds": 0.208268735
+      },
+      {
+        "name": "16x16x16",
+        "seconds": 6.328902403
+      },
+      {
+        "name": "32x32x32",
+        "seconds": 236.210819047
+      }
+    ]
+  }
+}

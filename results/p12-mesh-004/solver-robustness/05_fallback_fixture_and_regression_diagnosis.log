@@ -1,0 +1,41 @@
+# P12-MESH-004 solver robustness -- why the first full regression failed (logs/27a) and what the final fix is.
+#
+# (A) The P12-NUM-004 fallback tests' 'P12-COMP-002 breakdown' was the SAME scale-dependent false breakdown.
+# A temporary diagnostic (environment-gated fprintf, removed afterwards; BiCGSTAB.cpp restored to sha 8076cd4e...)
+# printed every quantity the OLD absolute test would have rejected, along the (identical up to that point) trajectory.
+# The old code's breakdowns were all t . t < 1e-30 with |t|/|s| ~ 4e-8 (the pressure-correction matrix's own scale in
+# that direction) and |s| ~ 1-2e-8 (the residual's): t . t is a product of two small SCALES, not an algebraic zero.
+# No inner product had cancelled (none reached |dot| <= eps |x||y|).
+## SIMPLERobustnessTest.LinearSolverFallbackRecovery (first 5 old-criterion hits)
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 5.578e-31 < 1e-30; |s| 1.936e-08; |t|/|s| 3.858e-08; iteration 105, |r| 1.931e-08, b0 8.065e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 8.602e-31 < 1e-30; |s| 1.848e-08; |t|/|s| 5.018e-08; iteration 118, |r| 1.784e-08, b0 7.660e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 4.305e-31 < 1e-30; |s| 1.703e-08; |t|/|s| 3.854e-08; iteration 126, |r| 1.718e-08, b0 7.289e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 8.640e-31 < 1e-30; |s| 1.166e-08; |t|/|s| 7.972e-08; iteration 176, |r| 1.169e-08, b0 6.634e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 3.124e-31 < 1e-30; |s| 1.259e-08; |t|/|s| 4.440e-08; iteration 122, |r| 1.329e-08, b0 6.209e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 9.235e-31 < 1e-30; |s| 1.661e-08; |t|/|s| 5.784e-08; iteration 168, |r| 1.656e-08, b0 6.078e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 8.523e-31 < 1e-30; |s| 1.580e-08; |t|/|s| 5.843e-08; iteration 102, |r| 1.599e-08, b0 5.395e-03
+## CompressibleSIMPLERobustnessTest.FallbackRecovery (first 5 old-criterion hits)
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 8.972e-31 < 1e-30; |s| 1.793e-08; |t|/|s| 5.282e-08; iteration 200, |r| 1.925e-08, b0 6.916e-03
+OLD-TEST WOULD BREAK DOWN (t.t): t.t 8.972e-31 < 1e-30; |s| 1.793e-08; |t|/|s| 5.282e-08; iteration 200, |r| 1.925e-08, b0 6.916e-03
+P12-COMP-002 channel, CompressibleSIMPLE from rest, BiCGSTAB pressure: fallback off -> status 1 after 80 iterations (); fallback on -> status 1 after 80 iterations, 0 fallback(s), 0 recovered
+  without.status
+
+# (B) The first version of the fix (|(x,y)| <= eps |x||y|, no restart) failed 16 tests (logs/27a) for two reasons:
+#  1. an inner product WITHOUT cancellation (e.g. one dominant term, as in advection-dominated species / alpha / k-eps
+#     transport with an inlet-only shadow residual) is accurate however small it is relative to |x||y| -- the norm test
+#     called it zero. Fix: compare with the rounding level of its own terms, eps * sum_i |x_i y_i| (Cauchy-Schwarz:
+#     sum_i |x_i y_i| <= |x||y|, so the norm test remains a free pre-filter). With this alone (no restart), the species-
+#     advection, species-conservation and alpha-advection tests passed; species coupling, turbulence channel and the two
+#     fallback tests still failed (exact count not recorded -- the run output was truncated).
+#  2. GENUINE rounding-level cancellation does occur mid-solve at normal scales; the old code (|dot| ~ 1e-26 > 1e-30)
+#     simply continued and the recurrence recovered. Example, captured with the eps*sum|x_i y_i| build without restart
+#     (SpeciesSolverCouplingTest.TransportsThroughAGenuineSIMPLESolvedPoiseuilleFlow, pressure-correction BiCGSTAB,
+#     160 unknowns):
+#       near-zero dot -2.234843e-26 | eps|x||y| 6.827e-26 | eps sum|xy| 3.916e-26 -> numerically zero
+#       breakdown after 42 iterations, |r| 4.372e-08, b0 7.033e-03  => SIMPLE PressureCorrectionFailure
+#     Fix: the standard BiCGSTAB restart (rHat = the recomputed true residual) when the residual decreased since the
+#     current Krylov sequence started; otherwise Breakdown. -> all 14 non-fallback tests pass.
+#  3. The two P12-NUM-004 fallback tests cannot pass with ANY scale-invariant fix: their fixture WAS the false
+#     breakdown (A). They were rewritten to assert the corrected behaviour (the solve runs to its budget, the fallback
+#     is never needed, results bit-identical with/without it); the fallback on a GENUINE breakdown stays covered by
+#     the 13 LinearFallbackTest unit tests (a real indefinite-system breakdown and stub primaries).

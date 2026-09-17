@@ -1,0 +1,104 @@
+# P12-MESH-004 backward compatibility (after the BiCGSTAB fix). References: the pre-MESH-004 snapshot /tmp/cfd_mesh003
+# and the HEAD build /tmp/cfd_head were deleted by a WSL /tmp cleanup during the session, so they were rebuilt
+# outside /tmp: HEAD = git worktree of b66310c ($HOME/m4ref/head); PREFIX = the current tree with
+# src/algebra/BiCGSTAB.cpp replaced by HEAD's (sha d33521c5..., = the pre-fix solver) -- the only NUMERICAL
+# MESH-004 change; every other MESH-004 change is reporting/validation/export. NEW vs PREFIX isolates the fix on
+# every case; PREFIX vs HEAD shows the non-solver MESH-004 changes (plus the MESH-003 thermal fix, whose two
+# differences reproduce results/p12-mesh-003/logs/08 exactly: temperature 4.66e-08 / 9.91e-08, thermal
+# iterations 112 -> 2 / 201 -> 2). Script: scratch compat.sh (metadata compared without "mesh_quality",
+# stdout without the "Mesh quality:" block).
+HEAD b66310ca871811c4c7671056beec291a451af55c; NEW a220cae3b094695d; PREFIX 1d5e8d0f4708cb06; HEAD-CLI a5a295aa3f7ebb0a
+=== (1) NEW vs PREFIX: the effect of the BiCGSTAB fix alone (every case)
+prefix vs new  lid_driven_cavity: IDENTICAL | exit 0/exit 0
+prefix vs new  lid_driven_cavity_40x40: IDENTICAL | exit 0/exit 0
+prefix vs new  lid_driven_cavity_80x80: IDENTICAL | exit 0/exit 0
+prefix vs new  poiseuille_flow: IDENTICAL | exit 0/exit 0
+prefix vs new  heated_cavity: IDENTICAL | exit 0/exit 0
+prefix vs new  species_diffusion: IDENTICAL | exit 0/exit 0
+prefix vs new  heated_species_diffusion: IDENTICAL | exit 0/exit 0
+prefix vs new  compressible_validation: IDENTICAL | exit 0/exit 0
+prefix vs new  compressible_channel_coupled: IDENTICAL | exit 0/exit 0
+prefix vs new  multiphase_validation: IDENTICAL | exit 0/exit 0
+prefix vs new  poiseuille_distorted: IDENTICAL | exit 0/exit 0
+prefix vs new  channel_transpiration_graded: IDENTICAL | exit 0/exit 0
+prefix vs new  curved_channel_multiblock: IDENTICAL | exit 0/exit 0
+prefix vs new  step_channel_multiblock: IDENTICAL | exit 0/exit 0
+prefix vs new  obstacle_channel_multiblock: IDENTICAL | exit 0/exit 0
+prefix vs new  annular_sector_conduction_multiblock: IDENTICAL | exit 0/exit 0
+prefix vs new  data_valid_cavity: IDENTICAL | exit 0/exit 0
+prefix vs new  data_valid_cavity_cli_smoke: IDENTICAL | exit 0/exit 0
+prefix vs new  data_does_not_converge: IDENTICAL | exit 3/exit 3
+prefix vs new  data_mesh_quality_warning_cli: IDENTICAL | exit 0/exit 0
+prefix vs new  data_mesh_quality_invalid_cli: IDENTICAL (no results/ written by either) | exit 2/exit 2
+prefix vs new  data_mesh_quality_disconnected_cli: IDENTICAL (no results/ written by either) | exit 2/exit 2
+=== (2) PREFIX vs HEAD: MESH-001..004 non-solver changes vs HEAD (Cartesian cases and data fixtures; HEAD cannot read MESH-001..003 meshes)
+head vs prefix  lid_driven_cavity: IDENTICAL | exit 0/exit 0
+head vs prefix  lid_driven_cavity_40x40: IDENTICAL | exit 0/exit 0
+head vs prefix  lid_driven_cavity_80x80: IDENTICAL | exit 0/exit 0
+head vs prefix  poiseuille_flow: IDENTICAL | exit 0/exit 0
+head vs prefix  heated_cavity: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+      max |diff| per column: x 0.00e+00 (rel 0.0e+00); y 0.00e+00 (rel 0.0e+00); velocity_x 0.00e+00 (rel 0.0e+00); velocity_y 0.00e+00 (rel 0.0e+00); velocity_magnitude 0.00e+00 (rel 0.0e+00); pressure 0.00e+00 (rel 0.0e+00); temperature 4.66e-08 (rel 1.5e-10)
+      < Thermal iterations: 112
+      > Thermal iterations: 2
+head vs prefix  species_diffusion: IDENTICAL | exit 0/exit 0
+head vs prefix  heated_species_diffusion: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+      max |diff| per column: x 0.00e+00 (rel 0.0e+00); y 0.00e+00 (rel 0.0e+00); velocity_x 0.00e+00 (rel 0.0e+00); velocity_y 0.00e+00 (rel 0.0e+00); velocity_magnitude 0.00e+00 (rel 0.0e+00); pressure 0.00e+00 (rel 0.0e+00); temperature 9.91e-08 (rel 3.2e-10); concentration_CO2 0.00e+00 (rel 0.0e+00)
+      < Thermal iterations: 201
+      > Thermal iterations: 2
+head vs prefix  compressible_validation: IDENTICAL | exit 0/exit 0
+head vs prefix  compressible_channel_coupled: IDENTICAL | exit 0/exit 0
+head vs prefix  multiphase_validation: IDENTICAL | exit 0/exit 0
+head vs prefix  data_valid_cavity: IDENTICAL | exit 0/exit 0
+head vs prefix  data_valid_cavity_cli_smoke: IDENTICAL | exit 0/exit 0
+head vs prefix  data_does_not_converge: IDENTICAL | exit 3/exit 3
+=== (3) NEW vs HEAD
+head vs new  lid_driven_cavity: IDENTICAL | exit 0/exit 0
+head vs new  lid_driven_cavity_40x40: IDENTICAL | exit 0/exit 0
+head vs new  lid_driven_cavity_80x80: IDENTICAL | exit 0/exit 0
+head vs new  poiseuille_flow: IDENTICAL | exit 0/exit 0
+head vs new  heated_cavity: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+      max |diff| per column: x 0.00e+00 (rel 0.0e+00); y 0.00e+00 (rel 0.0e+00); velocity_x 0.00e+00 (rel 0.0e+00); velocity_y 0.00e+00 (rel 0.0e+00); velocity_magnitude 0.00e+00 (rel 0.0e+00); pressure 0.00e+00 (rel 0.0e+00); temperature 4.66e-08 (rel 1.5e-10)
+      < Thermal iterations: 112
+      > Thermal iterations: 2
+head vs new  species_diffusion: IDENTICAL | exit 0/exit 0
+head vs new  heated_species_diffusion: DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | exit 0/exit 0
+      max |diff| per column: x 0.00e+00 (rel 0.0e+00); y 0.00e+00 (rel 0.0e+00); velocity_x 0.00e+00 (rel 0.0e+00); velocity_y 0.00e+00 (rel 0.0e+00); velocity_magnitude 0.00e+00 (rel 0.0e+00); pressure 0.00e+00 (rel 0.0e+00); temperature 9.91e-08 (rel 3.2e-10); concentration_CO2 0.00e+00 (rel 0.0e+00)
+      < Thermal iterations: 201
+      > Thermal iterations: 2
+head vs new  compressible_validation: IDENTICAL | exit 0/exit 0
+head vs new  compressible_channel_coupled: IDENTICAL | exit 0/exit 0
+head vs new  multiphase_validation: IDENTICAL | exit 0/exit 0
+head vs new  data_valid_cavity: IDENTICAL | exit 0/exit 0
+head vs new  data_valid_cavity_cli_smoke: IDENTICAL | exit 0/exit 0
+head vs new  data_does_not_converge: IDENTICAL | exit 3/exit 3
+=== (4) NEW mesh-quality report of every case
+   lid_driven_cavity                        valid               cells   400 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   lid_driven_cavity_40x40                  valid               cells  1600 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   lid_driven_cavity_80x80                  valid               cells  6400 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   poiseuille_flow                          valid               cells   512 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   heated_cavity                            valid               cells   400 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   species_diffusion                        valid               cells    80 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   heated_species_diffusion                 valid               cells    80 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   compressible_validation                  valid               cells   144 | max AR 2, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   compressible_channel_coupled             valid               cells   384 | max AR 3.33, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   multiphase_validation                    valid               cells   100 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   poiseuille_distorted                     valid               cells   512 | max AR 1.29, non-orth 44.8 deg, skew 0.132, expansion 1.14 | issues: info non_orthogonality
+   channel_transpiration_graded             valid               cells  1152 | max AR 6.6, non-orth 0 deg, skew 0, expansion 1.2 | issues: none
+   curved_channel_multiblock                valid               cells  1080 | max AR 1.59, non-orth 1.48e-06 deg, skew 0.0102, expansion 1.08 | issues: none
+   step_channel_multiblock                  valid               cells  1664 | max AR 2, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   obstacle_channel_multiblock              valid               cells  1504 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   annular_sector_conduction_multiblock     valid               cells  1080 | max AR 1.59, non-orth 1.48e-06 deg, skew 0.0102, expansion 1.08 | issues: none
+   data_valid_cavity                        valid               cells    16 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   data_valid_cavity_cli_smoke              valid               cells    16 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   data_does_not_converge                   valid               cells    16 | max AR 1, non-orth 0 deg, skew 0, expansion 1 | issues: none
+   data_mesh_quality_warning_cli            valid_with_warnings cells    16 | max AR 1.75, non-orth 0 deg, skew 0, expansion 2.5 | issues: warning expansion_ratio
+   data_mesh_quality_invalid_cli            no metadata (rejected before solving)
+   data_mesh_quality_disconnected_cli       no metadata (rejected before solving)
+=== (5) NEW CLI on the invalid fixtures
+   mesh_quality_invalid_cli:
+      Case configuration error: mesh.json: invalid structured_quad mesh: createStructuredQuad2D: cell (1,0) is not a strictly convex counter-clockwise quadrilateral: not convex at corner (i+1,j+1) (folded or self-intersecting)
+      exit 2
+   mesh_quality_disconnected_cli:
+      Case configuration error: mesh.json: the multiblock mesh is invalid (invalid: 32 cells, cell area 0.03125 .. 0.03125, max aspect ratio 2, max non-orthogonality 0 deg, max skewness 0, max expansion ratio 1, degenerate cells 0, invalid faces 0):
+        fatal connected_components: mesh has 2 disconnected cell regions (cells per region: 16, 16); the fluid domain must be one connected region [value 2; threshold 1]
+      exit 2

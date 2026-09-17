@@ -1,0 +1,19 @@
+# P12-MESH-004 audit: the pre-MESH-004 MeshQuality (snapshot /tmp/cfd_mesh003 = MESH-001..003 tree) on valid
+# structured_quad grids rotated rigidly (scratch audit_aspect.cpp). A rotation changes no geometric quality.
+# Finding: MeshQuality's aspect ratio sorted a cell's faces into 'vertical'/'horizontal' by axis alignment
+# (cellExtents: |Sf.x| >= |Sf.y| -> vertical). At exactly 45 degrees every face is 'vertical', dx = 0, and the
+# production validity gate declares the VALID mesh invalid with a misleading message:
+rotation   0.0 deg, cell 0.25x0.25: valid 1, maximumAspectRatio 1, maxNonOrth 0 deg, problems 0
+rotation   0.0 deg, cell 0.75x0.25: valid 1, maximumAspectRatio 3, maxNonOrth 0 deg, problems 0
+rotation  10.0 deg, cell 0.25x0.25: valid 1, maximumAspectRatio 1, maxNonOrth 0 deg, problems 0
+rotation  10.0 deg, cell 0.75x0.25: valid 1, maximumAspectRatio 3, maxNonOrth 8.54e-07 deg, problems 0
+rotation  30.0 deg, cell 0.25x0.25: valid 1, maximumAspectRatio 1, maxNonOrth 8.54e-07 deg, problems 0
+rotation  30.0 deg, cell 0.75x0.25: valid 1, maximumAspectRatio 3, maxNonOrth 8.54e-07 deg, problems 0
+rotation  44.0 deg, cell 0.25x0.25: valid 1, maximumAspectRatio 1, maxNonOrth 0 deg, problems 0
+rotation  44.0 deg, cell 0.75x0.25: valid 1, maximumAspectRatio 3, maxNonOrth 8.54e-07 deg, problems 0
+rotation  45.0 deg, cell 0.25x0.25: valid 0, maximumAspectRatio 1, maxNonOrth 8.54e-07 deg, problems 1: non-positive or non-finite cell volume / face area, invalid owner/neighbor id, or a degenerate internal face (owner-neighbor line parallel to the face)
+rotation  45.0 deg, cell 0.75x0.25: valid 0, maximumAspectRatio 3, maxNonOrth 8.54e-07 deg, problems 1: non-positive or non-finite cell volume / face area, invalid owner/neighbor id, or a degenerate internal face (owner-neighbor line parallel to the face)
+rotation  60.0 deg, cell 0.25x0.25: valid 1, maximumAspectRatio 1, maxNonOrth 8.54e-07 deg, problems 0
+rotation  60.0 deg, cell 0.75x0.25: valid 1, maximumAspectRatio 3, maxNonOrth 8.54e-07 deg, problems 0
+rotation  90.0 deg, cell 0.25x0.25: valid 1, maximumAspectRatio 1, maxNonOrth 0 deg, problems 0
+rotation  90.0 deg, cell 0.75x0.25: valid 1, maximumAspectRatio 3, maxNonOrth 0 deg, problems 0

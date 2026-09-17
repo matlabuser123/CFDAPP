@@ -1,0 +1,176 @@
+# P12-MESH-004 solver robustness step 1: capture of the failing thermal systems (tools/bicg_capture.cpp, built against
+# the PRE-FIX library). Replays the production thermal Picard loop on the campaign case (production SIMPLE, production
+# ThermalSolverSettings: BiCGSTAB abs 1e-12 / rel 1e-10 / 1000); every outer solve is checked against an instrumented,
+# operation-for-operation copy of BiCGSTAB::solve ('bit-identical' = same status, iterations and residual history);
+# at the first breakdown runPicardLoop does not accept, the system is dumped (tests/data/linear_systems/ for the two
+# 1024-unknown systems) and the instrumented copy prints every breakdown-tested scalar per iteration, relative to the
+# norms of its factors.
+
+## capture_smooth005_n32
+# smooth 0.05 n=32: SIMPLE Converged after 3840 iterations
+outer  1: status 0 (Converged(s)),   82 it, 6.2143e-02 -> 3.8596e-12 | instrumented copy bit-identical (Converged(s)) | max dT 9.223e-01
+outer  2: status 0 (Converged),   96 it, 1.7150e-02 -> 1.5054e-13 | instrumented copy bit-identical (Converged) | max dT 3.936e-02
+outer  3: status 0 (Converged(s)),   96 it, 3.8333e-03 -> 4.7985e-13 | instrumented copy bit-identical (Converged(s)) | max dT 2.017e-02
+outer  4: status 0 (Converged),   90 it, 1.2428e-03 -> 5.1938e-13 | instrumented copy bit-identical (Converged) | max dT 3.299e-03
+outer  5: status 0 (Converged(s)),   89 it, 4.5482e-04 -> 9.9257e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.736e-03
+outer  6: status 0 (Converged(s)),   82 it, 1.7401e-04 -> 8.7764e-13 | instrumented copy bit-identical (Converged(s)) | max dT 3.839e-04
+outer  7: status 0 (Converged),   77 it, 6.8592e-05 -> 8.7041e-13 | instrumented copy bit-identical (Converged) | max dT 2.044e-04
+outer  8: status 0 (Converged(s)),   79 it, 2.7480e-05 -> 8.8849e-13 | instrumented copy bit-identical (Converged(s)) | max dT 5.139e-05
+outer  9: status 0 (Converged(s)),   68 it, 1.1125e-05 -> 5.6370e-13 | instrumented copy bit-identical (Converged(s)) | max dT 2.759e-05
+outer 10: status 0 (Converged(s)),   61 it, 4.5337e-06 -> 9.9333e-13 | instrumented copy bit-identical (Converged(s)) | max dT 7.485e-06
+outer 11: status 0 (Converged(s)),   64 it, 1.8530e-06 -> 9.0269e-13 | instrumented copy bit-identical (Converged(s)) | max dT 4.006e-06
+outer 12: status 0 (Converged(s)),   58 it, 7.5907e-07 -> 9.4460e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.155e-06
+outer 13: status 0 (Converged),   48 it, 3.1087e-07 -> 4.7207e-13 | instrumented copy bit-identical (Converged) | max dT 6.062e-07
+outer 14: status 0 (Converged(s)),   46 it, 1.2736e-07 -> 6.4131e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.820e-07
+outer 15: status 0 (Converged(s)),   44 it, 5.2099e-08 -> 7.7734e-13 | instrumented copy bit-identical (Converged(s)) | max dT 9.399e-08
+outer 16: status 2 (Breakdown(rHat.v)),   35 it, 2.1304e-08 -> 4.1945e-11 | instrumented copy bit-identical (Breakdown(rHat.v)) | max dT 2.930e-08  [breakdown -> LinearSolveFailure]
+# failing system: 1024 unknowns, 4992 nonzeros; initial residual 2.130363e-08; linear settings abs 1e-12 rel 1e-10 max 1000
+#   it |        |r| |       rho |  rho/(|rh||r|) | rh.v/(|rh||v|) |       t.t | t.s/(|t||s|) |     omega
+#    1 | 2.1304e-08 | 4.538e-16 |   1.000000e+00 |   8.978901e-01 | 1.845e-17 |  8.46795e-01 | 2.0590e+00
+#    2 | 5.5558e-09 | 5.468e-17 |   4.619720e-01 |   4.645048e-01 | 7.172e-18 |  7.13098e-01 | 1.1188e+00
+#    3 | 2.9458e-09 | 7.002e-18 |   1.115825e-01 |   9.787988e-02 | 1.606e-17 |  7.81691e-01 | 5.9665e-01
+#    4 | 1.9074e-09 | 7.455e-19 |   1.834689e-02 |   3.152643e-02 | 9.968e-19 |  4.44596e-01 | 6.8961e-01
+#    5 | 1.3871e-09 | 1.573e-19 |   5.323652e-03 |   1.395398e-02 | 1.343e-19 |  3.36362e-01 | 1.0636e+00
+#    6 | 1.0913e-09 | 7.611e-20 |   3.273437e-03 |   7.714551e-03 | 7.392e-20 |  3.10835e-01 | 1.0289e+00
+#    7 | 8.5538e-10 | 2.761e-20 |   1.515150e-03 |   3.629634e-03 | 6.333e-20 |  2.96490e-01 | 8.4601e-01
+#    8 | 6.8580e-10 | 8.936e-21 |   6.116133e-04 |   1.902231e-03 | 1.582e-20 |  2.80157e-01 | 1.3116e+00
+#    9 | 5.6537e-10 | 5.143e-21 |   4.269775e-04 |   1.207346e-03 | 1.028e-20 |  2.58757e-01 | 1.2315e+00
+#   10 | 4.6622e-10 | 2.394e-21 |   2.410328e-04 |   7.366433e-04 | 5.709e-21 |  2.46326e-01 | 1.3056e+00
+#   11 | 3.8815e-10 | 1.160e-21 |   1.402477e-04 |   4.495362e-04 | 4.053e-21 |  2.33204e-01 | 1.2361e+00
+#   12 | 3.2814e-10 | 5.634e-22 |   8.058873e-05 |   2.844384e-04 | 1.872e-21 |  2.36593e-01 | 1.5632e+00
+#   13 | 2.7774e-10 | 3.307e-22 |   5.588756e-05 |   1.819406e-04 | 1.963e-21 |  2.19223e-01 | 1.1898e+00
+#   14 | 2.3462e-10 | 1.424e-22 |   2.849049e-05 |   1.022588e-04 | 1.438e-21 |  2.15874e-01 | 1.1593e+00
+#   15 | 1.9883e-10 | 6.172e-23 |   1.457115e-05 |   5.162354e-05 | 1.340e-21 |  2.13042e-01 | 1.0053e+00
+#   16 | 1.6875e-10 | 2.394e-23 |   6.657739e-06 |   2.588154e-05 | 6.864e-22 |  2.08432e-01 | 1.1653e+00
+#   17 | 1.4326e-10 | 1.077e-23 |   3.527866e-06 |   1.322561e-05 | 5.416e-22 |  2.01708e-01 | 1.0801e+00
+#   18 | 1.2206e-10 | 4.548e-24 |   1.749161e-06 |   7.220315e-06 | 2.417e-22 |  1.95818e-01 | 1.3423e+00
+#   19 | 1.0451e-10 | 2.422e-24 |   1.087704e-06 |   4.186626e-06 | 1.974e-22 |  1.78458e-01 | 1.1598e+00
+#   20 | 8.9841e-11 | 1.094e-24 |   5.718521e-07 |   2.264259e-06 | 1.425e-22 |  1.57979e-01 | 1.0453e+00
+#   21 | 7.8010e-11 | 4.367e-25 |   2.627491e-07 |   9.847580e-07 | 1.811e-22 |  1.47133e-01 | 7.6452e-01
+#   22 | 6.9172e-11 | 1.272e-25 |   8.633691e-08 |   3.434930e-07 | 8.072e-23 |  1.16997e-01 | 8.3001e-01
+#   23 | 6.3300e-11 | 4.018e-26 |   2.979450e-08 |   1.085089e-07 | 9.649e-23 |  1.20914e-01 | 7.4760e-01
+#   24 | 6.0289e-11 | 1.006e-26 |   7.834349e-09 |   2.096378e-08 | 2.462e-22 |  1.72801e-01 | 6.7949e-01
+#   25 | 6.0768e-11 | -2.509e-27 |   1.937904e-09 |   5.187484e-08 | 3.409e-24 |  2.82616e-01 | 9.2286e+00
+#   26 | 5.7829e-11 | 2.809e-26 |   2.280405e-08 |   7.124853e-08 | 2.477e-23 |  1.39546e-01 | 1.5560e+00
+#   27 | 5.4954e-11 | 1.266e-26 |   1.081682e-08 |   6.642423e-08 | 2.307e-22 |  1.84561e-01 | 6.5557e-01
+#   28 | 5.3022e-11 | 4.986e-27 |   4.414074e-09 |   9.865726e-09 | 5.928e-22 |  2.87035e-01 | 6.0023e-01
+#   29 | 4.8772e-11 | 1.709e-27 |   1.644518e-09 |   2.506196e-09 | 5.521e-23 |  2.28212e-01 | 1.6987e+00
+#   30 | 5.3849e-11 | -6.926e-29 |   6.037784e-11 |   3.370535e-09 | 1.954e-22 |  2.19539e-01 | 8.4214e-01
+#   31 | 5.2311e-11 | 8.203e-28 |   7.360540e-10 |   2.654356e-09 | 1.050e-23 |  3.91224e-01 | 6.8060e+00
+#   32 | 5.1871e-11 | 1.705e-27 |   1.543080e-09 |   3.076010e-09 | 1.414e-22 |  2.09006e-01 | 8.8310e-01
+#   33 | 4.9133e-11 | 2.422e-28 |   2.313523e-10 |   1.587674e-09 | 2.808e-23 |  2.32401e-01 | 2.1128e+00
+#   34 | 4.6854e-11 | 1.640e-28 |   1.642614e-10 |   7.352073e-10 | 1.663e-23 |  2.54467e-01 | 2.7995e+00
+#   35 | 4.3385e-11 | 2.064e-30 |   2.233251e-12 |   2.395963e-10 | 2.514e-22 |  2.46847e-01 | 6.7382e-01
+# BREAKDOWN at iteration 36: |rHat.v| = 2.341786e-31 < tiny; relative 3.380668e-10
+# dumped to /tmp/m4probe/system_smooth005_n32.txt
+
+## capture_smooth005_n64
+# smooth 0.05 n=64: SIMPLE Converged after 1227 iterations
+outer  1: status 0 (Converged(s)),  175 it, 3.1076e-02 -> 1.1119e-12 | instrumented copy bit-identical (Converged(s)) | max dT 9.306e-01
+outer  2: status 0 (Converged(s)),  203 it, 8.8389e-03 -> 9.1858e-13 | instrumented copy bit-identical (Converged(s)) | max dT 4.110e-02
+outer  3: status 0 (Converged(s)),  210 it, 2.0258e-03 -> 2.5274e-13 | instrumented copy bit-identical (Converged(s)) | max dT 2.142e-02
+outer  4: status 0 (Converged),  185 it, 6.7386e-04 -> 9.8732e-13 | instrumented copy bit-identical (Converged) | max dT 3.650e-03
+outer  5: status 0 (Converged(s)),  159 it, 2.5564e-04 -> 9.9323e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.968e-03
+outer  6: status 0 (Converged),  164 it, 1.0188e-04 -> 8.8623e-13 | instrumented copy bit-identical (Converged) | max dT 4.521e-04
+outer  7: status 0 (Converged),  164 it, 4.2355e-05 -> 9.4677e-13 | instrumented copy bit-identical (Converged) | max dT 2.527e-04
+outer  8: status 0 (Converged(s)),  144 it, 1.8017e-05 -> 5.4374e-13 | instrumented copy bit-identical (Converged(s)) | max dT 6.663e-05
+outer  9: status 0 (Converged(s)),  128 it, 7.8369e-06 -> 7.9555e-13 | instrumented copy bit-identical (Converged(s)) | max dT 3.823e-05
+outer 10: status 0 (Converged(s)),  124 it, 3.4568e-06 -> 1.6626e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.101e-05
+outer 11: status 0 (Converged(s)),  129 it, 1.5452e-06 -> 4.8675e-13 | instrumented copy bit-identical (Converged(s)) | max dT 6.395e-06
+outer 12: status 0 (Converged),  106 it, 6.9699e-07 -> 9.3743e-13 | instrumented copy bit-identical (Converged) | max dT 1.967e-06
+outer 13: status 0 (Converged(s)),  108 it, 3.1700e-07 -> 7.4818e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.144e-06
+outer 14: status 0 (Converged(s)),  101 it, 1.4506e-07 -> 7.8958e-13 | instrumented copy bit-identical (Converged(s)) | max dT 3.679e-07
+outer 15: status 0 (Converged(s)),   93 it, 6.6730e-08 -> 7.6876e-13 | instrumented copy bit-identical (Converged(s)) | max dT 2.147e-07
+outer 16: status 0 (Converged(s)),   90 it, 3.0824e-08 -> 9.5469e-13 | instrumented copy bit-identical (Converged(s)) | max dT 7.116e-08
+outer 17: status 2 (Breakdown(rHat.v)),   33 it, 1.4285e-08 -> 6.7474e-11 | instrumented copy bit-identical (Breakdown(rHat.v)) | max dT 4.034e-08  [breakdown -> LinearSolveFailure]
+# failing system: 4096 unknowns, 20224 nonzeros; initial residual 1.428529e-08; linear settings abs 1e-12 rel 1e-10 max 1000
+#   it |        |r| |       rho |  rho/(|rh||r|) | rh.v/(|rh||v|) |       t.t | t.s/(|t||s|) |     omega
+#    1 | 1.4285e-08 | 2.041e-16 |   1.000000e+00 |   8.903653e-01 | 1.377e-18 |  8.23408e-01 | 5.1255e+00
+#    2 | 4.1447e-09 | 2.251e-17 |   3.802472e-01 |   2.197951e-01 | 1.821e-17 |  8.41506e-01 | 1.1562e+00
+#    3 | 3.1672e-09 | 1.529e-18 |   3.378643e-02 |   1.047450e-02 | 1.851e-16 |  9.65075e-01 | 6.1664e-01
+#    4 | 2.2776e-09 | 1.698e-19 |   5.218908e-03 |   3.878704e-03 | 1.063e-17 |  7.94324e-01 | 6.2450e-01
+#    5 | 1.5570e-09 | 3.959e-20 |   1.780092e-03 |   3.210042e-03 | 3.564e-19 |  3.76258e-01 | 8.3706e-01
+#    6 | 1.2306e-09 | 1.438e-20 |   8.178996e-04 |   1.944180e-03 | 1.193e-19 |  3.08170e-01 | 9.6371e-01
+#    7 | 1.0274e-09 | 5.310e-21 |   3.617949e-04 |   9.024613e-04 | 1.146e-19 |  2.78129e-01 | 7.4554e-01
+#    8 | 8.7149e-10 | 1.583e-21 |   1.271356e-04 |   4.354481e-04 | 2.772e-20 |  2.36352e-01 | 1.0979e+00
+#    9 | 7.5149e-10 | 7.691e-22 |   7.164351e-05 |   2.264727e-04 | 2.682e-20 |  2.21065e-01 | 9.0366e-01
+#   10 | 6.5293e-10 | 2.957e-22 |   3.170409e-05 |   1.138431e-04 | 1.287e-20 |  2.09481e-01 | 1.0753e+00
+#   11 | 5.6940e-10 | 1.323e-22 |   1.626234e-05 |   5.705394e-05 | 1.247e-20 |  2.02100e-01 | 9.2743e-01
+#   12 | 5.0188e-10 | 5.535e-23 |   7.719562e-06 |   3.152313e-05 | 4.337e-21 |  2.00864e-01 | 1.3809e+00
+#   13 | 4.4349e-10 | 3.311e-23 |   5.226268e-06 |   1.835007e-05 | 6.100e-21 |  1.87251e-01 | 9.5869e-01
+#   14 | 3.9280e-10 | 1.325e-23 |   2.360835e-06 |   1.015549e-05 | 2.415e-21 |  1.86407e-01 | 1.3532e+00
+#   15 | 3.5048e-10 | 7.878e-24 |   1.573511e-06 |   6.200891e-06 | 2.473e-21 |  1.75522e-01 | 1.1254e+00
+#   16 | 3.1394e-10 | 3.786e-24 |   8.442708e-07 |   3.677681e-06 | 1.267e-21 |  1.76193e-01 | 1.4153e+00
+#   17 | 2.8146e-10 | 2.184e-24 |   5.432693e-07 |   2.188795e-06 | 1.700e-21 |  1.64730e-01 | 1.0281e+00
+#   18 | 2.5384e-10 | 9.443e-25 |   2.604035e-07 |   1.234467e-06 | 8.157e-22 |  1.65005e-01 | 1.3474e+00
+#   19 | 2.3001e-10 | 5.352e-25 |   1.628919e-07 |   6.791189e-07 | 1.313e-21 |  1.58785e-01 | 9.2769e-01
+#   20 | 2.0899e-10 | 2.035e-25 |   6.815239e-08 |   3.322704e-07 | 7.432e-22 |  1.54329e-01 | 1.0925e+00
+#   21 | 1.9067e-10 | 9.308e-26 |   3.417119e-08 |   1.574953e-07 | 8.600e-22 |  1.53230e-01 | 9.2381e-01
+#   22 | 1.7472e-10 | 3.780e-26 |   1.514496e-08 |   8.019228e-08 | 3.788e-22 |  1.50405e-01 | 1.2529e+00
+#   23 | 1.6028e-10 | 2.085e-26 |   9.105973e-09 |   4.339896e-08 | 4.475e-22 |  1.46060e-01 | 1.0271e+00
+#   24 | 1.4716e-10 | 9.396e-27 |   4.469618e-09 |   2.436888e-08 | 1.981e-22 |  1.48520e-01 | 1.4418e+00
+#   25 | 1.3511e-10 | 5.877e-27 |   3.045009e-09 |   1.469646e-08 | 2.517e-22 |  1.40593e-01 | 1.1100e+00
+#   26 | 1.2401e-10 | 2.725e-27 |   1.538385e-09 |   8.182414e-09 | 1.757e-22 |  1.38727e-01 | 1.2040e+00
+#   27 | 1.1392e-10 | 1.333e-27 |   8.191477e-10 |   3.897524e-09 | 3.423e-22 |  1.41659e-01 | 8.1178e-01
+#   28 | 1.0495e-10 | 4.444e-28 |   2.963873e-10 |   1.680661e-09 | 1.780e-22 |  1.33185e-01 | 9.7667e-01
+#   29 | 9.6962e-11 | 1.808e-28 |   1.305481e-10 |   6.710433e-10 | 2.394e-22 |  1.37263e-01 | 8.0423e-01
+#   30 | 8.9800e-11 | 6.160e-29 |   4.802294e-11 |   2.827107e-10 | 1.189e-22 |  1.28445e-01 | 9.8916e-01
+#   31 | 8.3266e-11 | 2.563e-29 |   2.154869e-11 |   1.172139e-10 | 1.483e-22 |  1.30215e-01 | 8.3563e-01
+#   32 | 7.7491e-11 | 9.385e-30 |   8.478230e-12 |   4.997138e-11 | 8.621e-23 |  1.23702e-01 | 9.6640e-01
+#   33 | 7.1979e-11 | 3.634e-30 |   3.533768e-12 |   2.094420e-11 | 9.181e-23 |  1.23254e-01 | 8.7464e-01
+# BREAKDOWN at iteration 34: |rHat.v| = 6.557057e-31 < tiny; relative 8.666334e-12
+# dumped to /tmp/m4probe/system_smooth005_n64.txt
+
+## capture_rough03_n32
+# rough 0.3 n=32: SIMPLE Converged after 8931 iterations
+outer  1: status 0 (Converged(s)),   89 it, 6.3451e-02 -> 4.3949e-12 | instrumented copy bit-identical (Converged(s)) | max dT 9.485e-01
+outer  2: status 0 (Converged(s)),   93 it, 1.1211e-01 -> 6.1948e-12 | instrumented copy bit-identical (Converged(s)) | max dT 3.259e-02
+outer  3: status 0 (Converged(s)),  101 it, 9.5689e-03 -> 3.8342e-13 | instrumented copy bit-identical (Converged(s)) | max dT 6.396e-03
+outer  4: status 0 (Converged(s)),   90 it, 1.2277e-03 -> 4.2313e-13 | instrumented copy bit-identical (Converged(s)) | max dT 5.225e-04
+outer  5: status 0 (Converged(s)),   90 it, 1.5370e-04 -> 6.6011e-13 | instrumented copy bit-identical (Converged(s)) | max dT 7.628e-05
+outer  6: status 0 (Converged(s)),   85 it, 2.1773e-05 -> 2.0864e-13 | instrumented copy bit-identical (Converged(s)) | max dT 8.385e-06
+outer  7: status 0 (Converged(s)),   76 it, 3.0768e-06 -> 7.2855e-13 | instrumented copy bit-identical (Converged(s)) | max dT 1.366e-06
+outer  8: status 0 (Converged(s)),   67 it, 4.5666e-07 -> 9.7958e-13 | instrumented copy bit-identical (Converged(s)) | max dT 2.236e-07
+outer  9: status 2 (Breakdown(rho)),   66 it, 6.8194e-08 -> 1.1644e-12 | instrumented copy bit-identical (Breakdown(rho)) | max dT 3.659e-08  [breakdown ACCEPTED by runPicardLoop]
+outer 10: status 2 (Breakdown(rho)),   37 it, 1.0430e-08 -> 9.4309e-12 | instrumented copy bit-identical (Breakdown(rho)) | max dT 5.989e-09  [breakdown -> LinearSolveFailure]
+# failing system: 1024 unknowns, 4992 nonzeros; initial residual 1.042982e-08; linear settings abs 1e-12 rel 1e-10 max 1000
+#   it |        |r| |       rho |  rho/(|rh||r|) | rh.v/(|rh||v|) |       t.t | t.s/(|t||s|) |     omega
+#    1 | 1.0430e-08 | 1.088e-16 |   1.000000e+00 |   9.398798e-01 | 1.800e-17 |  8.50253e-01 | 7.5947e-01
+#    2 | 1.9948e-09 | 1.255e-17 |   6.032861e-01 |   7.571075e-01 | 4.183e-19 |  6.17342e-01 | 1.0619e+00
+#    3 | 8.7522e-10 | 2.852e-18 |   3.124516e-01 |   4.733299e-01 | 1.089e-19 |  4.80451e-01 | 9.0984e-01
+#    4 | 5.4795e-10 | 8.412e-19 |   1.471939e-01 |   2.680703e-01 | 2.274e-20 |  4.02995e-01 | 1.0905e+00
+#    5 | 3.7345e-10 | 2.794e-19 |   7.174282e-02 |   1.376070e-01 | 1.635e-20 |  3.57409e-01 | 8.4253e-01
+#    6 | 2.8155e-10 | 9.275e-20 |   3.158511e-02 |   7.598456e-02 | 2.763e-21 |  3.04930e-01 | 1.3624e+00
+#    7 | 2.2369e-10 | 4.553e-20 |   1.951519e-02 |   4.457824e-02 | 4.009e-21 |  2.69974e-01 | 8.4185e-01
+#    8 | 1.9010e-10 | 1.425e-20 |   7.187533e-03 |   2.314135e-02 | 1.075e-21 |  2.39512e-01 | 1.2616e+00
+#    9 | 1.6768e-10 | 7.626e-21 |   4.360768e-03 |   1.263198e-02 | 1.377e-21 |  2.15288e-01 | 8.9479e-01
+#   10 | 1.5061e-10 | 3.140e-21 |   1.999077e-03 |   6.461252e-03 | 4.460e-22 |  2.02585e-01 | 1.3470e+00
+#   11 | 1.3751e-10 | 1.784e-21 |   1.243822e-03 |   3.880128e-03 | 7.596e-22 |  1.96174e-01 | 9.3914e-01
+#   12 | 1.2938e-10 | 6.782e-22 |   5.025789e-04 |   1.901231e-03 | 5.232e-22 |  1.94298e-01 | 1.0661e+00
+#   13 | 1.2312e-10 | 3.337e-22 |   2.598794e-04 |   8.936652e-04 | 6.937e-22 |  1.99526e-01 | 9.0397e-01
+#   14 | 1.1693e-10 | 1.397e-22 |   1.145687e-04 |   4.388052e-04 | 3.884e-22 |  2.00722e-01 | 1.1524e+00
+#   15 | 1.1085e-10 | 7.517e-23 |   6.501486e-05 |   2.256314e-04 | 4.949e-22 |  2.03555e-01 | 9.7756e-01
+#   16 | 1.0460e-10 | 3.435e-23 |   3.148948e-05 |   1.173790e-04 | 2.949e-22 |  2.04899e-01 | 1.1953e+00
+#   17 | 9.8059e-11 | 1.823e-23 |   1.782550e-05 |   6.308761e-05 | 3.280e-22 |  2.02256e-01 | 1.0461e+00
+#   18 | 9.1727e-11 | 8.785e-24 |   9.182109e-06 |   3.515374e-05 | 1.766e-22 |  2.05811e-01 | 1.3487e+00
+#   19 | 8.5208e-11 | 5.202e-24 |   5.854004e-06 |   2.032265e-05 | 2.201e-22 |  2.01923e-01 | 1.0952e+00
+#   20 | 7.8814e-11 | 2.289e-24 |   2.784253e-06 |   1.163092e-05 | 1.237e-22 |  2.07830e-01 | 1.3900e+00
+#   21 | 7.2758e-11 | 1.243e-24 |   1.638484e-06 |   5.778865e-06 | 2.358e-22 |  2.04466e-01 | 9.0330e-01
+#   22 | 6.6412e-11 | 5.411e-25 |   7.811640e-07 |   3.087583e-06 | 8.141e-23 |  2.03826e-01 | 1.3557e+00
+#   23 | 5.8756e-11 | 3.254e-25 |   5.309353e-07 |   1.706517e-06 | 1.209e-22 |  2.01209e-01 | 9.6821e-01
+#   24 | 5.1820e-11 | 1.253e-25 |   2.317891e-07 |   8.908248e-07 | 5.311e-23 |  2.04628e-01 | 1.3286e+00
+#   25 | 4.6317e-11 | 7.011e-26 |   1.451254e-07 |   4.978677e-07 | 6.594e-23 |  2.01627e-01 | 1.0534e+00
+#   26 | 4.1555e-11 | 3.126e-26 |   7.213222e-08 |   2.735575e-07 | 3.236e-23 |  2.07822e-01 | 1.3910e+00
+#   27 | 3.7244e-11 | 1.740e-26 |   4.479246e-08 |   1.531432e-07 | 4.499e-23 |  2.03957e-01 | 1.0415e+00
+#   28 | 3.3530e-11 | 6.440e-27 |   1.841377e-08 |   8.460534e-08 | 1.865e-23 |  2.12802e-01 | 1.5400e+00
+#   29 | 3.0538e-11 | 3.543e-27 |   1.112393e-08 |   4.277383e-08 | 2.864e-23 |  2.00966e-01 | 1.0643e+00
+#   30 | 2.7761e-11 | 1.422e-27 |   4.911750e-09 |   2.178591e-08 | 1.930e-23 |  1.97238e-01 | 1.1365e+00
+#   31 | 2.4819e-11 | 7.083e-28 |   2.736189e-09 |   1.094842e-08 | 1.539e-23 |  1.92289e-01 | 1.0786e+00
+#   32 | 2.1598e-11 | 2.978e-28 |   1.321886e-09 |   6.166630e-09 | 5.778e-24 |  1.98167e-01 | 1.5971e+00
+#   33 | 1.8990e-11 | 1.619e-28 |   8.176512e-10 |   2.907223e-09 | 1.559e-23 |  1.94136e-01 | 8.4212e-01
+#   34 | 1.6799e-11 | 5.295e-29 |   3.022111e-10 |   1.554204e-09 | 3.616e-24 |  1.88360e-01 | 1.4921e+00
+#   35 | 1.4795e-11 | 3.442e-29 |   2.230394e-10 |   8.034311e-10 | 7.272e-24 |  1.84812e-01 | 8.9178e-01
+#   36 | 1.2789e-11 | 9.600e-30 |   7.197414e-11 |   4.588641e-10 | 1.108e-24 |  2.10630e-01 | 2.3596e+00
+#   37 | 1.1528e-11 | 9.476e-30 |   7.881516e-11 |   1.615685e-10 | 3.249e-23 |  3.38828e-01 | 5.9586e-01
+# BREAKDOWN at iteration 38: |rho| = 7.351824e-31 < tiny = 1e-30; |r| = 9.430851e-12, |rHat| = 1.042982e-08, rho/(|rHat||r|) = 7.474247e-12 (eps = 2.220e-16)
+# dumped to /tmp/m4probe/system_rough03_n32.txt

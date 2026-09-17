@@ -1,0 +1,67 @@
+# P12-MESH-004 UNCHANGED-GATE RERUN with the FINAL BiCGSTAB fix (term-magnitude test + restart): MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothCorrected (acceptance_gate.md fixed before this run)
+# binary 48edb6b65edbf766, started 2026-09-15T00:17:00Z, 32 cores, run concurrently with the other campaign tests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothCorrected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshQualityCampaign
+[ RUN      ] MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothCorrected
+smooth_A0.05_corrected_n8 valid               cells    64 | AR   1.170 nonorth  30.822 skew  0.0666 expan  1.152 | Converged       935 it   0.91 s contr 0.99735 | u L2 4.2638e-02 Linf 9.5394e-02 | v L2 4.1744e-02 | p L2 8.8381e-02 | T L2 2.3246e-02 Linf 6.1578e-02 (Converged, 12 it, lin 2.5e-09->6.4e-13) | mass 0.0e+00 cell-cont 1.7e-08 energy 9.6e-12
+smooth_A0.05_corrected_n16 valid               cells   256 | AR   1.176 nonorth  33.838 skew  0.0352 expan  1.083 | Converged      2237 it   9.48 s contr 0.99980 | u L2 9.2992e-03 Linf 2.3121e-02 | v L2 7.8677e-03 | p L2 1.8292e-02 | T L2 1.5119e-02 Linf 4.0620e-02 (Converged, 15 it, lin 5.9e-09->3.7e-13) | mass 0.0e+00 cell-cont 1.1e-07 energy 5.8e-12
+smooth_A0.05_corrected_n32 valid               cells  1024 | AR   1.179 nonorth  34.619 skew  0.0179 expan  1.041 | Converged      3840 it  65.12 s contr 1.00052 | u L2 2.0786e-03 Linf 5.1908e-03 | v L2 1.5248e-03 | p L2 4.5388e-03 | T L2 8.3251e-03 Linf 2.1863e-02 (Converged, 18 it, lin 3.5e-09->3.4e-13) | mass 0.0e+00 cell-cont 1.2e-06 energy 4.6e-12
+smooth_A0.05_corrected_n64 valid               cells  4096 | AR   1.179 nonorth  34.815 skew  0.0090 expan  1.021 | Converged      1227 it 118.44 s contr 1.00121 | u L2 5.0846e-04 Linf 1.3803e-03 | v L2 3.6867e-04 | p L2 1.0869e-03 | T L2 4.3052e-03 Linf 1.1153e-02 (Converged, 19 it, lin 3.1e-09->9.0e-13) | mass 0.0e+00 cell-cont 1.3e-06 energy 2.2e-11
+--- smooth_A0.05_corrected observed orders p = ln(e_n / e_2n) / ln 2 (L2; L1; Linf)
+pair  8 -> 16: u 2.197; 2.181; 2.045 | v 2.408; 2.419; 2.154 | p 2.273; 2.223; 1.947 | T 0.621; 0.630; 0.600
+pair 16 -> 32: u 2.161; 2.189; 2.155 | v 2.367; 2.359; 2.287 | p 2.011; 2.052; 1.840 | T 0.861; 0.861; 0.894
+pair 32 -> 64: u 2.031; 2.051; 1.911 | v 2.048; 2.037; 1.972 | p 2.062; 2.069; 1.921 | T 0.951; 0.949; 0.971
+
+### Grid convergence: p12_mesh_004_smooth_A0.05_corrected
+
+P12-MESH-004 manufactured-solution cavity, family smooth_A0.05_corrected
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| n16 | 16 x 16 | 256 | 0.0625 | 9.5 | Converged (2237 it) | yes |
+| n32 | 32 x 32 | 1024 | 0.03125 | 65.1 | Converged (3840 it) | yes |
+| n64 | 64 x 64 | 4096 | 0.015625 | 118.4 | Converged (1227 it) | yes |
+
+**kinetic_energy** -- 1/2 sum |u_c|^2 V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.18385774 | 0.1875 (analytical) | -0.003642 | 0.01943 |
+| medium | 0.18737709 | 0.1875 (analytical) | -0.0001229 | 0.0006555 |
+| fine | 0.18758026 | 0.1875 (analytical) | 8.026e-05 | 0.0004281 |
+| extrapolated | 0.18759271 | | 9.271e-05 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 4.1145 | 2 | 0.18759271 | 1.556e-05 | 8.295e-05 | 0.001438 | 4.3305 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 4.11452 (formal 2); asymptotic ratio 4.33046 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**mean_temperature** -- sum T_c V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.39800346 | 0.40528473 (analytical) | -0.007281 | 0.01797 |
+| medium | 0.40075246 | 0.40528473 (analytical) | -0.004532 | 0.01118 |
+| fine | 0.40282897 | 0.40528473 (analytical) | -0.002456 | 0.006059 |
+| extrapolated | 0.40924087 | | 0.003956 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.4047 | 1 | 0.40924087 | 0.008015 | 0.0199 | 0.02648 | 0.6619 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.404743 (formal 1); asymptotic ratio 0.661927 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+GC smooth_A0.05_corrected kinetic_energy: status monotonic_not_asymptotic, observed order 4.115, fine 0.1875802620, U21 1.556e-05, |fine - exact| 8.026e-05
+GC smooth_A0.05_corrected mean_temperature: status monotonic_not_asymptotic, observed order 0.405, fine 0.4028289718, U21 8.015e-03, |fine - exact| 2.456e-03
+[       OK ] MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothCorrected (194158 ms)
+[----------] 1 test from MeshQualityCampaign (194159 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (194162 ms total)
+[  PASSED  ] 1 test.
+# exit 0 finished 2026-09-15T00:20:14Z

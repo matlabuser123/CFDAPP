@@ -1,0 +1,53 @@
+# P12-MESH-006 CPU baseline, 2026-09-15T13:13:37Z
+# host: Linux 6.6.87.2-microsoft-standard-WSL2 x86_64; CPU: Intel(R) Core(TM) i9-14900HX; logical CPUs: 32; memory: 31 GB
+# build: build/release, CMAKE_BUILD_TYPE=Release, -O3 -DNDEBUG, c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+# OpenMP: OFF (single thread); cfdapp sha256 df4ee6d0da11bba722dcb2aea47740875df8c41232d7970cc49f20d10618add6
+your 131072x1 screen size is bogus. expect trouble
+# other processes using CPU at start: 0
+
+  grid     cells  iters       wall_s        cpu_s     status s_per_it_wall s_per_it_cpu cell_it_per_s_cpu
+  16^3      4096     85         3.61         3.66        yes       0.0425       0.0431            95126   peak RSS 16004 KB
+  32^3     32768    251       124.46       124.22        yes       0.4959       0.4949            66211   peak RSS 93076 KB
+  64^3    262144    774      5739.00      5736.92        yes       7.4147       7.4120            35367   peak RSS 761180 KB
+
+# linear-solver iteration counts: not exported by the CLI/metadata (not available).
+# full CLI reports:
+## 16^3
+Mesh: 16 x 16 x 16 (3D)
+Converged: yes
+Iterations: 85
+U residual: 9.4137e-07
+V residual: 8.46307e-07
+W residual: 2.71246e-07
+P residual: 2.34611e-07
+Continuity: 1.9871e-11
+Mass imbalance: 0
+Face flux: rhie_chow
+Mass balance: inflow 0, outflow 0, relative imbalance 0
+  Residuals: /root/m6cpu/cube16/results/residuals.csv
+## 32^3
+Mesh: 32 x 32 x 32 (3D)
+Converged: yes
+Iterations: 251
+U residual: 9.80458e-07
+V residual: 8.88564e-07
+W residual: 2.81766e-07
+P residual: 2.2888e-08
+Continuity: 1.3575e-12
+Mass imbalance: 0
+Face flux: rhie_chow
+Mass balance: inflow 0, outflow 0, relative imbalance 0
+  Residuals: /root/m6cpu/cube32/results/residuals.csv
+## 64^3
+Mesh: 64 x 64 x 64 (3D)
+Converged: yes
+Iterations: 774
+U residual: 9.99638e-07
+V residual: 9.01278e-07
+W residual: 2.98115e-07
+P residual: 2.04425e-09
+Continuity: 4.09534e-13
+Mass imbalance: 0
+Face flux: rhie_chow
+Mass balance: inflow 0, outflow 0, relative imbalance 0
+  Residuals: /root/m6cpu/cube64/results/residuals.csv

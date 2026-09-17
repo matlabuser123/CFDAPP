@@ -1,0 +1,69 @@
+# P12-MESH-004 UNCHANGED-GATE RERUN with the FINAL BiCGSTAB fix (term-magnitude test + restart): MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothUncorrected (acceptance_gate.md fixed before this run)
+# binary 48edb6b65edbf766, started 2026-09-15T00:17:00Z, 32 cores, run concurrently with the other campaign tests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothUncorrected
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshQualityCampaign
+[ RUN      ] MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothUncorrected
+smooth_A0.05_uncorrected_n8 valid               cells    64 | AR   1.170 nonorth  30.822 skew  0.0666 expan  1.152 | Converged       867 it   0.33 s contr 0.99561 | u L2 4.5590e-02 Linf 1.1830e-01 | v L2 5.2904e-02 | p L2 9.8210e-02 | T L2 3.0308e-02 Linf 7.4565e-02 (Converged, 2 it, lin 7.3e-12->8.9e-13) | mass 0.0e+00 cell-cont 2.9e-09 energy 1.1e-13
+smooth_A0.05_uncorrected_n16 valid               cells   256 | AR   1.176 nonorth  33.838 skew  0.0352 expan  1.083 | MomentumFailure   726 it   2.29 s contr 1.18099 | u L2 2.4659e+51 Linf 1.6794e+52 | v L2 2.3301e+51 | p L2 2.1236e+103 | T L2 4.9995e-01 Linf 9.9531e-01 (LinearSolveFailure, 1 it, lin 1.2e-01->3.4e+13) | mass 0.0e+00 cell-cont 1.1e+45 energy 1.0e+00
+smooth_A0.05_uncorrected_n32 valid               cells  1024 | AR   1.179 nonorth  34.619 skew  0.0179 expan  1.041 | MomentumFailure   379 it   8.71 s contr 1.37734 | u L2 7.2684e+50 Linf 8.4099e+51 | v L2 8.0369e+50 | p L2 3.6767e+102 | T L2 4.9999e-01 Linf 9.9886e-01 (LinearSolveFailure, 1 it, lin 6.2e-02->1.5e+04) | mass 0.0e+00 cell-cont 9.1e+44 energy 1.0e+00
+smooth_A0.05_uncorrected_n64 valid               cells  4096 | AR   1.179 nonorth  34.815 skew  0.0090 expan  1.021 | MomentumFailure    25 it   3.06 s contr 1.75398 | u L2 9.9508e+03 Linf 1.7230e+05 | v L2 1.0450e+04 | p L2 3.7137e+08 | T L2 5.0000e-01 Linf 9.9972e-01 (LinearSolveFailure, 1 it, lin 3.1e-02->2.0e-06) | mass 0.0e+00 cell-cont 4.5e-02 energy 1.0e+00
+--- smooth_A0.05_uncorrected observed orders p = ln(e_n / e_2n) / ln 2 (L2; L1; Linf)
+pair 8 -> 16: not computed (a run was not accepted)
+pair 16 -> 32: not computed (a run was not accepted)
+pair 32 -> 64: not computed (a run was not accepted)
+
+### Grid convergence: p12_mesh_004_smooth_A0.05_uncorrected
+
+P12-MESH-004 manufactured-solution cavity, family smooth_A0.05_uncorrected
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| n16 | 16 x 16 | 256 | 0.0625 | 2.3 | MomentumFailure (726 it) | no: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 1 iterations |
+| n32 | 32 x 32 | 1024 | 0.03125 | 8.7 | MomentumFailure (379 it) | no: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 3 iterations |
+| n64 | 64 x 64 | 4096 | 0.015625 | 3.1 | MomentumFailure (25 it) | no: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB MaxIterations after 500 iterations |
+
+**Study rejected:** grid n16 rejected: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 1 iterations
+
+**kinetic_energy** -- 1/2 sum |u_c|^2 V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -- | 0.1875 (analytical) | -- | -- |
+| medium | -- | 0.1875 (analytical) | -- | -- |
+| fine | -- | 0.1875 (analytical) | -- | -- |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0 | -- | 2 | -- | -- | -- | -- | -- | invalid | no |
+
+- study rejected: grid n16 rejected: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 1 iterations
+- grid independence: study rejected: grid n16 rejected: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 1 iterations
+
+**mean_temperature** -- sum T_c V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -- | 0.40528473 (analytical) | -- | -- |
+| medium | -- | 0.40528473 (analytical) | -- | -- |
+| fine | -- | 0.40528473 (analytical) | -- | -- |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 0 | -- | 1 | -- | -- | -- | -- | -- | invalid | no |
+
+- study rejected: grid n16 rejected: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 1 iterations
+- grid independence: study rejected: grid n16 rejected: solver status MomentumFailure (not Converged): u-momentum linear solve failed: BiCGSTAB Breakdown after 1 iterations
+GC smooth_A0.05_uncorrected kinetic_energy: status invalid (no order / GCI computed)
+GC smooth_A0.05_uncorrected mean_temperature: status invalid (no order / GCI computed)
+[       OK ] MeshQualityCampaign.DISABLED_ManufacturedSolutionSmoothUncorrected (14568 ms)
+[----------] 1 test from MeshQualityCampaign (14568 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (14570 ms total)
+[  PASSED  ] 1 test.
+# exit 0 finished 2026-09-15T00:17:15Z

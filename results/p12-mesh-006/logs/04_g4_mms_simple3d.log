@@ -1,0 +1,92 @@
+# P12-MESH-006 G4 -- 3D production SIMPLE MMS gate study (acceptance_gate.md G4)
+# date: 2026-09-15T10:19:41Z  host: Linux 6.6.87.2-microsoft-standard-WSL2 x86_64  cpu:  Intel(R) Core(TM) i9-14900HX
+# build: build/release (Release), warnings in rebuild: 0
+# command: CFDMMSValidationTests --gtest_also_run_disabled_tests --gtest_filter='MMSSimple3DTest.*'
+
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MMSSimple3DTest.*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from MMSSimple3DTest
+[ RUN      ] MMSSimple3DTest.ForcingMatchesFiniteDifferencesOfClosedForms
+G4.0: worst relative deviation from 4th-order central differences 1.774e-10, max |div U| 1.965e-13
+[       OK ] MMSSimple3DTest.ForcingMatchesFiniteDifferencesOfClosedForms (0 ms)
+[ RUN      ] MMSSimple3DTest.ErrorsDecreaseOnCoarseLevels
+level 6x6x6: Converged, 33 iterations (0.1 s)
+level 12x12x12: Converged, 73 iterations (1.5 s)
+[       OK ] MMSSimple3DTest.ErrorsDecreaseOnCoarseLevels (1543 ms)
+[ RUN      ] MMSSimple3DTest.DISABLED_RefinementStudy
+level 8x8x8: Converged, 43 iterations (0.2 s)
+level 16x16x16: Converged, 113 iterations (6.3 s)
+level 32x32x32: Converged, 368 iterations (236.2 s)
+
+P12-MESH-006 3D SIMPLE MMS (unit cube, closed, from rest; n = 8, 16, 32)
+p = ln(Ec/Ef)/ln(hc/hf); gate on the finest pair (16 -> 32)
+
+u           L1     7.5583e-03 1.7968e-03 4.9862e-04  p: 2.073 1.849
+u           L2     1.2161e-02 2.3567e-03 6.1405e-04  p: 2.367 1.940
+u           Linf   6.4639e-02 1.3383e-02 2.0829e-03  p: 2.272 2.684
+v           L1     5.8577e-03 1.3638e-03 3.8807e-04  p: 2.103 1.813
+v           L2     8.5311e-03 1.8296e-03 5.1581e-04  p: 2.221 1.827
+v           Linf   2.9688e-02 6.8961e-03 1.8574e-03  p: 2.106 1.892
+w           L1     3.3009e-03 8.5941e-04 2.4491e-04  p: 1.941 1.811
+w           L2     4.4792e-03 1.1222e-03 3.2086e-04  p: 1.997 1.806
+w           Linf   1.8192e-02 3.8778e-03 1.0645e-03  p: 2.230 1.865
+velocity    L1     1.2351e-02 2.8281e-03 7.9977e-04  p: 2.127 1.822
+velocity    L2     1.5515e-02 3.1876e-03 8.6375e-04  p: 2.283 1.884
+velocity    Linf   6.4713e-02 1.3440e-02 2.0832e-03  p: 2.268 2.690
+p           L1     2.1156e-02 5.3923e-03 1.0280e-03  p: 1.972 2.391
+p           L2     2.6125e-02 7.6200e-03 1.7406e-03  p: 1.778 2.130
+p           Linf   9.4959e-02 3.3713e-02 1.1503e-02  p: 1.494 1.551
+face_flux   L1     4.9455e-03 6.7204e-04 1.2368e-04  p: 2.880 2.442
+face_flux   L2     7.4761e-03 1.0030e-03 1.9328e-04  p: 2.898 2.376
+face_flux   Linf   3.1074e-02 5.0934e-03 1.3873e-03  p: 2.609 1.876
+continuity  L1     3.0153e-11 9.9737e-11 2.8670e-10
+continuity  L2     1.4207e-10 2.8785e-09 2.5491e-08
+continuity  Linf   3.1473e-09 1.8418e-07 4.6143e-06
+
+GATE
+PASS G4.1 u L1 decreasing: 8 -> 16 -> 32
+PASS G4.1 u L2 decreasing: 8 -> 16 -> 32
+PASS G4.1 u Linf decreasing: 8 -> 16 -> 32
+PASS G4.1 u L1 order: finest-pair p 1.849 in [1.6, 2.4]
+PASS G4.1 u L2 order: finest-pair p 1.940 in [1.6, 2.4]
+PASS G4.1 v L1 decreasing: 8 -> 16 -> 32
+PASS G4.1 v L2 decreasing: 8 -> 16 -> 32
+PASS G4.1 v Linf decreasing: 8 -> 16 -> 32
+PASS G4.1 v L1 order: finest-pair p 1.813 in [1.6, 2.4]
+PASS G4.1 v L2 order: finest-pair p 1.827 in [1.6, 2.4]
+PASS G4.1 w L1 decreasing: 8 -> 16 -> 32
+PASS G4.1 w L2 decreasing: 8 -> 16 -> 32
+PASS G4.1 w Linf decreasing: 8 -> 16 -> 32
+PASS G4.1 w L1 order: finest-pair p 1.811 in [1.6, 2.4]
+PASS G4.1 w L2 order: finest-pair p 1.806 in [1.6, 2.4]
+PASS G4.2 p L1 decreasing: 8 -> 16 -> 32
+PASS G4.2 p L2 decreasing: 8 -> 16 -> 32
+PASS G4.2 p Linf decreasing: 8 -> 16 -> 32
+PASS G4.2 p L1 order: finest-pair p 2.391 in [1.5, 2.4]
+PASS G4.2 p L2 order: finest-pair p 2.130 in [1.5, 2.4]
+PASS G4.4 solve at 8x8x8: Converged, finite, rhie_chow, 43 iterations from rest
+PASS G4.3 continuity Linf per volume <= 1e-5 at 8x8x8: 3.147e-09
+PASS G4.3 global mass imbalance <= 1e-14 at 8x8x8: 2.119e-33
+PASS G4.4 solve at 16x16x16: Converged, finite, rhie_chow, 113 iterations from rest
+PASS G4.3 continuity Linf per volume <= 1e-5 at 16x16x16: 1.842e-07
+PASS G4.3 global mass imbalance <= 1e-14 at 16x16x16: 2.446e-32
+PASS G4.4 solve at 32x32x32: Converged, finite, rhie_chow, 368 iterations from rest
+PASS G4.3 continuity Linf per volume <= 1e-5 at 32x32x32: 4.614e-06
+PASS G4.3 global mass imbalance <= 1e-14 at 32x32x32: 3.106e-33
+
+DECISION: every gated item PASSES
+
+per-level solver diagnostics:
+  8x8x8: Converged, iterations 43, global_mass_imbalance 2.119e-33, final_u_residual 7.701e-09, final_v_residual 7.625e-09, final_w_residual 2.936e-09, final_pressure_residual 1.478e-09, final_continuity_residual 2.775e-13, 0.2 s
+  16x16x16: Converged, iterations 113, global_mass_imbalance 2.446e-32, final_u_residual 9.111e-09, final_v_residual 9.022e-09, final_w_residual 2.701e-09, final_pressure_residual 1.939e-10, final_continuity_residual 7.028e-13, 6.3 s
+  32x32x32: Converged, iterations 368, global_mass_imbalance 3.106e-33, final_u_residual 9.672e-09, final_v_residual 9.491e-09, final_w_residual 2.780e-09, final_pressure_residual 2.052e-11, final_continuity_residual 7.779e-13, 236.2 s
+[       OK ] MMSSimple3DTest.DISABLED_RefinementStudy (242759 ms)
+[----------] 3 tests from MMSSimple3DTest (244304 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (244305 ms total)
+[  PASSED  ] 3 tests.
+# elapsed 244.31 s, peak RSS 86364 KB
+# exit: 0

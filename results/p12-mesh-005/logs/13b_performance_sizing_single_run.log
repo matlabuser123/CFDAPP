@@ -1,0 +1,28 @@
+# P12-MESH-005 performance SIZING run (1 repetition per build; used only to choose the case set and repetition count of logs/13).
+# Single runs are not a measurement: see logs/13 for the 5-repetition result. heated_cavity (~5 ms, 1 SIMPLE iteration) is dominated by
+# process start-up and is therefore excluded from logs/13.
+# P12-MESH-005 performance (reported, not gated): 2D CLI, BASE (pre-MESH-005) vs NEW (final), 1 alternating repetitions; Tue Sep 15 06:11:08 UTC 2026
+# NEW bb4beb91ffce66b0  BASE a0aa9756ee22932e  nproc 32   Intel(R) Core(TM) i9-14900HX
+# both Release -O3 (GCC 11.4.0), OMP_NUM_THREADS=1, WSL2 6.6.87.2-microsoft-standard-WSL2
+case                         build   wall min   wall med    cpu min    cpu med   cpu per run [s]
+lid_driven_cavity_40x40      BASE      22.220     22.220     22.200     22.200   22.200
+lid_driven_cavity_40x40      NEW       22.237     22.237     22.160     22.160   22.160
+lid_driven_cavity_40x40      NEW/BASE: wall min 1.001, wall median 1.001; cpu min 0.998, cpu median 0.998
+poiseuille_distorted         BASE       3.669      3.669      3.681      3.681   3.681
+poiseuille_distorted         NEW        4.016      4.016      4.020      4.020   4.020
+poiseuille_distorted         NEW/BASE: wall min 1.095, wall median 1.095; cpu min 1.092, cpu median 1.092
+curved_channel_multiblock    BASE       6.789      6.789      6.824      6.824   6.824
+curved_channel_multiblock    NEW        7.200      7.200      7.122      7.122   7.122
+curved_channel_multiblock    NEW/BASE: wall min 1.061, wall median 1.061; cpu min 1.044, cpu median 1.044
+heated_cavity                BASE       0.005      0.005      0.005      0.005   0.005
+heated_cavity                NEW        0.013      0.013      0.006      0.006   0.006
+heated_cavity                NEW/BASE: wall min 2.653, wall median 2.653; cpu min 1.206, cpu median 1.206
+lid_driven_cavity_80x80      BASE     144.104    144.104    144.074    144.074   144.074
+lid_driven_cavity_80x80      NEW      128.014    128.014    127.993    127.993   127.993
+lid_driven_cavity_80x80      NEW/BASE: wall min 0.888, wall median 0.888; cpu min 0.888, cpu median 0.888
+channel_transpiration_graded BASE       8.369      8.369      8.406      8.406   8.406
+channel_transpiration_graded NEW        8.573      8.573      8.581      8.581   8.581
+channel_transpiration_graded NEW/BASE: wall min 1.024, wall median 1.024; cpu min 1.021, cpu median 1.021
+perf exit 0
+
+[exited with code 0]

@@ -1,0 +1,28 @@
+# P12-MESH-006 diagnostic, written after G5 n=8/16 and G6 had run: independent reference for the G5 duct errors
+# date: 2026-09-15T10:48:35Z; tool: results/p12-mesh-006/tools/duct_fv_reference.py (numpy dense solve)
+# What it computes: the fully developed square-duct problem (2D Poisson, mean u = 1) discretized
+# exactly like CFDApp's momentum diffusion (two-point face gradients, half-cell wall distance), vs the exact series,
+# with the G5 metrics. It does not use CFDApp.
+
+exact: K = 0.0351443, G/mu = 28.454154, u_max = 2.096256
+ n |    Linf        RMS      |G err|/G   |u_max err|/u_max
+ 8 | 8.4997e-02  4.1910e-02  5.5513e-02  6.6907e-02
+16 | 2.3357e-02  1.1483e-02  1.4744e-02  1.7760e-02
+24 | 1.0577e-02  5.2021e-03  6.6339e-03  7.9896e-03
+32 | 5.9902e-03  2.9471e-03  3.7484e-03  4.5140e-03
+48 | 2.6757e-03  1.3169e-03  1.6715e-03  2.0127e-03
+
+# CFDApp 3D SIMPLE, production path (data/duct3d_n8.json, duct3d_n16.json; logs 05a, 05b):
+n= 8 cells   3072 | Converged, rhie_chow, 67 it, 2.7 s | Linf 8.4997e-02 RMS 4.1910e-02 | dp/dx 2.687460 err 5.5512e-02 | u_max 1.95600 err 6.6907e-02 | cross-flow 1.43e-08 | sections 1.98e-12 global 1.93e-12
+n=16 cells  24576 | Converged, rhie_chow, 183 it, 98.6 s | Linf 2.3357e-02 RMS 1.1483e-02 | dp/dx 2.803468 err 1.4742e-02 | u_max 2.05903 err 1.7760e-02 | cross-flow 1.53e-08 | sections 7.98e-12 global 3.39e-12
+
+# appended 2026-09-15T10:58:19Z, after the G5 gate (logs/05d): the same tool at intermediate grids
+exact: K = 0.0351443, G/mu = 28.454154, u_max = 2.096256
+ n |    Linf        RMS      |G err|/G   |u_max err|/u_max
+18 | 1.8584e-02  9.1373e-03  1.1703e-02  1.4096e-02
+20 | 1.5130e-02  7.4396e-03  9.5107e-03  1.1455e-02
+26 | 9.0331e-03  4.4430e-03  5.6610e-03  6.8177e-03
+28 | 7.8030e-03  3.8382e-03  4.8871e-03  5.8855e-03
+
+# CFDApp n=24 (logs/05c), finished 10:56Z, after the n=24 prediction above was logged at 10:48Z:
+n=24 cells  82944 | Converged, rhie_chow, 362 it, 971.5 s | Linf 1.0577e-02 RMS 5.2021e-03 | dp/dx 2.826544 err 6.6323e-03 | u_max 2.07951 err 7.9896e-03 | cross-flow 1.35e-08 | sections 1.44e-11 global 3.52e-12

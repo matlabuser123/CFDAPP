@@ -1,0 +1,171 @@
+=== it_CommittedCaseIsAGenuinelyNonOrthogonalMesh.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.CommittedCaseIsAGenuinelyNonOrthogonalMesh
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.CommittedCaseIsAGenuinelyNonOrthogonalMesh
+poiseuille_distorted 64x8: non-orthogonality max 44.76 mean 14.58 deg, skewness max 0.1318 mean 0.0369
+[       OK ] StructuredQuadProductionCase.CommittedCaseIsAGenuinelyNonOrthogonalMesh (26 ms)
+[----------] 1 test from StructuredQuadProductionCase (27 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29 ms total)
+[  PASSED  ] 1 test.
+=== it_CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh
+distorted lubrication channel: iterations 3575, p error L2 8.4054e-03 Linf 2.2277e-02
+[       OK ] StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh (14095 ms)
+[----------] 1 test from StructuredQuadProductionCase (14095 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (14097 ms total)
+[  PASSED  ] 1 test.
+=== it_DistortedPoiseuilleGridConvergence.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+64x8: non-orthogonality max 44.76 deg, skewness max 0.1318, iterations 1071, velocity L2 1.7488e-02 (Cartesian 1.5183e-02), dp/dx -1.173711, column flow error 3.89e-11
+96x12: non-orthogonality max 47.18 deg, skewness max 0.0910, iterations 673, velocity L2 7.4225e-03 (Cartesian 6.9492e-03), dp/dx -1.186041, column flow error 6.03e-11
+144x18: non-orthogonality max 48.25 deg, skewness max 0.0609, iterations 682, velocity L2 3.2779e-03 (Cartesian 3.1294e-03), dp/dx -1.192985, column flow error 3.37e-10
+
+### Grid convergence: poiseuille_distorted
+
+Distorted Poiseuille Re = 10 (structured_quad), 64x8 / 96x12 / 144x18
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 64 x 8 | 512 | 0.125 | 4.4 | Converged (1071 it) | yes |
+| medium | 96 x 12 | 1152 | 0.0833333 | 6.0 | Converged (673 it) | yes |
+| fine | 144 x 18 | 2592 | 0.0555556 | 16.6 | Converged (682 it) | yes |
+
+**pressure_gradient** -- dp/dx, least-squares fit over 0.50 L..0.85 L; exact -12 mu U / H^2
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -1.1737108 | -1.2 (analytical) | 0.02629 | 0.02191 |
+| medium | -1.1860408 | -1.2 (analytical) | 0.01396 | 0.01163 |
+| fine | -1.1929851 | -1.2 (analytical) | 0.007015 | 0.005846 |
+| extrapolated | -1.2019386 | | -0.001939 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.4160 | 2 | -1.2019386 | 0.01119 | 0.009381 | 0.01676 | 0.7891 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 1.41598 (formal 2); asymptotic ratio 0.789149 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**velocity_l2_error** -- volume-weighted L2 of |u - u_exact| over 0.50 L..0.85 L; exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.017487737 | 0 (analytical) | 0.01749 | -- |
+| medium | 0.0074225013 | 0 (analytical) | 0.007423 | -- |
+| fine | 0.0032778622 | 0 (analytical) | 0.003278 | -- |
+| extrapolated | 0.00037645973 | | 0.0003765 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 2.1883 | 2 | 0.00037645973 | 0.003627 | 1.106 | 1.187 | 1.0793 | asymptotic | no |
+
+- monotonic convergence, observed order 2.18828 (formal 2); asymptotic ratio 1.07933 within 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+pair 0: observed order velocity 2.114, dp/dx 1.561
+pair 1: observed order velocity 2.016, dp/dx 1.697
+[       OK ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence (27100 ms)
+[----------] 1 test from StructuredQuadProductionCase (27101 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (27110 ms total)
+[  PASSED  ] 1 test.
+=== it_DistortedPoiseuilleMatchesAnalyticalSolution.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution
+64x8: iterations 1071, velocity L2 1.7488e-02 (Cartesian 1.5183e-02), dp/dx -1.173711 (exact -1.200000), max column flow error 3.89e-11, mass imbalance 8.53e-12
+[       OK ] StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution (4581 ms)
+[----------] 1 test from StructuredQuadProductionCase (4582 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (4584 ms total)
+[  PASSED  ] 1 test.
+=== it_KEpsilonChannelMatchesCartesianOnTiltedMesh.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh
+k_epsilon Re_tau: Cartesian 447.902, distorted 448.175
+[       OK ] StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh (4099 ms)
+[----------] 1 test from StructuredQuadProductionCase (4099 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (4100 ms total)
+[  PASSED  ] 1 test.
+=== it_LeastSquaresGradientMatchesAnalyticalSolution.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution
+[       OK ] StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution (4646 ms)
+[----------] 1 test from StructuredQuadProductionCase (4647 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (4650 ms total)
+[  PASSED  ] 1 test.
+=== it_NonOrthogonalCorrectionIsActiveOnTheProductionPath.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath
+[       OK ] StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath (8191 ms)
+[----------] 1 test from StructuredQuadProductionCase (8192 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (8193 ms total)
+[  PASSED  ] 1 test.
+=== it_SstChannelMatchesCartesianOnTiltedMesh.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh
+sst Re_tau: Cartesian 322.751, distorted 333.330
+[       OK ] StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh (27659 ms)
+[----------] 1 test from StructuredQuadProductionCase (27661 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (27663 ms total)
+[  PASSED  ] 1 test.
+=== it_ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab.log
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab
+green_gauss: max |T - T_exact| 1.533e-06 K, max |Y - Y_exact| 4.308e-07
+least_squares: max |T - T_exact| 1.014e-07 K, max |Y - Y_exact| 3.897e-07
+[       OK ] StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab (361 ms)
+[----------] 1 test from StructuredQuadProductionCase (365 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (368 ms total)
+[  PASSED  ] 1 test.

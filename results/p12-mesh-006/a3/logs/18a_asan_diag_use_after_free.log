@@ -1,0 +1,47 @@
+# P12-MESH-006 ASan diagnosis (a): MeshQualityReport.DisconnectedMeshIsFatal, 2026-09-15T16:36:10Z
+# ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0 (the CI sanitizer job's)
+## 1. byte identity with BASE (pre-MESH-006)
+IDENTICAL  tests/unit/mesh/test_mesh_quality_report.cpp  NEW a92d95566e74490f  BASE a92d95566e74490f
+IDENTICAL  src/mesh/MeshQuality.cpp  NEW d7978e20af0ab716  BASE d7978e20af0ab716
+IDENTICAL  include/cfd/mesh/MeshQuality.hpp  NEW 63ebd119606e947e  BASE 63ebd119606e947e
+## git: tracked/untracked state of the test file (HEAD b66310c)
+ M include/cfd/mesh/MeshQuality.hpp
+ M src/mesh/MeshQuality.cpp
+?? tests/unit/mesh/test_mesh_quality_report.cpp
+untracked at HEAD (created after HEAD, in the uncommitted P12-MESH work)
+## the test code (NEW, lines 484-491)
+  const Mesh mesh = MeshGeometry::createMultiBlock2D(spec);
+  expectFatal(mesh, "connected_components",
+              "mesh has 2 disconnected cell regions (cells per region: 4, 4)");
+  const MeshQualityIssue* issue =
+      findIssue(MeshQuality::evaluate(mesh), MeshQualitySeverity::Fatal, "connected_components");
+  EXPECT_EQ(issue->entity, "mesh");
+  EXPECT_EQ(issue->value.value(), 2.0);
+}
+## 2. BASE with the asan preset's settings: configure + build CFDMeshTests
+configure exit 0; -- CFDApp: AddressSanitizer + UndefinedBehaviorSanitizer enabled (GNU).
+build exit 0; warnings 0
+BASE flags: -fsanitize=address,undefined 
+NEW  flags: -fsanitize=address,undefined 
+=== BASE (/root/m6ref/base_asan/tests/unit/mesh/CFDMeshTests): exit 1
+    ==21373==ERROR: AddressSanitizer: heap-use-after-free on address 0x510000000870 at pc 0x5b0bfe9aaa71 bp 0x7ffc44b7b2d0 sp 0x7ffc44b7b2c0
+    READ of size 8 at 0x510000000870 thread T0
+        #5 0x5b0bfea56af1 in TestBody /root/m6ref/base/tests/unit/mesh/test_mesh_quality_report.cpp:489
+        #7 0x5b0bfea0e139 in cfd::mesh::MeshQualityReport::~MeshQualityReport() /root/m6ref/base/include/cfd/mesh/MeshQuality.hpp:127
+        #8 0x5b0bfea5692d in TestBody /root/m6ref/base/tests/unit/mesh/test_mesh_quality_report.cpp:488
+        #8 0x5b0bfec8e90d in add /root/m6ref/base/src/mesh/MeshQuality.cpp:122
+        #9 0x5b0bfeca3be4 in cfd::mesh::MeshQuality::evaluate(cfd::mesh::Mesh const&, cfd::mesh::MeshQualityThresholds const&) /root/m6ref/base/src/mesh/MeshQuality.cpp:420
+        #10 0x5b0bfea568db in TestBody /root/m6ref/base/tests/unit/mesh/test_mesh_quality_report.cpp:488
+    SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/c++/11/bits/basic_string.h:921 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::size() const
+=== NEW (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/tests/unit/mesh/CFDMeshTests): exit 1
+    ==21378==ERROR: AddressSanitizer: heap-use-after-free on address 0x510000000870 at pc 0x55de654dca71 bp 0x7ffc7dfdce60 sp 0x7ffc7dfdce50
+    READ of size 8 at 0x510000000870 thread T0
+        #5 0x55de65588af1 in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:489
+        #7 0x55de65540139 in cfd::mesh::MeshQualityReport::~MeshQualityReport() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/mesh/MeshQuality.hpp:127
+        #8 0x55de6558892d in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:488
+        #8 0x55de657c090d in add /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/mesh/MeshQuality.cpp:122
+        #9 0x55de657d5be4 in cfd::mesh::MeshQuality::evaluate(cfd::mesh::Mesh const&, cfd::mesh::MeshQualityThresholds const&) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/mesh/MeshQuality.cpp:420
+        #10 0x55de655888db in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:488
+    SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/c++/11/bits/basic_string.h:921 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::size() const
+## the same test in NEW with the rest of its suite, not under ASan (logs/16, 17): Passed (use-after-free is silent without ASan)
+# end 2026-09-15T16:36:34Z

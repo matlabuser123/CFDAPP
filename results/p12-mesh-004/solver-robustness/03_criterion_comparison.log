@@ -1,0 +1,44 @@
+# P12-MESH-004 solver robustness steps 2-3: candidate breakdown criteria (tools/bicg_prototype.cpp) on the captured
+# systems and on a 1D upwind convection-diffusion system (tools/make_cd.py).
+# production = the PRE-FIX library solver (the prototype binary was statically linked before the fix: 2026-09-15 08:32:56);
+# relative eps = |(x,y)| <= eps |x||y| (the chosen fix); relative n*eps = the worst-case dot-product rounding bound;
+# +restart = restart with rHat = r from the true residual when the residual decreased since the last (re)start.
+# Settings: abs 1e-12, rel 1e-10, max 1000. true = recomputed |b - A x|.
+/tmp/m4probe/system_smooth005_n32.txt: 1024 unknowns
+  production           : status 2,   35 it, recursive 4.1945e-11, true 4.1945e-11
+  relative eps            : Converged            44 it, 0 restarts, recursive 8.9540e-13, true 8.9543e-13
+  relative eps    +restart: Converged            44 it, 0 restarts, recursive 8.9540e-13, true 8.9543e-13
+  relative n*eps          : Converged            44 it, 0 restarts, recursive 8.9540e-13, true 8.9543e-13
+  relative n*eps  +restart: Converged            44 it, 0 restarts, recursive 8.9540e-13, true 8.9543e-13
+/tmp/m4probe/system_smooth005_n64.txt: 4096 unknowns
+  production           : status 2,   33 it, recursive 6.7474e-11, true 6.7474e-11
+  relative eps            : Converged            71 it, 0 restarts, recursive 9.9074e-13, true 9.9085e-13
+  relative eps    +restart: Converged            71 it, 0 restarts, recursive 9.9074e-13, true 9.9085e-13
+  relative n*eps          : Breakdown(rho)       34 it, 0 restarts, recursive 6.2523e-11, true 6.2523e-11
+  relative n*eps  +restart: Converged            76 it, 1 restarts, recursive 9.8240e-13, true 9.8236e-13
+/tmp/m4probe/system_rough03_n32.txt: 1024 unknowns
+  production           : status 2,   37 it, recursive 9.4309e-12, true 9.4308e-12
+  relative eps            : Converged            53 it, 0 restarts, recursive 8.8504e-13, true 8.8519e-13
+  relative eps    +restart: Converged            53 it, 0 restarts, recursive 8.8504e-13, true 8.8519e-13
+  relative n*eps          : Converged            53 it, 0 restarts, recursive 8.8504e-13, true 8.8519e-13
+  relative n*eps  +restart: Converged            53 it, 0 restarts, recursive 8.8504e-13, true 8.8519e-13
+scratch/cd200.txt: 200 unknowns
+  production           : status 0,  249 it, recursive 4.2259e-10, true 4.2272e-10
+  relative eps            : Converged           249 it, 0 restarts, recursive 4.2259e-10, true 4.2272e-10
+  relative eps    +restart: Converged           249 it, 0 restarts, recursive 4.2259e-10, true 4.2272e-10
+  relative n*eps          : Breakdown(rho)       42 it, 0 restarts, recursive 1.5810e+00, true 1.5810e+00
+  relative n*eps  +restart: Converged           213 it, 1 restarts, recursive 8.3607e-10, true 8.3610e-10
+
+# The same 1D system scaled by 1e-12 (NOT a power of two, so rounding differs from the unscaled trajectory). The
+# fixed criterion reports a GENUINE working-precision rho breakdown at iteration 98 (|cos| <= eps); a restart would
+# recover. Restart is not implemented -- the MESH-004 blockers need none (smallest change); recorded as a limitation.
+scratch/cd200_1em12.txt: 200 unknowns
+  production           : status 2,    0 it, recursive 9.8857e-12, true 9.8857e-12
+   rho breakdown at it 98: stop (since restart 98)
+  relative eps            : Breakdown(rho)       98 it, 0 restarts, recursive 1.1222e-12, true 1.1222e-12
+   rho breakdown at it 98 -> restart 1 from true residual 1.1222e-12
+  relative eps    +restart: Converged           122 it, 1 restarts, recursive 9.9542e-13, true 9.9542e-13
+   rho breakdown at it 63: stop (since restart 63)
+  relative n*eps          : Breakdown(rho)       63 it, 0 restarts, recursive 1.2909e-12, true 1.2909e-12
+   rho breakdown at it 63 -> restart 1 from true residual 1.2909e-12
+  relative n*eps  +restart: Converged           132 it, 1 restarts, recursive 9.8999e-13, true 9.8999e-13

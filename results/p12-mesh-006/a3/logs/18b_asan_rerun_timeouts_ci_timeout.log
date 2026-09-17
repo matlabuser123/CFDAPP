@@ -1,0 +1,23 @@
+# P12-MESH-006 ASan diagnosis (b): the 3 tests that hit --timeout 1800 in logs/18, rerun in NEW
+# build/asan with the CI sanitizer job's settings (--timeout 7200, ASAN/UBSAN options), -j3, 2026-09-15T16:36:34Z
+# ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+# build/asan binaries are those of logs/18 (not rebuilt): CFDValidationTests 5796d86c116228fe
+your 131072x1 screen size is bogus. expect trouble
+# other processes using CPU at start: 0
+Test project /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan
+    Start 1724: NaturalConvectionValidation.GridConvergence
+    Start 1756: CompressibleCoupledProductionCaseTest.RepeatedRunIsDeterministic
+    Start 1893: SIMPLEMMS.DistortedMesh
+1/3 Test #1724: NaturalConvectionValidation.GridConvergence ........................   Passed  1106.65 sec
+2/3 Test #1893: SIMPLEMMS.DistortedMesh ............................................   Passed  1259.50 sec
+3/3 Test #1756: CompressibleCoupledProductionCaseTest.RepeatedRunIsDeterministic ...   Passed  1669.85 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Label Time Summary:
+validation    = 4036.01 sec*proc (3 tests)
+
+Total Test time (real) = 1670.18 sec
+ctest exit 0
+# end 2026-09-15T17:04:28Z
+# sanitizer diagnostics in 18b: AddressSanitizer 0, UBSan runtime errors 0, LeakSanitizer 0

@@ -1,0 +1,67 @@
+# P12-MESH-004 UNCHANGED-GATE RERUN with the FINAL BiCGSTAB fix (term-magnitude test + restart): MeshQualityCampaign.DISABLED_ManufacturedSolutionCartesian (acceptance_gate.md fixed before this run)
+# binary 48edb6b65edbf766, started 2026-09-15T00:17:00Z, 32 cores, run concurrently with the other campaign tests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQualityCampaign.DISABLED_ManufacturedSolutionCartesian
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshQualityCampaign
+[ RUN      ] MeshQualityCampaign.DISABLED_ManufacturedSolutionCartesian
+cartesian_n8           valid               cells    64 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged       452 it   0.25 s contr 0.99521 | u L2 3.8704e-02 Linf 8.9097e-02 | v L2 3.4771e-02 | p L2 8.7603e-02 | T L2 1.7407e-02 Linf 4.5109e-02 (Converged, 2 it, lin 7.9e-12->8.9e-13) | mass 0.0e+00 cell-cont 1.8e-08 energy 7.9e-14
+cartesian_n16          valid               cells   256 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged       584 it   1.43 s contr 0.99730 | u L2 6.8690e-03 Linf 1.6128e-02 | v L2 5.6935e-03 | p L2 2.0641e-02 | T L2 1.1238e-02 Linf 2.8131e-02 (Converged, 2 it, lin 4.6e-12->7.8e-13) | mass 0.0e+00 cell-cont 4.3e-08 energy 1.3e-13
+cartesian_n32          valid               cells  1024 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      1177 it  13.54 s contr 1.00096 | u L2 1.5324e-03 Linf 3.2793e-03 | v L2 1.1884e-03 | p L2 5.6194e-03 | T L2 6.1616e-03 Linf 1.5224e-02 (Converged, 2 it, lin 4.2e-12->8.3e-13) | mass 0.0e+00 cell-cont 4.8e-07 energy 3.4e-13
+cartesian_n64          valid               cells  4096 | AR   1.000 nonorth   0.000 skew  0.0000 expan  1.000 | Converged      1620 it  93.37 s contr 1.00054 | u L2 4.0194e-04 Linf 1.0009e-03 | v L2 3.2080e-04 | p L2 1.4407e-03 | T L2 3.2096e-03 Linf 7.8944e-03 (Converged, 2 it, lin 2.4e-12->9.6e-13) | mass 0.0e+00 cell-cont 8.7e-07 energy 3.4e-12
+--- cartesian observed orders p = ln(e_n / e_2n) / ln 2 (L2; L1; Linf)
+pair  8 -> 16: u 2.494; 2.449; 2.466 | v 2.611; 2.621; 2.653 | p 2.085; 2.129; 1.953 | T 0.631; 0.643; 0.681
+pair 16 -> 32: u 2.164; 2.168; 2.298 | v 2.260; 2.297; 2.077 | p 1.877; 1.867; 1.643 | T 0.867; 0.870; 0.886
+pair 32 -> 64: u 1.931; 1.983; 1.712 | v 1.889; 1.865; 1.915 | p 1.964; 1.980; 1.806 | T 0.941; 0.941; 0.947
+
+### Grid convergence: p12_mesh_004_cartesian
+
+P12-MESH-004 manufactured-solution cavity, family cartesian
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| n16 | 16 x 16 | 256 | 0.0625 | 1.4 | Converged (584 it) | yes |
+| n32 | 32 x 32 | 1024 | 0.03125 | 13.5 | Converged (1177 it) | yes |
+| n64 | 64 x 64 | 4096 | 0.015625 | 93.4 | Converged (1620 it) | yes |
+
+**kinetic_energy** -- 1/2 sum |u_c|^2 V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.1852657 | 0.1875 (analytical) | -0.002234 | 0.01192 |
+| medium | 0.18766591 | 0.1875 (analytical) | 0.0001659 | 0.0008849 |
+| fine | 0.18763442 | 0.1875 (analytical) | 0.0001344 | 0.0007169 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | -- | 2 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -0.013118): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00120011 is available
+
+**mean_temperature** -- sum T_c V_c of the manufactured-solution cavity
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.40011613 | 0.40528473 (analytical) | -0.005169 | 0.01275 |
+| medium | 0.40193958 | 0.40528473 (analytical) | -0.003345 | 0.008254 |
+| fine | 0.40342878 | 0.40528473 (analytical) | -0.001856 | 0.004579 |
+| extrapolated | 0.41006353 | | 0.004779 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 2 | 2 | 0.2921 | 1 | 0.41006353 | 0.008293 | 0.02056 | 0.02526 | 0.6122 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.292139 (formal 1); asymptotic ratio 0.612227 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+GC cartesian kinetic_energy: status oscillatory (no order / GCI computed)
+GC cartesian mean_temperature: status monotonic_not_asymptotic, observed order 0.292, fine 0.4034287830, U21 8.293e-03, |fine - exact| 1.856e-03
+[       OK ] MeshQualityCampaign.DISABLED_ManufacturedSolutionCartesian (108775 ms)
+[----------] 1 test from MeshQualityCampaign (108776 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (108779 ms total)
+[  PASSED  ] 1 test.
+# exit 0 finished 2026-09-15T00:18:49Z

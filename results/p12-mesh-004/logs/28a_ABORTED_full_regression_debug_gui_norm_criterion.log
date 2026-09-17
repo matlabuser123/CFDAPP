@@ -1,0 +1,274 @@
+# ABORTED (stale): the Debug+GUI regression of the superseded norm-relative criterion, stopped when the Release run of
+# the same build failed (logs/27a). Not a result.
+# P12-MESH-004 full regression, build/debug (Debug, GUI on, Qt 6.2.4, offscreen), 2026-09-14T23:46:18Z
+# HEAD b66310ca871811c4c7671056beec291a451af55c + uncommitted P12-MESH-001/002/003/004 working tree (incl. the BiCGSTAB fix)
+Test project /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/debug
+          Start 1690: CompressibleCoupledProductionCaseTest.RepeatedRunIsDeterministic
+          Start 1658: NaturalConvectionValidation.GridConvergence
+          Start 1814: SIMPLEMMS.DistortedMesh
+          Start 1708: GradedMeshProductionCase.GradedGridConvergence
+          Start 1686: CompressibleCoupledProductionCaseTest.DispatchesToCompressibleSimpleAndConverges
+          Start 1687: CompressibleCoupledProductionCaseTest.MassFlowRateIsConservedAtEveryInternalCrossSection
+          Start 1689: CompressibleCoupledProductionCaseTest.ExportsCoupledCompressibleFields
+          Start 1688: CompressibleCoupledProductionCaseTest.MatchesArkilicIsothermalLubricationPressureProfile
+          Start 1810: SIMPLEMMS.PressureConvergesAtExpectedOrder
+          Start 1809: SIMPLEMMS.VelocityConvergesAtExpectedOrder
+          Start 1634: PoiseuilleValidation.ProductionGridConvergence
+          Start 1629: PoiseuilleValidation.GridConvergence
+          Start 1705: StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh
+          Start 1699: StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+          Start 1622: SchemeValidation.AccuracyCostComparison
+          Start 1710: GradedMeshProductionCase.GradedVertexGridOnNonOrthogonalStructuredQuad
+   1/1871 Test #1622: SchemeValidation.AccuracyCostComparison ..................................................................   Passed  242.28 sec
+          Start 1707: GradedMeshProductionCase.GradedMeshBeatsUniformAtEqualCellCount
+   2/1871 Test #1634: PoiseuilleValidation.ProductionGridConvergence ...........................................................   Passed  284.44 sec
+          Start 1811: SIMPLEMMS.ContinuityConverges
+   3/1871 Test #1629: PoiseuilleValidation.GridConvergence .....................................................................   Passed  290.02 sec
+          Start 1713: MultiBlockProductionCase.CurvedChannelGridConvergence
+   4/1871 Test #1810: SIMPLEMMS.PressureConvergesAtExpectedOrder ...............................................................   Passed  307.40 sec
+          Start 1706: GradedMeshProductionCase.CommittedCaseRunsConservesAndExportsGradedGeometry
+   5/1871 Test #1809: SIMPLEMMS.VelocityConvergesAtExpectedOrder ...............................................................   Passed  308.02 sec
+          Start 1709: GradedMeshProductionCase.XAndYGradingTogether
+   6/1871 Test #1699: StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence ..........................................   Passed  337.11 sec
+          Start 1716: MultiBlockProductionCase.ObstacleChannelInternalSolid
+   7/1871 Test #1710: GradedMeshProductionCase.GradedVertexGridOnNonOrthogonalStructuredQuad ...................................   Passed  340.32 sec
+          Start 1816: CompressibleSimpleMMS.SystemConvergence
+   8/1871 Test #1705: StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh ......................................   Passed  343.05 sec
+          Start 1703: StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh
+   9/1871 Test #1686: CompressibleCoupledProductionCaseTest.DispatchesToCompressibleSimpleAndConverges .........................   Passed  467.90 sec
+          Start 1766: TurbulentChannelValidation.ReTau180
+  10/1871 Test #1688: CompressibleCoupledProductionCaseTest.MatchesArkilicIsothermalLubricationPressureProfile .................   Passed  468.88 sec
+          Start 1812: SIMPLEMMS.GlobalMassBalance
+  11/1871 Test #1687: CompressibleCoupledProductionCaseTest.MassFlowRateIsConservedAtEveryInternalCrossSection .................   Passed  470.46 sec
+          Start 1767: TurbulentChannelValidation.LogLaw
+  12/1871 Test #1811: SIMPLEMMS.ContinuityConverges ............................................................................   Passed  186.75 sec
+          Start 1806: MomentumMMS.DistortedMesh
+  13/1871 Test #1689: CompressibleCoupledProductionCaseTest.ExportsCoupledCompressibleFields ...................................   Passed  471.64 sec
+          Start 1711: MultiBlockProductionCase.CurvedChannelCommittedCaseGate
+  14/1871 Test #1766: TurbulentChannelValidation.ReTau180 ......................................................................***Failed   12.92 sec
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = TurbulentChannelValidation.ReTau180
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from TurbulentChannelValidation
+[ RUN      ] TurbulentChannelValidation.ReTau180
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:414: Failure
+Expected equality of these values:
+  result.status
+    Which is: 4-byte object <03-00 00-00>
+  SIMPLEStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+SST medium did not converge (status=3, iterations=80)
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:1149: Failure
+Value of: check.passed
+  Actual: false
+Expected: true
+turbulent_channel_re_tau_180_SST/medium/upwind solve_accepted: PressureCorrectionFailure solver status PressureCorrectionFailure (not Converged): pressure-correction linear solve failed: BiCGSTAB Breakdown after 76 iterations
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:1173: Failure
+Value of: run.level.accepted
+  Actual: false
+Expected: true
+
+[  FAILED  ] TurbulentChannelValidation.ReTau180 (12893 ms)
+[----------] 1 test from TurbulentChannelValidation (12893 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (12894 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] TurbulentChannelValidation.ReTau180
+
+ 1 FAILED TEST
+
+          Start 1712: MultiBlockProductionCase.CurvedChannelInterfacesAreTransparent
+  15/1871 Test #1767: TurbulentChannelValidation.LogLaw ........................................................................***Failed   12.75 sec
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = TurbulentChannelValidation.LogLaw
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from TurbulentChannelValidation
+[ RUN      ] TurbulentChannelValidation.LogLaw
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:414: Failure
+Expected equality of these values:
+  result.status
+    Which is: 4-byte object <03-00 00-00>
+  SIMPLEStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+SST medium did not converge (status=3, iterations=80)
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:1149: Failure
+Value of: check.passed
+  Actual: false
+Expected: true
+turbulent_channel_re_tau_180_SST/medium/upwind solve_accepted: PressureCorrectionFailure solver status PressureCorrectionFailure (not Converged): pressure-correction linear solve failed: BiCGSTAB Breakdown after 76 iterations
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:1190: Failure
+Value of: run.level.accepted
+  Actual: false
+Expected: true
+
+[  FAILED  ] TurbulentChannelValidation.LogLaw (12742 ms)
+[----------] 1 test from TurbulentChannelValidation (12742 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (12742 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] TurbulentChannelValidation.LogLaw
+
+ 1 FAILED TEST
+
+          Start 1701: StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath
+  16/1871 Test #1816: CompressibleSimpleMMS.SystemConvergence ..................................................................   Passed  157.53 sec
+          Start 1488: SIMPLENonOrthogonalTest.CorrectedSolveIsCloserToExactCouetteFlowOnDistortedMesh
+  17/1871 Test #1703: StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh .................   Passed  172.16 sec
+          Start 1763: ChannelFlowValidation.AllFourModelsProduceDistinctMuTAndNames
+  18/1871 Test #1708: GradedMeshProductionCase.GradedGridConvergence ...........................................................   Passed  531.01 sec
+          Start 1656: NaturalConvectionValidation.Grid15x15MatchesDeVahlDavisRa1e3
+  19/1871 Test #1707: GradedMeshProductionCase.GradedMeshBeatsUniformAtEqualCellCount ..........................................   Passed  293.53 sec
+          Start 1484: SIMPLENonOrthogonalTest.DistortedMeshStrong
+  20/1871 Test #1806: MomentumMMS.DistortedMesh ................................................................................   Passed   90.74 sec
+          Start 1620: SchemeValidation.LinearUpwind
+  21/1871 Test #1488: SIMPLENonOrthogonalTest.CorrectedSolveIsCloserToExactCouetteFlowOnDistortedMesh ..........................   Passed   70.30 sec
+          Start 1621: SchemeValidation.Quick
+  22/1871 Test #1709: GradedMeshProductionCase.XAndYGradingTogether ............................................................   Passed  260.70 sec
+          Start 1609: CavityGhiaValidation.Re100Grid20
+  23/1871 Test #1706: GradedMeshProductionCase.CommittedCaseRunsConservesAndExportsGradedGeometry ..............................   Passed  267.15 sec
+          Start 1804: MomentumMMS.VConverges
+  24/1871 Test #1701: StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath ..........................   Passed   97.75 sec
+          Start 1803: MomentumMMS.UConverges
+  25/1871 Test #1484: SIMPLENonOrthogonalTest.DistortedMeshStrong ..............................................................   Passed   58.34 sec
+          Start 1619: SchemeValidation.Central
+  26/1871 Test #1812: SIMPLEMMS.GlobalMassBalance ..............................................................................   Passed  127.21 sec
+          Start 1618: SchemeValidation.Upwind
+  27/1871 Test #1620: SchemeValidation.LinearUpwind ............................................................................   Passed   65.47 sec
+          Start 1762: ChannelFlowValidation.LaminarControlDiffersSubstantiallyFromKEpsilon
+  28/1871 Test #1609: CavityGhiaValidation.Re100Grid20 .........................................................................   Passed   64.35 sec
+          Start 1646: TwoMaterialConductionValidation.Grid80MatchesAnalyticalSolution
+  29/1871 Test #1646: TwoMaterialConductionValidation.Grid80MatchesAnalyticalSolution ..........................................   Passed    0.18 sec
+          Start 1808: SIMPLEMMS.ConvergesFromNonExactInitialCondition
+  30/1871 Test #1621: SchemeValidation.Quick ...................................................................................   Passed   66.13 sec
+          Start 1765: ChannelFlowValidation.SSTIsDeterministic
+  31/1871 Test #1804: MomentumMMS.VConverges ...................................................................................   Passed   60.81 sec
+          Start 1759: ChannelFlowValidation.SSTMediumConvergesAndMatchesLogLaw
+  32/1871 Test #1658: NaturalConvectionValidation.GridConvergence ..............................................................   Passed  636.78 sec
+          Start 1715: MultiBlockProductionCase.StepChannelRegression
+  33/1871 Test #1803: MomentumMMS.UConverges ...................................................................................   Passed   61.93 sec
+          Start 1631: PoiseuilleValidation.Profile
+  34/1871 Test #1759: ChannelFlowValidation.SSTMediumConvergesAndMatchesLogLaw .................................................***Failed   12.62 sec
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ChannelFlowValidation.SSTMediumConvergesAndMatchesLogLaw
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ChannelFlowValidation
+[ RUN      ] ChannelFlowValidation.SSTMediumConvergesAndMatchesLogLaw
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:414: Failure
+Expected equality of these values:
+  result.status
+    Which is: 4-byte object <03-00 00-00>
+  SIMPLEStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+SST medium did not converge (status=3, iterations=80)
+
+[  FAILED  ] ChannelFlowValidation.SSTMediumConvergesAndMatchesLogLaw (12617 ms)
+[----------] 1 test from ChannelFlowValidation (12617 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (12617 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ChannelFlowValidation.SSTMediumConvergesAndMatchesLogLaw
+
+ 1 FAILED TEST
+
+          Start 1633: PoiseuilleValidation.PressureDrop
+  35/1871 Test #1763: ChannelFlowValidation.AllFourModelsProduceDistinctMuTAndNames ............................................***Failed  134.59 sec
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ChannelFlowValidation.AllFourModelsProduceDistinctMuTAndNames
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ChannelFlowValidation
+[ RUN      ] ChannelFlowValidation.AllFourModelsProduceDistinctMuTAndNames
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:822: Failure
+Expected equality of these values:
+  laminarResult.status
+    Which is: 4-byte object <03-00 00-00>
+  SIMPLEStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+
+[  FAILED  ] ChannelFlowValidation.AllFourModelsProduceDistinctMuTAndNames (134567 ms)
+[----------] 1 test from ChannelFlowValidation (134567 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (134567 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ChannelFlowValidation.AllFourModelsProduceDistinctMuTAndNames
+
+ 1 FAILED TEST
+
+          Start 1632: PoiseuilleValidation.MassFlow
+  36/1871 Test #1711: MultiBlockProductionCase.CurvedChannelCommittedCaseGate ..................................................   Passed  180.66 sec
+          Start 1608: CavityGhiaValidation.Grid20x20IsDeterministic
+  37/1871 Test #1762: ChannelFlowValidation.LaminarControlDiffersSubstantiallyFromKEpsilon .....................................***Failed   29.80 sec
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/debug/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ChannelFlowValidation.LaminarControlDiffersSubstantiallyFromKEpsilon
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ChannelFlowValidation
+[ RUN      ] ChannelFlowValidation.LaminarControlDiffersSubstantiallyFromKEpsilon
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_channel_flow_validation.cpp:725: Failure
+Expected equality of these values:
+  laminarResult.status
+    Which is: 4-byte object <03-00 00-00>
+  SIMPLEStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+
+[  FAILED  ] ChannelFlowValidation.LaminarControlDiffersSubstantiallyFromKEpsilon (29787 ms)
+[----------] 1 test from ChannelFlowValidation (29787 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (29787 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ChannelFlowValidation.LaminarControlDiffersSubstantiallyFromKEpsilon
+
+ 1 FAILED TEST
+
+          Start 1700: StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution
+  38/1871 Test #1618: SchemeValidation.Upwind ..................................................................................   Passed   61.33 sec
+          Start 1698: StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution
+  39/1871 Test #1619: SchemeValidation.Central .................................................................................   Passed   63.29 sec
+          Start 1704: StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh
+  40/1871 Test #1712: MultiBlockProductionCase.CurvedChannelInterfacesAreTransparent ...........................................   Passed  177.99 sec
+          Start 1482: SIMPLENonOrthogonalTest.DistortedMeshMild
+  41/1871 Test #1808: SIMPLEMMS.ConvergesFromNonExactInitialCondition ..........................................................   Passed   48.01 sec
+          Start 1483: SIMPLENonOrthogonalTest.DistortedMeshModerate
+  42/1871 Test #1631: PoiseuilleValidation.Profile .............................................................................   Passed   43.74 sec
+          Start 1661: NaturalConvectionValidation.RepeatedCoupledSolveIsBitIdentical
+  43/1871 Test #1814: SIMPLEMMS.DistortedMesh ..................................................................................   Passed  687.24 sec
+          Start 1756: ChannelFlowValidation.KOmegaMediumConvergesAndMatchesLogLaw
+  44/1871 Test #1482: SIMPLENonOrthogonalTest.DistortedMeshMild ................................................................   Passed   30.76 sec
+          Start 1758: ChannelFlowValidation.SSTCoarseConvergesAndMatchesLogLaw
+  45/1871 Test #1633: PoiseuilleValidation.PressureDrop ........................................................................   Passed   42.65 sec
+          Start 1625: TransientCavityTest.LongTimeTransientApproachesValidatedSteadySimple
+  46/1871 Test #1632: PoiseuilleValidation.MassFlow ............................................................................   Passed   43.94 sec
+          Start 1801: ScalarMMS.AdvectionDiffusionConverges
+  47/1871 Test #1704: StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh .................................   Passed   46.66 sec
+          Start 1604: CavityGhiaValidation.Grid20x20ConvergesAndMatchesGhia
+  48/1871 Test #1713: MultiBlockProductionCase.CurvedChannelGridConvergence ....................................................   Passed  419.54 sec
+          Start 1685: CompressibleProductionCaseTest.RepeatedRunsAreDeterministic
+  49/1871 Test #1700: StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution ...............................   Passed   52.72 sec
+          Start 1439: SIMPLEConvergenceTest.CavityRe100_20x20Converges
+  50/1871 Test #1698: StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution ................................   Passed   53.36 sec
+          Start 1640: HeatedCavityConductionValidation.Grid80x80MatchesAnalyticalProfile
+  51/1871 Test #1640: HeatedCavityConductionValidation.Grid80x80MatchesAnalyticalProfile .......................................   Passed    0.57 sec
+          Start 1486: SIMPLENonOrthogonalTest.NonOrthogonalDeterministic
+  52/1871 Test #1483: SIMPLENonOrthogonalTest.DistortedMeshModerate ............................................................   Passed   31.29 sec
+          Start 1630: PoiseuilleValidation.Grid64x8IsDeterministic
+  53/1871 Test #1801: ScalarMMS.AdvectionDiffusionConverges ....................................................................   Passed   23.18 sec
+          Start 1500: SIMPLERobustnessTest.StagnationStatus
+  54/1871 Test #1716: MultiBlockProductionCase.ObstacleChannelInternalSolid ....................................................   Passed  383.53 sec
+          Start 1753: ChannelFlowValidation.KEpsilonMediumConvergesAndMatchesLogLaw

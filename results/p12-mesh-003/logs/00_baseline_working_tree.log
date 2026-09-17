@@ -1,0 +1,133 @@
+# P12-MESH-003 starting state (after the TODO.md authorization edit, before any MESH-003 code change)
+$ git rev-parse HEAD
+b66310ca871811c4c7671056beec291a451af55c
+$ git status --short
+ M ROADMAP.md
+ M TODO.md
+ M apps/gui/CaseModelAdapter.cpp
+ M apps/gui/CaseModelAdapter.hpp
+ M apps/gui/SimulationControllerEditing.cpp
+ M apps/gui/qml/MeshEditor.qml
+ M apps/gui/tests/test_case_editing.cpp
+ M docs/user_guide/case_format.md
+ M include/cfd/io/case/MeshConfig.hpp
+ M include/cfd/mesh/Mesh.hpp
+ M include/cfd/mesh/MeshGeometry.hpp
+ M include/cfd/mesh/MeshQuality.hpp
+ M include/cfd/turbulence/WallDistance.hpp
+ M results/validation/mms/distorted_mesh_momentum_mms.json
+ M results/validation/mms/distorted_mesh_momentum_mms.md
+ M results/validation/mms/distorted_mesh_simple_mms.json
+ M results/validation/mms/distorted_mesh_simple_mms.md
+ M src/CMakeLists.txt
+ M src/discretization/Gradient.cpp
+ M src/io/CaseBuilder.cpp
+ M src/io/CaseReader.cpp
+ M src/io/CaseWriter.cpp
+ M src/io/StructuredMeshInfo.cpp
+ M src/io/StructuredMeshInfo.hpp
+ M src/io/VTKWriter.cpp
+ M src/io/case/MeshConfigParser.cpp
+ M src/mesh/Mesh.cpp
+ M src/mesh/MeshGeometry.cpp
+ M src/mesh/MeshQuality.cpp
+ M src/turbulence/WallDistance.cpp
+ M tests/integration/case/CMakeLists.txt
+ M tests/unit/discretization/CMakeLists.txt
+ M tests/unit/discretization/DistortedMesh.hpp
+ M tests/unit/io/CMakeLists.txt
+ M tests/unit/mesh/CMakeLists.txt
+ M tests/unit/turbulence/test_wall_distance.cpp
+?? cases/channel_transpiration_graded/
+?? cases/poiseuille_distorted/
+?? include/cfd/mesh/MeshGrading.hpp
+?? include/cfd/mesh/StructuredGrid.hpp
+?? results/p12-mesh-001/
+?? results/p12-mesh-002/
+?? results/p12-mesh-003/
+?? results/validation/production/channel_transpiration_graded_grid_convergence.json
+?? results/validation/production/poiseuille_distorted_grid_convergence.json
+?? src/mesh/MeshGrading.cpp
+?? tests/integration/case/test_graded_mesh_production_case.cpp
+?? tests/integration/case/test_structured_quad_production_case.cpp
+?? tests/unit/discretization/test_oblique_neumann_gradient.cpp
+?? tests/unit/io/test_graded_mesh_case.cpp
+?? tests/unit/io/test_structured_quad_case.cpp
+?? tests/unit/mesh/test_graded_mesh.cpp
+?? tests/unit/mesh/test_mesh_grading.cpp
+?? tests/unit/mesh/test_structured_quad_mesh.cpp
+$ git diff --stat
+ ROADMAP.md                                         |  21 +-
+ TODO.md                                            | 117 +++---
+ apps/gui/CaseModelAdapter.cpp                      |  65 ++-
+ apps/gui/CaseModelAdapter.hpp                      |   3 +-
+ apps/gui/SimulationControllerEditing.cpp           |  39 +-
+ apps/gui/qml/MeshEditor.qml                        | 145 ++++++-
+ apps/gui/tests/test_case_editing.cpp               | 129 ++++++
+ docs/user_guide/case_format.md                     | 130 +++++-
+ include/cfd/io/case/MeshConfig.hpp                 |  41 +-
+ include/cfd/mesh/Mesh.hpp                          |  13 +
+ include/cfd/mesh/MeshGeometry.hpp                  |  44 ++
+ include/cfd/mesh/MeshQuality.hpp                   |  22 +
+ include/cfd/turbulence/WallDistance.hpp            |  23 +-
+ .../mms/distorted_mesh_momentum_mms.json           | 456 ++++++++++-----------
+ .../validation/mms/distorted_mesh_momentum_mms.md  | 144 +++----
+ .../validation/mms/distorted_mesh_simple_mms.json  | 444 ++++++++++----------
+ .../validation/mms/distorted_mesh_simple_mms.md    | 124 +++---
+ src/CMakeLists.txt                                 |   1 +
+ src/discretization/Gradient.cpp                    | 105 ++++-
+ src/io/CaseBuilder.cpp                             |  75 +++-
+ src/io/CaseReader.cpp                              |  79 ++++
+ src/io/CaseWriter.cpp                              |  21 +-
+ src/io/StructuredMeshInfo.cpp                      |  24 ++
+ src/io/StructuredMeshInfo.hpp                      |  39 +-
+ src/io/VTKWriter.cpp                               |  13 +-
+ src/io/case/MeshConfigParser.cpp                   | 139 ++++++-
+ src/mesh/Mesh.cpp                                  |  16 +
+ src/mesh/MeshGeometry.cpp                          | 191 +++++++--
+ src/mesh/MeshQuality.cpp                           |  99 +++++
+ src/turbulence/WallDistance.cpp                    |  17 +-
+ tests/integration/case/CMakeLists.txt              |   5 +
+ tests/unit/discretization/CMakeLists.txt           |   1 +
+ tests/unit/discretization/DistortedMesh.hpp        | 133 +-----
+ tests/unit/io/CMakeLists.txt                       |   2 +
+ tests/unit/mesh/CMakeLists.txt                     |   3 +
+ tests/unit/turbulence/test_wall_distance.cpp       |  73 ++++
+ 36 files changed, 2144 insertions(+), 852 deletions(-)
+$ git diff --name-status
+M	ROADMAP.md
+M	TODO.md
+M	apps/gui/CaseModelAdapter.cpp
+M	apps/gui/CaseModelAdapter.hpp
+M	apps/gui/SimulationControllerEditing.cpp
+M	apps/gui/qml/MeshEditor.qml
+M	apps/gui/tests/test_case_editing.cpp
+M	docs/user_guide/case_format.md
+M	include/cfd/io/case/MeshConfig.hpp
+M	include/cfd/mesh/Mesh.hpp
+M	include/cfd/mesh/MeshGeometry.hpp
+M	include/cfd/mesh/MeshQuality.hpp
+M	include/cfd/turbulence/WallDistance.hpp
+M	results/validation/mms/distorted_mesh_momentum_mms.json
+M	results/validation/mms/distorted_mesh_momentum_mms.md
+M	results/validation/mms/distorted_mesh_simple_mms.json
+M	results/validation/mms/distorted_mesh_simple_mms.md
+M	src/CMakeLists.txt
+M	src/discretization/Gradient.cpp
+M	src/io/CaseBuilder.cpp
+M	src/io/CaseReader.cpp
+M	src/io/CaseWriter.cpp
+M	src/io/StructuredMeshInfo.cpp
+M	src/io/StructuredMeshInfo.hpp
+M	src/io/VTKWriter.cpp
+M	src/io/case/MeshConfigParser.cpp
+M	src/mesh/Mesh.cpp
+M	src/mesh/MeshGeometry.cpp
+M	src/mesh/MeshQuality.cpp
+M	src/turbulence/WallDistance.cpp
+M	tests/integration/case/CMakeLists.txt
+M	tests/unit/discretization/CMakeLists.txt
+M	tests/unit/discretization/DistortedMesh.hpp
+M	tests/unit/io/CMakeLists.txt
+M	tests/unit/mesh/CMakeLists.txt
+M	tests/unit/turbulence/test_wall_distance.cpp

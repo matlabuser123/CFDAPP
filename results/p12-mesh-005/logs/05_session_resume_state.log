@@ -1,0 +1,54 @@
+# P12-MESH-005 resumed in a new session, 2026-09-15 (the previous session ended before the full regression)
+# Recorded before any action of this session.
+
+$ git rev-parse HEAD
+b66310ca871811c4c7671056beec291a451af55c
+$ git status --short | wc -l
+201
+  modified: 153  untracked: 48
+$ git diff --stat | tail -1
+ 153 files changed, 7640 insertions(+), 3143 deletions(-)
+$ git diff --name-status | wc -l
+153
+
+# TODO.md status lines
+6:P12-MESH-001–004 complete (P12-MESH-001–004 verified, working tree not yet
+55:P12-MESH-001 — `[x]` COMPLETE (2026-09-15).
+56:P12-MESH-002 — `[x]` COMPLETE (2026-09-15).
+57:P12-MESH-003 — `[x]` COMPLETE (2026-09-15).
+58:P12-MESH-004 — `[x]` COMPLETE (2026-09-15).
+59:P12-MESH-005 — `[ ]` IN PROGRESS (authorized 2026-09-15).
+60:P12-MESH-006 onward — **NOT AUTHORIZED**.
+250:### P12-MESH-005 — 3D Foundation — `[ ]` IN PROGRESS (authorized 2026-09-15)
+
+# Evidence present at resume (results/p12-mesh-005):
+./acceptance_gate.md
+./data/mms3d_operator_study.json
+./data/mms3d_operator_study.md
+./data/mms3d_operator_study.txt
+./logs/00_baseline_working_tree.log
+./logs/01_prerequisite_verification.log
+./logs/02_2d_bit_identity_probe.log
+./logs/05_session_resume_state.log
+./logs/10_mms3d_refinement_study.log
+./logs/11_focused_tests_staged.log
+./logs/11a_STOPPED_focused_tests_script_wrong_binary_name.log
+./logs/12_backward_compat_cli.log
+./logs/13_performance_2d_cli.log
+./logs/14_g4_case_inputs_and_change_set.log
+./summary.md
+./tools/bitprobe.cpp
+./tools/bitprobe.sh
+./tools/compat.sh
+./tools/focused.sh
+
+# Pending at resume (summary.md): §24 performance (logs/13 held only its header line -- the run was
+# interrupted when the previous session ended), §24a exactness measurements (logs/03 never written),
+# §26 full regression (never started), §29 decision.
+
+# The only source edit after the last Release build (14:05 +1000) and after every verification run:
+# src/discretization/Gradient.cpp at 14:52:08 +1000 -- a comment-only change (previous session's final tool call):
+#   + // factor 1e-10 is carried over unchanged from the 2D path (not tuned for
+#   + // 3D); a Cartesian hexahedron gives det / trace^3 = 8/216 ~ 0.037.
+# Release binaries predate it; build/debug (10:35 +1000) predates every MESH-005 change. Both are rebuilt
+# and every MESH-005 test is rerun on the final sources (logs/17).
