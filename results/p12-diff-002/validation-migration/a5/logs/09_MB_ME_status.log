@@ -1,0 +1,27 @@
+# P12-DIFF-002 A4 W7 HARNESS; 2026-09-16T15:05:15Z
+# source HEAD            b66310ca871811c4c7671056beec291a451af55c
+# configure command      cmake -S /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp -B /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release
+# build command          cmake --build /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release --target <target> -j$(nproc)
+# targets                CFDSpeciesConservationValidationTests CFDSimpleTests
+
+## configure
+  cmake reconfigure OK
+
+## build (every target is built before anything runs; failure is fatal for that target)
+  CFDSpeciesConservationValidationTests built OK | binary 1359901dd8858354 (was 1359901dd8858354) | mtime 2026-09-16T15:05:27Z
+  CFDSimpleTests built OK | binary b88d7f1affa02336 (was a3e200ef6893ff40) | mtime 2026-09-16T15:05:31Z
+
+## provenance of what runs
+  production library     212141137733bffa  mtime 2026-09-16T13:54:59Z
+
+## execute (freshly built binaries only)
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/species/CFDSpeciesConservationValidationTests
+CFDSpeciesConservationValidationTests: binary 1359901dd8858354 | run 4 pass 3 fail 1 disabled 0
+    FAILED: [  FAILED  ] SpeciesConservationTest.OpenChannelWithVolumetricSourceBalancesNetOutflowAgainstSource
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/solver/simple/CFDSimpleTests
+CFDSimpleTests: binary b88d7f1affa02336 | run 123 pass 121 fail 2 disabled 0
+    FAILED: [  FAILED  ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline
+    FAILED: [  FAILED  ] SIMPLERobustnessTest.DivergenceStatus
+
+## harness verdict
+  all requested targets rebuilt and executed

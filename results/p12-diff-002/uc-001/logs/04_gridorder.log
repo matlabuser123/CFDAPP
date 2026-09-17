@@ -1,0 +1,83 @@
+P12-DIFF-002-UC-001 Step 6/8: why PoiseuilleValidation.ProductionGridConvergence reports an
+observed dp/dx order of 2.2652 when the DIFF-002 discrete system's own dp/dx sequence is
+second order.
+
+Nothing here reads CFDApp source. The reference values come from the closed form derived in
+uc001_reference.py:
+
+    two-point wall treatment :  dp/dx(ny) = dp/dx_exact *  ny^2 / ( ny^2 + 2)
+    DIFF-002 wall treatment  :  dp/dx(ny) = dp/dx_exact * 2ny^2 / (2ny^2 + 1)
+
+The three CFDApp-produced numbers used below are clearly labelled PRODUCTION and are used only
+as the subject of the comparison, never as a reference.
+
+==================================================================================================
+A. ANALYTICAL REFERENCE -- the discrete systems' own dp/dx sequences
+==================================================================================================
+
+  two-point (pre-DIFF-002):
+    ny=  8  dp/dx =           -64/55 = -1.163636363636364   rel err vs continuum         1/33 = 3.030303e-02
+    ny= 12  dp/dx =         -432/365 = -1.183561643835616   rel err vs continuum         1/73 = 1.369863e-02
+    ny= 18  dp/dx =         -972/815 = -1.192638036809816   rel err vs continuum        1/163 = 6.134969e-03
+
+  DIFF-002:
+    ny=  8  dp/dx =         -256/215 = -1.190697674418605   rel err vs continuum        1/129 = 7.751938e-03
+    ny= 12  dp/dx =       -1728/1445 = -1.195847750865052   rel err vs continuum        1/289 = 3.460208e-03
+    ny= 18  dp/dx =       -3888/3245 = -1.198151001540832   rel err vs continuum        1/649 = 1.540832e-03
+
+  two-point reference sequence       p =  1.9393   asymptotic ratio =  0.9757   asymptotic
+  DIFF-002 reference sequence        p =  1.9846   asymptotic ratio =  0.9938   asymptotic
+
+  Both discrete systems are second order in dp/dx: the exact sequences give observed
+  orders 1.9393 and 1.9846, both with asymptotic ratio within 1 +/- 0.1.
+  => The DIFF-002 OPERATOR is not the cause of the 2.2652 the test reports.
+
+==================================================================================================
+B. CFDApp PRODUCTION RESULT -- the measured dp/dx sequence
+==================================================================================================
+
+  ny=  8  production -1.189704987660398   reference -1.190697674418605
+         extraction offset +9.926868e-04   odd-even amplitude 4.146429e-02   offset/amplitude +0.0239
+  ny= 12  production -1.195741448267857   reference -1.195847750865052
+         extraction offset +1.063026e-04   odd-even amplitude 2.558103e-03   offset/amplitude +0.0416
+  ny= 18  production -1.198150788747067   reference -1.198151001540832
+         extraction offset +2.127938e-07   odd-even amplitude 2.971381e-06   offset/amplitude +0.0716
+
+  production measured sequence       p =  2.2652   asymptotic ratio =  1.1135   monotonic_not_asymptotic
+  (the test reports observed order 2.2652, asymptotic ratio 1.1135 -- reproduced above)
+
+==================================================================================================
+C. ATTRIBUTION -- inject the measured extraction offset into the exact reference
+==================================================================================================
+
+  DIFF-002 reference, clean          p =  1.9846   asymptotic ratio =  0.9938   asymptotic
+  DIFF-002 reference + offsets       p =  2.2652   asymptotic ratio =  1.1135   monotonic_not_asymptotic
+  two-point reference + same offsets p =  2.0180   asymptotic ratio =  1.0073   asymptotic
+
+  The SAME extraction offsets applied to the two-point sequence leave it asymptotic, and
+  applied to the DIFF-002 sequence push it out of the band. The reason is the ratio of
+  the offset to the grid-to-grid difference the order estimator divides by:
+
+    two-point   eps32 (8->12) +1.992528e-02   eps21 (12->18) +9.076393e-03
+                offset/eps32 +0.0498   offset/eps21 +0.0117
+    DIFF-002    eps32 (8->12) +5.150076e-03   eps21 (12->18) +2.303251e-03
+                offset/eps32 +0.1928   offset/eps21 +0.0462
+
+  DIFF-002 shrank the dp/dx discretisation error by 4x (Step 6) without changing the
+  pressure-EXTRACTION error, so the same fixed estimator bias is now a 4x larger
+  fraction of the differences the Richardson estimator consumes.
+
+==================================================================================================
+D. THE TEST'S DECLARED NOISE FLOOR
+==================================================================================================
+
+  test_poiseuille_production_validation.cpp sets, for BOTH quantities,
+      options.absoluteNoise = 1e-5
+  via `QuantitySpec gradient = centerline;`. The measured dp/dx extraction offsets are
+      ny=  8: 9.927e-04   (    99.3 x the declared 1e-5)
+      ny= 12: 1.063e-04   (    10.6 x the declared 1e-5)
+      ny= 18: 2.128e-07   (     0.0 x the declared 1e-5)
+
+  The file's own `limitations` section already documents this estimator as biased by the
+  odd-even pressure mode. The declared 1e-5 noise floor is therefore wrong for dp/dx by
+  up to 99x, independently of DIFF-002.

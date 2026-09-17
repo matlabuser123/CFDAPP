@@ -1,0 +1,125 @@
+P12-DIFF-002-UC-001 Step 9: DRY RUN of every pre-registered migrated criterion, BEFORE any
+authoritative test is edited.
+
+For each criterion the table reports
+    PRODUCTION   -- CFDApp's measured value (subject of the comparison), expected PASS
+    TWO-POINT    -- the superseded operator's EXACT solution substituted for the measurement
+    FAR-CELL x2  -- a deliberately corrupted DIFF-002 coefficient
+    SIGN FLIP    -- far-cell coefficient sign flipped
+    NO FAR CELL  -- far-cell term dropped
+Every wrong control must FAIL, or the criterion is vacuous and must not be frozen.
+
+The reference side of every criterion is a FORMULA OF ny derived in uc001_reference.py /
+uc001_parity.py. No CFDApp output is used as a reference anywhere.
+
+========================================================================================================
+PRE-REGISTERED CRITERIA -- DRY RUN (no authoritative test has been modified)
+========================================================================================================
+
+  C1(ny=8). max_j |u_j - u_j^ref(ny)|, u_j^ref = -(G_ref/2) y_j (H - y_j), G_ref = dp/dx_exact*2ny^2/(2ny^2+1)/mu
+      bound: 1e-4
+      PRODUCTION   value 4.068475e-06   PASS  (expected PASS, margin 24.6x)
+      TWO-POINT    value 1.479915e-02   FAIL  (expected FAIL, exceeds by 148.0x)
+      FAR-CELL x2  value 7.469220e-02   FAIL  (expected FAIL, exceeds by 746.9x)
+      SIGN FLIP    value 1.442918e-01   FAIL  (expected FAIL, exceeds by 1442.9x)
+      NO FAR CELL  value 7.297514e-02   FAIL  (expected FAIL, exceeds by 729.8x)
+
+  C1(ny=12). max_j |u_j - u_j^ref(ny)|, u_j^ref = -(G_ref/2) y_j (H - y_j), G_ref = dp/dx_exact*2ny^2/(2ny^2+1)/mu
+      bound: 1e-4
+      PRODUCTION   value 3.594301e-08   PASS  (expected PASS, margin 2782.2x)
+      TWO-POINT    value 7.821017e-03   FAIL  (expected FAIL, exceeds by 78.2x)
+      FAR-CELL x2  value 6.504314e-02   FAIL  (expected FAIL, exceeds by 650.4x)
+      SIGN FLIP    value 1.145505e-01   FAIL  (expected FAIL, exceeds by 1145.5x)
+      NO FAR CELL  value 5.964985e-02   FAIL  (expected FAIL, exceeds by 596.5x)
+
+  C1(ny=18). max_j |u_j - u_j^ref(ny)|, u_j^ref = -(G_ref/2) y_j (H - y_j), G_ref = dp/dx_exact*2ny^2/(2ny^2+1)/mu
+      bound: 1e-4
+      PRODUCTION   value 5.479533e-09   PASS  (expected PASS, margin 18249.7x)
+      TWO-POINT    value 3.856807e-03   FAIL  (expected FAIL, exceeds by 38.6x)
+      FAR-CELL x2  value 5.143578e-02   FAIL  (expected FAIL, exceeds by 514.4x)
+      SIGN FLIP    value 8.444680e-02   FAIL  (expected FAIL, exceeds by 844.5x)
+      NO FAR CELL  value 4.490425e-02   FAIL  (expected FAIL, exceeds by 449.0x)
+
+  C2(ny=8). |dp/dx - dp/dx_ref(ny)| / |dp/dx_ref(ny)|, dp/dx_ref = dp/dx_exact * 2ny^2/(2ny^2+1)
+      bound: 1e-3
+      PRODUCTION   value 8.337018e-04   PASS  (expected PASS, margin 1.2x)
+      TWO-POINT    value 2.272727e-02   FAIL  (expected FAIL, exceeds by 22.7x)
+      FAR-CELL x2  value 1.147059e-01   FAIL  (expected FAIL, exceeds by 114.7x)
+      SIGN FLIP    value 2.215909e-01   FAIL  (expected FAIL, exceeds by 221.6x)
+      NO FAR CELL  value 1.120690e-01   FAIL  (expected FAIL, exceeds by 112.1x)
+
+  C2(ny=12). |dp/dx - dp/dx_ref(ny)| / |dp/dx_ref(ny)|, dp/dx_ref = dp/dx_exact * 2ny^2/(2ny^2+1)
+      bound: 1e-3
+      PRODUCTION   value 8.889309e-05   PASS  (expected PASS, margin 11.2x)
+      TWO-POINT    value 1.027397e-02   FAIL  (expected FAIL, exceeds by 10.3x)
+      FAR-CELL x2  value 8.544304e-02   FAIL  (expected FAIL, exceeds by 85.4x)
+      SIGN FLIP    value 1.504777e-01   FAIL  (expected FAIL, exceeds by 150.5x)
+      NO FAR CELL  value 7.835821e-02   FAIL  (expected FAIL, exceeds by 78.4x)
+
+  C2(ny=18). |dp/dx - dp/dx_ref(ny)| / |dp/dx_ref(ny)|, dp/dx_ref = dp/dx_exact * 2ny^2/(2ny^2+1)
+      bound: 1e-3
+      PRODUCTION   value 1.776018e-07   PASS  (expected PASS, margin 5630.6x)
+      TWO-POINT    value 4.601227e-03   FAIL  (expected FAIL, exceeds by 4.6x)
+      FAR-CELL x2  value 6.136364e-02   FAIL  (expected FAIL, exceeds by 61.4x)
+      SIGN FLIP    value 1.007463e-01   FAIL  (expected FAIL, exceeds by 100.7x)
+      NO FAR CELL  value 5.357143e-02   FAIL  (expected FAIL, exceeds by 53.6x)
+
+  C3(ny=8). |u_c - u_c^ref(ny)|, u_c^ref = 1.5U - k/(2ny^2+1), k = 4.5 (ny even) / 1.5 (ny odd)
+      bound: 1e-4
+      PRODUCTION   value 3.389777e-06   PASS  (expected PASS, margin 29.5x)
+      TWO-POINT    value 1.057082e-02   FAIL  (expected FAIL, exceeds by 105.7x)
+      FAR-CELL x2  value 5.335157e-02   FAIL  (expected FAIL, exceeds by 533.5x)
+      SIGN FLIP    value 1.030655e-01   FAIL  (expected FAIL, exceeds by 1030.7x)
+      NO FAR CELL  value 5.212510e-02   FAIL  (expected FAIL, exceeds by 521.3x)
+
+  C4(ny=8). |(1.5U - u_c) - 4.5/(2ny^2+1)|  (the identity, not a stored number)
+      bound: 1e-4
+      PRODUCTION   value 3.389777e-06   PASS  (expected PASS, margin 29.5x)
+      TWO-POINT    value 1.057082e-02   FAIL  (expected FAIL, exceeds by 105.7x)
+      FAR-CELL x2  value 5.335157e-02   FAIL  (expected FAIL, exceeds by 533.5x)
+      SIGN FLIP    value 1.030655e-01   FAIL  (expected FAIL, exceeds by 1030.7x)
+      NO FAR CELL  value 5.212510e-02   FAIL  (expected FAIL, exceeds by 521.3x)
+
+  C5(ny=8). | |dp/dx - dp/dx_exact|/|dp/dx_exact| - 1/(2ny^2+1) |
+      bound: 1e-3
+      PRODUCTION   value 8.272390e-04   PASS  (expected PASS, margin 1.2x)
+      TWO-POINT    value 2.255109e-02   FAIL  (expected FAIL, exceeds by 22.6x)
+      FAR-CELL x2  value 1.138167e-01   FAIL  (expected FAIL, exceeds by 113.8x)
+      SIGN FLIP    value 2.043693e-01   FAIL  (expected FAIL, exceeds by 204.4x)
+      NO FAR CELL  value 9.569634e-02   FAIL  (expected FAIL, exceeds by 95.7x)
+
+  C6(ny=8). | drop/drop_exact - 2ny^2/(2ny^2+1) |
+      bound: 1e-3
+      PRODUCTION   value 8.271529e-04   PASS  (expected PASS, margin 1.2x)
+      TWO-POINT    value 2.255109e-02   FAIL  (expected FAIL, exceeds by 22.6x)
+      FAR-CELL x2  value 1.138167e-01   FAIL  (expected FAIL, exceeds by 113.8x)
+      SIGN FLIP    value 2.198732e-01   FAIL  (expected FAIL, exceeds by 219.9x)
+      NO FAR CELL  value 1.112002e-01   FAIL  (expected FAIL, exceeds by 111.2x)
+
+========================================================================================================
+ORDER GATES -- pre-registered separately (they constrain the ORDER, not the operator)
+========================================================================================================
+
+  C7. dp/dx asymptotic ratio in [0.9, 1.1] on the triplet ny = 12/18/27
+      PRODUCTION  p =  2.1033  asymptotic ratio =  1.0428  PASS
+      REFERENCE    p =  1.9931  asymptotic ratio =  0.9972  PASS
+      for comparison, the CURRENT triplet ny = 8/12/18:
+      PRODUCTION  p =  2.2652  asymptotic ratio =  1.1135  FAIL
+      REFERENCE    p =  1.9846  asymptotic ratio =  0.9938  PASS
+
+  C8. centreline asymptotic ratio in [0.9, 1.1] on a PARITY-CONSISTENT triplet ny = 8/12/18 (all even)
+      PRODUCTION  p =  1.9842  asymptotic ratio =  0.9936  PASS
+      REFERENCE    p =  1.9846  asymptotic ratio =  0.9938  PASS
+      the MIXED-parity triplet 12/18/27 must NOT be used -- even the exact reference fails it:
+      PRODUCTION  p =  0.9376  asymptotic ratio =  0.6500  FAIL
+      REFERENCE    p =  0.9376  asymptotic ratio =  0.6500  FAIL
+
+========================================================================================================
+DRY-RUN SUMMARY
+========================================================================================================
+
+  criteria dry-run: 10   all controls behaved as pre-registered: YES
+
+  C1-C6 are operator-discriminating: every wrong control fails them.
+  C7/C8 constrain the observed ORDER and are deliberately NOT operator-discriminating
+  (the two-point operator is also second order); C1-C6 carry the operator claim.

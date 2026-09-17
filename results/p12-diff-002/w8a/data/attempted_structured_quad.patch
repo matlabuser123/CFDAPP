@@ -1,0 +1,77 @@
+--- tests/integration/case/test_structured_quad_production_case.cpp	2026-09-17 19:29:34.122257300 +1000
++++ results/p12-diff-002/w8a/data/test_structured_quad_production_case.cpp.attempted	2026-09-17 19:23:11.203108700 +1000
+@@ -332,13 +332,14 @@
+ 
+ // Three grids (r = 1.5, the P12-NUM-005 Poiseuille grids), each written by
+ // CaseWriter and run through ProjectRunner. Per-grid gates as above;
+-// convergence: the velocity error and the dp/dx error decrease
+-// monotonically at close to the formal second order, and the GCI of dp/dx
+-// bounds its true error.
++// convergence: the velocity error stays within the Cartesian scheme's own
++// error at every grid, the finest dp/dx error within twice the orthogonal
++// discrete-exact error, and the GCI of dp/dx bounds its true error.
+ TEST(StructuredQuadProductionCase, DistortedPoiseuilleGridConvergence) {
+   using cfd::validation::GridSpec;
+   const CaseDefinition base = CaseReader{}.read(kPoiseuilleCase);
+   std::vector<PoiseuilleMetrics> metrics;
++  std::vector<Index> gridNy;
+   const auto solve = [&](const GridSpec& grid) {
+     CaseDefinition definition = base;
+     setQuadMesh(definition, grid.nx, grid.ny, poiseuilleVertices(grid.nx, grid.ny));
+@@ -363,6 +364,7 @@
+         static_cast<std::size_t>(run.simpleResult->iterations), m.velocityL2,
+         cartesianVelocityL2(grid.ny), m.pressureGradient, m.maxColumnFlowError);
+     metrics.push_back(m);
++    gridNy.push_back(grid.ny);
+     output.quantities = {{"pressure_gradient", m.pressureGradient},
+                          {"velocity_l2_error", m.velocityL2}};
+     return output;
+@@ -392,20 +394,35 @@
+       "results/validation/production/poiseuille_distorted_grid_convergence.json", study);
+   std::printf("\n%s", cfd::validation::gridConvergenceReportMarkdown(study).c_str());
+ 
+-  // Observed order of each successive grid pair (r = 1.5): the formal
+-  // order is 2; bound 1.5 (measured velocity 2.12 / 2.01, dp/dx 1.56 / 1.70).
+-  const Real r = 1.5;
+-  for (std::size_t k = 0; k + 1 < metrics.size(); ++k) {
+-    const Real velocityOrder =
+-        std::log(metrics[k].velocityL2 / metrics[k + 1].velocityL2) / std::log(r);
+-    const Real e0 = std::abs(metrics[k].pressureGradient - kExactPressureGradient);
+-    const Real e1 = std::abs(metrics[k + 1].pressureGradient - kExactPressureGradient);
+-    const Real gradientOrder = std::log(e0 / e1) / std::log(r);
+-    std::printf("pair %zu: observed order velocity %.3f, dp/dx %.3f\n", k, velocityOrder,
+-                gradientOrder);
+-    EXPECT_GE(velocityOrder, 1.5) << "pair " << k;
+-    EXPECT_GE(gradientOrder, 1.5) << "pair " << k;
++  // P12-DIFF-002 W8 amendment (results/p12-diff-002/w8a/acceptance_gate.md,
++  // W8-R2 of w8-inv-001/summary.md §13). No observed order is asserted: this
++  // family is not self-similar, its velocity field is not iteratively
++  // converged at the gate (42 % of the error moves by 20000 iterations), and
++  // the dp/dx error changes sign between the coarse and medium grids, so no
++  // order is defined across that pair. Accuracy is instead bounded by fixed,
++  // independently derived references.
++  //
++  // W8A-1: at each grid the distorted mesh is at least as accurate as the
++  // Cartesian scheme at the same ny.
++  for (std::size_t k = 0; k < metrics.size(); ++k) {
++    const Real cartesian = cartesianVelocityL2(gridNy[k]);
++    std::printf("ny %zu: velocity L2 %.4e / Cartesian %.4e = %.4f (bound 1.0)\n",
++                static_cast<std::size_t>(gridNy[k]), metrics[k].velocityL2, cartesian,
++                metrics[k].velocityL2 / cartesian);
++    EXPECT_LE(metrics[k].velocityL2, 1.0 * cartesian) << "ny " << gridNy[k];
+   }
++  // W8A-2: the finest dp/dx relative error is at most twice the orthogonal
++  // channel's exact discrete error 1/(2 ny^2 + 1) (UC-001), i.e. 2/649 at ny = 18.
++  const Real fineNy = static_cast<Real>(gridNy.back());
++  const Real gradientBound = 2.0 / (2.0 * fineNy * fineNy + 1.0);
++  const Real fineGradientError =
++      std::abs(metrics.back().pressureGradient - kExactPressureGradient) /
++      std::abs(kExactPressureGradient);
++  std::printf("ny %zu: dp/dx relative error %.5f %% (bound 2/%d = %.5f %%)\n",
++              static_cast<std::size_t>(gridNy.back()), 100.0 * fineGradientError,
++              static_cast<int>((2.0 * fineNy * fineNy) + 1.0), 100.0 * gradientBound);
++  EXPECT_EQ(gridNy.back(), Index{18});
++  EXPECT_LE(fineGradientError, gradientBound);
+   // The GCI of the finest dp/dx (NUM-005) bounds its true (known) error.
+   const auto& g = study.quantities[0];
+   ASSERT_TRUE(g.analysis.gci21.has_value());

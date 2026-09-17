@@ -1,0 +1,1400 @@
+Numerical Heat Transfer, Part B, 40: 199± 228, 2001
+Copyright # 2001 Taylor & Francis
+1040-7790 /01 $12.00 + .00
+
+
+
+
+                   A NEW BENCHM ARK QUALITY SOLUTION
+                   FOR THE BUOYANCY-DRIVEN CAVITY
+                   BY DISCRETE SINGULAR CONVOLUTION
+
+                   D. C. Wan, B. S. V. Patnaik, and G. W. Wei
+                   Department of Computational Science, National University of Singapore,
+                   Republic of Singapor e
+
+
+                   This article introduces a high-accuracy discrete singular convolution (DSC) for the nu-
+                   merical simulation of coupled convective heat transfer problems. The problem of a buoy-
+                   ancy-driven cavity is solved by two completely independent numerical procedures. One is a
+                   quasi-wavelet-based DSC approach , which uses the regularized Shannon’s kernel, while the
+                   other is a standard form of the Galerkin  nite-element method. The integration of the
+                   Navier–Stokes and energy equations is performed by employing velocity correction-base d
+                   schemes. The entire laminar natural convection range of 103 µ Ra µ 10 8 is numerically
+                   simulated by both schemes. The reliability and robustness of the present DSC approach is
+                   extensively tested and validated by means of grid sensitivity and convergence studies. As a
+                   result, a set of new benchmark quality data is presented. The study emphasizes quantitative,
+                   rather than qualitative comparisons.
+
+
+
+
+                                           I. INTRODUCTION
+       Convection by natural means is crucial to ¯ ows, in both nature and technol-
+ogy. There are a variety of real-world applications of natural convection, such as
+thermal insulation, cooling of electronic equipment, solar energy devices, nuclear
+reactors, heat-recovery systems, room ventilation, crystal growth in liquids, etc. The
+¯ uid ¯ ow and heat transfer behavior of such systems can be predicted by the mass,
+momentum, and energy conservation equations with appropriate boundary condi-
+tions. The fast-emerging branch of computational ¯ uid dynamics (CFD) facilitates
+the numerical simulation of ¯ uid ¯ ow and heat transfer features. A comprehensive
+analysis of the ¯ uid ¯ ow and heat transfer patterns in fundamentally simple geo-
+metries, such as the buoyancy-drive n square cavity, is a necessary precursor to the
+evolution of better designs for more complex industrial applications.
+       Jones [1] has proposed the problem of a buoyancy-drive n cavity as a suitable
+vehicle for testing and validation of computer codes for thermal problems. The
+simplicity of the geometry and the clarity in boundary conditions render this problem
+
+
+      Received 8 December 2000; accepted 1 March 2001.
+      This work was supported by the National University of Singapore and the National Science and
+Technology Board of the Republic of Singapore.
+      Address correspondence to Dr. G. W. Wei, Department of Computational Science, National
+University of Singapore, Block S 17, Level 7, 3 Science Drive, Singapore 117543. E-mail: cscweigw@
+nus.edu.sg
+
+                                                      199
+200                                       D. C. WAN ET AL.
+
+
+                                       NOMENCLATURE
+ B      frequency bound                              y          dimensional vertical coordinate
+ C      Courant number                               a          thermal di usivity of the ¯ uid
+ E      error                                        a1 ; a2 ; a3
+ g      acceleration due to gravity                             constants used in the Runge± Kutta
+ Gr     Grashof number (ˆ gbDyL 3ref =n2 )                      scheme [Eqs. (33), (34), (35)]
+ L ref  reference length dimension (either width     b1 ; b2 ; b3
+        or height)                                              constants used in the Runge± Kutta
+ L2     error norm                                              scheme [Eqs. (33), (34), (35)]
+ Nu     Nusselt number                               D          grid spacing, incremental value
+ Nu     average Nusselt number                       dD …x†; dD;s …x†
+ p      nondimensional pressure (ˆ pL 2ref =ra2 )               convolution kernels
+ p      dimensional pressure                         E          a small parameter
+ Pec    cell Peclet number (ˆ uDx=n)                 Z          variable of interest
+ Pr     Prandtl number (ˆ n=a)                       y          nondimensional temperature
+ r      ratio of s over D                                       [ˆ …yy ¡ yC †=…yH ¡ yC †]
+ Ra     Rayleigh number (ˆ gbDyL 3ref =na)           n          kinematic viscosity
+ Rs …x† delta regularizer                            r          density
+ t      dimensional time                             s          width of the Gaussian envelope
+ t      nondimensional time (ˆ ta=L 2ref )           f          potential function
+ u      nondimensional horizontal velocity           o          relaxation parameter
+        (ˆ uL ref =a)                                y          dimensional temperature
+ u      dimensional horizontal velocity              H          gradient
+ U      nondimensional velocity vector (u; v)
+ v      nondimensional vertical velocity             Subscript s
+        (ˆ vL ref =a)
+                                                     C      cold wall
+ v      dimensional vertical velocity                H      hot wall
+ W      bandwidth of support on one side
+                                                     i; j   indices in the horizontal and vertical
+        of the grid point
+                                                            direction, respectively
+ x      dimensional horizontal coordinate
+ x      nondimensional horizontal coordinate
+        (ˆ x=L ref )                                 Superscripts
+ xk     discrete sampling points around the          ¤     intermediate ® eld value
+        point x                                      l; n  iteration labels
+ y      nondimensional vertical coordinate           q     order of the derivative
+        (ˆ y=L ref )
+
+
+more appealing for new computational algorithms. In the early 1980s, this problem
+was solved by a number of di erent groups and their results were extensively sum-
+marized in the standard reference by de Vahl Davis and Jones [2]. De Vahl Davis [3]
+used forward di erence for the temporal discretization and second-order central
+di erence for the spatial discretization, to solve the stream function-vorticity form of
+the equations. The resulting algebraic equations were solved by an alternating-
+direction implicit (ADI) algorithm. Although the solution obtained was among the
+best of those days, the data presented were limited to a Rayleigh number (Ra) of 106 .
+It is pertinent to quote Professor de Vahl Davis from his seminal article [3]:
+
+         It is hoped that it will lead to further contributions to the search for e cient and
+         high accuracy methods for problems of this type.
+
+Even after nearly two decades, this statement remains sacrosanct, despite the phe-
+nomenal progress in numerical methods. A variety of computational algorithms has
+             BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                         201
+
+been tested on this problem and the vast amount of literature is a testimony to this
+[1± 10]. For example, Hortmann et al. [4] have employed a ® nite-volume-based
+multigrid technique for the simulation of a buoyancy-drive n cavity. Ramaswamy
+et al. [8] have investigated the performance of two explicit and one semi-implicit
+projection-base d schemes. They have concluded that the semi-implicit scheme always
+outperforms the two explicit schemes considered by them. In their numerical in-
+vestigations, a variety of benchmark problems were solved, including the buoyancy-
+driven cavity. Shu and Xue [9] employed a global method of generalized di erential
+quadrature (GDQ) for solving the stream function-vorticity form of the Navier-
+Stokes (N-S) equations. Massarotti et al. [5] used a semi-implicit form of the char-
+acteristic-based split scheme (CBS) with equal-order interpolation functions for all
+the variables. Manzari et al. [7] developed an arti® cial di usion-based algorithm for
+3-D compressible turbulent ¯ ow problems. This was later extended to 2-D laminar
+heat transfer problems. The basic idea of Manzari [6, 7] involves modi® cation of
+continuity equation by employing the concept of arti® cial compressibility. Recently,
+Mayne et al. [10] employed an h-adaptive ® nite-element method to ensure a very
+accurate solution for the thermal cavity problem. Despite so much e ort on this
+problem, there still exist some variations and discrepancies in the available literature
+(see the detailed discussion in Section III). Inherently, numerical results are ap-
+proximations. Their accuracy and reliability depends vitally on the underlying
+computational method and the numerical scheme. Hence, further advances in
+computational methodology are crucial to the thermal cavity problem as well as
+other heat transfer problems.
+       A variety of computational methods are available in the literature. In a broad
+sense they can be classi® ed into global and local methods. Global methods approx-
+imate a di erentiation at a point by all grid points in the computational domain and
+can be highly accurate. Spectral methods, pseudo-spectral methods, fast Fourier
+transforms, and di erential quadrature come under this category. For example,
+spectral methods converge exponentially with mesh re® nement for approximating an
+analytical function and thus have the potential to be used in high-precision and de-
+manding large-scale computations. Many global approaches have been successfully
+applied to the study of ¯ uid ¯ ow and heat transfer in simple geometries, such as
+cavities, channels, ducts, di users, etc. However, global methods have limited cap-
+ability in handling irregular geometries and more complex boundary conditions. In-
+deed, local methods, such as ® nite di erences, ® nite-elements, ® nite strips, and ® nite
+volumes, are the most popular approaches for solving engineering problems. Local
+methods utilize information from the nearest neighboring grid points to approximate
+the di erentiation at a point and thus are much more ¯ exible. However, local methods
+converge slowly with respect to mesh re® nement and are not cost-e ective for
+achieving high precision. Hence, there is a strong demand for a scheme which can
+exploit the advantages of both methods. To this end, a high-accuracy quasi-wavelet-
+based approach, the discrete singular convolution (DSC), was proposed [13]. This
+method is a promising approach for the numerical realization of singular convolutions
+[14, 15]. Mathematical foundation for this algorithm stems from the theory of dis-
+tributions (or generalized functions). Sequence of approximations to the singular
+kernels of Hilbert type, Abel type, and delta type can be constructed. Numerical
+solution to di erential equations are formulated via singular kernels of delta type.
+202                               D. C. WAN ET AL.
+
+       The DSC approach exhibits global methods’ accuracy for integration and
+local methods’ ¯ exibility in handling irregular geometries and complex boundary
+conditions, when suitable DSC kernels are chosen. Many DSC kernels, such as
+(regularized) Shannon’s delta kernel, (regularized) Dirichlet kernel, (regularized)
+Lagrange kernel, and (regularized) de la ValleÂe Poussin kernel, are constructed for
+a number of applications, such as numerical solution of the Fokker± Planck
+equation [14, 15] and the SchroÈdinger equation [16]. The DSC algorithm was also
+utilized for waveguide model analysis, electromagnetic wave propagation [17], and
+structural (plate and beam) analysis [18± 20] with excellent results. Most recently,
+the DSC algorithm was used to resolve a few numerically challenging problems.
+The integration of the (nonlinear) sine-Gordon equation [21] with the initial values
+close to a homoclinic orbit singularity is one such problem for which conventional
+local methods have encountered great di culty and numerically induced chaos was
+reported [22]. Another complex problem that has been resolved by using the DSC
+algorithm is the integration of the (nonlinear) Cahn± Hilliard equation in a circular
+domain [23], which is challenging because of the fourth-order arti® cial singularity
+at the origin and complex phase-space geometry. DSC solution of machine preci-
+sion to the Navier± Stokes equations with periodic boundary conditions for the
+Taylor problem was obtained with 33 grid points in each dimension [15, 18].
+Recently, a DSC ® nite-subdomain method was proposed for the solution of in-
+compressible viscous ¯ ows under complex geometries [24].
+       The objectives of the present study are the following: (1) To introduce the
+highly accurate quasi-wavelet-based discrete singular convolution [15, 18] for the
+numerical simulation of coupled convective heat transfer problems; (2) to present
+benchmark-qualit y data for the entire laminar natural-convectio n range of
+103 µ Ra µ 108 ; and (3) to present a focused and elaborate study on the problem
+of the buoyancy-drive n cavity, which also looks into some of the discrepancies
+observed in the literature. The high level of accuracy that could be achieved for
+the Taylor problem [15, 18] enhances the level of con® dence and reliability for the
+simulation of the driven-cavity problem. The DSC code is extensively tested
+and further validated with a second-order-accurat e ® nite-element-based Galerkin
+method, against the available numerical simulations of [3± 10].
+       This article is organized into four sections. A description of the problem
+under investigation and the methods of solution by both DSC and FEM are
+presented in Section II. An elaborate and focused study on the results obtained for
+the buoyancy-drive n cavity is presented in Section III. Conclusions are presented in
+Section IV.
+
+
+      II. THEORETICAL BACKGROUND AND M ETHODS OF SOLUTION
+      This section de® nes the buoyancy-drive n cavity problem, including the gov-
+erning partial di erential equations (PDEs) and the boundary conditions. Two
+completely independent methods of solution, viz., a quasi-wavelet-based approach
+and a ® nite-element method, are employed to solve the problem under investigation.
+The theoretical framework behind the discrete singular convolution is elaborated.
+The method of solution for the integration of the Navier-Stokes and energy equa-
+tions by the DSC and FEM is explained.
+            BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                       203
+
+     A. Problem Descript ion
+      A di erentially heated, closed square cavity is depicted in Figure 1, whose left
+and right vertical walls are maintained at yH and yC , respectively. The horizontal
+walls are adiabatic (insulated, and there is no transfer of heat through these walls).
+Fluid is assumed to be viscous, incompressible, Newtonian, and Boussinesq-
+approximated. The Newtonian assumption guarantees a linear relationship between
+the shear stress and the velocity gradient. The Boussinesq approximation means that
+the density di erences are con® ned to the buoyancy term, without violating the
+assumption of incompressibility. It should be pointed out that there is an additional
+coupling term in the momentum equations, which indeed dictates the ¯ uid motion
+within the cavity.
+     1. Governing equat ions. The governing PDEs are the coupled mass, mo-
+mentum, and energy conservation equations, applicable for two dimensions. The
+equations are given as
+
+                          qu qv
+          Continuity:       ‡   ˆ0                                                 …1†
+                          qx qy
+
+
+
+
+                             Figure 1. Flow domain of interest.
+204                                      D. C. WAN ET AL.
+
+                                                ³ 2       ´
+                            qu    qu  qu  qp     q u q2 u
+       x momentum:             ‡ u ‡ v ˆ ¡ ‡ Pr     ‡                                      …2†
+                            qt    qx  qy  qx     qx2 qy2
+                                                ³ 2       ´
+                            qv    qv  qv  qp     q v q2 v
+       y momentum:             ‡ u ‡ v ˆ ¡ ‡ Pr     ‡       ‡ Ra Pr y                      …3†
+                            qt    qx  qy  qy     qx2 qy2
+
+                            qy   qy qy q2 y q2 y
+              Energy:          ‡u ‡v ˆ 2‡ 2                                                …4†
+                            qt   qx qy qx   qy
+
+In the equations above, the following nondimensionalizatio n was employed:
+
+                 x                y              uL ref           vL ref           ta
+           xˆ               yˆ              uˆ               vˆ            tˆ              …5†
+                L ref            L ref             a                a             L 2ref
+                  pL 2ref             y ¡ yC                gbDyL 3ref            n
+             pˆ              yˆ                      Ra ˆ                  Pr ˆ            …6†
+                   ra2               yH ¡ yC                  na                  a
+
+In convection, density di erences generate an additional force (popularly known as
+the buoyancy force), which competes with the inertial and viscous forces. The ratio
+of buoyancy to viscous forces is given by the parameter Grashof number (Gr), which
+controls natural convection. On the other hand, the ratio of momentum to thermal
+di usivity, known as Prandtl number (Pr), governs the temperature ® eld and its
+relationship with the ¯ uid ¯ ow characteristics. Rayleigh number (Ra), which is the
+parameter of interest, is the product of these two dimensionless groups.
+      2. Boundary condit ions. No-slip velocity boundary condition (u ˆ v ˆ 0:0)
+is applied on all four walls of the square cavity. For temperature, Dirichlet boundary
+conditions of yH ˆ 1:0 and yC ˆ 0:0 are enforced on the left and right vertical walls,
+respectively. As there is no transfer of heat through the horizontal walls, a Neumann
+boundary condition (qy=qy ˆ 0:0), is applied.
+      3. The lam inar-flow region. According to Incropera and Dewitt [11], the la-
+minar natural convection at a local Rayleigh number larger than 109 may be pro-
+moted to turbulent transition in the vertical boundary layer. Undoubtedly, the
+transition from laminar to turbulence causes an increase in convective heat transfer
+on the surface of the wall. In their direct numerical simulation (DNS) of air flow in a
+square cavity, Paolucci and Chenoweth [12] detected the existence of a critical Ray-
+leigh number between 108 and 2 £ 108 , where the flow undergoes a Hopf bifurcation
+into a periodic unsteady flow. Therefore, we confine the present simulations to the
+lower limit of this Rayleigh number, which is 108 . Beyond this value, a Reynolds
+averaged form of the Navier± Stokes and energy equations would have to be
+employed together with a workable turbulence model.
+
+
+
+      B. Discret e Singular Convolut ion
+      1. Approxim at ion of singular convolut ion. For the sake of clarity and
+integrity in presentation, the section begins with a brief description of the discrete
+             BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                       205
+
+singular convolution (DSC) algorithm. Elaborate details are available in previous
+studies [14, 15]. The DSC algorithm concerns with the computer realization of the
+mathematical distributions. Distributions are not well defined in the usual sense
+and may not have any value. Particular examples are kernels of the Hilbert type
+and Abel type. These singular kernels are of crucial importance to a number of fields,
+such as Radon transform, analytical function theory, linear response theory, etc. For
+data (surface) interpolation and solving partial differential equations, singular ker-
+nels of delta type are useful. In the DSC algorithm, the function f…x† and its deriva-
+tives with respect to the coordinate at a grid point x are approximated by a linear
+sum of discrete values { f…xk †} in the narrow bandwidth [x ¡ xW ; x ‡ xW ]. This
+can be expressed as
+
+                                         W
+                                         X
+                           f …q† …x† º          d…q†
+                                                 D;s …x ¡ xk †f…xk †                …7†
+                                         kˆ¡W
+
+
+where superscript q …q ˆ 0; 1; 2; . . .† denotes the qth-order derivative with respect
+to x. The {xk } refers to a set of discrete sampling points centered around the point x.
+Here s is a regularization parameter, D is the grid spacing, and 2W ‡ 1 is the total
+computational bandwidth, which is usually much smaller than the computational
+domain.
+      In Eq. (7), dD;s …x† is a convolution kernel that approximates the delta dis-
+tribution. For band-limited functions, the delta distribution can be replaced by a
+low-pass ® lter, hence, many wavelet scaling functions can be used as DSC con-
+volution kernels. One interesting example is Shannon’s wavelet scaling function,
+
+                                                sin…px=D†
+                                   dD …x† ˆ                                         …8†
+                                                   px=D
+
+In fact, Shannon’s wavelet scaling function forms a sampling basis for the Paley-
+Wiener reproducing kernel Hilbert space. Shannon’ s wavelet scaling is useful in
+solving eigenvalue problems with smoothly con® ned potentials [14] and for purely
+periodic boundary conditions [21]. However, for general computational problems,
+it is important to regularize Shannon’s delta kernel,
+
+                                 dD;s …x† ˆ dD …x†Rs …x†                            …9†
+
+where Rs …x† is a delta regularizer [13, 14], which can dramatically increase the
+regularity of Shannon’ s wavelet scaling function. An often-used delta regularizer is
+the Gaussian
+                                           ³         ´
+                                          x2
+                           Rs …x† ˆ exp ¡ 2                  s>0                   …10†
+                                         2s
+
+where s determines the width of the Gaussian envelop and can be varied in asso-
+ciation with the grid spacing, i.e., s ˆ rD. It should be pointed out that the use
+of appropriate regularizers can extend the domain of applicability of delta kernels
+to temporal distributions and even to exponentially growing functions [13].
+206                                        D. C. WAN ET AL.
+
+The expression in Eq. (7) provides extremely high computational e ciency both on
+and o a grid. In fact, it can provide exact results when the sampling points are
+extended to a set of in® nite points for certain band-limited L 2 functions. Qian and
+Wei [25] have given a mathematical estimation for the choice of W , r, and D. For
+example, if the L 2 error for approximating an L 2 function f…x† is set to 10¡Z , the
+following relations would give the best accuracy:
+
+                                           p
+                                            
+                                             
+                                               
+                                                
+                                                 
+                                                                W  p
+                                                                     
+                                                                      
+                                                                        
+                                                                         
+                                                                          
+                                                                          
+                       r…p ¡ BD† >          4:61Z and              > 4:61Z                  …11†
+                                                                 r
+
+where r ˆ s=D and B is the frequency bound for the function of interest, f…x†. The
+® rst inequality states that for a given grid size D, a large r is required for approx-
+ imating the high-frequency component of an L 2 function. The second inequality
+ indicates that if one chooses the ratio r ˆ 3, then the half-bandwidth W º 30 is good
+ enough to achieve the highest accuracy in double-precision computations (Z ˆ 15).
+ By appropriately choosing W , r, and D, the resulting approximation matrix for in-
+ terpolation and solving the di erential equations has a banded structure. This en-
+ sures that the DSC algorithm attains optimal accuracy and e ciency.
+         It should be pointed out that although regularized Shannon’s delta kernel is
+ used to illustrate the DSC approximation of the delta distribution here, there are
+ a variety of other DSC kernels, such as (regularized) Dirichlet kernels, (regularized)
+ Lagrange kernels, and (regularized) de la ValleÂe kernels, which perform equally well
+ [14, 17, 21]. The grid used in Eq. (7) is uniform because only a single grid spacing is
+ prescribed. In computations, Eq. (7) is very e cient since just one kernel is required
+ for the whole computational domain [a; b] for a given D and r. Thus, the kernel ac-
+ quires the property of translational invariance. In order to maintain this property near
+ a computational boundary, the functions f…xk † have to be located outside the com-
+ putational domain [a; b], where their values are usually unde® ned. Therefore,
+ it is necessary to create ® ctitious domains outside the computational boundaries. For
+ the DSC algorithm, function values in these ® ctitious domains are generated ac-
+ cording to the boundary conditions and the physical behavior of the solution at the
+ boundaries. For example, when Dirichlet boundary conditions are employed, f…xk † in
+ the ® ctitious domain can be taken to be either f…a† or f…b†; for a periodic boundary
+ condition, f…xk † may be enforced by a periodic extension inside the computational
+ domain [a; b] to outside. Neumann boundary condition for f…xk † may be obtained by
+ f ’…a† or f ’…b†.
+         When the regularized Shannon’s delta kernel is used, the detailed expressions
+        …0†        …1†         …2†
+ for dD;s …x†, dD;s …x†, and dD;s …x† can be given analytically as
+                                    ( sin…px=D† exp…¡x2 =2s2 †
+                       …0†                      px=D
+                                                                      …x 6ˆ 0†
+                      dD;s …x† ˆ                                                            …12†
+                                       1                              …x ˆ 0†,
+                     8
+                       cos…px=D† exp…¡x2 =2s2 †                    2
+                                                                     =2s2 †
+                     >
+                     >
+                     >            x             ¡ sin…px=D†pxexp…¡x
+                                                              2 =D
+                     <                    2
+                                            =2s2 †
+          d…1†         ¡ sin…px=D†psexp…¡x                                       …x 6ˆ 0†
+           D;s …x† ˆ >               2 =D                                                   …13†
+                     >
+                     >
+                     :
+                       0                                                         …x ˆ 0†
+               BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                     207
+
+and
+                   8
+                   > ¡…p=D† sin…px=D† exp…¡x2 =2s2 †                          2
+                                                                                =2s2 †
+                   >
+                   >               x                 ¡ 2 cos…px=D† exp…¡x
+                                                                       x2
+                   >
+                   >
+                   >
+                   >                      2 =2s 2 †                       2 =2s 2 †
+                   >
+                   > ¡2 cos…px=D† exp…¡x            ‡ 2 sin…px=D†pxexp…¡x
+                   >
+                   <               s2                               3 =D
+
+
+      d…2†
+       D;s …x† ˆ         sin…px=D† exp…¡x2 =2s2 †                        2    2                     …14†
+                   >
+                   > ‡         ps2 x=D
+                                                    ‡ x sin…px=D† exp…¡x =2s †
+                                                               ps4 =D
+                                                                                         …x 6ˆ 0†
+                   >
+                   >
+                   >
+                   >
+                   >
+                   >
+                   >
+                   >
+                   : ¡ 3‡p2 s2 =D2                                                       …x ˆ 0†
+                             3s2
+
+
+      Once the parameter r is chosen, the coe cients d…0†        …1†           …2†
+                                                        D;s …x†, dD;s …x†, and dD;s …x†
+depend only on the grid spacing D. Therefore, when the grid spacing is prescribed,
+the coe cients need to be computed only once and can be used during the whole
+computation. The good performance of the present DSC algorithm is due to the
+unique use of the DSC algorithm both for data interpolation and spatial dis-
+cretization of the governing equations. Since the computational bandwidth is user-
+de® ned, the approximation accuracy is controllable in the present algorithm [15].
+
+      2. Solut ion m et hodology. For the convenience of presenting the method of
+solution, we define the following:
+
+                                                           qu qv
+                                               D…U† ˆ        ‡                                      …15†
+                                                           qx qy
+                                    L …U† ˆ F…U† ¡ Hp                                               …16†
+                                                   µ        ¶T
+                                                     qp qp
+           F…U† ˆ [ f; g]T     U ˆ [u; v]T    Hp ˆ      ;         M…y† ˆ [m]                        …17†
+                                                     qx qy
+                                  ³ 2       ´ ³                ´
+                                   q u q2 u         qu      qu
+                           f ˆ Pr       ‡      ¡ u     ‡v                                           …18†
+                                   qx2 qy2          qx      qy
+                             ³ 2       2 ´   ³            ´
+                              q zv q v          qv     qv
+                    g ˆ Pr         ‡       ¡ u     ‡v       ‡ Ra Pr y                               …19†
+                              qx2 qy2           qx     qy
+                                 ³ 2        ´ ³               ´
+                                   q y q2 y        qy      qy
+                            mˆ         ‡      ¡ u      ‡v                                           …20†
+                                   qx2 qy2         qx      qy
+
+Therefore, the system of Eqs. (1)± (4) can be simpli® ed as follows:
+
+                                                     D…U† ˆ 0                                       …21†
+                                         qU
+                                            ˆ L …U† ˆ F…U† ¡ Hp                                     …22†
+                                         qt
+                                               qy
+                                                  ˆ M…y†                                            …23†
+                                               qt
+
+    A variety of fractional step approaches can be formulated by appropriately
+combining convective, viscous, and pressure terms of the momentum Eqs. (21)± (23).
+208                                                  D. C. WAN ET AL.
+
+When primitive variables are used in the governing PDEs, there is no direct link
+between the continuity and momentum equations. To bridge this gap, certain
+rearrangement of the momentum equations should be carried out, and thus the
+popular Poisson equation for pressure is formulated. In the simulation of Navier±
+Stokes equations, ® rst an intermediate velocity is computed by omitting the pressure
+gradient, and later, it is corrected by including the same. This seminal idea was
+originally introduced by Chorin [26] in a ® nite-di erence context. Since then, many
+special schemes have been designed and developed in this direction. For example,
+there is a family of implicit and semi-implicit pressure-correctio n methods such as the
+SIMPLE, consistent SIMPLE (SIMPLEC), and SIMPLER. Moreover, the arti® cial
+compressibility method, the marker and cell (MAC) method, the fractional-step
+projection method [26] and its many variants are also commonly used in the
+literature. In the present investigation, we adopt a fractional time-step and potential-
+function method (FTSPFM), which is a variant of the MAC method for solving the
+governing Eqs. (21)± (23). In this approach, an intermediate velocity ® eld and a
+potential function are introduced and computed to update the velocity, pressure, and
+temperature in the domain.
+
+        3. Spat ial discret izat ion. In the present investigation a staggered grid system
+is employed. The momentum and energy equations in the horizontal direction is
+written at the point …i ‡ 12 ; j†, the momentum equation in the vertical direction is
+written at the point …i; j ‡ 12†, and the pressure and temperature are given at point
+…i; j†. The continuity equation is approximated at the point …i; j†. All spatial deriva-
+tives in Eqs. (21)± (23) are discretized by using the DSC approach. A uniform grid
+in both x and y directions is employed. The discretized forms of Eqs. (15)± (20)
+can be expressed as follows:
+
+                                      W
+                                      X                                 W
+                                                                        X
+                                               …1†                             …1†
+                      D h …U† ˆ              dD;s …k Dx†ui‡k; j ‡            dD;s …k Dy†vi; j‡k                   …24†
+                                      kˆ¡W                            kˆ¡W
+
+                                 "                                                               #T
+                                     W
+                                     X                              W
+                                                                    X
+                                             …1†                           …1†
+                      Hh p ˆ                dD;s …k Dx†pi‡k; j ;          dD;s …k Dy†pi; j‡k                      …25†
+                                     kˆ¡W                          kˆ¡W
+                      "                                                                      #
+                          W
+                          X                                     W
+                                                                X
+                                  …2†                                  …2†
+          f h ˆ Pr               dD;s …k Dx†ui‡1‡k; j ‡               dD;s …k Dy†ui‡1;j‡k
+                                               2                                    2
+                          kˆ¡W                                 kˆ¡W
+                      "                                                                                     #
+                                 W
+                                 X                                          W
+                                                                            X
+                                         …1†                                          …1†
+                  ¡ ui‡1; j             dD;s …k Dx†ui‡1‡k; j ‡ vi‡1;j                dD;s …k Dy†ui‡1; j‡k         …26†
+                            2                         2           2                                2
+                                 kˆ¡W                                      kˆ¡W
+          "                                                                        #
+              W
+              X                                      W
+                                                     X
+                      …2†                                    …2†
+gh ˆ Pr              dD;s …k Dx†vi‡k;j‡1 ‡                  dD;s …k Dy†vi; j‡1‡k
+                                       2                                     2
+              kˆ¡W                                   kˆ¡W
+
+          "                                                                                      #
+                     W
+                     X                                            W
+                                                                  X
+                             …1†                                         …1†
+      ¡ ui;j‡1              dD;s …k Dx†vi‡k; j‡1 ‡ vi;j‡1               dD;s …k Dy†vi; j‡1‡k          ‡ Ra Pr yi;j …27†
+                 2                             2        2                                2
+                     kˆ¡W                                        kˆ¡W
+               BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                      209
+
+                      "                                                                #
+                            W
+                            X                              W
+                                                           X
+               mh ˆ              d…2†
+                                  D;s …k Dx†yi‡k; j ‡             d…2†
+                                                                   D;s …k Dy†yi; j‡k
+                          kˆ¡W                             kˆ¡W
+                            "                                                                   #
+                                  W
+                                  X                                   W
+                                                                      X
+                                         …1†                                 …1†
+                      ¡ ui;j            dD;s …k Dx†yi‡k; j ‡ vi; j          dD;s …k Dy†yi;j‡k       …28†
+                                 kˆ¡W                                kˆ¡W
+
+
+                                 L h …U† ˆ Fh …U† ¡ Hh p
+                                  Fh …U† ˆ [ f h ; gh ]T      Mh …y† ˆ [m h ]                       …29†
+         …1†          …2†
+where dD;s and dD;s are coe cients of the regularized Shannon’s delta kernel, given
+in Eqs. (13) and (14), respectively. Here, the detailed labels (i, j) on U are omitted,
+and Dx and Dy denote the grid sizes in the x and y direction, respectively.
+     By substituting Eqs. (24)± (28) into Eqs. (21)± (23), the following semidiscretized
+approximations are obtained:
+
+                                                  D h …U† ˆ 0                                       …30†
+                                      dU
+                                         ˆ L h …U† ˆ Fh …U† ¡ Hh p                                  …31†
+                                      dt
+                                             dy
+                                                 ˆ Mh …y†                                           …32†
+                                             dt
+
+      4. Tem poral discret izat ion. A Runge± Kutta scheme is used for temporal dis-
+cretization. The scheme is of third-order accuracy in time and was used by many
+other authors [34, 35]. In this scheme, ordinary differential Eqs. (31)± (32) are formu-
+lated, which can be solved from the following:
+
+                                U…1† ˆ a1 Un ‡ b1 {Dt[Fh …Un † ¡ Hh p…1† ]}                         …33†
+
+                          U…2† ˆ a2 Un ‡ b2 {U…1† ‡ Dt[Fh …U…1† † ¡ Hh p…2† ]}                      …34†
+
+                       Un‡1 ˆ a3 Un ‡ b3 {U…2† ‡ Dt[Fh …U…2† † ¡ Hh pn‡1 ]}                         …35†
+
+                                        yn‡1 ˆ yn ‡ {Dt[Mh …yn †]}                                  …36†
+
+where …a1 ; a2 ; a3 † ˆ …1; 34 ; 13† and …b1 ; b2 ; b3 † ˆ …1; 14 ; 23†. The U…1† , p…1† and U…2† , p…2† ,
+are their corresponding ® rst and second step values for velocity and pressure,
+respectively.
+      5. Treat m ent for t he pressure. Updating the pressure field requires special
+care. Therefore, a brief description of the treatment of pressure is given. At each step
+of the Runge± Kutta scheme, the FTSPFM [24] is adopted to solve Eqs. (30) and (31).
+To illustrate the present scheme, we consider the first step of the Runge± Kutta
+scheme. Assume that, at time tn , the velocity Un and pressure pn are known, while
+U…1† and p…1† at the first step of the Runge± Kutta scheme are unknown. Let us intro-
+duce a first-step intermediate velocity field U¤…1† :
+210                                 D. C. WAN ET AL.
+
+
+                        U¤…1† ˆ a1 Un ‡ b1 {Dt[Fh …Un † ¡ Hh pn ]}                   …37†
+
+where U¤…1† satis® es the same boundary condition as that for the physical velocity
+® eld Un‡1 at time tn‡1 .
+       Because Eq. (37) is explicit in terms of Un and pn , integration stability requires
+ that the time increment satis® es the Courant-Friedrich-Lewy (CFL) condition,
+                                   (                              )
+                                          4 Pr  Pr[…Dx†2 ‡ …Dy†2 ]
+                   max…Dt† µ min              ;                                      …38†
+                                 …|u| ‡ |v|†2           4
+
+
+By subtracting Eq. (33) from Eq. (37), we have
+
+                          U…1† ¡ U¤…1† ˆ ¡b1 DtHh …p…1† ¡ pn †                       …39†
+
+Since pressure is a scalar quantity, one can de® ne a ® rst-step potential function f…1†
+as
+
+                                f…1† ˆ ¡b1 Dt…p…1† ¡ pn †                            …40†
+
+Hence, the velocity di erence can be rewritten as
+
+                                 U…1† ¡ U¤…1† ˆ Hh f…1†                              …41†
+
+By taking divergence over Eq. (41), we obtain the Poisson equation for the ® rst-step
+potential function,
+
+                            Hh2 f…1† ˆ D h …U…1† † ¡ D h …U¤…1† †                    …42†
+
+From Eq. (30), the ® rst-step velocity U…1† should satisfy the continuity equation, i.e.,
+
+                                       D h …U…1† † ˆ 0                               …43†
+
+It follows that the Poisson equation for the ® rst-step potential function can be
+simpli® ed as
+
+                                 Hh2 f…1† ˆ ¡D h …U¤…1† †                            …44†
+
+      Since the ® rst-step intermediate velocity ® eld U¤…1† and ® rst-step velocity U…1†
+satisfy the same boundary conditions as the physical velocity Un‡1 at time tn‡1 , it
+follows from Eq. (41) that the ® rst-step potential function f…1† satis® es the Neumann
+boundary condition
+
+                                        Hh f…1† ˆ 0                                  …45†
+
+on all the computational boundaries. Equation (44), together with Eq. (45), con-
+stitutes the Neumann± Poisson problem for the ® rst-step potential function f…1† .
+                  BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                                  211
+
+      In the present DSC-Runge± Kutta scheme, a successive overrelaxation (SOR)
+method is used to solve the Poisson Eq. (44). The ® rst-step potential function f…1† is
+located at point …i; j† in the staggered grid system, and the Poisson Eq. (44) is,
+approximate d at the point …i; j†. Therefore, the SOR expression for Eq. (44) is
+                                            "
+                             o                                      X
+                                                                    ¡1
+f…1†l‡1
+ i;j    ˆ     …2†         …2†
+                                            ¡D h …U¤…1† † ¡              d…2†        …1†l‡1
+                                                                          D;s …k Dx†fi‡k; j
+             dDx;s …0† ‡ dDy;s …0†                              kˆ¡W
+                                                                                                                #
+             W
+             X                     X
+                                   ¡1                     W
+                                                          X
+                …2†        …1†l        …2†        …1†l‡1     …2†        …1†l
+           ¡   dD;s …k Dx†fi‡k;j ¡    dD;s …k Dy†fi;j‡k ¡   dD;s …k Dy†fi;j‡k
+                 kˆ1                                 kˆ¡W                              kˆ1
+
+
+            ‡ …1 ¡ o†f…1†l
+                      i; j                                                                                          …46†
+
+where superscript l refers to the number of inner iterations. Also, o is the over-
+relaxation parameter, which can have a value between 1.0 and 2.0, and can be chosen
+empirically. The iterative convergence criterion for the computation of Eq. (46) is set to
+
+                                                max |f…1†l‡1
+                                                      i;j    ¡ f…1†l
+                                                                i; j | µ e                                          …47†
+
+where e > 0 is a given small parameter.
+     Once the values of f…1† and U¤…1† are calculated, the ® rst-step velocity U…1† can
+be evaluated from Eq. (41), i.e.,
+
+                                                    U…1† ˆ U¤…1† ‡ Hh f…1†                                          …48†
+
+       The values of U…1† located outside the computational domain are required for
+computing the derivatives. Note that in Eq. (48), the values of both velocity com-
+ponents (u and v) are obtained at point …i; j†. Therefore, it is necessary to transfer
+them back into their respective points …i ‡ 12 ; j† and …i; j ‡ 12†. Meanwhile, in Eqs.
+(26)± (28), the values of velocity component u need to be computed at the point
+…i; j ‡ 12†. Similarly, the values of velocity component v need to be computed at the
+point …i ‡ 12 ; j†. We can use the DSC algorithm to obtain these transformations at
+the speci® ed grid points, as follows:
+
+           W
+           X                 µ³          ´ ¶                             W
+                                                                         X             µ³          ´ ¶
+                       …0†             1                                         …0†             1
+ui;j‡1 ˆ           dD;s           k¡      Dy ui; j‡k         ui‡1;j ˆ           dD;s        k¡      Dx ui‡k;j
+    2
+           kˆ¡W
+                                       2                        2
+                                                                         kˆ¡W
+                                                                                                 2
+                                                                                                                    …49†
+           W
+           X                 µ³         ´       ¶                        W
+                                                                         X             µ³       ´ ¶
+                       …0†             1                                         …0†           1
+vi;j‡1 ˆ           dD;s           k¡     Dy vi; j‡k          vi‡1;j ˆ           dD;s        k ¡ Dx vi‡k; j
+    2
+           kˆ¡W
+                                       2                        2
+                                                                         kˆ¡W
+                                                                                               2
+                                                                                                                    …50†
+           …0†
+where dD;s are the coe cients of the regularized Shannon’s delta kernel, given by
+Eq. (12).
+212                                 D. C. WAN ET AL.
+
+      The ® rst-step pressure p…1† can be obtained from Eq. (40):
+
+                                                  f…1†
+                                    p…1† ˆ pn ¡                                       …51†
+                                                  b1 Dt
+
+The extension treatment for the values of p…1† located outside is similar to f…1† . The
+treatment for the second-step and ® nal-step velocity and pressure ® elds is similar to
+that of the ® rst-step procedure.
+
+       6. Overall solut ion schem e. The overall solution scheme can be summarized
+as follows.
+       Step 1. (i) Using the known velocity (Un ), pressure (pn ), and temperature (yn ),
+the ® rst-step intermediate velocity ® elds U¤…1† is computed according to Eq. (37).
+       (ii) By making use of U¤…1† , the ® rst-step potential function f…1† is evaluated by
+employing the SOR, according to Eq. (46). The convergence of this inner iteration is
+controlled by the parameter e.
+       (iii) By using f…1† and U¤…1† , the ® rst-step velocity U…1† is evaluated from
+Eq. (48).
+       (iv) By using f…1† , the ® rst-step pressure p…1† is updated according to Eq. (51).
+       Step 2. Repeat (i)± (iv) of Step 1 with U…1† and p…1† obtained in Step 1 instead of
+U and pn to compute the second-step intermediate velocity ® elds U¤…2† and the
+  n
+
+second-step potential function f…2† . Then, second-step velocity U…2† and pressure p…2†
+are obtained.
+       Step 3. Repeat (i)± (iv) in Step 1 with U…2† and p…2† obtained in Step 2 instead of
+U and p…1† to compute the third-step intermediate velocity ® elds U¤…3† and the
+  …1†
+
+third-step potential function f…3† . Then velocity Un‡1 and the pressure pn‡1 at time
+tn‡1 are evaluated.
+       Step 4. Using the corrected values of velocity (Un‡1 ) and temperature …yn †, the
+value of yn‡1 is evaluated by using Eq. (36).
+       The procedure mentioned above (Step 1± Step 4) is repeated (outer iterations)
+until an overall convergence to a steady state is achieved.
+
+      C. Finit e-Elem ent Approach
+      The popular projection method of Chorin [26] was extended to ® nite-element
+laminar ¯ ow problems by Donea et al. [29]. A modi® ed version of the velocity-
+correction method was proposed by Ren and Utnes [30]. In the FEM, the equations
+are multiplied by a weight function before they are integrated over the entire
+computational domain. This is a distinguishing feature compared to either ® nite-
+di erence or ® nite-volume schemes. In the present study, we employ a ® nite-element-
+based Galerkin weighted residual formulation to implement the velocity correction
+algorithm [30]. Here, both spatial and temporal discretizations are rendered second-
+order-accurate. The details of the ® nite-element shape functions are available in
+Segarlind [31]. After obtaining velocity, pressure, and temperature over the domain,
+requisite parameters of design interest are obtained. Detailed formulation is avail-
+able in Ren and Utnes [30] and Patnaik et al. [38].
+      It is essential to con® rm that the numerical simulation constitutes a desirable
+representation of the governing PDEs. In the present ® nite-element scheme, stability
+            BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                       213
+
+of the algorithm is governed by the advection-di usion term in the velocity-pre-
+diction phase. Thus, the time step (Dt) is obtained from
+
+                                            Pec
+                                    C<                                            …52†
+                                         …2 ‡ Pec †
+
+where C is the Courant number, C ˆ u Dt=Dx, and Pec is the cell Peclet number,
+Pec ˆ u Dx=n. Here, Dt and Dx refer to the minimum allowable time step and
+smallest spatial interval, respectively.
+
+
+                         III. RESULTS AND DISCUSSION
+      Most of the publications which report successful numerical simulations in
+CFD, in general, present a wide variety of benchmark problems such as ¯ ow over a
+backward-facing step, lid-driven cavity, buoyancy-drive n cavity, ¯ ow past a circular
+or square cylinder, ¯ ow over a bundle of tubes, etc. Choosing problems with com-
+plex ¯ uid ¯ ow geometries and boundary conditions, although it strengthens the
+claims of robustness of the schemes, reduces the clarity of focus. Against this
+background, we concentrate only on the problem of a buoyancy-drive n cavity and
+present a focused study. We also bring out some of the wide variations observed in
+the available literature. Benchmark-quality results are presented by employing the
+quasi-wavelet-base d DSC approach described earlier. Extensive use of FEM simu-
+lations further support the present investigations.
+
+
+     A. Convergence St udy
+       The purpose of this subsection is to verify the convergence and establish re-
+liability for the present DSC and FEM solutions. An assessment of the consistency
+and grid-independent nature of the numerical simulation procedure is, of course, of
+fundamental importance. Error in a numerical simulation is de® ned as the di erence
+between exact and approximate solutions. The real size of the error can never be
+computed, due to the nonavailability of an analytical solution for the present pro-
+blem. However, it is possible to construct an estimate of the error. Such an estimate
+provides a reliable picture not only of the size of the error, but also of the rate of
+convergence for the numerical simulations. A variety of error norms are available
+for this purpose. In the present study, reduction in incremental error between two
+successive iterations was taken as the criterion for convergence. Such an error is
+de® ned as
+
+                                E nin ˆ max |Zn‡1 ¡ Zn |                          …53†
+
+where Z refers to the primitive variable of interest, such as velocity, pressure, or
+temperature. The variation of Einn against time can be regarded as convergence his-
+tory, and such a plot is given in Figure 2, for both DSC and FEM simulations at
+Ra ˆ 105 . The pro® le of the convergence history by DSC is ¯ at after t ˆ 0:5, as the
+simulations are restrained by the inner iterative process for the potential function in
+Eq. (47). Such a constraint does not exist for FEM calculations. However, it should
+214                                    D. C. WAN ET AL.
+
+
+
+
+       Figure 2. Temporal variation of convergence history for u; v, and y: (a) FEM; (b) DSC.
+
+
+
+be pointed out that in DSC simulations, much higher accuracy is possible by setting
+a smaller value for e and a larger DSC parameter for W . It can be further noticed
+that the residues of temperature converge faster than the velocity in both DSC and
+FEM calculations. To ensure a steady-state solution, the following inequality,
+Einn µ 10¡8 , is satis® ed in all simulations.
+      For ¯ uid dynamical simulations, the temporal convergence alone is not enough
+to ensure the correctness of the solution. The algebraic equations being solved may
+not be consistent with the physical model. These errors could be due to truncation,
+                BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                              215
+
+
+Table 1. Grid sensitivity studies: convergence for vertical velocity (v) and temperature (y) along the mid-height
+(y ˆ 0.5)
+
+                         21 £ 21                  41 £ 41                  81 £ 81             161 £ 161
+
+x-Coordinate         v             y          v             y          v             y         v           y
+
+0.00000            0.0000 0 1.0000 0   0.0000 0 1.0000 0  0.0000 0 1.0000 0   0.0000 0 1.0000 0
+0.10000          67.66134 0.6132 5   64.88415 0.60201    63.74017 0.59636   63.25311 0.59351
+0.20000           18.84612 0.47001    17.11070 0.47021   16.4924 9 0.47007   16.22780 0.46987
+0.30000          70.25020 0.48141    70.52181 0.4830 6 70.61296 0.48355     70.6498 5 0.48355
+0.40000          71.87755 0.49680 71.8440 3 0.4976 8 71.83100 0.49787       71.82631 0.49772
+0.50000          70.00526 0.49974    70.00005 0.49995 70.0008 0 0.49992 70.00378 0.4996 8
+0.60000            1.86782 0.50273     1.84395 0.50223    1.8294 0 0.50197    1.81886 0.5016 5
+0.70000            0.23980 0.51827     0.52105 0.51686    0.61041 0.51629     0.63937 0.51583
+0.80000         718.8644 3 0.52992 717.11324 0.52975 716.49663 0.52977 716.24279 0.52952
+0.90000         767.67705 0.3865 9 764.88387 0.39796 763.73526 0.40351 763.23259 0.40597
+1.00000            0.0000 0 0.0000 0   0.0000 0 0.0000 0  0.0000 0 0.0000 0   0.0000 0 0.0000 0
+
+
+
+
+round-o , approximations , interpolation, model constants, etc. Hence, one has to
+ensure that errors produced in the process of approximation are not magni® ed
+during the course of the numerical simulation. There are two systematic ways of
+error reduction, viz., grid adaptation and mesh re® nement. Although the former
+procedure is dynamic, it also requires a complex and reliable algorithm and could be
+computationally expensive. The second approach is to choose a series of mesh sys-
+tems to arrive at a reliable mesh. Choosing a judicious mesh system for the present
+problem of a buoyancy-drive n cavity is obvious, as most of the high-gradient regions
+are located close to the walls. A series of grid systems (21 £ 21, 41 £ 41, 81 £ 81,
+161 £ 161) have been employed to arrive at a grid-independent solution for
+Ra ˆ 105 . The data are summarized in Table 1 for velocity and temperature. As can
+be observed, due to the high accuracy of the DSC approach, even a grid size of
+21 £ 21 can produce a reasonable result which compares well with those of other
+re® ned grids. Obviously, a grid size of 81 £ 81 is adequate for simulation by the
+DSC, to ensure consistence and reliability in the present investigations.
+
+       B. Velocit y Dist ribut ion
+      Initially, the ¯ uid inside the cavity is maintained at the same temperature as
+that of the cold wall. The ¯ uid picks up heat from the hot wall and loses it to the cold
+wall. There is no transfer of heat through the horizontal walls (either inside or
+outside). A wide variety of ¯ uid ¯ ow and heat transfer features evolve as a function
+of the Rayleigh number and their precise simulation is indeed a real challenge to any
+numerical scheme. To start with, comparison of vertical velocity distribution at the
+mid-height …y ˆ 0:5† as a function of the abscissa is presented in Figure 3a, over the
+Ra range of 103 to 106 , where a grid size of 101 £ 101 was employed. In addition to
+the numerical simulation by the present DSC and FEM, results from Massarotti et al.
+[5] are also plotted. Although there is excellent agreement between the present FEM
+and DSC results, there is a lack of comparison with the predictions of the CBS
+scheme [5]. The latter has had widely reported success with a variety of problems in
+216                                    D. C. WAN ET AL.
+
+
+
+
+Figure 3. Comparison of vertical velocity (v) at the mid-height (y ˆ 0.5): (a) 103 µ Ra µ 106 ; 444
+Massarott i et al. [5]; ¢ ¢ ¢ ¢ ¢ ¢ ¢ ¢ ¢DSC, ööö FEM; (b) 10 7 µ Ra µ 108 ; 444 Mayne et al.
+[10], ¢ ¢ ¢ ¢ ¢ ¢ ¢ ¢ ¢DSC, ööö FEM.
+                BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                       217
+
+¯ uid dynamics [27, 36, 37]. In fact, the vertical velocity distribution has a direct
+relation to the size of the boundary layer formed on the hot and cold walls.
+Therefore, it needs to be resolved as accurately as possible. Nevertheless, it should be
+pointed out that all three completely di erent numerical simulations yield similar
+peak values.
+      The velocity distribution for 107 µ Ra µ 108 is plotted in Figure 3b. The dis-
+cretization uses a 301 £ 301 grid for this Ra range to ensure the correctness of the
+DSC results, although a relatively smaller mesh size also works well. Recent results
+of Mayne et al. [10] are also compared for Ra ˆ 107 and 108 . There is a good con-
+gruence among all the three independent numerical approaches. As the velocity
+distribution indicates, the boundary layer is more closely con® ned to the vertical
+walls with increase in the Rayleigh number. There is a reasonable correspondence
+between the present DSC and FEM results, even for high Rayleigh numbers. The
+maximum vertical velocity at the mid-height …y ˆ 0:5† and its corresponding x
+coordinate are presented in Table 2. Such a tabular comparison appears to be
+popular with other investigators as well. Table 2 also summarizes the maximum
+values obtained by de Vahl Davis [3], Ramaswamy et al. [8], Massarotti et al. [5],
+Manzari [6], and the more recent investigations of Mayne et al. [10] with good
+correspondence among the various schemes. For example, there is a maximum dif-
+ference of about 6% for Ra ˆ 106 between the results of de Vahl Davis [3] and
+Ramaswamy et al. [8], and all other values fall in between these two investigations.
+However, such good comparison is not completely encouraging, as Figure 3a has
+indicated that completely noncoincidental velocity distributions can still have the
+same maximum value. Therefore, we advocate comparison of the entire velocity
+distribution, both horizontal and vertical velocities at the mid-width and the
+mid-height, respectively. Variation of horizontal velocity at the mid-width against
+the ordinate is presented in Figure 4. This plot indicates the direction and intensity of
+
+
+
+           Table 2. Compariso n of maximum vertical velocity (v) at the mid-height ( y ˆ 0.5)
+
+                                                                         Present study     Present study
+Ra       Ref. [3]    Ref. [8]    Ref. [5]     Ref. [6]     Ref. [10]        FEM                DSC
+
+10 3        3.679       ^           3.692        3.73         3.6962           3.686                 3.686
+          (0.179)                            (0.1827)      (0.1790)         (0.188)               (0.183)
+10 4       19.51      19.62        19.63        19.9         19.6177          19.79                 19.98
+           (0.12)                            (0.1246)      (0.1195)          (0.12)               (0.117)
+10 5       68.22      68.62       68.85         70.0        68.6920           70.63                 70.81
+          (0.066)                             (0.068)      (0.0665)         (0.072)               (0.070)
+10 6      216.75     232.97      221.6        228          220.8331         227.11                227.24
+         (0.0387)                             (0.039)      (0.0380)         (0.040)              (0.040)
+10 7        ^        717.04      702.3        698          703.2536          714.48                714.47
+                                             (0.0235)      (0.0215)         (0.022)               (0.021)
+2£10 7      ^           ^           ^            ^            ^             995.33              1017.84
+                                                                           (0.0156)                (0.02)
+4£10 7      ^           ^       1417             ^            ^            1435.5               1419.84
+                                                                           (0.0156)              (0.0133)
+10 8        ^           ^           ^            ^        2223.4424        2259.08              2290.13
+                                                            (0.013)         (0.012)               (0.013)
+218                                   D. C. WAN ET AL.
+
+
+
+
+Figure 4. Variation of horizontal velocity (u) at the mid-width (x ˆ 0.5): (a) 10 3 µ Ra µ 106 ;
+(b) 107 µ Ra µ 108 ; . ¢ ¢ ¢ DSC, ööö FEM.
+                  BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                                219
+
+
+              Table 3. Compariso n of maximum horizontal velocity (u) at the mid-width (x ˆ 0.5)
+
+                                                                            Present study             Present study
+Ra              Ref. [3]              Ref. [6]           Ref. [10]              FEM                       DSC
+
+10 3          3.634 (0.813)      3.68 (0.817)         3.6493 (0.8125)         3.489 (0.813)           3.6434 (0.8167)
+10 4         16.2 (0.823)       16.1 (0.817)         16.1798 (0.8235 )       16.12 2 (0.815 )        15.967 (0.8167)
+10 5         34.81 (0.855)      34.0 (0.857)         34.7741 (0.8535)        33.39 (0.835)           33.51 (0.85)
+10 6         65.33 (0.851)      65.4 (0.875)         64.6912 (0.8460 )       65.40 (0.86)            65.55 (0.86)
+10 7                ^          139.7 (0.919)        145.266 6 (0.8845 )     143.56 (0.922)          145.0 6 (0.92)
+2£10 7              ^                 ^                     ^               175.28 (0.93)           175.22 (0.93)
+4£10 7              ^                 ^                     ^               216.85 (0.93)           216.67 (0.92)
+10 8                ^                 ^             283.689 (0.9455)        296.71 (0.93)           295.67 (0.94)
+
+
+
+
+¯ uid motion to be between the left and right zones of the square cavity. Both the
+DSC and FEM have shown a very good comparison even at Ra ˆ 108 . Table 3
+summarizes maximum horizontal velocities among the values at the mid-width
+…x ˆ 0:5†. Also illustrated are the values given in [3], [6], and [10]. A good com-
+parison can be seen among the investigations, particularly between the present DSC
+and FEM results. However, when maximum values are compared, it is more rea-
+sonable to scan the entire domain of the cavity, and not just along the mid-width or
+mid-height. Therefore, for the purpose of benchmarking, maximum horizontal and
+vertical velocities and their corresponding coordinate positions are summarized in
+Table 4. This table should be useful for future comparisons with new computational
+schemes. It should be particularly noted that the maximum horizontal velocity for
+Ra ¶ 105 does not occur along or close to the mid-height, but rather is noticed at a
+point close to the top left corner of the domain. This aspect further strengthens the
+need to scan the entire domain of the cavity when obtaining maximum values. As
+Table 4 shows, there is good correspondence between the DSC and FEM ® ndings.
+However, there are minor variations in the exact location of the values of this
+maxima in the domain.
+
+
+
+
+         Table 4. Maximum u and v velocities and their corresponding locations over the entire domain
+
+                       u-Velocity (x; y position)                            v-Velocity (x; y position)
+
+Ra                  FEM                          DSC                       FEM                          DSC
+
+10 3          3.657 (0512, 0.812)          3.648 (0.516, 0.816)      3.692 (0.188, 0.488)          3.69 (0.183, 0.483)
+10 4         16.14 (0.489, 0.812)         15.968 (0.5, 0.816)       19.91 (0.119, 0.465)          20.1 (0.1167, 0.467)
+10 5         41.88 (0.281, 0.881)         41.82 (0.29, 0.88)        70.81 (0.07, 0.488)           70.83 (0.07, 0.49)
+10 6        114.3 (0.164, 0.927)         114.53 (0.173, 0.93)      228.05 (0.037, 0.441)         227.88 (0.04, 0.47)
+10 7        339.4 5 (0.108, 0.963)       339.67 (0.1067, 0.96)     720.54 (0.021, 0.439)         720.43 (0.02, 0.44)
+2£10 7      463.58 (0.0796 , 0.968)      472.95 (0.093, 0.97)     1020.13 (0.0184, 0.438)       1019.08 (0.02, 0.48)
+4£10 7      668.74 (0.075, 0.974)        663.75 (0.08, 0.97)      1446.39 (0.016, 0.438)        1435.36 (0.013, 0.43)
+10 8       1055.47 (0.07, 0.978)        1006.2 6 (0.0667, 0.98)   2291.0 5 (0.0132, 0.438)      2293.6 7 (0.0133, 0.48)
+220                                        D. C. WAN ET AL.
+
+       C. Nat ural-Convect ion Pat t erns
+      This subsection analyzes the natural-convectio n patterns set up by the buoy-
+ancy force. The extent of this force is indicated by the Rayleigh number, which in
+turn dictates both the ¯ uid ¯ ow and heat transfer characteristics in the domain.
+Streamlines, isovelocity contours, and isotherms are plotted in Figure 5, to under-
+stand and analyze these wide variety of features. The square-cavity problem with
+di erentially heated vertical walls has two distinct ¯ ow patterns: (1) growth of the
+
+
+
+
+Figure 5. Natural-conve ction patterns simulated by DSC, 10 3 µ Ra µ 10 8 : (a) streamlines; (b) iso-u con-
+tours; (c) iso-v contours; (d) isotherms.
+             BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                       221
+
+boundary layer along the wall; (2) a recirculating motion in the core region. The
+latter is prominent in the lower-Ra range, while the former dominates the higher-Ra
+range. However, both patterns su ce in the medium-Ra range. These features are
+very well depicted in the streamlines of Figure 5. Only a single circulating eddy
+persists for Ra ˆ 103 and 104 . For Ra ˆ 105 , the inner most zone of the main re-
+circulation splits into two smaller counterrotating eddies in the core region. These
+two small inner eddies are stretched toward the top left and bottom right corners,
+retaining the dominance of the main circulation. There exists a saddle point along an
+imaginary line joining these two inner eddies. With increase in Rayleigh number
+…106 †, there is a further transformation in the ¯ uid ¯ ow patterns, with the inner
+secondary eddies moving more closer to the hot wall and the cold wall. For still
+higher values of Ra, they become weaker in strength and are eventually con® ned to
+the topmost left and bottommost right corners of the square cavity.
+       The isovelocity contours in Figure 5 reveal several prominent features. In the
+u-velocity contours there are two horizontal eddies, one below the other, for
+Ra ˆ 103 . For higher values of Rayleigh number, these two eddies move closer to
+the two adiabatic walls. Similarly, two dominant circulations are prominently
+visible in the vertical isovelocity contours (one each on the left and right zones of
+the cavity) for Ra ˆ 103 . These two eddies subsequently move closer to the hot wall
+and the cold wall with an increase in the Rayleigh number. This indeed illustrates
+that the boundary layer gets thinner as a function of the Rayleigh number. The
+changes that occur in the isotherms (constant-temperatur e contours) as a function
+of the Rayleigh number seems to be more exciting. For Ra ˆ 103 and below, the
+contours are nearly vertical and gradually transform into a horizontal grill-like
+pattern with increase in Ra. Nevertheless, the contours are normal to the horizontal
+adiabatic walls. This indeed indicates that there is no movement of heat ¯ ow
+through this boundary. In the immediate neighborhood of the hot and cold walls,
+the contours remain parallel to the isothermal vertical walls. What is particularly
+fascinating is the existence of a wide range of ¯ uid ¯ ow and heat transfer char-
+acteristics in such a simple geometry, where the patterns are dictated purely by the
+force of buoyancy. There is a very good visual comparison for the streamlines,
+isovelocities, and isotherms, over a wide range of Rayleigh numbers, as they depict
+similar characteristic ¯ uid ¯ ow and heat transfer patterns. In fact, there is complete
+unanimity in the available literature and visuals of the present simulation. As will
+also be seen later, such good qualitative comparison of gross features is not ade-
+quate and should not be misconstrued.
+
+
+     D. Therm al Dist ribut ion
+      Knowledge of heat transfer coe cient along the hot and cold walls is invalu-
+able to thermal engineers and designers. Nusselt number …Nu† represents the desired
+nondimensional parameter of interest, which is the ratio of heat convected from the
+wall to the ¯ uid, to that conducted up to the wall. This can be given by the following
+relation:
+
+                                                qy
+                                  Nulocal ˆ §      |                               …54†
+                                                qx wall
+222                                     D. C. WAN ET AL.
+
+
+
+
+Figure 6. Comparison of local Nusselt number along the hot wall for 103 µ Ra µ 10 7: 444 Massarotti
+et al. [5],    Manzari [6], . ¢ ¢ ¢ DSC, Ð Ð Ð FEM.
+
+
+In the expression above, a negative sign essentially implies transfer of heat from the
+wall to the ¯ uid (for the hot wall), while a positive sign means from the ¯ uid to the
+wall (for the cold wall). Local Nusselt number distribution is compared, in Figure 6,
+with the results of [5] and [6]. The pattern of distribution in the low-Ra range di ers
+signi® cantly from that in the high-Ra range. In the low-Ra range, the results have
+good congruence among the investigations. However, in the medium- and high-Ra
+range, results by the present DSC and those of Manzari [6] show good correspon-
+dence. If this good comparison between the two is any indication of the accuracy of
+these simulations, the present FEM and CBS results overpredict, particularly for
+Ra ˆ 106 and above. Nevertheless, this aspect has to be con® rmed by other
+numerical schemes. Even though there exists very good correspondence between the
+present DSC and FEM results for both vertical and horizontal velocity distributions
+(Figures 3 and 4), the local Nu variation is signi® cantly di erent. However, there
+is a good similarity in the pro® les predicted by DSC and FEM simulations.
+For Ra ˆ 107 , the predictions by Massarotti [5] show a completely di erent trend
+                BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                                       223
+
+
+
+
+Figure 7. Local Nusselt number variation by DSC simulations : (a) hot wall, 10 3 µ Ra µ 106 ; (b) cold wall,
+103 µ Ra µ 106 ; (c) hot wall, 10 7 µ Ra µ 108 ; (d) cold wall, 10 7 µ Ra µ 108 .
+
+
+
+
+compared to the other three simulations, which is evident from Figure 6. Despite the
+apparent simplicity in the geometry, clarity in the boundary conditions, the phe-
+nomenal progress made in computational methods, and the fast-growing number-
+crunching capability, there is a wide variation among the investigations, even in the
+prediction of a simple design parameter, viz., the Nusselt number. This lack of
+unanimity poses a hindrance to the reliable simulation of more complex, industrial-
+scale ¯ uid ¯ ow and heat transfer problems. Further, it also emphasizes the need to
+resolve this aspect by other independent numerical investigations.
+      Figure 7 elucidates the local Nusselt number distribution along the hot and
+cold walls obtained by using the DSC. It is natural to expect an antisymmetric local
+Nu distribution between the hot and cold walls, as there exists a steady-state
+asymmetric distribution in the ¯ uid ¯ ow and heat transfer patterns. This aspect can
+be noticed from the ® gures. There is a greater transfer of heat from the lower bottom
+of the hot wall to the ¯ uid. Also, the upper top portion of the cold wall picks up
+224                                                D. C. WAN ET AL.
+
+
+Table 5. Compariso n of Nusselt number (Nu) and the corresponding ordinate (max., maximum; min.,
+minimum; Av., average)
+
+                                                                            Present study   Present study
+Ra           Nu     Ref. [3]   Ref. [8]   Ref. [5]   Ref. [6]   Ref. [10]       FEM             DSC
+
+10 3         Max.    1.50         ^          ^        1.47        1.5062       1.501            1.444
+                    (0.092)                          (0.109)    (0.08956)      (0.08)         (0.0917)
+             Min.    0.692        ^          ^        0.623       0.6913       0.691            0.665
+                     (1.0)                            (1.0)        (1.0)        (1.0)           (1.0)
+             Av.     1.12         ^        1.117      1.074          ^         1.117            1.073
+     4
+10           Max.    3.53        3.5         ^        3.47       3.5305         3.579           3.441
+                    (0.143)                          (0.125)    (0.1426)        (0.13)        (0.1333)
+             Min.    0.586        ^          ^        0.497      0.5850         0.577           0.528
+                     (1.0)                            (1.0)       (1.0)          (1.0)          (1.0)
+             Av.     2.243        ^        2.243      2.08 4        ^           2.254           2.155
+     5
+10           Max.    7.71        7.71        ^         7.71       7.7084       7.945             7.662
+                    (0.08)                            (0.08)    (0.08353)      (0.08)          (0.085)
+             Min.    0.729        ^          ^         0.614      0.7282       0.698             0.678
+                     (1.0)                             (1.0)       (1.0)        (1.0)           (1.0)
+             Av.     4.52         ^        4.521       4.3           ^         4.598             4.352
+     6
+10           Max.   17.92       17.0         ^       17.46       17.5308       17.86           17.39
+                    (0.038)                          (0.039)    (0.03768)       (0.03)         (0.04)
+             Min.    0.989        ^          ^        0.716       0.9845        0.9132          0.903
+                     (1.0)                            (1.0)        (1.0)         (1.0)          (1.0)
+             Av.     8.8          ^        8.806      8.743          ^          8.976           8.632
+     7
+10           Max.      ^        30.0         ^       30.46       41.0247       38.6            31.02
+                                                     (0.024)    (0.03899)      (0.015)         (0.02)
+             Min.      ^          ^          ^        0.787       1.3799        1.298           0.997
+                                                      (1.0)        (1.0)        (1.0)           (1.0)
+             Av.       ^          ^       16.4 0     13.99           ^         16.656          13.86
+         7
+2£10         Max.      ^          ^          ^          ^           ^         48.84            39.343
+                                                                              (0.015)          (0.015)
+             Min       ^          ^          ^          ^           ^          1.437            1.106
+                                                                               (1.0)            (1.0)
+             Av.       ^          ^          ^          ^           ^         19.97            15.46
+4£10 7       Max.      ^          ^          ^          ^           ^         61.69            49.908
+                                                                              (0.015)          (0.015)
+             Min.      ^          ^          ^          ^           ^          1.59             1.245
+                                                                               (1.0)            (1.0)
+             Av.       ^          ^          ^       23.64          ^         23.96            18.597
+     8
+10           Max.      ^          ^          ^          ^       91.2095        91.16           68.73
+                                                                (0.067)        (0.010)         (0.010)
+             Min.      ^          ^          ^          ^        2.044          1.766           1.428
+                                                                  (1.0)         (1.0)           (1.0)
+             Av.       ^          ^          ^          ^           ^          31.486          23.67
+            BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                       225
+
+more heat from the ¯ uid. This rate of transfer of heat from the wall to the ¯ uid, and
+vice versa, increases with the Rayleigh number. Local Nu is maximum at a point
+close to the bottom of the hot wall and minimum at the top. On the cold wall, it is
+minimum at the bottom and maximum at a point close to the top wall. The locations
+of these minima, maxima, and averages are summarized in Table 5 together with
+other investigations. The average Nusselt number, which is a design parameter of
+interest, is obtained from the following integration:
+                                        Z 1
+                                 Nu ˆ         Nulocal dy                          …55†
+                                         0
+
+
+      In fact, the uncertainties and complexities grow with increase in the Rayleigh
+number. Nevertheless, there is good agreement among the investigations up to
+Ra ˆ 106 . However, for Ra ˆ 107 , the average value by Manzari [6] has good cor-
+respondence with the present DSC scheme. A careful examination of Table 5 reveals
+that there is a good correspondence in the prediction of average Nusselt number
+values among various numerical schemes. However, there are signi® cant dis-
+crepancies in the literature in the prediction of local Nu distribution. Therefore,
+we advocate exercising caution when comparing average Nusselt number values. The
+area integration under two completely di erent local Nusselt number distributions
+can still yield the same average value. This indeed implies that correct values could
+be obtained for wrong reasons. The numerical ¯ uid ¯ ow analyst should be parti-
+cularly wary of such possible pitfalls.
+      In the literature, the usual practice is to compare either the average or local
+Nusselt number values. However, Nusselt number being the ® rst partial derivative of
+temperature, it is more reasonable to present the latter. Further, the accuracy of
+the Nusselt number is limited by the approximation of derivatives. To this end, the
+temperature variation at the mid-height, against the abscissa, in a region close to
+the hot wall, is presented in Figure 8. Recent results of Mayne et al. [10] compare
+well with the present DSC and FEM simulations.
+
+
+                                IV. CONCLUSIONS
+       The present study has introduced a high-accuracy quasi-wavelet-based discrete
+singular convolution (DSC) for the numerical simulation of coupled convective heat
+transfer problems. A standard ® nite-element-base d Galerkin weighted residual for-
+mulation is also implemented with a view to supplement some of the key aspects of
+the present investigation. Both approaches solve the Navier-Stokes and energy
+equations by fractional step-based methods. A focused study on the problem of a
+buoyancy-drive n cavity is presented. Benchmark-quality data are generated by using
+the DSC scheme. A very high level of accuracy, which could be achieved for the
+Taylor problem [18], is a great asset to surmize its reliability for the driven-cavity
+problem. A comparative study of the results obtained from a number of other
+computational schemes is also presented. Some discrepancies have been observed in
+the literature, and predictions by both the FEM and DSC are presented. Numerical
+issues such as consistency, convergence, and stability have been addressed. Some
+speci® c conclusions are as follows.
+226                                         D. C. WAN ET AL.
+
+
+
+
+Figure 8. Variation of temperature at the mid-height (y ˆ 0.5): 444 Mayne et al. [10], ¢ ¢ ¢ ¢ ¢ ¢ ¢ ¢ ¢ DSC,
+ööö FEM.
+
+
+
+° Numerical simulation of a buoyancy-drive n cavity is extended to the entire la-
+  minar natural-convectio n range 103 µ Ra µ 108 , while the earlier benchmark data
+  of de Vahl Davis [3] was con® ned to the range 103 µ Ra µ 106 .
+° All the numerical schemes have produced qualitatively similar natural-convectio n
+  patterns in terms of streamlines, isovelocities, and isotherms. However, a quan-
+  titative comparison of the distribution in terms of primary variables is more
+  crucial.
+° Predictions by both the DSC and FEM have shown that good comparison of
+  velocities does not necessarily mean good comparison of the local Nusselt number
+  distribution.
+° Numerical schemes should compare the entire velocity and=or local Nusselt
+  number distribution, instead of comparing only the maximum and=or average
+  values, as the latter could lead to erroneous conclusions.
+° The lack of good comparison observed in the available literature needs to be
+  resolved further, by other independent numerical schemes.
+              BENCHMARK SOLUTION FOR THE BUOYANCY-DRIVEN CAVITY                             227
+
+                                       REFERENCES
+ 1. I. P. Jones, A Comparison Problem for Numerical Methods in Fluid Dynamics: The
+    Double Glazing Problem, in R. W. Lewis and K. Morgan (eds.), Numerical Methods in
+    Fluids in T hermal Problems, pp. 338± 348, Pineridge Press, Swansea, UK, 1979.
+ 2. D. de Vahl Davis and I. P. Jones, Natural Convection of Air in a Square Cavity:
+    A Comparison Exercise, Int. J. Numer. Meth. Fluids, vol. 3, pp. 227± 248, 1983.
+ 3. D. de Vahl Davis, Natural Convection of Air in a Square Cavity: A Bench Mark Solution,
+    Int. J. Numer. Meth. Fluids, vol. 3, pp. 249± 264, 1983.
+ 4. M. Hortmann, M. Peric, and G. Scheuerer, Finite Volume Multi Grid Prediction of
+    Laminar Natural Convection: Benchmark Solutions, Int. J. Numer. Meth. Fluids, vol. 11,
+    pp. 189± 207, 1990.
+ 5. N. Massarotti, P. Nithiarasu, and O. C. Zienkiewicz, Characteristic-Based-Split (CBS)
+    Algorithm for Incompressible Flow Problems with Heat Transfer, Int. J. Numer. Meth.
+    Heat Fluid Flow, vol. 8, pp. 969± 990, 1998.
+ 6. M. T. Manzari, An Explicit Finite Element Algorithm for Convective Heat Transfer
+    Problems, Int. J. Numer. Meth. Heat Fluid Flow, vol. 9, pp. 860± 877, 1999.
+ 7. M. T. Manzari, O. Hassan, K. Morgan, and N. P. Weatherhill, Turbulent Flow Compu-
+    tations on 3D Unstructured Grids, Finite Elements Anal. Design, vol. 30, pp. 353± 363, 1998.
+ 8. B. Ramaswamy, T. C. Jue, and J. E. Akin, Semi-implicit and Explicit Finite Element
+    Schemes for Coupled Fluid=Thermal Problems, Int. J. Numer. Meth. Eng., vol. 34,
+    pp. 675± 696, 1992.
+ 9. C. Shu and H. Xue, Comparison of Two Approaches for Implementing Stream Function
+    Boundary Conditions in DQ Simulation of Natural Convection in a Square Cavity, Int.
+    J. Heat Fluid Flow, vol. 19, pp. 59± 68, 1998.
+10. D. A. Mayne, A. S. Usmani, and M. Crapper, h-Adaptive Finite Element Solution of
+    High Rayleigh Number Thermally Driven Cavity Problem, Int. J. Numer. Meth. Heat
+    Fluid Flow, vol. 10, pp. 598± 615, 2000.
+11. F. P. Incropera and D. P. DeWitt, Fundamentals of Heat and Mass T ransfer, 4th ed.,
+    Wiley, New York, 1996.
+12. S. Paolucci and D. R. Chenoweth, Transition to Chaos in a Di erentially Heated Vertical
+    Cavity, J. Fluid Mech., vol. 201, pp. 379± 410, 1989.
+13. G. W. Wei, Quasi Wavelets and Quasi Interpolating Wavelets, Chem. Phys. L ett., vol. 296,
+    pp. 215± 222, 1998.
+14. G. W. Wei, Discrete Singular Convolution for the Solution of the Fokker± Planck
+    Equations, J. Chem. Phys., vol. 110, pp. 8930± 8942, 1999.
+15. G. W. Wei, A Uni® ed Approach for Solving the Fokker± Planck Equation, J. Phys. A,
+    vol. 33, pp. 343± 352, 2000.
+16. G. W. Wei, Solving Quantum Eigenvalue Problems by Discrete Singular Convolution,
+    J. Phys. B, vol. 33, pp. 343± 352, 2000.
+17. G. W. Wei, A Uni® ed Method for Solving Maxwell’s Equation, in Proc. 1999 Asia-Paci® c
+    Microwave Conf., Singapore, November 30, 1999, pp. 562± 565.
+18. G. W. Wei, A New Algorithm for Solving Some Mechanical Problems, Comput. Meth.
+    Appl. Mech. Eng., vol. 190, pp. 2017± 2030, 2001.
+19. G. W. Wei, Vibration Analysis by Discrete Singular Convolution, J. Sound V ibration,
+    vol. 244, pp. 535± 553, 2001.
+20. G. W. Wei, Discrete Singular Convolution for Beam Analysis, Eng. Struct., vol. 23,
+    pp. 1045± 1053, 2001.
+21. G. W. Wei, Discrete Singular Convolution Method for the Sine-Gordon Equation,
+    Physica D, vol. 137, pp. 247± 259, 2000.
+22. M. J. Ablowitz, B. M. Herbst, and C. Schober, On Numerical Solution of the Sine-
+    Gordon Equation, J. Comput. Phys., vol. 126, pp. 299± 314, 1996.
+228                                  D. C. WAN ET AL.
+
+23. S. Guan, C.-H. Lai, and G. W. Wei, Boundary Controlled Phase Separation in a Circular
+    Domain, Physica D, vol. 151, pp. 83± 98, 2001.
+24. D. C. Wan and G. W. Wei, Numerical Solutions for Unsteady Incompressible Flow Using
+    Discrete Singular Convolution Method, Int. J. Numer. Meth. Fluids, revised, 2001.
+25. L. W. Qian and G. W. Wei, A Note on Regularized Shannon’s Sampling Formulae,
+    submitted, 1999.
+26. A. J. Chorin, Numerical Simulation of Navier-Stokes Equations, Math. Comput., vol. 22,
+    pp. 745± 762, 1968.
+27. R. Codina, M. VaÂzquez, and O. C. Zienkiewicz, General Algorithm for Compressible and
+    Incompressible Flows, Part III, A Semi-implicit Form, Int. J. Numer. Meth. Fluids, vol.
+    27, pp. 12± 32, 1998.
+28. R. J. Collins, Band Width Reduction by Automatic Renumbering, Int. J. Numer. Meth.
+    Eng., vol. 6, pp. 345± 356, 1973.
+29. J. Donea, S. Ginliani, H. Laval, and L. Quartapelle, Finite Element Solution of Unsteady
+    Navier± Stokes Equations by Fractional Step Method, Comput. Meth. Appl. Mech. Eng.,
+    vol. 30, pp. 53± 73, 1982.
+30. G. Ren and T. Utnes, A Finite Element Solution of Time Dependent Incompressible
+    Navier± Stokes Equations Using a Modi® ed Velocity Correction Method, Int. J. Numer.
+    Meth. Fluids, vol. 17, pp. 349± 364, 1993.
+31. L. J. Segarlind, Applied Finite Element Analysis, Wiley, New York, 1984.
+32. L. Q. Tang and T. H. Tsang, A Least-Squares Finite Element Method for Time De-
+    pendent Incompressible Flows with Thermal Convection, Int. J. Numer. Meth. Fluids, vol.
+    17, pp. 271± 289, 1993.
+33. D. C. Wan and G. W. Wei, Numerical Solutions of Unsteady Incompressible Flows by
+    Discrete Singular Convolution, J. Comput. Phys., revised, 2001.
+34. C.-W. Shu and S. Osher, E cient Implementation of Essentially Non-oscillatory Shock-
+    Capturing Schemes, J. Comput. Phys., vol. 77, pp. 439± 471, 1988.
+35. J. L. Mead and R. A. Renaut, Optimal Runge± Kutta Methods for First Order Pseudo-
+    spectral Operators, J. Comput. Phys., vol. 152, pp. 404± 419, 1999.
+36. O. C. Zienkiewicz and R. Codina, A General Algorithm for Compressible and In-
+    compressible Flow, Part I. The Split Characteristic Based Scheme, Int. J. Numer. Meth.
+    Fluids, vol. 20, pp. 869± 885, 1995.
+37. O. C. Zienkiewicz, B. V. K. Satya Sai, K. Morgan, R. Codina, and M. Vaquez, A General
+    Algorithm for Compressible and Incompressible Flows, Part II. Tests on the Explicit
+    Form, Int. J. Numer. Meth. Fluids, vol. 20, pp. 887± 913, 1995.
+38. B. S. V. Patnaik, P. A. A. Narayana, and K. N. Seetharamu, Numerical Simulation of
+    Vortex Shedding Past a Circular Cylinder under the In¯ uence of Buoyancy, Int. J. Heat
+    Mass T ransfer, vol. 42, pp. 3495± 3507, 1999.
+

@@ -1,0 +1,823 @@
+# RESUMED A6 Step 2 -- the U-D MMS upper-order-band failures, full output
+# 2026-09-16T16:31:48Z
+# library 143a1dda0680bc1d  binary 222d785c3d06cd5a
+
+## whole MMS suite
+[       OK ] ScalarMMS.AdvectionDiffusionConverges (1611 ms)
+[       OK ] ScalarMMS.DistortedMeshNonOrthogonalCorrection (885 ms)
+[  FAILED  ] MomentumMMS.UConverges (3677 ms)
+[  FAILED  ] MomentumMMS.VConverges (0 ms)
+[       OK ] MomentumMMS.PressureGradientBalance (25 ms)
+[       OK ] MomentumMMS.DistortedMesh (5198 ms)
+[       OK ] ContinuityMMS.DivergenceFreeField (16 ms)
+[       OK ] SIMPLEMMS.ConvergesFromNonExactInitialCondition (3538 ms)
+[  FAILED  ] SIMPLEMMS.VelocityConvergesAtExpectedOrder (21498 ms)
+[       OK ] SIMPLEMMS.PressureConvergesAtExpectedOrder (0 ms)
+[       OK ] SIMPLEMMS.ContinuityConverges (0 ms)
+[       OK ] SIMPLEMMS.GlobalMassBalance (0 ms)
+[       OK ] SIMPLEMMS.Deterministic (307 ms)
+[  FAILED  ] SIMPLEMMS.DistortedMesh (45291 ms)
+[       OK ] CompressibleSimpleMMS.SystemConvergence (11232 ms)
+[       OK ] MMS3DTest.ForcingMatchesFiniteDifferencesOfClosedForms (0 ms)
+[       OK ] MMS3DTest.OperatorErrorsDecreaseOnCoarseLevels (91 ms)
+[       OK ] MMSSimple3DTest.ForcingMatchesFiniteDifferencesOfClosedForms (0 ms)
+[       OK ] MMSSimple3DTest.ErrorsDecreaseOnCoarseLevels (1624 ms)
+[==========] 19 tests from 7 test suites ran. (95002 ms total)
+[  PASSED  ] 15 tests.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] MomentumMMS.UConverges
+[  FAILED  ] MomentumMMS.VConverges
+[  FAILED  ] SIMPLEMMS.VelocityConvergesAtExpectedOrder
+[  FAILED  ] SIMPLEMMS.DistortedMesh
+
+## the four U-D tests, complete output (errors, orders, bands)
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MomentumMMS.UConverges:MomentumMMS.VConverges:SIMPLEMMS.VelocityConvergesAtExpectedOrder:SIMPLEMMS.DistortedMesh
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from MomentumMMS
+[ RUN      ] MomentumMMS.UConverges
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/mms/test_mms_momentum.cpp:122: Failure
+Value of: mc::categoryPassed(study, component, nullptr)
+  Actual: false
+Expected: true
+central:
+u: u linf observed order in [1.60, 2.40] -- finest-triplet observed order 2.647 (monotonic_not_asymptotic vs formal 2); reduction factors 5.184 5.924 4.671
+
+
+
+### MMS: momentum_mms_central
+
+Momentum-only MMS: production relaxed-momentum assembly (alpha = 1) with exact pressure, exact face mass flux and analytical forcing; Picard on the lagged terms from U = 0
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 16x16 | 256 | 0.0625 | Converged | 15 | 1.54e-33 | 0.0 |
+| 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.0 |
+| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.2 |
+| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 1.3 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.9759e-03 | 2.4480e-03 | 7.9695e-03 |
+| 32x32 | 3.8757e-04 | 4.6955e-04 | 1.5372e-03 |
+| 64x64 | 8.1910e-05 | 1.0017e-04 | 2.5950e-04 |
+| 128x128 | 1.8926e-05 | 2.3637e-05 | 5.5553e-05 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.5646e-03 | 1.9708e-03 | 8.0438e-03 |
+| 32x32 | 3.9587e-04 | 4.8687e-04 | 1.8574e-03 |
+| 64x64 | 1.0086e-04 | 1.2376e-04 | 3.2181e-04 |
+| 128x128 | 2.5782e-05 | 3.1802e-05 | 6.6781e-05 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.7734e-03 | 3.1427e-03 | 8.6622e-03 |
+| 32x32 | 6.1299e-04 | 6.7641e-04 | 1.8574e-03 |
+| 64x64 | 1.4270e-04 | 1.5922e-04 | 3.2183e-04 |
+| 128x128 | 3.4697e-05 | 3.9624e-05 | 7.6860e-05 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.2698e-03 | 2.7029e-03 | 7.9695e-03 |
+| 32x32 | 4.2294e-04 | 4.9726e-04 | 1.5372e-03 |
+| 64x64 | 8.6185e-05 | 1.0326e-04 | 2.5950e-04 |
+| 128x128 | 1.9464e-05 | 2.4007e-05 | 5.5553e-05 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.7311e-03 | 2.1186e-03 | 8.0438e-03 |
+| 32x32 | 4.3361e-04 | 5.1583e-04 | 1.8574e-03 |
+| 64x64 | 1.0657e-04 | 1.2766e-04 | 3.2181e-04 |
+| 128x128 | 2.6553e-05 | 3.2304e-05 | 6.6781e-05 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.0158e-03 | 1.3049e-03 | 4.2498e-03 |
+| 32x32 | 1.3086e-04 | 1.6124e-04 | 6.0962e-04 |
+| 64x64 | 1.6697e-05 | 2.1124e-05 | 7.8686e-05 |
+| 128x128 | 2.1132e-06 | 2.7371e-06 | 9.9041e-06 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.0207e-03 | 1.3819e-03 | 5.6773e-03 |
+| 32x32 | 1.2193e-04 | 1.6220e-04 | 9.9693e-04 |
+| 64x64 | 1.3810e-05 | 1.8337e-05 | 1.4238e-04 |
+| 128x128 | 1.6931e-06 | 2.1702e-06 | 1.8857e-05 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 2 | 5.213, 4.687, 4.238 | 2.421, 2.271 | monotonic_not_asymptotic |
+| u | l1 | 2 | 5.098, 4.732, 4.328 | 2.377, 2.279 | monotonic_not_asymptotic |
+| u | linf | 2 | 5.184, 5.924, 4.671 | 2.332, 2.647 | monotonic_not_asymptotic |
+| v | l2 | 2 | 4.048, 3.934, 3.892 | 2.031, 1.981 | asymptotic |
+| v | l1 | 2 | 3.952, 3.925, 3.912 | 1.986, 1.974 | asymptotic |
+| v | linf | 2 | 4.331, 5.772, 4.819 | 2.010, 2.590 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 4.646, 4.248, 4.018 | 2.254, 2.112 | asymptotic |
+| u_interior | l2 | 2 | 5.436, 4.815, 4.301 | 2.485, 2.314 | monotonic_not_asymptotic |
+| u_boundary_ring | l2 | 2 | 8.093, 7.633, 7.718 | 3.029, 2.930 | monotonic_not_asymptotic |
+
+- [x] u: u L1/L2/Linf decrease on every refinement: monotone
+- [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.271 (monotonic_not_asymptotic vs formal 2); reduction factors 5.213 4.687 4.238
+- [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.279 (monotonic_not_asymptotic vs formal 2); reduction factors 5.098 4.732 4.328
+- [ ] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 2.647 (monotonic_not_asymptotic vs formal 2); reduction factors 5.184 5.924 4.671
+- [x] v: v L1/L2/Linf decrease on every refinement: monotone
+- [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.981 (asymptotic vs formal 2); reduction factors 4.048 3.934 3.892
+- [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 1.974 (asymptotic vs formal 2); reduction factors 3.952 3.925 3.912
+- [ ] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 2.590 (monotonic_not_asymptotic vs formal 2); reduction factors 4.331 5.772 4.819
+
+### MMS: momentum_mms_upwind
+
+Momentum-only MMS: production relaxed-momentum assembly (alpha = 1) with exact pressure, exact face mass flux and analytical forcing; Picard on the lagged terms from U = 0
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 16x16 | 256 | 0.0625 | Converged | 3 | 1.54e-33 | 0.0 |
+| 32x32 | 1024 | 0.03125 | Converged | 3 | 7.7e-34 | 0.0 |
+| 64x64 | 4096 | 0.015625 | Converged | 3 | 7.7e-34 | 0.1 |
+| 128x128 | 16384 | 0.0078125 | Converged | 3 | 9.63e-34 | 0.5 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.8284e-02 | 2.3441e-02 | 5.0632e-02 |
+| 32x32 | 9.0852e-03 | 1.1735e-02 | 2.5457e-02 |
+| 64x64 | 4.5515e-03 | 5.8952e-03 | 1.2830e-02 |
+| 128x128 | 2.2791e-03 | 2.9550e-03 | 6.4390e-03 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.5428e-02 | 1.9919e-02 | 4.4170e-02 |
+| 32x32 | 8.2349e-03 | 1.0754e-02 | 2.4110e-02 |
+| 64x64 | 4.2628e-03 | 5.5852e-03 | 1.2590e-02 |
+| 128x128 | 2.1709e-03 | 2.8476e-03 | 6.4313e-03 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.6881e-02 | 3.0761e-02 | 5.1555e-02 |
+| 32x32 | 1.3785e-02 | 1.5917e-02 | 2.6351e-02 |
+| 64x64 | 7.0095e-03 | 8.1208e-03 | 1.3413e-02 |
+| 128x128 | 3.5373e-03 | 4.1038e-03 | 6.7750e-03 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.2340e-02 | 2.6534e-02 | 5.0632e-02 |
+| 32x32 | 1.0159e-02 | 1.2501e-02 | 2.5457e-02 |
+| 64x64 | 4.8282e-03 | 6.0843e-03 | 1.2830e-02 |
+| 128x128 | 2.3493e-03 | 3.0018e-03 | 6.4390e-03 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.8644e-02 | 2.2499e-02 | 4.4170e-02 |
+| 32x32 | 9.1873e-03 | 1.1453e-02 | 2.4110e-02 |
+| 64x64 | 4.5199e-03 | 5.7643e-03 | 1.2590e-02 |
+| 128x128 | 2.2376e-03 | 2.8928e-03 | 6.4313e-03 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 5.0351e-03 | 6.6821e-03 | 1.6957e-02 |
+| 32x32 | 1.2905e-03 | 1.7223e-03 | 4.5417e-03 |
+| 64x64 | 3.3187e-04 | 4.4142e-04 | 1.1789e-03 |
+| 128x128 | 8.4353e-05 | 1.1196e-04 | 3.0058e-04 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 4.9231e-03 | 6.2667e-03 | 1.5438e-02 |
+| 32x32 | 1.3220e-03 | 1.7249e-03 | 4.3880e-03 |
+| 64x64 | 3.4172e-04 | 4.5206e-04 | 1.1688e-03 |
+| 128x128 | 8.6868e-05 | 1.1573e-04 | 3.0176e-04 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 1 | 1.998, 1.991, 1.995 | 1.003, 0.990 | asymptotic |
+| u | l1 | 1 | 2.013, 1.996, 1.997 | 1.021, 0.996 | asymptotic |
+| u | linf | 1 | 1.989, 1.984, 1.993 | 0.995, 0.982 | asymptotic |
+| v | l2 | 1 | 1.852, 1.925, 1.961 | 0.826, 0.917 | asymptotic |
+| v | l1 | 1 | 1.874, 1.932, 1.964 | 0.857, 0.925 | asymptotic |
+| v | linf | 1 | 1.832, 1.915, 1.958 | 0.800, 0.903 | asymptotic |
+| velocity | l2 | 1 | 1.933, 1.960, 1.979 | 0.929, 0.957 | asymptotic |
+| u_interior | l2 | 1 | 2.123, 2.055, 2.027 | 1.129, 1.058 | asymptotic |
+| u_boundary_ring | l2 | 1 | 3.880, 3.902, 3.942 | 1.953, 1.959 | monotonic_not_asymptotic |
+
+- [x] u: u L1/L2/Linf decrease on every refinement: monotone
+- [x] u: u l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.990 (asymptotic vs formal 1); reduction factors 1.998 1.991 1.995
+- [x] u: u l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.996 (asymptotic vs formal 1); reduction factors 2.013 1.996 1.997
+- [x] u: u linf observed order in [0.60, 1.20]: finest-triplet observed order 0.982 (asymptotic vs formal 1); reduction factors 1.989 1.984 1.993
+- [x] v: v L1/L2/Linf decrease on every refinement: monotone
+- [x] v: v l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.917 (asymptotic vs formal 1); reduction factors 1.852 1.925 1.961
+- [x] v: v l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.925 (asymptotic vs formal 1); reduction factors 1.874 1.932 1.964
+- [x] v: v linf observed order in [0.60, 1.20]: finest-triplet observed order 0.903 (asymptotic vs formal 1); reduction factors 1.832 1.915 1.958
+
+### MMS: momentum_mms_linear_upwind
+
+Momentum-only MMS: production relaxed-momentum assembly (alpha = 1) with exact pressure, exact face mass flux and analytical forcing; Picard on the lagged terms from U = 0
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 16x16 | 256 | 0.0625 | Converged | 18 | 1.54e-33 | 0.0 |
+| 32x32 | 1024 | 0.03125 | Converged | 13 | 7.7e-34 | 0.1 |
+| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.2 |
+| 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 1.4 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.4385e-03 | 3.0602e-03 | 9.3220e-03 |
+| 32x32 | 4.9347e-04 | 6.3423e-04 | 1.7403e-03 |
+| 64x64 | 1.0659e-04 | 1.4436e-04 | 3.8401e-04 |
+| 128x128 | 2.4546e-05 | 3.5045e-05 | 9.6317e-05 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.0238e-03 | 2.6821e-03 | 9.9904e-03 |
+| 32x32 | 5.0623e-04 | 6.4282e-04 | 2.1439e-03 |
+| 64x64 | 1.2350e-04 | 1.5457e-04 | 3.8834e-04 |
+| 128x128 | 3.0251e-05 | 3.8251e-05 | 9.8568e-05 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 3.5116e-03 | 4.0692e-03 | 1.0210e-02 |
+| 32x32 | 7.8379e-04 | 9.0303e-04 | 2.1504e-03 |
+| 64x64 | 1.8096e-04 | 2.1150e-04 | 4.1210e-04 |
+| 128x128 | 4.3355e-05 | 5.1878e-05 | 1.0653e-04 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.8216e-03 | 3.3999e-03 | 9.3220e-03 |
+| 32x32 | 5.4084e-04 | 6.7314e-04 | 1.7403e-03 |
+| 64x64 | 1.1230e-04 | 1.4889e-04 | 3.8401e-04 |
+| 128x128 | 2.5253e-05 | 3.5597e-05 | 9.6317e-05 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 2.2938e-03 | 2.9355e-03 | 9.9904e-03 |
+| 32x32 | 5.5793e-04 | 6.8218e-04 | 2.1439e-03 |
+| 64x64 | 1.3058e-04 | 1.5947e-04 | 3.8834e-04 |
+| 128x128 | 3.1158e-05 | 3.8856e-05 | 9.8568e-05 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.1871e-03 | 1.4813e-03 | 4.8197e-03 |
+| 32x32 | 1.4967e-04 | 1.8173e-04 | 6.6189e-04 |
+| 64x64 | 1.9481e-05 | 2.3615e-05 | 8.2657e-05 |
+| 128x128 | 2.4443e-06 | 3.0187e-06 | 1.0191e-05 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 16x16 | 1.1419e-03 | 1.5947e-03 | 6.6327e-03 |
+| 32x32 | 1.3099e-04 | 1.8632e-04 | 1.0847e-03 |
+| 64x64 | 1.5465e-05 | 2.1308e-05 | 1.4930e-04 |
+| 128x128 | 1.9169e-06 | 2.5369e-06 | 1.9368e-05 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 2 | 4.825, 4.393, 4.119 | 2.308, 2.164 | monotonic_not_asymptotic |
+| u | l1 | 2 | 4.942, 4.630, 4.343 | 2.330, 2.237 | monotonic_not_asymptotic |
+| u | linf | 2 | 5.356, 4.532, 3.987 | 2.483, 2.237 | monotonic_not_asymptotic |
+| v | l2 | 2 | 4.172, 4.159, 4.041 | 2.062, 2.069 | asymptotic |
+| v | l1 | 2 | 3.998, 4.099, 4.082 | 1.987, 2.037 | asymptotic |
+| v | linf | 2 | 4.660, 5.521, 3.940 | 2.160, 2.599 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 4.506, 4.270, 4.077 | 2.195, 2.115 | asymptotic |
+| u_interior | l2 | 2 | 5.051, 4.521, 4.183 | 2.379, 2.210 | monotonic_not_asymptotic |
+| u_boundary_ring | l2 | 2 | 8.151, 7.695, 7.823 | 3.039, 2.940 | monotonic_not_asymptotic |
+
+- [x] u: u L1/L2/Linf decrease on every refinement: monotone
+- [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.164 (monotonic_not_asymptotic vs formal 2); reduction factors 4.825 4.393 4.119
+- [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.237 (monotonic_not_asymptotic vs formal 2); reduction factors 4.942 4.630 4.343
+- [x] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 2.237 (monotonic_not_asymptotic vs formal 2); reduction factors 5.356 4.532 3.987
+- [x] v: v L1/L2/Linf decrease on every refinement: monotone
+- [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.069 (asymptotic vs formal 2); reduction factors 4.172 4.159 4.041
+- [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.037 (asymptotic vs formal 2); reduction factors 3.998 4.099 4.082
+- [ ] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 2.599 (monotonic_not_asymptotic vs formal 2); reduction factors 4.660 5.521 3.940
+[  FAILED  ] MomentumMMS.UConverges (3876 ms)
+[ RUN      ] MomentumMMS.VConverges
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/mms/test_mms_momentum.cpp:122: Failure
+Value of: mc::categoryPassed(study, component, nullptr)
+  Actual: false
+Expected: true
+central:
+v: v linf observed order in [1.60, 2.40] -- finest-triplet observed order 2.590 (monotonic_not_asymptotic vs formal 2); reduction factors 4.331 5.772 4.819
+
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/mms/test_mms_momentum.cpp:122: Failure
+Value of: mc::categoryPassed(study, component, nullptr)
+  Actual: false
+Expected: true
+linear_upwind:
+v: v linf observed order in [1.60, 2.40] -- finest-triplet observed order 2.599 (monotonic_not_asymptotic vs formal 2); reduction factors 4.660 5.521 3.940
+
+
+[  FAILED  ] MomentumMMS.VConverges (0 ms)
+[----------] 2 tests from MomentumMMS (3876 ms total)
+
+[----------] 2 tests from SIMPLEMMS
+[ RUN      ] SIMPLEMMS.VelocityConvergesAtExpectedOrder
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/mms/test_mms_simple.cpp:155: Failure
+Value of: mc::categoryPassed(study, category, nullptr)
+  Actual: false
+Expected: true
+central:
+velocity: u l2 observed order in [1.60, 2.40] -- finest-triplet observed order 2.675 (monotonic_not_asymptotic vs formal 2); reduction factors 5.895 4.281
+velocity: u l1 observed order in [1.60, 2.40] -- finest-triplet observed order 2.604 (monotonic_not_asymptotic vs formal 2); reduction factors 5.658 4.280
+velocity: v l2 observed order in [1.60, 2.40] -- finest-triplet observed order 3.104 (monotonic_not_asymptotic vs formal 2); reduction factors 7.689 4.503
+velocity: v l1 observed order in [1.60, 2.40] -- finest-triplet observed order 3.138 (monotonic_not_asymptotic vs formal 2); reduction factors 7.806 4.411
+
+
+
+### MMS: simple_mms
+
+Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 8x8 | 64 | 0.125 | Converged | 745 | 3.2e-19 | 0.2 |
+| 16x16 | 256 | 0.0625 | Converged | 2003 | 7.95e-20 | 1.5 |
+| 32x32 | 1024 | 0.03125 | Converged | 4353 | 1.98e-20 | 11.7 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.3120e-03 | 6.6710e-03 | 1.6031e-02 |
+| 16x16 | 9.3881e-04 | 1.1317e-03 | 3.4766e-03 |
+| 32x32 | 2.1937e-04 | 2.6438e-04 | 6.6761e-04 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.2305e-03 | 6.5093e-03 | 1.6920e-02 |
+| 16x16 | 6.7003e-04 | 8.4662e-04 | 3.2023e-03 |
+| 32x32 | 1.5189e-04 | 1.8803e-04 | 5.8343e-04 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 8.2691e-03 | 9.3206e-03 | 1.8679e-02 |
+| 16x16 | 1.2301e-03 | 1.4133e-03 | 3.9467e-03 |
+| 32x32 | 2.8291e-04 | 3.2443e-04 | 7.8779e-04 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 6.3781e-03 | 7.7173e-03 | 1.6031e-02 |
+| 16x16 | 9.7350e-04 | 1.1668e-03 | 3.4766e-03 |
+| 32x32 | 2.2641e-04 | 2.6968e-04 | 6.6761e-04 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 4.7124e-03 | 5.5309e-03 | 1.0965e-02 |
+| 16x16 | 6.3681e-04 | 7.8333e-04 | 1.9067e-03 |
+| 32x32 | 1.5393e-04 | 1.8774e-04 | 5.0370e-04 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 3.9412e-03 | 5.0146e-03 | 1.3351e-02 |
+| 16x16 | 8.2548e-04 | 1.0084e-03 | 2.3904e-03 |
+| 32x32 | 1.6827e-04 | 2.2215e-04 | 5.3129e-04 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.8966e-03 | 7.5841e-03 | 1.6920e-02 |
+| 16x16 | 7.7855e-04 | 1.0265e-03 | 3.2023e-03 |
+| 32x32 | 1.3712e-04 | 1.9012e-04 | 5.8343e-04 |
+
+**p**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 4.2950e-02 | 5.6464e-02 | 1.8345e-01 |
+| 16x16 | 1.2212e-02 | 1.6699e-02 | 8.1948e-02 |
+| 32x32 | 3.4611e-03 | 4.9813e-03 | 2.9603e-02 |
+
+**p_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 3.6327e-02 | 4.4827e-02 | 1.0520e-01 |
+| 16x16 | 1.1390e-02 | 1.5065e-02 | 5.9388e-02 |
+| 32x32 | 3.2671e-03 | 4.6393e-03 | 2.5713e-02 |
+
+**p_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.1465e-02 | 6.8584e-02 | 1.8345e-01 |
+| 16x16 | 1.4896e-02 | 2.1176e-02 | 8.1948e-02 |
+| 32x32 | 4.8693e-03 | 6.9782e-03 | 2.9603e-02 |
+
+**continuity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 1.4886e-10 | 6.0074e-10 | 4.7637e-09 |
+| 16x16 | 2.9068e-10 | 2.3306e-09 | 3.7207e-08 |
+| 32x32 | 5.7254e-10 | 9.1359e-09 | 2.9217e-07 |
+
+**face_flux**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 8.0038e-03 | 1.0931e-02 | 2.8679e-02 |
+| 16x16 | 1.4898e-03 | 1.9437e-03 | 5.4443e-03 |
+| 32x32 | 3.1574e-04 | 4.0386e-04 | 1.2426e-03 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 2 | 5.895, 4.281 | 2.675 | monotonic_not_asymptotic |
+| u | l1 | 2 | 5.658, 4.280 | 2.604 | monotonic_not_asymptotic |
+| v | l2 | 2 | 7.689, 4.503 | 3.104 | monotonic_not_asymptotic |
+| v | l1 | 2 | 7.806, 4.411 | 3.138 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 6.595, 4.356 | 2.860 | monotonic_not_asymptotic |
+| u | linf | 2 | 4.611, 5.208 | 2.160 | monotonic_not_asymptotic |
+| p | l2 | 2 | 3.381, 3.352 | 1.763 | monotonic_not_asymptotic |
+| p | l1 | 2 | 3.517, 3.528 | 1.813 | monotonic_not_asymptotic |
+| p | linf | 2 | 2.239, 2.768 | 0.955 | monotonic_not_asymptotic |
+| p_interior | l2 | 2 | 2.976, 3.247 | 1.513 | monotonic_not_asymptotic |
+| p_boundary_ring | l2 | 2 | 3.239, 3.035 | 1.739 | monotonic_not_asymptotic |
+| face_flux | l2 | 2 | 5.624, 4.813 | 2.545 | monotonic_not_asymptotic |
+
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [ ] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 2.675 (monotonic_not_asymptotic vs formal 2); reduction factors 5.895 4.281
+- [ ] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 2.604 (monotonic_not_asymptotic vs formal 2); reduction factors 5.658 4.280
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [ ] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 3.104 (monotonic_not_asymptotic vs formal 2); reduction factors 7.689 4.503
+- [ ] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 3.138 (monotonic_not_asymptotic vs formal 2); reduction factors 7.806 4.411
+- [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 4.281
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.763 (monotonic_not_asymptotic vs formal 2); reduction factors 3.381 3.352
+- [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.813 (monotonic_not_asymptotic vs formal 2); reduction factors 3.517 3.528
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 4.76e-09, L2 6.01e-10
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.72e-08, L2 2.33e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.92e-07, L2 9.14e-09
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 2.545 (monotonic_not_asymptotic vs formal 2); reduction factors 5.624 4.813
+- [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+
+### MMS: simple_mms_upwind
+
+Full SIMPLE MMS from rest (U = 0, p = 0), Cartesian meshes
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 8x8 | 64 | 0.125 | Converged | 960 | 3.2e-19 | 0.2 |
+| 16x16 | 256 | 0.0625 | Converged | 1665 | 7.95e-20 | 1.2 |
+| 32x32 | 1024 | 0.03125 | Converged | 3084 | 1.98e-20 | 7.7 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 2.8789e-02 | 3.7101e-02 | 8.2682e-02 |
+| 16x16 | 1.6199e-02 | 2.1373e-02 | 4.8443e-02 |
+| 32x32 | 8.7085e-03 | 1.1531e-02 | 2.6715e-02 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 2.8675e-02 | 3.7368e-02 | 8.2961e-02 |
+| 16x16 | 1.6484e-02 | 2.1674e-02 | 5.3589e-02 |
+| 32x32 | 8.8017e-03 | 1.1690e-02 | 2.8758e-02 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 4.6588e-02 | 5.2658e-02 | 8.5532e-02 |
+| 16x16 | 2.6279e-02 | 3.0440e-02 | 5.3616e-02 |
+| 32x32 | 1.4033e-02 | 1.6420e-02 | 2.8815e-02 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 4.0334e-02 | 4.6128e-02 | 8.2682e-02 |
+| 16x16 | 1.9960e-02 | 2.4168e-02 | 4.8443e-02 |
+| 32x32 | 9.7657e-03 | 1.2282e-02 | 2.6715e-02 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 3.8994e-02 | 4.5141e-02 | 8.2961e-02 |
+| 16x16 | 2.0283e-02 | 2.4459e-02 | 5.3589e-02 |
+| 32x32 | 9.8694e-03 | 1.2449e-02 | 2.8758e-02 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 1.3946e-02 | 2.0261e-02 | 5.0865e-02 |
+| 16x16 | 3.9134e-03 | 6.4062e-03 | 1.8192e-02 |
+| 32x32 | 1.0351e-03 | 1.7627e-03 | 5.2788e-03 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 1.5407e-02 | 2.3914e-02 | 6.5925e-02 |
+| 16x16 | 4.0721e-03 | 7.0783e-03 | 2.1838e-02 |
+| 32x32 | 1.0521e-03 | 1.9190e-03 | 6.2179e-03 |
+
+**p**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.7895e-02 | 7.5189e-02 | 2.5742e-01 |
+| 16x16 | 2.5898e-02 | 3.2503e-02 | 9.4096e-02 |
+| 32x32 | 1.2542e-02 | 1.5683e-02 | 4.7016e-02 |
+
+**p_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.5013e-02 | 6.9758e-02 | 1.6478e-01 |
+| 16x16 | 2.4987e-02 | 3.1315e-02 | 7.3512e-02 |
+| 32x32 | 1.2349e-02 | 1.5450e-02 | 3.6739e-02 |
+
+**p_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 6.1602e-02 | 8.1642e-02 | 2.5742e-01 |
+| 16x16 | 2.8874e-02 | 3.6114e-02 | 9.4096e-02 |
+| 32x32 | 1.3939e-02 | 1.7282e-02 | 4.7016e-02 |
+
+**continuity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 1.2071e-10 | 4.6879e-10 | 3.7030e-09 |
+| 16x16 | 3.0289e-10 | 2.4283e-09 | 3.8771e-08 |
+| 32x32 | 5.0913e-10 | 8.1517e-09 | 2.6066e-07 |
+
+**face_flux**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 2.9532e-02 | 4.0412e-02 | 9.6017e-02 |
+| 16x16 | 1.6598e-02 | 2.2320e-02 | 5.6584e-02 |
+| 32x32 | 8.8166e-03 | 1.1810e-02 | 2.9631e-02 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 1 | 1.736, 1.854 | 0.676 | monotonic_not_asymptotic |
+| u | l1 | 1 | 1.777, 1.860 | 0.749 | monotonic_not_asymptotic |
+| v | l2 | 1 | 1.724, 1.854 | 0.653 | monotonic_not_asymptotic |
+| v | l1 | 1 | 1.740, 1.873 | 0.666 | monotonic_not_asymptotic |
+| velocity | l2 | 1 | 1.730, 1.854 | 0.664 | monotonic_not_asymptotic |
+| u | linf | 1 | 1.707, 1.813 | 0.656 | monotonic_not_asymptotic |
+| p | l2 | 1 | 2.313, 2.072 | 1.344 | monotonic_not_asymptotic |
+| p | l1 | 1 | 2.236, 2.065 | 1.260 | monotonic_not_asymptotic |
+| p | linf | 1 | 2.736, 2.001 | 1.795 | monotonic_not_asymptotic |
+| p_interior | l2 | 1 | 2.228, 2.027 | 1.277 | monotonic_not_asymptotic |
+| p_boundary_ring | l2 | 1 | 2.261, 2.090 | 1.274 | monotonic_not_asymptotic |
+| face_flux | l2 | 1 | 1.811, 1.890 | 0.784 | monotonic_not_asymptotic |
+
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: u l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.676 (monotonic_not_asymptotic vs formal 1); reduction factors 1.736 1.854
+- [x] velocity: u l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.749 (monotonic_not_asymptotic vs formal 1); reduction factors 1.777 1.860
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: v l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.653 (monotonic_not_asymptotic vs formal 1); reduction factors 1.724 1.854
+- [x] velocity: v l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.666 (monotonic_not_asymptotic vs formal 1); reduction factors 1.740 1.873
+- [x] velocity: u L2 finest reduction factor >= 1.6: E_coarse/E_fine = 1.854
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [0.80, 1.60]: finest-triplet observed order 1.344 (monotonic_not_asymptotic vs formal 1); reduction factors 2.313 2.072
+- [x] pressure: p l1 observed order in [0.80, 1.60]: finest-triplet observed order 1.260 (monotonic_not_asymptotic vs formal 1); reduction factors 2.236 2.065
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 3.70e-09, L2 4.69e-10
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.88e-08, L2 2.43e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.61e-07, L2 8.15e-09
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [0.55, 4.00]: finest-triplet observed order 0.784 (monotonic_not_asymptotic vs formal 1); reduction factors 1.811 1.890
+- [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+[  FAILED  ] SIMPLEMMS.VelocityConvergesAtExpectedOrder (22467 ms)
+[ RUN      ] SIMPLEMMS.DistortedMesh
+
+### MMS: distorted_mesh_simple_mms
+
+Full SIMPLE MMS from rest (U = 0, p = 0), distorted (0.25 h) meshes, 2 non-orthogonal corrections, least-squares gradient
+
+Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi x) e^{-0.4y} sin(pi y) / pi; mms::pressure: p = cos(pi x) cos(pi y) + x y / 2 (compared modulo gauge)
+
+| grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+|---|---|---|---|---|---|---|
+| 8x8 | 64 | 0.125 | Converged | 903 | 3.2e-19 | 0.8 |
+| 16x16 | 256 | 0.0625 | Converged | 1740 | 7.95e-20 | 5.1 |
+| 32x32 | 1024 | 0.03125 | Converged | 3895 | 1.98e-20 | 40.3 |
+
+**u**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 7.4115e-03 | 9.2712e-03 | 2.0078e-02 |
+| 16x16 | 1.0654e-03 | 1.3050e-03 | 3.3232e-03 |
+| 32x32 | 2.0733e-04 | 2.5303e-04 | 6.1176e-04 |
+
+**v**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 6.6549e-03 | 8.2693e-03 | 1.8433e-02 |
+| 16x16 | 8.5023e-04 | 1.0327e-03 | 2.8297e-03 |
+| 32x32 | 1.5921e-04 | 1.8916e-04 | 5.3399e-04 |
+
+**velocity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 1.1293e-02 | 1.2423e-02 | 2.0091e-02 |
+| 16x16 | 1.5181e-03 | 1.6641e-03 | 3.6104e-03 |
+| 32x32 | 2.7595e-04 | 3.1592e-04 | 7.1630e-04 |
+
+**u_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 9.1074e-03 | 1.0726e-02 | 2.0078e-02 |
+| 16x16 | 1.1370e-03 | 1.3706e-03 | 3.3232e-03 |
+| 32x32 | 2.1315e-04 | 2.5679e-04 | 6.1176e-04 |
+
+**v_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 7.9817e-03 | 9.7633e-03 | 1.8433e-02 |
+| 16x16 | 8.9171e-04 | 1.0697e-03 | 2.8297e-03 |
+| 32x32 | 1.6202e-04 | 1.8921e-04 | 4.7604e-04 |
+
+**u_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 5.2310e-03 | 6.9684e-03 | 1.4906e-02 |
+| 16x16 | 8.3176e-04 | 1.0627e-03 | 2.8822e-03 |
+| 32x32 | 1.6506e-04 | 2.2382e-04 | 5.6080e-04 |
+
+**v_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 4.9490e-03 | 5.8088e-03 | 1.4690e-02 |
+| 16x16 | 7.1472e-04 | 9.0114e-04 | 2.3440e-03 |
+| 32x32 | 1.3881e-04 | 1.8881e-04 | 5.3399e-04 |
+
+**p**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 3.6003e-02 | 4.4572e-02 | 1.2455e-01 |
+| 16x16 | 9.7130e-03 | 1.2692e-02 | 5.8909e-02 |
+| 32x32 | 2.7812e-03 | 3.7814e-03 | 2.1595e-02 |
+
+**p_interior**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 3.4038e-02 | 4.2827e-02 | 1.2455e-01 |
+| 16x16 | 9.4540e-03 | 1.1985e-02 | 4.3938e-02 |
+| 32x32 | 2.6732e-03 | 3.5785e-03 | 1.8469e-02 |
+
+**p_boundary_ring**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 3.8529e-02 | 4.6719e-02 | 1.2059e-01 |
+| 16x16 | 1.0559e-02 | 1.4766e-02 | 5.8909e-02 |
+| 32x32 | 3.5649e-03 | 5.0137e-03 | 2.1595e-02 |
+
+**continuity**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 9.7880e-11 | 3.1227e-10 | 2.3689e-09 |
+| 16x16 | 2.9917e-10 | 2.3819e-09 | 3.7762e-08 |
+| 32x32 | 5.7411e-10 | 8.9659e-09 | 2.8622e-07 |
+
+**face_flux**
+
+| grid | L1 | L2 | Linf |
+|---|---|---|---|
+| 8x8 | 9.3582e-03 | 1.2694e-02 | 3.1093e-02 |
+| 16x16 | 1.7455e-03 | 2.2550e-03 | 5.6623e-03 |
+| 32x32 | 3.5199e-04 | 4.4656e-04 | 1.2683e-03 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u | l2 | 2 | 7.105, 5.157 | 2.921 | monotonic_not_asymptotic |
+| u | l1 | 2 | 6.956, 5.139 | 2.887 | monotonic_not_asymptotic |
+| v | l2 | 2 | 8.007, 5.459 | 3.101 | monotonic_not_asymptotic |
+| v | l1 | 2 | 7.827, 5.340 | 3.070 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 7.465, 5.268 | 2.996 | monotonic_not_asymptotic |
+| u | linf | 2 | 6.042, 5.432 | 2.627 | monotonic_not_asymptotic |
+| p | l2 | 2 | 3.512, 3.356 | 1.839 | monotonic_not_asymptotic |
+| p | l1 | 2 | 3.707, 3.492 | 1.923 | asymptotic |
+| p | linf | 2 | 2.114, 2.728 | 0.815 | monotonic_not_asymptotic |
+| p_interior | l2 | 2 | 3.573, 3.349 | 1.875 | asymptotic |
+| p_boundary_ring | l2 | 2 | 3.164, 2.945 | 1.712 | monotonic_not_asymptotic |
+| face_flux | l2 | 2 | 5.629, 5.050 | 2.529 | monotonic_not_asymptotic |
+
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [ ] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 2.921 (monotonic_not_asymptotic vs formal 2); reduction factors 7.105 5.157
+- [ ] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 2.887 (monotonic_not_asymptotic vs formal 2); reduction factors 6.956 5.139
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [ ] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 3.101 (monotonic_not_asymptotic vs formal 2); reduction factors 8.007 5.459
+- [ ] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 3.070 (monotonic_not_asymptotic vs formal 2); reduction factors 7.827 5.340
+- [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 5.157
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.839 (monotonic_not_asymptotic vs formal 2); reduction factors 3.512 3.356
+- [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.923 (asymptotic vs formal 2); reduction factors 3.707 3.492
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 2.37e-09, L2 3.12e-10
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.78e-08, L2 2.38e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.86e-07, L2 8.97e-09
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 2.529 (monotonic_not_asymptotic vs formal 2); reduction factors 5.629 5.050
+- [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/mms/test_mms_simple.cpp:245: Failure
+Value of: mc::categoryPassed(study, category, nullptr)
+  Actual: false
+Expected: true
+velocity: u l2 observed order in [1.60, 2.40] -- finest-triplet observed order 2.921 (monotonic_not_asymptotic vs formal 2); reduction factors 7.105 5.157
+velocity: u l1 observed order in [1.60, 2.40] -- finest-triplet observed order 2.887 (monotonic_not_asymptotic vs formal 2); reduction factors 6.956 5.139
+velocity: v l2 observed order in [1.60, 2.40] -- finest-triplet observed order 3.101 (monotonic_not_asymptotic vs formal 2); reduction factors 8.007 5.459
+velocity: v l1 observed order in [1.60, 2.40] -- finest-triplet observed order 3.070 (monotonic_not_asymptotic vs formal 2); reduction factors 7.827 5.340
+
+
+[  FAILED  ] SIMPLEMMS.DistortedMesh (46218 ms)
+[----------] 2 tests from SIMPLEMMS (68685 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (72563 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] MomentumMMS.UConverges
+[  FAILED  ] MomentumMMS.VConverges
+[  FAILED  ] SIMPLEMMS.VelocityConvergesAtExpectedOrder
+[  FAILED  ] SIMPLEMMS.DistortedMesh
+
+ 4 FAILED TESTS

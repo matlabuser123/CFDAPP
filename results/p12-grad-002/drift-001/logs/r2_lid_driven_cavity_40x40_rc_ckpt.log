@@ -1,0 +1,26 @@
+# P12-GRAD-002-DRIFT-001 drift_probe  tree=repo
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# probe binary 9b3a59b712f6a7c1fffda3fdd8cb1c6f667e32493258e668310c42764f0f183c
+# case inputs  c1d4c750b66cc7ec (poiseuille_distorted) 2b5d1c097786ef6b (curved_channel_multiblock)
+# args: dir:cases/lid_driven_cavity_40x40 40 0 rc ckpt 5000,20000,20001
+# start 2026-09-17T10:06:06Z
+# case dir:cases/lid_driven_cavity_40x40 40x0 variant rc mode ckpt; cells 1600
+# settings: tol u 1.0e-06 p 1.0e-06 c 1.0e-06 | alpha 0.70/0.30 | nonOrth 0 | grad GG | conv 0 | flux rhie_chow | mom 1 rel 1e-08 | pres 1 rel 1e-06
+# generic committed case (no analytical reference): 'velocity L2' = RMS speed, q = fitted mean dp/dx, q signed err = q
+
+  committed gate
+    iters status            velocity L2        fit dp/dx     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+      393 Converged     2.494838643e-01     0.0980026675 +0.000000000e+00  +6.791e-04  -1.406e-03  -7.250e-04  7.9191e-02  9.96e-07  9.59e-07  2.46e-08  6.58e-09      5.5
+
+  checkpoints (unreachable tolerance; state after exactly N iterations)
+    iters status            velocity L2        fit dp/dx     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     5000 MaxIterations 2.495253425e-01     0.0980006158 +0.000000000e+00  +6.791e-04  -1.406e-03  -7.252e-04  7.9198e-02  9.98e-11  9.92e-11  9.71e-09  4.66e-09     66.2
+    20000 MaxIterations 2.495253425e-01     0.0980006158 +0.000000000e+00  +6.791e-04  -1.406e-03  -7.252e-04  7.9198e-02  9.98e-11  9.92e-11  9.71e-09  4.66e-09    292.2
+    20001 MaxIterations 2.495253425e-01     0.0980006158 +0.000000000e+00  +6.791e-04  -1.406e-03  -7.252e-04  7.9198e-02  9.98e-11  9.92e-11  9.71e-09  4.66e-09    242.9
+
+  field change: max |du| and max |dp| between consecutive rows (first row vs gate)
+      393 ->    5000  max|du| 1.5335e-04  max|dp| 6.5129e-05  d(velocity L2) +4.1478e-05  d(q) -2.0517e-06
+     5000 ->   20000  max|du| 0.0000e+00  max|dp| 0.0000e+00  d(velocity L2) +0.0000e+00  d(q) +0.0000e+00
+    20000 ->   20001  max|du| 0.0000e+00  max|dp| 0.0000e+00  d(velocity L2) +0.0000e+00  d(q) +0.0000e+00
+exit 0
+# end 2026-09-17T10:16:13Z

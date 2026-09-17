@@ -1,0 +1,36 @@
+# P12-DIFF-002 validation-migration GATE FREEZE; 2026-09-16T13:43:43Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+
+## THE GATE (frozen now, before any test change):
+  833ad5608a265ecc75b8df32e5a37242a68773f04155ba7f8101cf92150ba219  results/p12-diff-002/validation-migration/acceptance_gate.md
+
+## production numerical files (must not change):
+  29af1927587558e52fd30a53b2c0bb03438b71044f370f902c414455e50ee7e3  src/physics/MomentumEquation.cpp
+  4689ea01db674b577b01f2e5089bc1efe6710d1d3ac83ef47e099476c5b98bba  src/thermal/EnergyEquation.cpp
+  d7240a8f2aef1fc9c79e9a339bb86b37f479d481345c8e13aa48b9a65c6c37dd  src/species/SpeciesEquation.cpp
+  4c9750f53d81630ea2768bd7df7b8a2af3ad5c41b913c4b2ce8c347576ed1092  src/turbulence/KEpsilonEquation.cpp
+  20a02b16499fa7b0aca07667baae638714e1a176ed6eba33b414a194cf701e1c  src/discretization/NonOrthogonalDiffusion.cpp
+  04c964c24d6098dbe20def251fa0eba611a1725f17d9e352acf38631e67645b0  src/mesh/MeshGeometry.cpp
+  d24882a96e5cbc0025121a71eb9f88e13ffe0ef9a8a09f2e2f9f4d40fd8c03b6  src/discretization/Gradient.cpp
+  e8e17477465bcaea0415443284088169a936f4bbde8c0392d7abd6492ba7e0df  src/discretization/Diffusion.cpp
+  58be6b751328c9bb9c3ea5edb6d829b5ff47e2a119cd0371723b341157d05394  build/release/src/libcfdcore.a
+
+## the test files to be migrated, BEFORE migration:
+  474530ce10f3842f8421fd36346fca83c4ca85925d4c408ded68ff12752f1ebf  tests/unit/discretization/test_boundary_reconstruction.cpp
+  3a13b93a589e46a10e408736baffd4c082edc01db632ef81049790b7515edc2e  tests/unit/physics/test_momentum_diffusion.cpp
+  ebdd179da9e524a5c6060e469f641addaf122f9581d0e42bdebaa2e9f8549b7a  tests/unit/physics/test_momentum_variable_viscosity.cpp
+  e72b6c7af8e0d09e22ed81f72bc55843a956564edaed10b5d418bbcc635b1ad4  tests/unit/thermal/test_energy_equation.cpp
+  1a395e602258699ca873a1d138183cde575a84e73d1f53d9d074919ca554c1ab  tests/unit/thermal/test_energy_equation_variable_properties.cpp
+  0f74dd66ce03cb4fb318dbce0a34163a350ed2d57731e80104df84fda7dc120a  tests/unit/thermal/test_thermal_region.cpp
+  1cbd22a63c75066462a7f6abd79dc11439dbea516fc99e0316afaae4c088941d  tests/unit/thermal/test_thermal_boundary_consistency.cpp
+  0c822882afde323293c2ff8ed26e903cbfb44846b24ac473a97f9927f2aaaab8  tests/unit/thermal/test_sparse_assembly3d.cpp
+  1471fc69c950544e73b0a67c3a6a408d3ce3a4b96168b080cd9929c1c6b15a17  tests/unit/species/test_species_equation.cpp
+  5e34e6bd488b387612c0bc38e99a7e1c51660f5573769e3b37e23b9691906dfb  tests/integration/species/test_species_conservation.cpp
+  97fc7b6193db72cdc5a55dbd8b9f1e4822718ef9ea71567e67a12d7bc42d3c1e  tests/solver/simple/test_simple_robustness.cpp
+
+## the UNCHANGED (U) test files -- must be byte-identical afterwards:
+  479739ebdcd085209ed9e611d999752737e3954e1740e1eae75c669cf613cfe3  tests/integration/poiseuille/test_poiseuille_production_validation.cpp
+  060cc6f1f9ee69e4a8195e4609e984da98ef5b3de70f0333a94e8250fbf65df7  tests/integration/mms/test_mms_simple.cpp
+  ca7ab2b2297c2754b19e2e90dd83ada9db36fef76854e1ce90817bbd0299fa45  tests/integration/thermal/test_natural_convection_validation.cpp
+  782eded58582bb404465a5f46b36c77f52189d17a7927e66b70e80830d9660ea  tests/integration/compressible/test_low_mach_regression.cpp
+  1d6816a1388a2cb736a7fd2779393c66a297c5149152f634c617b0f10b602bac  tests/unit/discretization/test_grid_refinement.cpp

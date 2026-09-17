@@ -1,0 +1,24 @@
+# INV-002 invf_lowmach (libcfdcore.a sha256 58be6b751328c9bb); 2026-09-16T13:30:35Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c  probe 88c66f13876143e7
+# extra flags: 
+
+# INV-F4 low-Mach global mass imbalance, 32x6 (the failing configuration).
+# The field comes from an incompressible SIMPLE solve that stops on its own
+# tolerances, so the metric is swept against them to separate discretization
+# error from incomplete iterative convergence. Authoritative defaults unchanged.
+
+## the test's own settings, repeated 3x for determinism
+INV-F4 as-tested  32x6  velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it  1819 | metric 4.508602e-05 (bound 1e-4 PASS) | |globalNetFlux| 5.305229e-05  rhoAvg 1.176691 | SIMPLE massImb 1.681e-08
+INV-F4 as-tested  32x6  velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it  1819 | metric 4.508602e-05 (bound 1e-4 PASS) | |globalNetFlux| 5.305229e-05  rhoAvg 1.176691 | SIMPLE massImb 1.681e-08
+INV-F4 as-tested  32x6  velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it  1819 | metric 4.508602e-05 (bound 1e-4 PASS) | |globalNetFlux| 5.305229e-05  rhoAvg 1.176691 | SIMPLE massImb 1.681e-08
+
+## tolerance sweep (tighter stopping criteria only)
+INV-F4 tighter    32x6  velTol 2e-06 pTol 5e-05 contTol 1e-07 | status 1 it  3000 | metric 5.649838e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.648112e-05  rhoAvg 1.176691 | SIMPLE massImb 1.863e-08
+INV-F4 tighter    32x6  velTol 2e-07 pTol 5e-06 contTol 1e-08 | status 1 it  3000 | metric 5.649838e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.648112e-05  rhoAvg 1.176691 | SIMPLE massImb 1.863e-08
+INV-F4 tighter    32x6  velTol 2e-08 pTol 5e-07 contTol 1e-09 | status 1 it  3000 | metric 5.649838e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.648112e-05  rhoAvg 1.176691 | SIMPLE massImb 1.863e-08
+INV-F4 tighter    32x6  velTol 2e-09 pTol 5e-08 contTol 1e-10 | status 1 it  3000 | metric 5.649838e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.648112e-05  rhoAvg 1.176691 | SIMPLE massImb 1.863e-08
+
+## mesh refinement at the test's own tolerances
+INV-F4 refine     64x12 velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it   931 | metric 1.060077e-04 (bound 1e-4 FAIL) | |globalNetFlux| 1.247394e-04  rhoAvg 1.176702 | SIMPLE massImb 1.787e-07
+INV-F4 refine    128x24 velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it   540 | metric 1.088202e-04 (bound 1e-4 FAIL) | |globalNetFlux| 1.280516e-04  rhoAvg 1.176726 | SIMPLE massImb 1.653e-07
+exit 0

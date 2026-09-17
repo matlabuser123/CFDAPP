@@ -1,0 +1,37 @@
+# ti_t5_topology (libcfdcore.a sha256 212141137733bffa); 2026-09-16T14:07:28Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c  probe 01f19a0ab63c2881
+
+# T5/T6: conjugate-path boundary classification vs the frozen A1 topology oracle.
+# Oracle-T: integer comparison on (nx,ny,nz) + patch name, no floating point.
+# Oracle-G: connectivity walk by normal DEPTH (production selects by ALIGNMENT).
+# 'system' is the worst RELATIVE difference between the assembled conjugate system
+# and one accumulated independently, face by face, from the oracle's verdicts.
+
+## T4/T5 geometries
+Cartesian 2x1            faces    6 | oracle H/F    2/   4 | class mismatch 0 | T-vs-G 0/6 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 0.00e+00
+Cartesian 10x10          faces   40 | oracle H/F   40/   0 | class mismatch 0 | T-vs-G 0/40 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 8.88e-17
+Cartesian 20x20          faces   80 | oracle H/F   80/   0 | class mismatch 0 | T-vs-G 0/80 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 1.78e-16
+Cartesian 3D 8x8x8       faces  384 | oracle H/F  384/   0 | class mismatch 0 | T-vs-G 0/384 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 0.00e+00
+graded 12x12 r=1.2       faces   48 | oracle H/F   48/   0 | class mismatch 0 | T-vs-G 0/48 | fallback!=historical 0 | farcell bad 0/0 | identity 1.35e-16 | system 1.37e-16
+distorted 12x12          faces   48 | oracle H/F   48/   0 | class mismatch 0 | T-vs-G 0/48 | fallback!=historical 0 | farcell bad 0/0 | identity 3.44e-16 | system 1.55e-16
+
+## T6 one-cell-thick directions (fallback exercised)
+Cartesian 1x1            faces    4 | oracle H/F    0/   4 | class mismatch 0 | T-vs-G 0/4 | fallback!=historical 0 | farcell bad 0/0 | identity 0.00e+00 | system 0.00e+00
+Cartesian 8x1            faces   18 | oracle H/F    2/  16 | class mismatch 0 | T-vs-G 0/18 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 0.00e+00
+Cartesian 1x8            faces   18 | oracle H/F    2/  16 | class mismatch 0 | T-vs-G 0/18 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 0.00e+00
+Cartesian 3D 1x1x1       faces    6 | oracle H/F    0/   6 | class mismatch 0 | T-vs-G 0/6 | fallback!=historical 0 | farcell bad 0/0 | identity 0.00e+00 | system 0.00e+00
+Cartesian 3D 8x8x1       faces  160 | oracle H/F   32/ 128 | class mismatch 0 | T-vs-G 0/160 | fallback!=historical 0 | farcell bad 0/0 | identity 1.33e-16 | system 0.00e+00
+
+## totals
+  boundary faces classified            812
+  oracle higher-order / fallback       638 / 174
+  classification mismatches            0   (T5 requires 0)
+  Oracle-T vs Oracle-G disagreements   0 of 812
+  fallback faces not bitwise historical 0   (T5 requires 0)
+  far cell not a face-neighbour        0
+  far cell not strictly deeper         0
+  worst |(cP-cF)-cB|/cB                3.438e-16
+  worst |assembled - independent| rel  1.776e-16 over 8646 entries
+
+T5/T6 RESULT: PASS
+exit 0

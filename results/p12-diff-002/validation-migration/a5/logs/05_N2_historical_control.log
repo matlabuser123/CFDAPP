@@ -1,0 +1,39 @@
+# A5-5 N2 historical-operator control; 2026-09-16T15:03:15Z
+
+copied the tree (with the AMENDED tests) to an isolated scratch directory
+before patch: 20a02b16499fa7b0  authoritative 20a02b16499fa7b0
+  removed the DIFF-002 reconstruction block from the COPY
+after patch:  f780547afff7b469
+authoritative file unchanged: 20a02b16499fa7b0
+
+configure OK
+built CFDThermalTests
+built CFDDiscretizationTests
+built CFDPhysicsTests
+built CFDSpeciesTests
+historical library 90473bfb622c63e5
+
+## every AMENDED test, run against the HISTORICAL operator -- each MUST fail
+  FAILS as required   BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+  FAILS as required   EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+  FAILS as required   EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  FAILS as required   EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+  FAILS as required   EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+  FAILS as required   EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+  FAILS as required   EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+  FAILS as required   SparseAssembly3DTest.TwoCellsInX
+  FAILS as required   SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+  FAILS as required   SparseAssembly3DTest.TwoByTwoByOne
+  FAILS as required   SparseAssembly3DTest.TwoByTwoByTwo
+  FAILS as required   MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  FAILS as required   MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue
+  FAILS as required   MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue
+  FAILS as required   SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+  FAILS as required   SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  FAILS as required   SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+
+## criterion A5-f: the all-fallback control must still PASS on the HISTORICAL operator.
+## Its six walls are all one-cell-thick, so their two-point values are correct under BOTH
+## operators -- passing here is the REQUIRED outcome, and is what proves the amended values
+## above were derived per-face from the stencil rather than applied as a blanket factor.
+  PASSES as required (unchanged by DIFF-002)   SparseAssembly3DTest.OneCell

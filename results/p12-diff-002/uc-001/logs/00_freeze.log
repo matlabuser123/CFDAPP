@@ -1,0 +1,50 @@
+# P12-DIFF-002-UC-001 INVESTIGATION FREEZE; 2026-09-16T17:15:37Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+# Investigation only: no authoritative test and no production file may change.
+
+## Poiseuille validation tests
+fd1c08c465c5120e405d161d1e4aa7e76df3a80d9014b38a74eb1e8be9ae9815  tests/integration/poiseuille/PoiseuilleValidationUtils.cpp
+479739ebdcd085209ed9e611d999752737e3954e1740e1eae75c669cf613cfe3  tests/integration/poiseuille/test_poiseuille_production_validation.cpp
+c33143bfc886b0695e8a11b852f0035575f8f8389ee24e4d60a47888e863d674  tests/integration/poiseuille/test_poiseuille_validation.cpp
+14ed9ee1fd00de03ef6a1b7c912d8c870c5247d4be754eebc25d6cc1e5bbfe92  tests/integration/poiseuille/test_temporal_refinement.cpp
+10e39f58b04d7e6bde1a2089c3b046cf29bc642e037308e7ea207f16e251c3c5  tests/integration/poiseuille/test_transient_poiseuille.cpp
+335cddd7d4f2df566d365000f027983a2a15d5d11d741841e66d3cfa88db0970  tests/integration/poiseuille/PoiseuilleValidationUtils.hpp
+
+## boundary diffusion + momentum assembly (production)
+20a02b16499fa7b0aca07667baae638714e1a176ed6eba33b414a194cf701e1c  src/discretization/NonOrthogonalDiffusion.cpp
+076859b950fe0e140d4c6cd961a046a2f363cf1125865f968655298b55cbb8b2  include/cfd/discretization/NonOrthogonalDiffusion.hpp
+e8e17477465bcaea0415443284088169a936f4bbde8c0392d7abd6492ba7e0df  src/discretization/Diffusion.cpp
+29af1927587558e52fd30a53b2c0bb03438b71044f370f902c414455e50ee7e3  src/physics/MomentumEquation.cpp
+c1dcac484330c17c2160da997dcf68e5097f5b8bedb2f72b384b20f7a6f69b82  include/cfd/physics/MomentumEquation.hpp
+d38c2bb3d86b62b693a625b30b002d2deac511b5c324b92c197af4a810c462cd  src/pressure_velocity/SIMPLE.cpp
+4bb83cf4e545974075ec65f3daf57e6991b6c0d140efde45cf0f8f50a7149cd3  src/pressure_velocity/RelaxedMomentum.cpp
+04c964c24d6098dbe20def251fa0eba611a1725f17d9e352acf38631e67645b0  src/mesh/MeshGeometry.cpp
+2b97f94a7dcf2bf943a01f9bdb871acfe4f01b83e9d7f1c0a4587308c596ab17  src/solver/SolverRobustness.cpp
+
+## library
+143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a  build/release/src/libcfdcore.a
+
+## the case/configuration the tests use
+cases/poiseuille_distorted:
+boundaries.json
+case.json
+geometry.json
+mesh.json
+physics.json
+results
+solver.json
+
+cases/poiseuille_flow:
+boundaries.json
+case.json
+geometry.json
+mesh.json
+physics.json
+results
+solver.json
+c2fdf762c01b5e17fffa45db32dcddc8f529116e1afb4676cd6aef5c241fd1d4  cases/poiseuille_flow/boundaries.json
+367cce23cb9ed0707e50e3fb27b2fb089647c99575c3121a0910398681691972  cases/poiseuille_flow/case.json
+f4b735a59150a4c154afd32145a40e5a817ab456049527b0f248454a4223bf61  cases/poiseuille_flow/geometry.json
+7a9a8bd7a3d90311fe889b994ccf465e2c76a87c4db693b2c849bc132df68246  cases/poiseuille_flow/mesh.json
+ed786834cf5be691564dd515dfb687771268561260a6347b81d52316a4425568  cases/poiseuille_flow/physics.json
+253da9ba525603c7260bfabeee2295e69b391d0101c1649a462c98d07438ffbd  cases/poiseuille_flow/solver.json

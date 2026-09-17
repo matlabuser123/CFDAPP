@@ -1,0 +1,128 @@
+# P12-ASAN-001 2026-09-17T09:52:54Z  git HEAD b66310ca871811c4c7671056beec291a451af55c
+# test source a92d95566e74490fc2d03002b0ca02c706355cb02b896387ebcdd340c387a418  tests/unit/mesh/test_mesh_quality_report.cpp
+## configure (existing asan cache: CFDAPP_ENABLE_SANITIZERS=ON, Debug, Ninja)
+  OK
+## build CFDMeshTests
+  OK (103 lines)
+  binary  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/tests/unit/mesh/CFDMeshTests
+  sha256  0cb2e5c73737b5ccc90e9ef25b48e7a0e06d137ea458543a6d36d68e10e37a59  mtime 2026-09-17 19:58:52.123130900 +1000
+  libcfdcore.a (asan) 5731b8ff67ef4dbae26d7c7f53aeba8d82c0facc9fc58223c70f595f2650e1f7
+  -fsanitize flags: -fsanitize=address,undefined 
+
+## run: MeshQualityReport.DisconnectedMeshIsFatal
+   ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQualityReport.DisconnectedMeshIsFatal
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshQualityReport
+[ RUN      ] MeshQualityReport.DisconnectedMeshIsFatal
+=================================================================
+==103200==ERROR: AddressSanitizer: heap-use-after-free on address 0x510000000870 at pc 0x5f5438a6caf1 bp 0x7ffcf4da2340 sp 0x7ffcf4da2330
+READ of size 8 at 0x510000000870 thread T0
+    #0 0x5f5438a6caf0 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::size() const /usr/include/c++/11/bits/basic_string.h:921
+    #1 0x5f5438a87605 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::compare(char const*) const /usr/include/c++/11/bits/basic_string.tcc:1441
+    #2 0x5f5438a86e27 in bool std::operator==<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) /usr/include/c++/11/bits/basic_string.h:6250
+    #3 0x5f5438b3b9e1 in testing::AssertionResult testing::internal::CmpHelperEQ<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, char [5]>(char const*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const (&) [5]) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/include/gtest/gtest.h:1394
+    #4 0x5f5438b3589a in testing::AssertionResult testing::internal::EqHelper::Compare<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, char [5], (void*)0>(char const*, char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const (&) [5]) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/include/gtest/gtest.h:1413
+    #5 0x5f5438b18b71 in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:489
+    #6 0x5f5438f8f4ff in void testing::internal::HandleSehExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2638
+    #7 0x5f5438f691c7 in void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2674
+    #8 0x5f5438eb2a07 in testing::Test::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2713
+    #9 0x5f5438eb674e in testing::TestInfo::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2859
+    #10 0x5f5438ebaf5e in testing::TestSuite::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:3037
+    #11 0x5f5438f075fd in testing::internal::UnitTestImpl::RunAllTests() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:5967
+    #12 0x5f5438f94aea in bool testing::internal::HandleSehExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2638
+    #13 0x5f5438f6f708 in bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2674
+    #14 0x5f5438ef9c90 in testing::UnitTest::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:5546
+    #15 0x5f5438e60e3c in RUN_ALL_TESTS() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/include/gtest/gtest.h:2334
+    #16 0x5f5438e60c09 in main /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc:64
+    #17 0x75f7e2429d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+    #18 0x75f7e2429e3f in __libc_start_main_impl ../csu/libc-start.c:392
+    #19 0x5f5438a63d84 in _start (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/tests/unit/mesh/CFDMeshTests+0xa1bd84)
+
+0x510000000870 is located 48 bytes inside of 192-byte region [0x510000000840,0x510000000900)
+freed by thread T0 here:
+    #0 0x75f7e34b724f in operator delete(void*, unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:172
+    #1 0x5f5438ae4120 in __gnu_cxx::new_allocator<cfd::mesh::MeshQualityIssue>::deallocate(cfd::mesh::MeshQualityIssue*, unsigned long) /usr/include/c++/11/ext/new_allocator.h:145
+    #2 0x5f5438ae01f4 in std::allocator<cfd::mesh::MeshQualityIssue>::deallocate(cfd::mesh::MeshQualityIssue*, unsigned long) /usr/include/c++/11/bits/allocator.h:199
+    #3 0x5f5438ae01f4 in std::allocator_traits<std::allocator<cfd::mesh::MeshQualityIssue> >::deallocate(std::allocator<cfd::mesh::MeshQualityIssue>&, cfd::mesh::MeshQualityIssue*, unsigned long) /usr/include/c++/11/bits/alloc_traits.h:496
+    #4 0x5f5438ad8f22 in std::_Vector_base<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::_M_deallocate(cfd::mesh::MeshQualityIssue*, unsigned long) /usr/include/c++/11/bits/stl_vector.h:354
+    #5 0x5f5438ad3b55 in std::_Vector_base<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::~_Vector_base() /usr/include/c++/11/bits/stl_vector.h:335
+    #6 0x5f5438ad338b in std::vector<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::~vector() /usr/include/c++/11/bits/stl_vector.h:683
+    #7 0x5f5438ad01b9 in cfd::mesh::MeshQualityReport::~MeshQualityReport() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/mesh/MeshQuality.hpp:127
+    #8 0x5f5438b189ad in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:488
+    #9 0x5f5438f8f4ff in void testing::internal::HandleSehExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2638
+    #10 0x5f5438f691c7 in void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2674
+    #11 0x5f5438eb2a07 in testing::Test::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2713
+    #12 0x5f5438eb674e in testing::TestInfo::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2859
+    #13 0x5f5438ebaf5e in testing::TestSuite::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:3037
+    #14 0x5f5438f075fd in testing::internal::UnitTestImpl::RunAllTests() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:5967
+    #15 0x5f5438f94aea in bool testing::internal::HandleSehExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2638
+    #16 0x5f5438f6f708 in bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2674
+    #17 0x5f5438ef9c90 in testing::UnitTest::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:5546
+    #18 0x5f5438e60e3c in RUN_ALL_TESTS() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/include/gtest/gtest.h:2334
+    #19 0x5f5438e60c09 in main /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc:64
+    #20 0x75f7e2429d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+previously allocated by thread T0 here:
+    #0 0x75f7e34b61e7 in operator new(unsigned long) ../../../../src/libsanitizer/asan/asan_new_delete.cpp:99
+    #1 0x5f5438ae77c5 in __gnu_cxx::new_allocator<cfd::mesh::MeshQualityIssue>::allocate(unsigned long, void const*) /usr/include/c++/11/ext/new_allocator.h:127
+    #2 0x5f5438ae3555 in std::allocator<cfd::mesh::MeshQualityIssue>::allocate(unsigned long) /usr/include/c++/11/bits/allocator.h:185
+    #3 0x5f5438ae3555 in std::allocator_traits<std::allocator<cfd::mesh::MeshQualityIssue> >::allocate(std::allocator<cfd::mesh::MeshQualityIssue>&, unsigned long) /usr/include/c++/11/bits/alloc_traits.h:464
+    #4 0x5f5438ae17b2 in std::_Vector_base<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::_M_allocate(unsigned long) /usr/include/c++/11/bits/stl_vector.h:346
+    #5 0x5f5438e30cee in void std::vector<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::_M_realloc_insert<cfd::mesh::MeshQualityIssue>(__gnu_cxx::__normal_iterator<cfd::mesh::MeshQualityIssue*, std::vector<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> > >, cfd::mesh::MeshQualityIssue&&) /usr/include/c++/11/bits/vector.tcc:440
+    #6 0x5f5438e2e22a in cfd::mesh::MeshQualityIssue& std::vector<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::emplace_back<cfd::mesh::MeshQualityIssue>(cfd::mesh::MeshQualityIssue&&) /usr/include/c++/11/bits/vector.tcc:121
+    #7 0x5f5438e2d015 in std::vector<cfd::mesh::MeshQualityIssue, std::allocator<cfd::mesh::MeshQualityIssue> >::push_back(cfd::mesh::MeshQualityIssue&&) /usr/include/c++/11/bits/stl_vector.h:1204
+    #8 0x5f5438e0debf in add /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/mesh/MeshQuality.cpp:122
+    #9 0x5f5438e23196 in cfd::mesh::MeshQuality::evaluate(cfd::mesh::Mesh const&, cfd::mesh::MeshQualityThresholds const&) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/mesh/MeshQuality.cpp:420
+    #10 0x5f5438b1895b in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:488
+    #11 0x5f5438f8f4ff in void testing::internal::HandleSehExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2638
+    #12 0x5f5438f691c7 in void testing::internal::HandleExceptionsInMethodIfSupported<testing::Test, void>(testing::Test*, void (testing::Test::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2674
+    #13 0x5f5438eb2a07 in testing::Test::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2713
+    #14 0x5f5438eb674e in testing::TestInfo::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2859
+    #15 0x5f5438ebaf5e in testing::TestSuite::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:3037
+    #16 0x5f5438f075fd in testing::internal::UnitTestImpl::RunAllTests() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:5967
+    #17 0x5f5438f94aea in bool testing::internal::HandleSehExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2638
+    #18 0x5f5438f6f708 in bool testing::internal::HandleExceptionsInMethodIfSupported<testing::internal::UnitTestImpl, bool>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*) /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:2674
+    #19 0x5f5438ef9c90 in testing::UnitTest::Run() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest.cc:5546
+    #20 0x5f5438e60e3c in RUN_ALL_TESTS() /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/include/gtest/gtest.h:2334
+    #21 0x5f5438e60c09 in main /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc:64
+    #22 0x75f7e2429d8f in __libc_start_call_main ../sysdeps/nptl/libc_start_call_main.h:58
+
+SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/c++/11/bits/basic_string.h:921 in std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::size() const
+Shadow bytes around the buggy address:
+  0x0a207fff80b0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0a207fff80c0: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x0a207fff80d0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0a207fff80e0: fa fa fa fa fa fa fa fa fd fd fd fd fd fd fd fd
+  0x0a207fff80f0: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+=>0x0a207fff8100: fa fa fa fa fa fa fa fa fd fd fd fd fd fd[fd]fd
+  0x0a207fff8110: fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd fd
+  0x0a207fff8120: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a207fff8130: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a207fff8140: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0a207fff8150: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==103200==ABORTING
+exit 1
+# end 2026-09-17T09:59:00Z

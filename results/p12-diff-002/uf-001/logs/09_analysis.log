@@ -1,0 +1,148 @@
+P12-DIFF-002-UF-001.6/.8: grid-convergence and continuum-limit analysis.
+
+Reads the raw CSV rows the C++ grid probe emitted (logs/01,02 for the current library and
+logs/05,06 for the pre-DIFF-002 baseline) and computes, for each quantity and each extrema
+extraction convention:
+
+  * error against the FIXED de Vahl Davis value (never modified),
+  * pairwise observed order,
+  * Richardson extrapolation and GCI -- ONLY where the sequence is monotone and the pairwise
+    orders are consistent, never from a non-asymptotic sequence,
+  * the distance of the extrapolated value from the literature value.
+
+Parity rule, carried over from UC-001: the mid-plane profile is sampled directly when n is odd
+(x = 0.5 or y = 0.5 is a cell-centre line) and interpolated between two lines when n is even, so
+a convergence sequence must not mix parities. Only parity-consistent subsequences are used for
+order estimates; every grid is still reported raw.
+
+FIXED literature values: Nu_avg 1.12, u_max 3.634 (y 0.813), v_max 3.679 (x 0.179)
+
+========================================================================================================
+CURRENT (DIFF-002)   (5 converged grids: [10, 15, 20, 30, 40])
+========================================================================================================
+
+## raw values (nothing derived)
+     n     Nu_avg     u_disc  u_disc_y    u_parab   u_par_y     v_disc  v_disc_x    v_parab   v_par_x      mass      heat  outer
+    10   1.145160   3.136025    0.7500   3.235971    0.7880   3.199792    0.1500   3.296679    0.1871   0.0e+00   8.6e-08     50
+    15   1.137692   3.445052    0.8333   3.474380    0.8161   3.449694    0.1667   3.465113    0.1801   0.0e+00   1.3e-07     50
+    20   1.133641   3.438685    0.8250   3.452912    0.8078   3.505618    0.1750   3.507015    0.1797   0.0e+00   1.0e-07     50
+    30   1.129129   3.533400    0.8167   3.534240    0.8127   3.581405    0.1833   3.583522    0.1775   0.0e+00   3.3e-08     50
+    40   1.126588   3.569134    0.8125   3.569256    0.8140   3.610056    0.1875   3.617269    0.1768   0.0e+00   4.3e-08     52
+
+## relative error against the FIXED literature value
+  Nu_avg                                 n=10: 0.02246  n=15: 0.01580  n=20: 0.01218  n=30: 0.00815  n=40: 0.00588
+  u_max discrete (current convention)    n=10: 0.13703  n=15: 0.05199  n=20: 0.05375  n=30: 0.02768  n=40: 0.01785
+  u_max parabolic sub-grid               n=10: 0.10953  n=15: 0.04392  n=20: 0.04983  n=30: 0.02745  n=40: 0.01782
+  u_max spline                           n=10: 0.11955  n=15: 0.04709  n=20: 0.04924  n=30: 0.02755  n=40: 0.01770
+  u_max GLOBAL field (different convention) n=10: 0.13319  n=15: 0.05199  n=20: 0.05012  n=30: 0.02512  n=40: 0.01594
+  v_max discrete (current convention)    n=10: 0.13026  n=15: 0.06233  n=20: 0.04713  n=30: 0.02653  n=40: 0.01874
+  v_max parabolic sub-grid               n=10: 0.10392  n=15: 0.05814  n=20: 0.04675  n=30: 0.02595  n=40: 0.01678
+  v_max spline                           n=10: 0.12133  n=15: 0.06034  n=20: 0.04713  n=30: 0.02539  n=40: 0.01628
+  v_max GLOBAL field (different convention) n=10: 0.12989  n=15: 0.06114  n=20: 0.04232  n=30: 0.02457  n=40: 0.01695
+
+## pairwise observed order, PARITY-CONSISTENT subsequences only
+  Nu_avg                                 [even] 10->20: 0.883  20->30: 0.991  30->40: 1.134
+  u_max discrete (current convention)    [even] 10->20: 1.350  20->30: 1.636  30->40: 1.525
+  u_max parabolic sub-grid               [even] 10->20: 1.136  20->30: 1.470  30->40: 1.503
+  u_max spline                           [even] 10->20: 1.280  20->30: 1.432  30->40: 1.539
+  u_max GLOBAL field (different convention) [even] 10->20: 1.410  20->30: 1.703  30->40: 1.582
+  v_max discrete (current convention)    [even] 10->20: 1.467  20->30: 1.417  30->40: 1.208
+  v_max parabolic sub-grid               [even] 10->20: 1.152  20->30: 1.451  30->40: 1.516
+  v_max spline                           [even] 10->20: 1.364  20->30: 1.526  30->40: 1.544
+  v_max GLOBAL field (different convention) [even] 10->20: 1.618  20->30: 1.340  30->40: 1.292
+
+## Richardson extrapolation / GCI -- only where the sequence supports it
+  Nu_avg                                 [even] (10, 20, 40)  p  0.708  extrapolated   1.115449  GCI  0.01236  |extrap - literature|/literature  0.00406
+  u_max discrete (current convention)    [even] (10, 20, 40)  p  1.214  extrapolated   3.667949  GCI  0.03461  |extrap - literature|/literature  0.00934
+  u_max parabolic sub-grid               [even] (10, 20, 40)  p  0.899  extrapolated   3.703815  GCI  0.04712  |extrap - literature|/literature  0.01921
+  u_max spline                           [even] (10, 20, 40)  p  1.156  extrapolated   3.662945  GCI  0.03265  |extrap - literature|/literature  0.00797
+  u_max GLOBAL field (different convention) [even] (10, 20, 40)  p  1.281  extrapolated   3.662912  GCI  0.03035  |extrap - literature|/literature  0.00796
+  v_max discrete (current convention)    [even] (10, 20, 40)  p  1.550  extrapolated   3.664218  GCI  0.01875  |extrap - literature|/literature  0.00402
+  v_max parabolic sub-grid               [even] (10, 20, 40)  p  0.932  extrapolated   3.738732  GCI  0.04197  |extrap - literature|/literature  0.01624
+  v_max spline                           [even] (10, 20, 40)  p  1.266  extrapolated   3.699829  GCI  0.02788  |extrap - literature|/literature  0.00566
+  v_max GLOBAL field (different convention) [even] (10, 20, 40)  p  1.787  extrapolated   3.654720  GCI  0.01316  |extrap - literature|/literature  0.00660
+
+========================================================================================================
+PRE-DIFF-002 BASELINE (two-point wall flux)   (5 converged grids: [10, 15, 20, 30, 40])
+========================================================================================================
+
+## raw values (nothing derived)
+     n     Nu_avg     u_disc  u_disc_y    u_parab   u_par_y     v_disc  v_disc_x    v_parab   v_par_x      mass      heat  outer
+    10   1.174384   3.254539    0.7500   3.387645    0.7946   3.432000    0.1500   3.492735    0.1792   0.0e+00   6.2e-13     51
+    15   1.150471   3.539258    0.8333   3.561093    0.8183   3.542769    0.1667   3.552152    0.1773   0.0e+00   3.5e-12     50
+    20   1.140674   3.493678    0.8250   3.503705    0.8107   3.563298    0.1750   3.563666    0.1774   0.0e+00   1.5e-12     50
+    30   1.132132   3.557625    0.8167   3.558081    0.8137   3.606266    0.1833   3.609130    0.1767   0.0e+00   2.9e-12     52
+    40   1.128234   3.582683    0.8125   3.582904    0.8145   3.623777    0.1875   3.631629    0.1765   0.0e+00   1.1e-11     51
+
+## relative error against the FIXED literature value
+  Nu_avg                                 n=10: 0.04856  n=15: 0.02721  n=20: 0.01846  n=30: 0.01083  n=40: 0.00735
+  u_max discrete (current convention)    n=10: 0.10442  n=15: 0.02607  n=20: 0.03861  n=30: 0.02102  n=40: 0.01412
+  u_max parabolic sub-grid               n=10: 0.06779  n=15: 0.02006  n=20: 0.03585  n=30: 0.02089  n=40: 0.01406
+  u_max spline                           n=10: 0.08522  n=15: 0.02192  n=20: 0.03591  n=30: 0.02099  n=40: 0.01392
+  u_max GLOBAL field (different convention) n=10: 0.10075  n=15: 0.02607  n=20: 0.03485  n=30: 0.01842  n=40: 0.01219
+  v_max discrete (current convention)    n=10: 0.06714  n=15: 0.03703  n=20: 0.03145  n=30: 0.01977  n=40: 0.01501
+  v_max parabolic sub-grid               n=10: 0.05063  n=15: 0.03448  n=20: 0.03135  n=30: 0.01899  n=40: 0.01288
+  v_max spline                           n=10: 0.06611  n=15: 0.03565  n=20: 0.03133  n=30: 0.01842  n=40: 0.01244
+  v_max GLOBAL field (different convention) n=10: 0.06685  n=15: 0.03638  n=20: 0.02654  n=30: 0.01784  n=40: 0.01322
+
+## pairwise observed order, PARITY-CONSISTENT subsequences only
+  Nu_avg                                 [even] 10->20: 1.395  20->30: 1.315  30->40: 1.347
+  u_max discrete (current convention)    [even] 10->20: 1.435  20->30: 1.500  30->40: 1.382
+  u_max parabolic sub-grid               [even] 10->20: 0.919  20->30: 1.332  30->40: 1.376
+  u_max spline                           [even] 10->20: 1.247  20->30: 1.324  30->40: 1.427
+  u_max GLOBAL field (different convention) [even] 10->20: 1.532  20->30: 1.573  30->40: 1.435
+  v_max discrete (current convention)    [even] 10->20: 1.094  20->30: 1.145  30->40: 0.957
+  v_max parabolic sub-grid               [even] 10->20: 0.692  20->30: 1.236  30->40: 1.351
+  v_max spline                           [even] 10->20: 1.078  20->30: 1.310  30->40: 1.365
+  v_max GLOBAL field (different convention) [even] 10->20: 1.333  20->30: 0.980  30->40: 1.042
+
+## Richardson extrapolation / GCI -- only where the sequence supports it
+  Nu_avg                                 [even] (10, 20, 40)  p  1.438  extrapolated   1.120958  GCI  0.00806  |extrap - literature|/literature  0.00086
+  u_max discrete (current convention)    [even] (10, 20, 40)  p  1.426  extrapolated   3.635447  GCI  0.01841  |extrap - literature|/literature  0.00040
+  u_max parabolic sub-grid               [even] (10, 20, 40)  p  0.551  extrapolated   3.753077  GCI  0.05937  |extrap - literature|/literature  0.03277
+  u_max spline                           [even] (10, 20, 40)  p  1.165  extrapolated   3.647702  GCI  0.02243  |extrap - literature|/literature  0.00377
+  u_max GLOBAL field (different convention) [even] (10, 20, 40)  p  1.540  extrapolated   3.632853  GCI  0.01503  |extrap - literature|/literature  0.00032
+  v_max discrete (current convention)    [even] (10, 20, 40)  p  1.118  extrapolated   3.675424  GCI  0.01782  |extrap - literature|/literature  0.00097
+  v_max parabolic sub-grid               [even] (10, 20, 40)  NOT computed: observed order 0.062 is outside [0.5, 3.0] -- the differences barely shrink, so Richardson would be an artifact
+  v_max spline                           [even] (10, 20, 40)  p  0.881  extrapolated   3.715820  GCI  0.02841  |extrap - literature|/literature  0.01001
+  v_max GLOBAL field (different convention) [even] (10, 20, 40)  p  1.597  extrapolated   3.654576  GCI  0.00833  |extrap - literature|/literature  0.00664
+
+========================================================================================================
+HEAD-TO-HEAD: relative error against the literature, same grids
+========================================================================================================
+
+  Nu_avg
+    n=10   baseline  0.04856   DIFF-002  0.02246   ratio  0.463   DIFF-002 better
+    n=15   baseline  0.02721   DIFF-002  0.01580   ratio  0.581   DIFF-002 better
+    n=20   baseline  0.01846   DIFF-002  0.01218   ratio  0.660   DIFF-002 better
+    n=30   baseline  0.01083   DIFF-002  0.00815   ratio  0.752   DIFF-002 better
+    n=40   baseline  0.00735   DIFF-002  0.00588   ratio  0.800   DIFF-002 better
+
+  u_max discrete
+    n=10   baseline  0.10442   DIFF-002  0.13703   ratio  1.312   baseline better
+    n=15   baseline  0.02607   DIFF-002  0.05199   ratio  1.994   baseline better
+    n=20   baseline  0.03861   DIFF-002  0.05375   ratio  1.392   baseline better
+    n=30   baseline  0.02102   DIFF-002  0.02768   ratio  1.317   baseline better
+    n=40   baseline  0.01412   DIFF-002  0.01785   ratio  1.264   baseline better
+
+  u_max parabolic
+    n=10   baseline  0.06779   DIFF-002  0.10953   ratio  1.616   baseline better
+    n=15   baseline  0.02006   DIFF-002  0.04392   ratio  2.189   baseline better
+    n=20   baseline  0.03585   DIFF-002  0.04983   ratio  1.390   baseline better
+    n=30   baseline  0.02089   DIFF-002  0.02745   ratio  1.314   baseline better
+    n=40   baseline  0.01406   DIFF-002  0.01782   ratio  1.267   baseline better
+
+  v_max discrete
+    n=10   baseline  0.06714   DIFF-002  0.13026   ratio  1.940   baseline better
+    n=15   baseline  0.03703   DIFF-002  0.06233   ratio  1.683   baseline better
+    n=20   baseline  0.03145   DIFF-002  0.04713   ratio  1.499   baseline better
+    n=30   baseline  0.01977   DIFF-002  0.02653   ratio  1.342   baseline better
+    n=40   baseline  0.01501   DIFF-002  0.01874   ratio  1.248   baseline better
+
+  v_max parabolic
+    n=10   baseline  0.05063   DIFF-002  0.10392   ratio  2.053   baseline better
+    n=15   baseline  0.03448   DIFF-002  0.05814   ratio  1.686   baseline better
+    n=20   baseline  0.03135   DIFF-002  0.04675   ratio  1.491   baseline better
+    n=30   baseline  0.01899   DIFF-002  0.02595   ratio  1.367   baseline better
+    n=40   baseline  0.01288   DIFF-002  0.01678   ratio  1.303   baseline better
+

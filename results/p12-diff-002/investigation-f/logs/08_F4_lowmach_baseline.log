@@ -1,0 +1,22 @@
+# INV-002 invf_lowmach against the PRE-DIFF-002 BASELINE library (ac4f49b630960cae); 2026-09-16T13:31:32Z
+
+# INV-F4 low-Mach global mass imbalance, 32x6 (the failing configuration).
+# The field comes from an incompressible SIMPLE solve that stops on its own
+# tolerances, so the metric is swept against them to separate discretization
+# error from incomplete iterative convergence. Authoritative defaults unchanged.
+
+## the test's own settings, repeated 3x for determinism
+INV-F4 as-tested  32x6  velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it  1484 | metric 4.799645e-05 (bound 1e-4 PASS) | |globalNetFlux| 5.647676e-05  rhoAvg 1.176686 | SIMPLE massImb 3.976e-08
+INV-F4 as-tested  32x6  velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it  1484 | metric 4.799645e-05 (bound 1e-4 PASS) | |globalNetFlux| 5.647676e-05  rhoAvg 1.176686 | SIMPLE massImb 3.976e-08
+INV-F4 as-tested  32x6  velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it  1484 | metric 4.799645e-05 (bound 1e-4 PASS) | |globalNetFlux| 5.647676e-05  rhoAvg 1.176686 | SIMPLE massImb 3.976e-08
+
+## tolerance sweep (tighter stopping criteria only)
+INV-F4 tighter    32x6  velTol 2e-06 pTol 5e-05 contTol 1e-07 | status 1 it  3000 | metric 5.669899e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.671691e-05  rhoAvg 1.176686 | SIMPLE massImb 3.483e-08
+INV-F4 tighter    32x6  velTol 2e-07 pTol 5e-06 contTol 1e-08 | status 1 it  3000 | metric 5.669899e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.671691e-05  rhoAvg 1.176686 | SIMPLE massImb 3.483e-08
+INV-F4 tighter    32x6  velTol 2e-08 pTol 5e-07 contTol 1e-09 | status 1 it  3000 | metric 5.669899e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.671691e-05  rhoAvg 1.176686 | SIMPLE massImb 3.483e-08
+INV-F4 tighter    32x6  velTol 2e-09 pTol 5e-08 contTol 1e-10 | status 1 it  3000 | metric 5.669899e-05 (bound 1e-4 PASS) | |globalNetFlux| 6.671691e-05  rhoAvg 1.176686 | SIMPLE massImb 3.483e-08
+
+## mesh refinement at the test's own tolerances
+INV-F4 refine     64x12 velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it   836 | metric 1.031586e-04 (bound 1e-4 FAIL) | |globalNetFlux| 1.213864e-04  rhoAvg 1.176697 | SIMPLE massImb 1.391e-07
+INV-F4 refine    128x24 velTol 2e-05 pTol 5e-04 contTol 1e-06 | status 0 it   483 | metric 1.068163e-04 (bound 1e-4 FAIL) | |globalNetFlux| 1.256926e-04  rhoAvg 1.176717 | SIMPLE massImb 2.497e-07
+exit 0

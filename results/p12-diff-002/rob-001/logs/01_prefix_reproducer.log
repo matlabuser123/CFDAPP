@@ -1,0 +1,43 @@
+# rob001_reproducer; 2026-09-16T15:55:42Z
+# library 212141137733bffa
+# probe   921e5d8d082a881e
+
+# ROB-001 Step 2 -- pre-fix reproducer (run against the UNMODIFIED library).
+# cavity(4, 0.01), alpha 0.7/0.3, tol 1e-6, maxIterations 500 -- DefaultRobustnessPreservesBaseline's own case.
+
+## the two runs the test requires to be bit-identical
+  detectors OFF: Converged      406 iterations  final u 3.0310e-08 v 3.1141e-08 p 9.9192e-07 cont 3.3087e-13
+  detectors ON : Diverging      112 iterations  final u 1.6967e-05 v 1.5297e-05 p 4.9398e-04 cont 3.1002e-13
+  detail: divergence: the continuity residual increased at each of the last 9 iterations, 1.958e-14 -> 3.1e-13 (>= 10x)
+  field difference OFF vs ON: u 7.9778e-04  v 5.6119e-04  p 7.5178e-04   (the test requires exactly 0)
+  same status: NO   same iterations: NO
+
+## independent replay of BOTH rules, every tracked residual, on the REFERENCE run
+## (the reference run is the healthy trajectory the detectors must not touch)
+  u            floor 1.0e-06 | rule1 does not fire  | rule2 UNFLOORED does not fire  | rule2 FLOORED does not fire
+  v            floor 1.0e-06 | rule1 does not fire  | rule2 UNFLOORED does not fire  | rule2 FLOORED does not fire
+  pressure     floor 1.0e-06 | rule1 does not fire  | rule2 UNFLOORED does not fire  | rule2 FLOORED does not fire
+  continuity   floor 1.0e-06 | rule1 does not fire  | rule2 UNFLOORED fires@112      | rule2 FLOORED does not fire
+        rule2 unfloored detail: oldest 1.9578e-14  newest 3.1002e-13  growth ratio 15.835
+        both values below the floor? oldest YES, newest YES   (floor/oldest = 5.108e+07, floor/newest = 3.226e+06)
+        with the floor applied, the comparison becomes newest 3.1002e-13 >= 10.0 * 1.0000e-06 = 1.0000e-05 -> SUPPRESSED
+
+## the continuity window that trips rule 2, printed in full
+    [102] continuity 1.957788e-14   (converged)
+    [103] continuity 4.205826e-14   (converged)
+    [104] continuity 9.814611e-14   (converged)
+    [105] continuity 1.692468e-13   (converged)
+    [106] continuity 1.932279e-13   (converged)
+    [107] continuity 2.299335e-13   (converged)
+    [108] continuity 2.602730e-13   (converged)
+    [109] continuity 2.813288e-13   (converged)
+    [110] continuity 2.963657e-13   (converged)
+    [111] continuity 3.100182e-13   (converged)
+    convergence tolerance / tracker floor : 1.0e-06
+    u residual at that iteration          : 1.696673e-05  (NOT converged -> the solve was still legitimately running)
+
+## stagnation quantities (checked AFTER divergence; must not become the next firing rule)
+  convergence-distance history length 406; stagnation window 50, minRelativeImprovement 1.000e-02
+  worst windowed relative improvement over the whole run: 6.478439e-01 at iteration 257
+  -> stagnation would not fire (threshold 1.000e-02)
+exit 0

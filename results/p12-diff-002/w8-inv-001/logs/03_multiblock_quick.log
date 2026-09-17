@@ -1,0 +1,35 @@
+# W8-INV-001 w8inv_multiblock
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-17T07:14:32Z
+# W8-INV-001 curved-channel multiblock, extended refinement
+# polar (r,theta) family -- exactly self-similar under refinement
+# RAW values first; orders afterwards. Velocity / G / rise reported SEPARATELY.
+
+FAMILY A -- the test's own r = 1.5 family (reproduction check)   (exact G = -1.8282207204)
+    nr    nt  conv   iters    velocity L2              G     G SIGNED err  rise SIGNED err   time s
+     8    20   yes    1551 1.10926680e-02  -1.8199632992  +8.25742118e-03  +6.86282780e-03      6.5
+    12    30   yes    1405 4.82371863e-03  -1.8228269244  +5.39379602e-03  +8.82233249e-04     14.6
+    nr    nt  maxNonOrt meanNonOrt   maxSkew maxAspect    rise r0    rise r1
+     8    20   0.000001   0.000000  0.015226    1.5920   1.062905   1.936678
+    12    30   0.000001   0.000000  0.010210    1.5917   1.041865   1.957958
+
+  observed orders (r = 1.50)
+    pair 0: velocity  2.0538 | G  1.0503 | rise  5.0594
+
+FAMILY B -- independent r = 2 family (the r=1.5 family cannot extend: nt would be 67.5)   (exact G = -1.8282207204)
+    nr    nt  conv   iters    velocity L2              G     G SIGNED err  rise SIGNED err   time s
+     8    20   yes    1551 1.10926680e-02  -1.8199632992  +8.25742118e-03  +6.86282780e-03      6.3
+    16    40   yes    2407 2.67116607e-03  -1.8252997750  +2.92094536e-03  -3.18948221e-04     47.8
+    nr    nt  maxNonOrt meanNonOrt   maxSkew maxAspect    rise r0    rise r1
+     8    20   0.000001   0.000000  0.015226    1.5920   1.062905   1.936678
+    16    40   0.000002   0.000000  0.007680    1.5917   1.031367   1.968536
+
+  observed orders (r = 2.00)
+    pair 0: velocity  2.0541 | G  1.4993 | rise  4.4274 (SIGN CHANGE)
+
+#CSV family,nr,nt,conv,iters,velocityL2,G,gSignedError,riseSignedError,maxNonOrtho,maxSkew,r0,r1
+CSV,A,8,20,1,1551,1.109266799763e-02,-1.819963299206e+00,8.257421180847e-03,6.862827800568e-03,0.000001,0.015226,1.06290540,1.93667778
+CSV,A,12,30,1,1405,4.823718634667e-03,-1.822826924365e+00,5.393796021568e-03,8.822332485047e-04,0.000001,0.010210,1.04186508,1.95795767
+CSV,B,8,20,1,1551,1.109266799763e-02,-1.819963299206e+00,8.257421180847e-03,6.862827800568e-03,0.000001,0.015226,1.06290540,1.93667778
+CSV,B,16,40,1,2407,2.671166066760e-03,-1.825299775031e+00,2.920945355658e-03,-3.189482214891e-04,0.000002,0.007680,1.03136681,1.96853582
+exit 0

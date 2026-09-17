@@ -1,0 +1,33 @@
+# P12-GRAD-002 C14 re-verification of the A1-form criteria; 2026-09-17T15:50:12Z; git HEAD b66310ca871811c4c7671056beec291a451af55c
+# final library 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# Gradient.cpp d24882a96e5cbc0025121a71eb9f88e13ffe0ef9a8a09f2e2f9f4d40fd8c03b6 (A1 freeze: d24882a9...)
+## instrument hashes
+1bb88bb369e4fe099b7a9a6f49698d61c8d24830a8b30a122cc072a8c306dcf7  tools/a1_envelope.cpp
+85927e9c134d8b39c3763cf797d61b6ffbb9f4d853933e4e6d591fdf8551e6b9  tools/diagnostics.cpp
+344405eebe9b0e27a7c3cd67b08359c835ac8f9cab4ccadeda7e757d6055105d  tools/run_a1.sh
+f027efcd56e7e309304928466cc2f02bd8261331fa297a88c4d2b13f33cc4bab  tools/a1_cavity.cpp
+68908319ba9e05e663867cbf6dc33d7ba0c0ef3a495e4cb08b86c83ee794e21e  tools/a1_convergence.cpp
+16a94c033fa2293289b509ddd1d2a2391ec38cf7e616036a4089220415195118  tools/a1_3d.cpp
+  A1 freeze: a1_envelope 1bb88bb3..., diagnostics 85927e9c..., run_a1.sh 344405ee...
+## instrument identity: rerun on the A1 control library must reproduce the A1 control log
+  IDENTICAL  diagnostics on base == a1/logs/04_c5_fresh_base.log
+  IDENTICAL  a1_envelope on base == a1/logs/00_dryrun_baseline.log
+  IDENTICAL  a1_cavity on base == a1/logs/06_c7_cavity_base.log
+  IDENTICAL  a1_convergence on base == a1/logs/08_convergence_base.log
+  IDENTICAL  a1_3d on grad001 == a1/logs/13_3d_grad001.log
+instrument identity: REPRODUCED
+## final library vs A1's run on 51e82ee8
+  a1_envelope: 68 PASS / 0 FAIL labels (A1: 68 / 0); lines differing from A1: 0; exit 0
+  diagnostics: 8 PASS / 0 FAIL labels (A1: 8 / 0); lines differing from A1: 0; exit 0
+  a1_cavity: 2 PASS / 1 FAIL labels (A1: 2 / 1); lines differing from A1: 3; exit 0
+      2,4c2,4
+      < C7   16^2 offset small  | exactly-parallel boundary faces A 64 B 10 of 64 | step 1 6.136e-14 step 20 6.452e-14 worst 9.835e-14 bound 1.000e-09 PASS
+      < C7   32^2 offset small  | exactly-parallel boundary faces A 128 B 8 of 128 | step 1 2.638e-13 step 20 4.573e-13 worst 4.889e-13 bound 1.000e-09 PASS
+      < C7   16^2 offset LARGE  | exactly-parallel boundary faces A 64 B 0 of 64 | step 1 2.362e-05 step 20 7.076e-05 worst 7.193e-05 bound 1.000e-09 FAIL
+      ---
+      > C7   16^2 offset small  | exactly-parallel boundary faces A 64 B 10 of 64 | step 1 1.279e-14 step 20 4.919e-14 worst 1.425e-13 bound 1.000e-09 PASS
+      > C7   32^2 offset small  | exactly-parallel boundary faces A 128 B 8 of 128 | step 1 3.666e-13 step 20 5.006e-13 worst 5.206e-13 bound 1.000e-09 PASS
+      > C7   16^2 offset LARGE  | exactly-parallel boundary faces A 64 B 0 of 64 | step 1 2.361e-05 step 20 7.121e-05 worst 7.124e-05 bound 1.000e-09 FAIL
+  a1_convergence: 0 PASS / 0 FAIL labels (A1: 0 / 0); lines differing from A1: 0; exit 0
+  a1_3d: 14 PASS / 2 FAIL labels (A1: 14 / 2); lines differing from A1: 0; exit 0
+# end 2026-09-17T15:50:30Z

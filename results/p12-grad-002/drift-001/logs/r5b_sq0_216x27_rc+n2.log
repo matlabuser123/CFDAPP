@@ -1,0 +1,26 @@
+# P12-GRAD-002-DRIFT-001 drift_probe  tree=repo
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# probe source 5d8523db91c60e71  binary a013e302ab38c71d48384dcc96b717ddaa6055118119a9104fe0b310fe01e727
+# case inputs  c1d4c750b66cc7ec (poiseuille_distorted) 2b5d1c097786ef6b (curved_channel_multiblock)
+# args: sq0 216 27 rc+n2 ckpt 4000
+# start 2026-09-17T11:00:24Z
+# case sq0 216x27 variant rc+n2 mode ckpt; cells 5832
+# settings: tol u 2.0e-05 p 5.0e-04 c 1.0e-06 | alpha 0.70/0.30 | nonOrth 2 | grad GG | conv 2 | flux rhie_chow | mom 1 rel 1e-08 | pres 0 rel 1e-08
+# exact dp/dx -1.2000000000
+
+  committed gate
+    iters status            velocity L2            dp/dx     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+  (sq rows add: split-window dp/dx signed errors [0.50,0.675]L | [0.675,0.85]L)
+      169 Converged     7.578930158e-04    -1.1992409736 +7.590264328e-04  +8.455e-13  +1.061e-12  -1.589e-12  1.0817e-10  1.97e-05  2.47e-06  5.10e-08  1.22e-12     35.6
+          split dp/dx err +7.590265e-04 | +7.590264e-04
+
+  checkpoints (unreachable tolerance; state after exactly N iterations)
+    iters status            velocity L2            dp/dx     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+  (sq rows add: split-window dp/dx signed errors [0.50,0.675]L | [0.675,0.85]L)
+     4000 MaxIterations 7.508197447e-04    -1.1991775188 +8.224811811e-04  +1.411e-13  +1.340e-12  -9.658e-13  3.0549e-10  9.98e-11  9.23e-11  8.08e-11  1.06e-12    422.5
+          split dp/dx err +8.224804e-04 | +8.224811e-04
+
+  field change: max |du| and max |dp| between consecutive rows (first row vs gate)
+      169 ->    4000  max|du| 7.3114e-05  max|dp| 3.9564e-04  d(velocity L2) -7.0733e-06  d(q) +6.3455e-05
+exit 0
+# end 2026-09-17T11:08:02Z

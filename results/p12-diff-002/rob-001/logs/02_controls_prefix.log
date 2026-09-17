@@ -1,0 +1,60 @@
+# ROB-001 Step 3 -- control inventory and PRE-FIX behaviour; 2026-09-16T15:56:09Z
+# library 212141137733bffa
+# CFDSimpleTests binary b88d7f1affa02336
+# CFDSolverTests binary 6d42414d8baa38e2
+
+## every SIMPLERobustnessTest, with its pre-fix result
+  [  FAILED  ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline (52 ms)
+  [       OK ] SIMPLERobustnessTest.NormalizedResidualConvergence (503 ms)
+  [       OK ] SIMPLERobustnessTest.StagnationStatus (1516 ms)
+  [       OK ] SIMPLERobustnessTest.NormalConvergenceIsNotStagnationOrDivergence (432 ms)
+  [  FAILED  ] SIMPLERobustnessTest.DivergenceStatus (6 ms)
+  [       OK ] SIMPLERobustnessTest.AdaptiveRelaxationRecovery (354 ms)
+  [       OK ] SIMPLERobustnessTest.LinearSolverFallbackRecovery (264 ms)
+  [       OK ] SIMPLERobustnessTest.Deterministic (452 ms)
+  [       OK ] SIMPLERobustnessTest.InvalidRobustnessSettingsAreInvalidConfiguration (2 ms)
+  [       OK ] SIMPLERobustnessTest.BookkeepingOverheadIsSmall (437 ms)
+  [  FAILED  ] 2 tests, listed below:
+  [  FAILED  ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline
+  [  FAILED  ] SIMPLERobustnessTest.DivergenceStatus
+
+## robustness-related tests elsewhere (divergence / stagnation / non-finite / fallback)
+  candidate: SIMPLESettingsTest.RejectsNonFinitePressureRelaxation
+  candidate: SIMPLESettingsTest.RejectsNonFiniteContinuityTolerance
+  candidate: SIMPLENonFiniteTest.NaNInitialVelocityIsDetectedImmediately
+  candidate: SIMPLENonFiniteTest.InfiniteInitialPressureIsDetectedImmediately
+  candidate: SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline
+  candidate: SIMPLERobustnessTest.NormalizedResidualConvergence
+  candidate: SIMPLERobustnessTest.StagnationStatus
+  candidate: SIMPLERobustnessTest.NormalConvergenceIsNotStagnationOrDivergence
+  candidate: SIMPLERobustnessTest.DivergenceStatus
+  candidate: SIMPLERobustnessTest.AdaptiveRelaxationRecovery
+  candidate: SIMPLERobustnessTest.LinearSolverFallbackRecovery
+  candidate: SIMPLERobustnessTest.Deterministic
+  candidate: SIMPLERobustnessTest.InvalidRobustnessSettingsAreInvalidConfiguration
+  candidate: SIMPLERobustnessTest.BookkeepingOverheadIsSmall
+  candidate (CFDSolverTests): TimeControllerTest.RejectsNonFiniteInputs
+  candidate (CFDSolverTests): CFLTest.RejectsNonFiniteDt
+  candidate (CFDSolverTests): CFLTest.RejectsNonFiniteOrNonPositiveDensity
+  candidate (CFDSolverTests): TransientSolverTest.StepReportedNonFiniteStatePropagates
+  candidate (CFDSolverTests): TransientSolverTest.CatchesNonFiniteStateEvenWhenStepperClaimsConverged
+  candidate (CFDSolverTests): TransientSolverTest.RejectsNonPositiveOrNonFiniteCflFailAbove
+  candidate (CFDSolverTests): RestartSnapshotTest.NonFiniteVelocityIsRejected
+  candidate (CFDSolverTests): RestartSnapshotTest.NonFinitePressureIsRejected
+  candidate (CFDSolverTests): RestartSnapshotTest.NonFiniteMassFluxIsRejected
+  candidate (CFDSolverTests): RestartSnapshotTest.NonFiniteTimeIsRejected
+  candidate (CFDSolverTests): ResidualNormalization.NonFiniteInput
+  candidate (CFDSolverTests): ResidualTrend.SlowConvergenceIsNotStagnation
+  candidate (CFDSolverTests): ResidualTrend.Stagnating
+  candidate (CFDSolverTests): ResidualTrend.Diverging
+  candidate (CFDSolverTests): ResidualTrend.SingleSpikeDoesNotTriggerDivergence
+  candidate (CFDSolverTests): ResidualTrend.NonFiniteResidualIsDivergingWhenEnabled
+  candidate (CFDSolverTests): ConvergencePolicy.NormalizedHistoriesAreReportedAndFinite
+  candidate (CFDSolverTests): AdaptiveRelaxation.RecoveryAfterGrowthStopsBelowTheUnstableFactor
+  candidate (CFDSolverTests): SolverRobustnessSettingsTest.DefaultsAreValidAndDisabled
+  candidate (CFDSolverTests): SolverRobustnessSettingsTest.InvalidValuesAreRejected
+  candidate (CFDSolverTests): SolverRobustnessPerformance.BookkeepingIsFixedWindowCost
+
+## whole-suite pre-fix counts
+  CFDSimpleTests: [==========] 123 tests from 23 test suites ran. (49371 ms total) [  PASSED  ] 121 tests. [  FAILED  ] 2 tests, listed below: 
+  CFDSolverTests: [==========] 87 tests from 10 test suites ran. (28 ms total) [  PASSED  ] 87 tests. 

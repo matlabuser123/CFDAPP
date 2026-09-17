@@ -1,0 +1,42 @@
+# W8-INV-001 w8inv_structured
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-17T08:03:18Z
+# W8-INV-001 RESIDUAL-PLATEAU DIAGNOSTIC
+# committed gate (u 2e-5) vs 20000 iterations at an unreachable tolerance.
+# Diagnosis only: the plateau values are never proposed as test settings.
+
+
+COMMITTED GATE (what W8 measures)
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8   yes    2222 1.08267136e-02    -1.2020884013  -2.08840125e-03       8.8
+    96   12   yes    2181 4.75621586e-03    -1.1996745222  +3.25477793e-04      21.0
+   144   18   yes    2794 2.65369172e-03    -1.1975161934  +2.48380664e-03      72.8
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+    96   12    47.1772    15.1412   0.09096   0.02533    1.3031  0.035575     402 4.016..6.780
+   144   18    48.2525    15.4436   0.06094   0.01701    1.3085  0.023509     909 4.008..6.798
+
+  COMMITTED GATE (r = 1.500)
+    pair 0 (64x8 -> 96x12): velocity  2.0287 | dp/dx |e|  4.5845   <-- SIGN CHANGE: |e| order is not defined here
+    pair 1 (96x12 -> 144x18): velocity  1.4391 | dp/dx |e| -5.0122
+
+PLATEAU (20000 iterations, metrics force-extracted)
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8    NO   20000 1.16241179e-02    -1.2015526366  -1.55263664e-03      74.3
+    96   12    NO   20000 5.52540115e-03    -1.1964761144  +3.52388559e-03     188.2
+   144   18    NO   20000 3.76902105e-03    -1.1964190058  +3.58099415e-03     504.3
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+    96   12    47.1772    15.1412   0.09096   0.02533    1.3031  0.035575     402 4.016..6.780
+   144   18    48.2525    15.4436   0.06094   0.01701    1.3085  0.023509     909 4.008..6.798
+
+  PLATEAU (r = 1.500)
+    pair 0 (64x8 -> 96x12): velocity  1.8343 | dp/dx |e| -2.0214   <-- SIGN CHANGE: |e| order is not defined here
+    pair 1 (96x12 -> 144x18): velocity  0.9435 | dp/dx |e| -0.0396
+
+  DRIFT between the committed gate and the plateau
+      grid    velocityL2 gate velocityL2 plateau   rel change |     dp/dx err gate  dp/dx err plateau
+    64x8     1.0826713618e-02   1.1624117896e-02    7.365e-02 |    -2.08840125e-03    -1.55263664e-03
+    96x12    4.7562158586e-03   5.5254011492e-03    1.617e-01 |    +3.25477793e-04    +3.52388559e-03
+   144x18    2.6536917221e-03   3.7690210546e-03    4.203e-01 |    +2.48380664e-03    +3.58099415e-03
+exit 0

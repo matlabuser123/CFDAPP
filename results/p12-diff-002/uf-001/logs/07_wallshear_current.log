@@ -1,0 +1,23 @@
+# UF-001 uf001_wallshear
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# headers from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp
+# 2026-09-17T05:03:34Z
+# UF-001.7 momentum wall-shear verification (mu = 0.71, orthogonal cavity mesh)
+# flux_into_owner from the production boundaryFaceDiffusionTerms vs the exact
+# viscous wall flux mu f'(y_w) |S|. No CFD solve.
+
+field        n=10             n=20             n=40             n=80             n=160             observed order (finest pair)
+constant     3.330669e-16     3.330669e-16     3.330669e-16     3.330669e-16     3.330669e-16      0.000
+linear       5.748876e-16     5.748876e-16     1.034798e-15     1.494708e-15     4.024214e-15      -1.429
+quadratic    5.748876e-16     3.449326e-16     3.449326e-16     1.494708e-15     9.543135e-15      -2.675
+cubic        4.852941e-03     1.213235e-03     3.033088e-04     7.582721e-05     1.895680e-05      2.000
+sine         6.235730e-03     1.609431e-03     4.080371e-04     1.026785e-04     2.575072e-05      1.995
+
+(constant row is an ABSOLUTE error -- the exact flux is 0 there, so a relative
+ error is undefined; every other row is relative.)
+
+## the cP - cF = cB identity, straight from the production terms
+  boundary faces: 80 with a far-cell term, 0 fallback
+  worst |cP - cF - cB|            4.441e-16
+  worst |flux| for a CONSTANT field 4.996e-16  (must be 0: conservation)
+exit 0

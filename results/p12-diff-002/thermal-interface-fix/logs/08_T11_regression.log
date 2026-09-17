@@ -1,0 +1,44 @@
+# P12-DIFF-002 A4 W7 HARNESS; 2026-09-16T14:18:33Z
+# source HEAD            b66310ca871811c4c7671056beec291a451af55c
+# configure command      cmake -S /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp -B /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release
+# build command          cmake --build /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release --target <target> -j$(nproc)
+# targets                CFDThermalTests CFDDiscretizationTests CFDCaseIntegrationTests CFDTurbulenceTests
+
+## configure
+  cmake reconfigure OK
+
+## build (every target is built before anything runs; failure is fatal for that target)
+  CFDThermalTests built OK | binary 2fcfe1f4a998fc7c (was 2fcfe1f4a998fc7c) | mtime 2026-09-16T13:55:00Z
+  CFDDiscretizationTests built OK | binary 224702a197de487b (was bc698f840a6eb6b9) | mtime 2026-09-16T14:18:47Z
+  CFDCaseIntegrationTests built OK | binary 215a0aecf8104268 (was c1875a0e8f067159) | mtime 2026-09-16T14:18:55Z
+  CFDTurbulenceTests built OK | binary 1bd3e6244e9cd4bd (was a72d42803ae251ba) | mtime 2026-09-16T14:18:59Z
+
+## provenance of what runs
+  production library     212141137733bffa  mtime 2026-09-16T13:54:59Z
+
+## execute (freshly built binaries only)
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/thermal/CFDThermalTests
+CFDThermalTests: binary 2fcfe1f4a998fc7c | run 99 pass 89 fail 10 disabled 0
+    FAILED: [  FAILED  ] EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+    FAILED: [  FAILED  ] EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+    FAILED: [  FAILED  ] EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+    FAILED: [  FAILED  ] EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+    FAILED: [  FAILED  ] EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+    FAILED: [  FAILED  ] EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+    FAILED: [  FAILED  ] SparseAssembly3DTest.TwoByTwoByOne
+    FAILED: [  FAILED  ] SparseAssembly3DTest.TwoByTwoByTwo
+    FAILED: [  FAILED  ] SparseAssembly3DTest.TwoCellsInX
+    FAILED: [  FAILED  ] SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/discretization/CFDDiscretizationTests
+CFDDiscretizationTests: binary 224702a197de487b | run 169 pass 167 fail 2 disabled 0
+    FAILED: [  FAILED  ] BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+    FAILED: [  FAILED  ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/case/CFDCaseIntegrationTests
+CFDCaseIntegrationTests: binary 215a0aecf8104268 | run 63 pass 61 fail 2 disabled 18
+    FAILED: [  FAILED  ] MultiBlockProductionCase.CurvedChannelGridConvergence
+    FAILED: [  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/turbulence/CFDTurbulenceTests
+CFDTurbulenceTests: binary 1bd3e6244e9cd4bd | run 136 pass 136 fail 0 disabled 0
+
+## harness verdict
+  all requested targets rebuilt and executed

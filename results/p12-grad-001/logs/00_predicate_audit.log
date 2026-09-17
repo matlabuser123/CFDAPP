@@ -1,0 +1,35 @@
+# P12-GRAD-001 exact-geometry predicate audit; 2026-09-16T02:48:37Z
+# every occurrence of an exact floating-point geometric test in include/ and src/:
+  src/discretization/Gradient.cpp:86:    if (cross(d, sf) != Vector3{}) {
+  src/discretization/Gradient.cpp:166:  if (cross(d, sf) == Vector3{}) {
+  src/discretization/Gradient.cpp:464:    if (crossing.has_value() && crossing->skewVector != Vector3{}) {
+  src/discretization/Interpolation.cpp:55:  if (!crossing.has_value() || crossing->skewVector == Vector3{}) {
+  src/discretization/Interpolation.cpp:85:  if (!crossing.has_value() || crossing->skewVector == Vector3{}) {
+  src/discretization/VectorGradient.cpp:61:    if (crossing.has_value() && crossing->skewVector != Vector3{}) {
+  src/mesh/MeshGeometry.cpp:163:  if (cross(d, sf) == Vector3{}) {
+  src/mesh/MeshGeometry.cpp:221:  if (cross(toFace, d) == Vector3{}) {
+  src/pressure_velocity/PressureCorrectionEquation.cpp:60:bool isAxisAligned(const Vector2& sf) noexcept {
+  src/pressure_velocity/PressureCorrectionEquation.cpp:65:bool exactlyParallel(const Vector2& a, const Vector2& b) noexcept {
+  src/pressure_velocity/PressureCorrectionEquation.cpp:66:  return cross(a, b) == Vector3{};
+  src/pressure_velocity/PressureCorrectionEquation.cpp:78:  if (isAxisAligned(sf) && exactlyParallel(d, sf)) {
+  src/pressure_velocity/PressureCorrectionEquation.cpp:162:  if (isAxisAligned(sf) && exactlyParallel(d, sf)) {
+
+# classification:
+  DISCONTINUOUS (fixed by P12-GRAD-001):
+    src/discretization/Gradient.cpp tryPairedBoundaryContribution -- selects between the paired
+      quadratic boundary fit (2nd order) and plain Green-Gauss (1st order at the boundary). The two
+      formulations differ by O(h), so a round-off flip changes the boundary gradient by O(1) relative.
+  CONTINUOUS (left unchanged; a flip changes results by O(round-off)):
+    src/discretization/Gradient.cpp obliqueNeumannFace -- the oblique-Neumann correction is
+      proportional to the tangential offset d_t, which vanishes with the misalignment.
+    src/mesh/MeshGeometry.cpp decomposeAreaVector -- the exactly-parallel shortcut returns what the
+      general formula returns in the limit; the non-orthogonal part is the tested quantity itself.
+    src/mesh/MeshGeometry.cpp ownerNeighborCrossing -- the skew vector is the tested quantity.
+    src/pressure_velocity/PressureCorrectionEquation.cpp isAxisAligned/exactlyParallel -- selects
+      whether one or three response-coefficient components are interpolated; the others are
+      multiplied by a (near-)zero area component.
+    src/discretization/Interpolation.cpp, Gradient.cpp (skew correction), VectorGradient.cpp --
+      the skewness correction is proportional to the skew vector.
+  The boundary/opposite AREA match inside tryPairedBoundaryContribution (fixed 1e-12 relative) is
+  measured in logs/01: exactly 0 on every translated Cartesian mesh (both faces span identical
+  coordinate ranges) and 3.6e-2 on the distorted Q16 mesh, so it is left unchanged.

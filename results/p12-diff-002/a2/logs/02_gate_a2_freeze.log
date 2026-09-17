@@ -1,0 +1,47 @@
+# P12-DIFF-002 A2 GATE FREEZE; 2026-09-16T07:47:18Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+
+# THE A2 GATE (frozen now):
+  3a268060809a4566331163f4fa582d5ba5e08398368b4814a08256a2605d8d40  acceptance_gate_A2.md
+
+# the audit, the instrument and the non-vacuous pre-freeze negative control:
+  aac347ee98f625558ecd2883d65acf7e1678fe40b1f7f59fa62b8d535c84cbd8  a2/activation_architecture.md
+  68e0643783a5242fc21f46a4a25bf625387c79c1e2427f86d49e9040ea08d0a0  a2/tools/diff2_activation.cpp
+  3c537b9ed0792f320ec97f21e49e1e77a1664516846d63a857c57852fa02bf80  a2/tools/run_a2.sh
+  c8299325b1ad22782d5a5ca722c8a6e6aae1cd8ec4f0716e583a51a8b28aa2e4  a2/logs/01_negative_control_preA2.log
+
+# PRESERVED -- original gate, A1 gate, original W3b failure, A1 PASS, W7 failure:
+  51079f6da5dd0a417b39fe332f92eccf32a9877a96035168bc566ed1d3a9e46b  acceptance_gate.md
+  c4b08824cf98e95f6bf3d424e7e0fd006231f1ed955cbfb9f6f641d45faae7d0  acceptance_gate_A1.md
+  bf71a0f43025ef01f11a2a6324215d9da08fa208df0224df8a91ff86dd0838d9  summary.md
+  631d9bcfea953857e5164cd1cc23dff6e2de1ba5966d3627d6cfa0f862d42ae6  a1/summary_a1.md
+  b5aa78caa29f64f150b41a7124d22e1121f5d5d1c2efc400b15e92914a5d58f7  logs/08_gate_W3b.log
+  2301bcec6684327d3bc08e0a219dea8ce820f80a1990d922bd2445e4a6459f11  logs/09_gate_W3b_patches.log
+  c31822e1b98dcd3d4407764f3f61f41b396aa3c933d348a601eeb3d0811e7ec6  a1/logs/04_W3bA1_FRESH_production.log
+  cd612d629623db247910f05a461fb157f9bf178281115056990ed3f16b6a3bf8  a1/logs/03_gate_a1_freeze.log
+  31793c9ddb8a0659fc36f4a9f211a10c6ecfce520bc2de968d7812589ab94e8e  logs/15_W7_focused.log
+  e7da518fdedce9aa1d82c22ec2151e1e9877912ce04c0944d3f8058fdabafbb5  logs/14_W6_W8_historical.log
+  1ec72116ff2ff6fcb081b4d07c644d6b89e82c2bb5e9badab16cf32785a619e2  logs/04_gate_dryrun_baseline.log
+  8d991482dc4ca42d75023946621f80f80818c35aaa866688d6acb5755a727616  logs/05_cases_before.log
+
+# production source at A2 freeze time (BEFORE the activation change):
+  20a02b16499fa7b0aca07667baae638714e1a176ed6eba33b414a194cf701e1c  src/discretization/NonOrthogonalDiffusion.cpp
+  076859b950fe0e140d4c6cd961a046a2f363cf1125865f968655298b55cbb8b2  include/cfd/discretization/NonOrthogonalDiffusion.hpp
+  04c964c24d6098dbe20def251fa0eba611a1725f17d9e352acf38631e67645b0  src/mesh/MeshGeometry.cpp
+  39e539b2f9064fdd6ba4940dab6f42aded2eb3d3d5339e0fc20534b3c77a8cc5  include/cfd/mesh/MeshGeometry.hpp
+  0e1c4962faf52b0d0b26a9fc489529445573dacd13029f97c2c4f95271d3fda0  src/physics/MomentumEquation.cpp
+  c1dcac484330c17c2160da997dcf68e5097f5b8bedb2f72b384b20f7a6f69b82  include/cfd/physics/MomentumEquation.hpp
+  921e61374e86bb01e83063f3ea85506c575a618ca2807564c2a91629ba75325d  src/thermal/EnergyEquation.cpp
+  887947ee41510e83685b72f0a2e37c9ec4b28e21342d9fd28da4fa8fc6145360  include/cfd/thermal/EnergyEquation.hpp
+  67fdb0aa41c3766b8ac505ffbd948570020c69f70ead5acf549aced08c081bbf  src/species/SpeciesEquation.cpp
+  3cf4f50b2448ae9e2b26f317f4b4de4c15ec4996f01ecb8684a8c30f71f6bb4a  src/turbulence/KEpsilonEquation.cpp
+  00d7d9158ed8cc309627178e78bd29a58a4bde6420a9541ab4e9dad301d82e4a  src/pressure_velocity/SIMPLESettings.cpp
+  e8e17477465bcaea0415443284088169a936f4bbde8c0392d7abd6492ba7e0df  src/discretization/Diffusion.cpp
+  d24882a96e5cbc0025121a71eb9f88e13ffe0ef9a8a09f2e2f9f4d40fd8c03b6  src/discretization/Gradient.cpp
+# binary at A2 freeze time:
+  0a2a1398cd48c629d412985ba87a84470368cca939f56916f970f85211b230fb  build/release/src/libcfdcore.a
+
+# the historical tests and the W4 tests (unchanged, and must stay so):
+  5f98c8046eec7f96e03fdee2336d27733cbb80d58bbc26d8064fab97174cd618  tests/integration/case/test_structured_quad_production_case.cpp
+  5b6eca7e7df2ad12f4f25330bf7c166e91d5e4487430f1207f6c7945adabb880  tests/integration/case/test_multiblock_production_case.cpp
+  474530ce10f3842f8421fd36346fca83c4ca85925d4c408ded68ff12752f1ebf  tests/unit/discretization/test_boundary_reconstruction.cpp

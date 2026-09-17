@@ -1,0 +1,185 @@
+A5-4 -- independent derivation of the expected coefficients for every MIGRATE candidate.
+
+This script deliberately contains NO CFDApp code and links nothing: it is a from-scratch reference
+implementation, so the values it produces cannot be "production's output copied back as the new
+expectation". Everything below is computed analytically from the mesh GENERATOR ARGUMENTS
+(nx, ny, nz, Lx, Ly, Lz) -- not read from a Mesh object -- plus the closed-form stencil coefficients.
+
+Derivation of the coefficients, from results/p12-diff-002/architecture.md.
+
+A Dirichlet wall face of owner P, with a second cell F directly inward along the wall normal, at
+normal distances h1 = |x_f - x_P| and h2 = |x_f - x_F|. Fitting phi(s) = a + b s + c s^2 through
+(0, phi_b), (h1, phi_P), (h2, phi_F) and evaluating -Gamma |S| dphi/ds at the wall gives the
+three-point one-sided flux
+
+    flux_into_owner = -(cP phi_P - cF phi_F) + cB phi_b
+    cP = Gamma |S| h2 / (h1 (h2 - h1))
+    cF = Gamma |S| h1 / (h2 (h2 - h1))
+    cB = Gamma |S| (1/h1 + 1/h2)
+
+with the identity cP - cF = cB (checked numerically below for every case).
+
+On a UNIFORM Cartesian mesh of spacing h along the wall normal, h1 = h/2 and h2 = 3h/2, so
+
+    cP = Gamma |S| * 3/h        cF = Gamma |S| / (3h)        cB = Gamma |S| * 8/(3h)
+
+The HISTORICAL (pre-P12-DIFF-002) two-point wall flux is instead
+
+    cP_hist = cB_hist = Gamma |S| / h1 = 2 Gamma |S| / h    and    cF_hist = 0
+
+A wall is reconstructed only where a second cell exists inward along its own normal, i.e. where that
+axis has >= 2 cells -- an integer property of the generator arguments, with no floating-point
+predicate (the same rule as acceptance_gate_A1.md's Oracle-T). A one-cell-thick axis falls back to
+the historical two-point form exactly. Gradient-type (FixedGradient/Adiabatic/HeatFlux) faces are
+never reconstructed and keep their exact prescribed flux.
+
+Internal faces are untouched by DIFF-002: c = Gamma_face |S| / d_PN.
+
+====================================================================================================
+A1. EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients / FixedTemperatureGivesIdenticalResultToEquivalentFixedValue / SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients   (Gamma = 3)
+====================================================================================================
+  wall cP (x-normal, reconstructed)              DIFF-002                    9.0   historical                    6.0   CHANGED
+  wall cF (x-normal)                             DIFF-002                    1.0   historical                    0.0   CHANGED
+  wall cB (x-normal)                             DIFF-002                    8.0   historical                    6.0   CHANGED
+  wall cP == cB (y-normal, FALLBACK)             DIFF-002                    6.0   historical                    6.0   unchanged
+  internal face coefficient                      DIFF-002                    3.0   historical                    3.0   unchanged
+  diagonal = cP + 2*cPy + cInt                   DIFF-002                   24.0   historical                   21.0   CHANGED
+  off-diagonal = -(cInt + cF)                    DIFF-002                   -4.0   historical                   -3.0   CHANGED
+
+  rhs[left]  = cB*10 + cBy*15 + cBy*5  = 200.0   (historical 180.0)
+  rhs[right] = cB*20 + cBy*15 + cBy*5  = 280.0   (historical 240.0)
+  species rhs[left]  = cB*1 + cBy*0.5*2 = 14.0   (historical 12.0)
+  species rhs[right] = cB*0 + cBy*0.5*2 = 6.0   (historical 6.0)
+
+====================================================================================================
+A2. EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients   (Gamma = 3, cp = 2, mdot = 4, q = 6)
+====================================================================================================
+  convection = cp*mdot                 = 8.0
+  diag(upwind cell A) = diag + conv    = 32.0   (historical 29.0)
+  diag(cell B)                         = 24.0   (historical 21.0)
+  A(B,A) = -(cInt + cF)                = -4.0   (historical -3.0)
+  A(A,B) = -(cInt + conv + cF)         = -12.0   (historical -11.0)
+  rhs[left]  = cB*10 + cBy*(15+5) + q*V = 206.0   (historical 186.0)
+  rhs[right] = cB*20 + cBy*(15+5) + q*V = 286.0   (historical 246.0)
+
+====================================================================================================
+A3. SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+====================================================================================================
+  (same block; the convection term is the species mass flux, the diffusion terms are A1's)
+  diag                                 = 24.0   (historical 21.0)
+  A(B,A) = -(cInt + cF)                = -4.0   (historical -3.0)
+
+====================================================================================================
+B1. EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue   (k = {3, 5})
+====================================================================================================
+  interpolated internal coefficient    = 4.0   (unchanged: 4.0)
+  A(1,0) = -(cInt + cF(owner=1))       = -5.666666666666667
+  A(0,1) = -(cInt + cF(owner=0))       = -5.0
+  asymmetry A(0,1)-A(1,0) = cF1 - cF0  = 0.6666666666666667
+
+====================================================================================================
+B2. EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly   (k = {3, 100})
+====================================================================================================
+  interpolated internal coefficient    = 51.5   (unchanged: 51.5)
+  A(1,0) = -(cInt + cF(owner=1))       = -84.83333333333334
+  A(0,1) = -(cInt + cF(owner=0))       = -52.5
+  asymmetry A(0,1)-A(1,0) = cF1 - cF0  = 32.333333333333336
+  cell 0 diagonal = cP0 + 2*cPy0 + cInt = 72.5   (historical 69.5)
+
+====================================================================================================
+B3. MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue   (mu = {0.01, 0.012})
+====================================================================================================
+  interpolated internal coefficient    = 0.011   (unchanged: 0.011)
+  A(1,0) = -(cInt + cF(owner=1))       = -0.015
+  A(0,1) = -(cInt + cF(owner=0))       = -0.014333333333333333
+  asymmetry A(0,1)-A(1,0) = cF1 - cF0  = 0.0006666666666666665
+
+====================================================================================================
+B4. MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue   (mu = {0.01, 0.0073})
+====================================================================================================
+  interpolated internal coefficient    = 0.00865   (unchanged: 0.00865)
+  A(1,0) = -(cInt + cF(owner=1))       = -0.011083333333333334
+  A(0,1) = -(cInt + cF(owner=0))       = -0.011983333333333334
+  asymmetry A(0,1)-A(1,0) = cF1 - cF0  = -0.0009000000000000002
+
+====================================================================================================
+C0. SparseAssembly3DTest.OneCell   -- CONTROL: every axis is one cell thick, so every wall falls back and nothing changes
+====================================================================================================
+  axis 0: n=1 h=1.0 |S|=1.0 FALLBACK      cP=4.0 cF=0.0 cB=4.0 cInt=2.0
+  axis 1: n=1 h=1.0 |S|=1.0 FALLBACK      cP=4.0 cF=0.0 cB=4.0 cInt=2.0
+  axis 2: n=1 h=1.0 |S|=1.0 FALLBACK      cP=4.0 cF=0.0 cB=4.0 cInt=2.0
+  diagonal                             = 24.0   (historical 24.0)
+  rhs                                  = 29.0   (historical 29.0)
+
+====================================================================================================
+C1. SparseAssembly3DTest.TwoCellsInX
+====================================================================================================
+  axis 0: n=2 h=0.5 |S|=1.0 reconstructed cP=12.0 cF=1.3333333333333333 cB=10.666666666666666 cInt=4.0
+  axis 1: n=1 h=1.0 |S|=0.5 FALLBACK      cP=2.0 cF=0.0 cB=2.0 cInt=1.0
+  axis 2: n=1 h=1.0 |S|=0.5 FALLBACK      cP=2.0 cF=0.0 cB=2.0 cInt=1.0
+  diagonal                             = 24.0   (historical 20.0)
+  off-diagonal along axis 0 = -(cInt+cF) = -5.333333333333333   (historical -4.0)
+  rhs                                  = 21.166666666666664   (historical 18.5)
+
+====================================================================================================
+C2. SparseAssembly3DTest.TwoByTwoByOne
+====================================================================================================
+  axis 0: n=2 h=0.5 |S|=0.5 reconstructed cP=6.0 cF=0.6666666666666666 cB=5.333333333333333 cInt=2.0
+  axis 1: n=2 h=0.5 |S|=0.5 reconstructed cP=6.0 cF=0.6666666666666666 cB=5.333333333333333 cInt=2.0
+  axis 2: n=1 h=1.0 |S|=0.25 FALLBACK      cP=1.0 cF=0.0 cB=1.0 cInt=0.5
+  diagonal                             = 18.0   (historical 14.0)
+  off-diagonal along axis 0 = -(cInt+cF) = -2.6666666666666665   (historical -2.0)
+  off-diagonal along axis 1 = -(cInt+cF) = -2.6666666666666665   (historical -2.0)
+  rhs                                  = 13.916666666666666   (historical 11.25)
+
+====================================================================================================
+C3. SparseAssembly3DTest.TwoByTwoByTwo
+====================================================================================================
+  axis 0: n=2 h=0.5 |S|=0.25 reconstructed cP=3.0 cF=0.3333333333333333 cB=2.6666666666666665 cInt=1.0
+  axis 1: n=2 h=0.5 |S|=0.25 reconstructed cP=3.0 cF=0.3333333333333333 cB=2.6666666666666665 cInt=1.0
+  axis 2: n=2 h=0.5 |S|=0.25 reconstructed cP=3.0 cF=0.3333333333333333 cB=2.6666666666666665 cInt=1.0
+  diagonal                             = 12.0   (historical 9.0)
+  off-diagonal along axis 0 = -(cInt+cF) = -1.3333333333333333   (historical -1.0)
+  off-diagonal along axis 1 = -(cInt+cF) = -1.3333333333333333   (historical -1.0)
+  off-diagonal along axis 2 = -(cInt+cF) = -1.3333333333333333   (historical -1.0)
+  rhs                                  = 8.625   (historical 6.625)
+
+====================================================================================================
+C4. SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+====================================================================================================
+  xmin wall  cP=12.0 cF=1.3333333333333333 cB=10.666666666666666   (historical cP=cB=8.0, cF=0)
+  y walls (fallback) cP=cB=2.0;  z walls (fallback) cP=cB=2.0
+  internal x face cInt                 = 4.0
+  A(0,0) = cP+2cPy+2cPz+cInt+mdot      = 27.0   (historical 23.0)
+  A(0,1) = -(cInt + cF)                = -5.333333333333333   (historical -4.0)
+  rhs(0) = cB + 2cBy + 2cBz + mdot + qV = 24.166666666666664   (historical 21.5)
+  cell 1: its xmax face is FixedGradient(0) -> no reconstruction, no contribution, so
+  A(1,1) = cInt + 2cPy + 2cPz + mdot   = 15.0   (historical 15.0 -- UNCHANGED)
+  A(1,0) = -(cInt + mdot)              = -7.0   (historical -7.0 -- UNCHANGED)
+  rhs(1) = 2cBy + 2cBz + qV            = 10.5   (historical 10.5 -- UNCHANGED)
+
+====================================================================================================
+D. 3x3 block, the *AreSymmetric tests (Gamma = 1, createCartesian2D(3, 3, 1.0, 1.0))
+====================================================================================================
+  h = 0.3333333333333333, |S| = 0.3333333333333333
+  internal coefficient cInt            = 1.0
+  wall cP=2.9999999999999996 cF=0.33333333333333326 cB=2.6666666666666665
+  A(1,0) = -cInt (NO far-cell term)    = -1.0   (historical -1.0, unchanged)
+  A(0,1) = -(cInt + cF)                = -1.3333333333333333   (historical -1.0)
+  asymmetry A(0,1) - A(1,0) = -cF      = -0.33333333333333326   (historical 0.0)
+  -> the equal/opposite INTERNAL-face property is intact; only the one-sided far-cell
+     coupling, which DIFF-002 introduces by design, breaks entry-level symmetry.
+
+====================================================================================================
+E. BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne (baseline control)
+====================================================================================================
+  h = 1.0, |S| = 1.0, cInt = 1.0
+  DIFF-002   cP=3.0 cF=0.3333333333333333 cB=2.6666666666666665
+  historical cP=cB=2.0 cF=0.0
+  row 1 (one Dirichlet wall + 3 internal): A(1,1) = 3*cInt + cP = 6.0   (historical 5.0)
+  A(1,4) = -(cInt + cF)                = -1.3333333333333333   (historical -1.0)
+  rhs(1) = cB * 3                      = 8.0   (historical 6.0)
+
+NOTE the historical column above is what the failing assertions expect, and the DIFF-002
+column is what the amended assertions must expect. Every 'CHANGED' row is therefore a
+negative control: an implementation still on the two-point wall flux fails the new value.

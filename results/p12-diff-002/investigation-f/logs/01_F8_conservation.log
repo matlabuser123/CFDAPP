@@ -1,0 +1,29 @@
+# INV-002 invf_conservation (libcfdcore.a sha256 58be6b751328c9bb); 2026-09-16T13:18:45Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c  probe 815343de9f4ceeb5
+# extra flags: 
+
+# INV-F8 global conservation identity audit of the DIFF-002 boundary stencil
+# C1: constant field with matching Dirichlet values -> every cell's net flux must
+#     be exactly zero (tests cP - cF = cB globally, fallback faces included).
+# C2: arbitrary field -> sum over all rows must equal the independently summed
+#     boundary flux; any non-conservative far-cell contribution appears here.
+
+## tiny hand-derived systems
+INV-F8 thermal     2x1 (hand-derived)         cells     2 | C1 constant-field max|A phi - b| 0.000e+00 (scale 3.1e+00) | C2 sum(rows) +1.040000000000e+01  independent boundary flux -1.040000000000e+01  mismatch 0.000e+00 (rel 0.000e+00) | CONSERVATIVE
+INV-F8 species     2x1 (hand-derived)         cells     2 | C1 constant-field max|A phi - b| 0.000e+00 (scale 3.1e+00) | C2 sum(rows) +1.040000000000e+01  independent boundary flux -1.040000000000e+01  mismatch 0.000e+00 (rel 0.000e+00) | CONSERVATIVE
+INV-F8 thermal     3x3                        cells     9 | C1 constant-field max|A phi - b| 1.066e-14 (scale 1.4e+00) | C2 sum(rows) +4.080000000000e+01  independent boundary flux -4.080000000000e+01  mismatch 0.000e+00 (rel 0.000e+00) | CONSERVATIVE
+INV-F8 thermal     1x1 (all fallback)         cells     1 | C1 constant-field max|A phi - b| 0.000e+00 (scale 4.3e+00) | C2 sum(rows) +1.080000000000e+00  independent boundary flux -1.080000000000e+00  mismatch 0.000e+00 (rel 0.000e+00) | CONSERVATIVE
+INV-F8 thermal     8x1 (mixed fallback)       cells     8 | C1 constant-field max|A phi - b| 0.000e+00 (scale 1.5e+00) | C2 sum(rows) +1.736000000000e+02  independent boundary flux -1.736000000000e+02  mismatch 2.842e-14 (rel 1.637e-16) | CONSERVATIVE
+
+## representative production-scale meshes
+INV-F8 thermal     Cartesian 10x10            cells   100 | C1 constant-field max|A phi - b| 1.066e-14 (scale 4.3e-01) | C2 sum(rows) +1.440000000000e+01  independent boundary flux -1.440000000000e+01  mismatch 1.243e-14 (rel 8.635e-16) | CONSERVATIVE
+INV-F8 species     Cartesian 10x10            cells   100 | C1 constant-field max|A phi - b| 1.066e-14 (scale 4.3e-01) | C2 sum(rows) +1.440000000000e+01  independent boundary flux -1.440000000000e+01  mismatch 1.243e-14 (rel 8.635e-16) | CONSERVATIVE
+INV-F8 thermal     Cartesian 20x20            cells   400 | C1 constant-field max|A phi - b| 7.105e-15 (scale 2.2e-01) | C2 sum(rows) +2.880000000000e+01  independent boundary flux -2.880000000000e+01  mismatch 2.842e-14 (rel 9.869e-16) | CONSERVATIVE
+INV-F8 species     Cartesian 20x20            cells   400 | C1 constant-field max|A phi - b| 7.105e-15 (scale 2.2e-01) | C2 sum(rows) +2.880000000000e+01  independent boundary flux -2.880000000000e+01  mismatch 2.842e-14 (rel 9.869e-16) | CONSERVATIVE
+INV-F8 thermal     Cartesian 40x40            cells  1600 | C1 constant-field max|A phi - b| 7.105e-15 (scale 1.1e-01) | C2 sum(rows) +5.760000000000e+01  independent boundary flux -5.760000000000e+01  mismatch 3.553e-14 (rel 6.168e-16) | CONSERVATIVE
+INV-F8 species     Cartesian 40x40            cells  1600 | C1 constant-field max|A phi - b| 7.105e-15 (scale 1.1e-01) | C2 sum(rows) +5.760000000000e+01  independent boundary flux -5.760000000000e+01  mismatch 3.553e-14 (rel 6.168e-16) | CONSERVATIVE
+INV-F8 thermal     sheared 20x20 s=0.45       cells   400 | C1 constant-field max|A phi - b| 7.105e-15 (scale 2.2e-01) | C2 sum(rows) +4.523103493237e+01  independent boundary flux -4.523103493237e+01  mismatch 4.974e-14 (rel 1.100e-15) | CONSERVATIVE
+INV-F8 species     sheared 20x20 s=0.45       cells   400 | C1 constant-field max|A phi - b| 7.105e-15 (scale 2.2e-01) | C2 sum(rows) +4.523103493237e+01  independent boundary flux -4.523103493237e+01  mismatch 4.974e-14 (rel 1.100e-15) | CONSERVATIVE
+INV-F8 thermal     Cartesian 3D 8x8x8         cells   512 | C1 constant-field max|A phi - b| 1.332e-15 (scale 1.9e-01) | C2 sum(rows) +1.728000000000e+01  independent boundary flux -1.728000000000e+01  mismatch 2.487e-14 (rel 1.439e-15) | CONSERVATIVE
+INV-F8 thermal     graded 20x20 r=1.2         cells   400 | C1 constant-field max|A phi - b| 2.132e-14 (scale 2.2e-01) | C2 sum(rows) +7.359286378752e+01  independent boundary flux -7.359286378752e+01  mismatch 1.421e-14 (rel 1.931e-16) | CONSERVATIVE
+exit 0

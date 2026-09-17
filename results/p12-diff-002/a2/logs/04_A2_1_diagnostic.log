@@ -1,0 +1,12 @@
+# P12-DIFF-002 A2 diff2_activation_rows (libcfdcore.a sha256 58be6b751328c9bb); 2026-09-16T07:51:56Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+# probe sha256 9e4959f9c3cf6c19
+
+# A2 diagnostic: where does the residual N0-vs-N1 rhs-sensitivity difference live?
+# boundaryValueCoefficient is exactly 0 on a row touching no boundary face, so any
+# difference on such a row is the internal-face correction, not the wall scheme.
+
+orthogonal Cartesian 16x16         boundary-adjacent rows max|d| 0.000000e+00 | INTERIOR-ONLY rows max|d| 0.000000e+00 (0 of 196 differ) -> confined to boundary rows
+DISTORTED 16x16 shear 0.45         boundary-adjacent rows max|d| 8.808252e-01 | INTERIOR-ONLY rows max|d| 1.809457e-02 (96 of 196 differ) -> difference reaches rows with NO boundary face => internal-face correction, NOT the wall scheme
+DISTORTED 32x32 shear 0.45         boundary-adjacent rows max|d| 9.234143e-01 | INTERIOR-ONLY rows max|d| 1.649823e-02 (223 of 900 differ) -> difference reaches rows with NO boundary face => internal-face correction, NOT the wall scheme
+exit 0

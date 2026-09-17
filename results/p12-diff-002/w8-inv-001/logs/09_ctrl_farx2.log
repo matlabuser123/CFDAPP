@@ -1,0 +1,36 @@
+# W8-INV-001 w8inv_structured
+# libcfdcore.a 078668bacc2d454ec0c9565fbb8450846c2bbac2d16487ef7c1a7badba2e02e1
+# 2026-09-17T08:38:52Z
+# W8-INV-001 distorted Poiseuille, extended refinement
+# mapping ax=0.1 ay=0.05 lambda=1.0 (ABSOLUTE, independent of nx/ny), L=8.0 H=1.0
+# exact dp/dx = -1.2000000000; window x in [4.00, 6.80]
+# RAW values first; orders afterwards.
+
+FAMILY A -- the test's own r = 1.5 family, EXTENDED
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8   yes    1166 5.33101529e-02    -1.0648109931  +1.35189007e-01       5.3
+    96   12   yes    1820 3.88519060e-02    -1.0974714335  +1.02528566e-01      19.8
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+    96   12    47.1772    15.1412   0.09096   0.02533    1.3031  0.035575     402 4.016..6.780
+
+  FAMILY A observed orders (r = 1.500)
+    pair 0 (64x8 -> 96x12): velocity  0.7803 | dp/dx |e|  0.6820
+
+FAMILY B -- independent r = 2 family
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8   yes    1166 5.33101529e-02    -1.0648109931  +1.35189007e-01       4.9
+   128   16   yes    2421 3.07855158e-02    -1.1156359756  +8.43640244e-02      51.4
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+   128   16    48.0245    15.3786   0.06924   0.01912    1.3089  0.026544     714 4.003..6.790
+
+  FAMILY B observed orders (r = 2.000)
+    pair 0 (64x8 -> 128x16): velocity  0.7922 | dp/dx |e|  0.6803
+
+#CSV family,nx,ny,conv,iters,velocityL2,dpdx,dpdxSignedError,maxNonOrtho,meanNonOrtho,maxSkew,maxAspect,wallDist,windowCells
+CSV,A,64,8,1,1166,5.331015287037e-02,-1.064810993112e+00,1.351890068878e-01,44.762416,14.584526,0.131758,1.286237,0.05416215,180
+CSV,A,96,12,1,1820,3.885190598085e-02,-1.097471433541e+00,1.025285664586e-01,47.177201,15.141247,0.090955,1.303118,0.03557521,402
+CSV,B,64,8,1,1166,5.331015287037e-02,-1.064810993112e+00,1.351890068878e-01,44.762416,14.584526,0.131758,1.286237,0.05416215,180
+CSV,B,128,16,1,2421,3.078551577826e-02,-1.115635975597e+00,8.436402440308e-02,48.024474,15.378610,0.069237,1.308905,0.02654387,714
+exit 0

@@ -1,0 +1,22 @@
+# P12-GRAD-002-DRIFT-001 drift_probe  tree=repo
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# probe binary 8244673e4a234b6965b4bde075283803bef5399fa3083428a98f0b65481853e8
+# case inputs  c1d4c750b66cc7ec (poiseuille_distorted) 2b5d1c097786ef6b (curved_channel_multiblock)
+# args: sq0 96 12 rc+n2 ckpt 4000
+# start 2026-09-17T10:38:05Z
+# case sq0 96x12 variant rc+n2 mode ckpt; cells 3456
+# settings: tol u 2.0e-05 p 5.0e-04 c 1.0e-06 | alpha 0.70/0.30 | nonOrth 2 | grad GG | conv 2 | flux rhie_chow | mom 1 rel 1e-08 | pres 0 rel 1e-08
+# exact G -1.8282207204
+
+  committed gate
+    iters status            velocity L2                G     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     1492 Converged     1.084808060e+00     1.3765698095 +0.000000000e+00  +6.954e-04  -4.184e-03  +1.356e-01  1.0275e+00  1.99e-05  1.46e-05  1.36e-09  1.64e-12    358.2
+
+  checkpoints (unreachable tolerance; state after exactly N iterations)
+    iters status            velocity L2                G     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     4000 MaxIterations 1.084811812e+00     1.3765583641 +0.000000000e+00  +6.954e-04  -4.184e-03  +1.356e-01  1.0275e+00  5.00e-10  6.36e-10  7.45e-11  1.27e-12    541.8
+
+  field change: max |du| and max |dp| between consecutive rows (first row vs gate)
+     1492 ->    4000  max|du| 1.8906e-04  max|dp| 1.4786e-04  d(velocity L2) +3.7520e-06  d(q) -1.1445e-05
+exit 0
+# end 2026-09-17T10:53:06Z

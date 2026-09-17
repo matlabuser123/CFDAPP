@@ -1,0 +1,33 @@
+# P12-DIFF-002 A4 W7 HARNESS; 2026-09-16T15:03:31Z
+# source HEAD            b66310ca871811c4c7671056beec291a451af55c
+# configure command      cmake -S /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp -B /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release
+# build command          cmake --build /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release --target <target> -j$(nproc)
+# targets                CFDThermalTests CFDDiscretizationTests CFDCaseIntegrationTests CFDTurbulenceTests
+
+## configure
+  cmake reconfigure OK
+
+## build (every target is built before anything runs; failure is fatal for that target)
+  CFDThermalTests built OK | binary 36c1d8b709920ee0 (was 36c1d8b709920ee0) | mtime 2026-09-16T15:00:17Z
+  CFDDiscretizationTests built OK | binary 866713589a31f9fd (was 866713589a31f9fd) | mtime 2026-09-16T15:00:25Z
+  CFDCaseIntegrationTests built OK | binary 215a0aecf8104268 (was 215a0aecf8104268) | mtime 2026-09-16T14:18:55Z
+  CFDTurbulenceTests built OK | binary 1bd3e6244e9cd4bd (was 1bd3e6244e9cd4bd) | mtime 2026-09-16T14:18:59Z
+
+## provenance of what runs
+  production library     212141137733bffa  mtime 2026-09-16T13:54:59Z
+
+## execute (freshly built binaries only)
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/thermal/CFDThermalTests
+CFDThermalTests: binary 36c1d8b709920ee0 | run 99 pass 99 fail 0 disabled 0
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/discretization/CFDDiscretizationTests
+CFDDiscretizationTests: binary 866713589a31f9fd | run 169 pass 168 fail 1 disabled 0
+    FAILED: [  FAILED  ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/case/CFDCaseIntegrationTests
+CFDCaseIntegrationTests: binary 215a0aecf8104268 | run 63 pass 61 fail 2 disabled 18
+    FAILED: [  FAILED  ] MultiBlockProductionCase.CurvedChannelGridConvergence
+    FAILED: [  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/turbulence/CFDTurbulenceTests
+CFDTurbulenceTests: binary 1bd3e6244e9cd4bd | run 136 pass 136 fail 0 disabled 0
+
+## harness verdict
+  all requested targets rebuilt and executed

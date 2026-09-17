@@ -1,0 +1,44 @@
+# A5-8 focused verification, each test run on its own; 2026-09-16T15:20:01Z
+# library      212141137733bffa
+# binary       36c1d8b709920ee0  CFDThermalTests
+# binary       866713589a31f9fd  CFDDiscretizationTests
+# binary       6f2a37fbd2892358  CFDPhysicsTests
+# binary       fee4f6b173d25d18  CFDSpeciesTests
+# binary       15219ba7d755465d  CFDSpeciesConservationValidationTests
+
+## the 17 MIGRATED tests
+  PASS  BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+  PASS  EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+  PASS  EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  PASS  EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+  PASS  EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+  PASS  EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+  PASS  EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+  PASS  SparseAssembly3DTest.TwoCellsInX
+  PASS  SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+  PASS  SparseAssembly3DTest.TwoByTwoByOne
+  PASS  SparseAssembly3DTest.TwoByTwoByTwo
+  PASS  MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  PASS  MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue
+  PASS  MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue
+  PASS  SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+  PASS  SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  PASS  SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+
+## M-B migrated in A5-10
+  PASS  SpeciesConservationTest.OpenChannelWithVolumetricSourceBalancesNetOutflowAgainstSource
+
+## KEEP / controls -- all unchanged files
+  PASS  RegionAwareThermalDiffusionTest.EqualConductivityMatchesSingleMaterialPathExactly
+  PASS  ThermalBoundaryConsistency.ConjugateConductionPathIsConsistentToo
+  PASS  ThermalBoundaryConsistency.ConvergedFieldIsConsistentWithItsBoundaryValues
+  PASS  SparseAssembly3DTest.OneCell
+
+## the conjugate boundary-equivalence suite (the ThermalInterface fix's reproducer)
+[==========] 7 tests from 1 test suite ran. (25 ms total)
+[  PASSED  ] 7 tests.
+
+## CFDThermalTests, whole suite
+[----------] Global test environment tear-down
+[==========] 99 tests from 16 test suites ran. (139 ms total)
+[  PASSED  ] 99 tests.

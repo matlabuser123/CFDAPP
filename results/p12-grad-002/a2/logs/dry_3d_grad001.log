@@ -1,0 +1,87 @@
+# P12-GRAD-002 A2 a2_3d  tree=grad001  libcfdcore.a 4fa871b8175b56481431b071e43a8ddfbd8f5bda310b5abdc34f9831a57dbee0
+# probe source ea23914d547a  args:   start 2026-09-17T13:11:58Z
+# P12-GRAD-002 A2 dry-run: linear-field Green-Gauss on skewed 2D/3D meshes, planar and warped faces
+# phi = (1.3, -0.9, 0.4) . x + 0.7; all errors relative to |grad phi| = 1.630951; production sweeps K = 4
+REF2D Q16 (C2's mesh)          geom | warp 0.000e+00 skew 2.065e-02 m_f 1.763e-01 t [0.493,0.507] alpha 5.881e-02 | floor 1.53e-13
+REF2D Q16 (C2's mesh)          K    0:8.70e-02 1:7.65e-05 2:2.67e-06 3:9.92e-09 4:1.09e-10 5:1.22e-12 6:2.63e-14 7:2.63e-14 8:2.63e-14 64:2.63e-14
+REF2D Q16 (C2's mesh)          K=4 | error 1.091e-10 | converged (K=64) 2.633e-14 | truncation |e4-e64| 1.091e-10 | |e4-PG| 1.091e-10 | bound max 3.457e-10 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.009e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+REF2D NUM-003 10x10 0.45h      geom | warp 0.000e+00 skew 4.577e-02 m_f 2.874e-01 t [0.490,0.514] alpha 1.035e-01 | floor 9.71e-14
+REF2D NUM-003 10x10 0.45h      K    0:1.25e-01 1:4.92e-04 2:4.50e-05 3:1.58e-07 4:1.43e-08 5:4.78e-11 6:4.58e-12 7:2.64e-14 8:7.86e-15 64:7.86e-15
+REF2D NUM-003 10x10 0.45h      K=4 | error 1.430e-08 | converged (K=64) 7.857e-15 | truncation |e4-e64| 1.430e-08 | |e4-PG| 1.430e-08 | bound max 3.517e-08 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.206e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+REF2D NUM-003 20x20 0.45h      geom | warp 0.000e+00 skew 1.157e-02 m_f 1.471e-01 t [0.497,0.503] alpha 2.647e-02 | floor 1.86e-13
+REF2D NUM-003 20x20 0.45h      K    0:4.94e-02 1:2.49e-05 2:1.08e-06 3:5.33e-10 4:2.28e-11 5:4.80e-14 6:4.80e-14 7:4.80e-14 8:4.80e-14 64:4.80e-14
+REF2D NUM-003 20x20 0.45h      K=4 | error 2.280e-11 | converged (K=64) 4.800e-14 | truncation |e4-e64| 2.279e-11 | |e4-PG| 2.280e-11 | bound max 5.426e-11 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.217e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=1 8^3           geom | warp 6.403e-17 skew 3.339e-02 m_f 3.363e-01 t [0.499,0.518] alpha 6.552e-02 | vol 2.44e-15 area 3.75e-16 | PG 5.111e-15 D 7.432e-15 | floor 1.31e-13
+PLANAR planar s=1 8^3           K    0:1.85e-01 1:2.67e-02 2:3.87e-03 3:5.60e-04 4:8.13e-05 5:1.17e-05 6:1.71e-06 7:2.46e-07 8:3.58e-08 64:6.30e-15
+PLANAR planar s=1 8^3           PG/floor 3.900e-02 -> not resolved (planar or round-off)
+PLANAR planar s=1 8^3           K=4 | error 8.130e-05 | converged (K=64) 6.298e-15 | truncation |e4-e64| 8.130e-05 | |e4-PG| 8.130e-05 | bound max 2.552e-04 | recursion K=1..8: worst |e-PG|/(bound+floor) 6.361e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=1 16^3          geom | warp 6.427e-17 skew 1.813e-02 m_f 3.408e-01 t [0.498,0.509] alpha 3.773e-02 | vol 5.11e-15 area 4.44e-16 | PG 1.502e-14 D 2.086e-14 | floor 2.68e-13
+PLANAR planar s=1 16^3          K    0:1.76e-01 1:2.53e-02 2:3.65e-03 3:5.25e-04 4:7.57e-05 5:1.09e-05 6:1.57e-06 7:2.26e-07 8:3.25e-08 64:1.52e-14
+PLANAR planar s=1 16^3          PG/floor 5.596e-02 -> not resolved (planar or round-off)
+PLANAR planar s=1 16^3          K=4 | error 7.567e-05 | converged (K=64) 1.524e-14 | truncation |e4-e64| 7.567e-05 | |e4-PG| 7.567e-05 | bound max 2.333e-04 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.668e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=1 32^3          geom | warp 8.822e-17 skew 9.358e-03 m_f 3.406e-01 t [0.499,0.505] alpha 1.940e-02 | vol 1.17e-14 area 4.72e-16 | PG 3.293e-14 D 5.123e-14 | floor 5.43e-13
+PLANAR planar s=1 32^3          K    0:1.73e-01 1:2.49e-02 2:3.58e-03 3:5.15e-04 4:7.40e-05 5:1.06e-05 6:1.53e-06 7:2.20e-07 8:3.16e-08 64:3.07e-14
+PLANAR planar s=1 32^3          PG/floor 6.060e-02 -> not resolved (planar or round-off)
+PLANAR planar s=1 32^3          K=4 | error 7.402e-05 | converged (K=64) 3.072e-14 | truncation |e4-e64| 7.402e-05 | |e4-PG| 7.402e-05 | bound max 2.280e-04 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.982e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=1e-06 16^3      geom | warp 5.294e-23 skew 1.802e-08 m_f 3.522e-07 t [0.500,0.500] alpha 3.536e-08 | vol 4.88e-15 area 4.44e-16 | PG 1.143e-14 D 1.796e-14 | floor 2.47e-13
+PLANAR planar s=1e-06 16^3      K    0:1.39e-07 1:2.50e-14 2:1.39e-14 3:1.39e-14 4:1.39e-14 5:1.39e-14 6:1.39e-14 7:1.39e-14 8:1.39e-14 64:1.39e-14
+PLANAR planar s=1e-06 16^3      PG/floor 4.633e-02 -> not resolved (planar or round-off)
+PLANAR planar s=1e-06 16^3      K=4 | error 1.392e-14 | converged (K=64) 1.392e-14 | truncation |e4-e64| 0.000e+00 | |e4-PG| 1.067e-14 | bound max 3.120e-21 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.699e-02, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=0.001 16^3      geom | warp 1.084e-19 skew 1.802e-05 m_f 3.522e-04 t [0.500,0.500] alpha 3.536e-05 | vol 4.44e-15 area 4.44e-16 | PG 1.428e-14 D 1.948e-14 | floor 2.47e-13
+PLANAR planar s=0.001 16^3      K    0:1.39e-04 1:2.09e-08 2:3.14e-12 3:1.19e-14 4:1.19e-14 5:1.19e-14 6:1.19e-14 7:1.19e-14 8:1.19e-14 64:1.19e-14
+PLANAR planar s=0.001 16^3      PG/floor 5.787e-02 -> not resolved (planar or round-off)
+PLANAR planar s=0.001 16^3      K=4 | error 1.188e-14 | converged (K=64) 1.188e-14 | truncation |e4-e64| 0.000e+00 | |e4-PG| 1.378e-14 | bound max 2.827e-18 | recursion K=1..8: worst |e-PG|/(bound+floor) 3.688e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=0.25 16^3       geom | warp 1.482e-17 skew 4.546e-03 m_f 8.829e-02 t [0.500,0.502] alpha 8.982e-03 | vol 4.88e-15 area 6.28e-16 | PG 1.237e-14 D 1.618e-14 | floor 2.51e-13
+PLANAR planar s=0.25 16^3       K    0:3.70e-02 1:1.39e-03 2:5.20e-05 3:1.94e-06 4:7.29e-08 5:2.73e-09 6:1.02e-10 7:3.83e-12 8:1.44e-13 64:1.48e-14
+PLANAR planar s=0.25 16^3       PG/floor 4.924e-02 -> not resolved (planar or round-off)
+PLANAR planar s=0.25 16^3       K=4 | error 7.286e-08 | converged (K=64) 1.476e-14 | truncation |e4-e64| 7.286e-08 | |e4-PG| 7.286e-08 | bound max 2.132e-07 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.149e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=0.5 16^3        geom | warp 4.862e-17 skew 9.129e-03 m_f 1.757e-01 t [0.499,0.505] alpha 1.825e-02 | vol 5.33e-15 area 4.88e-16 | PG 1.206e-14 D 1.969e-14 | floor 2.56e-13
+PLANAR planar s=0.5 16^3        K    0:7.87e-02 1:5.85e-03 2:4.35e-04 3:3.23e-05 4:2.40e-06 5:1.78e-07 6:1.32e-08 7:9.83e-10 8:7.31e-11 64:1.39e-14
+PLANAR planar s=0.5 16^3        PG/floor 4.706e-02 -> not resolved (planar or round-off)
+PLANAR planar s=0.5 16^3        K=4 | error 2.399e-06 | converged (K=64) 1.391e-14 | truncation |e4-e64| 2.399e-06 | |e4-PG| 2.399e-06 | bound max 7.104e-06 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.331e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+PLANAR planar s=2 16^3          geom | warp 1.529e-16 skew 3.477e-02 m_f 6.012e-01 t [0.497,0.520] alpha 8.091e-02 | vol 6.00e-15 area 5.16e-16 | PG 1.580e-14 D 2.932e-14 | floor 3.01e-13
+PLANAR planar s=2 16^3          K    0:4.22e-01 1:1.09e-01 2:2.81e-02 3:7.26e-03 4:1.88e-03 5:4.83e-04 6:1.25e-04 7:3.22e-05 8:8.33e-06 64:2.05e-14
+PLANAR planar s=2 16^3          PG/floor 5.244e-02 -> not resolved (planar or round-off)
+PLANAR planar s=2 16^3          K=4 | error 1.875e-03 | converged (K=64) 2.048e-14 | truncation |e4-e64| 1.875e-03 | |e4-PG| 1.875e-03 | bound max 6.589e-03 | recursion K=1..8: worst |e-PG|/(bound+floor) 8.207e-01, cells over 0 -> HOLDS | control PG:=0: cells over 0
+WARPED warped A=0.05 8^3        geom | warp 6.228e-02 skew 1.763e-02 m_f 1.887e-01 t [0.489,0.515] alpha 9.129e-02 | vol 2.33e-15 area 4.41e-16 | PG 1.242e-03 D 1.242e-03 | floor 1.29e-13
+WARPED warped A=0.05 8^3        K    0:4.80e-02 1:1.25e-03 2:1.24e-03 3:1.24e-03 4:1.24e-03 5:1.24e-03 6:1.24e-03 7:1.24e-03 8:1.24e-03 64:1.24e-03
+WARPED warped A=0.05 8^3        PG/floor 9.645e+09 -> RESOLVED
+WARPED warped A=0.05 8^3        K=4 | error 1.244e-03 | converged (K=64) 1.244e-03 | truncation |e4-e64| 2.340e-09 | |e4-PG| 2.832e-05 | bound max 4.604e-05 | recursion K=1..8: worst |e-PG|/(bound+floor) 6.815e-01, cells over 0 -> HOLDS | control PG:=0: cells over 3733
+WARPED warped A=0.05 16^3       geom | warp 3.144e-02 skew 9.550e-03 m_f 2.033e-01 t [0.494,0.508] alpha 4.978e-02 | vol 6.55e-15 area 5.80e-16 | PG 3.273e-04 D 3.273e-04 | floor 2.63e-13
+WARPED warped A=0.05 16^3       K    0:4.90e-02 1:3.28e-04 2:3.27e-04 3:3.27e-04 4:3.27e-04 5:3.27e-04 6:3.27e-04 7:3.27e-04 8:3.27e-04 64:3.27e-04
+WARPED warped A=0.05 16^3       PG/floor 1.245e+09 -> RESOLVED
+WARPED warped A=0.05 16^3       K=4 | error 3.275e-04 | converged (K=64) 3.275e-04 | truncation |e4-e64| 1.912e-10 | |e4-PG| 7.894e-06 | bound max 1.206e-05 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.337e-01, cells over 0 -> HOLDS | control PG:=0: cells over 30664
+WARPED warped A=0.05 32^3       geom | warp 1.576e-02 skew 4.851e-03 m_f 2.071e-01 t [0.497,0.504] alpha 2.527e-02 | vol 1.14e-14 area 6.50e-16 | PG 8.291e-05 D 8.291e-05 | floor 5.31e-13
+WARPED warped A=0.05 32^3       K    0:4.91e-02 1:8.30e-05 2:8.29e-05 3:8.29e-05 4:8.29e-05 5:8.29e-05 6:8.29e-05 7:8.29e-05 8:8.29e-05 64:8.29e-05
+WARPED warped A=0.05 32^3       PG/floor 1.562e+08 -> RESOLVED
+WARPED warped A=0.05 32^3       K=4 | error 8.292e-05 | converged (K=64) 8.292e-05 | truncation |e4-e64| 1.273e-11 | |e4-PG| 1.995e-06 | bound max 3.006e-06 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.457e-01, cells over 0 -> HOLDS | control PG:=0: cells over 251487
+WARPED warped A=0 16^3          geom | warp 0.000e+00 skew 0.000e+00 m_f 0.000e+00 t [0.500,0.500] alpha 0.000e+00 | vol 7.11e-15 area 2.22e-16 | PG 8.504e-15 D 1.445e-14 | floor 2.47e-13
+WARPED warped A=0 16^3          K    0:8.40e-15 1:8.40e-15 2:8.40e-15 3:8.40e-15 4:8.40e-15 5:8.40e-15 6:8.40e-15 7:8.40e-15 8:8.40e-15 64:8.40e-15
+WARPED warped A=0 16^3          PG/floor 3.447e-02 -> not resolved (planar or round-off)
+WARPED warped A=0 16^3          K=4 | error 8.399e-15 | converged (K=64) 8.399e-15 | truncation |e4-e64| 0.000e+00 | |e4-PG| 1.173e-14 | bound max 0.000e+00 | recursion K=1..8: worst |e-PG|/(bound+floor) 4.755e-02, cells over 0 -> HOLDS | control PG:=0: cells over 0
+WARPED warped A=1e-08 16^3      geom | warp 6.090e-09 skew 1.885e-09 m_f 3.834e-08 t [0.500,0.500] alpha 9.782e-09 | vol 5.66e-15 area 4.44e-16 | PG 6.535e-11 D 6.535e-11 | floor 2.47e-13
+WARPED warped A=1e-08 16^3      K    0:9.57e-09 1:6.53e-11 2:6.53e-11 3:6.53e-11 4:6.53e-11 5:6.53e-11 6:6.53e-11 7:6.53e-11 8:6.53e-11 64:6.53e-11
+WARPED warped A=1e-08 16^3      PG/floor 2.649e+02 -> RESOLVED
+WARPED warped A=1e-08 16^3      K=4 | error 6.535e-11 | converged (K=64) 6.535e-11 | truncation |e4-e64| 0.000e+00 | |e4-PG| 1.067e-14 | bound max 4.561e-19 | recursion K=1..8: worst |e-PG|/(bound+floor) 4.326e-02, cells over 0 -> HOLDS | control PG:=0: cells over 32512
+WARPED warped A=1e-06 16^3      geom | warp 6.090e-07 skew 1.885e-07 m_f 3.834e-06 t [0.500,0.500] alpha 9.782e-07 | vol 5.77e-15 area 4.44e-16 | PG 6.534e-09 D 6.534e-09 | floor 2.47e-13
+WARPED warped A=1e-06 16^3      K    0:9.57e-07 1:6.53e-09 2:6.53e-09 3:6.53e-09 4:6.53e-09 5:6.53e-09 6:6.53e-09 7:6.53e-09 8:6.53e-09 64:6.53e-09
+WARPED warped A=1e-06 16^3      PG/floor 2.649e+04 -> RESOLVED
+WARPED warped A=1e-06 16^3      K=4 | error 6.534e-09 | converged (K=64) 6.534e-09 | truncation |e4-e64| 0.000e+00 | |e4-PG| 1.378e-14 | bound max 4.561e-15 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.260e-02, cells over 0 -> HOLDS | control PG:=0: cells over 32768
+WARPED warped A=0.0001 16^3     geom | warp 6.090e-05 skew 1.885e-05 m_f 3.835e-04 t [0.500,0.500] alpha 9.782e-05 | vol 6.22e-15 area 4.44e-16 | PG 6.534e-07 D 6.534e-07 | floor 2.47e-13
+WARPED warped A=0.0001 16^3     K    0:9.57e-05 1:6.53e-07 2:6.53e-07 3:6.53e-07 4:6.53e-07 5:6.53e-07 6:6.53e-07 7:6.53e-07 8:6.53e-07 64:6.53e-07
+WARPED warped A=0.0001 16^3     PG/floor 2.648e+06 -> RESOLVED
+WARPED warped A=0.0001 16^3     K=4 | error 6.534e-07 | converged (K=64) 6.534e-07 | truncation |e4-e64| 0.000e+00 | |e4-PG| 2.479e-11 | bound max 4.561e-11 | recursion K=1..8: worst |e-PG|/(bound+floor) 5.723e-01, cells over 0 -> HOLDS | control PG:=0: cells over 32728
+WARPED warped A=0.001 16^3      geom | warp 6.094e-04 skew 1.885e-04 m_f 3.840e-03 t [0.500,0.500] alpha 9.783e-04 | vol 4.77e-15 area 4.44e-16 | PG 6.535e-06 D 6.535e-06 | floor 2.47e-13
+WARPED warped A=0.001 16^3      K    0:9.57e-04 1:6.53e-06 2:6.53e-06 3:6.53e-06 4:6.53e-06 5:6.53e-06 6:6.53e-06 7:6.53e-06 8:6.53e-06 64:6.53e-06
+WARPED warped A=0.001 16^3      PG/floor 2.646e+07 -> RESOLVED
+WARPED warped A=0.001 16^3      K=4 | error 6.535e-06 | converged (K=64) 6.535e-06 | truncation |e4-e64| 0.000e+00 | |e4-PG| 2.488e-09 | bound max 4.565e-09 | recursion K=1..8: worst |e-PG|/(bound+floor) 5.846e-01, cells over 0 -> HOLDS | control PG:=0: cells over 32440
+WARPED warped A=0.01 16^3       geom | warp 6.129e-03 skew 1.885e-03 m_f 3.891e-02 t [0.499,0.502] alpha 9.792e-03 | vol 5.33e-15 area 4.48e-16 | PG 6.537e-05 D 6.537e-05 | floor 2.49e-13
+WARPED warped A=0.01 16^3       K    0:9.63e-03 1:6.54e-05 2:6.54e-05 3:6.54e-05 4:6.54e-05 5:6.54e-05 6:6.54e-05 7:6.54e-05 8:6.54e-05 64:6.54e-05
+WARPED warped A=0.01 16^3       PG/floor 2.621e+08 -> RESOLVED
+WARPED warped A=0.01 16^3       K=4 | error 6.537e-05 | converged (K=64) 6.537e-05 | truncation |e4-e64| 5.631e-14 | |e4-PG| 2.610e-07 | bound max 4.601e-07 | recursion K=1..8: worst |e-PG|/(bound+floor) 6.595e-01, cells over 0 -> HOLDS | control PG:=0: cells over 31708
+WARPED warped A=0.025 16^3      geom | warp 1.547e-02 skew 4.712e-03 m_f 9.919e-02 t [0.497,0.504] alpha 2.461e-02 | vol 5.33e-15 area 4.43e-16 | PG 1.635e-04 D 1.635e-04 | floor 2.54e-13
+WARPED warped A=0.025 16^3      K    0:2.43e-02 1:1.64e-04 2:1.64e-04 3:1.64e-04 4:1.64e-04 5:1.64e-04 6:1.64e-04 7:1.64e-04 8:1.64e-04 64:1.64e-04
+WARPED warped A=0.025 16^3      PG/floor 6.442e+08 -> RESOLVED
+WARPED warped A=0.025 16^3      K=4 | error 1.635e-04 | converged (K=64) 1.635e-04 | truncation |e4-e64| 5.622e-12 | |e4-PG| 1.761e-06 | bound max 2.919e-06 | recursion K=1..8: worst |e-PG|/(bound+floor) 7.017e-01, cells over 0 -> HOLDS | control PG:=0: cells over 31208
+exit 0
+# end 2026-09-17T13:12:19Z

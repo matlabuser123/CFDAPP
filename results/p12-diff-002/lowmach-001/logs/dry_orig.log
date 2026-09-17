@@ -1,0 +1,35 @@
+# LOWMACH-001 dry-run variant=orig; 2026-09-17T11:47:47Z
+# test source 782eded58582bb40
+# warnings in the test source: 0
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from LowMachRegressionTest
+[ RUN      ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne
+[       OK ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne (3028 ms)
+[ RUN      ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity
+[       OK ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity (3011 ms)
+[ RUN      ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance
+[       OK ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance (2972 ms)
+[ RUN      ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit
+[       OK ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit (3191 ms)
+[ RUN      ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+/root/lowmach_dry/orig/src_tree/tests/integration/compressible/test_low_mach_regression.cpp:261: Failure
+Expected: (outcome.globalMassImbalance) < (1e-4), actual: 0.00010343290470245418 vs 0.0001
+
+[  FAILED  ] LowMachRegressionTest.GlobalMassImbalanceIsSmall (3152 ms)
+[ RUN      ] LowMachRegressionTest.GridRefinementKeepsAllMetricsSmall
+[       OK ] LowMachRegressionTest.GridRefinementKeepsAllMetricsSmall (9175 ms)
+[ RUN      ] LowMachRegressionTest.RepeatedRunIsDeterministic
+[       OK ] LowMachRegressionTest.RepeatedRunIsDeterministic (5553 ms)
+[----------] 7 tests from LowMachRegressionTest (30093 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (30095 ms total)
+[  PASSED  ] 6 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+
+ 1 FAILED TEST
+exit 1

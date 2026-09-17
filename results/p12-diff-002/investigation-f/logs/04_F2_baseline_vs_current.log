@@ -1,0 +1,47 @@
+# INV-F2/F9 baseline vs current; 2026-09-16T13:22:37Z
+# baseline library ac4f49b630960cae  (DIFF-002 block removed)
+# current  library 58be6b751328c9bb
+
+## F1 SpeciesConservationTest.OpenChannelWithVolumetricSource...
+  --- PRE-DIFF-002  (binary 6383c766a44650ac) ---
+    [       OK ] SpeciesConservationTest.OpenChannelWithVolumetricSourceBalancesNetOutflowAgainstSource (17 ms)
+  --- CURRENT  (binary 1359901dd8858354) ---
+    Expected: (std::abs(netOut - totalSource) / scale) < (1e-3), actual: 0.0015873363786766995 vs 0.001
+
+## F2 LowMachRegressionTest.GlobalMassImbalanceIsSmall
+  --- PRE-DIFF-002  (binary c5fb4aa87adf51b1) ---
+    Note: Google Test filter = LowMachRegressionTest.*
+    [----------] 7 tests from LowMachRegressionTest
+    [ RUN      ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne
+    [       OK ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne (1059 ms)
+    [ RUN      ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity
+    [       OK ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity (1080 ms)
+    [ RUN      ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance
+    [       OK ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance (1085 ms)
+    [ RUN      ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit
+    [       OK ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit (1040 ms)
+    [ RUN      ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+    [       OK ] LowMachRegressionTest.GlobalMassImbalanceIsSmall (1066 ms)
+  --- CURRENT  (binary e00c888655c76547) ---
+    Note: Google Test filter = LowMachRegressionTest.*
+    [----------] 7 tests from LowMachRegressionTest
+    [ RUN      ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne
+    [       OK ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne (1354 ms)
+    [ RUN      ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity
+    [       OK ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity (1314 ms)
+    [ RUN      ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance
+    [       OK ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance (1349 ms)
+    [ RUN      ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit
+    [       OK ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit (1337 ms)
+    [ RUN      ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+    Expected: (outcome.globalMassImbalance) < (1e-4), actual: 0.00010343290470245418 vs 0.0001
+
+## F3/F4 NaturalConvectionValidation De Vahl Davis 10x10 (both variants) + 15x15
+  --- PRE-DIFF-002  (binary 8472edc4f5b34170) ---
+    [       OK ] NaturalConvectionValidation.Grid10x10MatchesDeVahlDavisRa1e3 (3461 ms)
+    [       OK ] NaturalConvectionValidation.Grid10x10ConstantPropertyModelsMatchDeVahlDavisRa1e3 (3529 ms)
+    [       OK ] NaturalConvectionValidation.Grid15x15MatchesDeVahlDavisRa1e3 (15685 ms)
+  --- CURRENT  (binary af59a95ffa6530bf) ---
+    Expected: (r.vMaxError) < (0.12), actual: 0.13025504776123645 vs 0.12
+    Expected: (r.vMaxError) < (0.12), actual: 0.13025504776123645 vs 0.12
+    [       OK ] NaturalConvectionValidation.Grid15x15MatchesDeVahlDavisRa1e3 (17062 ms)

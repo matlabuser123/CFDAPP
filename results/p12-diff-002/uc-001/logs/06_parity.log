@@ -1,0 +1,100 @@
+P12-DIFF-002-UC-001: the centreline-sampling parity artifact, and the exact per-grid
+reference constants the migrated gate needs.
+
+ANALYTICAL REFERENCE ONLY -- derived here, not read from CFDApp. CFDApp numbers appear once, at
+the end, clearly labelled, as the subject of the comparison.
+
+DIFF-002's discrete fully-developed solution equals the continuum parabola AT THE CELL CENTRES:
+
+    u_j = -(G/2) y_j (H - y_j),   y_j = (j + 1/2) h,   h = H/ny,   G = (dp/dx)/mu
+    dp/dx = dp/dx_exact * 2ny^2 / (2ny^2 + 1)
+
+The tests do not read a cell value at y = H/2; they read
+`interpolateProfile(profile, H/2)`, a LINEAR interpolation of the cell-centre samples (with
+u = 0 anchors at both walls). That sampling has a different error constant depending on the
+parity of ny:
+
+  * ny ODD  -- (ny-1)/2 + 1/2 = ny/2 means y = H/2 IS a cell centre, so the sample is the
+    discrete solution itself:
+        u_c = -(G/2)(H/2)(H/2) = -G H^2/8
+    and, with 1.5 U = -G_exact H^2/8,
+        1.5 - u_c = 1.5 * (1 - 2ny^2/(2ny^2+1)) = 1.5 / (2ny^2 + 1).
+
+  * ny EVEN -- y = H/2 falls exactly midway between the centres y = H/2 -+ h/2, so the sample is
+    the CHORD midpoint of the parabola, which undershoots the parabola's apex by (G/2)(h/2)^2:
+        u_c = -G H^2/8 + (G/2)(h/2)^2 = -G H^2/8 + G H^2/(8 ny^2)
+    Writing it as a deficit from the continuum apex and using G = G_exact * 2ny^2/(2ny^2+1):
+        1.5 - u_c = 1.5/(2ny^2+1) + 1.5 * (2/(2ny^2+1) ... )  -- evaluated exactly below.
+
+So the two parities have DIFFERENT error constants. A three-grid order study whose ny values do
+not all share a parity is therefore not a clean h-refinement sequence for the centreline, and its
+observed order is meaningless.
+
+====================================================================================================
+A. EXACT SAMPLED CENTRELINE AND ITS DEFICIT FROM THE CONTINUUM APEX 1.5
+====================================================================================================
+
+    ny  par     sampled u_c (exact)                u_c      1.5 - u_c (exact)         value
+     8 even                   63/43  1.465116279069767                   3/86  3.488372e-02
+    12 even                 429/289  1.484429065743945                  9/578  1.557093e-02
+    16 even                   85/57  1.491228070175439                  1/114  8.771930e-03
+    18 even                 969/649  1.493066255778120                 9/1298  6.933744e-03
+    24 even               1725/1153  1.496097137901127                 9/2306  3.902862e-03
+    27  odd               2187/1459  1.498971898560658                 3/2918  1.028101e-03
+    32 even                1023/683  1.497803806734993                 3/1366  2.196193e-03
+    36 even               3885/2593  1.498264558426533                 9/5186  1.735442e-03
+
+  Closed forms for the deficit, verified as exact rationals below:
+     ny odd  :  1.5 / (2ny^2 + 1)
+     ny even :  4.5 / (2ny^2 + 1)      <-- exactly 3x the odd constant
+
+    ny=  8 (even): deficit           3/86 == predicted           3/86  OK
+    ny= 12 (even): deficit          9/578 == predicted          9/578  OK
+    ny= 16 (even): deficit          1/114 == predicted          1/114  OK
+    ny= 18 (even): deficit         9/1298 == predicted         9/1298  OK
+    ny= 24 (even): deficit         9/2306 == predicted         9/2306  OK
+    ny= 27 (odd ): deficit         3/2918 == predicted         3/2918  OK
+    ny= 32 (even): deficit         3/1366 == predicted         3/1366  OK
+    ny= 36 (even): deficit         9/5186 == predicted         9/5186  OK
+
+  => The even-ny centreline deficit is EXACTLY 3x the odd-ny one at the same ny.
+     Mixing parities inside a refinement triplet injects a factor-3 jump that the
+     Richardson estimator reads as a change of order.
+
+====================================================================================================
+B. CENTRELINE ORDER OF THE EXACT REFERENCE, BY TRIPLET PARITY
+====================================================================================================
+
+  (8, 12, 18)  [all even]                      p =  1.9846   asymptotic ratio =  0.9938   asymptotic
+  (16, 24, 36)  [all even]                     p =  1.9961   asymptotic ratio =  0.9984   asymptotic
+  (12, 18, 27)  [MIXED PARITY]                 p =  0.9376   asymptotic ratio =  0.6500   monotonic_not_asymptotic
+
+  The mixed triplet (12, 18, 27) is corrupted purely by the sampling parity -- these are
+  EXACT reference values, with no solver, no iteration and no round-off involved.
+
+====================================================================================================
+C. CFDApp PRODUCTION RESULT vs the exact reference (subject of the comparison)
+====================================================================================================
+
+  ny=  8 (even)  production 1.465119668846815   reference 1.465116279069767   |diff| 3.390e-06
+  ny= 12 (even)  production 1.484429036247831   reference 1.484429065743945   |diff| 2.950e-08
+  ny= 18 (even)  production 1.493066251845519   reference 1.493066255778120   |diff| 3.933e-09
+  ny= 27 (odd )  production 1.498971906785702   reference 1.498971898560658   |diff| 8.225e-09
+
+  Production tracks the exact reference to <= 4.1e-06 on every grid INCLUDING the odd one,
+  so the 0.9376 order the 12/18/27 triplet produces is reproduced by the reference itself
+  and is a property of the SAMPLING, not of CFDApp.
+
+====================================================================================================
+D. EXACT CONSTANTS FOR THE MIGRATED GATE (derived from ny alone)
+====================================================================================================
+
+    ny     dp/dx (exact)              dp/dx    rel err vs continuum    drop ratio
+     8          -256/215 -1.190697674418605       1/129 = 7.751938e-03       128/129
+    12        -1728/1445 -1.195847750865052       1/289 = 3.460208e-03       288/289
+    18        -3888/3245 -1.198151001540832       1/649 = 1.540832e-03       648/649
+    27        -8748/7295 -1.199177518848526      1/1459 = 6.854010e-04     1458/1459
+
+  dp/dx relative error vs the continuum is EXACTLY 1/(2ny^2 + 1); the pressure-drop ratio
+  over any fully-developed segment is EXACTLY 2ny^2/(2ny^2 + 1).
+  (The superseded two-point forms were 2/(ny^2+2) and ny^2/(ny^2+2).)

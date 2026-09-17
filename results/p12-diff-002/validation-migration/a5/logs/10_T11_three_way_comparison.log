@@ -1,0 +1,75 @@
+# A5-9: T11's failure set at three points, T11 itself unaltered
+# 2026-09-16T15:15:54Z
+
+## (1) PRE-FIX production (CFDThermalTests + CFDDiscretizationTests only)
+    BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialIn3D
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOn10x10
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOn20x20
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOn2x1
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOnADistortedMesh
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOnAGradedMesh
+    ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOnOneCellThickMeshes
+    EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+    EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+    EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+    EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+    EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+    EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+    GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+    RegionAwareThermalDiffusionTest.EqualConductivityMatchesSingleMaterialPathExactly
+    SparseAssembly3DTest.TwoByTwoByOne
+    SparseAssembly3DTest.TwoByTwoByTwo
+    SparseAssembly3DTest.TwoCellsInX
+    SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+    ThermalBoundaryConsistency.ConjugateConductionPathIsConsistentToo
+
+## (2) POST-FIX, PRE-MIGRATION -- the BLOCKED AT T11 state (all four T11 suites)
+    BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+    EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+    EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+    EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+    EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+    EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+    EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+    GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+    MultiBlockProductionCase.CurvedChannelGridConvergence
+    SparseAssembly3DTest.TwoByTwoByOne
+    SparseAssembly3DTest.TwoByTwoByTwo
+    SparseAssembly3DTest.TwoCellsInX
+    SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+    StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+
+## (3) POST-A5 (all four T11 suites)
+    GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+    MultiBlockProductionCase.CurvedChannelGridConvergence
+    StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+
+## resolved between (2) and (3) -- the M-A migration
+  + BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+  + EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+  + EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+  + EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+  + EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+  + EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+  + EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+  + SparseAssembly3DTest.TwoByTwoByOne
+  + SparseAssembly3DTest.TwoByTwoByTwo
+  + SparseAssembly3DTest.TwoCellsInX
+  + SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+
+## NEW between (2) and (3)
+  (none)
+
+## still failing in (3), and why T11 permits each
+    GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment           U-H (GRAD-002 history)
+    MultiBlockProductionCase.CurvedChannelGridConvergence                                        U-H (W8 history)
+    StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence                              U-H (W8 history)
+
+## counts
+  (2) pre-migration : 467 run, 453 pass, 14 fail, 18 disabled   (11 M-A + 3 U-H)
+  (3) post-A5       : 467 run, 464 pass,  3 fail, 18 disabled   (3 U-H only)
+
+T11's criterion: 'no failure other than the 13 U tests frozen in acceptance_gate.md section 3,
+and no new failure of any kind'. In (3) every remaining failure is one of those U tests and
+no failure is new -> T11 PASSES, unaltered.

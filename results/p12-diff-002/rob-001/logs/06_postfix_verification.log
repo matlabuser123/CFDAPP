@@ -1,0 +1,62 @@
+# ROB-001 post-fix verification; 2026-09-16T16:02:37Z
+# library        143a1dda0680bc1d  (pre-fix 212141137733bffa)
+# CFDSolverTests 5afdc070bfd3d244  (pre-fix 6d42414d8baa38e2)
+# CFDSimpleTests fa57cb9b8104d2b1  (pre-fix b88d7f1affa02336)
+
+############ R5 -- direct rule-2 non-vacuity, the three sequences ############
+[ RUN      ] ResidualTrend.HealthyDecreasingContinuityDoesNotTriggerDivergence
+[       OK ] ResidualTrend.HealthyDecreasingContinuityDoesNotTriggerDivergence (0 ms)
+[ RUN      ] ResidualTrend.SubFloorRoundOffGrowthIsNotDivergence
+[       OK ] ResidualTrend.SubFloorRoundOffGrowthIsNotDivergence (0 ms)
+[ RUN      ] ResidualTrend.AboveFloorContinuityRunawayStillTriggersDivergence
+[       OK ] ResidualTrend.AboveFloorContinuityRunawayStillTriggersDivergence (0 ms)
+[  PASSED  ] 3 tests.
+
+############ R5 control -- the existing above-floor rule-2 test must still pass ############
+[       OK ] ResidualTrend.Converging (1 ms)
+[       OK ] ResidualTrend.SlowConvergenceIsNotStagnation (0 ms)
+[       OK ] ResidualTrend.Stagnating (0 ms)
+[       OK ] ResidualTrend.Diverging (0 ms)
+[       OK ] ResidualTrend.SustainedRunawayFromAPlateau (0 ms)
+[       OK ] ResidualTrend.SingleSpikeDoesNotTriggerDivergence (0 ms)
+[       OK ] ResidualTrend.NonFiniteResidualIsDivergingWhenEnabled (0 ms)
+[       OK ] ResidualTrend.DisabledDetectionNeverStops (0 ms)
+[       OK ] ResidualTrend.HealthyDecreasingContinuityDoesNotTriggerDivergence (0 ms)
+[       OK ] ResidualTrend.SubFloorRoundOffGrowthIsNotDivergence (0 ms)
+[       OK ] ResidualTrend.AboveFloorContinuityRunawayStillTriggersDivergence (0 ms)
+
+############ R3 -- baseline invariance (test file byte-identical) ############
+  test_simple_robustness.cpp 97fc7b6193db72cdc5a55dbd8b9f1e4822718ef9ea71567e67a12d7bc42d3c1e
+[       OK ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline (75 ms)
+[  PASSED  ] 1 test.
+
+############ R4/R4b -- genuine divergence still fires ############
+Aggressive fixed relaxation 0.9/0.9, divergence detection on: status 8, 21 iterations, final u 1.26e+13 v 1.71e+12 p 1.28e+06 continuity 2.11e-05, alpha 0.9/0.9 (min 0.9), increases 0 decreases 0, fallbacks 0 (recovered 0)
+  detail: divergence: every one of the last 10 u residuals is >= 10 x its best value since iteration 10 (1.093e+04); window minimum 2.864e+05, latest 1.255e+13
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/solver/simple/test_simple_robustness.cpp:304: Failure
+    Which is: 21
+    Which is: 20
+[  FAILED  ] SIMPLERobustnessTest.DivergenceStatus (10 ms)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SIMPLERobustnessTest.DivergenceStatus
+
+############ R6 -- every SIMPLERobustnessTest ############
+[       OK ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline (72 ms)
+[       OK ] SIMPLERobustnessTest.NormalizedResidualConvergence (535 ms)
+[       OK ] SIMPLERobustnessTest.StagnationStatus (1570 ms)
+[       OK ] SIMPLERobustnessTest.NormalConvergenceIsNotStagnationOrDivergence (462 ms)
+[  FAILED  ] SIMPLERobustnessTest.DivergenceStatus (7 ms)
+[       OK ] SIMPLERobustnessTest.AdaptiveRelaxationRecovery (360 ms)
+[       OK ] SIMPLERobustnessTest.LinearSolverFallbackRecovery (269 ms)
+[       OK ] SIMPLERobustnessTest.Deterministic (473 ms)
+[       OK ] SIMPLERobustnessTest.InvalidRobustnessSettingsAreInvalidConfiguration (4 ms)
+[       OK ] SIMPLERobustnessTest.BookkeepingOverheadIsSmall (460 ms)
+[==========] 10 tests from 1 test suite ran. (4215 ms total)
+[  PASSED  ] 9 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SIMPLERobustnessTest.DivergenceStatus
+
+############ R6 -- the whole CFDSolverTests suite ############
+[==========] 90 tests from 10 test suites ran. (28 ms total)
+[  PASSED  ] 90 tests.

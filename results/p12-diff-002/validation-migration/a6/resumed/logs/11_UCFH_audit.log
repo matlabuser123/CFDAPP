@@ -1,0 +1,33 @@
+# P12-DIFF-002 A4 W7 HARNESS; 2026-09-16T16:51:40Z
+# source HEAD            b66310ca871811c4c7671056beec291a451af55c
+# configure command      cmake -S /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp -B /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release
+# build command          cmake --build /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release --target <target> -j$(nproc)
+# targets                CFDPoiseuilleValidationTests CFDNaturalConvectionValidationTests CFDLowMachRegressionTests
+
+## configure
+  cmake reconfigure OK
+
+## build (every target is built before anything runs; failure is fatal for that target)
+  CFDPoiseuilleValidationTests built OK | binary 8c602f289f7048e3 (was c4117ab8aa79a249) | mtime 2026-09-16T16:51:47Z
+  CFDNaturalConvectionValidationTests built OK | binary be13b4185a07fceb (was af59a95ffa6530bf) | mtime 2026-09-16T16:51:50Z
+  CFDLowMachRegressionTests built OK | binary 8886bc31e43c2be9 (was e00c888655c76547) | mtime 2026-09-16T16:51:52Z
+
+## provenance of what runs
+  production library     143a1dda0680bc1d  mtime 2026-09-16T16:01:01Z
+
+## execute (freshly built binaries only)
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/poiseuille/CFDPoiseuilleValidationTests
+CFDPoiseuilleValidationTests: binary 8c602f289f7048e3 | run 10 pass 7 fail 3 disabled 2
+    FAILED: [  FAILED  ] PoiseuilleValidation.PressureDrop
+    FAILED: [  FAILED  ] PoiseuilleValidation.ProductionGridConvergence
+    FAILED: [  FAILED  ] PoiseuilleValidation.Profile
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/thermal/CFDNaturalConvectionValidationTests
+CFDNaturalConvectionValidationTests: binary be13b4185a07fceb | run 7 pass 5 fail 2 disabled 1
+    FAILED: [  FAILED  ] NaturalConvectionValidation.Grid10x10ConstantPropertyModelsMatchDeVahlDavisRa1e3
+    FAILED: [  FAILED  ] NaturalConvectionValidation.Grid10x10MatchesDeVahlDavisRa1e3
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/compressible/CFDLowMachRegressionTests
+CFDLowMachRegressionTests: binary 8886bc31e43c2be9 | run 7 pass 6 fail 1 disabled 0
+    FAILED: [  FAILED  ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+
+## harness verdict
+  all requested targets rebuilt and executed

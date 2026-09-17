@@ -1,0 +1,29 @@
+# VAL-001 val001_controls
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-17T06:47:42Z
+# VAL-001 non-vacuity controls -- proposed band [1.875, 2.150] on the test's own
+# grids {8,16,32,64} and its own distorted family. Errors are global volume-
+# weighted L2 of |grad - grad_exact|.
+
+  variant                                            n=8        n=16        n=32        n=64
+  CURRENT (GRAD-002 boundary-consistent)      5.2251e-02  1.3659e-02  3.4886e-03  8.8191e-04
+                                       orders:      1.9356      1.9691      1.9840   -> PASS (expected PASS)
+  (a) old/discontinuous: plain Green-Gauss    7.8800e-02  2.3913e-02  7.6766e-03  2.5673e-03
+                                       orders:      1.7204      1.6393      1.5802   -> FAIL (expected FAIL)
+  (b) first-order boundary value (owner)      5.8247e-01  3.9736e-01  2.7849e-01  1.9649e-01
+                                       orders:      0.5517      0.5128      0.5032   -> FAIL (expected FAIL)
+  (c) wrong boundary coefficient SIGN         5.6124e+00  7.9829e+00  1.1308e+01  1.5998e+01
+                                       orders:     -0.5083     -0.5023     -0.5006   -> FAIL (expected FAIL)
+  (d) O(h) boundary-value perturbation        1.9365e-01  1.2730e-01  8.8726e-02  6.2554e-02
+                                       orders:      0.6053      0.5208      0.5043   -> FAIL (expected FAIL)
+
+## the SUPERSEDED band [1.4, 1.9] evaluated on the same variants
+  CURRENT (correct second-order boundary)    orders:   1.9356   1.9691   1.9840   -> FAIL
+  (a) old/discontinuous: plain Green-Gauss   orders:   1.7204   1.6393   1.5802   -> PASS
+  (b) first-order boundary value (owner)     orders:   0.5517   0.5128   0.5032   -> FAIL
+
+  The superseded band ACCEPTS the old first-order-ring treatment and REJECTS the
+  corrected one: it pins the limitation rather than any correctness property.
+
+## controls behaved as pre-registered: YES
+exit 0

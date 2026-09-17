@@ -1,0 +1,195 @@
+P12-DIFF-002-UC-001 — independent discrete-exact reference for the fully developed channel.
+
+This file contains NO CFDApp code, links nothing, and imports nothing from the project. It builds
+the finite-volume equations from the stencil coefficients derived below and solves them in EXACT
+RATIONAL ARITHMETIC (fractions.Fraction), so every number it reports is a closed-form rational, not
+a floating-point echo of production output.
+
+=====================================================================================
+THE PHYSICAL PROBLEM
+=====================================================================================
+Steady, fully developed, incompressible planar Poiseuille flow between walls at y = 0 and y = H,
+driven by a constant streamwise gradient dp/dx, with a PRESCRIBED mean velocity U (the test's inlet
+condition is a uniform U, so the flow rate is fixed and dp/dx is the unknown):
+
+    0 = -dp/dx + mu d^2u/dy^2 ,    u(0) = u(H) = 0 ,    (1/H) int_0^H u dy = U
+
+Continuous solution, with G := (dp/dx)/mu:
+
+    u(y) = -(G/2) y (H - y) ,   u_max = -(G/8) H^2 ,   mean = -(G/12) H^2
+    => G_exact = -12 U / H^2 ,  dp/dx_exact = -12 mu U / H^2 ,  u_max = (3/2) U
+
+=====================================================================================
+THE DISCRETE EQUATIONS
+=====================================================================================
+ny uniform rows of height h = H/ny; cell centres y_j = (j + 1/2) h, j = 0..ny-1. Per unit depth and
+unit streamwise length a cell has volume V = h and each y-face has area A = 1. Integrating the
+momentum equation over cell j and writing F_in for the diffusive flux INTO the cell:
+
+    sum_faces F_in = (dp/dx) V
+
+INTERNAL face between j and j+1 (both operators, central diffusion):
+
+    F_in(cell j) = mu A (u_{j+1} - u_j) / h
+
+WALL face of cell 0 (y = 0, u_b = 0) — the two operators differ ONLY here.
+
+(a) HISTORICAL two-point wall flux, the one-sided difference over the half cell h1 = h/2:
+
+        F_in = mu A (u_b - u_0) / h1 = -2 mu A u_0 / h
+
+    Cell 0, after multiplying by h/(mu A):      -3 u_0 + u_1 = G h^2
+    Interior 1 <= j <= ny-2:                     u_{j-1} - 2 u_j + u_{j+1} = G h^2
+    Cell ny-1 (mirror of cell 0):                u_{ny-2} - 3 u_{ny-1} = G h^2
+
+(b) P12-DIFF-002 three-point one-sided reconstruction. Fitting a quadratic through
+    (0, u_b), (h1, u_0), (h2, u_1) with h1 = h/2, h2 = 3h/2 and differentiating at the wall:
+
+        cP = mu A h2 / (h1 (h2 - h1)) = 3 mu A / h
+        cF = mu A h1 / (h2 (h2 - h1)) = mu A / (3h)
+        cB = mu A (1/h1 + 1/h2)       = 8 mu A / (3h)        (and cP - cF = cB, checked below)
+
+        F_in = -(cP u_0 - cF u_1) + cB u_b
+
+    Cell 0, after multiplying by h/(mu A):      -4 u_0 + (4/3) u_1 = G h^2
+    Interior and the mirrored top cell as above.
+
+Both systems are closed with the flow-rate constraint  sum_j u_j h = U H, i.e. sum_j u_j = ny U,
+giving ny + 1 equations for (u_0..u_{ny-1}, G).
+
+=====================================================================================
+CLOSED FORMS THIS SCRIPT DERIVES AND THEN VERIFIES BY EXACT SOLVE
+=====================================================================================
+Substituting the ansatz u_j = (G/2)(y_j - H/2)^2 + D (which satisfies every interior equation
+identically, since the second difference of a quadratic is exact) into the wall equation gives
+
+    (a) two-point : D = -(G/2)(H/2)^2 - (G/8) h^2      -> u_j = -(G/2) y_j (H - y_j) + (-G) h^2/8
+    (b) DIFF-002  : D = -(G/2)(H/2)^2                  -> u_j = -(G/2) y_j (H - y_j)  EXACTLY the
+                                                          continuous profile at the cell centres
+
+Imposing sum_j u_j = ny U then fixes G, using sum_j (y_j - H/2)^2 = h^2 ny (ny^2 - 1)/12:
+
+    (a) G_two_point / G_exact = ny^2 / (ny^2 + 2)
+    (b) G_diff002   / G_exact = 2 ny^2 / (2 ny^2 + 1)
+
+and the centreline value the test measures -- a linear interpolation to y = H/2, which for even ny
+is the average of the two centre-adjacent cells at y = H/2 -+ h/2 -- is
+
+    (a) u_c = (3/2) U * ny^2/(ny^2 + 2)                      [the h^2/8 offset cancels exactly]
+    (b) u_c = (3/2) U * 2ny^2/(2ny^2 + 1) * (ny^2 - 1)/ny^2
+
+(a) reproduces the historical constants: ny = 8 -> 3/2 * 64/66 = 16/11 = 1.454545..., and a dp/dx
+relative error of 2/(ny^2+2) = 2/66 = 3.0303 %.
+
+====================================================================================================
+H = 1, mu = 1/10, U = 1  (Re = rho U H / mu = 10 with rho = 1)
+continuous: G_exact = -12, dp/dx_exact = -6/5 = -1.2
+continuous: u_max = 3/2 = 1.5
+====================================================================================================
+
+### HISTORICAL two-point wall flux   [two_point]
+  ny        G_d/G_exact (exact)        dp/dx_d   rel err vs exact           u_centre (exact)     u_centre
+   4                        8/9   -1.066666667                1/9                        4/3  1.333333333
+   6                      18/19   -1.136842105               1/19                      27/19  1.421052632
+   8                      32/33   -1.163636364               1/33                      16/11  1.454545455
+  16                    128/129   -1.190697674              1/129                      64/43  1.488372093
+  32                    512/513   -1.197660819              1/513                    256/171  1.497076023
+  64                  2048/2049   -1.199414348             1/2049                   1024/683  1.499267936
+  closed-form check (derived by hand in this file's header):
+    ny=  4  G ratio OK (8/9)   u_centre OK (4/3)
+    ny=  6  G ratio OK (18/19)   u_centre OK (27/19)
+    ny=  8  G ratio OK (32/33)   u_centre OK (16/11)
+    ny= 16  G ratio OK (128/129)   u_centre OK (64/43)
+    ny= 32  G ratio OK (512/513)   u_centre OK (256/171)
+    ny= 64  G ratio OK (2048/2049)   u_centre OK (1024/683)
+  profile identity:
+    ny=  8  max |u_j - continuum(G_d)| = 1/44   max |u_j - continuum(G_d) - (-G)h^2/8| = 0
+    ny= 32  max |u_j - continuum(G_d)| = 1/684   max |u_j - continuum(G_d) - (-G)h^2/8| = 0
+
+### P12-DIFF-002 three-point reconstruction   [diff002]
+  ny        G_d/G_exact (exact)        dp/dx_d   rel err vs exact           u_centre (exact)     u_centre
+   4                      32/33   -1.163636364               1/33                      15/11  1.363636364
+   6                      72/73   -1.183561644               1/73                     105/73  1.438356164
+   8                    128/129   -1.190697674              1/129                      63/43  1.465116279
+  16                    512/513   -1.197660819              1/513                      85/57  1.491228070
+  32                  2048/2049   -1.199414348             1/2049                   1023/683  1.497803807
+  64                  8192/8193   -1.199853534             1/8193                  4095/2731  1.499450751
+  closed-form check (derived by hand in this file's header):
+    ny=  4  G ratio OK (32/33)   u_centre OK (15/11)
+    ny=  6  G ratio OK (72/73)   u_centre OK (105/73)
+    ny=  8  G ratio OK (128/129)   u_centre OK (63/43)
+    ny= 16  G ratio OK (512/513)   u_centre OK (85/57)
+    ny= 32  G ratio OK (2048/2049)   u_centre OK (1023/683)
+    ny= 64  G ratio OK (8192/8193)   u_centre OK (4095/2731)
+  profile identity:
+    ny=  8  max |u_j - continuum(G_d)| = 0   max |u_j - continuum(G_d) - (-G)h^2/8| = 1/43
+    ny= 32  max |u_j - continuum(G_d)| = 0   max |u_j - continuum(G_d) - (-G)h^2/8| = 1/683
+
+====================================================================================================
+HISTORICAL CONSTANTS IN THE CURRENT U-C ASSERTIONS, from the two-point derivation
+====================================================================================================
+  centreline discrete exact      = 16/11 = 1.4545454545   (test: 1.4545454545)
+  = 3/2 * ny^2/(ny^2+2)          = 16/11  = 16/11 = 1.4545454545
+  1.5 - centreline               = 1/22 = 0.0454545455   (test: 1.5*2/66 = 0.0454545455)
+  dp/dx relative error vs exact  = 1/33 = 0.0303030303   (test: 2/66 = 0.0303030303)
+  drop / drop_exact              = 32/33 = 0.9696969697   (test: 64/66 = 0.9696969697)
+
+====================================================================================================
+THE NEW DIFF-002 DISCRETE-EXACT REFERENCE (ny = 8, the validation mesh)
+====================================================================================================
+  G_d / G_exact                  = 128/129 = 0.992248062016
+  dp/dx_discrete                 = -256/215 = -1.190697674419
+  dp/dx relative error vs exact  = 1/129 = 0.007751937984
+  centreline discrete exact      = 63/43 = 1.465116279070
+  1.5 - centreline               = 3/86 = 0.034883720930
+  cell-centre profile (exact rationals, and as doubles):
+    j=0  y=  1/16  u_j =                        15/43 = 0.348837209302   continuous = 0.351562500000
+    j=1  y=  3/16  u_j =                        39/43 = 0.906976744186   continuous = 0.914062500000
+    j=2  y=  5/16  u_j =                        55/43 = 1.279069767442   continuous = 1.289062500000
+    j=3  y=  7/16  u_j =                        63/43 = 1.465116279070   continuous = 1.476562500000
+    j=4  y=  9/16  u_j =                        63/43 = 1.465116279070   continuous = 1.476562500000
+    j=5  y= 11/16  u_j =                        55/43 = 1.279069767442   continuous = 1.289062500000
+    j=6  y= 13/16  u_j =                        39/43 = 0.906976744186   continuous = 0.914062500000
+    j=7  y= 15/16  u_j =                        15/43 = 0.348837209302   continuous = 0.351562500000
+
+====================================================================================================
+ACCURACY AGAINST THE CONTINUOUS SOLUTION (independent of CFDApp)
+====================================================================================================
+  ny |  two-point |dpdx err|   DIFF-002 |dpdx err|    ratio |   two-point |uc err|    DIFF-002 |uc err|    ratio
+   4 |          1.111111e-01          3.030303e-02    3.667 |         1.111111e-01         9.090909e-02    1.222
+   8 |          3.030303e-02          7.751938e-03    3.909 |         3.030303e-02         2.325581e-02    1.303
+       order two_point dpdx: 1.8745
+       order two_point u_c: 1.8745
+       order   diff002 dpdx: 1.9668
+       order   diff002 u_c: 1.9668
+  16 |          7.751938e-03          1.949318e-03    3.977 |         7.751938e-03         5.847953e-03    1.326
+       order two_point dpdx: 1.9668
+       order two_point u_c: 1.9668
+       order   diff002 dpdx: 1.9916
+       order   diff002 u_c: 1.9916
+  32 |          1.949318e-03          4.880429e-04    3.994 |         1.949318e-03         1.464129e-03    1.331
+       order two_point dpdx: 1.9916
+       order two_point u_c: 1.9916
+       order   diff002 dpdx: 1.9979
+       order   diff002 u_c: 1.9979
+  64 |          4.880429e-04          1.220554e-04    3.999 |         4.880429e-04         3.661662e-04    1.333
+       order two_point dpdx: 1.9979
+       order two_point u_c: 1.9979
+       order   diff002 dpdx: 1.9995
+       order   diff002 u_c: 1.9995
+ 128 |          1.220554e-04          3.051665e-05    4.000 |         1.220554e-04         9.154994e-05    1.333
+       order two_point dpdx: 1.9995
+       order two_point u_c: 1.9995
+       order   diff002 dpdx: 1.9999
+       order   diff002 u_c: 1.9999
+
+====================================================================================================
+STEP 7 NON-VACUITY: can the reference tell the operators apart?
+====================================================================================================
+  reference (correct DIFF-002): u_centre = 1.465116279070, dp/dx = -1.190697674419
+  historical two-point operator      u_centre 1.454545454545  |d u_c| 1.057e-02  |d dp/dx|/dp/dx 2.273e-02  -> DISTINGUISHED
+  far-cell coefficient doubled       u_centre 1.411764705882  |d u_c| 5.335e-02  |d dp/dx|/dp/dx 1.147e-01  -> DISTINGUISHED
+  far-cell coefficient sign flipped  u_centre 1.568181818182  |d u_c| 1.031e-01  |d dp/dx|/dp/dx 2.216e-01  -> DISTINGUISHED
+  far-cell term dropped              u_centre 1.517241379310  |d u_c| 5.213e-02  |d dp/dx|/dp/dx 1.121e-01  -> DISTINGUISHED
+
+wrote results/p12-diff-002/uc-001/data/diff002_reference_ny8.json

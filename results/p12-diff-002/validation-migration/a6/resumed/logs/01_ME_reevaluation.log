@@ -1,0 +1,24 @@
+# RESUMED A6 Step 1 -- both M-E tests on the ROB-001-corrected library
+# 2026-09-16T16:30:15Z
+# library        143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+#   (pre-ROB-001 212141137733bffa7429d09067fefd20c9e760618d9aa0569d7ba990f7b7fa16)
+# CFDSimpleTests fa57cb9b8104d2b1
+# test file      97fc7b6193db72cdc5a55dbd8b9f1e4822718ef9ea71567e67a12d7bc42d3c1e
+#   frozen A6/ROB-001 value 97fc7b6193db72cdc5a55dbd8b9f1e4822718ef9ea71567e67a12d7bc42d3c1e
+
+## A. DefaultRobustnessPreservesBaseline -- must still pass, UNCHANGED
+[ RUN      ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline
+[       OK ] SIMPLERobustnessTest.DefaultRobustnessPreservesBaseline (71 ms)
+[  PASSED  ] 1 test.
+
+## B. DivergenceStatus -- only the iterations==20 assertion is under investigation
+[ RUN      ] SIMPLERobustnessTest.DivergenceStatus
+Aggressive fixed relaxation 0.9/0.9, divergence detection on: status 8, 21 iterations, final u 1.26e+13 v 1.71e+12 p 1.28e+06 continuity 2.11e-05, alpha 0.9/0.9 (min 0.9), increases 0 decreases 0, fallbacks 0 (recovered 0)
+  detail: divergence: every one of the last 10 u residuals is >= 10 x its best value since iteration 10 (1.093e+04); window minimum 2.864e+05, latest 1.255e+13
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/solver/simple/test_simple_robustness.cpp:304: Failure
+    Which is: 21
+    Which is: 20
+[  FAILED  ] SIMPLERobustnessTest.DivergenceStatus (8 ms)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SIMPLERobustnessTest.DivergenceStatus

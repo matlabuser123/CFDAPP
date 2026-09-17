@@ -1,0 +1,46 @@
+# T11 failure-set comparison: identical tests, pre-fix vs post-fix production
+# 2026-09-16T14:31:32Z
+# NOTE the pre-fix column covers CFDThermalTests + CFDDiscretizationTests only (the two
+# suites the three changed files can affect); CFDCaseIntegrationTests and CFDTurbulenceTests
+# were run post-fix only and are listed separately below.
+
+## FIXED by this change (failed pre-fix, passes post-fix)
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialIn3D
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOn10x10
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOn20x20
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOn2x1
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOnADistortedMesh
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOnAGradedMesh
+  + ConjugateBoundaryEquivalence.SingleRegionMatchesSingleMaterialOnOneCellThickMeshes
+  + RegionAwareThermalDiffusionTest.EqualConductivityMatchesSingleMaterialPathExactly
+  + ThermalBoundaryConsistency.ConjugateConductionPathIsConsistentToo
+
+## NEW failures (passed pre-fix, fails post-fix)
+  (none)
+
+## still failing, both before and after
+    BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+    EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+    EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+    EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+    EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+    EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+    EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+    GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+    SparseAssembly3DTest.TwoByTwoByOne
+    SparseAssembly3DTest.TwoByTwoByTwo
+    SparseAssembly3DTest.TwoCellsInX
+    SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+
+## post-fix failures in the two suites run post-fix only (CFDCaseIntegrationTests)
+    MultiBlockProductionCase.CurvedChannelGridConvergence
+    StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+
+## counts
+  pre-fix  CFDThermalTests        99 run, 80 pass, 19 fail
+  post-fix CFDThermalTests        99 run, 89 pass, 10 fail
+  pre-fix  CFDDiscretizationTests 169 run, 167 pass, 2 fail
+  post-fix CFDDiscretizationTests 169 run, 167 pass, 2 fail
+  post-fix CFDCaseIntegrationTests 63 run, 61 pass, 2 fail, 18 disabled
+  post-fix CFDTurbulenceTests     136 run, 136 pass, 0 fail
+  post-fix TOTAL                  467 run, 453 pass, 14 fail, 18 disabled

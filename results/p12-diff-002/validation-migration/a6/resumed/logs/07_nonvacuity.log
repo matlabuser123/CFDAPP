@@ -1,0 +1,21 @@
+# a6r_nonvacuity; 2026-09-16T16:42:45Z
+# library 143a1dda0680bc1d  probe a493142d01560749
+
+# RESUMED A6 Step 4 -- non-vacuity of the proposed DivergenceStatus criterion.
+# The criterion is evaluated with the asserted settings start=10 window=10,
+# so earliest possible = 20 and the derived guarantee = 30.
+
+## the genuine case the test protects -- must be ACCEPTED
+  P  genuine runaway, detector on              Diverging      21 it | status 1 lower 1 upper 1 finite 1 growth 1 detail 1 -> ACCEPTED  (as required)
+
+## deliberately degraded configurations -- each must be REJECTED
+  D1 detector DISABLED                         other         150 it | status 0 lower 1 upper 0 finite 1 growth 1 detail 0 -> REJECTED  (as required)
+  D2 fires before mathematically possible      Diverging      11 it | status 1 lower 0 upper 1 finite 1 growth 1 detail 1 -> REJECTED  (as required)
+  D3 runaway recovered, not Diverging          Converged     631 it | status 0 lower 1 upper 0 finite 1 growth 0 detail 0 -> REJECTED  (as required)
+  D4 healthy converging run                    Converged     1093 it | status 0 lower 1 upper 0 finite 1 growth 0 detail 0 -> REJECTED  (as required)
+
+## totals
+  controls with the wrong verdict: 0   (Step 4 requires 0)
+
+RESULT: the proposed criterion rejects every degraded configuration
+exit 0

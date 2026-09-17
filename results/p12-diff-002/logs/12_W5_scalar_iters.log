@@ -1,0 +1,19 @@
+# P12-DIFF-002 diff2_scalar_iters (libcfdcore.a sha256 0a2a1398cd48c629); 2026-09-16T07:32:11Z
+# P12-DIFF-002 W5 (thermal/species): iteration counts with the boundary
+# reconstruction OFF -> ON. Guard: <= 1.25x, the frozen W5 bound.
+# On an orthogonal mesh OFF->ON isolates DIFF-002 exactly (NUM-003 is
+# bit-identical there); graded/distorted rows are a combined upper bound.
+
+THERMAL  Cartesian 20x20                outer    3 ->    3 (1.0000x, bound 1.2500) linear    2 ->    2 | |T|2 3.378280610277e+02 -> 3.378296844273e+02 | DIFF-002 ONLY | PASS
+SPECIES  Cartesian 20x20                linear   44 ->   43 (0.9773x, bound 1.2500) | |Y|2 1.775139297890e+00 -> 1.775262873649e+00 | DIFF-002 ONLY | PASS
+THERMAL  Cartesian 40x40                outer    3 ->    3 (1.0000x, bound 1.2500) linear    3 ->    2 | |T|2 3.378359080327e+02 -> 3.378363426200e+02 | DIFF-002 ONLY | PASS
+SPECIES  Cartesian 40x40                linear   94 ->   90 (0.9574x, bound 1.2500) | |Y|2 1.775736552094e+00 -> 1.775769622744e+00 | DIFF-002 ONLY | PASS
+THERMAL  Cartesian 80x80                outer    3 ->    3 (1.0000x, bound 1.2500) linear    5 ->    4 | |T|2 3.378383015136e+02 -> 3.378384137952e+02 | DIFF-002 ONLY | PASS
+SPECIES  Cartesian 80x80                linear  176 ->  175 (0.9943x, bound 1.2500) | |Y|2 1.775918687466e+00 -> 1.775927229435e+00 | DIFF-002 ONLY | PASS
+THERMAL  Cartesian 3D 16x16x16          outer    3 ->    3 (1.0000x, bound 1.2500) linear    1 ->    1 | |T|2 3.632662722644e+02 -> 3.632761013346e+02 | DIFF-002 ONLY | PASS
+SPECIES  Cartesian 3D 16x16x16          linear   44 ->   44 (1.0000x, bound 1.2500) | |Y|2 2.298902743904e+00 -> 2.299523933372e+00 | DIFF-002 ONLY | PASS
+THERMAL  graded 40x40 r=1.15            outer    3 ->    3 (1.0000x, bound 1.2500) linear   13 ->   11 | |T|2 3.378391000555e+02 -> 3.378391167167e+02 | combined (incl. NUM-003) | PASS
+SPECIES  graded 40x40 r=1.15            linear  155 ->  167 (1.0774x, bound 1.2500) | |Y|2 1.775979449486e+00 -> 1.775980718375e+00 | combined (incl. NUM-003) | PASS
+THERMAL  distorted 40x40 shear 0.45     outer    3 ->   18 (6.0000x, bound 1.2500) linear    3 ->   18 | |T|2 3.377789151317e+02 -> 3.378432261219e+02 | combined (incl. NUM-003) | FAIL
+SPECIES  distorted 40x40 shear 0.45     linear   97 ->  102 (1.0515x, bound 1.2500) | |Y|2 1.774401057565e+00 -> 1.777765202373e+00 | combined (incl. NUM-003) | PASS
+exit 0

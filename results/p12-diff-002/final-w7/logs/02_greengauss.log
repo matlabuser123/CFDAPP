@@ -1,0 +1,41 @@
+# binary build/release/tests/unit/discretization/CFDDiscretizationTests
+# sha256 7999ec1d6b8c663d69f57eb8df4fd2347dd88814afb9f56546e2d57d5df2cca4
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-17T06:24:00Z
+
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GridRefinementTest
+[ RUN      ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+
+GreenGauss gradient, Distorted GLOBAL (phi = sin(pi x) cos(pi y))
+Grid       h            L2 Error         Observed p  
+8x8        0.125        0.0522508        --          
+16x16      0.0625       0.0136592        1.93558     
+32x32      0.03125      0.00348864       1.96913     
+64x64      0.015625     0.000881911      1.98396     
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_grid_refinement.cpp:363: Failure
+Expected: (p) < (maxObservedOrder), actual: 1.9355810765555042 vs 1.9
+observed order suspiciously high between 8 and 16
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_grid_refinement.cpp:363: Failure
+Expected: (p) < (maxObservedOrder), actual: 1.9691346317345857 vs 1.9
+observed order suspiciously high between 16 and 32
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_grid_refinement.cpp:363: Failure
+Expected: (p) < (maxObservedOrder), actual: 1.9839620828212117 vs 1.9
+observed order suspiciously high between 32 and 64
+
+[  FAILED  ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment (6 ms)
+[----------] 1 test from GridRefinementTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (7 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+
+ 1 FAILED TEST
+exit 1

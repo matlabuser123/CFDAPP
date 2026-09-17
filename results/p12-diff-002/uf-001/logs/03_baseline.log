@@ -1,0 +1,47 @@
+# UF-001 pre-DIFF-002 baseline library
+path   /root/uf001_baseline/build/release/src/libcfdcore.a
+sha256 719d0fc7ae48c027756430a8473a9b47ef3f516167aa7eb7319fa3eb468c50fe
+A5 recorded the reconstruction-removed library as 90473bfb... (different compiler/flags
+or a different isolated tree will legitimately give a different object hash; what is
+verified here is the SOURCE difference, shown below).
+
+## the only source difference against the authoritative tree
+--- /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/discretization/NonOrthogonalDiffusion.cpp	2026-09-16 16:29:41.185304200 +1000
++++ /root/uf001_baseline/src/discretization/NonOrthogonalDiffusion.cpp	2026-09-17 14:56:50.408634630 +1000
+@@ -83,25 +83,8 @@
+     // is what makes the normal-direction stencil valid on a non-orthogonal mesh. The transfer is
+     // the only lagged part, and it replaces -- never augments -- the former explicit
+     // S_nonorth . grad(phi)_P term, so the tangential contribution is not double-counted.
+-    const auto stencil = MeshGeometry::boundaryInwardStencil(mesh, face);
+-    if (stencil.valid) {
+-      const Real h1 = stencil.h1;
+-      const Real h2 = stencil.h2;
+-      const Real gammaArea = gammaFace * face.area();
+-      const Real cP = h2 / (h1 * (h2 - h1));
+-      const Real cF = h1 / (h2 * (h2 - h1));
+-      const Real cB = (1.0 / h1) + (1.0 / h2);
+-      FaceDiffusionTerms terms;
+-      terms.coefficient = gammaArea * cP;
+-      terms.farCellCoefficient = gammaArea * cF;
+-      terms.farCell = stencil.farCell;
+-      terms.boundaryValueCoefficient = gammaArea * cB;
+-      terms.explicitFlux =
+-          gammaArea * ((cP * dot((*gradPhi)[face.owner()], stencil.deltaP)) -
+-                       (cF * dot((*gradPhi)[stencil.farCell], stencil.deltaF)));
+-      terms.higherOrder = true;
+-      return terms;
+-    }
++    // UF-001 BASELINE ONLY: the P12-DIFF-002 far-cell reconstruction block is removed here,
++    // so this falls through to the pre-existing two-point treatment.
+     // No usable inward stencil (one-cell-thick or degenerate): the pre-existing two-point
+     // non-orthogonal treatment, unchanged.
+     const auto decomposition = MeshGeometry::decomposeBoundaryFaceArea(mesh, face);
+
+## every other production numerical file byte-identical?
+  SAME  src/physics/MomentumEquation.cpp
+  SAME  src/thermal/EnergyEquation.cpp
+  SAME  src/thermal/ThermalSolver.cpp
+  SAME  src/physics/BoussinesqBuoyancy.cpp
+  SAME  src/pressure_velocity/SIMPLE.cpp
+  SAME  src/solver/SolverRobustness.cpp
+  SAME  src/discretization/Diffusion.cpp

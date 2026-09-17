@@ -1,0 +1,40 @@
+# P12-DIFF-002 A4 W7 HARNESS; 2026-09-16T16:03:58Z
+# source HEAD            b66310ca871811c4c7671056beec291a451af55c
+# configure command      cmake -S /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp -B /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release
+# build command          cmake --build /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release --target <target> -j$(nproc)
+# targets                CFDSolverTests CFDSimpleTests CFDThermalTests CFDDiscretizationTests CFDCaseIntegrationTests CFDTurbulenceTests
+
+## configure
+  cmake reconfigure OK
+
+## build (every target is built before anything runs; failure is fatal for that target)
+  CFDSolverTests built OK | binary 5afdc070bfd3d244 (was 5afdc070bfd3d244) | mtime 2026-09-16T16:02:33Z
+  CFDSimpleTests built OK | binary fa57cb9b8104d2b1 (was fa57cb9b8104d2b1) | mtime 2026-09-16T16:02:36Z
+  CFDThermalTests built OK | binary be66b2c4dfc2dbd7 (was be66b2c4dfc2dbd7) | mtime 2026-09-16T16:04:09Z
+  CFDDiscretizationTests built OK | binary 7999ec1d6b8c663d (was 866713589a31f9fd) | mtime 2026-09-16T16:04:12Z
+  CFDCaseIntegrationTests built OK | binary 36b37146fc7da3cc (was 215a0aecf8104268) | mtime 2026-09-16T16:04:16Z
+  CFDTurbulenceTests built OK | binary 1bd3e6244e9cd4bd (was 1bd3e6244e9cd4bd) | mtime 2026-09-16T16:04:19Z
+
+## provenance of what runs
+  production library     143a1dda0680bc1d  mtime 2026-09-16T16:01:01Z
+
+## execute (freshly built binaries only)
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/solver/CFDSolverTests
+CFDSolverTests: binary 5afdc070bfd3d244 | run 90 pass 90 fail 0 disabled 0
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/solver/simple/CFDSimpleTests
+CFDSimpleTests: binary fa57cb9b8104d2b1 | run 123 pass 122 fail 1 disabled 0
+    FAILED: [  FAILED  ] SIMPLERobustnessTest.DivergenceStatus
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/thermal/CFDThermalTests
+CFDThermalTests: binary be66b2c4dfc2dbd7 | run 99 pass 99 fail 0 disabled 0
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/discretization/CFDDiscretizationTests
+CFDDiscretizationTests: binary 7999ec1d6b8c663d | run 169 pass 168 fail 1 disabled 0
+    FAILED: [  FAILED  ] GridRefinementTest.GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/integration/case/CFDCaseIntegrationTests
+CFDCaseIntegrationTests: binary 36b37146fc7da3cc | run 63 pass 61 fail 2 disabled 18
+    FAILED: [  FAILED  ] MultiBlockProductionCase.CurvedChannelGridConvergence
+    FAILED: [  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+  test command           /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/turbulence/CFDTurbulenceTests
+CFDTurbulenceTests: binary 1bd3e6244e9cd4bd | run 136 pass 136 fail 0 disabled 0
+
+## harness verdict
+  all requested targets rebuilt and executed

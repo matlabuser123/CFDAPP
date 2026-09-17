@@ -1,0 +1,17 @@
+# A5-5 quantified mutation control for the M-B migration; 2026-09-16T15:18:45Z
+# isolated copy /tmp/a5_mut; the authoritative tree is never written to.
+
+## scaling the DIFFUSIVE boundary flux
+  diffusive term x 1.02  -> passes
+  diffusive term x 1.5  -> FAILS   (measured relative imbalance 0.013174568383228115 vs bound 1e-3)
+  diffusive term x 2.0  -> FAILS   (measured relative imbalance 0.026349171557831289 vs bound 1e-3)
+  diffusive term x 5.0  -> FAILS   (measured relative imbalance 0.10539679060545047 vs bound 1e-3)
+  diffusive term x 0.0  -> FAILS   (measured relative imbalance 0.026349241140581545 vs bound 1e-3)
+
+## scaling the CONVECTIVE boundary flux (the dominant term in this open-channel balance)
+  convective term x 1.002  -> passes
+  convective term x 1.001  -> passes
+  convective term x 1.0005  -> passes
+
+## restored, unmutated
+  diffusive term x 1.0  -> passes

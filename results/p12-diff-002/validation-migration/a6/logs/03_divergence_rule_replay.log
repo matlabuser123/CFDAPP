@@ -1,0 +1,80 @@
+# a6_divergence_replay; 2026-09-16T15:47:13Z
+# current    library 212141137733bffa
+# historical library 90473bfb622c63e5  (DIFF-002 reconstruction removed)
+# probe dc4b6e5c21110c14
+
+=============================== CURRENT (DIFF-002) ===============================
+# Reference run (NO detectors): status 0, 406 iterations, final continuity 3.3087e-13
+# convergence tolerance (= ResidualTracker::floor for the continuity tracker): 1.0e-06
+
+## continuity residual around the iteration the guarded run aborted at (112)
+    [100] continuity 7.4677e-14   u 2.3007e-05   (continuity already CONVERGED)
+    [101] continuity 8.6482e-14   u 2.2357e-05   (continuity already CONVERGED)
+    [102] continuity 1.9578e-14   u 2.1729e-05   (continuity already CONVERGED)
+    [103] continuity 4.2058e-14   u 2.1124e-05   (continuity already CONVERGED)
+    [104] continuity 9.8146e-14   u 2.0539e-05   (continuity already CONVERGED)
+    [105] continuity 1.6925e-13   u 1.9975e-05   (continuity already CONVERGED)
+    [106] continuity 1.9323e-13   u 1.9430e-05   (continuity already CONVERGED)
+    [107] continuity 2.2993e-13   u 1.8903e-05   (continuity already CONVERGED)
+    [108] continuity 2.6027e-13   u 1.8394e-05   (continuity already CONVERGED)
+    [109] continuity 2.8133e-13   u 1.7903e-05   (continuity already CONVERGED)
+    [110] continuity 2.9637e-13   u 1.7427e-05   (continuity already CONVERGED)
+    [111] continuity 3.1002e-13   u 1.6967e-05   (continuity already CONVERGED)
+    [112] continuity 3.2609e-13   u 1.6522e-05   (continuity already CONVERGED)
+    [113] continuity 3.4557e-13   u 1.6091e-05   (continuity already CONVERGED)
+    [114] continuity 3.5812e-13   u 1.5674e-05   (continuity already CONVERGED)
+    [115] continuity 4.1443e-13   u 1.5270e-05   (continuity already CONVERGED)
+    [116] continuity 4.0830e-13   u 1.4879e-05   (continuity already CONVERGED)
+    [117] continuity 3.6903e-13   u 1.4500e-05   (continuity already CONVERGED)
+
+## replay of the two rules on the CONTINUITY history
+    RULE 1 (floored, as production applies it)     does NOT fire
+    RULE 2 as production applies it (NO floor)     fires at iteration 112   (1.9578e-14 -> 3.1002e-13)
+    RULE 2 with the same floor rule 1 uses         does NOT fire
+
+## replay of the two rules on the U-RESIDUAL history (monotonically decreasing)
+    RULE 1 (floored)                               does NOT fire
+    RULE 2 (no floor)                              does NOT fire
+
+## how far below tolerance the values that trip rule 2 are
+    oldest 1.9578e-14  = tolerance / 5.108e+07
+    newest 3.1002e-13  = tolerance / 3.226e+06
+    both are below the convergence tolerance, so rule 1's floor would suppress
+    them; rule 2 has no floor and therefore fires on round-off drift.
+current exit 0
+
+=============================== HISTORICAL (pre-DIFF-002) ===============================
+# Reference run (NO detectors): status 0, 390 iterations, final continuity 4.5000e-13
+# convergence tolerance (= ResidualTracker::floor for the continuity tracker): 1.0e-06
+
+## continuity residual around the iteration the guarded run aborted at (112)
+    [100] continuity 4.4394e-13   u 1.8696e-05   (continuity already CONVERGED)
+    [101] continuity 3.3478e-13   u 1.8192e-05   (continuity already CONVERGED)
+    [102] continuity 1.6428e-13   u 1.7706e-05   (continuity already CONVERGED)
+    [103] continuity 3.3281e-14   u 1.7236e-05   (continuity already CONVERGED)
+    [104] continuity 2.1059e-14   u 1.6781e-05   (continuity already CONVERGED)
+    [105] continuity 1.8657e-13   u 1.6342e-05   (continuity already CONVERGED)
+    [106] continuity 3.9902e-13   u 1.5917e-05   (continuity already CONVERGED)
+    [107] continuity 5.7444e-13   u 1.5505e-05   (continuity already CONVERGED)
+    [108] continuity 6.6730e-13   u 1.5107e-05   (continuity already CONVERGED)
+    [109] continuity 7.9273e-13   u 1.4721e-05   (continuity already CONVERGED)
+    [110] continuity 5.7391e-18   u 1.4347e-05   (continuity already CONVERGED)
+    [111] continuity 2.5294e-18   u 1.3985e-05   (continuity already CONVERGED)
+    [112] continuity 4.8712e-14   u 1.3634e-05   (continuity already CONVERGED)
+    [113] continuity 3.5701e-18   u 1.3293e-05   (continuity already CONVERGED)
+    [114] continuity 3.3276e-18   u 1.2962e-05   (continuity already CONVERGED)
+    [115] continuity 3.4101e-18   u 1.2642e-05   (continuity already CONVERGED)
+    [116] continuity 4.3375e-18   u 1.2331e-05   (continuity already CONVERGED)
+    [117] continuity 7.3360e-18   u 1.2029e-05   (continuity already CONVERGED)
+
+## replay of the two rules on the CONTINUITY history
+    RULE 1 (floored, as production applies it)     does NOT fire
+    RULE 2 as production applies it (NO floor)     does NOT fire
+    RULE 2 with the same floor rule 1 uses         does NOT fire
+
+## replay of the two rules on the U-RESIDUAL history (monotonically decreasing)
+    RULE 1 (floored)                               does NOT fire
+    RULE 2 (no floor)                              does NOT fire
+
+## how far below tolerance the values that trip rule 2 are
+historical exit 0

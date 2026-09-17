@@ -1,0 +1,56 @@
+# UC-001 uc001_crosscheck (libcfdcore.a sha256 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a); 2026-09-16T17:27:38Z
+# mesh face areas: x-normal 0.125 (assumed 0.125)  y-normal 0.125 (assumed 0.125)
+# cell volume mesh 0.015625  assumed 0.015625
+# UC-001 Step 5 -- production vs the independently derived DIFF-002 operator
+# mesh 3x8, dx = dy = 0.125, mu = 0.10000000000000001
+# derived: x-internal 0.10000000000000001  y-internal 0.10000000000000001  cP 0.30000000000000004  cF 0.033333333333333333  cB 0.26666666666666666
+# identity cP - cF - cB = 5.551e-17 (must be 0)
+
+## LEVEL 1 -- assembled row vs hand-derived row, middle column, every entry
+  j=0 cell   1  diag 0.59999999999999998 (derived 0.59999999999999998)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=1 cell   4  diag 0.40000000000000002 (derived 0.40000000000000002)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=2 cell   7  diag 0.40000000000000002 (derived 0.40000000000000002)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=3 cell  10  diag 0.40000000000000002 (derived 0.40000000000000002)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=4 cell  13  diag 0.40000000000000002 (derived 0.40000000000000002)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=5 cell  16  diag 0.40000000000000002 (derived 0.40000000000000002)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=6 cell  19  diag 0.40000000000000002 (derived 0.40000000000000002)  worst |d entry| 0.000e+00  |d rhs| 0.000e+00
+  j=7 cell  22  diag 0.60000000000000009 (derived 0.59999999999999998)  worst |d entry| 1.110e-16  |d rhs| 0.000e+00
+  rows checked 8   worst |d matrix| 1.110e-16   worst |d rhs| 0.000e+00
+
+## LEVEL 2 -- the solved 1D profile vs the reference's exact rationals
+  j=0  production 0.348837209302326   reference 0.348837209302326   |diff| 2.220e-16
+  j=1  production 0.906976744186046   reference 0.906976744186046   |diff| 1.110e-16
+  j=2  production 1.279069767441860   reference 1.279069767441861   |diff| 2.220e-16
+  j=3  production 1.465116279069768   reference 1.465116279069767   |diff| 2.220e-16
+  j=4  production 1.465116279069768   reference 1.465116279069767   |diff| 2.220e-16
+  j=5  production 1.279069767441861   reference 1.279069767441861   |diff| 0.000e+00
+  j=6  production 0.906976744186047   reference 0.906976744186046   |diff| 1.110e-16
+  j=7  production 0.348837209302326   reference 0.348837209302326   |diff| 5.551e-17
+  dp/dx production -1.190697674418605   reference -1.190697674418605   |rel diff| 3.730e-16
+  centreline production 1.465116279069768  reference 1.465116279069767 (63/43)  |diff| 2.220e-16
+  worst per-cell |diff| 2.220e-16
+
+## LEVEL 3 -- matrix structure of the two wall rows
+  j=0 cell   1  nonzeros 4 (derived 4: yes)  far column 4 present: yes   entry (P,far) -0.13333333333333333  derived -(cF + y-internal) -0.13333333333333333
+  j=7 cell  22  nonzeros 4 (derived 4: yes)  far column 19 present: yes   entry (P,far) -0.13333333333333333  derived -(cF + y-internal) -0.13333333333333333
+
+## LEVEL 4 -- cB against a NONZERO wall value (the u_b = 0 RHS check is vacuous)
+  u_b 0.375   derived cB 0.26666666666666666   derived rhs cB*u_b 0.10000000000000001
+  production rhs 0.10000000000000001   |diff| 0.000e+00
+  two-point cB would be 0.20000000000000001 -> rhs 0.075000000000000011, differing by 2.500e-02 (check is non-vacuous)
+  matrix unchanged by the wall value: worst |diff| 0.000e+00
+
+## LEVEL 5 -- wall flux from the solved profile
+  derived-from-production-profile -0.074418604651163
+  reference (exact rationals)     -0.074418604651163   |diff| 6.939e-17
+  continuum mu*(dp/dx)*H/2*A      0.074418604651163   |rel diff| 2.000e+00
+  2*|wall flux| 0.148837209302326   pressure force |dp/dx|*H*A 0.148837209302326   |rel diff| 9.324e-16
+
+## VERDICT
+  LEVEL 1 operator entry-by-entry (bound 1e-14):   PASS
+  LEVEL 2 solved profile, every cell (1e-13):      PASS
+  LEVEL 3 matrix structure / far-cell column:      PASS
+  LEVEL 4 cB with a nonzero wall value (1e-15):    PASS
+  LEVEL 5 wall flux + global momentum balance:     PASS
+  OVERALL: PRODUCTION MATCHES THE INDEPENDENT REFERENCE
+exit 0

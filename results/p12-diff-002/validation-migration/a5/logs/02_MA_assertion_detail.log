@@ -1,0 +1,665 @@
+# A5-3 M-A failing-assertion detail; 2026-09-16T14:45:11Z
+# library 212141137733bffa
+
+################ CFDDiscretizationTests ################
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BoundaryReconstruction
+[ RUN      ] BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_boundary_reconstruction.cpp:345: Failure
+Expected equality of these values:
+  entryOf(baseline, 1, 1)
+    Which is: 6
+  5.0
+    Which is: 5
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_boundary_reconstruction.cpp:346: Failure
+Expected equality of these values:
+  entryOf(baseline, 1, 4)
+    Which is: -1.3333333333333333
+  -1.0
+    Which is: -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_boundary_reconstruction.cpp:347: Failure
+Expected equality of these values:
+  baselineRhs[1]
+    Which is: 8
+  6.0
+    Which is: 6
+
+[  FAILED  ] BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne (1 ms)
+[----------] 1 test from BoundaryReconstruction (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne
+
+ 1 FAILED TEST
+
+################ CFDThermalTests ################
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = EnergyEquationDiffusionTest.*:EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients:EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue:EnergyEquationVariablePropertiesTest.Diffusion*:RegionAwareThermalDiffusionTest.*:SparseAssembly3DTest.*
+[==========] Running 21 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from EnergyEquationDiffusionTest
+[ RUN      ] EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:120: Failure
+The difference between matrix.multiply(eA)[cellA] and expectedDiagonal is 3, which exceeds 1e-10, where
+matrix.multiply(eA)[cellA] evaluates to 24,
+expectedDiagonal evaluates to 21, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:121: Failure
+The difference between matrix.multiply(eB)[cellB] and expectedDiagonal is 3, which exceeds 1e-10, where
+matrix.multiply(eB)[cellB] evaluates to 24,
+expectedDiagonal evaluates to 21, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:122: Failure
+The difference between matrix.multiply(eB)[cellA] and -internalConductance is 1, which exceeds 1e-10, where
+matrix.multiply(eB)[cellA] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:123: Failure
+The difference between matrix.multiply(eA)[cellB] and -internalConductance is 1, which exceeds 1e-10, where
+matrix.multiply(eA)[cellB] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:128: Failure
+The difference between rhs[leftCell] and expectedRhsLeft is 20, which exceeds 1e-9, where
+rhs[leftCell] evaluates to 200,
+expectedRhsLeft evaluates to 180, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:129: Failure
+The difference between rhs[rightCell] and expectedRhsRight is 40, which exceeds 1e-9, where
+rhs[rightCell] evaluates to 280,
+expectedRhsRight evaluates to 240, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+[  FAILED  ] EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients (1 ms)
+[ RUN      ] EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:152: Failure
+The difference between a01 and a10 is 0.33333333333333315, which exceeds 1e-12, where
+a01 evaluates to -1.333333333333333,
+a10 evaluates to -0.99999999999999989, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+[  FAILED  ] EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric (0 ms)
+[ RUN      ] EnergyEquationDiffusionTest.ConstantTemperatureGivesZeroContributionEverywhere
+[       OK ] EnergyEquationDiffusionTest.ConstantTemperatureGivesZeroContributionEverywhere (0 ms)
+[ RUN      ] EnergyEquationDiffusionTest.DiagonalIsFinitePositiveAndNonzero
+[       OK ] EnergyEquationDiffusionTest.DiagonalIsFinitePositiveAndNonzero (0 ms)
+[ RUN      ] EnergyEquationDiffusionTest.MismatchedTemperatureSizeThrows
+[       OK ] EnergyEquationDiffusionTest.MismatchedTemperatureSizeThrows (0 ms)
+[----------] 5 tests from EnergyEquationDiffusionTest (2 ms total)
+
+[----------] 1 test from EnergyEquationAssemblyTest
+[ RUN      ] EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:417: Failure
+The difference between matrix.multiply(eA)[cellA] and diagonalBase + convection is 3, which exceeds 1e-9, where
+matrix.multiply(eA)[cellA] evaluates to 32,
+diagonalBase + convection evaluates to 29, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:418: Failure
+The difference between matrix.multiply(eB)[cellB] and diagonalBase is 3, which exceeds 1e-9, where
+matrix.multiply(eB)[cellB] evaluates to 24,
+diagonalBase evaluates to 21, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:419: Failure
+The difference between matrix.multiply(eB)[cellA] and -internalConductance is 1, which exceeds 1e-9, where
+matrix.multiply(eB)[cellA] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:420: Failure
+The difference between matrix.multiply(eA)[cellB] and -internalConductance - convection is 1, which exceeds 1e-9, where
+matrix.multiply(eA)[cellB] evaluates to -12,
+-internalConductance - convection evaluates to -11, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:426: Failure
+The difference between rhs[leftCell] and boundaryConductance * tLeft + commonRhs + q * volume is 20, which exceeds 1e-9, where
+rhs[leftCell] evaluates to 206,
+boundaryConductance * tLeft + commonRhs + q * volume evaluates to 186, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:427: Failure
+The difference between rhs[rightCell] and boundaryConductance * tRight + commonRhs + q * volume is 40, which exceeds 1e-9, where
+rhs[rightCell] evaluates to 286,
+boundaryConductance * tRight + commonRhs + q * volume evaluates to 246, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+[  FAILED  ] EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients (0 ms)
+[----------] 1 test from EnergyEquationAssemblyTest (0 ms total)
+
+[----------] 1 test from EnergyEquationThermalBCIntegrationTest
+[ RUN      ] EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:599: Failure
+The difference between matrix.multiply(eA)[cellA] and expectedDiagonal is 3, which exceeds 1e-10, where
+matrix.multiply(eA)[cellA] evaluates to 24,
+expectedDiagonal evaluates to 21, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:600: Failure
+The difference between matrix.multiply(eB)[cellB] and expectedDiagonal is 3, which exceeds 1e-10, where
+matrix.multiply(eB)[cellB] evaluates to 24,
+expectedDiagonal evaluates to 21, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:601: Failure
+The difference between matrix.multiply(eB)[cellA] and -internalConductance is 1, which exceeds 1e-10, where
+matrix.multiply(eB)[cellA] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:604: Failure
+The difference between rhs[leftCell] and boundaryConductance * tLeft + commonRhs is 20, which exceeds 1e-9, where
+rhs[leftCell] evaluates to 200,
+boundaryConductance * tLeft + commonRhs evaluates to 180, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation.cpp:605: Failure
+The difference between rhs[rightCell] and boundaryConductance * tRight + commonRhs is 40, which exceeds 1e-9, where
+rhs[rightCell] evaluates to 280,
+boundaryConductance * tRight + commonRhs evaluates to 240, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+[  FAILED  ] EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue (0 ms)
+[----------] 1 test from EnergyEquationThermalBCIntegrationTest (0 ms total)
+
+[----------] 4 tests from EnergyEquationVariablePropertiesTest
+[ RUN      ] EnergyEquationVariablePropertiesTest.DiffusionUniformFieldMatchesScalarOverloadExactly
+[       OK ] EnergyEquationVariablePropertiesTest.DiffusionUniformFieldMatchesScalarOverloadExactly (0 ms)
+[ RUN      ] EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation_variable_properties.cpp:132: Failure
+The difference between -matrix.multiply(eA)[cellB] and internalConductanceExpected is 1.6666666666666661, which exceeds 1e-10, where
+-matrix.multiply(eA)[cellB] evaluates to 5.6666666666666661,
+internalConductanceExpected evaluates to 4, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation_variable_properties.cpp:133: Failure
+The difference between -matrix.multiply(eB)[cellA] and internalConductanceExpected is 1, which exceeds 1e-10, where
+-matrix.multiply(eB)[cellA] evaluates to 5,
+internalConductanceExpected evaluates to 4, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation_variable_properties.cpp:135: Failure
+The difference between matrix.multiply(eA)[cellB] and matrix.multiply(eB)[cellA] is 0.66666666666666607, which exceeds 1e-12, where
+matrix.multiply(eA)[cellB] evaluates to -5.6666666666666661,
+matrix.multiply(eB)[cellA] evaluates to -5, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+[  FAILED  ] EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue (0 ms)
+[ RUN      ] EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_energy_equation_variable_properties.cpp:160: Failure
+The difference between matrix.diagonal(leftCell) and expectedDiagonal is 3, which exceeds 1e-9, where
+matrix.diagonal(leftCell) evaluates to 72.5,
+expectedDiagonal evaluates to 69.5, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+[  FAILED  ] EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly (0 ms)
+[ RUN      ] EnergyEquationVariablePropertiesTest.DiffusionMismatchedConductivityFieldSizeThrows
+[       OK ] EnergyEquationVariablePropertiesTest.DiffusionMismatchedConductivityFieldSizeThrows (0 ms)
+[----------] 4 tests from EnergyEquationVariablePropertiesTest (0 ms total)
+
+[----------] 5 tests from RegionAwareThermalDiffusionTest
+[ RUN      ] RegionAwareThermalDiffusionTest.InterfaceCoefficientMatchesHandDerivedExample
+[       OK ] RegionAwareThermalDiffusionTest.InterfaceCoefficientMatchesHandDerivedExample (0 ms)
+[ RUN      ] RegionAwareThermalDiffusionTest.EqualConductivityMatchesSingleMaterialPathExactly
+[       OK ] RegionAwareThermalDiffusionTest.EqualConductivityMatchesSingleMaterialPathExactly (0 ms)
+[ RUN      ] RegionAwareThermalDiffusionTest.MismatchedTemperatureSizeThrows
+[       OK ] RegionAwareThermalDiffusionTest.MismatchedTemperatureSizeThrows (0 ms)
+[ RUN      ] RegionAwareThermalDiffusionTest.MismatchedRegionSizeThrows
+[       OK ] RegionAwareThermalDiffusionTest.MismatchedRegionSizeThrows (0 ms)
+[ RUN      ] RegionAwareThermalDiffusionTest.RepeatedAssemblyIsDeterministic
+[       OK ] RegionAwareThermalDiffusionTest.RepeatedAssemblyIsDeterministic (0 ms)
+[----------] 5 tests from RegionAwareThermalDiffusionTest (0 ms total)
+
+[----------] 5 tests from SparseAssembly3DTest
+[ RUN      ] SparseAssembly3DTest.OneCell
+[       OK ] SparseAssembly3DTest.OneCell (0 ms)
+[ RUN      ] SparseAssembly3DTest.TwoCellsInX
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 2e-12
+entry 0: 24 vs 20
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 1.333333333333333 vs 4.0000000000000001e-13
+entry 1: -5.333333333333333 vs -4
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 1.333333333333333 vs 4.0000000000000001e-13
+entry 2: -5.333333333333333 vs -4
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 2e-12
+entry 3: 24 vs 20
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666643 vs 1.85e-12
+rhs 0: 21.166666666666664 vs 18.5
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666643 vs 1.85e-12
+rhs 1: 21.166666666666664 vs 18.5
+
+[  FAILED  ] SparseAssembly3DTest.TwoCellsInX (0 ms)
+[ RUN      ] SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 2.2999999999999999e-12
+entry 0: 27 vs 23
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 1.333333333333333 vs 4.0000000000000001e-13
+entry 1: -5.333333333333333 vs -4
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666643 vs 2.1499999999999999e-12
+rhs 0: 24.166666666666664 vs 21.5
+
+[  FAILED  ] SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet (0 ms)
+[ RUN      ] SparseAssembly3DTest.TwoByTwoByOne
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 1.4000000000000001e-12
+entry 0: 18 vs 14
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 1: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 2: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 3: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 1.4000000000000001e-12
+entry 4: 18 vs 14
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 5: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 6: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 1.4000000000000001e-12
+entry 7: 18 vs 14
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 8: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 9: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.66666666666666652 vs 2.0000000000000001e-13
+entry 10: -2.6666666666666665 vs -2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 4 vs 1.4000000000000001e-12
+entry 11: 18 vs 14
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666661 vs 1.125e-12
+rhs 0: 13.916666666666666 vs 11.25
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666661 vs 1.125e-12
+rhs 1: 13.916666666666666 vs 11.25
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666661 vs 1.125e-12
+rhs 2: 13.916666666666666 vs 11.25
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2.6666666666666661 vs 1.125e-12
+rhs 3: 13.916666666666666 vs 11.25
+
+[  FAILED  ] SparseAssembly3DTest.TwoByTwoByOne (1 ms)
+[ RUN      ] SparseAssembly3DTest.TwoByTwoByTwo
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 0: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 1: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 2: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 3: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 4: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 5: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 6: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 7: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 8: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 9: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 10: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 11: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 12: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 13: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 14: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 15: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 16: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 17: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 18: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 19: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 20: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 21: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 22: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 23: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 24: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 25: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 26: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 27: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 28: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 29: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 0.33333333333333326 vs 1e-13
+entry 30: -1.3333333333333333 vs -1
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:79: Failure
+Expected: (std::abs(m.valuesData()[k] - e.values[k])) <= (1e-13 * std::abs(e.values[k])), actual: 3 vs 9e-13
+entry 31: 12 vs 9
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 0: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 1: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 2: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 3: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 4: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 5: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 6: 8.625 vs 6.625
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_sparse_assembly3d.cpp:83: Failure
+Expected: (std::abs(a.system.rhs()[r] - e.rhs[r])) <= (1e-13 * std::abs(e.rhs[r])), actual: 2 vs 6.6250000000000005e-13
+rhs 7: 8.625 vs 6.625
+
+[  FAILED  ] SparseAssembly3DTest.TwoByTwoByTwo (2 ms)
+[----------] 5 tests from SparseAssembly3DTest (5 ms total)
+
+[----------] Global test environment tear-down
+[==========] 21 tests from 6 test suites ran. (11 ms total)
+[  PASSED  ] 11 tests.
+[  FAILED  ] 10 tests, listed below:
+[  FAILED  ] EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+[  FAILED  ] EnergyEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+[  FAILED  ] EnergyEquationAssemblyTest.CombinedAssemblyMatchesHandDerivedCoefficients
+[  FAILED  ] EnergyEquationThermalBCIntegrationTest.FixedTemperatureGivesIdenticalResultToEquivalentFixedValue
+[  FAILED  ] EnergyEquationVariablePropertiesTest.DiffusionInternalFaceMatchesHandDerivedValue
+[  FAILED  ] EnergyEquationVariablePropertiesTest.DiffusionBoundaryFaceUsesOwnerConductivityDirectly
+[  FAILED  ] SparseAssembly3DTest.TwoCellsInX
+[  FAILED  ] SparseAssembly3DTest.TwoCellsWithUpwindConvectionAndAZeroGradientOutlet
+[  FAILED  ] SparseAssembly3DTest.TwoByTwoByOne
+[  FAILED  ] SparseAssembly3DTest.TwoByTwoByTwo
+
+10 FAILED TESTS
+
+################ CFDPhysicsTests ################
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric:MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue:MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue
+[==========] Running 3 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from MomentumDiffusionTest
+[ RUN      ] MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/physics/test_momentum_diffusion.cpp:150: Failure
+The difference between a01 and a10 is 0.33333333333333315, which exceeds 1e-12, where
+a01 evaluates to -1.333333333333333,
+a10 evaluates to -0.99999999999999989, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+[  FAILED  ] MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric (0 ms)
+[----------] 1 test from MomentumDiffusionTest (0 ms total)
+
+[----------] 2 tests from MomentumVariableViscosityTest
+[ RUN      ] MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/physics/test_momentum_variable_viscosity.cpp:135: Failure
+The difference between -a10 and internalCoefficientExpected is 0.0040000000000000001, which exceeds 1e-12, where
+-a10 evaluates to 0.014999999999999999,
+internalCoefficientExpected evaluates to 0.010999999999999999, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/physics/test_momentum_variable_viscosity.cpp:140: Failure
+The difference between -a01 and internalCoefficientExpected is 0.003333333333333334, which exceeds 1e-12, where
+-a01 evaluates to 0.014333333333333333,
+internalCoefficientExpected evaluates to 0.010999999999999999, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/physics/test_momentum_variable_viscosity.cpp:149: Failure
+The difference between a01 and a10 is 0.0006666666666666661, which exceeds 1e-12, where
+a01 evaluates to -0.014333333333333333,
+a10 evaluates to -0.014999999999999999, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+[  FAILED  ] MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue (0 ms)
+[ RUN      ] MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/physics/test_momentum_variable_viscosity.cpp:181: Failure
+The difference between -a10 and internalCoefficientExpected is 0.0024333333333333342, which exceeds 1e-12, where
+-a10 evaluates to 0.011083333333333334,
+internalCoefficientExpected evaluates to 0.0086499999999999997, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+[  FAILED  ] MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue (0 ms)
+[----------] 2 tests from MomentumVariableViscosityTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] MomentumDiffusionTest.InternalFaceCoefficientsAreSymmetric
+[  FAILED  ] MomentumVariableViscosityTest.InternalFaceMatchesHandDerivedLinearMuValue
+[  FAILED  ] MomentumVariableViscosityTest.TabulatedMuGivesTheExpectedFaceValue
+
+ 3 FAILED TESTS
+
+################ CFDSpeciesTests ################
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients:SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric:SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+[==========] Running 3 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from SpeciesEquationDiffusionTest
+[ RUN      ] SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:127: Failure
+The difference between matrix.multiply(eA)[cellA] and expectedDiagonal is 3, which exceeds 1e-10, where
+matrix.multiply(eA)[cellA] evaluates to 24,
+expectedDiagonal evaluates to 21, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:128: Failure
+The difference between matrix.multiply(eB)[cellB] and expectedDiagonal is 3, which exceeds 1e-10, where
+matrix.multiply(eB)[cellB] evaluates to 24,
+expectedDiagonal evaluates to 21, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:129: Failure
+The difference between matrix.multiply(eB)[cellA] and -internalConductance is 1, which exceeds 1e-10, where
+matrix.multiply(eB)[cellA] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:130: Failure
+The difference between matrix.multiply(eA)[cellB] and -internalConductance is 1, which exceeds 1e-10, where
+matrix.multiply(eA)[cellB] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-10 evaluates to 1e-10.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:133: Failure
+The difference between rhs[leftCell] and boundaryConductance * yLeft + commonRhs is 2, which exceeds 1e-9, where
+rhs[leftCell] evaluates to 14,
+boundaryConductance * yLeft + commonRhs evaluates to 12, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+[  FAILED  ] SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients (1 ms)
+[ RUN      ] SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:154: Failure
+The difference between a01 and a10 is 0.33333333333333315, which exceeds 1e-12, where
+a01 evaluates to -1.333333333333333,
+a10 evaluates to -0.99999999999999989, and
+1e-12 evaluates to 9.9999999999999998e-13.
+
+[  FAILED  ] SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric (0 ms)
+[----------] 2 tests from SpeciesEquationDiffusionTest (1 ms total)
+
+[----------] 1 test from SpeciesEquationAssemblyTest
+[ RUN      ] SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:382: Failure
+The difference between matrix.multiply(eA)[cellA] and diagonalBase + fluxAtoB is 3, which exceeds 1e-9, where
+matrix.multiply(eA)[cellA] evaluates to 28,
+diagonalBase + fluxAtoB evaluates to 25, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:383: Failure
+The difference between matrix.multiply(eB)[cellB] and diagonalBase is 3, which exceeds 1e-9, where
+matrix.multiply(eB)[cellB] evaluates to 24,
+diagonalBase evaluates to 21, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:384: Failure
+The difference between matrix.multiply(eB)[cellA] and -internalConductance is 1, which exceeds 1e-9, where
+matrix.multiply(eB)[cellA] evaluates to -4,
+-internalConductance evaluates to -3, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:385: Failure
+The difference between matrix.multiply(eA)[cellB] and -internalConductance - fluxAtoB is 1, which exceeds 1e-9, where
+matrix.multiply(eA)[cellB] evaluates to -8,
+-internalConductance - fluxAtoB evaluates to -7, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_species_equation.cpp:389: Failure
+The difference between rhs[leftCell] and boundaryConductance * yLeft + commonRhs is 20, which exceeds 1e-9, where
+rhs[leftCell] evaluates to 200,
+boundaryConductance * yLeft + commonRhs evaluates to 180, and
+1e-9 evaluates to 1.0000000000000001e-09.
+
+[  FAILED  ] SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient (0 ms)
+[----------] 1 test from SpeciesEquationAssemblyTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 2 test suites ran. (2 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+[  FAILED  ] SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+[  FAILED  ] SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+
+ 3 FAILED TESTS

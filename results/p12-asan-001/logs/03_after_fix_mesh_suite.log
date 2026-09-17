@@ -1,0 +1,448 @@
+# P12-ASAN-001 2026-09-17T10:05:06Z  git HEAD b66310ca871811c4c7671056beec291a451af55c
+# test source 37dc4cb15a75e3f3a1b641d7c5b1790861bdb99ec18dac1cf092c868b2c5a3b8  tests/unit/mesh/test_mesh_quality_report.cpp
+## configure (existing asan cache: CFDAPP_ENABLE_SANITIZERS=ON, Debug, Ninja)
+  OK
+## build CFDMeshTests
+  OK (1 lines)
+  binary  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/tests/unit/mesh/CFDMeshTests
+  sha256  808979da73e6cd26dfb07f35fa453be798f8ae6d4269dbc4b6daf79af530a934  mtime 2026-09-17 20:05:04.368809600 +1000
+  libcfdcore.a (asan) 5731b8ff67ef4dbae26d7c7f53aeba8d82c0facc9fc58223c70f595f2650e1f7
+  -fsanitize flags: -fsanitize=address,undefined 
+
+## run: *
+   ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 156 tests from 23 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from MeshCell
+[ RUN      ] MeshCell.StoresIdCentroidAndVolume
+[       OK ] MeshCell.StoresIdCentroidAndVolume (0 ms)
+[ RUN      ] MeshCell.AddFaceAppendsFaceIds
+[       OK ] MeshCell.AddFaceAppendsFaceIds (0 ms)
+[ RUN      ] MeshCell.RejectsNonPositiveVolume
+[       OK ] MeshCell.RejectsNonPositiveVolume (1 ms)
+[ RUN      ] MeshCell.RejectsNonFiniteGeometry
+[       OK ] MeshCell.RejectsNonFiniteGeometry (0 ms)
+[----------] 4 tests from MeshCell (2 ms total)
+
+[----------] 5 tests from MeshFace
+[ RUN      ] MeshFace.InternalFaceStoresOwnerAndNeighbor
+[       OK ] MeshFace.InternalFaceStoresOwnerAndNeighbor (0 ms)
+[ RUN      ] MeshFace.BoundaryFaceHasNoNeighbor
+[       OK ] MeshFace.BoundaryFaceHasNoNeighbor (0 ms)
+[ RUN      ] MeshFace.AreaIsMagnitudeOfAreaVector
+[       OK ] MeshFace.AreaIsMagnitudeOfAreaVector (0 ms)
+[ RUN      ] MeshFace.RejectsZeroAreaVector
+[       OK ] MeshFace.RejectsZeroAreaVector (0 ms)
+[ RUN      ] MeshFace.RejectsOwnerEqualToNeighbor
+[       OK ] MeshFace.RejectsOwnerEqualToNeighbor (0 ms)
+[----------] 5 tests from MeshFace (0 ms total)
+
+[----------] 3 tests from MeshBoundaryPatch
+[ RUN      ] MeshBoundaryPatch.StoresNameAndFaceIds
+[       OK ] MeshBoundaryPatch.StoresNameAndFaceIds (0 ms)
+[ RUN      ] MeshBoundaryPatch.AllowsEmptyFaceList
+[       OK ] MeshBoundaryPatch.AllowsEmptyFaceList (0 ms)
+[ RUN      ] MeshBoundaryPatch.RejectsEmptyName
+[       OK ] MeshBoundaryPatch.RejectsEmptyName (0 ms)
+[----------] 3 tests from MeshBoundaryPatch (0 ms total)
+
+[----------] 4 tests from Mesh
+[ RUN      ] Mesh.ExposesCellsFacesAndPatches
+[       OK ] Mesh.ExposesCellsFacesAndPatches (1 ms)
+[ RUN      ] Mesh.CellAndFaceAccessorsValidateId
+[       OK ] Mesh.CellAndFaceAccessorsValidateId (0 ms)
+[ RUN      ] Mesh.BoundaryPatchLookupByName
+[       OK ] Mesh.BoundaryPatchLookupByName (0 ms)
+[ RUN      ] Mesh.RejectsEmptyCellsOrFaces
+[       OK ] Mesh.RejectsEmptyCellsOrFaces (0 ms)
+[----------] 4 tests from Mesh (2 ms total)
+
+[----------] 4 tests from MeshGeometry
+[ RUN      ] MeshGeometry.DistanceAndDisplacement
+[       OK ] MeshGeometry.DistanceAndDisplacement (0 ms)
+[ RUN      ] MeshGeometry.UnitNormalHasUnitMagnitude
+[       OK ] MeshGeometry.UnitNormalHasUnitMagnitude (0 ms)
+[ RUN      ] MeshGeometry.OwnerNeighborDistanceMatchesCartesianSpacing
+[       OK ] MeshGeometry.OwnerNeighborDistanceMatchesCartesianSpacing (0 ms)
+[ RUN      ] MeshGeometry.OwnerNeighborDistanceRejectsBoundaryFace
+[       OK ] MeshGeometry.OwnerNeighborDistanceRejectsBoundaryFace (0 ms)
+[----------] 4 tests from MeshGeometry (1 ms total)
+
+[----------] 5 tests from MeshGeometryNonOrthogonal
+[ RUN      ] MeshGeometryNonOrthogonal.CartesianFacesDecomposeExactly
+[       OK ] MeshGeometryNonOrthogonal.CartesianFacesDecomposeExactly (0 ms)
+[ RUN      ] MeshGeometryNonOrthogonal.NonOrthogonalButUnskewedFace
+[       OK ] MeshGeometryNonOrthogonal.NonOrthogonalButUnskewedFace (0 ms)
+[ RUN      ] MeshGeometryNonOrthogonal.OrthogonalButSkewedFace
+[       OK ] MeshGeometryNonOrthogonal.OrthogonalButSkewedFace (0 ms)
+[ RUN      ] MeshGeometryNonOrthogonal.DistortedDecompositionIsConsistent
+[       OK ] MeshGeometryNonOrthogonal.DistortedDecompositionIsConsistent (0 ms)
+[ RUN      ] MeshGeometryNonOrthogonal.DegenerateGeometryIsDetected
+[       OK ] MeshGeometryNonOrthogonal.DegenerateGeometryIsDetected (0 ms)
+[----------] 5 tests from MeshGeometryNonOrthogonal (2 ms total)
+
+[----------] 9 tests from MeshQuality
+[ RUN      ] MeshQuality.UniformSquareGridIsValidWithUnitAspectRatio
+[       OK ] MeshQuality.UniformSquareGridIsValidWithUnitAspectRatio (1 ms)
+[ RUN      ] MeshQuality.NonSquareCellsReportCorrectAspectRatio
+[       OK ] MeshQuality.NonSquareCellsReportCorrectAspectRatio (0 ms)
+[ RUN      ] MeshQuality.CartesianHasZeroNonOrthogonality
+[       OK ] MeshQuality.CartesianHasZeroNonOrthogonality (0 ms)
+[ RUN      ] MeshQuality.CartesianHasZeroSkewness
+[       OK ] MeshQuality.CartesianHasZeroSkewness (0 ms)
+[ RUN      ] MeshQuality.DistortedMeshReportsNonZeroMetrics
+[       OK ] MeshQuality.DistortedMeshReportsNonZeroMetrics (0 ms)
+[ RUN      ] MeshQuality.MetricsDiscriminateDistortionLevels
+
+level      amp/h     maxNonOrth     meanNonOrth    maxSkew      meanSkew     minVolume   
+cartesian  0.00      0              0              0            0            0.00390625  
+mild       0.10      2.45144        1.05684        0.00384443   0.00106428   0.0038123   
+moderate   0.25      6.119          2.64151        0.00981648   0.00266405   0.00367275  
+strong     0.45      10.9764        4.75183        0.0181881    0.00480607   0.00348924  
+[       OK ] MeshQuality.MetricsDiscriminateDistortionLevels (10 ms)
+[ RUN      ] MeshQuality.NonOrthogonalityMetricsAreDeterministic
+[       OK ] MeshQuality.NonOrthogonalityMetricsAreDeterministic (1 ms)
+[ RUN      ] MeshQuality.InvalidGeometryHandledSafely
+[       OK ] MeshQuality.InvalidGeometryHandledSafely (0 ms)
+[ RUN      ] MeshQuality.DetectsOutOfRangeOwner
+[       OK ] MeshQuality.DetectsOutOfRangeOwner (0 ms)
+[----------] 9 tests from MeshQuality (16 ms total)
+
+[----------] 18 tests from MeshQualityReport
+[ RUN      ] MeshQualityReport.UniformSquareMeshHasTheIdealValueOfEveryMetric
+[       OK ] MeshQualityReport.UniformSquareMeshHasTheIdealValueOfEveryMetric (0 ms)
+[ RUN      ] MeshQualityReport.AspectRatioOfARectangleIsItsSideRatio
+[       OK ] MeshQualityReport.AspectRatioOfARectangleIsItsSideRatio (0 ms)
+[ RUN      ] MeshQualityReport.RotatingAValidMeshChangesNoMetric
+[       OK ] MeshQualityReport.RotatingAValidMeshChangesNoMetric (1 ms)
+[ RUN      ] MeshQualityReport.ExpansionRatioOfAGeometricGradingIsItsRatio
+[       OK ] MeshQualityReport.ExpansionRatioOfAGeometricGradingIsItsRatio (1 ms)
+[ RUN      ] MeshQualityReport.ShearedMeshHasTheShearAngleOnEveryFace
+[       OK ] MeshQualityReport.ShearedMeshHasTheShearAngleOnEveryFace (1 ms)
+[ RUN      ] MeshQualityReport.WorstEntityIsTheArgmaxOfTheMeshGeometryDefinition
+[       OK ] MeshQualityReport.WorstEntityIsTheArgmaxOfTheMeshGeometryDefinition (0 ms)
+[ RUN      ] MeshQualityReport.MultiBlockInterfaceExpansionIsMeasured
+[       OK ] MeshQualityReport.MultiBlockInterfaceExpansionIsMeasured (1 ms)
+[ RUN      ] MeshQualityReport.WarningsAreAggregatedPerMetricWithTheWorstEntity
+[       OK ] MeshQualityReport.WarningsAreAggregatedPerMetricWithTheWorstEntity (0 ms)
+[ RUN      ] MeshQualityReport.NonOrthogonalityBeyondSeventyDegreesIsAWarningNotAnError
+[       OK ] MeshQualityReport.NonOrthogonalityBeyondSeventyDegreesIsAWarningNotAnError (0 ms)
+[ RUN      ] MeshQualityReport.SkewnessAndExpansionWarningsUseTheirThresholds
+[       OK ] MeshQualityReport.SkewnessAndExpansionWarningsUseTheirThresholds (0 ms)
+[ RUN      ] MeshQualityReport.NonOrthogonalMeshGetsAnInformationalCorrectionAdvice
+[       OK ] MeshQualityReport.NonOrthogonalMeshGetsAnInformationalCorrectionAdvice (0 ms)
+[ RUN      ] MeshQualityReport.DegenerateCellsAndFacesCannotBeConstructed
+[       OK ] MeshQualityReport.DegenerateCellsAndFacesCannotBeConstructed (0 ms)
+[ RUN      ] MeshQualityReport.BrokenConnectivityIsFatal
+[       OK ] MeshQualityReport.BrokenConnectivityIsFatal (0 ms)
+[ RUN      ] MeshQualityReport.ReversedFaceOrientationIsFatal
+[       OK ] MeshQualityReport.ReversedFaceOrientationIsFatal (0 ms)
+[ RUN      ] MeshQualityReport.BoundaryFaceMustBeInExactlyOnePatch
+[       OK ] MeshQualityReport.BoundaryFaceMustBeInExactlyOnePatch (0 ms)
+[ RUN      ] MeshQualityReport.DisconnectedMeshIsFatal
+[       OK ] MeshQualityReport.DisconnectedMeshIsFatal (0 ms)
+[ RUN      ] MeshQualityReport.FatalIssuesAreCappedWithACountOfTheRest
+[       OK ] MeshQualityReport.FatalIssuesAreCappedWithACountOfTheRest (0 ms)
+[ RUN      ] MeshQualityReport.IdenticalMeshesGiveIdenticalReports
+[       OK ] MeshQualityReport.IdenticalMeshesGiveIdenticalReports (0 ms)
+[----------] 18 tests from MeshQualityReport (17 ms total)
+
+[----------] 8 tests from CartesianMesh
+[ RUN      ] CartesianMesh.OneByOne
+[       OK ] CartesianMesh.OneByOne (0 ms)
+[ RUN      ] CartesianMesh.TwoByOne
+[       OK ] CartesianMesh.TwoByOne (0 ms)
+[ RUN      ] CartesianMesh.OneByTwo
+[       OK ] CartesianMesh.OneByTwo (0 ms)
+[ RUN      ] CartesianMesh.TwoByTwo
+[       OK ] CartesianMesh.TwoByTwo (0 ms)
+[ RUN      ] CartesianMesh.FourByThree
+[       OK ] CartesianMesh.FourByThree (0 ms)
+[ RUN      ] CartesianMesh.TwentyByTwenty
+[       OK ] CartesianMesh.TwentyByTwenty (1 ms)
+[ RUN      ] CartesianMesh.DeterministicGeneration
+[       OK ] CartesianMesh.DeterministicGeneration (0 ms)
+[ RUN      ] CartesianMesh.RejectsInvalidInputs
+[       OK ] CartesianMesh.RejectsInvalidInputs (0 ms)
+[----------] 8 tests from CartesianMesh (4 ms total)
+
+[----------] 6 tests from MeshFingerprintTest
+[ RUN      ] MeshFingerprintTest.IsNonEmpty
+[       OK ] MeshFingerprintTest.IsNonEmpty (0 ms)
+[ RUN      ] MeshFingerprintTest.TwoSeparatelyBuiltIdenticalMeshesProduceIdenticalFingerprints
+[       OK ] MeshFingerprintTest.TwoSeparatelyBuiltIdenticalMeshesProduceIdenticalFingerprints (0 ms)
+[ RUN      ] MeshFingerprintTest.RepeatedCallOnSameMeshIsDeterministic
+[       OK ] MeshFingerprintTest.RepeatedCallOnSameMeshIsDeterministic (0 ms)
+[ RUN      ] MeshFingerprintTest.DifferentDomainSizeWithSameCellAndFaceCountProducesDifferentFingerprint
+[       OK ] MeshFingerprintTest.DifferentDomainSizeWithSameCellAndFaceCountProducesDifferentFingerprint (0 ms)
+[ RUN      ] MeshFingerprintTest.DifferentResolutionProducesDifferentFingerprint
+[       OK ] MeshFingerprintTest.DifferentResolutionProducesDifferentFingerprint (0 ms)
+[ RUN      ] MeshFingerprintTest.DifferentAspectRatioSameCellCountProducesDifferentFingerprint
+[       OK ] MeshFingerprintTest.DifferentAspectRatioSameCellCountProducesDifferentFingerprint (0 ms)
+[----------] 6 tests from MeshFingerprintTest (2 ms total)
+
+[----------] 15 tests from StructuredQuadMesh
+[ RUN      ] StructuredQuadMesh.LatticeVerticesReproduceCartesianMesh
+[       OK ] StructuredQuadMesh.LatticeVerticesReproduceCartesianMesh (0 ms)
+[ RUN      ] StructuredQuadMesh.TrapezoidGeometryIsExact
+[       OK ] StructuredQuadMesh.TrapezoidGeometryIsExact (0 ms)
+[ RUN      ] StructuredQuadMesh.DistortedMeshIsConservativeAndGenuinelyNonOrthogonal
+[       OK ] StructuredQuadMesh.DistortedMeshIsConservativeAndGenuinelyNonOrthogonal (0 ms)
+[ RUN      ] StructuredQuadMesh.CarriesItsVertexGrid
+[       OK ] StructuredQuadMesh.CarriesItsVertexGrid (0 ms)
+[ RUN      ] StructuredQuadMesh.CartesianMeshCarriesItsLatticeGrid
+[       OK ] StructuredQuadMesh.CartesianMeshCarriesItsLatticeGrid (0 ms)
+[ RUN      ] StructuredQuadMesh.MeshWithoutGridReportsNone
+[       OK ] StructuredQuadMesh.MeshWithoutGridReportsNone (0 ms)
+[ RUN      ] StructuredQuadMesh.MeshRejectsGridThatDoesNotMatchItsCells
+[       OK ] StructuredQuadMesh.MeshRejectsGridThatDoesNotMatchItsCells (0 ms)
+[ RUN      ] StructuredQuadMesh.ConstructionIsDeterministic
+[       OK ] StructuredQuadMesh.ConstructionIsDeterministic (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsZeroCells
+[       OK ] StructuredQuadMesh.RejectsZeroCells (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsWrongVertexCount
+[       OK ] StructuredQuadMesh.RejectsWrongVertexCount (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsNonFiniteVertex
+[       OK ] StructuredQuadMesh.RejectsNonFiniteVertex (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsFoldedCells
+[       OK ] StructuredQuadMesh.RejectsFoldedCells (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsClockwiseCells
+[       OK ] StructuredQuadMesh.RejectsClockwiseCells (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsNonConvexCell
+[       OK ] StructuredQuadMesh.RejectsNonConvexCell (0 ms)
+[ RUN      ] StructuredQuadMesh.RejectsDegenerateCells
+[       OK ] StructuredQuadMesh.RejectsDegenerateCells (0 ms)
+[----------] 15 tests from StructuredQuadMesh (5 ms total)
+
+[----------] 11 tests from MeshValidity
+[ RUN      ] MeshValidity.HandBuiltTwoCellMeshIsValid
+[       OK ] MeshValidity.HandBuiltTwoCellMeshIsValid (0 ms)
+[ RUN      ] MeshValidity.DetectsInvertedInternalFace
+[       OK ] MeshValidity.DetectsInvertedInternalFace (0 ms)
+[ RUN      ] MeshValidity.DetectsInwardBoundaryFace
+[       OK ] MeshValidity.DetectsInwardBoundaryFace (0 ms)
+[ RUN      ] MeshValidity.DetectsOpenCell
+[       OK ] MeshValidity.DetectsOpenCell (0 ms)
+[ RUN      ] MeshValidity.DetectsCellListingAFaceItDoesNotOwnOrNeighbor
+[       OK ] MeshValidity.DetectsCellListingAFaceItDoesNotOwnOrNeighbor (0 ms)
+[ RUN      ] MeshValidity.DetectsCellWithTooFewFaces
+[       OK ] MeshValidity.DetectsCellWithTooFewFaces (0 ms)
+[ RUN      ] MeshValidity.DetectsBoundaryFaceInNoPatchOrInTwo
+[       OK ] MeshValidity.DetectsBoundaryFaceInNoPatchOrInTwo (0 ms)
+[ RUN      ] MeshValidity.DetectsPatchListingAnInternalFace
+[       OK ] MeshValidity.DetectsPatchListingAnInternalFace (0 ms)
+[ RUN      ] MeshValidity.EntitiesRejectNonFiniteAndNonPositiveGeometry
+[       OK ] MeshValidity.EntitiesRejectNonFiniteAndNonPositiveGeometry (0 ms)
+[ RUN      ] MeshValidity.ProblemListIsBounded
+[       OK ] MeshValidity.ProblemListIsBounded (1 ms)
+[ RUN      ] MeshValidity.EveryCartesianAndStructuredQuadMeshIsValid
+[       OK ] MeshValidity.EveryCartesianAndStructuredQuadMeshIsValid (13 ms)
+[----------] 11 tests from MeshValidity (19 ms total)
+
+[----------] 14 tests from MeshGrading
+[ RUN      ] MeshGrading.UniformIsEqualWidths
+[       OK ] MeshGrading.UniformIsEqualWidths (0 ms)
+[ RUN      ] MeshGrading.OneSidedStartClusteringMatchesGeometricSeries
+[       OK ] MeshGrading.OneSidedStartClusteringMatchesGeometricSeries (0 ms)
+[ RUN      ] MeshGrading.OneSidedEndClusteringMirrorsStart
+[       OK ] MeshGrading.OneSidedEndClusteringMirrorsStart (0 ms)
+[ RUN      ] MeshGrading.TwoSidedClusteringEvenCellCount
+[       OK ] MeshGrading.TwoSidedClusteringEvenCellCount (0 ms)
+[ RUN      ] MeshGrading.TwoSidedClusteringOddCellCount
+[       OK ] MeshGrading.TwoSidedClusteringOddCellCount (0 ms)
+[ RUN      ] MeshGrading.InvariantsHoldForEveryDistribution
+[       OK ] MeshGrading.InvariantsHoldForEveryDistribution (2 ms)
+[ RUN      ] MeshGrading.RatioOneIsExactlyUniform
+[       OK ] MeshGrading.RatioOneIsExactlyUniform (0 ms)
+[ RUN      ] MeshGrading.NearUnityRatioTendsToUniform
+[       OK ] MeshGrading.NearUnityRatioTendsToUniform (0 ms)
+[ RUN      ] MeshGrading.ConstructionIsDeterministic
+[       OK ] MeshGrading.ConstructionIsDeterministic (0 ms)
+[ RUN      ] MeshGrading.RejectsZeroCells
+[       OK ] MeshGrading.RejectsZeroCells (0 ms)
+[ RUN      ] MeshGrading.RejectsNonPositiveOrNonFiniteLength
+[       OK ] MeshGrading.RejectsNonPositiveOrNonFiniteLength (0 ms)
+[ RUN      ] MeshGrading.RejectsInvalidRatios
+[       OK ] MeshGrading.RejectsInvalidRatios (0 ms)
+[ RUN      ] MeshGrading.RejectsOverflowingRatio
+[       OK ] MeshGrading.RejectsOverflowingRatio (0 ms)
+[ RUN      ] MeshGrading.RejectsVanishingCells
+[       OK ] MeshGrading.RejectsVanishingCells (0 ms)
+[----------] 14 tests from MeshGrading (6 ms total)
+
+[----------] 4 tests from AxisSpacing
+[ RUN      ] AxisSpacing.UniformUsesTheCartesianArithmetic
+[       OK ] AxisSpacing.UniformUsesTheCartesianArithmetic (0 ms)
+[ RUN      ] AxisSpacing.GradedUniformOrUnitRatioIsTheUniformSpacing
+[       OK ] AxisSpacing.GradedUniformOrUnitRatioIsTheUniformSpacing (0 ms)
+[ RUN      ] AxisSpacing.FromNodesGivesCentresAndWidths
+[       OK ] AxisSpacing.FromNodesGivesCentresAndWidths (0 ms)
+[ RUN      ] AxisSpacing.FromNodesRejectsInvalidNodes
+[       OK ] AxisSpacing.FromNodesRejectsInvalidNodes (0 ms)
+[----------] 4 tests from AxisSpacing (1 ms total)
+
+[----------] 5 tests from GradedMesh
+[ RUN      ] GradedMesh.UniformGradingIsTheCartesianMeshBitForBit
+[       OK ] GradedMesh.UniformGradingIsTheCartesianMeshBitForBit (24 ms)
+[ RUN      ] GradedMesh.GradedMeshesHaveTheRequestedCellsAndAreValid
+y both 1.2                 x: width min 0.166667 max 0.166667 (max/min 1.000), requested ratio 1.000, adjacent ratios 1.000000..1.000000, closure error 0.0e+00
+y both 1.2                 y: width min 0.030305 max 0.108587 (max/min 3.583), requested ratio 1.200, adjacent ratios 1.000000..1.200000, closure error 0.0e+00
+y bottom 1.15              x: width min 0.166667 max 0.166667 (max/min 1.000), requested ratio 1.000, adjacent ratios 1.000000..1.000000, closure error 0.0e+00
+y bottom 1.15              y: width min 0.017948 max 0.146041 (max/min 8.137), requested ratio 1.150, adjacent ratios 1.150000..1.150000, closure error 0.0e+00
+y top 1.15                 x: width min 0.166667 max 0.166667 (max/min 1.000), requested ratio 1.000, adjacent ratios 1.000000..1.000000, closure error 0.0e+00
+y top 1.15                 y: width min 0.017948 max 0.146041 (max/min 8.137), requested ratio 1.150, adjacent ratios 1.150000..1.150000, closure error 0.0e+00
+x left 1.1                 x: width min 0.045199 max 0.404726 (max/min 8.954), requested ratio 1.100, adjacent ratios 1.100000..1.100000, closure error 0.0e+00
+x left 1.1                 y: width min 0.062500 max 0.062500 (max/min 1.000), requested ratio 1.000, adjacent ratios 1.000000..1.000000, closure error 0.0e+00
+x right 1.1                x: width min 0.045199 max 0.404726 (max/min 8.954), requested ratio 1.100, adjacent ratios 1.100000..1.100000, closure error 0.0e+00
+x right 1.1                y: width min 0.062500 max 0.062500 (max/min 1.000), requested ratio 1.000, adjacent ratios 1.000000..1.000000, closure error 0.0e+00
+x both 1.1 + y both 1.2    x: width min 0.093527 max 0.266842 (max/min 2.853), requested ratio 1.100, adjacent ratios 1.000000..1.100000, closure error 0.0e+00
+x both 1.1 + y both 1.2    y: width min 0.030305 max 0.108587 (max/min 3.583), requested ratio 1.200, adjacent ratios 1.000000..1.200000, closure error 0.0e+00
+[       OK ] GradedMesh.GradedMeshesHaveTheRequestedCellsAndAreValid (25 ms)
+[ RUN      ] GradedMesh.VertexGridIsTheGradedNodes
+[       OK ] GradedMesh.VertexGridIsTheGradedNodes (0 ms)
+[ RUN      ] GradedMesh.ConstructionIsDeterministic
+[       OK ] GradedMesh.ConstructionIsDeterministic (3 ms)
+[ RUN      ] GradedMesh.InvalidGradingNeverBuildsAMesh
+[       OK ] GradedMesh.InvalidGradingNeverBuildsAMesh (0 ms)
+[----------] 5 tests from GradedMesh (56 ms total)
+
+[----------] 7 tests from MultiBlockMesh
+[ RUN      ] MultiBlockMesh.TwoBlockRectangleIsTheSingleBlockMeshRenumbered
+[       OK ] MultiBlockMesh.TwoBlockRectangleIsTheSingleBlockMeshRenumbered (2 ms)
+[ RUN      ] MultiBlockMesh.InterfaceFacesAreSingleInternalFacesOwnedByTheFirstBlock
+[       OK ] MultiBlockMesh.InterfaceFacesAreSingleInternalFacesOwnedByTheFirstBlock (0 ms)
+[ RUN      ] MultiBlockMesh.RotatedBlocksAndReversedInterfacesConnectAdjacentCells
+[       OK ] MultiBlockMesh.RotatedBlocksAndReversedInterfacesConnectAdjacentCells (0 ms)
+[ RUN      ] MultiBlockMesh.LShapedDomainPatchesFollowTheListedSides
+[       OK ] MultiBlockMesh.LShapedDomainPatchesFollowTheListedSides (0 ms)
+[ RUN      ] MultiBlockMesh.InternalSolidRegionIsAHoleBoundedByItsPatch
+[       OK ] MultiBlockMesh.InternalSolidRegionIsAHoleBoundedByItsPatch (0 ms)
+[ RUN      ] MultiBlockMesh.CurvedSectorsAndClosedRing
+[       OK ] MultiBlockMesh.CurvedSectorsAndClosedRing (3 ms)
+[ RUN      ] MultiBlockMesh.InterfaceFluxesCancelExactlyBetweenBlocks
+[       OK ] MultiBlockMesh.InterfaceFluxesCancelExactlyBetweenBlocks (0 ms)
+[----------] 7 tests from MultiBlockMesh (11 ms total)
+
+[----------] 5 tests from MultiBlockMeshInvalid
+[ RUN      ] MultiBlockMeshInvalid.StructuralErrorsAreNamed
+[       OK ] MultiBlockMeshInvalid.StructuralErrorsAreNamed (0 ms)
+[ RUN      ] MultiBlockMeshInvalid.InvalidCellsAreNamed
+[       OK ] MultiBlockMeshInvalid.InvalidCellsAreNamed (0 ms)
+[ RUN      ] MultiBlockMeshInvalid.NonConformalOrMismatchedInterfacesAreRejected
+[       OK ] MultiBlockMeshInvalid.NonConformalOrMismatchedInterfacesAreRejected (0 ms)
+[ RUN      ] MultiBlockMeshInvalid.OverlapsAndUndeclaredContactsAreRejected
+[       OK ] MultiBlockMeshInvalid.OverlapsAndUndeclaredContactsAreRejected (1 ms)
+[ RUN      ] MultiBlockMeshInvalid.DisconnectedDomainFailsTheValidityGate
+[       OK ] MultiBlockMeshInvalid.DisconnectedDomainFailsTheValidityGate (0 ms)
+[----------] 5 tests from MultiBlockMeshInvalid (5 ms total)
+
+[----------] 12 tests from Cartesian3DMeshTest
+[ RUN      ] Cartesian3DMeshTest.TopologyCountsMatchIndependentFormulas
+[       OK ] Cartesian3DMeshTest.TopologyCountsMatchIndependentFormulas (2 ms)
+[ RUN      ] Cartesian3DMeshTest.CellVolumesAreBoxVolumesAndSumToTheDomain
+[       OK ] Cartesian3DMeshTest.CellVolumesAreBoxVolumesAndSumToTheDomain (2 ms)
+[ RUN      ] Cartesian3DMeshTest.AreaVectorsHaveTheRightMagnitudeDirectionAndClosure
+[       OK ] Cartesian3DMeshTest.AreaVectorsHaveTheRightMagnitudeDirectionAndClosure (3 ms)
+[ RUN      ] Cartesian3DMeshTest.CentroidsAreBoxAndRectangleCentres
+[       OK ] Cartesian3DMeshTest.CentroidsAreBoxAndRectangleCentres (3 ms)
+[ RUN      ] Cartesian3DMeshTest.EachCellHasSixFacesInCanonicalOrderAndEachFaceItsOwners
+[       OK ] Cartesian3DMeshTest.EachCellHasSixFacesInCanonicalOrderAndEachFaceItsOwners (11 ms)
+[ RUN      ] Cartesian3DMeshTest.BuildIsDeterministicAndFollowsTheDocumentedNumbering
+[       OK ] Cartesian3DMeshTest.BuildIsDeterministicAndFollowsTheDocumentedNumbering (7 ms)
+[ RUN      ] Cartesian3DMeshTest.SixPatchesPartitionTheBoundaryWithOutwardNormals
+[       OK ] Cartesian3DMeshTest.SixPatchesPartitionTheBoundaryWithOutwardNormals (9 ms)
+[ RUN      ] Cartesian3DMeshTest.DimensionIsThreeFor3DMeshesAndTwoForEvery2DBuilder
+[       OK ] Cartesian3DMeshTest.DimensionIsThreeFor3DMeshesAndTwoForEvery2DBuilder (4 ms)
+[ RUN      ] Cartesian3DMeshTest.StructuredGridMustMatchTheMeshDimension
+[       OK ] Cartesian3DMeshTest.StructuredGridMustMatchTheMeshDimension (0 ms)
+[ RUN      ] Cartesian3DMeshTest.InvalidDimensionsAndExtentsAreRejected
+[       OK ] Cartesian3DMeshTest.InvalidDimensionsAndExtentsAreRejected (0 ms)
+[ RUN      ] Cartesian3DMeshTest.FingerprintSeesZIn3DAndKeeps2DValues
+[       OK ] Cartesian3DMeshTest.FingerprintSeesZIn3DAndKeeps2DValues (1 ms)
+[ RUN      ] Cartesian3DMeshTest.RequireTwoDimensionalNamesTheComponent
+[       OK ] Cartesian3DMeshTest.RequireTwoDimensionalNamesTheComponent (0 ms)
+[----------] 12 tests from Cartesian3DMeshTest (52 ms total)
+
+[----------] 1 test from MeshMotionStatic
+[ RUN      ] MeshMotionStatic.StationaryMotionLeavesEveryMeshBitwiseUnchanged
+G1.1 C16: 5 stationary advances, geometry bitwise unchanged, dV = v = 0.0
+G1.1 G16: 5 stationary advances, geometry bitwise unchanged, dV = v = 0.0
+G1.1 Q16: 5 stationary advances, geometry bitwise unchanged, dV = v = 0.0
+G1.1 MB2: 5 stationary advances, geometry bitwise unchanged, dV = v = 0.0
+G1.1 H8: 5 stationary advances, geometry bitwise unchanged, dV = v = 0.0
+[       OK ] MeshMotionStatic.StationaryMotionLeavesEveryMeshBitwiseUnchanged (47 ms)
+[----------] 1 test from MeshMotionStatic (47 ms total)
+
+[----------] 3 tests from MeshMotionKernel
+[ RUN      ] MeshMotionKernel.RecomputedGeometryReproducesTheBuilders
+G1.3 C16: kernel vs builder, worst measured/bound = 0.000e+00
+G1.3 G16: kernel vs builder, worst measured/bound = 3.394e-02
+G1.3 Q16: kernel geometry BITWISE identical to the builder's
+G1.3 MB2: kernel geometry BITWISE identical to the builder's
+G1.3 H8: kernel vs builder, worst measured/bound = 1.562e-02
+[       OK ] MeshMotionKernel.RecomputedGeometryReproducesTheBuilders (27 ms)
+[ RUN      ] MeshMotionKernel.TopologyMapWeldsMultiBlockInterfaceVertices
+[       OK ] MeshMotionKernel.TopologyMapWeldsMultiBlockInterfaceVertices (2 ms)
+[ RUN      ] MeshMotionKernel.AMeshWithoutAStructuredGridCannotMove
+[       OK ] MeshMotionKernel.AMeshWithoutAStructuredGridCannotMove (0 ms)
+[----------] 3 tests from MeshMotionKernel (32 ms total)
+
+[----------] 5 tests from MeshMotionGeometry
+[ RUN      ] MeshMotionGeometry.AffineMotionsGiveTheExactAffineImage2D
+G2/G3/G4 C16/TR2: 20 advances, min V 3.9062e-03; worst measured/bound: geometry 5.830e-02 closure 0.000e+00 total 5.252e-04 velocity 1.122e-01 GCL 4.722e-03 globalGCL 3.283e-05 swept-vs-independent 2.356e-03
+G2/G3/G4 C16/EX2: 20 advances, min V 3.9848e-03; worst measured/bound: geometry 1.157e-01 closure 0.000e+00 total 3.768e-03 velocity 1.070e-01 GCL 4.517e-03 globalGCL 3.216e-04 swept-vs-independent 2.448e-03
+G2/G3/G4 C16/SH2: 20 advances, min V 3.9062e-03; worst measured/bound: geometry 1.238e-01 closure 7.585e-03 total 2.393e-04 velocity 1.106e-01 GCL 2.069e-03 globalGCL 1.496e-05 swept-vs-independent 2.675e-03
+[       OK ] MeshMotionGeometry.AffineMotionsGiveTheExactAffineImage2D (143 ms)
+[ RUN      ] MeshMotionGeometry.AffineMotionsGiveTheExactAffineImage3D
+G2/G3/G4 H8/TR3: 20 advances, min V 1.9531e-03; worst measured/bound: geometry 1.365e-01 closure 0.000e+00 total 9.707e-04 velocity 1.122e-01 GCL 1.479e-03 globalGCL 1.524e-04 swept-vs-independent 9.368e-06
+G2/G3/G4 H8/EX3: 20 advances, min V 2.0123e-03; worst measured/bound: geometry 1.326e-01 closure 0.000e+00 total 1.017e-01 velocity 6.493e-02 GCL 5.947e-04 globalGCL 1.010e-02 swept-vs-independent 9.076e-06
+G2/G3/G4 H8/SH3: 20 advances, min V 1.9531e-03; worst measured/bound: geometry 1.352e-01 closure 2.696e-03 total 9.687e-04 velocity 1.103e-01 GCL 2.256e-04 globalGCL 6.782e-05 swept-vs-independent 6.001e-06
+[       OK ] MeshMotionGeometry.AffineMotionsGiveTheExactAffineImage3D (2948 ms)
+[ RUN      ] MeshMotionGeometry.SinusoidalDeformation2D
+G2/G3/G4 C16/SN2: 20 advances, min V 3.2966e-03, max |dV|/V per step 5.067e-02, max displacement 0.0707; worst measured/bound: closure 0.000e+00 total 1.465e-03 velocity(mean) 6.250e-02 velocity(midpoint) 9.865e-01 GCL 3.540e-03 globalGCL 9.155e-05 swept-vs-independent 1.953e-03
+G2/G3/G4 Q16/SN2: 20 advances, min V 3.1212e-03, max |dV|/V per step 5.058e-02, max displacement 0.0707; worst measured/bound: closure 0.000e+00 total 6.104e-04 velocity(mean) 6.687e-02 velocity(midpoint) 9.865e-01 GCL 3.412e-03 globalGCL 5.341e-05 swept-vs-independent 2.139e-03
+G2/G3/G4 G16/SN2: 20 advances, min V 9.0468e-04, max |dV|/V per step 5.038e-02, max displacement 0.0707; worst measured/bound: closure 5.524e-03 total 1.587e-03 velocity(mean) 6.180e-02 velocity(midpoint) 9.865e-01 GCL 3.272e-03 globalGCL 6.866e-05 swept-vs-independent 2.783e-03
+G2/G3/G4 MB2/SN2: 20 advances, min V 3.2966e-03, max |dV|/V per step 5.067e-02, max displacement 0.0707; worst measured/bound: closure 0.000e+00 total 9.766e-04 velocity(mean) 6.250e-02 velocity(midpoint) 9.865e-01 GCL 3.540e-03 globalGCL 6.866e-05 swept-vs-independent 1.953e-03
+[       OK ] MeshMotionGeometry.SinusoidalDeformation2D (120 ms)
+[ RUN      ] MeshMotionGeometry.SinusoidalDeformation3D
+G2/G3/G4 H8/SN3: 20 advances, min V 1.6628e-03, max |dV|/V per step 4.815e-02, max displacement 0.0673; worst measured/bound: closure 3.537e-03 total 5.520e-03 velocity(mean) 6.453e-02 velocity(midpoint) 9.865e-01 GCL 2.987e-04 globalGCL 5.326e-04 swept-vs-independent 1.526e-05
+[       OK ] MeshMotionGeometry.SinusoidalDeformation3D (898 ms)
+[ RUN      ] MeshMotionGeometry.MultiBlockInterfaceStaysConformal
+[       OK ] MeshMotionGeometry.MultiBlockInterfaceStaysConformal (6 ms)
+[----------] 5 tests from MeshMotionGeometry (4119 ms total)
+
+[----------] 6 tests from MeshMotionInvalid
+[ RUN      ] MeshMotionInvalid.FoldingSinusoidal2DIsRejectedNamingTheCell
+G2.8 rejected at step 3: mesh motion: cell (15,7) is not a strictly convex counter-clockwise quadrilateral: not convex at corner (i+1,j+1) (folded or self-intersecting)
+[       OK ] MeshMotionInvalid.FoldingSinusoidal2DIsRejectedNamingTheCell (4 ms)
+[ RUN      ] MeshMotionInvalid.FoldingSinusoidal3DIsRejectedNamingTheCellAndCorner
+G2.8 rejected at step 3: mesh motion: cell (5,4,1) is not a valid hexahedron: the corner Jacobian determinant at corner (0,0,1) is -8.42912e-05 <= 0 (inverted or degenerate hexahedron)
+[       OK ] MeshMotionInvalid.FoldingSinusoidal3DIsRejectedNamingTheCellAndCorner (35 ms)
+[ RUN      ] MeshMotionInvalid.CollapsingCellsAreRejectedNamingTheCell
+G2.8 rejected at step 20: mesh motion: cell (0,0) is not a strictly convex counter-clockwise quadrilateral: inverted (clockwise corner order, negative area)
+[       OK ] MeshMotionInvalid.CollapsingCellsAreRejectedNamingTheCell (19 ms)
+[ RUN      ] MeshMotionInvalid.OutOfPlaneMotionOfA2DMeshIsRejected
+G2.8 rejected at step 1: MeshMotion: the prescribed motion moves vertex 0 of a two-dimensional mesh out of the xy-plane
+[       OK ] MeshMotionInvalid.OutOfPlaneMotionOfA2DMeshIsRejected (2 ms)
+[ RUN      ] MeshMotionInvalid.AdvanceMustMoveForwardInTime
+[       OK ] MeshMotionInvalid.AdvanceMustMoveForwardInTime (2 ms)
+[ RUN      ] MeshMotionInvalid.MotionMustStartAtTheReferencePosition
+[       OK ] MeshMotionInvalid.MotionMustStartAtTheReferencePosition (3 ms)
+[----------] 6 tests from MeshMotionInvalid (122 ms total)
+
+[----------] 2 tests from MeshGeometryUpdate
+[ RUN      ] MeshGeometryUpdate.RejectsInvalidGeometryAndChangesNothing
+[       OK ] MeshGeometryUpdate.RejectsInvalidGeometryAndChangesNothing (2 ms)
+[ RUN      ] MeshGeometryUpdate.RevertRestoresTheGeometryBitwiseAndIsIdempotent
+[       OK ] MeshGeometryUpdate.RevertRestoresTheGeometryBitwiseAndIsIdempotent (7 ms)
+[----------] 2 tests from MeshGeometryUpdate (13 ms total)
+
+[----------] Global test environment tear-down
+[==========] 156 tests from 23 test suites ran. (4559 ms total)
+[  PASSED  ] 156 tests.
+
+  YOU HAVE 1 DISABLED TEST
+
+exit 0
+# end 2026-09-17T10:05:19Z

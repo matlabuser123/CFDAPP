@@ -1,0 +1,30 @@
+# P12-GRAD-002-DRIFT-001 drift_probe  tree=nodiff
+# libcfdcore.a 719d0fc7ae48c027756430a8473a9b47ef3f516167aa7eb7319fa3eb468c50fe
+# probe binary 96524f57abc91d71a4f439e863f1d02ad415e93555615609bb96d9f117374955
+# case inputs  c1d4c750b66cc7ec (poiseuille_distorted) 2b5d1c097786ef6b (curved_channel_multiblock)
+# args: sq 64 8 base ckpt 5000,10000,20000,20001,40000
+# start 2026-09-17T09:50:20Z
+# case sq 64x8 variant base mode ckpt; cells 512
+# settings: tol u 2.0e-05 p 5.0e-04 c 1.0e-06 | alpha 0.70/0.30 | nonOrth 1 | grad GG | conv 2 | flux automatic | mom 1 rel 1e-08 | pres 0 rel 1e-08
+# exact dp/dx -1.2000000000
+
+  committed gate
+    iters status            velocity L2            dp/dx     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     1983 Converged     1.746550545e-02    -1.1726394971 +2.736050288e-02  -1.125e-03  +9.858e-02  +7.865e-04  1.0779e-01  2.00e-05  1.07e-05  3.77e-04  3.57e-12     22.5
+
+  checkpoints (unreachable tolerance; state after exactly N iterations)
+    iters status            velocity L2            dp/dx     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     5000 MaxIterations 1.754721680e-02    -1.1723823892 +2.761761082e-02  -3.949e-03  +2.810e-01  +7.283e-04  2.8717e-01  1.22e-05  7.60e-06  2.63e-04  4.39e-12     62.5
+    10000 MaxIterations 1.771867756e-02    -1.1722861916 +2.771380837e-02  -7.140e-03  +4.842e-01  +6.587e-04  4.8950e-01  6.72e-06  4.17e-06  1.48e-04  4.29e-12    147.0
+    20000 MaxIterations 1.792649214e-02    -1.1720767575 +2.792324249e-02  -9.870e-03  +6.617e-01  +5.976e-04  6.6700e-01  2.08e-06  1.34e-06  4.66e-05  3.74e-12    252.1
+    20001 MaxIterations 1.792650480e-02    -1.1720767470 +2.792325301e-02  -9.870e-03  +6.617e-01  +5.976e-04  6.6701e-01  2.08e-06  1.34e-06  4.66e-05  3.74e-12    137.1
+    40000 MaxIterations 1.803285528e-02    -1.1719989603 +2.800103966e-02  -1.098e-02  +7.352e-01  +5.746e-04  7.4064e-01  2.05e-07  1.34e-07  4.64e-06  3.36e-12    202.2
+
+  field change: max |du| and max |dp| between consecutive rows (first row vs gate)
+     1983 ->    5000  max|du| 6.9986e-03  max|dp| 3.5123e-01  d(velocity L2) +8.1711e-05  d(q) +2.5711e-04
+     5000 ->   10000  max|du| 6.9819e-03  max|dp| 3.5186e-01  d(velocity L2) +1.7146e-04  d(q) +9.6198e-05
+    10000 ->   20000  max|du| 6.1248e-03  max|dp| 3.0808e-01  d(velocity L2) +2.0781e-04  d(q) +2.0943e-04
+    20000 ->   20001  max|du| 3.2652e-07  max|dp| 1.6392e-05  d(velocity L2) +1.2667e-08  d(q) +1.0518e-08
+    20001 ->   40000  max|du| 2.5437e-03  max|dp| 1.2821e-01  d(velocity L2) +1.0635e-04  d(q) +7.7787e-05
+exit 0
+# end 2026-09-17T10:04:03Z

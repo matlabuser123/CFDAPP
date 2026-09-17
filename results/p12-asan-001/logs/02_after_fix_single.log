@@ -1,0 +1,27 @@
+# P12-ASAN-001 2026-09-17T10:04:45Z  git HEAD b66310ca871811c4c7671056beec291a451af55c
+# test source 37dc4cb15a75e3f3a1b641d7c5b1790861bdb99ec18dac1cf092c868b2c5a3b8  tests/unit/mesh/test_mesh_quality_report.cpp
+## configure (existing asan cache: CFDAPP_ENABLE_SANITIZERS=ON, Debug, Ninja)
+  OK
+## build CFDMeshTests
+  OK (2 lines)
+  binary  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/tests/unit/mesh/CFDMeshTests
+  sha256  808979da73e6cd26dfb07f35fa453be798f8ae6d4269dbc4b6daf79af530a934  mtime 2026-09-17 20:05:04.368809600 +1000
+  libcfdcore.a (asan) 5731b8ff67ef4dbae26d7c7f53aeba8d82c0facc9fc58223c70f595f2650e1f7
+  -fsanitize flags: -fsanitize=address,undefined 
+
+## run: MeshQualityReport.DisconnectedMeshIsFatal
+   ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = MeshQualityReport.DisconnectedMeshIsFatal
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshQualityReport
+[ RUN      ] MeshQualityReport.DisconnectedMeshIsFatal
+[       OK ] MeshQualityReport.DisconnectedMeshIsFatal (4 ms)
+[----------] 1 test from MeshQualityReport (4 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (5 ms total)
+[  PASSED  ] 1 test.
+exit 0
+# end 2026-09-17T10:05:06Z

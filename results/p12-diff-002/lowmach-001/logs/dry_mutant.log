@@ -1,0 +1,36 @@
+# LOWMACH-001 dry-run variant=mutant; 2026-09-17T11:51:06Z
+# test source e69d3a62a0db1697
+# warnings in the test source: 0
+# libcfdcore.a 6ad711d086d3dece5d0c466dbaff028bf400a8e2469b69692fd5b490062d2102
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from LowMachRegressionTest
+[ RUN      ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne
+[       OK ] LowMachRegressionTest.MachNumberStaysWellBelowPointOne (2395 ms)
+[ RUN      ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity
+[       OK ] LowMachRegressionTest.DensityVariationIsSmallRelativeToReferenceDensity (2304 ms)
+[ RUN      ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance
+[       OK ] LowMachRegressionTest.EosConsistencyErrorIsAtFloatingPointTolerance (2307 ms)
+[ RUN      ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit
+[       OK ] LowMachRegressionTest.CompressibleMassFluxApproachesTheIncompressibleLimit (2349 ms)
+[ RUN      ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+global imbalance 9.549160e-04, derived bound 1.700743e-04, density variation 1.108304e-04
+/root/lowmach_dry/mutant/src_tree/tests/integration/compressible/test_low_mach_regression.cpp:312: Failure
+Expected: (outcome.globalMassImbalance) <= (outcome.globalMassImbalanceBound), actual: 0.00095491601957929369 vs 0.00017007429083465834
+
+[  FAILED  ] LowMachRegressionTest.GlobalMassImbalanceIsSmall (2381 ms)
+[ RUN      ] LowMachRegressionTest.GridRefinementKeepsAllMetricsSmall
+[       OK ] LowMachRegressionTest.GridRefinementKeepsAllMetricsSmall (7076 ms)
+[ RUN      ] LowMachRegressionTest.RepeatedRunIsDeterministic
+[       OK ] LowMachRegressionTest.RepeatedRunIsDeterministic (4582 ms)
+[----------] 7 tests from LowMachRegressionTest (23406 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (23408 ms total)
+[  PASSED  ] 6 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] LowMachRegressionTest.GlobalMassImbalanceIsSmall
+
+ 1 FAILED TEST
+exit 1

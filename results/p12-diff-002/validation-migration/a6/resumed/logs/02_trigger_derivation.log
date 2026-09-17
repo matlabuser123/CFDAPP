@@ -1,0 +1,42 @@
+# a6r_trigger_derivation; 2026-09-16T16:31:18Z
+# library 143a1dda0680bc1d  probe 5072ea9e692e72f0
+
+# RESUMED A6 Step 1B -- divergence trigger time: derived bounds vs observation.
+# earliest possible  = max(startIteration,1) + window        (structural)
+# guaranteed trigger = max(startIteration,1) + 2*window      (for a real runaway)
+# The historical assertion `iterations == 20` is the earliest-possible value for the
+# default settings, asserted as if it were a prediction.
+
+## the test's own settings (start 10, window 10, growth 10), across meshes
+   4x4  start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  20 | RULE 2 sustained runaway    | growth 5.03e+01 finite yes | Diverging
+   6x6  start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  20 | RULE 1 persistent excursion | growth 8.06e+09 finite yes | Diverging
+   8x8  start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  21 | RULE 1 persistent excursion | growth 1.66e+14 finite yes | Diverging
+  12x12 start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  20 | RULE 2 sustained runaway    | growth 4.17e+13 finite yes | Diverging
+  16x16 start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  20 | RULE 1 persistent excursion | growth 1.24e+14 finite yes | Diverging
+
+## window swept, the test's mesh (8x8)
+   8x8  start 10 window  2 growth  10.0 | earliest 12 guaranteed 14 | observed  13 | RULE 1 persistent excursion | growth 1.90e+07 finite yes | Diverging
+   8x8  start 10 window  5 growth  10.0 | earliest 15 guaranteed 20 | observed  15 | RULE 2 sustained runaway    | growth 1.31e+09 finite yes | Diverging
+   8x8  start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  21 | RULE 1 persistent excursion | growth 1.66e+14 finite yes | Diverging
+   8x8  start 10 window 20 growth  10.0 | earliest 30 guaranteed 50 | observed  31 | RULE 1 persistent excursion | growth 1.08e+20 finite yes | Diverging
+
+## startIteration swept (8x8, window 10)
+   8x8  start  1 window 10 growth  10.0 | earliest 11 guaranteed 21 | observed  11 | RULE 2 sustained runaway    | growth 5.30e+05 finite yes | Diverging
+   8x8  start  5 window 10 growth  10.0 | earliest 15 guaranteed 25 | observed  15 | RULE 2 sustained runaway    | growth 1.31e+09 finite yes | Diverging
+   8x8  start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  21 | RULE 1 persistent excursion | growth 1.66e+14 finite yes | Diverging
+   8x8  start 20 window 10 growth  10.0 | earliest 30 guaranteed 40 | observed  30 | RULE 1 persistent excursion | growth 3.60e+19 finite yes | Diverging
+   8x8  start 30 window 10 growth  10.0 | earliest 40 guaranteed 50 | observed  41 | RULE 1 persistent excursion | growth 5.78e+26 finite yes | Diverging
+
+## growthFactor swept (8x8, start 10, window 10)
+   8x8  start 10 window 10 growth   2.0 | earliest 20 guaranteed 30 | observed  20 | RULE 1 persistent excursion | growth 1.21e+12 finite yes | Diverging
+   8x8  start 10 window 10 growth  10.0 | earliest 20 guaranteed 30 | observed  21 | RULE 1 persistent excursion | growth 1.66e+14 finite yes | Diverging
+   8x8  start 10 window 10 growth 100.0 | earliest 20 guaranteed 30 | observed  22 | RULE 1 persistent excursion | growth 4.36e+13 finite yes | Diverging
+   8x8  start 10 window 10 growth 1000.0 | earliest 20 guaranteed 30 | observed  24 | RULE 1 persistent excursion | growth 1.82e+15 finite yes | Diverging
+
+## totals over all configurations
+  runaways not detected                      0   (must be 0)
+  triggers EARLIER than mathematically possible 0   (must be 0)
+  triggers later than the derived guarantee  0   (must be 0)
+
+RESULT: both derived bounds hold in every configuration
+exit 0

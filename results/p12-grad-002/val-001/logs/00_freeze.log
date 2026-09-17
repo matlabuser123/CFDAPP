@@ -1,0 +1,58 @@
+# P12-GRAD-002-VAL-001 frozen baseline; 2026-09-17T06:42:57Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+
+## the single test instrument under investigation (and its support)
+1d6816a1388a2cb736a7fd2779393c66a297c5149152f634c617b0f10b602bac  tests/unit/discretization/test_grid_refinement.cpp
+ee2a59a64a97a10d9b01b6e400d02601d97055c3af9c7de5a674d4e268990812  tests/unit/discretization/DistortedMesh.hpp
+fcbc170f393c963288864f36e5447f18ce6dc67d57070b6624673f8a1561167b  tests/unit/discretization/CMakeLists.txt
+
+## gradient / boundary production files
+d24882a96e5cbc0025121a71eb9f88e13ffe0ef9a8a09f2e2f9f4d40fd8c03b6  src/discretization/Gradient.cpp
+b41c5d1bb3b388b3f78a89e3ae26ba731f03483455b01683834e4e39e1ef5c91  include/cfd/discretization/Gradient.hpp
+7691beb1faaf47a1b15f53652c5d9dfbcda21fa51a1edd9144d742205e7b743c  src/discretization/VectorGradient.cpp
+8dcb296cdaf556941dd61b4ac38412a286aa41c1f34ba5114aa9c873d52d060a  include/cfd/discretization/VectorGradient.hpp
+e8e17477465bcaea0415443284088169a936f4bbde8c0392d7abd6492ba7e0df  src/discretization/Diffusion.cpp
+2b4fbb66b636a79d0d44fb4d48ee8bd80b89cb29360e67ee70628a13d3f23426  include/cfd/discretization/Diffusion.hpp
+20a02b16499fa7b0aca07667baae638714e1a176ed6eba33b414a194cf701e1c  src/discretization/NonOrthogonalDiffusion.cpp
+076859b950fe0e140d4c6cd961a046a2f363cf1125865f968655298b55cbb8b2  include/cfd/discretization/NonOrthogonalDiffusion.hpp
+04c964c24d6098dbe20def251fa0eba611a1725f17d9e352acf38631e67645b0  src/mesh/MeshGeometry.cpp
+39e539b2f9064fdd6ba4940dab6f42aded2eb3d3d5339e0fc20534b3c77a8cc5  include/cfd/mesh/MeshGeometry.hpp
+
+## library
+143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a  build/release/src/libcfdcore.a
+
+## ALL GRAD-001 / GRAD-002 gates (must stay byte-identical)
+2c45e4381bb18099117ce9a4e69cfcbac4b6b9fbb7f284833a052dfcdbeb9f91  results/p12-grad-001/acceptance_gate.md
+a46973ed5ba4190a008a1c3f3138f21612a6b1ca0f11ca32deb6d0899602d2eb  results/p12-grad-002/acceptance_gate.md
+353b72ef11345922c849af0a456e2c8082e92188a8a10647b7c9fde2e249f186  results/p12-grad-002/acceptance_gate_A1.md
+5ca61d236ff473e866b1c52cd7ee7785ee1c88427ff6af35782176d0d5e266a8  results/p12-grad-002/formulation.md
+
+## ALL DIFF-002 gates (must stay byte-identical)
+51079f6da5dd0a417b39fe332f92eccf32a9877a96035168bc566ed1d3a9e46b  results/p12-diff-002/acceptance_gate.md
+c4b08824cf98e95f6bf3d424e7e0fd006231f1ed955cbfb9f6f641d45faae7d0  results/p12-diff-002/acceptance_gate_A1.md
+3a268060809a4566331163f4fa582d5ba5e08398368b4814a08256a2605d8d40  results/p12-diff-002/acceptance_gate_A2.md
+f6dbdd06032c333a4347735abd81d6450ba9a0442879eb4eaa9edb1adaae0e95  results/p12-diff-002/acceptance_gate_A3.md
+833ad5608a265ecc75b8df32e5a37242a68773f04155ba7f8101cf92150ba219  results/p12-diff-002/validation-migration/acceptance_gate.md
+9944d066659d4127cbfdba5246f67b023461738fb9e9f5cd96d0d289258e8870  results/p12-diff-002/thermal-interface-fix/acceptance_gate.md
+fbc927a22cf474b97d7a1cd3aa69f4646ca9c1a7691299fd9fd2f7fca66f40cb  results/p12-diff-002/validation-migration/acceptance_gate_A5.md
+1e2c98684b62b14418dd745ae7c5b8397b0547fb073212196c6fdc64753d3a2d  results/p12-diff-002/rob-001/acceptance_gate.md
+ba33ced0073fb0e1026fda63771a0a07ea73620a79e2a140bfd5525f33d3393d  results/p12-diff-002/validation-migration/acceptance_gate_A6.md
+bed6b8941a7e011212231f0e4585ff0164fa3e7ff5cfb87e3be009a3ed090d06  results/p12-diff-002/uc-001/acceptance_gate.md
+558dad1a4fba6f8d27a8dd61b033bff9f68a2f65355e9933dd6ed09a144c9559  results/p12-diff-002/uf-001/acceptance_gate.md
+
+## MESH-007 gate (must not be touched)
+5b45fed9c473b3b4eca923fa2e4b8ce064022270b67259fb23caf0dbdae5faa8  results/p12-mesh-007/acceptance_gate.md
+
+## the preserved failure, verbatim (final-w7/logs/02_greengauss.log)
+5247098ee6ee7940b67e33f914f8054ef6a3ca91c76cd39c64c9bc6a22d13dc6  results/p12-diff-002/final-w7/logs/02_greengauss.log
+  Grid       h            L2 Error         Observed p  
+  8x8        0.125        0.0522508        --          
+  16x16      0.0625       0.0136592        1.93558     
+  32x32      0.03125      0.00348864       1.96913     
+  64x64      0.015625     0.000881911      1.98396     
+  Expected: (p) < (maxObservedOrder), actual: 1.9355810765555042 vs 1.9
+  observed order suspiciously high between 8 and 16
+  Expected: (p) < (maxObservedOrder), actual: 1.9691346317345857 vs 1.9
+  observed order suspiciously high between 16 and 32
+  Expected: (p) < (maxObservedOrder), actual: 1.9839620828212117 vs 1.9
+  observed order suspiciously high between 32 and 64

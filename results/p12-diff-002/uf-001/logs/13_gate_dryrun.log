@@ -1,0 +1,101 @@
+P12-DIFF-002-UF-001.10: DRY RUN of the proposed replacement criteria, BEFORE any authoritative
+test is edited.
+
+The de Vahl Davis values are FIXED and appear only as the comparison target; nothing here is
+derived from CFDApp output.
+
+Proposed criteria, all evaluated on the parity-consistent pair n = 10 and n = 20 (both even, so
+the mid-plane is interpolated the same way on both -- see the parity rule in summary.md):
+
+  P1  refinement moves TOWARD the fixed literature value:  err_20 < err_10, each quantity.
+  P2  convergence-rate floor: err_10 / err_20 >= 1.5. The scheme's documented formal order is 1
+      (first-order upwind convection), which predicts a factor 2.0 per grid doubling; 1.5 admits
+      a 25 % pre-asymptotic shortfall.
+  P3  precision envelope at 20x20, using the numbers THIS FILE ALREADY CARRIES in its own
+      DISABLED_Grid20x20MatchesDeVahlDavisRa1e3: u_max <= 0.08, v_max <= 0.08, Nu_avg <= 0.05.
+      No threshold is loosened -- the precision claim moves from the non-asymptotic 10x10 grid to
+      the 20x20 grid at this file's own pre-existing 20x20 bounds.
+  P4  the extremum LOCATION must match the literature's reported location within one cell:
+      |y(u_max) - 0.813| <= 1/n and |x(v_max) - 0.179| <= 1/n, at BOTH grids. These literature
+      numbers exist in DeVahlDavis1983.hpp and the current tests never used them.
+
+Controls that must FAIL (non-vacuity): a corrupted wall coefficient (far-cell doubled; far-cell
+sign flipped). The superseded two-point operator is expected to PASS and that is correct -- it is
+a legitimate lower-order scheme, not a defect; the wall-operator claim is carried by the
+wall-shear order study (UF-001.7), not by these criteria.
+
+FIXED literature values (never modified): Nu_avg 1.12, u_max 3.634 at y 0.813, v_max 3.679 at x 0.179
+
+====================================================================================================
+CURRENT (DIFF-002)   (expected overall: PASS)
+====================================================================================================
+  nu_avg   err_10  0.02246  err_20  0.01218  ratio  1.844
+           P1 toward-literature PASS   P2 rate>=1.5 PASS   P3 err_20<=0.05 PASS
+  u_max    err_10  0.13703  err_20  0.05375  ratio  2.550
+           P1 toward-literature PASS   P2 rate>=1.5 PASS   P3 err_20<=0.08 PASS
+           P4 location n=10: 0.7500 vs literature 0.813  |diff| 0.0630 <= h 0.1000  PASS
+           P4 location n=20: 0.8250 vs literature 0.813  |diff| 0.0120 <= h 0.0500  PASS
+  v_max    err_10  0.13026  err_20  0.04713  ratio  2.764
+           P1 toward-literature PASS   P2 rate>=1.5 PASS   P3 err_20<=0.08 PASS
+           P4 location n=10: 0.1500 vs literature 0.179  |diff| 0.0290 <= h 0.1000  PASS
+           P4 location n=20: 0.1750 vs literature 0.179  |diff| 0.0040 <= h 0.0500  PASS
+
+  OVERALL: PASS  (13/13 criteria)
+
+====================================================================================================
+PRE-DIFF-002 two-point (a legitimate lower-order scheme)   (expected overall: PASS)
+====================================================================================================
+  nu_avg   err_10  0.04856  err_20  0.01846  ratio  2.631
+           P1 toward-literature PASS   P2 rate>=1.5 PASS   P3 err_20<=0.05 PASS
+  u_max    err_10  0.10442  err_20  0.03861  ratio  2.704
+           P1 toward-literature PASS   P2 rate>=1.5 PASS   P3 err_20<=0.08 PASS
+           P4 location n=10: 0.7500 vs literature 0.813  |diff| 0.0630 <= h 0.1000  PASS
+           P4 location n=20: 0.8250 vs literature 0.813  |diff| 0.0120 <= h 0.0500  PASS
+  v_max    err_10  0.06714  err_20  0.03145  ratio  2.135
+           P1 toward-literature PASS   P2 rate>=1.5 PASS   P3 err_20<=0.08 PASS
+           P4 location n=10: 0.1500 vs literature 0.179  |diff| 0.0290 <= h 0.1000  PASS
+           P4 location n=20: 0.1750 vs literature 0.179  |diff| 0.0040 <= h 0.0500  PASS
+
+  OVERALL: PASS  (13/13 criteria)
+
+====================================================================================================
+CONTROL far-cell coefficient DOUBLED   (expected overall: FAIL)
+====================================================================================================
+  nu_avg   err_10  1.91657  err_20  4.43346  ratio  0.432
+           P1 toward-literature FAIL   P2 rate>=1.5 FAIL   P3 err_20<=0.05 FAIL
+  u_max    err_10  0.03912  err_20  0.07471  ratio  0.524
+           P1 toward-literature FAIL   P2 rate>=1.5 FAIL   P3 err_20<=0.08 PASS
+           P4 location n=10: 0.7500 vs literature 0.813  |diff| 0.0630 <= h 0.1000  PASS
+           P4 location n=20: 0.8250 vs literature 0.813  |diff| 0.0120 <= h 0.0500  PASS
+  v_max    err_10  0.01855  err_20  0.08415  ratio  0.220
+           P1 toward-literature FAIL   P2 rate>=1.5 FAIL   P3 err_20<=0.08 FAIL
+           P4 location n=10: 0.1500 vs literature 0.179  |diff| 0.0290 <= h 0.1000  PASS
+           P4 location n=20: 0.1750 vs literature 0.179  |diff| 0.0040 <= h 0.0500  PASS
+
+  OVERALL: FAIL  (5/13 criteria)
+
+====================================================================================================
+CONTROL far-cell coefficient SIGN FLIPPED   (expected overall: FAIL)
+====================================================================================================
+  nu_avg   err_10  2.90946  err_20  6.46323  ratio  0.450
+           P1 toward-literature FAIL   P2 rate>=1.5 FAIL   P3 err_20<=0.05 FAIL
+  u_max    err_10  0.29628  err_20  0.24717  ratio  1.199
+           P1 toward-literature PASS   P2 rate>=1.5 FAIL   P3 err_20<=0.08 FAIL
+           P4 location n=10: 0.7500 vs literature 0.813  |diff| 0.0630 <= h 0.1000  PASS
+           P4 location n=20: 0.8250 vs literature 0.813  |diff| 0.0120 <= h 0.0500  PASS
+  v_max    err_10  0.31083  err_20  0.24402  ratio  1.274
+           P1 toward-literature PASS   P2 rate>=1.5 FAIL   P3 err_20<=0.08 FAIL
+           P4 location n=10: 0.1500 vs literature 0.179  |diff| 0.0290 <= h 0.1000  PASS
+           P4 location n=20: 0.1750 vs literature 0.179  |diff| 0.0040 <= h 0.0500  PASS
+
+  OVERALL: FAIL  (6/13 criteria)
+
+====================================================================================================
+DRY-RUN SUMMARY
+====================================================================================================
+  behaved as pre-registered: YES
+
+  Honest scope note: P1-P4 are NOT wall-operator-discriminating -- the superseded
+  two-point scheme passes them, correctly, because it converges to the same continuum
+  limit. The wall operator's correctness is pinned by the UF-001.7 wall-shear order
+  study (two-point 1.000 / DIFF-002 2.000, quadratic-exact), not by these criteria.

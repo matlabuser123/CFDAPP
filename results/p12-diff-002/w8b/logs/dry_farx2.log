@@ -1,0 +1,340 @@
+# W8B dry-run variant=farx2 tests=candidate cases=rc lib=/root/uf001_ctrl_farx2
+# start 2026-09-17T11:16:48Z  repo HEAD b66310ca871811c4c7671056beec291a451af55c
+# test sources: 7acf926d41ce8cb1 b2b87bb7a477e3e6 
+# NonOrthogonalDiffusion.cpp: dfd33166584ba70e
+# poiseuille_distorted/solver.json face_flux: "face_flux": "rhie_chow"
+# curved_channel_multiblock/solver.json face_flux: "face_flux": "rhie_chow"
+# libcfdcore.a 078668bacc2d454ec0c9565fbb8450846c2bbac2d16487ef7c1a7badba2e02e1
+# binary       db7b2ab60d6300b455b26bf5f4579d21eb132ad455af81307ff85194b7dc632a
+# warnings in the two test sources: 0
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = StructuredQuadProductionCase.*:MultiBlockProductionCase.*
+[==========] Running 15 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 9 tests from StructuredQuadProductionCase
+[ RUN      ] StructuredQuadProductionCase.CommittedCaseIsAGenuinelyNonOrthogonalMesh
+poiseuille_distorted 64x8: non-orthogonality max 44.76 mean 14.58 deg, skewness max 0.1318 mean 0.0369
+[       OK ] StructuredQuadProductionCase.CommittedCaseIsAGenuinelyNonOrthogonalMesh (1 ms)
+[ RUN      ] StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:257: Failure
+Expected: (m.velocityL2) <= (1.5 * cartesianVelocityL2(ny)), actual: 0.053397398601572131 vs 0.012739094359578722
+64x8: velocity L2 0.053397398601572131 vs Cartesian 0.0084927295730524814
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:261: Failure
+Expected: (gradientError) <= (1.5 * cartesianPressureGradientError(ny)), actual: 0.11168376284162339 vs 0.011627906976744186
+64x8: dp/dx -1.0659794845900521
+
+64x8: iterations 40, velocity L2 5.3397e-02 (Cartesian 8.4927e-03), dp/dx -1.065979 (exact -1.200000), max column flow error 6.05e-11, mass imbalance 7.98e-12
+[  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution (217 ms)
+[ RUN      ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:257: Failure
+Expected: (m.velocityL2) <= (1.5 * cartesianVelocityL2(ny)), actual: 0.053397398601572173 vs 0.012739094359578722
+64x8: velocity L2 0.053397398601572173 vs Cartesian 0.0084927295730524814
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:261: Failure
+Expected: (gradientError) <= (1.5 * cartesianPressureGradientError(ny)), actual: 0.11168376284162579 vs 0.011627906976744186
+64x8: dp/dx -1.0659794845900492
+
+64x8: non-orthogonality max 44.76 deg, skewness max 0.1318, iterations 40, velocity L2 5.3397e-02 (Cartesian 8.4927e-03), dp/dx -1.065979, column flow error 6.04e-11
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:257: Failure
+Expected: (m.velocityL2) <= (1.5 * cartesianVelocityL2(ny)), actual: 0.038864352186636038 vs 0.0056858212478965321
+96x12: velocity L2 0.038864352186636038 vs Cartesian 0.0037905474985976883
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:261: Failure
+Expected: (gradientError) <= (1.5 * cartesianPressureGradientError(ny)), actual: 0.086126629685254738 vs 0.0051903114186851208
+96x12: dp/dx -1.0966480443776945
+
+96x12: non-orthogonality max 47.18 deg, skewness max 0.0910, iterations 67, velocity L2 3.8864e-02 (Cartesian 3.7905e-03), dp/dx -1.096648, column flow error 8.37e-11
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:257: Failure
+Expected: (m.velocityL2) <= (1.5 * cartesianVelocityL2(ny)), actual: 0.027824801719920352 vs 0.0025318559639422341
+144x18: velocity L2 0.027824801719920352 vs Cartesian 0.0016879039759614895
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:261: Failure
+Expected: (gradientError) <= (1.5 * cartesianPressureGradientError(ny)), actual: 0.062235585436328594 vs 0.0023112480739599386
+144x18: dp/dx -1.1253172974764059
+
+144x18: non-orthogonality max 48.25 deg, skewness max 0.0609, iterations 120, velocity L2 2.7825e-02 (Cartesian 1.6879e-03), dp/dx -1.125317, column flow error 5.98e-11
+
+### Grid convergence: poiseuille_distorted
+
+Distorted Poiseuille Re = 10 (structured_quad), 64x8 / 96x12 / 144x18
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 64 x 8 | 512 | 0.125 | 0.2 | Converged (40 it) | yes |
+| medium | 96 x 12 | 1152 | 0.0833333 | 0.9 | Converged (67 it) | yes |
+| fine | 144 x 18 | 2592 | 0.0555556 | 3.9 | Converged (120 it) | yes |
+
+**pressure_gradient** -- dp/dx, least-squares fit over 0.50 L..0.85 L; exact -12 mu U / H^2
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -1.0659795 | -1.2 (analytical) | 0.134 | 0.1117 |
+| medium | -1.096648 | -1.2 (analytical) | 0.1034 | 0.08613 |
+| fine | -1.1253173 | -1.2 (analytical) | 0.07468 | 0.06224 |
+| extrapolated | -1.5364228 | | -0.3364 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 0.1663 | 2 | -1.5364228 | 0.5139 | 0.4567 | 0.5013 | 0.4754 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.16626 (formal 2); asymptotic ratio 0.475439 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**velocity_l2_error** -- volume-weighted L2 of |u - u_exact| over 0.50 L..0.85 L; exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.053397399 | 0 (analytical) | 0.0534 | -- |
+| medium | 0.038864352 | 0 (analytical) | 0.03886 | -- |
+| fine | 0.027824802 | 0 (analytical) | 0.02782 | -- |
+| extrapolated | -0.0070605041 | | -0.007061 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 0.6781 | 2 | -0.0070605041 | 0.04361 | 1.567 | 1.477 | 0.5851 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.678087 (formal 2); asymptotic ratio 0.58509 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+pair 0: observed order velocity 0.784; dp/dx signed error +1.3402e-01 -> +1.0335e-01
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:434: Failure
+Expected: (velocityOrder) >= (1.5), actual: 0.78350661710247493 vs 1.5
+pair 0
+
+pair 1: observed order velocity 0.824; dp/dx signed error +1.0335e-01 -> +7.4683e-02
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:434: Failure
+Expected: (velocityOrder) >= (1.5), actual: 0.8241144710030146 vs 1.5
+pair 1
+
+dp/dx triplet: NUM-005 status monotonic_not_asymptotic, asymptotic ratio 0.4754 (no GCI claimed)
+144x18 iterative check: velocity L2 2.782480e-02 (gate) vs 2.782277e-02 (tolerances / 100, 204 iterations): change 2.027e-06 = 0.007 % of the error
+[  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence (11358 ms)
+[ RUN      ] StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:257: Failure
+Expected: (m.velocityL2) <= (1.5 * cartesianVelocityL2(ny)), actual: 0.054407652846037956 vs 0.012739094359578722
+least_squares 64x8: velocity L2 0.054407652846037956 vs Cartesian 0.0084927295730524814
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:261: Failure
+Expected: (gradientError) <= (1.5 * cartesianPressureGradientError(ny)), actual: 0.11421686806468728 vs 0.011627906976744186
+least_squares 64x8: dp/dx -1.0629397583223754
+
+[  FAILED  ] StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution (228 ms)
+[ RUN      ] StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath
+activation: interior rows 372, changed by the correction 372, changed by a second pass 0
+activation: velocity L2 uncorrected 5.6782e-02, corrected 5.3397e-02, requirement 1.2739e-02 (1.5x Cartesian)
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:257: Failure
+Expected: (m.velocityL2) <= (1.5 * cartesianVelocityL2(ny)), actual: 0.053397398601572131 vs 0.012739094359578722
+corrected 64x8: velocity L2 0.053397398601572131 vs Cartesian 0.0084927295730524814
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:261: Failure
+Expected: (gradientError) <= (1.5 * cartesianPressureGradientError(ny)), actual: 0.11168376284162339 vs 0.011627906976744186
+corrected 64x8: dp/dx -1.0659794845900521
+
+[  FAILED  ] StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath (467 ms)
+[ RUN      ] StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab
+green_gauss: max |T - T_exact| 4.437e+01 K, max |Y - Y_exact| 1.288e-01
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:623: Failure
+Expected: (temperatureError) <= (1e-5), actual: 44.369865010554804 vs 1e-05
+green_gauss
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:624: Failure
+Expected: (concentrationError) <= (1e-5), actual: 0.12875774982721189 vs 1e-05
+green_gauss
+
+least_squares: max |T - T_exact| 4.483e+01 K, max |Y - Y_exact| 1.301e-01
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:623: Failure
+Expected: (temperatureError) <= (1e-5), actual: 44.828011822245401 vs 1e-05
+least_squares
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_structured_quad_production_case.cpp:624: Failure
+Expected: (concentrationError) <= (1e-5), actual: 0.1301049730335293 vs 1e-05
+least_squares
+
+[  FAILED  ] StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab (194 ms)
+[ RUN      ] StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh
+distorted lubrication channel: iterations 2286, p error L2 2.6617e-02 Linf 4.3008e-02
+[       OK ] StructuredQuadProductionCase.CompressibleSimpleMatchesLubricationSolutionOnDistortedMesh (14495 ms)
+[ RUN      ] StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh
+k_epsilon Re_tau: Cartesian 401.991, distorted 402.500
+[       OK ] StructuredQuadProductionCase.KEpsilonChannelMatchesCartesianOnTiltedMesh (4115 ms)
+[ RUN      ] StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh
+sst Re_tau: Cartesian 289.405, distorted 302.987
+[       OK ] StructuredQuadProductionCase.SstChannelMatchesCartesianOnTiltedMesh (28647 ms)
+[----------] 9 tests from StructuredQuadProductionCase (59730 ms total)
+
+[----------] 6 tests from MultiBlockProductionCase
+[ RUN      ] MultiBlockProductionCase.CurvedChannelCommittedCaseGate
+curved channel mesh: 1080 cells, 2262 faces, max non-orthogonality 1.479e-06 deg, max skewness 1.021e-02, min/max volume 4.5431e-03/8.5409e-03
+committed 12x30 x3           cells  1080 | converged 1, 76 it, 0.85 s | mass imbalance 2.33e-11, max radial-line flow error 4.42e-11 (interfaces 8.25e-12), max block net flow 3.15e-11 | velocity L2 3.8639e-02, max |u_r| 7.687e-04 | G -1.671508 (exact -1.828221, rel err 8.5719e-02) | radial rise 0.811964 (exact 0.829445, rel err 2.1076e-02)
+[       OK ] MultiBlockProductionCase.CurvedChannelCommittedCaseGate (1700 ms)
+[ RUN      ] MultiBlockProductionCase.CurvedChannelInterfacesAreTransparent
+3 blocks                     cells  1080 | converged 1, 76 it, 0.85 s | mass imbalance 2.33e-11, max radial-line flow error 4.42e-11 (interfaces 8.25e-12), max block net flow 3.15e-11 | velocity L2 3.8639e-02, max |u_r| 7.687e-04 | G -1.671508 (exact -1.828221, rel err 8.5719e-02) | radial rise 0.811964 (exact 0.829445, rel err 2.1076e-02)
+1 block (same vertices)      cells  1080 | converged 1, 76 it, 0.87 s | mass imbalance 2.31e-11, max radial-line flow error 4.42e-11 (interfaces 8.48e-12), max block net flow 3.16e-11 | velocity L2 3.8639e-02, max |u_r| 7.687e-04 | G -1.671508 (exact -1.828221, rel err 8.5719e-02) | radial rise 0.811964 (exact 0.829445, rel err 2.1076e-02)
+3-block vs 1-block: max |du| 7.918e-12, max |dp| 4.367e-11 (5.068e-12 of the total pressure drop), iterations 76 vs 76
+[       OK ] MultiBlockProductionCase.CurvedChannelInterfacesAreTransparent (1722 ms)
+[ RUN      ] MultiBlockProductionCase.CurvedChannelGridConvergence
+8x20 x3                      cells   480 | converged 1, 45 it, 0.22 s | mass imbalance 8.31e-12, max radial-line flow error 1.92e-11 (interfaces 9.47e-12), max block net flow 1.20e-11 | velocity L2 5.2276e-02, max |u_r| 2.917e-03 | G -1.615101 (exact -1.828221, rel err 1.1657e-01) | radial rise 0.810031 (exact 0.825969, rel err 1.9296e-02)
+12x30 x3                     cells  1080 | converged 1, 76 it, 0.86 s | mass imbalance 2.30e-11, max radial-line flow error 4.42e-11 (interfaces 8.29e-12), max block net flow 3.13e-11 | velocity L2 3.8639e-02, max |u_r| 7.687e-04 | G -1.671508 (exact -1.828221, rel err 8.5719e-02) | radial rise 0.811964 (exact 0.829445, rel err 2.1076e-02)
+18x45 x3                     cells  2430 | converged 1, 138 it, 4.00 s | mass imbalance 1.48e-10, max radial-line flow error 1.79e-10 (interfaces 1.55e-10), max block net flow 1.01e-10 | velocity L2 2.7651e-02, max |u_r| 2.620e-04 | G -1.716470 (exact -1.828221, rel err 6.1125e-02) | radial rise 0.816014 (exact 0.830537, rel err 1.7487e-02)
+
+### Grid convergence: curved_channel_multiblock
+
+270-degree curved channel, 3 conformal blocks, Re 10: 8x20 / 12x30 / 18x45 per block
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| coarse | 8 x 60 | 480 | 0.121352 | 0.2 | Converged (45 it) | yes |
+| medium | 12 x 90 | 1080 | 0.0809011 | 0.9 | Converged (76 it) | yes |
+| fine | 18 x 135 | 2430 | 0.0539341 | 4.0 | Converged (138 it) | yes |
+
+**velocity_l2_error** -- RMS |u - u_exact| over bend_b (90-180 deg); exact 0
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.052275882 | 0 (analytical) | 0.05228 | -- |
+| medium | 0.038639485 | 0 (analytical) | 0.03864 | -- |
+| fine | 0.027650969 | 0 (analytical) | 0.02765 | -- |
+| extrapolated | -0.017950556 | | -0.01795 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 0.5325 | 2 | -0.017950556 | 0.057 | 2.061 | 1.831 | 0.5515 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.532455 (formal 2); asymptotic ratio 0.551541 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**pressure_gradient** -- dp/dtheta over bend_b (mean per-ring LS slope); exact 2 mu A
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -1.6151012 | -1.8282207 (analytical) | 0.2131 | 0.1166 |
+| medium | -1.6715077 | -1.8282207 (analytical) | 0.1567 | 0.08572 |
+| fine | -1.7164701 | -1.8282207 (analytical) | 0.1118 | 0.06113 |
+| extrapolated | -1.8931244 | | -0.0649 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 0.5592 | 2 | -1.8931244 | 0.2208 | 0.1286 | 0.1657 | 0.5576 | monotonic_not_asymptotic | no |
+
+- monotonic convergence, observed order 0.559247 (formal 2); asymptotic ratio 0.557566 outside 1 +/- 0.1
+- grid independence: no grid-independence threshold configured
+
+**radial_pressure_rise_ratio** -- [p(outer cell) - p(inner cell)] / (rho int u^2/r dr between the same centroid radii) over bend_b (the radii move with the grid, so the ratio is analysed); exact 1
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 0.98070421 | 1 (analytical) | -0.0193 | 0.0193 |
+| medium | 0.97892398 | 1 (analytical) | -0.02108 | 0.02108 |
+| fine | 0.98251292 | 1 (analytical) | -0.01749 | 0.01749 |
+| extrapolated | -- | | -- | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | -- | 2 | -- | -- | -- | -- | -- | oscillatory | no |
+
+- epsilon21 and epsilon32 have opposite signs (R = -2.01599): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+- grid independence: oscillatory sequence: only the oscillation bound 0.5(max-min) = 0.00179447 is available
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:494: Failure
+Expected: (riseError(metrics[k + 1])) < (riseError(metrics[k])), actual: 0.017481400689298932 vs 0.015937725153876481
+0
+
+pair 0 observed order: velocity L2 0.745, G error 0.758, radial rise error -0.228
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:504: Failure
+Expected: (velocityOrder) >= (1.5), actual: 0.74546599303622696 vs 1.5
+0
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:505: Failure
+Expected: (gradientOrder) >= (1.5), actual: 0.75823182493278662 vs 1.5
+0
+
+pair 1 observed order: velocity L2 0.825, G error 0.834, radial rise error 0.457
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:504: Failure
+Expected: (velocityOrder) >= (1.5), actual: 0.82525939006285498 vs 1.5
+1
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:505: Failure
+Expected: (gradientOrder) >= (1.5), actual: 0.83397328390681524 vs 1.5
+1
+
+pressure_gradient: fine -1.71647014, exact -1.82822072, |error| 1.118e-01, U21 2.208e-01 (GCI21 1.286e-01), extrapolated -1.89312444
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:510: Failure
+Value of: q.analysis.uncertainty21.has_value()
+  Actual: false
+Expected: true
+radial_pressure_rise_ratio: epsilon21 and epsilon32 have opposite signs (R = -2.01599): oscillatory convergence -- no observed order or Richardson extrapolation is reported
+
+[  FAILED  ] MultiBlockProductionCase.CurvedChannelGridConvergence (5083 ms)
+[ RUN      ] MultiBlockProductionCase.SectorConductionInterfaceConservation
+sector 8x20 x3: thermal converged 1 (4 it) | T L2 8.1803e-02 | heat flow hot end 0.1669712246, interface 1 0.1669712246, interface 2 0.1669712246, cold end 0.1669712246 (exact 0.1470904001, rel err 1.352e-01) | max spread 1.038e-11 (all lines 1.062e-11) = 7.054e-11 Q
+  max per-cell imbalance 7.112e-13 vs derived bound 1.471e-09
+  energy balance: in 0.166971224631, out 0.166971224613, |in - out| = 1.238e-10 Q
+sector 12x30 x3: thermal converged 1 (4 it) | T L2 8.1915e-02 | heat flow hot end 0.1673323975, interface 1 0.1673323975, interface 2 0.1673323975, cold end 0.1673323974 (exact 0.1470904001, rel err 1.376e-01) | max spread 9.900e-12 (all lines 9.922e-12) = 6.730e-11 Q
+  max per-cell imbalance 7.822e-14 vs derived bound 1.471e-09
+  energy balance: in 0.167332397467, out 0.167332397448, |in - out| = 1.322e-10 Q
+sector 18x45 x3: thermal converged 1 (4 it) | T L2 8.2054e-02 | heat flow hot end 0.1675825520, interface 1 0.1675825520, interface 2 0.1675825520, cold end 0.1675825520 (exact 0.1470904001, rel err 1.393e-01) | max spread 2.023e-11 (all lines 2.026e-11) = 1.375e-10 Q
+  max per-cell imbalance 9.980e-14 vs derived bound 1.471e-09
+  energy balance: in 0.167582552025, out 0.167582551987, |in - out| = 2.588e-10 Q
+sector pair 0: heat-flow error observed order -0.044
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:703: Failure
+Expected: (fluxError[j + 1]) < (fluxError[j]), actual: 0.13761603301047373 vs 0.13516058495299008
+0
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:704: Failure
+Expected: (order) >= (1.5), actual: -0.044402952634763564 vs 1.5
+0
+
+sector pair 1: heat-flow error observed order -0.030
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:703: Failure
+Expected: (fluxError[j + 1]) < (fluxError[j]), actual: 0.13931671875607834 vs 0.13761603301047373
+1
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:704: Failure
+Expected: (order) >= (1.5), actual: -0.030292262985509223 vs 1.5
+1
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:707: Failure
+Expected: (metrics[k + 1].temperatureL2) < (metrics[k].temperatureL2), actual: 0.081915419963618369 vs 0.081802710433302006
+0
+
+sector pair 0: temperature L2 observed order -0.003
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:711: Failure
+Expected: (order) >= (1.5), actual: -0.0033957869919871387 vs 1.5
+0
+
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:707: Failure
+Expected: (metrics[k + 1].temperatureL2) < (metrics[k].temperatureL2), actual: 0.082053501349754671 vs 0.081915419963618369
+1
+
+sector pair 1: temperature L2 observed order -0.004
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:711: Failure
+Expected: (order) >= (1.5), actual: -0.0041538442589257882 vs 1.5
+1
+
+[  FAILED  ] MultiBlockProductionCase.SectorConductionInterfaceConservation (145 ms)
+[ RUN      ] MultiBlockProductionCase.StepChannelRegression
+step channel: 446 it, mass imbalance 3.37e-11, max face-line flow error 6.55e-11, reversed bottom-row cells 11 (last at x = 3.3125), far-field max |u - 3y(1-y)| 2.756e-02, max |v| 4.084e-06
+/root/w8b_dry/farx2/src_tree/tests/integration/case/test_multiblock_production_case.cpp:799: Failure
+Expected: (farError) <= (0.02), actual: 0.02756059977774826 vs 0.02
+
+[  FAILED  ] MultiBlockProductionCase.StepChannelRegression (6121 ms)
+[ RUN      ] MultiBlockProductionCase.ObstacleChannelInternalSolid
+obstacle channel: 4092 it, mass imbalance 5.69e-12, max face-line flow error 4.36e-11, symmetry max |du| 2.40e-10 |dv| 3.12e-10 |dp| 3.08e-09
+[       OK ] MultiBlockProductionCase.ObstacleChannelInternalSolid (36074 ms)
+[----------] 6 tests from MultiBlockProductionCase (50852 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 2 test suites ran. (110584 ms total)
+[  PASSED  ] 7 tests.
+[  FAILED  ] 8 tests, listed below:
+[  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleMatchesAnalyticalSolution
+[  FAILED  ] StructuredQuadProductionCase.DistortedPoiseuilleGridConvergence
+[  FAILED  ] StructuredQuadProductionCase.LeastSquaresGradientMatchesAnalyticalSolution
+[  FAILED  ] StructuredQuadProductionCase.NonOrthogonalCorrectionIsActiveOnTheProductionPath
+[  FAILED  ] StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab
+[  FAILED  ] MultiBlockProductionCase.CurvedChannelGridConvergence
+[  FAILED  ] MultiBlockProductionCase.SectorConductionInterfaceConservation
+[  FAILED  ] MultiBlockProductionCase.StepChannelRegression
+
+ 8 FAILED TESTS
+exit 1
+# end 2026-09-17T11:20:09Z

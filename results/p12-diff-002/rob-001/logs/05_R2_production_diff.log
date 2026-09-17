@@ -1,0 +1,39 @@
+# ROB-001 R2 -- the exact production diff, with a completeness proof
+# 2026-09-16T16:02:09Z
+
+## reverse-applying ROB-001's edit must reproduce the frozen pre-fix file
+  reconstructed  d210001a944ee498d7ae2012c8683433fa8b922415659ac8d511826e4e0a151c
+  frozen pre-fix d210001a944ee498d7ae2012c8683433fa8b922415659ac8d511826e4e0a151c
+  -> MATCH: the diff below is ROB-001's COMPLETE production change, nothing else.
+
+## the diff (pre-fix -> post-fix), src/solver/SolverRobustness.cpp
+--- src/solver/SolverRobustness.cpp (pre-fix)	2026-09-17 02:02:09.498216191 +1000
++++ src/solver/SolverRobustness.cpp (post-fix)	2026-09-17 02:02:09.466215701 +1000
+@@ -406,7 +406,18 @@
+     }
+   }
+   const Real oldest = tracker.valueAgo(window - 1);
+-  if (increasing && tracker.valueAgo(0) >= growth * oldest) {
++  // P12-DIFF-002-ROB-001: compare against the same meaningful-residual floor the persistent-
++  // excursion rule above already applies. `tracker.floor()` IS this residual's convergence
++  // tolerance (see threshold(), which returns it as the absolute convergence threshold), so a
++  // value below it is already converged and its growth is round-off, not divergence. Without this
++  // floor a continuity residual drifting 1.958e-14 -> 3.100e-13 against a 1e-6 tolerance -- every
++  // value in the window eight orders of magnitude below it -- aborted a converging lid-driven
++  // cavity at iteration 112 as Diverging, returning an unconverged field
++  // (results/p12-diff-002/rob-001/acceptance_gate.md). Growth above the floor is unaffected: there
++  // `meaningfulOldest == oldest`. `oldest` itself stays raw for the diagnostic below, which reports
++  // what was actually observed.
++  const Real meaningfulOldest = std::max(tracker.floor(), oldest);
++  if (increasing && tracker.valueAgo(0) >= growth * meaningfulOldest) {
+     diagnostics_.statusDetail =
+         "divergence: the " + std::string(name) + " residual increased at each of the last " +
+         std::to_string(window - 1) + " iterations, " + formatReal(oldest) + " -> " +
+
+## functional change, isolated from the comment
+-  if (increasing && tracker.valueAgo(0) >= growth * oldest) {
++  const Real meaningfulOldest = std::max(tracker.floor(), oldest);
++  if (increasing && tracker.valueAgo(0) >= growth * meaningfulOldest) {
+
+## scope: everything else byte-identical to the baseline freeze
+  (no output above == byte-identical)

@@ -1,0 +1,45 @@
+# W8-INV-001 w8inv_structured
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-17T07:34:01Z
+# W8-INV-001 TOLERANCE-CONTAMINATION DIAGNOSTIC
+# committed tolerances (u 2e-5) vs 100x tighter (u 2e-7); maxIterations 40000.
+
+
+COMMITTED tolerances, maxIterations 40000
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8   yes    2222 1.08267136e-02    -1.2020884013  -2.08840125e-03      10.0
+    96   12   yes    2181 4.75621586e-03    -1.1996745222  +3.25477793e-04      22.0
+   144   18   yes    2794 2.65369172e-03    -1.1975161934  +2.48380664e-03      74.1
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+    96   12    47.1772    15.1412   0.09096   0.02533    1.3031  0.035575     402 4.016..6.780
+   144   18    48.2525    15.4436   0.06094   0.01701    1.3085  0.023509     909 4.008..6.798
+
+  COMMITTED tolerances (r = 1.500)
+    pair 0 (64x8 -> 96x12): velocity  2.0287 | dp/dx |e|  4.5845   <-- SIGN CHANGE: |e| order is not defined here
+    pair 1 (96x12 -> 144x18): velocity  1.4391 | dp/dx |e| -5.0122
+
+100x TIGHTER tolerances, maxIterations 40000
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8    NO   40000 0.00000000e+00     0.0000000000  +0.00000000e+00     157.5
+    96   12    NO   40000 0.00000000e+00     0.0000000000  +0.00000000e+00     383.1
+   144   18    NO   40000 0.00000000e+00     0.0000000000  +0.00000000e+00    1048.7
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.000000       0 0.000..0.000
+    96   12    47.1772    15.1412   0.09096   0.02533    1.3031  0.000000       0 0.000..0.000
+   144   18    48.2525    15.4436   0.06094   0.01701    1.3085  0.000000       0 0.000..0.000
+
+  100x TIGHTER tolerances (r = 1.500)
+    pair 0 (64x8 -> 96x12): velocity    -nan | dp/dx |e|    -nan
+    pair 1 (96x12 -> 144x18): velocity    -nan | dp/dx |e|    -nan
+
+  velocity L2: committed -> tighter (relative change)
+      64x8   1.0826713618e-02 -> 0.0000000000e+00   rel change 1.000e+00
+      96x12  4.7562158586e-03 -> 0.0000000000e+00   rel change 1.000e+00
+     144x18  2.6536917221e-03 -> 0.0000000000e+00   rel change 1.000e+00
+
+  dp/dx SIGNED error: committed -> tighter
+      64x8   -2.0884012503e-03 -> +0.0000000000e+00
+      96x12  +3.2547779347e-04 -> +0.0000000000e+00
+     144x18  +2.4838066356e-03 -> +0.0000000000e+00
+exit 0

@@ -1,0 +1,30 @@
+# ThermalInterface fix GATE FREEZE; 2026-09-16T13:51:43Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+
+## THE GATE (frozen now, before any production modification):
+  9944d066659d4127cbfdba5246f67b023461738fb9e9f5cd96d0d289258e8870  results/p12-diff-002/thermal-interface-fix/acceptance_gate.md
+
+## production numerical files BEFORE the fix:
+  a9865ef59338e71a052e38536507265fee8dba7869b4e989789248061ef68cc1  src/thermal/ThermalInterface.cpp
+  4689ea01db674b577b01f2e5089bc1efe6710d1d3ac83ef47e099476c5b98bba  src/thermal/EnergyEquation.cpp
+  887947ee41510e83685b72f0a2e37c9ec4b28e21342d9fd28da4fa8fc6145360  include/cfd/thermal/EnergyEquation.hpp
+  21c88f69673de000aa9f1bcab4d817ef5e39b028a66c92316f4165a5c7ac49ff  include/cfd/thermal/ThermalInterface.hpp
+  8c03ba6816ad6f85c35143f316cc8058a04c6b59705a7c7335be8fd668135299  src/thermal/ThermalSolver.cpp
+  29af1927587558e52fd30a53b2c0bb03438b71044f370f902c414455e50ee7e3  src/physics/MomentumEquation.cpp
+  d7240a8f2aef1fc9c79e9a339bb86b37f479d481345c8e13aa48b9a65c6c37dd  src/species/SpeciesEquation.cpp
+  4c9750f53d81630ea2768bd7df7b8a2af3ad5c41b913c4b2ce8c347576ed1092  src/turbulence/KEpsilonEquation.cpp
+  20a02b16499fa7b0aca07667baae638714e1a176ed6eba33b414a194cf701e1c  src/discretization/NonOrthogonalDiffusion.cpp
+  04c964c24d6098dbe20def251fa0eba611a1725f17d9e352acf38631e67645b0  src/mesh/MeshGeometry.cpp
+  d24882a96e5cbc0025121a71eb9f88e13ffe0ef9a8a09f2e2f9f4d40fd8c03b6  src/discretization/Gradient.cpp
+  e8e17477465bcaea0415443284088169a936f4bbde8c0392d7abd6492ba7e0df  src/discretization/Diffusion.cpp
+## library BEFORE the fix:
+  58be6b751328c9bb9c3ea5edb6d829b5ff47e2a119cd0371723b341157d05394  build/release/src/libcfdcore.a
+
+## preserved F-A evidence (unchanged):
+  b3140926a3126846e9310436169484b79cc95bb2ec99c99b78c276fd4b34ba1e  results/p12-diff-002/validation-migration/summary.md
+  833ad5608a265ecc75b8df32e5a37242a68773f04155ba7f8101cf92150ba219  results/p12-diff-002/validation-migration/acceptance_gate.md
+  71bf040e0dcf4074d1fe2d447778da63dcff710781c6ed88ca21d4b7c8412440  results/p12-diff-002/investigation-f/logs/12_conjugate_divergence.log
+  0a63b2005ff3ccb55dea91850c49f55fcba44608dece36b66965938c59ff978a  results/p12-diff-002/investigation-f/summary.md
+
+## the test that detects the defect (must not be weakened):
+  32dedf7a1f77f51f6e210f5c74b202174a8106dc74c9bf92d3c367c5db69ad3a  tests/unit/thermal/test_thermal_boundary_consistency.cpp

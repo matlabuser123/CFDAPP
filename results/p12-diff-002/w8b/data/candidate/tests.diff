@@ -1,0 +1,252 @@
+--- orig/test_structured_quad_production_case.cpp	2026-09-17 21:13:49.317283800 +1000
++++ new/test_structured_quad_production_case.cpp	2026-09-17 21:15:23.256803800 +1000
+@@ -24,6 +24,10 @@
+ // Every numerical bound below was fixed from the Release measurements
+ // recorded in results/p12-mesh-001/summary.md (with the margin stated at
+ // each bound) or from the Cartesian scheme's own discretization error.
++// cases/poiseuille_distorted selects the Rhie-Chow face flux (P12-GRAD-002-
++// DRIFT-001: the 2D linear flux leaves an undamped odd-even pressure mode on
++// this open domain, so its solutions keep moving long after the outer
++// tolerance is met); every variant written from it inherits that choice.
+ #include <gtest/gtest.h>
+ 
+ #include <algorithm>
+@@ -159,9 +163,10 @@
+ };
+ 
+ // Volume-weighted linear least-squares fit p = a + g x over the developed
+-// cells: robust to the odd-even pressure mode of this collocated SIMPLE
+-// (no Rhie-Chow; see test_poiseuille_production_validation.cpp) on a mesh
+-// whose cell columns are not at constant x.
++// cells, on a mesh whose cell columns are not at constant x. (The committed
++// case selects the Rhie-Chow face flux, which removes the odd-even pressure
++// mode the 2D linear flux leaves on this open domain --
++// results/p12-grad-002/drift-001/summary.md; the fit is exact for a linear p.)
+ PoiseuilleMetrics poiseuilleMetrics(const ProjectRunResult& run, Index nx, Index ny) {
+   PoiseuilleMetrics m;
+   const Mesh& mesh = *run.mesh;
+@@ -202,27 +207,35 @@
+ }
+ 
+ // The Cartesian scheme's own error at the same ny, over the same developed
+-// region: the exact fully developed solution of the discretization on a
+-// uniform Cartesian grid is u_j = (G/2) y_j (H - y_j) + G dy^2/8 with
+-// G = 12 mu U/H^2 * ny^2/(ny^2+2) / mu (PoiseuilleValidationUtils.hpp) --
+-// independent of nx, sampled at the cell-centre rows.
++// region. P12-DIFF-002 (second-order Dirichlet wall flux) changed that scheme,
++// so the reference is its exact fully developed discrete solution as derived
++// independently in exact rational arithmetic by P12-DIFF-002-UC-001
++// (results/p12-diff-002/uc-001/acceptance_gate.md section 1): the continuum
++// parabola exactly at the cell centres, with only the flow-rate-consistent
++// gradient scaled, u_j = (G/2) y_j (H - y_j), G = 12 mu U/H^2 *
++// 2 ny^2/(2 ny^2 + 1) / mu -- independent of nx. P12-DIFF-002 W8B migrated it
++// from the superseded two-point form (factor ny^2/(ny^2 + 2) plus a G dy^2/8
++// offset), and P12-GRAD-002-DRIFT-001 reproduced it to six digits on an
++// orthogonal structured_quad mesh (results/p12-diff-002/w8b/).
+ Real cartesianVelocityL2(Index ny) {
+   const Real n2 = static_cast<Real>(ny * ny);
+-  const Real g = 12.0 * kMeanVelocity / (kHeight * kHeight) * n2 / (n2 + 2.0);
++  const Real g = 12.0 * kMeanVelocity / (kHeight * kHeight) * (2.0 * n2) / ((2.0 * n2) + 1.0);
+   const Real dy = kHeight / static_cast<Real>(ny);
+   Real sum = 0.0;
+   for (Index j = 0; j < ny; ++j) {
+     const Real y = (static_cast<Real>(j) + 0.5) * dy;
+-    const Real discrete = (0.5 * g * y * (kHeight - y)) + (g * dy * dy / 8.0);
++    const Real discrete = 0.5 * g * y * (kHeight - y);
+     const Real exact = 6.0 * kMeanVelocity * (y / kHeight) * (1.0 - (y / kHeight));
+     sum += (discrete - exact) * (discrete - exact);
+   }
+   return std::sqrt(sum / static_cast<Real>(ny));
+ }
+ 
++// The relative dp/dx error of that discrete solution: exactly 1/(2 ny^2 + 1)
++// (UC-001; the superseded two-point value was 2/(ny^2 + 2)).
+ Real cartesianPressureGradientError(Index ny) {
+   const Real n2 = static_cast<Real>(ny * ny);
+-  return 2.0 / (n2 + 2.0);
++  return 1.0 / ((2.0 * n2) + 1.0);
+ }
+ 
+ constexpr Real kExactPressureGradient = -12.0 * kViscosity * kMeanVelocity / (kHeight * kHeight);
+@@ -230,8 +243,10 @@
+ // The per-grid acceptance gates of the distorted Poiseuille case.
+ // Accuracy is bounded RELATIVE to the Cartesian scheme's own error at the
+ // same ny: the non-orthogonal mesh may cost at most 50% more error than a
+-// Cartesian mesh of the same resolution (measured: 1.03-1.17x for the
+-// velocity, 0.72x at most for dp/dx, on 64x8..144x18).
++// Cartesian mesh of the same resolution (the P12-MESH-001 design factor,
++// unchanged). Measured against the DIFF-002 references above, with the
++// case's Rhie-Chow flux: 1.19-1.29x for the velocity, 0.30-0.70x for dp/dx,
++// on 64x8..144x18 (results/p12-grad-002/drift-001/summary.md section 3).
+ void expectPoiseuilleGates(const PoiseuilleMetrics& m, Index ny, const std::string& label) {
+   EXPECT_TRUE(m.finite) << label;
+   EXPECT_LE(m.massImbalance, 1e-6) << label;
+@@ -331,10 +346,24 @@
+ }
+ 
+ // Three grids (r = 1.5, the P12-NUM-005 Poiseuille grids), each written by
+-// CaseWriter and run through ProjectRunner. Per-grid gates as above;
+-// convergence: the velocity error and the dp/dx error decrease
+-// monotonically at close to the formal second order, and the GCI of dp/dx
+-// bounds its true error.
++// CaseWriter and run through ProjectRunner. Per-grid gates as above (the
++// velocity and dp/dx accuracy of EVERY grid); convergence: the velocity error
++// decreases at close to the formal second order, from an iteratively
++// converged solution.
++//
++// P12-DIFF-002 W8B (results/p12-diff-002/w8b/acceptance_gate.md) replaced
++// two assertions of the original gate here, on evidence
++// (results/p12-grad-002/drift-001/summary.md section 3):
++//   * the dp/dx pair order: the dp/dx error is the orthogonal discrete-exact
++//     term +1/(2 ny^2 + 1) plus an opposite-sign distortion term that
++//     dominates on these grids, so it crosses zero between ny = 8 and 12 and
++//     no order is defined across or just after the crossing (measured 2.70,
++//     then -0.05); the per-grid dp/dx gate bounds its magnitude instead;
++//   * the dp/dx GCI bracket: a GCI is defined only in the asymptotic range,
++//     and the NUM-005 analysis itself classifies this dp/dx triplet as
++//     non-asymptotic (asymptotic ratio ~79), so no GCI is claimed for it.
++// The velocity order is kept: it is asymptotic on this family (2.11, 2.07,
++// then 2.03 at 144x18 -> 216x27; 2.09, 2.03 at r = 2).
+ TEST(StructuredQuadProductionCase, DistortedPoiseuilleGridConvergence) {
+   using cfd::validation::GridSpec;
+   const CaseDefinition base = CaseReader{}.read(kPoiseuilleCase);
+@@ -392,25 +421,43 @@
+       "results/validation/production/poiseuille_distorted_grid_convergence.json", study);
+   std::printf("\n%s", cfd::validation::gridConvergenceReportMarkdown(study).c_str());
+ 
+-  // Observed order of each successive grid pair (r = 1.5): the formal
+-  // order is 2; bound 1.5 (measured velocity 2.12 / 2.01, dp/dx 1.56 / 1.70).
++  // Observed velocity order of each successive grid pair (r = 1.5): the
++  // formal order is 2; bound 1.5 (the original P12-MESH-001 criterion). The
++  // signed dp/dx errors are reported, not order-tested (see above).
+   const Real r = 1.5;
+   for (std::size_t k = 0; k + 1 < metrics.size(); ++k) {
+     const Real velocityOrder =
+         std::log(metrics[k].velocityL2 / metrics[k + 1].velocityL2) / std::log(r);
+-    const Real e0 = std::abs(metrics[k].pressureGradient - kExactPressureGradient);
+-    const Real e1 = std::abs(metrics[k + 1].pressureGradient - kExactPressureGradient);
+-    const Real gradientOrder = std::log(e0 / e1) / std::log(r);
+-    std::printf("pair %zu: observed order velocity %.3f, dp/dx %.3f\n", k, velocityOrder,
+-                gradientOrder);
++    std::printf("pair %zu: observed order velocity %.3f; dp/dx signed error %+.4e -> %+.4e\n", k,
++                velocityOrder, metrics[k].pressureGradient - kExactPressureGradient,
++                metrics[k + 1].pressureGradient - kExactPressureGradient);
+     EXPECT_GE(velocityOrder, 1.5) << "pair " << k;
+-    EXPECT_GE(gradientOrder, 1.5) << "pair " << k;
+   }
+-  // The GCI of the finest dp/dx (NUM-005) bounds its true (known) error.
+   const auto& g = study.quantities[0];
+-  ASSERT_TRUE(g.analysis.gci21.has_value());
+-  ASSERT_TRUE(g.relativeErrorVsReference[2].has_value());
+-  EXPECT_LE(*g.relativeErrorVsReference[2], *g.analysis.gci21);
++  std::printf("dp/dx triplet: NUM-005 status %s, asymptotic ratio %.4g (no GCI claimed)\n",
++              std::string(cfd::validation::gridConvergenceStatusName(g.analysis.status)).c_str(),
++              g.analysis.asymptoticRatio.value_or(-1.0));
++
++  // W8B-4: an observed order is evidence only for an iteratively converged
++  // solution. Re-solve the finest grid with every outer tolerance 100x tighter:
++  // the velocity L2 error the order above uses must move by at most 10 % of
++  // itself (W8-INV-001 section 13 R4; its exact value is 0).
++  CaseDefinition tight = base;
++  setQuadMesh(tight, 144, 18, poiseuilleVertices(144, 18));
++  tight.solver.velocityTolerance *= 1e-2;
++  tight.solver.pressureTolerance *= 1e-2;
++  tight.solver.continuityTolerance *= 1e-2;
++  const CaseFixtureCopy tightCase = writeVariant(kPoiseuilleCase, tight);
++  const ProjectRunResult tightRun = ProjectRunner::run(tightCase.path());
++  ASSERT_EQ(tightRun.status, ProjectRunStatus::Converged) << tightRun.errorMessage;
++  const Real tightVelocityL2 = poiseuilleMetrics(tightRun, 144, 18).velocityL2;
++  const Real iterativeChange = std::abs(tightVelocityL2 - metrics.back().velocityL2);
++  std::printf("144x18 iterative check: velocity L2 %.6e (gate) vs %.6e (tolerances / 100, %zu "
++              "iterations): change %.3e = %.3f %% of the error\n",
++              metrics.back().velocityL2, tightVelocityL2,
++              static_cast<std::size_t>(tightRun.simpleResult->iterations), iterativeChange,
++              100.0 * iterativeChange / metrics.back().velocityL2);
++  EXPECT_LE(iterativeChange, 0.1 * metrics.back().velocityL2);
+ }
+ 
+ // gradient_scheme "least_squares" through the production path: the same
+@@ -444,8 +491,13 @@
+ //       than by a tolerance;
+ //   D2  those same interior rows are bitwise identical for N = 1 and N = 2, so the pass count
+ //       changes the iteration, not the operator;
+-//   S1  the original solution-level check, unchanged: enabling the correction still improves the
+-//       distorted solution by at least 1.5x.
++//   S1  the solution-level check (P12-DIFF-002 W8B, results/p12-diff-002/w8b/): the corrected
++//       solution meets the P12-MESH-001 accuracy requirement (velocity L2 <= 1.5x the Cartesian
++//       scheme's own error at the same ny, via expectPoiseuilleGates) and the uncorrected one
++//       does NOT -- the correction is what makes the case accurate. This is the test's original
++//       pre-A3 formulation; A3 had to drop it only because that reference was the superseded
++//       two-point solution, which W8B migrated. It replaces A3's empirical "uncorrected >= 1.5x
++//       corrected", whose margin the Rhie-Chow case removed (measured 1.495).
+ TEST(StructuredQuadProductionCase, NonOrthogonalCorrectionIsActiveOnTheProductionPath) {
+   CaseDefinition definition = CaseReader{}.read(kPoiseuilleCase);
+   // D3: the setting reaches the solver settings and the shared correction options.
+@@ -510,7 +562,7 @@
+   EXPECT_GT(appliedRows, 0u) << "the internal-face correction is not reaching the assembly";
+   EXPECT_EQ(interiorDiffering(on1, on2), 0u) << "the pass count must not change the operator";
+ 
+-  // S1: the preserved solution-level check, with its original factor.
++  // S1: the correction is what makes the case meet its accuracy requirement.
+   const CaseFixtureCopy uncorrectedCase = writeVariant(kPoiseuilleCase, definition);
+   const ProjectRunResult uncorrected = ProjectRunner::run(uncorrectedCase.path());
+   ASSERT_EQ(uncorrected.status, ProjectRunStatus::Converged) << uncorrected.errorMessage;
+@@ -519,9 +571,12 @@
+   ASSERT_EQ(corrected.status, ProjectRunStatus::Converged) << corrected.errorMessage;
+   const Real uncorrectedError = poiseuilleMetrics(uncorrected, 64, 8).velocityL2;
+   const Real correctedError = poiseuilleMetrics(corrected, 64, 8).velocityL2;
+-  std::printf("activation: velocity L2 uncorrected %.4e, corrected %.4e, ratio %.3f\n",
+-              uncorrectedError, correctedError, uncorrectedError / correctedError);
+-  EXPECT_GE(uncorrectedError, 1.5 * correctedError);
++  const Real requirement = 1.5 * cartesianVelocityL2(8);
++  std::printf("activation: velocity L2 uncorrected %.4e, corrected %.4e, requirement %.4e "
++              "(1.5x Cartesian)\n",
++              uncorrectedError, correctedError, requirement);
++  expectPoiseuilleGates(poiseuilleMetrics(corrected, 64, 8), 8, "corrected 64x8");
++  EXPECT_GT(uncorrectedError, requirement);
+ }
+ 
+ // =============================================================================
+--- orig/test_multiblock_production_case.cpp	2026-09-17 21:13:49.323283200 +1000
++++ new/test_multiblock_production_case.cpp	2026-09-17 21:15:40.390879200 +1000
+@@ -10,6 +10,9 @@
+ //     three 90-degree blocks; reference: the exact fully developed
+ //     Navier-Stokes solution u_theta = A (r ln r + a r - a / r), u_r = 0,
+ //     dp/dtheta = G = 2 mu A, dp/dr = rho u_theta^2 / r (Q = 1 fixes A);
++//     the case selects the Rhie-Chow face flux (P12-GRAD-002-DRIFT-001: the
++//     2D linear flux leaves an undamped odd-even pressure mode on this open
++//     domain, and it contaminates the per-ring G slope);
+ //   cases/annular_sector_conduction_multiblock -- the same sector, pure
+ //     conduction; exact T = 1 - theta / (3 pi / 2), heat flow k ln 2 / (3 pi / 2).
+ // Regression cases (not gated by acceptance_gate.md, checked here):
+@@ -516,6 +519,30 @@
+         q.analysis.extrapolated21.value_or(0.0));
+     EXPECT_LE(std::abs(fine - exactValue), *q.analysis.uncertainty21) << q.spec.name;
+   }
++
++  // W8B-4 (results/p12-diff-002/w8b/acceptance_gate.md): an observed order is
++  // evidence only for an iteratively converged solution. Re-solve the finest
++  // grid with every outer tolerance 100x tighter: each quantity whose order is
++  // asserted above (velocity L2, G) must move by at most 10 % of its own error
++  // (W8-INV-001 section 13 R4). With the case's former linear flux the G error
++  // moved by 140 % (results/p12-grad-002/drift-001/summary.md).
++  CaseDefinition tight = curvedDefinition(18, 45);
++  tight.solver.velocityTolerance *= 1e-2;
++  tight.solver.pressureTolerance *= 1e-2;
++  tight.solver.continuityTolerance *= 1e-2;
++  const CaseFixtureCopy tightCase = writeVariant(kCurvedCase, tight);
++  const CurvedMetrics t = runCurved(tightCase.path(), 18, 45);
++  ASSERT_TRUE(t.converged);
++  const CurvedMetrics& fine = metrics.back();
++  const Real velocityChange = std::abs(t.velocityL2 - fine.velocityL2);
++  const Real gChange = std::abs(t.pressureGradient - fine.pressureGradient);
++  std::printf("18x45 iterative check (tolerances / 100, %zu iterations): velocity L2 %.6e -> %.6e "
++              "(%.3f %% of the error), G %.8f -> %.8f (%.3f %% of the error)\n",
++              static_cast<std::size_t>(t.iterations), fine.velocityL2, t.velocityL2,
++              100.0 * velocityChange / fine.velocityL2, fine.pressureGradient, t.pressureGradient,
++              100.0 * gChange / gError(fine));
++  EXPECT_LE(velocityChange, 0.1 * fine.velocityL2);
++  EXPECT_LE(gChange, 0.1 * gError(fine));
+ }
+ 
+ namespace {

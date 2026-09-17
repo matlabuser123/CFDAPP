@@ -1,0 +1,26 @@
+# P12-GRAD-002-DRIFT-001 drift_probe  tree=repo
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# probe binary 4ed91767ce897d53f215165ffa7e614462fb3480b0f3fd7461d0dbb7943ba547
+# case inputs  c1d4c750b66cc7ec (poiseuille_distorted) 2b5d1c097786ef6b (curved_channel_multiblock)
+# args: mb 8 20 up ckpt 5000,20000,20001
+# start 2026-09-17T09:50:20Z
+# case mb 8x20 variant up mode ckpt; cells 480
+# settings: tol u 2.0e-05 p 5.0e-04 c 1.0e-06 | alpha 0.70/0.30 | nonOrth 1 | grad GG | conv 0 | flux automatic | mom 1 rel 1e-08 | pres 0 rel 1e-08
+# exact G -1.8282207204
+
+  committed gate
+    iters status            velocity L2                G     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     1414 Converged     1.164784488e-02    -1.8799911485 -5.177042807e-02  +2.423e-03  -7.300e-16  +2.068e-02  2.9229e-02  1.42e-05  2.00e-05  2.11e-04  4.35e-12     12.1
+
+  checkpoints (unreachable tolerance; state after exactly N iterations)
+    iters status            velocity L2                G     q signed err     cb(i+j)       cb(i)       cb(j)     fit rms     u res     v res     p res      cont      sec
+     5000 MaxIterations 1.167111088e-02    -1.8964391739 -6.821845354e-02  +1.515e-02  +1.082e-16  +1.099e-01  1.1967e-01  3.30e-06  3.95e-06  8.74e-05  3.48e-12     48.1
+    20000 MaxIterations 1.163351270e-02    -1.9245435013 -9.632278090e-02  +3.669e-02  +3.136e-16  +2.606e-01  2.6993e-01  1.27e-06  1.25e-06  3.39e-05  4.07e-12    225.2
+    20001 MaxIterations 1.163351160e-02    -1.9245446105 -9.632389007e-02  +3.669e-02  +5.912e-16  +2.606e-01  2.6994e-01  1.27e-06  1.25e-06  3.39e-05  4.47e-12    195.3
+
+  field change: max |du| and max |dp| between consecutive rows (first row vs gate)
+     1414 ->    5000  max|du| 1.9284e-03  max|dp| 1.8827e-01  d(velocity L2) +2.3266e-05  d(q) -1.6448e-02
+     5000 ->   20000  max|du| 1.2142e-02  max|dp| 4.0900e-01  d(velocity L2) -3.7598e-05  d(q) -2.8104e-02
+    20000 ->   20001  max|du| 5.3928e-07  max|dp| 1.8149e-05  d(velocity L2) -1.1020e-09  d(q) -1.1092e-06
+exit 0
+# end 2026-09-17T09:58:21Z

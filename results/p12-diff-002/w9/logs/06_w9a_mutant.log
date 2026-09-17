@@ -1,0 +1,40 @@
+# W9A-6 mutant control; 2026-09-17T11:47:24Z
+# mutation: 395:    const Real fluxCorrection = face.isBoundary() ? 0.0 : faceCoefficient[faceId] * (pOwner - pNeighbor);  // W9A-6 MUTANT
+# mutant libcfdcore.a 883cdf12bed8605ec584faf27ce68f42b2664be798504bea631910ca84301101
+## poiseuille_flow
+  status 0
+  simple_status 0
+  simple_iterations 1524
+  face_flux linear
+  final_u 1.999697e-05
+  final_v 3.781885e-07
+  final_p 2.222004e-04
+  final_continuity 3.430394e-09
+  global_mass_imbalance 9.839292e-08
+  exit 0
+  W9A: solver.converged True status Converged | imbalance 9.839e-08 floor 2.263e-07 -> accepted
+## channel_transpiration_graded
+  status 1
+  simple_status 1
+  simple_iterations 8000
+  face_flux linear
+  final_u 1.800266e-06
+  final_v 2.979312e-07
+  final_p 3.556931e-05
+  final_continuity 4.639812e-08
+  global_mass_imbalance 5.118013e-06
+  exit 0
+  W9A: solver.converged False status MaxIterations | imbalance 5.118e-06 floor 3.394e-09 -> REJECTED
+## poiseuille_distorted
+  status 0
+  simple_status 0
+  simple_iterations 41
+  face_flux rhie_chow
+  final_u 9.319370e-06
+  final_v 6.741005e-06
+  final_p 1.602176e-06
+  final_continuity 4.058870e-08
+  global_mass_imbalance 8.677042e-07
+  exit 0
+  W9A: solver.converged True status Converged | imbalance 8.677e-07 floor 2.263e-09 -> REJECTED
+# end 2026-09-17T11:51:16Z

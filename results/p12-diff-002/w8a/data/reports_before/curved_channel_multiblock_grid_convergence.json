@@ -1,0 +1,226 @@
+{
+  "format_version": 1,
+  "study": "curved_channel_multiblock",
+  "description": "270-degree curved channel, 3 conformal blocks, Re 10: 8x20 / 12x30 / 18x45 per block",
+  "method": {
+    "reference": "Celik et al., J. Fluids Eng. 130 (2008) 078001; Roache (1998)",
+    "indexing": "1 = fine, 2 = medium, 3 = coarse",
+    "grid_size": "h = sqrt(domain area / cells)",
+    "relative_quantity_units": "fraction",
+    "observed_order": "p solving eps32/eps21 = r21^p (r32^p - 1)/(r21^p - 1) (bisection)",
+    "asymptotic_ratio": "U32 / (r21^pf U21), U = |eps| / (r^pf - 1), pf = formal order"
+  },
+  "all_solves_accepted": true,
+  "rejection_reason": "",
+  "grids": [
+    {
+      "level": "coarse",
+      "name": "coarse",
+      "nx": 8,
+      "ny": 60,
+      "cells": 480,
+      "h": 0.1213516195347312,
+      "runtime_seconds": 5.347555573,
+      "solver_status": "Converged",
+      "solver_iterations": 1551,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "velocity_l2_error": 0.011092667592857675,
+        "pressure_gradient": -1.8199632858517094,
+        "radial_pressure_rise_ratio": 1.0083088210198956
+      }
+    },
+    {
+      "level": "medium",
+      "name": "medium",
+      "nx": 12,
+      "ny": 90,
+      "cells": 1080,
+      "h": 0.0809010796898208,
+      "runtime_seconds": 11.505419001,
+      "solver_status": "Converged",
+      "solver_iterations": 1405,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "velocity_l2_error": 0.004823716781819138,
+        "pressure_gradient": -1.8228269510994328,
+        "radial_pressure_rise_ratio": 1.0010636460992568
+      }
+    },
+    {
+      "level": "fine",
+      "name": "fine",
+      "nx": 18,
+      "ny": 135,
+      "cells": 2430,
+      "h": 0.0539340531265472,
+      "runtime_seconds": 65.786410308,
+      "solver_status": "Converged",
+      "solver_iterations": 3160,
+      "accepted": true,
+      "rejection_reason": "",
+      "quantities": {
+        "velocity_l2_error": 0.002095137184812845,
+        "pressure_gradient": -1.8254041230502311,
+        "radial_pressure_rise_ratio": 0.999517511134163
+      }
+    }
+  ],
+  "quantities": [
+    {
+      "name": "velocity_l2_error",
+      "description": "RMS |u - u_exact| over bend_b (90-180 deg); exact 0",
+      "values": {
+        "coarse": 0.011092667592857675,
+        "medium": 0.004823716781819138,
+        "fine": 0.002095137184812845
+      },
+      "reference": {
+        "value": 0.0,
+        "kind": "analytical",
+        "error_coarse": 0.011092667592857675,
+        "error_medium": 0.004823716781819138,
+        "error_fine": 0.002095137184812845,
+        "relative_error_coarse": null,
+        "relative_error_medium": null,
+        "relative_error_fine": null,
+        "error_extrapolated": -7.791058330190118e-06
+      },
+      "analysis": {
+        "status": "asymptotic",
+        "convergence": "monotonic",
+        "diagnostic": "monotonic convergence, observed order 2.05154 (formal 2); asymptotic ratio 1.02112 within 1 +/- 0.1",
+        "warnings": [],
+        "r21": 1.5,
+        "r32": 1.5,
+        "epsilon21": 0.0027285795970062926,
+        "epsilon32": 0.006268950811038537,
+        "convergence_ratio": 0.43525299196824707,
+        "observed_order": 2.0515398479079305,
+        "formal_order": 2.0,
+        "order_ratio": 1.0257699239539653,
+        "richardson_extrapolated": -7.791058330190118e-06,
+        "richardson_extrapolated_32": -7.791058330182746e-06,
+        "approximate_relative_error_21": 1.3023393488431794,
+        "approximate_relative_error_32": 1.299610050628712,
+        "extrapolated_relative_error_21": 269.9156076131854,
+        "extrapolated_relative_error_32": 620.134984926495,
+        "uncertainty_21": 0.002628660303928794,
+        "uncertainty_32": 0.0060393848001866505,
+        "gci_fine_medium": 1.25464829844238,
+        "gci_medium_coarse": 1.252018945836421,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": 1.0211174940685253,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": null,
+        "grid_independence_threshold": null,
+        "grid_independent": false,
+        "grid_independence_reason": "no grid-independence threshold configured"
+      }
+    },
+    {
+      "name": "pressure_gradient",
+      "description": "dp/dtheta over bend_b (mean per-ring LS slope); exact 2 mu A",
+      "values": {
+        "coarse": -1.8199632858517094,
+        "medium": -1.8228269510994328,
+        "fine": -1.8254041230502311
+      },
+      "reference": {
+        "value": -1.8282207203864147,
+        "kind": "analytical",
+        "error_coarse": 0.008257434534705288,
+        "error_medium": 0.005393769286981875,
+        "error_fine": 0.0028165973361835572,
+        "relative_error_coarse": 0.004516650775602186,
+        "relative_error_medium": 0.002950283424116232,
+        "relative_error_fine": 0.0015406221495992225,
+        "error_extrapolated": -0.020366546336871405
+      },
+      "analysis": {
+        "status": "monotonic_not_asymptotic",
+        "convergence": "monotonic",
+        "diagnostic": "monotonic convergence, observed order 0.259972 (formal 2); asymptotic ratio 0.493851 outside 1 +/- 0.1",
+        "warnings": [],
+        "r21": 1.5,
+        "r32": 1.5,
+        "epsilon21": 0.002577171950798318,
+        "epsilon32": 0.0028636652477234126,
+        "convergence_ratio": 0.8999557308058775,
+        "observed_order": 0.25997232006691906,
+        "formal_order": 2.0,
+        "order_ratio": 0.12998616003345953,
+        "richardson_extrapolated": -1.848587266723286,
+        "richardson_extrapolated_32": -1.848587266723286,
+        "approximate_relative_error_21": 0.0014118363809170601,
+        "approximate_relative_error_32": 0.0015710022533933904,
+        "extrapolated_relative_error_21": 0.012541005821244377,
+        "extrapolated_relative_error_32": 0.013935136353889712,
+        "uncertainty_21": 0.028978929591318772,
+        "uncertainty_32": 0.032200394529816705,
+        "gci_fine_medium": 0.015875350135013,
+        "gci_medium_coarse": 0.017665085821994858,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": 0.49385145205582576,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": null,
+        "grid_independence_threshold": null,
+        "grid_independent": false,
+        "grid_independence_reason": "no grid-independence threshold configured"
+      }
+    },
+    {
+      "name": "radial_pressure_rise_ratio",
+      "description": "[p(outer cell) - p(inner cell)] / (rho int u^2/r dr between the same centroid radii) over bend_b (the radii move with the grid, so the ratio is analysed); exact 1",
+      "values": {
+        "coarse": 1.0083088210198956,
+        "medium": 1.0010636460992568,
+        "fine": 0.999517511134163
+      },
+      "reference": {
+        "value": 1.0,
+        "kind": "analytical",
+        "error_coarse": 0.008308821019895607,
+        "error_medium": 0.0010636460992567986,
+        "error_fine": -0.00048248886583701633,
+        "relative_error_coarse": 0.008308821019895607,
+        "relative_error_medium": 0.0010636460992567986,
+        "relative_error_fine": 0.00048248886583701633,
+        "error_extrapolated": -0.000901951327748618
+      },
+      "analysis": {
+        "status": "monotonic_not_asymptotic",
+        "convergence": "monotonic",
+        "diagnostic": "monotonic convergence, observed order 3.8094 (formal 2); asymptotic ratio 2.08266 outside 1 +/- 0.1",
+        "warnings": [],
+        "r21": 1.5,
+        "r32": 1.5,
+        "epsilon21": 0.001546134965093815,
+        "epsilon32": 0.007245174920638808,
+        "convergence_ratio": 0.21340202024514987,
+        "observed_order": 3.8093967701076004,
+        "formal_order": 2.0,
+        "order_ratio": 1.9046983850538002,
+        "richardson_extrapolated": 0.9990980486722514,
+        "richardson_extrapolated_32": 0.9990980486722514,
+        "approximate_relative_error_21": 0.0015468813181065727,
+        "approximate_relative_error_32": 0.007237476806664938,
+        "extrapolated_relative_error_21": 0.00041984113818362986,
+        "extrapolated_relative_error_32": 0.0019673719007034314,
+        "uncertainty_21": 0.0005243280773895408,
+        "uncertainty_32": 0.002456996783756819,
+        "gci_fine_medium": 0.0005245811819690685,
+        "gci_medium_coarse": 0.0024543861854645797,
+        "safety_factor": 1.25,
+        "asymptotic_ratio": 2.082662778608562,
+        "asymptotic_tolerance": 0.1,
+        "oscillation_uncertainty": null,
+        "grid_independence_threshold": null,
+        "grid_independent": false,
+        "grid_independence_reason": "no grid-independence threshold configured"
+      }
+    }
+  ]
+}

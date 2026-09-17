@@ -1,0 +1,36 @@
+# W8-INV-001 w8inv_structured
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-17T07:10:27Z
+# W8-INV-001 distorted Poiseuille, extended refinement
+# mapping ax=0.1 ay=0.05 lambda=1.0 (ABSOLUTE, independent of nx/ny), L=8.0 H=1.0
+# exact dp/dx = -1.2000000000; window x in [4.00, 6.80]
+# RAW values first; orders afterwards.
+
+FAMILY A -- the test's own r = 1.5 family, EXTENDED
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8   yes    2222 1.08267136e-02    -1.2020884013  -2.08840125e-03       8.4
+    96   12   yes    2181 4.75621586e-03    -1.1996745222  +3.25477793e-04      19.9
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+    96   12    47.1772    15.1412   0.09096   0.02533    1.3031  0.035575     402 4.016..6.780
+
+  FAMILY A observed orders (r = 1.500)
+    pair 0 (64x8 -> 96x12): velocity  2.0287 | dp/dx |e|  4.5845   <-- SIGN CHANGE: |e| order is not defined here
+
+FAMILY B -- independent r = 2 family
+    nx   ny  conv   iters    velocity L2            dp/dx dp/dx SIGNED err    time s
+    64    8   yes    2222 1.08267136e-02    -1.2020884013  -2.08840125e-03       8.1
+   128   16   yes    2497 2.89634614e-03    -1.1964879594  +3.51204061e-03      45.9
+    nx   ny  maxNonOrt meanNonOrt   maxSkew  meanSkew maxAspect  wallDist   cells   x-window
+    64    8    44.7624    14.5845   0.13176   0.03687    1.2862  0.054162     180 4.023..6.796
+   128   16    48.0245    15.3786   0.06924   0.01912    1.3089  0.026544     714 4.003..6.790
+
+  FAMILY B observed orders (r = 2.000)
+    pair 0 (64x8 -> 128x16): velocity  1.9023 | dp/dx |e| -0.7499   <-- SIGN CHANGE: |e| order is not defined here
+
+#CSV family,nx,ny,conv,iters,velocityL2,dpdx,dpdxSignedError,maxNonOrtho,meanNonOrtho,maxSkew,maxAspect,wallDist,windowCells
+CSV,A,64,8,1,2222,1.082671361767e-02,-1.202088401250e+00,-2.088401250335e-03,44.762416,14.584526,0.131758,1.286237,0.05416215,180
+CSV,A,96,12,1,2181,4.756215858643e-03,-1.199674522207e+00,3.254777934687e-04,47.177201,15.141247,0.090955,1.303118,0.03557521,402
+CSV,B,64,8,1,2222,1.082671361767e-02,-1.202088401250e+00,-2.088401250335e-03,44.762416,14.584526,0.131758,1.286237,0.05416215,180
+CSV,B,128,16,1,2497,2.896346139788e-03,-1.196487959392e+00,3.512040608275e-03,48.024474,15.378610,0.069237,1.308905,0.02654387,714
+exit 0

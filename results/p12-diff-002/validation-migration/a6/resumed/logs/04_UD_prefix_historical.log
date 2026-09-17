@@ -1,0 +1,163 @@
+# RESUMED A6 Step 2 -- PRE-DIFF-002 MMS results (historical-operator library)
+# 2026-09-16T16:36:01Z
+# historical library 90473bfb622c63e5
+# authoritative NonOrthogonalDiffusion.cpp unchanged: 20a02b16499fa7b0
+
+[       OK ] ScalarMMS.AdvectionDiffusionConverges (1572 ms)
+[       OK ] ScalarMMS.DistortedMeshNonOrthogonalCorrection (939 ms)
+[       OK ] MomentumMMS.UConverges (3749 ms)
+[       OK ] MomentumMMS.VConverges (0 ms)
+[       OK ] MomentumMMS.PressureGradientBalance (25 ms)
+[       OK ] MomentumMMS.DistortedMesh (5269 ms)
+[       OK ] ContinuityMMS.DivergenceFreeField (18 ms)
+[       OK ] SIMPLEMMS.ConvergesFromNonExactInitialCondition (3307 ms)
+[       OK ] SIMPLEMMS.VelocityConvergesAtExpectedOrder (20794 ms)
+[       OK ] SIMPLEMMS.PressureConvergesAtExpectedOrder (0 ms)
+[       OK ] SIMPLEMMS.ContinuityConverges (0 ms)
+[       OK ] SIMPLEMMS.GlobalMassBalance (0 ms)
+[       OK ] SIMPLEMMS.Deterministic (380 ms)
+[       OK ] SIMPLEMMS.DistortedMesh (44013 ms)
+[       OK ] CompressibleSimpleMMS.SystemConvergence (10277 ms)
+[       OK ] MMS3DTest.ForcingMatchesFiniteDifferencesOfClosedForms (0 ms)
+[       OK ] MMS3DTest.OperatorErrorsDecreaseOnCoarseLevels (88 ms)
+[       OK ] MMSSimple3DTest.ForcingMatchesFiniteDifferencesOfClosedForms (0 ms)
+[       OK ] MMSSimple3DTest.ErrorsDecreaseOnCoarseLevels (1648 ms)
+[==========] 19 tests from 7 test suites ran. (92085 ms total)
+[  PASSED  ] 19 tests.
+
+## the order tables of the four U-D studies
+### MMS: momentum_mms_central
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+| u | l2 | 2 | 4.944, 4.253, 3.947 | 2.366, 2.123 | asymptotic |
+| u | l1 | 2 | 5.051, 4.327, 3.937 | 2.397, 2.157 | monotonic_not_asymptotic |
+| u | linf | 2 | 4.261, 3.785, 3.904 | 2.148, 1.904 | asymptotic |
+| v | l2 | 2 | 3.968, 3.923, 3.934 | 1.994, 1.971 | asymptotic |
+| v | l1 | 2 | 4.004, 3.947, 3.935 | 2.008, 1.982 | asymptotic |
+| v | linf | 2 | 4.350, 4.132, 4.009 | 2.144, 2.061 | asymptotic |
+| velocity | l2 | 2 | 4.144, 3.973, 3.936 | 2.071, 1.995 | asymptotic |
+| u_interior | l2 | 2 | 5.356, 4.123, 3.796 | 2.524, 2.084 | asymptotic |
+| u_boundary_ring | l2 | 2 | 3.456, 3.696, 3.860 | 1.752, 1.863 | asymptotic |
+- [x] u: u L1/L2/Linf decrease on every refinement: monotone
+- [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.123 (asymptotic vs formal 2); reduction factors 4.944 4.253 3.947
+- [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.157 (monotonic_not_asymptotic vs formal 2); reduction factors 5.051 4.327 3.937
+- [x] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 1.904 (asymptotic vs formal 2); reduction factors 4.261 3.785 3.904
+- [x] v: v L1/L2/Linf decrease on every refinement: monotone
+- [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.971 (asymptotic vs formal 2); reduction factors 3.968 3.923 3.934
+- [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 1.982 (asymptotic vs formal 2); reduction factors 4.004 3.947 3.935
+- [x] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 2.061 (asymptotic vs formal 2); reduction factors 4.350 4.132 4.009
+### MMS: momentum_mms_upwind
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+| u | l2 | 1 | 1.960, 1.969, 1.984 | 0.964, 0.967 | asymptotic |
+| u | l1 | 1 | 1.973, 1.972, 1.984 | 0.981, 0.970 | asymptotic |
+| u | linf | 1 | 1.963, 1.972, 1.987 | 0.965, 0.969 | asymptotic |
+| v | l2 | 1 | 1.811, 1.903, 1.950 | 0.773, 0.891 | asymptotic |
+| v | l1 | 1 | 1.836, 1.908, 1.951 | 0.813, 0.898 | asymptotic |
+| v | linf | 1 | 1.805, 1.904, 1.953 | 0.761, 0.889 | asymptotic |
+| velocity | l2 | 1 | 1.894, 1.938, 1.968 | 0.884, 0.932 | asymptotic |
+| u_interior | l2 | 1 | 2.086, 2.033, 2.016 | 1.096, 1.036 | asymptotic |
+| u_boundary_ring | l2 | 1 | 3.968, 3.978, 3.994 | 1.987, 1.990 | monotonic_not_asymptotic |
+- [x] u: u L1/L2/Linf decrease on every refinement: monotone
+- [x] u: u l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.967 (asymptotic vs formal 1); reduction factors 1.960 1.969 1.984
+- [x] u: u l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.970 (asymptotic vs formal 1); reduction factors 1.973 1.972 1.984
+- [x] u: u linf observed order in [0.60, 1.20]: finest-triplet observed order 0.969 (asymptotic vs formal 1); reduction factors 1.963 1.972 1.987
+- [x] v: v L1/L2/Linf decrease on every refinement: monotone
+- [x] v: v l2 observed order in [0.80, 1.20]: finest-triplet observed order 0.891 (asymptotic vs formal 1); reduction factors 1.811 1.903 1.950
+- [x] v: v l1 observed order in [0.80, 1.20]: finest-triplet observed order 0.898 (asymptotic vs formal 1); reduction factors 1.836 1.908 1.951
+- [x] v: v linf observed order in [0.60, 1.20]: finest-triplet observed order 0.889 (asymptotic vs formal 1); reduction factors 1.805 1.904 1.953
+### MMS: momentum_mms_linear_upwind
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+| u | l2 | 2 | 4.632, 4.142, 3.968 | 2.259, 2.071 | asymptotic |
+| u | l1 | 2 | 4.708, 4.156, 3.993 | 2.288, 2.074 | asymptotic |
+| u | linf | 2 | 4.686, 3.682, 4.244 | 2.339, 1.811 | monotonic_not_asymptotic |
+| v | l2 | 2 | 3.972, 3.988, 3.977 | 1.988, 1.997 | asymptotic |
+| v | l1 | 2 | 4.031, 4.040, 4.023 | 2.010, 2.016 | asymptotic |
+| v | linf | 2 | 4.506, 3.897, 3.942 | 2.238, 1.957 | asymptotic |
+| velocity | l2 | 2 | 4.138, 4.023, 3.975 | 2.062, 2.014 | asymptotic |
+| u_interior | l2 | 2 | 4.905, 4.168, 3.946 | 2.361, 2.085 | asymptotic |
+| u_boundary_ring | l2 | 2 | 3.568, 3.659, 3.829 | 1.821, 1.848 | monotonic_not_asymptotic |
+- [x] u: u L1/L2/Linf decrease on every refinement: monotone
+- [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.071 (asymptotic vs formal 2); reduction factors 4.632 4.142 3.968
+- [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.074 (asymptotic vs formal 2); reduction factors 4.708 4.156 3.993
+- [x] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 1.811 (monotonic_not_asymptotic vs formal 2); reduction factors 4.686 3.682 4.244
+- [x] v: v L1/L2/Linf decrease on every refinement: monotone
+- [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.997 (asymptotic vs formal 2); reduction factors 3.972 3.988 3.977
+- [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.016 (asymptotic vs formal 2); reduction factors 4.031 4.040 4.023
+- [x] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 1.957 (asymptotic vs formal 2); reduction factors 4.506 3.897 3.942
+### MMS: simple_mms
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+| u | l2 | 2 | 3.563, 3.550 | 1.835 | monotonic_not_asymptotic |
+| u | l1 | 2 | 3.733, 3.468 | 1.941 | asymptotic |
+| v | l2 | 2 | 3.487, 3.452 | 1.808 | monotonic_not_asymptotic |
+| v | l1 | 2 | 3.216, 3.439 | 1.644 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 3.528, 3.504 | 1.823 | monotonic_not_asymptotic |
+| u | linf | 2 | 3.307, 3.869 | 1.637 | monotonic_not_asymptotic |
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 1.835 (monotonic_not_asymptotic vs formal 2); reduction factors 3.563 3.550
+- [x] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 1.941 (asymptotic vs formal 2); reduction factors 3.733 3.468
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 1.808 (monotonic_not_asymptotic vs formal 2); reduction factors 3.487 3.452
+- [x] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 1.644 (monotonic_not_asymptotic vs formal 2); reduction factors 3.216 3.439
+- [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 3.550
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.694 (monotonic_not_asymptotic vs formal 2); reduction factors 3.296 3.441
+- [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.807 (monotonic_not_asymptotic vs formal 2); reduction factors 3.515 3.556
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 3.13e-10, L2 7.64e-11
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.90e-08, L2 2.44e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 3.19e-07, L2 9.96e-09
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 3.384 (monotonic_not_asymptotic vs formal 2); reduction factors 9.409 5.148
+- [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+### MMS: simple_mms_upwind
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+| u | l2 | 1 | 1.697, 1.821 | 0.629 | monotonic_not_asymptotic |
+| u | l1 | 1 | 1.730, 1.825 | 0.692 | monotonic_not_asymptotic |
+| v | l2 | 1 | 1.677, 1.820 | 0.588 | monotonic_not_asymptotic |
+| v | l1 | 1 | 1.697, 1.836 | 0.615 | monotonic_not_asymptotic |
+| velocity | l2 | 1 | 1.687, 1.821 | 0.608 | monotonic_not_asymptotic |
+| u | linf | 1 | 1.763, 1.769 | 0.811 | monotonic_not_asymptotic |
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: u l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.629 (monotonic_not_asymptotic vs formal 1); reduction factors 1.697 1.821
+- [x] velocity: u l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.692 (monotonic_not_asymptotic vs formal 1); reduction factors 1.730 1.825
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: v l2 observed order in [0.55, 1.30]: finest-triplet observed order 0.588 (monotonic_not_asymptotic vs formal 1); reduction factors 1.677 1.820
+- [x] velocity: v l1 observed order in [0.55, 1.30]: finest-triplet observed order 0.615 (monotonic_not_asymptotic vs formal 1); reduction factors 1.697 1.836
+- [x] velocity: u L2 finest reduction factor >= 1.6: E_coarse/E_fine = 1.821
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [0.80, 1.60]: finest-triplet observed order 1.343 (monotonic_not_asymptotic vs formal 1); reduction factors 2.309 2.067
+- [x] pressure: p l1 observed order in [0.80, 1.60]: finest-triplet observed order 1.309 (monotonic_not_asymptotic vs formal 1); reduction factors 2.260 2.034
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 2.18e-09, L2 2.83e-10
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.89e-08, L2 2.44e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 3.10e-07, L2 9.68e-09
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [0.55, 4.00]: finest-triplet observed order 0.727 (monotonic_not_asymptotic vs formal 1); reduction factors 1.764 1.857
+- [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20
+### MMS: distorted_mesh_simple_mms
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+| u | l2 | 2 | 4.460, 3.490 | 2.278 | monotonic_not_asymptotic |
+| u | l1 | 2 | 4.483, 3.508 | 2.285 | monotonic_not_asymptotic |
+| v | l2 | 2 | 4.269, 3.299 | 2.230 | monotonic_not_asymptotic |
+| v | l1 | 2 | 4.485, 3.286 | 2.325 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 4.376, 3.401 | 2.258 | monotonic_not_asymptotic |
+| u | linf | 2 | 3.988, 3.933 | 2.002 | asymptotic |
+- [x] velocity: u L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: u l2 observed order in [1.60, 2.40]: finest-triplet observed order 2.278 (monotonic_not_asymptotic vs formal 2); reduction factors 4.460 3.490
+- [x] velocity: u l1 observed order in [1.60, 2.40]: finest-triplet observed order 2.285 (monotonic_not_asymptotic vs formal 2); reduction factors 4.483 3.508
+- [x] velocity: v L1/L2/Linf decrease on every refinement: monotone
+- [x] velocity: v l2 observed order in [1.60, 2.40]: finest-triplet observed order 2.230 (monotonic_not_asymptotic vs formal 2); reduction factors 4.269 3.299
+- [x] velocity: v l1 observed order in [1.60, 2.40]: finest-triplet observed order 2.325 (monotonic_not_asymptotic vs formal 2); reduction factors 4.485 3.286
+- [x] velocity: u L2 finest reduction factor >= 3.0: E_coarse/E_fine = 3.490
+- [x] pressure: p L1/L2/Linf decrease on every refinement: monotone
+- [x] pressure: p l2 observed order in [1.50, 2.40]: finest-triplet observed order 1.678 (monotonic_not_asymptotic vs formal 2); reduction factors 3.271 3.441
+- [x] pressure: p l1 observed order in [1.50, 2.40]: finest-triplet observed order 1.737 (monotonic_not_asymptotic vs formal 2); reduction factors 3.389 3.529
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 8x8: Linf 3.77e-09, L2 4.89e-10
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 16x16: Linf 3.90e-08, L2 2.46e-09
+- [x] continuity: discrete continuity satisfied (Linf per volume <= 1e-5) at 32x32: Linf 2.64e-07, L2 8.26e-09
+- [x] continuity: face_flux L1/L2/Linf decrease on every refinement: monotone
+- [x] continuity: face_flux l2 observed order in [1.60, 4.00]: finest-triplet observed order 3.207 (monotonic_not_asymptotic vs formal 2); reduction factors 9.027 7.642
+- [x] mass: global mass imbalance <= 1e-14 at 8x8: 3.20e-19
+- [x] mass: global mass imbalance <= 1e-14 at 16x16: 7.95e-20
+- [x] mass: global mass imbalance <= 1e-14 at 32x32: 1.98e-20

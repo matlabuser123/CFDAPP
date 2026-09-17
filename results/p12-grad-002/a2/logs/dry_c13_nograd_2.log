@@ -1,0 +1,51 @@
+# A2 C13 dry-run tree=nograd libcfdcore.a c74f6ab75714a3f1a008e29d892e60a5fc77a545627339f346f15b7664c1e074 test source 3868440bfc183b8b12ee757f048ecfbcf9413fe91006778081e188faad75ca3e
+# compile warnings: 0
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from GradientBoundaryConsistency
+[ RUN      ] GradientBoundaryConsistency.ConstantFieldGradientIsZeroWithinTheFloatingPointEnvelope
+[       OK ] GradientBoundaryConsistency.ConstantFieldGradientIsZeroWithinTheFloatingPointEnvelope (39 ms)
+[ RUN      ] GradientBoundaryConsistency.LinearFieldIsReproducedOnOrthogonalAndDistortedMeshes
+[       OK ] GradientBoundaryConsistency.LinearFieldIsReproducedOnOrthogonalAndDistortedMeshes (32 ms)
+[ RUN      ] GradientBoundaryConsistency.LinearFieldFixedPointIsExactOnPlanarFaced3DSkewedMesh
+[       OK ] GradientBoundaryConsistency.LinearFieldFixedPointIsExactOnPlanarFaced3DSkewedMesh (65 ms)
+[ RUN      ] GradientBoundaryConsistency.LinearFieldErrorOnWarpedFacesIsTheFaceQuadratureDefect
+[       OK ] GradientBoundaryConsistency.LinearFieldErrorOnWarpedFacesIsTheFaceQuadratureDefect (42 ms)
+[ RUN      ] GradientBoundaryConsistency.QuadraticFieldIsExactOnAlignedCartesianMeshes
+[       OK ] GradientBoundaryConsistency.QuadraticFieldIsExactOnAlignedCartesianMeshes (15 ms)
+[ RUN      ] GradientBoundaryConsistency.TranslatedMeshGivesTheSameGradient
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_gradient_boundary_consistency.cpp:547: Failure
+Expected: (delta) <= (envelope(b, *fields[f], small, cg)), actual: 0.0078125000000259792 vs 2.139324818243725e-11
+quadratic, n = 16
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_gradient_boundary_consistency.cpp:547: Failure
+Expected: (delta) <= (envelope(b, *fields[f], small, cg)), actual: 0.0039062500001034728 vs 1.6789815139417233e-10
+quadratic, n = 32
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_gradient_boundary_consistency.cpp:547: Failure
+Expected: (delta) <= (envelope(b, *fields[f], small, cg)), actual: 0.0019531250004165557 vs 1.3755971868584251e-09
+quadratic, n = 64
+
+[  FAILED  ] GradientBoundaryConsistency.TranslatedMeshGivesTheSameGradient (126 ms)
+[ RUN      ] GradientBoundaryConsistency.GradientErrorIsContinuousInTheBoundaryMisalignment
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/discretization/test_gradient_boundary_consistency.cpp:591: Failure
+Expected: (std::abs(error - previousError)) <= ((10.0 * std::abs(m - previousM)) + 1e-12), actual: 0.0078125000000044791 vs 6.1159076974727211e-12
+amplitude 4.9999999999999999e-13: m_f 0 -> 5.1159076974727213e-13, error 6.2803698347351007e-16 -> 0.007812500000005107
+
+[  FAILED  ] GradientBoundaryConsistency.GradientErrorIsContinuousInTheBoundaryMisalignment (14 ms)
+[ RUN      ] GradientBoundaryConsistency.CellWithoutAnOppositeInteriorFaceFallsBackAndStaysExact
+[       OK ] GradientBoundaryConsistency.CellWithoutAnOppositeInteriorFaceFallsBackAndStaysExact (0 ms)
+[ RUN      ] GradientBoundaryConsistency.TwoBoundaryFacesClaimingOneOppositeFaceResolveDeterministically
+[       OK ] GradientBoundaryConsistency.TwoBoundaryFacesClaimingOneOppositeFaceResolveDeterministically (0 ms)
+[----------] 9 tests from GradientBoundaryConsistency (387 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 1 test suite ran. (398 ms total)
+[  PASSED  ] 7 tests.
+[  FAILED  ] 2 tests, listed below:
+[  FAILED  ] GradientBoundaryConsistency.TranslatedMeshGivesTheSameGradient
+[  FAILED  ] GradientBoundaryConsistency.GradientErrorIsContinuousInTheBoundaryMisalignment
+
+ 2 FAILED TESTS
+exit 1

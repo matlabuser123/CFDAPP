@@ -1,0 +1,73 @@
+# A2 step 2 2026-09-17T13:50:44Z
+CMakeLists.txt: 42f9beb515c5d6766bd267f38d828a4e9d5728beb2fd67dea9843fe6e2455748
+test file before format: 3868440bfc183b8b12ee757f048ecfbcf9413fe91006778081e188faad75ca3e (frozen candidate 3868440b...)
+test file after format:  9cc2d1635e74627eb86c0c2afeb4e1fbe6618d44d6f54b847972347c7adf9f5d
+tests/unit/discretization/test_gradient_boundary_consistency.cpp: code SAME, includes SAME-SET, comment words SAME
+files with any difference: 0
+clang-format-18 --dry-run --Werror over CI scope: 0 violations
+build OK (18 s), compiled units 1, warnings 0
+libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a (must be 143a1dda...)
+STALE build/release/apps/cli/cfdapp
+STALE build/release/tests/integration/backward_facing_step/CFDBackwardFacingStepTests
+STALE build/release/tests/integration/case/CFDCaseIntegrationTests
+STALE build/release/tests/integration/cavity/CFDCavityValidationTests
+STALE build/release/tests/integration/compressible/CFDLowMachRegressionTests
+STALE build/release/tests/integration/io/CFDResultExportIntegrationTests
+STALE build/release/tests/integration/mms/CFDMMSValidationTests
+STALE build/release/tests/integration/multiphase/CFDMultiphaseAdvectionValidationTests
+STALE build/release/tests/integration/multiphase/CFDMultiphaseConservationValidationTests
+STALE build/release/tests/integration/multiphase/CFDMultiphaseSinglePhaseEquivalenceTests
+STALE build/release/tests/integration/multiphase/CFDMultiphaseUniformFieldTests
+STALE build/release/tests/integration/poiseuille/CFDPoiseuilleValidationTests
+STALE build/release/tests/integration/restart/CFDRestartIntegrationTests
+STALE build/release/tests/integration/species/CFDSpeciesAdvectionDiffusionValidationTests
+STALE build/release/tests/integration/species/CFDSpeciesConservationValidationTests
+STALE build/release/tests/integration/species/CFDSpeciesCouplingValidationTests
+STALE build/release/tests/integration/species/CFDSpeciesDiffusionValidationTests
+STALE build/release/tests/integration/thermal/CFDBoussinesqCouplingTests
+STALE build/release/tests/integration/thermal/CFDConjugateHeatTransferValidationTests
+STALE build/release/tests/integration/thermal/CFDHeatedCavityValidationTests
+STALE build/release/tests/integration/thermal/CFDNaturalConvectionValidationTests
+STALE build/release/tests/integration/turbulence_channel/CFDTurbulenceChannelValidationTests
+STALE build/release/tests/solver/compressible_simple/CFDCompressibleSimpleTests
+STALE build/release/tests/solver/piso/CFDPisoTests
+STALE build/release/tests/solver/simple/CFDSimpleTests
+STALE build/release/tests/unit/algebra/CFDAlgebraTests
+STALE build/release/tests/unit/app/CFDAppLayerTests
+STALE build/release/tests/unit/boundary/CFDBoundaryTests
+STALE build/release/tests/unit/compressible/CFDCompressibleTests
+STALE build/release/tests/unit/core/CFDCoreTests
+STALE build/release/tests/unit/fields/CFDFieldTests
+STALE build/release/tests/unit/io/CFDIoTests
+STALE build/release/tests/unit/mesh/CFDMeshTests
+STALE build/release/tests/unit/multiphase/CFDMultiphaseTests
+STALE build/release/tests/unit/physics/CFDPhysicsTests
+STALE build/release/tests/unit/solver/CFDSolverTests
+STALE build/release/tests/unit/species/CFDSpeciesTests
+STALE build/release/tests/unit/thermal/CFDThermalTests
+STALE build/release/tests/unit/turbulence/CFDTurbulenceTests
+STALE build/release/tests/unit/validation/CFDValidationUnitTests
+STALE build/release/tests/unit/viz/CFDVizTests
+stale executables: 41
+## new tests
+[       OK ] GradientBoundaryConsistency.ConstantFieldGradientIsZeroWithinTheFloatingPointEnvelope (9 ms)
+[       OK ] GradientBoundaryConsistency.LinearFieldIsReproducedOnOrthogonalAndDistortedMeshes (4 ms)
+[       OK ] GradientBoundaryConsistency.LinearFieldFixedPointIsExactOnPlanarFaced3DSkewedMesh (11 ms)
+[       OK ] GradientBoundaryConsistency.LinearFieldErrorOnWarpedFacesIsTheFaceQuadratureDefect (11 ms)
+[       OK ] GradientBoundaryConsistency.QuadraticFieldIsExactOnAlignedCartesianMeshes (2 ms)
+[       OK ] GradientBoundaryConsistency.TranslatedMeshGivesTheSameGradient (18 ms)
+[       OK ] GradientBoundaryConsistency.GradientErrorIsContinuousInTheBoundaryMisalignment (1 ms)
+[       OK ] GradientBoundaryConsistency.CellWithoutAnOppositeInteriorFaceFallsBackAndStaysExact (0 ms)
+[       OK ] GradientBoundaryConsistency.TwoBoundaryFacesClaimingOneOppositeFaceResolveDeterministically (0 ms)
+[  PASSED  ] 9 tests.
+## CFDDiscretizationTests (whole binary)
+[  PASSED  ] 178 tests.
+exit 0
+# end 2026-09-17T13:51:11Z
+## note on the STALE lines above (appended 2026-09-17T13:51:28Z)
+The check compares each executable with the newest file under src/include/tests/apps. The only file
+changed since the W10 clean-first build is the new test, compiled only into CFDDiscretizationTests
+(rebuilt, not listed). The listed executables do not depend on it. Build-system proof (ninja dry run):
+ninja: no work to do.
+CFDDiscretizationTests: 2026-09-17 23:51:10.352637300 +1000, test file: 2026-09-17 23:50:45.041600300 +1000
+Step 5 (full regression) uses clean-first builds, where the check is exact.

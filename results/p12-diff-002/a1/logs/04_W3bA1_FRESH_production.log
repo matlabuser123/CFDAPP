@@ -1,0 +1,62 @@
+# P12-DIFF-002 A1 diff2_oracle (libcfdcore.a sha256 0a2a1398cd48c629); 2026-09-16T06:58:41Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c
+# probe sha256 b832a1b05e4f254e
+
+# MODE production (the real production classification)
+# P12-DIFF-002 A1 -- W3b-A1 independent-oracle classification agreement
+# Oracle-T: analytic from (nx,ny,nz) + patch name, no floating point.
+# Oracle-G: connectivity walk by normal DEPTH (production selects by ALIGNMENT).
+# T/G column: disagreements / faces where both oracles applied.
+# gamma 0.37; fallback comparison is on raw bit patterns.
+
+## required 2D structured
+2D 1x1                                 faces     4 | oracle HO     0 FB     4 | prod HO     0 FB     4 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/4 | PASS
+2D 8x1                                 faces    18 | oracle HO     2 FB    16 | prod HO     2 FB    16 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/18 | PASS
+2D 1x8                                 faces    18 | oracle HO     2 FB    16 | prod HO     2 FB    16 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/18 | PASS
+2D 8x8                                 faces    32 | oracle HO    32 FB     0 | prod HO    32 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/32 | PASS
+
+## required 3D structured
+3D 1x1x1                               faces     6 | oracle HO     0 FB     6 | prod HO     0 FB     6 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/6 | PASS
+3D 8x1x1                               faces    34 | oracle HO     2 FB    32 | prod HO     2 FB    32 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/34 | PASS
+3D 1x8x1                               faces    34 | oracle HO     2 FB    32 | prod HO     2 FB    32 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/34 | PASS
+3D 1x1x8                               faces    34 | oracle HO     2 FB    32 | prod HO     2 FB    32 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/34 | PASS
+3D 8x8x1                               faces   160 | oracle HO    32 FB   128 | prod HO    32 FB   128 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/160 | PASS
+3D 8x1x8                               faces   160 | oracle HO    32 FB   128 | prod HO    32 FB   128 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/160 | PASS
+3D 1x8x8                               faces   160 | oracle HO    32 FB   128 | prod HO    32 FB   128 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/160 | PASS
+3D 8x8x8                               faces   384 | oracle HO   384 FB     0 | prod HO   384 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/384 | PASS
+
+## graded and distorted (same topology as the Cartesian block)
+graded 2x4 geometric r=2               faces    12 | oracle HO    12 FB     0 | prod HO    12 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/12 | PASS
+graded 16x16 geometric r=1.2           faces    64 | oracle HO    64 FB     0 | prod HO    64 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/64 | PASS
+distorted 16x16 shear 0.20             faces    64 | oracle HO    64 FB     0 | prod HO    64 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/64 | PASS
+distorted 16x16 shear 0.45             faces    64 | oracle HO    64 FB     0 | prod HO    64 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/64 | PASS
+distorted 8x1 shear 0.20               faces    18 | oracle HO     2 FB    16 | prod HO     2 FB    16 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/18 | PASS
+distorted 1x8 shear 0.20               faces    18 | oracle HO     2 FB    16 | prod HO     2 FB    16 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/18 | PASS
+
+## committed production cases (Oracle-G only -- multi-block/curved topology)
+cases/annular_sector_conduction_multiblock faces   204 | oracle HO   204 FB     0 | prod HO   204 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/backward_facing_step             (not buildable here -- skipped)
+cases/channel_flow                     (not buildable here -- skipped)
+cases/channel_transpiration_graded     faces   144 | oracle HO   144 FB     0 | prod HO   144 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/compressible_channel_coupled     faces   112 | oracle HO   112 FB     0 | prod HO   112 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/compressible_validation          faces    60 | oracle HO    60 FB     0 | prod HO    60 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/curved_channel_multiblock        faces   204 | oracle HO   204 FB     0 | prod HO   204 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/duct_3d                          faces  1664 | oracle HO  1664 FB     0 | prod HO  1664 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/heated_cavity                    faces    80 | oracle HO    80 FB     0 | prod HO    80 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/heated_species_diffusion         faces    48 | oracle HO    48 FB     0 | prod HO    48 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/lid_driven_cavity                faces    80 | oracle HO    80 FB     0 | prod HO    80 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/lid_driven_cavity_3d             faces  1536 | oracle HO  1536 FB     0 | prod HO  1536 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/lid_driven_cavity_3d_re1000      faces  6144 | oracle HO  6144 FB     0 | prod HO  6144 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/lid_driven_cavity_40x40          faces   160 | oracle HO   160 FB     0 | prod HO   160 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/lid_driven_cavity_80x80          faces   320 | oracle HO   320 FB     0 | prod HO   320 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/multiphase_validation            faces    40 | oracle HO    40 FB     0 | prod HO    40 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/obstacle_channel_multiblock      faces   248 | oracle HO   248 FB     0 | prod HO   248 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/poiseuille_distorted             faces   144 | oracle HO   144 FB     0 | prod HO   144 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/poiseuille_flow                  faces   144 | oracle HO   144 FB     0 | prod HO   144 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/species_diffusion                faces    48 | oracle HO    48 FB     0 | prod HO    48 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+cases/step_channel_multiblock          faces   256 | oracle HO   256 FB     0 | prod HO   256 FB     0 | class-mismatch    0 | fb-bit-mismatch    0 | ho-not-exercised    0 | T/G 0/0 | PASS
+
+TOTAL boundary faces 12920 | oracle HO 12366 FB 554 | prod HO 12366 FB 554 | class-mismatch 0 | fb-bit-mismatch 0 | ho-not-exercised 0 | oracle T/G disagree 0 of 1284
+BOTH CLASSES PRESENT: HIGHER_ORDER_REQUIRED 12366, FALLBACK_REQUIRED 554 -> yes
+W3b-A1 PASS
+exit 0

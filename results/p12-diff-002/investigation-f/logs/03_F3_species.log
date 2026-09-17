@@ -1,0 +1,20 @@
+# INV-002 invf_species (libcfdcore.a sha256 58be6b751328c9bb); 2026-09-16T13:21:32Z
+# git HEAD b66310ca871811c4c7671056beec291a451af55c  probe 27feabfe69edafeb
+# extra flags: 
+
+# INV-F3 species conservation. The failing case is 60x4 (the test's own mesh).
+# TEST       = the test's inline two-point boundary diffusive flux
+# CONSISTENT = the boundary flux production actually assembled (DIFF-002)
+# sum(A Y - b) = an independent route with no per-face flux reconstruction
+
+## the failing configuration, reproduced (run 3x to establish determinism)
+INV-F3  60x4   conv 1 it  63 finite 1 | source 0.1000000000 | netOut TEST 0.0998412664 (rel err 1.587336e-03  bound 1e-3 FAIL) | netOut CONSISTENT 0.0999999965 (rel err 3.479138e-08 PASS) | sum(A Y - b) -3.479e-09  max cell resid 9.813e-10
+INV-F3  60x4   conv 1 it  63 finite 1 | source 0.1000000000 | netOut TEST 0.0998412664 (rel err 1.587336e-03  bound 1e-3 FAIL) | netOut CONSISTENT 0.0999999965 (rel err 3.479138e-08 PASS) | sum(A Y - b) -3.479e-09  max cell resid 9.813e-10
+INV-F3  60x4   conv 1 it  63 finite 1 | source 0.1000000000 | netOut TEST 0.0998412664 (rel err 1.587336e-03  bound 1e-3 FAIL) | netOut CONSISTENT 0.0999999965 (rel err 3.479138e-08 PASS) | sum(A Y - b) -3.479e-09  max cell resid 9.813e-10
+
+## systematic refinement: does the imbalance converge, plateau, or worsen?
+INV-F3  30x2   conv 1 it  37 finite 1 | source 0.1000000000 | netOut TEST 0.0997435880 (rel err 2.564120e-03  bound 1e-3 FAIL) | netOut CONSISTENT 0.0999999982 (rel err 1.764688e-08 PASS) | sum(A Y - b) -1.765e-09  max cell resid 8.223e-10
+INV-F3  60x4   conv 1 it  63 finite 1 | source 0.1000000000 | netOut TEST 0.0998412664 (rel err 1.587336e-03  bound 1e-3 FAIL) | netOut CONSISTENT 0.0999999965 (rel err 3.479138e-08 PASS) | sum(A Y - b) -3.479e-09  max cell resid 9.813e-10
+INV-F3 120x8   conv 1 it 114 finite 1 | source 0.1000000000 | netOut TEST 0.0999099023 (rel err 9.009774e-04  bound 1e-3 PASS) | netOut CONSISTENT 0.0999999923 (rel err 7.652565e-08 PASS) | sum(A Y - b) -7.653e-09  max cell resid 1.273e-09
+INV-F3 240x16  conv 1 it 216 finite 1 | source 0.1000000000 | netOut TEST 0.0999516775 (rel err 4.832249e-04  bound 1e-3 PASS) | netOut CONSISTENT 0.0999999867 (rel err 1.330878e-07 PASS) | sum(A Y - b) -1.331e-08  max cell resid 1.235e-09
+exit 0

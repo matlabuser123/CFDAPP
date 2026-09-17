@@ -1,0 +1,149 @@
+# UC-001 poiseuille tests; filter PoiseuilleValidation.Profile:PoiseuilleValidation.MassFlow:PoiseuilleValidation.PressureDrop:PoiseuilleValidation.ProductionGridConvergence
+# libcfdcore.a sha256 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+# 2026-09-16T17:43:34Z
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PoiseuilleValidation.Profile:PoiseuilleValidation.MassFlow:PoiseuilleValidation.PressureDrop:PoiseuilleValidation.ProductionGridConvergence
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from PoiseuilleValidation
+[ RUN      ] PoiseuilleValidation.Profile
+u_profile vs physics: L1 7.8088e-03 L2 8.4894e-03 Linf 1.1443e-02; centerline 1.46511967 (discrete exact 1.46511628)
+[       OK ] PoiseuilleValidation.Profile (3064 ms)
+[ RUN      ] PoiseuilleValidation.MassFlow
+[       OK ] PoiseuilleValidation.MassFlow (3016 ms)
+[ RUN      ] PoiseuilleValidation.PressureDrop
+dp/dx -1.189705 (exact -1.200000, discrete exact -1.190698), drop -3.271689 (exact -3.300000), odd-even amplitude 4.146e-02, legacy two-station -1.177102
+[       OK ] PoiseuilleValidation.PressureDrop (2902 ms)
+[ RUN      ] PoiseuilleValidation.ProductionGridConvergence
+
+### Validation: poiseuille
+
+Planar Poiseuille channel L = 8H, Re = 10: grids 64x8, 96x12, 144x18, 216x27
+
+Reference: Continuous planar Poiseuille solution u = 6U(y/H)(1-y/H), dp/dx = -12 mu U/H^2 (analytical); and the exact fully developed solution of the discretisation, dp/dx scaled by 2ny^2/(2ny^2+1) with the profile equal to the continuum parabola at the cell centres (derived from the DIFF-002 wall stencil, PoiseuilleValidationUtils.hpp)
+
+| run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+|---|---|---|---|---|---|---|---|---|---|
+| poiseuille_re10/64x8/upwind | 10 | 64x8 | upwind | Converged | 1524 | 22529 / 104638 | 1.19e-09 | 3.0 | yes |
+| poiseuille_re10/96x12/upwind | 10 | 96x12 | upwind | Converged | 1135 | 17050 / 106657 | 7.95e-10 | 5.4 | yes |
+| poiseuille_re10/144x18/upwind | 10 | 144x18 | upwind | Converged | 856 | 14183 / 111574 | 2.12e-09 | 10.9 | yes |
+| poiseuille_re10/216x27/upwind | 10 | 216x27 | upwind | Converged | 700 | 13408 / 128742 | 5.87e-09 | 26.1 | yes |
+
+**u_profile**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| poiseuille_re10/64x8/upwind | 7.8088e-03 | 8.4894e-03 | 1.1443e-02 |
+| poiseuille_re10/96x12/upwind | 3.4723e-03 | 3.7906e-03 | 5.1543e-03 |
+| poiseuille_re10/144x18/upwind | 1.5432e-03 | 1.6879e-03 | 2.3041e-03 |
+| poiseuille_re10/216x27/upwind | 6.8587e-04 | 7.5081e-04 | 1.0281e-03 |
+
+**u_profile_vs_discrete_exact**
+
+| run | L1 | L2 | Linf |
+|---|---|---|---|
+| poiseuille_re10/64x8/upwind | 3.7031e-06 | 3.7112e-06 | 4.0685e-06 |
+| poiseuille_re10/96x12/upwind | 3.1596e-08 | 3.1707e-08 | 3.5943e-08 |
+| poiseuille_re10/144x18/upwind | 4.5400e-09 | 4.5789e-09 | 5.4795e-09 |
+| poiseuille_re10/216x27/upwind | 5.3028e-09 | 5.8289e-09 | 8.2250e-09 |
+
+| quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
+|---|---|---|---|---|---|
+| u_profile | l1 | 2 | 2.249, 2.250 | 1.998 | asymptotic |
+| u_profile | l2 | 2 | 2.240, 2.246 | 1.983 | asymptotic |
+| u_profile | linf | 2 | 2.220, 2.237 | 1.952 | asymptotic |
+
+### Grid convergence: poiseuille_production_centerline
+
+Poiseuille Re = 10, grids 64x8 / 96x12 / 144x18 (ny all even: centreline sampling parity)
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 64x8 | 64 x 8 | 512 | 0.125 | 3.0 | Converged (1524 it) | yes |
+| 96x12 | 96 x 12 | 1152 | 0.0833333 | 5.4 | Converged (1135 it) | yes |
+| 144x18 | 144 x 18 | 2592 | 0.0555556 | 10.9 | Converged (856 it) | yes |
+
+**centerline_velocity** -- u(0.75 L, H/2); exact 1.5 U
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | 1.4651197 | 1.5 (analytical) | -0.03488 | 0.02325 |
+| medium | 1.484429 | 1.5 (analytical) | -0.01557 | 0.01038 |
+| fine | 1.4930663 | 1.5 (analytical) | -0.006934 | 0.004622 |
+| extrapolated | 1.5000565 | | 5.655e-05 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 1.9842 | 2 | 1.5000565 | 0.008738 | 0.005852 | 0.01316 | 0.9936 | asymptotic | yes |
+
+- monotonic convergence, observed order 1.98417 (formal 2); asymptotic ratio 0.9936 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.0058523 <= threshold 0.01
+
+### Grid convergence: poiseuille_production_gradient
+
+Poiseuille Re = 10, grids 96x12 / 144x18 / 216x27 (pressure-extraction bias <= 4.6 % of the grid-to-grid difference)
+
+| grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+|---|---|---|---|---|---|---|
+| 96x12 | 96 x 12 | 1152 | 0.0833333 | 5.4 | Converged (1135 it) | yes |
+| 144x18 | 144 x 18 | 2592 | 0.0555556 | 10.9 | Converged (856 it) | yes |
+| 216x27 | 216 x 27 | 5832 | 0.037037 | 26.1 | Converged (700 it) | yes |
+
+**pressure_gradient** -- dp/dx, pair-averaged between 0.40 L and 0.75 L; exact -12 mu U / H^2
+
+| grid | value | reference | error | relative error |
+|---|---|---|---|---|
+| coarse | -1.1957414 | -1.2 (analytical) | 0.004259 | 0.003549 |
+| medium | -1.1981508 | -1.2 (analytical) | 0.001849 | 0.001541 |
+| fine | -1.1991777 | -1.2 (analytical) | 0.0008223 | 0.0006853 |
+| extrapolated | -1.1999405 | | 5.951e-05 | |
+
+| r21 | r32 | p | p formal | phi_ext | U21 (abs) | GCI21 | GCI32 | asymptotic ratio | status | grid independent |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1.5 | 1.5 | 2.1033 | 2 | -1.1999405 | 0.0009535 | 0.0007951 | 0.001867 | 1.0428 | asymptotic | yes |
+
+- monotonic convergence, observed order 2.10328 (formal 2); asymptotic ratio 1.04277 within 1 +/- 0.1
+- grid independence: asymptotic and GCI21 0.000795132 <= threshold 0.01
+
+- [x] poiseuille_re10/64x8/upwind: solve_accepted: Converged
+- [x] poiseuille_re10/64x8/upwind: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] poiseuille_re10/64x8/upwind: mass_flow: max |Q - U H| over inlet, outlet and sections 1.19e-09 (bound 1e-6)
+- [x] poiseuille_re10/64x8/upwind: profile_matches_discrete_exact: max |u - u_discrete| 4.07e-06 (bound 1e-4)
+- [x] poiseuille_re10/64x8/upwind: pressure_gradient_matches_discrete_exact: |dp/dx - discrete exact| / |discrete exact| 0.000834 (bound 1e-3)
+- [x] poiseuille_re10/96x12/upwind: solve_accepted: Converged
+- [x] poiseuille_re10/96x12/upwind: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] poiseuille_re10/96x12/upwind: mass_flow: max |Q - U H| over inlet, outlet and sections 7.95e-10 (bound 1e-6)
+- [x] poiseuille_re10/96x12/upwind: profile_matches_discrete_exact: max |u - u_discrete| 3.59e-08 (bound 1e-4)
+- [x] poiseuille_re10/96x12/upwind: pressure_gradient_matches_discrete_exact: |dp/dx - discrete exact| / |discrete exact| 8.89e-05 (bound 1e-3)
+- [x] poiseuille_re10/144x18/upwind: solve_accepted: Converged
+- [x] poiseuille_re10/144x18/upwind: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] poiseuille_re10/144x18/upwind: mass_flow: max |Q - U H| over inlet, outlet and sections 2.12e-09 (bound 1e-6)
+- [x] poiseuille_re10/144x18/upwind: profile_matches_discrete_exact: max |u - u_discrete| 5.48e-09 (bound 1e-4)
+- [x] poiseuille_re10/144x18/upwind: pressure_gradient_matches_discrete_exact: |dp/dx - discrete exact| / |discrete exact| 1.78e-07 (bound 1e-3)
+- [x] poiseuille_re10/216x27/upwind: solve_accepted: Converged
+- [x] poiseuille_re10/216x27/upwind: wall_normal_flux: max |wall mass flux| 0 (bound 1e-6)
+- [x] poiseuille_re10/216x27/upwind: mass_flow: max |Q - U H| over inlet, outlet and sections 5.87e-09 (bound 1e-6)
+- [x] poiseuille_re10/216x27/upwind: profile_matches_discrete_exact: max |u - u_discrete| 8.23e-09 (bound 1e-4)
+- [x] poiseuille_re10/216x27/upwind: pressure_gradient_matches_discrete_exact: |dp/dx - discrete exact| / |discrete exact| 1.44e-07 (bound 1e-3)
+- [x] centerline_velocity_asymptotic: monotonic convergence, observed order 1.98417 (formal 2); asymptotic ratio 0.9936 within 1 +/- 0.1
+- [x] centerline_velocity_gci_bounds_true_error: fine relative error 0.004622 <= GCI21 0.005852
+- [x] pressure_gradient_asymptotic: monotonic convergence, observed order 2.10328 (formal 2); asymptotic ratio 1.04277 within 1 +/- 0.1
+- [x] pressure_gradient_gci_bounds_true_error: fine relative error 0.000685 <= GCI21 0.000795
+- [x] u_profile_l2_asymptotic: monotonic convergence, observed order 1.98315 (formal 2); asymptotic ratio 0.993193 within 1 +/- 0.1
+
+Limitations:
+
+- Collocated SIMPLE without Rhie-Chow interpolation: an odd-even pressure mode grows on the residual plateau (amplitude reported per run as pressure_odd_even_amplitude). The pair-averaged estimator is immune to it; the legacy two-column estimate is not (reported as pressure_gradient_two_station_legacy).
+- Outer u/p gates 2e-5 / 5e-4 (the case's documented residual plateau); continuity and mass flow are converged to 1e-6.
+- P12-DIFF-002-UC-001: the pair-averaged dp/dx carries a residual bias against the derived discrete-exact value of 9.93e-04 (64x8), 1.06e-04 (96x12), 2.13e-07 (144x18), tracking the odd-even amplitude. On 64x8 that is 8.3e-04 relative, so the discrete-exact gradient checks there pass with only 1.2x margin on their (unchanged) 1e-3 bound, and the dp/dx asymptotic-order study starts at 96x12 instead.
+- P12-DIFF-002-UC-001: the centreline sampling error constant is 3x larger for even ny than for odd, so its grid triplet must be parity-consistent (64x8 / 96x12 / 144x18 here); 216x27 is used only for the pressure gradient.
+- Runtimes are wall-clock and not deterministic.
+
+Overall: PASSED
+[       OK ] PoiseuilleValidation.ProductionGridConvergence (45431 ms)
+[----------] 4 tests from PoiseuilleValidation (54416 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (54419 ms total)
+[  PASSED  ] 4 tests.
+exit 0
