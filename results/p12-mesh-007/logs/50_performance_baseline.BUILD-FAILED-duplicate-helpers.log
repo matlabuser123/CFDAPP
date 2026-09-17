@@ -1,0 +1,35 @@
+# P12-MESH-007 performance baseline 2026-09-17T17:55:06Z; git HEAD b66310ca871811c4c7671056beec291a451af55c
+## environment
+nproc 32; Model name: Intel(R) Core(TM) i9-14900HX
+CPU(s): 32
+Thread(s) per core: 2
+Core(s) per socket: 16
+Socket(s): 1
+               total        used        free      shared  buff/cache   available
+Mem:            31Gi       678Mi        29Gi       4.0Mi       585Mi        30Gi
+6.6.87.2-microsoft-standard-WSL2
+gcc: c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+clang: Ubuntu clang version 14.0.0-1ubuntu1.1
+cmake: cmake version 3.22.1; ninja: 1.10.1
+nvcc: Cuda compilation tools, release 11.5, V11.5.119
+nvidia-smi (WSL): NVIDIA RTX 5000 Ada Generation Laptop GPU, 580.97, 63, 34.06 W, 0 %
+nvidia-smi driver-supported CUDA: CUDA Version: 13.0
+  (GPU telemetry is recorded for context only; this baseline is CPU-only. Windows nvidia-smi has shown implausible power readings before, so power values are not relied on.)
+build: CFDAPP_ENABLE_CUDA:BOOL=OFF CFDAPP_ENABLE_OPENMP:BOOL=OFF CFDAPP_ENABLE_SANITIZERS:BOOL=OFF CMAKE_BUILD_TYPE:STRING=Release CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG 
+libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+threads: 1 (OpenMP off; the program is pinned with taskset -c 3)
+thermal: WSL exposes no CPU temperature sensor here; throttling cannot be excluded directly. The per-run CPU MHz snapshots and the run-to-run spread below are the available evidence.
+## build
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p12-mesh-007/tools/perf_baseline.cpp:36:8: error: redefinition of ‘double {anonymous}::lowest(const std::vector<double>&)’
+   36 | double lowest(const std::vector<double>& v) { return *std::min_element(v.begin(), v.end()); }
+      |        ^~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p12-mesh-007/tools/perf_baseline.cpp:34:8: note: ‘double {anonymous}::lowest(const std::vector<double>&)’ previously defined here
+   34 | double lowest(const std::vector<double>& v) { return *std::min_element(v.begin(), v.end()); }
+      |        ^~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p12-mesh-007/tools/perf_baseline.cpp:37:8: error: redefinition of ‘double {anonymous}::highest(const std::vector<double>&)’
+   37 | double highest(const std::vector<double>& v) { return *std::max_element(v.begin(), v.end()); }
+      |        ^~~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p12-mesh-007/tools/perf_baseline.cpp:35:8: note: ‘double {anonymous}::highest(const std::vector<double>&)’ previously defined here
+   35 | double highest(const std::vector<double>& v) { return *std::max_element(v.begin(), v.end()); }
+      |        ^~~~~~~
+build failed

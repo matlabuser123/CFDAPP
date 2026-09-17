@@ -1,0 +1,338 @@
+# G9.2 CLI (A3); 2026-09-17T17:22:52Z; git HEAD b66310ca871811c4c7671056beec291a451af55c; g9_compat.sh 5e138b6e22951070
+## control C1: NEW against itself (instrument determinism, all keys of metadata.json)
+# G9.2 c1_fresh 2026-09-17T17:22:53Z; reference 5445759cf486f19a (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/apps/cli/cfdapp); candidate 5445759cf486f19a (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/apps/cli/cfdapp)
+=== committed cases (19)
+ref vs new  annular_sector_conduction_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  channel_transpiration_graded: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  compressible_channel_coupled: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  compressible_validation: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  curved_channel_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  duct_3d: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  heated_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  heated_species_diffusion: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_3d: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_3d_re1000: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_40x40: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_80x80: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  multiphase_validation: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  obstacle_channel_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  poiseuille_distorted: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  poiseuille_flow: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  species_diffusion: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  step_channel_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+=== CLI data fixtures (16)
+ref vs new  data_bad_boundary: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_bad_physics: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_bad_solver: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_does_not_converge: IDENTICAL | files compared 3 | exit 3/exit 3
+ref vs new  data_invalid_3d_box_without_nz: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_invalid_3d_thermal: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_invalid_3d_two_component_velocity: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_malformed_json: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_disconnected_cli: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_invalid_cli: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_warning_cli: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_missing_mesh: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_valid_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_valid_cavity_cli_smoke: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_valid_cube3d_cli_smoke: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_valid_duct3d_cli_smoke: IDENTICAL | files compared 3 | exit 0/exit 0
+=== totals: 35 IDENTICAL of 35; INVALID 0; DIFFERENT (valid runs) 0
+## non-vacuity N3: nograd's cfdapp against NEW (must flag poiseuille_distorted)
+# G9.2 n3_fresh 2026-09-17T17:30:47Z; reference 8632af3c6e2ead8a (/root/g2/nograd/build/apps/cli/cfdapp); candidate 5445759cf486f19a (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/apps/cli/cfdapp)
+=== committed cases (19)
+ref vs new  annular_sector_conduction_multiblock: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      24c24
+      < Thermal iterations: 3
+      ---
+      > Thermal iterations: 4
+      metadata /thermal/final_residual: 8.268856084748339e-13 -> 9.79057513391359e-13
+      metadata /thermal/iterations: 3 -> 4
+ref vs new  channel_transpiration_graded: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      19,20c19,20
+      < Continuity: 2.71545e-12
+      < Mass imbalance: 1.22941e-11
+      ---
+      > Continuity: 2.73808e-12
+      > Mass imbalance: 1.22399e-11
+      metadata /conservation/global_mass_imbalance: 1.2294110174337902e-11 -> 1.2239931290736195e-11
+      metadata /residuals/continuity: 2.7154458534005227e-12 -> 2.7380803962031107e-12
+      metadata /residuals/p: 0.00013559507052428259 -> 0.00013559507041742408
+      metadata /residuals/u: 1.9984860200471048e-05 -> 1.998485872601647e-05
+      metadata /residuals/v: 1.1297501257998085e-05 -> 1.1297503433341834e-05
+      metadata /robustness/normalized_residuals/continuity: 2.715445853400523e-06 -> 2.738080396203111e-06
+ref vs new  compressible_channel_coupled: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,17c16,17
+      < U residual: 1.9993e-05
+      < V residual: 4.63002e-07
+      ---
+      > U residual: 1.99989e-05
+      > V residual: 4.25477e-07
+      metadata /compressible/global_continuity_imbalance: 1.7355426235043936e-08 -> 6.693860993278733e-09
+      metadata /compressible/mach_max: 0.14482593156964704 -> 0.14482594174012747
+      metadata /conservation/global_mass_imbalance: 1.4277899695880336e-10 -> 6.225507609425307e-10
+      metadata /residuals/continuity: 3.618806096784757e-10 -> 4.581029827360928e-10
+      metadata /residuals/p: 1.2888171452557885e-05 -> 1.2888169904120557e-05
+      metadata /residuals/u: 1.999298991232098e-05 -> 1.9998889162636458e-05
+ref vs new  compressible_validation: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,17c16,17
+      < U residual: 1.99931e-05
+      < V residual: 4.03848e-07
+      ---
+      > U residual: 1.9993e-05
+      > V residual: 4.03911e-07
+      metadata /compressible/global_continuity_imbalance: 4.5016297239228176e-05 -> 4.500763279853548e-05
+      metadata /compressible/mach_max: 0.004153892601134253 -> 0.004153892628780089
+      metadata /conservation/global_mass_imbalance: 6.547069297813124e-08 -> 5.811002140587718e-08
+      metadata /residuals/continuity: 7.069012474523319e-10 -> 6.133934089003003e-10
+      metadata /residuals/p: 0.00040197015250974304 -> 0.00040197014432452426
+      metadata /residuals/u: 1.9993125417711467e-05 -> 1.999304095572849e-05
+ref vs new  curved_channel_multiblock: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      14c14
+      < Iterations: 69
+      ---
+      > Iterations: 74
+      16,20c16,20
+      < U residual: 1.78192e-05
+      metadata /conservation/global_mass_imbalance: 1.2213847988551407e-11 -> 2.6134101827057776e-11
+      metadata /residuals/continuity: 2.613498785253655e-12 -> 2.8743813584484816e-12
+      metadata /residuals/p: 1.3882368968427587e-06 -> 1.1758972509873099e-06
+      metadata /residuals/u: 1.7819193429311576e-05 -> 1.6093589964786093e-05
+      metadata /residuals/v: 1.955533637118073e-05 -> 1.8625374537824415e-05
+      metadata /robustness/normalized_residuals/continuity: 2.6134987852536552e-06 -> 2.874381358448482e-06
+ref vs new  duct_3d: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,21c16,21
+      < U residual: 8.82321e-10
+      < V residual: 1.93246e-10
+      < W residual: 1.93246e-10
+      < P residual: 8.4044e-11
+      < Continuity: 1.79887e-15
+      metadata /conservation/flux_scale: 1.0000000000027096 -> 1.0000000000013334
+      metadata /conservation/global_mass_imbalance: 2.7093470696126776e-12 -> 1.333746047632589e-12
+      metadata /conservation/max_cell_imbalance: 4.118972144698946e-15 -> 2.998252687791414e-15
+      metadata /conservation/net_boundary_flux: 2.7093470696126776e-12 -> 1.333746047632589e-12
+      metadata /conservation/normalized_continuity: 1.7988712909578153e-15 -> 1.3199691214189598e-15
+      metadata /conservation/outflow: 1.0000000000027096 -> 1.0000000000013334
+ref vs new  heated_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  heated_species_diffusion: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      17c17
+      < V residual: 3.23041e-08
+      ---
+      > V residual: 3.23042e-08
+      19c19
+      < Continuity: 9.16881e-11
+      metadata /residuals/continuity: 9.168812409933441e-11 -> 8.393966435491173e-11
+      metadata /residuals/p: 9.988576770676046e-07 -> 9.988576233814939e-07
+      metadata /residuals/u: 3.293095880781474e-08 -> 3.2931045560032016e-08
+      metadata /residuals/v: 3.230405712600838e-08 -> 3.2304163498546545e-08
+      metadata /robustness/normalized_residuals/continuity: 9.168812409933441e-05 -> 8.393966435491172e-05
+      metadata /robustness/normalized_residuals/p: 3.841333979541398e-05 -> 3.84133377307927e-05
+ref vs new  lid_driven_cavity_3d: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,18c16,18
+      < U residual: 9.48784e-07
+      < V residual: 8.65105e-07
+      < W residual: 2.69594e-07
+      ---
+      > U residual: 9.48778e-07
+      metadata /conservation/flux_scale: 0.00026267171430817963 -> 0.00026267171409336795
+      metadata /conservation/max_cell_imbalance: 4.626390342054499e-10 -> 9.825987986917716e-10
+      metadata /conservation/normalized_continuity: 2.7546064642095825e-08 -> 5.846476969183423e-08
+      metadata /conservation/rms_cell_imbalance: 7.235572021983243e-12 -> 1.5357041269028084e-11
+      metadata /residuals/continuity: 7.235572021983243e-12 -> 1.5357041269028084e-11
+      metadata /residuals/p: 2.3675777639531688e-07 -> 2.3675779939312397e-07
+ref vs new  lid_driven_cavity_3d_re1000: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,20c16,20
+      < U residual: 9.89475e-08
+      < V residual: 9.52989e-08
+      < W residual: 6.34689e-08
+      < P residual: 7.36723e-08
+      < Continuity: 3.34035e-12
+      metadata /conservation/flux_scale: 6.280662213101239e-05 -> 6.280662210516912e-05
+      metadata /conservation/max_cell_imbalance: 6.046229588265027e-10 -> 6.004671569189072e-10
+      metadata /conservation/normalized_continuity: 5.3184659821055357e-08 -> 5.281887454804887e-08
+      metadata /conservation/rms_cell_imbalance: 3.340348832547461e-12 -> 3.3173750937596406e-12
+      metadata /residuals/continuity: 3.340348832547461e-12 -> 3.3173750937596406e-12
+      metadata /residuals/p: 7.367226698992777e-08 -> 7.367304609409261e-08
+ref vs new  lid_driven_cavity_40x40: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,19c16,19
+      < U residual: 2.80269e-08
+      < V residual: 1.72857e-08
+      < P residual: 9.99466e-07
+      < Continuity: 8.93847e-09
+      ---
+      metadata /residuals/continuity: 8.938466199459131e-09 -> 9.224168890336214e-09
+      metadata /residuals/p: 9.994664470872512e-07 -> 9.994674395618294e-07
+      metadata /residuals/u: 2.802685148540312e-08 -> 2.8020685512937502e-08
+      metadata /residuals/v: 1.7285714696317885e-08 -> 1.7275039983418533e-08
+      metadata /robustness/normalized_residuals/continuity: 0.008938466199459132 -> 0.009224168890336214
+      metadata /robustness/normalized_residuals/p: 7.687350275888942e-05 -> 7.687357909461579e-05
+ref vs new  lid_driven_cavity_80x80: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,19c16,19
+      < U residual: 2.64096e-08
+      < V residual: 8.4703e-09
+      < P residual: 9.99931e-07
+      < Continuity: 3.09743e-08
+      ---
+      metadata /residuals/continuity: 3.097428967292441e-08 -> 2.9068247542371186e-08
+      metadata /residuals/p: 9.999309780172292e-07 -> 9.999123643053665e-07
+      metadata /residuals/u: 2.6409623175066634e-08 -> 2.6408899297533047e-08
+      metadata /residuals/v: 8.470295316433235e-09 -> 8.47222748896156e-09
+      metadata /robustness/normalized_residuals/continuity: 0.030974289672924413 -> 0.029068247542371188
+      metadata /robustness/normalized_residuals/p: 0.0001538184639231466 -> 0.00015381560059294725
+ref vs new  multiphase_validation: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  obstacle_channel_multiblock: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      19,20c19,20
+      < Continuity: 2.0249e-12
+      < Mass imbalance: 1.23048e-12
+      ---
+      > Continuity: 2.0255e-12
+      > Mass imbalance: 1.27437e-12
+      metadata /conservation/global_mass_imbalance: 1.2304809948737727e-12 -> 1.2743729682629379e-12
+      metadata /residuals/continuity: 2.0248951663031778e-12 -> 2.025498073598e-12
+      metadata /residuals/p: 0.0003248347132816165 -> 0.00032483471328485054
+      metadata /residuals/u: 1.999379713217177e-05 -> 1.999379713700045e-05
+      metadata /residuals/v: 1.031670065121756e-05 -> 1.0316700662420113e-05
+      metadata /robustness/normalized_residuals/continuity: 2.024895166303178e-06 -> 2.0254980735979998e-06
+ref vs new  poiseuille_distorted: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      15c15
+      < Iterations: 36
+      ---
+      > Iterations: 39
+      17,21c17,21
+      < U residual: 1.70839e-05
+      metadata /conservation/global_mass_imbalance: 1.1571507640972811e-12 -> 3.968174400181823e-11
+      metadata /residuals/continuity: 3.315571561568968e-12 -> 3.750618280852075e-12
+      metadata /residuals/p: 2.8383764085194927e-06 -> 2.588185783991604e-06
+      metadata /residuals/u: 1.7083933088010594e-05 -> 1.6689650171004473e-05
+      metadata /residuals/v: 6.027833388062301e-06 -> 1.2252213138599967e-05
+      metadata /robustness/normalized_residuals/continuity: 3.3155715615689683e-06 -> 3.750618280852075e-06
+ref vs new  poiseuille_flow: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,17c16,17
+      < U residual: 1.99984e-05
+      < V residual: 3.78165e-07
+      ---
+      > U residual: 1.99985e-05
+      > V residual: 3.78237e-07
+      metadata /conservation/global_mass_imbalance: 1.47600979688578e-07 -> 1.5123964376695387e-07
+      metadata /residuals/continuity: 4.3051790681017636e-10 -> 4.3345530504786444e-10
+      metadata /residuals/p: 0.0002223228192888917 -> 0.00022232282059881584
+      metadata /residuals/u: 1.9998405540959047e-05 -> 1.9998456313303255e-05
+      metadata /residuals/v: 3.7816453417128904e-07 -> 3.782368948151736e-07
+      metadata /robustness/normalized_residuals/continuity: 0.00043051790681017637 -> 0.0004334553050478645
+ref vs new  species_diffusion: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  step_channel_multiblock: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      19,20c19,20
+      < Continuity: 2.32127e-12
+      < Mass imbalance: 2.43091e-11
+      ---
+      > Continuity: 2.39055e-12
+      > Mass imbalance: 2.44509e-11
+      metadata /conservation/global_mass_imbalance: 2.430905476913381e-11 -> 2.4450913516105288e-11
+      metadata /residuals/continuity: 2.3212719928869792e-12 -> 2.390547474327738e-12
+      metadata /residuals/p: 0.0002300519519035641 -> 0.0002300519521421503
+      metadata /residuals/u: 1.9973341710722198e-05 -> 1.997334192223247e-05
+      metadata /residuals/v: 8.121779636873629e-06 -> 8.121779680219752e-06
+      metadata /robustness/normalized_residuals/continuity: 2.321271992886979e-06 -> 2.390547474327738e-06
+=== CLI data fixtures (16)
+ref vs new  data_bad_boundary: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_bad_physics: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_bad_solver: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_does_not_converge: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) | files compared 3 | exit 3/exit 3
+ref vs new  data_invalid_3d_box_without_nz: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_invalid_3d_thermal: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_invalid_3d_two_component_velocity: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_malformed_json: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_disconnected_cli: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_invalid_cli: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_warning_cli: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) | files compared 3 | exit 0/exit 0
+      metadata /residuals/continuity: 2.4740938383051042e-11 -> 2.474093733847184e-11
+      metadata /residuals/p: 9.89376912288136e-07 -> 9.8937690699891e-07
+      metadata /residuals/u: 3.3244515317669223e-08 -> 3.3244515140619584e-08
+      metadata /residuals/v: 1.1388171923894747e-08 -> 1.1388171854231519e-08
+      metadata /robustness/normalized_residuals/continuity: 2.4740938383051043e-05 -> 2.474093733847184e-05
+      metadata /robustness/normalized_residuals/p: 9.090613085787574e-06 -> 9.090613037189003e-06
+ref vs new  data_missing_mesh: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_valid_cavity: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) | files compared 3 | exit 0/exit 0
+      metadata /residuals/continuity: 5.1091410373262655e-11 -> 5.1091411256615384e-11
+      metadata /residuals/p: 9.919147280289285e-07 -> 9.919147280794318e-07
+      metadata /residuals/u: 3.030968238240713e-08 -> 3.03096823853054e-08
+      metadata /residuals/v: 3.114859661403167e-08 -> 3.114859661747256e-08
+      metadata /robustness/normalized_residuals/continuity: 5.109141037326266e-05 -> 5.109141125661539e-05
+      metadata /robustness/normalized_residuals/p: 7.741358187520105e-06 -> 7.741358187914256e-06
+ref vs new  data_valid_cavity_cli_smoke: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) | files compared 3 | exit 0/exit 0
+      metadata /residuals/continuity: 5.1091410373262655e-11 -> 5.1091411256615384e-11
+      metadata /residuals/p: 9.919147280289285e-07 -> 9.919147280794318e-07
+      metadata /residuals/u: 3.030968238240713e-08 -> 3.03096823853054e-08
+      metadata /residuals/v: 3.114859661403167e-08 -> 3.114859661747256e-08
+      metadata /robustness/normalized_residuals/continuity: 5.109141037326266e-05 -> 5.109141125661539e-05
+      metadata /robustness/normalized_residuals/p: 7.741358187520105e-06 -> 7.741358187914256e-06
+ref vs new  data_valid_cube3d_cli_smoke: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      16,20c16,20
+      < U residual: 1.82654e-07
+      < V residual: 2.0604e-07
+      < W residual: 8.12173e-08
+      < P residual: 7.4728e-07
+      < Continuity: 4.27869e-11
+      metadata /conservation/flux_scale: 0.001633194769392124 -> 0.0016331947707608893
+      metadata /conservation/max_cell_imbalance: 6.272825135570422e-10 -> 5.705600758293319e-10
+      metadata /conservation/normalized_continuity: 2.6198313338098433e-08 -> 2.3958412487670727e-08
+      metadata /conservation/rms_cell_imbalance: 4.2786948310678276e-11 -> 3.912875399059622e-11
+      metadata /residuals/continuity: 4.2786948310678276e-11 -> 3.912875399059622e-11
+      metadata /residuals/p: 7.472797723537156e-07 -> 7.472928263439568e-07
+ref vs new  data_valid_duct3d_cli_smoke: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+      20,21c20,21
+      < Continuity: 2.86241e-13
+      < Mass imbalance: 4.41804e-11
+      ---
+      > Continuity: 2.86252e-13
+      > Mass imbalance: 4.41815e-11
+      metadata /conservation/flux_scale: 1.0000000000441802 -> 1.0000000000441815
+      metadata /conservation/global_mass_imbalance: 4.4180367697599365e-11 -> 4.418153343177522e-11
+      metadata /conservation/max_cell_imbalance: 5.336937489164306e-13 -> 5.3374145381202e-13
+      metadata /conservation/net_boundary_flux: 4.4180367697599365e-11 -> 4.418153343177522e-11
+      metadata /conservation/normalized_continuity: 2.8624066203883093e-13 -> 2.862519349146951e-13
+      metadata /conservation/outflow: 1.0000000000441802 -> 1.0000000000441815
+=== totals: 14 IDENTICAL of 35; INVALID 0; DIFFERENT (valid runs) 21
+## G9.2: nom7 (reference) against NEW (candidate)
+# G9.2 g92_fresh 2026-09-17T17:38:06Z; reference 50d890a7c4c106a2 (/root/m7g9/nom7/build/apps/cli/cfdapp); candidate 5445759cf486f19a (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/apps/cli/cfdapp)
+=== committed cases (19)
+ref vs new  annular_sector_conduction_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  channel_transpiration_graded: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  compressible_channel_coupled: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  compressible_validation: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  curved_channel_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  duct_3d: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  heated_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  heated_species_diffusion: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_3d: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_3d_re1000: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_40x40: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  lid_driven_cavity_80x80: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  multiphase_validation: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  obstacle_channel_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  poiseuille_distorted: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  poiseuille_flow: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  species_diffusion: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  step_channel_multiblock: IDENTICAL | files compared 3 | exit 0/exit 0
+=== CLI data fixtures (16)
+ref vs new  data_bad_boundary: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_bad_physics: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_bad_solver: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_does_not_converge: IDENTICAL | files compared 3 | exit 3/exit 3
+ref vs new  data_invalid_3d_box_without_nz: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_invalid_3d_thermal: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_invalid_3d_two_component_velocity: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_malformed_json: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_disconnected_cli: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_invalid_cli: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_mesh_quality_warning_cli: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_missing_mesh: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_valid_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_valid_cavity_cli_smoke: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_valid_cube3d_cli_smoke: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_valid_duct3d_cli_smoke: IDENTICAL | files compared 3 | exit 0/exit 0
+=== totals: 35 IDENTICAL of 35; INVALID 0; DIFFERENT (valid runs) 0
+# end 2026-09-17T17:45:54Z

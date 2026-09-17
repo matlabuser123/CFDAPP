@@ -1,0 +1,23 @@
+# P12-MESH-007 baseline: MESH-006 stability; 2026-09-15T20:23:47Z
+build/release rebuild exit 0; compiled units: 0; warnings 0
+cfdapp sha256 df4ee6d0da11bba722dcb2aea47740875df8c41232d7970cc49f20d10618add6 (MESH-006 final: df4ee6d0da11bba722dcb2aea47740875df8c41232d7970cc49f20d10618add6)
+CFDSimpleTests 'SIMPLE3D.*': [  PASSED  ] 14 tests.  
+CFDIoTests 'Case3DTest.*:VTK3DTest.*': [  PASSED  ] 11 tests.  
+CFDDiscretizationTests 'Operators3DTest.*': [  PASSED  ] 10 tests.  
+CFDMeshTests 'Cartesian3DMeshTest.*': [  PASSED  ] 12 tests.  
+CFDCaseIntegrationTests 'Duct3DProductionCase.*:LidDrivenCube3DProductionCase.*': [  PASSED  ] 4 tests.  YOU HAVE 9 DISABLED
+CFDMMSValidationTests 'MMSSimple3DTest.*:MMS3DTest.*': [  PASSED  ] 4 tests.  YOU HAVE 2 DISABLED
+## existing PISO / transient suites (MESH-007 builds on them)
+CFDCavityValidationTests 'PISO*:Piso*:Transient*:TimeDerivative*:Restart*:TemporalRefinement*': [  PASSED  ] 2 tests.  
+CFDPoiseuilleValidationTests 'PISO*:Piso*:Transient*:TimeDerivative*:Restart*:TemporalRefinement*': [  PASSED  ] 3 tests.  
+CFDRestartIntegrationTests 'PISO*:Piso*:Transient*:TimeDerivative*:Restart*:TemporalRefinement*': [  PASSED  ] 16 tests.  
+CFDPisoTests 'PISO*:Piso*:Transient*:TimeDerivative*:Restart*:TemporalRefinement*': [  PASSED  ] 42 tests.  
+CFDDiscretizationTests 'PISO*:Piso*:Transient*:TimeDerivative*:Restart*:TemporalRefinement*': [  PASSED  ] 8 tests.  
+CFDSolverTests 'PISO*:Piso*:Transient*:TimeDerivative*:Restart*:TemporalRefinement*': [  PASSED  ] 28 tests.  
+## CLI process tests (2D and 3D)
+100% tests passed, 0 tests failed out of 18
+## known pre-existing sanitizer defect (P12-MESH-004 test code), build/asan, CI options
+exit 1; SUMMARY: AddressSanitizer: heap-use-after-free /usr/include/c++/11/bits/basic_string.h:921 in std::__cxx11::basic_string
+    #5 0x575908d46af1 in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:489
+    #8 0x575908d4692d in TestBody /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/mesh/test_mesh_quality_report.cpp:488
+# end 2026-09-15T20:24:25Z

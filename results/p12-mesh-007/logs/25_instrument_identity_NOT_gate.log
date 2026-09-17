@@ -1,0 +1,17 @@
+# P12-MESH-007 rerun instrument identity (NOT a gate criterion)
+## A: original failure records vs the FORMAT-001 pre-format copy and the current file
+  A OK   tests/solver/piso/test_ale_piso.cpp:491 EXPECT_LE(ale.maxVelocity,1e-8); -- pre-format copy line 491: same; current file: lines [539]
+  A OK   tests/solver/piso/test_ale_piso.cpp:492 EXPECT_LE(ale.maxPressure,1e-8); -- pre-format copy line 492: same; current file: lines [540]
+  A OK   tests/solver/piso/test_ale_piso.cpp:493 EXPECT_LE(ale.maxFlux,1e-8/16.0); -- pre-format copy line 493: same; current file: lines [541]
+## B: FORMAT-001 hash chain and token proof
+  B OK   tests/solver/piso/test_ale_piso.cpp: pre-format copy 6e303000fea74d05 (recorded before 6e303000fea74d05), current b198d38cc8773c47 (recorded after b198d38cc8773c47), token proof code SAME: True
+  B OK   tests/support/MeshMotionCases.hpp: pre-format copy b8c9ea3d0f1bec8d (recorded before b8c9ea3d0f1bec8d), current e69318d6fc9414ad (recorded after e69318d6fc9414ad), token proof code SAME: True
+  B OK   tests/unit/discretization/test_ale_operators.cpp: pre-format copy 04d2916634ef5525 (recorded before 04d2916634ef5525), current df2e96266f2c34c5 (recorded after df2e96266f2c34c5), token proof code SAME: True
+  B OK   tests/unit/mesh/test_mesh_motion.cpp: pre-format copy b7b121fbdb27b337 (recorded before b7b121fbdb27b337), current 89489c613083c3a9 (recorded after 89489c613083c3a9), token proof code SAME: True
+## C: original gate logs vs rerun logs
+  C OK   10 vs 20: 17 tests, same order; 25 printed lines with identical skeletons; 0 printed thresholds identical
+  C OK   11 vs 21: 8 tests, same order; 14 printed lines with identical skeletons; 2 printed thresholds identical
+  C OK   12 vs 22: 13 tests, same order; 302 printed lines with identical skeletons; 23 printed thresholds identical
+  C note 12 vs 22: AlePisoGalilean.TranslatingCavityIsTheFixedCavityPlusTheTranslation: gtest failure-record lines original 6, rerun 0
+RESULT IDENTICAL INSTRUMENT CORROBORATED
+exit 0

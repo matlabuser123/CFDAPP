@@ -1,0 +1,58 @@
+nom7: build OK, warnings 0; nom7 libcfdcore.a 4421c826c5773306f5e86120db53b38adeb07ea51da3cbb438b69df687bea619; cfdapp 50d890a7c4c106a2fe44e2828d70c87ce684aafbd3ccec505892e454cc00c3cc
+  FIDELITY PASS
+# 2D committed cases for probes 5 and 6 (16 of 19): annular_sector_conduction_multiblock channel_transpiration_graded compressible_channel_coupled compressible_validation curved_channel_multiblock heated_cavity heated_species_diffusion lid_driven_cavity lid_driven_cavity_40x40 lid_driven_cavity_80x80 multiphase_validation obstacle_channel_multiblock poiseuille_distorted poiseuille_flow species_diffusion step_channel_multiblock 
+probe runs with exit 0: all
+probe outputs complete (every expected mesh, flow and case printed, all variants): yes
+VERDICT G9.1 probe 7 nom7 vs NEW: BITWISE IDENTICAL
+N2 probe 7: NEW twice identical
+N1 probe 7: cur vs nograd -- 35 differing lines
+VERDICT G9.1 probe 5 nom7 vs NEW: BITWISE IDENTICAL
+N2 probe 5: NEW twice identical
+N1 probe 5: cur vs nograd -- 18 differing lines
+VERDICT G9.1 probe 6 nom7 vs NEW: BITWISE IDENTICAL
+N2 probe 6: NEW twice identical
+N1 probe 6: cur vs nograd -- 51 differing lines
+N1 geometry lines differing: 0 (must be 0); Q16 channel lines differing: 11 (must be > 0); every probe resolves cur vs nograd -> AS REQUIRED
+G9.1 OVERALL: PASS (runs exit 0 and complete; nom7 == NEW and NEW == NEW for probes 7, 5, 6; N1 as required)
+## unmodified outputs (must be accepted)
+=> CHECK_BAD=0 (must be 0)
+## mutation crash-like-run1 (must be rejected)
+=> CHECK_BAD=1 (must be 1)
+## mutation exit-nonzero (must be rejected)
+=> CHECK_BAD=1 (must be 1)
+## mutation missing-p7-item (must be rejected)
+=> CHECK_BAD=1 (must be 1)
+## mutation missing-p6-case (must be rejected)
+=> CHECK_BAD=1 (must be 1)
+G9.1 FAIL-CLOSED SELF-TEST: PASS
+## control C1: NEW against itself (instrument determinism, all keys of metadata.json)
+=== totals: 35 IDENTICAL of 35; INVALID 0; DIFFERENT (valid runs) 0
+## non-vacuity N3: nograd's cfdapp against NEW (must flag poiseuille_distorted)
+=== totals: 14 IDENTICAL of 35; INVALID 0; DIFFERENT (valid runs) 21
+## G9.2: nom7 (reference) against NEW (candidate)
+=== totals: 35 IDENTICAL of 35; INVALID 0; DIFFERENT (valid runs) 0
+ref vs new  poiseuille_distorted: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  poiseuille_distorted: DIFFERENT(fields.csv) DIFFERENT(solution.vtk) DIFFERENT(residuals.csv) DIFFERENT(metadata) DIFFERENT(stdout) | files compared 3 | exit 0/exit 0
+ref vs new  poiseuille_distorted: IDENTICAL | files compared 3 | exit 0/exit 0
+## real
+=> as required (IDENTICAL 4, INVALID 0)
+## crash
+=> as required (IDENTICAL 0, INVALID 4)
+## noexport
+=> as required (IDENTICAL 2, INVALID 2)
+## tamper
+=> as required (IDENTICAL 1, INVALID 0)
+G9.2 FAIL-CLOSED SELF-TEST: PASS
+## (1) MESH-007's own file list contains no case, fixture or test input
+## (2) nom7 vs current, cases/ and tests/data/
+## (3) BASE vs current, cases/ and tests/data/: every change attributed to a later phase
+G9.3 PASS (unattributed 0)
+## instrument self-test (planted changes must be flagged; NOT a gate item)
+G9.3 SELF-TEST PASS
+self-test exit 0
+## nom7 suite: ctest exit 0 (194 s): 100% tests passed, 0 tests failed out of 1885
+## new suite: ctest exit 0 (192 s): 100% tests passed, 0 tests failed out of 1932
+## classification: NEW (candidate) vs nom7 (reference), MESH-006's classifier (via GRAD-002's classify_scope.py)
+checked 270 files; IDENTICAL 220, RUNTIME-ONLY 50, VALUES 0, NEW 0, GONE 0
+exit 0
+driver exit 0

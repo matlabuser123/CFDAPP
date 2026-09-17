@@ -1,0 +1,252 @@
+# P12-MESH-007 baseline (before any MESH-007 change); 2026-09-15T20:23:39Z
+$ git rev-parse HEAD
+b66310ca871811c4c7671056beec291a451af55c
+$ git log -1 --oneline
+b66310c docs(p12-num): record closeout commits and green CI
+$ git status --short | wc -l: 243 (178 modified, 65 untracked)
+$ git diff --stat | tail -1
+ 178 files changed, 9266 insertions(+), 3237 deletions(-)
+$ git status --short
+ M README.md
+ M ROADMAP.md
+ M TODO.md
+ M apps/cli/main.cpp
+ M apps/gui/CaseModelAdapter.cpp
+ M apps/gui/CaseModelAdapter.hpp
+ M apps/gui/SimulationController.cpp
+ M apps/gui/SimulationController.hpp
+ M apps/gui/SimulationControllerEditing.cpp
+ M apps/gui/qml/BoundaryEditor.qml
+ M apps/gui/qml/MeshEditor.qml
+ M apps/gui/qml/ResultsPage.qml
+ M apps/gui/qml/ValidationPanel.qml
+ M apps/gui/tests/test_case_editing.cpp
+ M cases/heated_cavity/results/fields.csv
+ M cases/heated_cavity/results/metadata.json
+ M cases/heated_cavity/results/solution.vtk
+ M docs/user_guide/case_format.md
+ M docs/user_guide/cli.md
+ M docs/user_guide/gui.md
+ M docs/user_guide/paraview.md
+ M docs/user_guide/troubleshooting.md
+ M docs/validation/manufactured_solutions.md
+ M include/cfd/algebra/BiCGSTAB.hpp
+ M include/cfd/algebra/LinearSolver.hpp
+ M include/cfd/app/ProjectRunner.hpp
+ M include/cfd/app/VisualizationSnapshot.hpp
+ M include/cfd/core/Vector2.hpp
+ M include/cfd/discretization/Gradient.hpp
+ M include/cfd/discretization/Interpolation.hpp
+ M include/cfd/discretization/VectorGradient.hpp
+ M include/cfd/fields/VectorField.hpp
+ M include/cfd/io/CSVWriter.hpp
+ M include/cfd/io/JSONWriter.hpp
+ M include/cfd/io/ResultExporter.hpp
+ M include/cfd/io/SimulationSetup.hpp
+ M include/cfd/io/VTKWriter.hpp
+ M include/cfd/io/case/GeometryConfig.hpp
+ M include/cfd/io/case/InitialConditions.hpp
+ M include/cfd/io/case/MeshConfig.hpp
+ M include/cfd/io/case/SolverConfig.hpp
+ M include/cfd/mesh/Mesh.hpp
+ M include/cfd/mesh/MeshGeometry.hpp
+ M include/cfd/mesh/MeshQuality.hpp
+ M include/cfd/physics/ContinuityEquation.hpp
+ M include/cfd/physics/MomentumEquation.hpp
+ M include/cfd/pressure_velocity/PressureCorrectionEquation.hpp
+ M include/cfd/pressure_velocity/RelaxedMomentum.hpp
+ M include/cfd/pressure_velocity/SIMPLEProgress.hpp
+ M include/cfd/pressure_velocity/SIMPLEResult.hpp
+ M include/cfd/pressure_velocity/SIMPLESettings.hpp
+ M include/cfd/solver/SolverRobustness.hpp
+ M include/cfd/thermal/EnergyEquation.hpp
+ M include/cfd/thermal/ThermalSolver.hpp
+ M include/cfd/turbulence/WallDistance.hpp
+ M include/cfd/validation/ErrorNorms.hpp
+ M results/validation/conjugate_heat_transfer/20/validation.json
+ M results/validation/conjugate_heat_transfer/40/validation.json
+ M results/validation/conjugate_heat_transfer/80/validation.json
+ M results/validation/grid_convergence/natural_convection_ra1e3.json
+ M results/validation/grid_convergence/natural_convection_ra1e3.md
+ M results/validation/grid_convergence/poiseuille_flow.json
+ M results/validation/grid_convergence/poiseuille_flow.md
+ M results/validation/heated_cavity/20x20/validation.json
+ M results/validation/heated_cavity/40x40/validation.json
+ M results/validation/heated_cavity/80x80/validation.json
+ M results/validation/mms/distorted_mesh_momentum_mms.json
+ M results/validation/mms/distorted_mesh_momentum_mms.md
+ M results/validation/mms/distorted_mesh_simple_mms.json
+ M results/validation/mms/distorted_mesh_simple_mms.md
+ M results/validation/mms/momentum_mms.json
+ M results/validation/mms/momentum_mms.md
+ M results/validation/mms/momentum_mms_linear_upwind.json
+ M results/validation/mms/momentum_mms_linear_upwind.md
+ M results/validation/mms/momentum_mms_upwind.json
+ M results/validation/mms/momentum_mms_upwind.md
+ M results/validation/natural_convection/Ra1e3/10x10/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_det_a/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_det_b/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_sign_check/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
+ M results/validation/natural_convection/Ra1e3/15x15/u_centerline.csv
+ M results/validation/natural_convection/Ra1e3/15x15/v_centerline.csv
+ M results/validation/natural_convection/Ra1e3/15x15/validation.json
+ M results/validation/natural_convection/Ra1e3/20x20/nusselt_hot_wall.csv
+ M results/validation/natural_convection/Ra1e3/20x20/u_centerline.csv
+ M results/validation/natural_convection/Ra1e3/20x20/validation.json
+ M results/validation/production/cavity_re100/20x20_quick/validation.json
+ M results/validation/production/poiseuille.json
+ M results/validation/production/poiseuille.md
+ M results/validation/production/scheme_comparison_20x20.json
+ M results/validation/production/scheme_comparison_20x20.md
+ M results/validation/production/turbulent_channel_ci.json
+ M results/validation/production/turbulent_channel_ci.md
+ M results/validation/turbulence/channel_flow/k_epsilon/medium/validation.json
+ M results/validation/turbulence/channel_flow/k_omega/coarse/validation.json
+ M results/validation/turbulence/channel_flow/sst/medium/validation.json
+ M src/CMakeLists.txt
+ M src/algebra/BiCGSTAB.cpp
+ M src/app/ProjectRunner.cpp
+ M src/app/VisualizationSnapshot.cpp
+ M src/compressible/CompressibleMassFlux.cpp
+ M src/compressible/CompressibleMomentum.cpp
+ M src/compressible/CompressiblePressureCorrection.cpp
+ M src/compressible/CompressibleRelaxedMomentum.cpp
+ M src/compressible/CompressibleSIMPLE.cpp
+ M src/discretization/Gradient.cpp
+ M src/discretization/Interpolation.cpp
+ M src/discretization/VectorGradient.cpp
+ M src/io/CSVWriter.cpp
+ M src/io/CaseBuilder.cpp
+ M src/io/CaseReader.cpp
+ M src/io/CaseWriter.cpp
+ M src/io/JSONWriter.cpp
+ M src/io/ResultExporter.cpp
+ M src/io/StructuredMeshInfo.cpp
+ M src/io/StructuredMeshInfo.hpp
+ M src/io/VTKWriter.cpp
+ M src/io/case/BoundaryConfigParser.cpp
+ M src/io/case/CaseConfigParser.cpp
+ M src/io/case/GeometryConfigParser.cpp
+ M src/io/case/JsonUtil.cpp
+ M src/io/case/JsonUtil.hpp
+ M src/io/case/MeshConfigParser.cpp
+ M src/io/case/Parsers.hpp
+ M src/io/case/SolverConfigParser.cpp
+ M src/mesh/Cell.cpp
+ M src/mesh/Face.cpp
+ M src/mesh/Mesh.cpp
+ M src/mesh/MeshFingerprint.cpp
+ M src/mesh/MeshGeometry.cpp
+ M src/mesh/MeshQuality.cpp
+ M src/physics/ContinuityEquation.cpp
+ M src/physics/MomentumEquation.cpp
+ M src/pressure_velocity/PISO.cpp
+ M src/pressure_velocity/PressureCorrectionEquation.cpp
+ M src/pressure_velocity/RelaxedMomentum.cpp
+ M src/pressure_velocity/SIMPLE.cpp
+ M src/pressure_velocity/SIMPLESettings.cpp
+ M src/pressure_velocity/TransientMomentum.cpp
+ M src/solver/RestartSnapshot.cpp
+ M src/solver/SolverRobustness.cpp
+ M src/thermal/EnergyEquation.cpp
+ M src/thermal/ThermalInterface.cpp
+ M src/thermal/ThermalSolver.cpp
+ M src/turbulence/KEpsilonModel.cpp
+ M src/turbulence/KOmegaModel.cpp
+ M src/turbulence/WallDistance.cpp
+ M src/validation/ErrorNorms.cpp
+ M src/viz/DerivedFields.cpp
+ M tests/CMakeLists.txt
+ M tests/data/cases/does_not_converge/results/metadata.json
+ M tests/data/cases/valid_cavity_cli_smoke/results/metadata.json
+ M tests/integration/case/CMakeLists.txt
+ M tests/integration/mms/CMakeLists.txt
+ M tests/solver/compressible_simple/test_compressible_robustness.cpp
+ M tests/solver/simple/CMakeLists.txt
+ M tests/solver/simple/test_simple_robustness.cpp
+ M tests/unit/algebra/CMakeLists.txt
+ M tests/unit/app/test_project_runner.cpp
+ M tests/unit/app/test_visualization_snapshot.cpp
+ M tests/unit/core/CMakeLists.txt
+ M tests/unit/discretization/CMakeLists.txt
+ M tests/unit/discretization/DistortedMesh.hpp
+ M tests/unit/fields/CMakeLists.txt
+ M tests/unit/io/CMakeLists.txt
+ M tests/unit/io/test_json_writer.cpp
+ M tests/unit/mesh/CMakeLists.txt
+ M tests/unit/thermal/CMakeLists.txt
+ M tests/unit/thermal/test_energy_equation.cpp
+ M tests/unit/thermal/test_thermal_solver.cpp
+ M tests/unit/turbulence/test_wall_distance.cpp
+?? cases/annular_sector_conduction_multiblock/
+?? cases/channel_transpiration_graded/
+?? cases/curved_channel_multiblock/
+?? cases/duct_3d/
+?? cases/lid_driven_cavity_3d/
+?? cases/lid_driven_cavity_3d_re1000/
+?? cases/obstacle_channel_multiblock/
+?? cases/poiseuille_distorted/
+?? cases/step_channel_multiblock/
+?? include/cfd/core/Vector3.hpp
+?? include/cfd/mesh/MeshGrading.hpp
+?? include/cfd/mesh/MultiBlockSpec.hpp
+?? include/cfd/mesh/StructuredGrid.hpp
+?? include/cfd/pressure_velocity/RhieChow.hpp
+?? results/p12-mesh-001/
+?? results/p12-mesh-002/
+?? results/p12-mesh-003/
+?? results/p12-mesh-004/
+?? results/p12-mesh-005/
+?? results/p12-mesh-006/
+?? results/p12-mesh-007/
+?? results/validation/production/channel_transpiration_graded_grid_convergence.json
+?? results/validation/production/curved_channel_multiblock_grid_convergence.json
+?? results/validation/production/poiseuille_distorted_grid_convergence.json
+?? src/mesh/MeshGrading.cpp
+?? src/pressure_velocity/RhieChow.cpp
+?? tests/cli_expect.cmake
+?? tests/data/cases/invalid_3d_box_without_nz/
+?? tests/data/cases/invalid_3d_thermal/
+?? tests/data/cases/invalid_3d_two_component_velocity/
+?? tests/data/cases/mesh_quality_disconnected_cli/
+?? tests/data/cases/mesh_quality_invalid_cli/
+?? tests/data/cases/mesh_quality_warning_cli/
+?? tests/data/cases/valid_cube3d_cli_smoke/
+?? tests/data/cases/valid_duct3d_cli_smoke/
+?? tests/data/linear_systems/
+?? tests/integration/case/MeshQualityCampaign.cpp
+?? tests/integration/case/MeshQualityCampaign.hpp
+?? tests/integration/case/test_3d_production_cases.cpp
+?? tests/integration/case/test_graded_mesh_production_case.cpp
+?? tests/integration/case/test_mesh_quality_campaign.cpp
+?? tests/integration/case/test_multiblock_production_case.cpp
+?? tests/integration/case/test_structured_quad_production_case.cpp
+?? tests/integration/mms/test_mms_3d.cpp
+?? tests/integration/mms/test_mms_simple3d.cpp
+?? tests/solver/simple/test_simple3d.cpp
+?? tests/unit/algebra/test_bicgstab_breakdown.cpp
+?? tests/unit/core/test_vector3.cpp
+?? tests/unit/discretization/test_oblique_neumann_gradient.cpp
+?? tests/unit/discretization/test_operators3d.cpp
+?? tests/unit/fields/test_fields3d.cpp
+?? tests/unit/io/test_case3d.cpp
+?? tests/unit/io/test_graded_mesh_case.cpp
+?? tests/unit/io/test_mesh_quality_case.cpp
+?? tests/unit/io/test_multiblock_case.cpp
+?? tests/unit/io/test_structured_quad_case.cpp
+?? tests/unit/io/test_vtk3d.cpp
+?? tests/unit/mesh/test_cartesian3d_mesh.cpp
+?? tests/unit/mesh/test_graded_mesh.cpp
+?? tests/unit/mesh/test_mesh_grading.cpp
+?? tests/unit/mesh/test_mesh_quality_report.cpp
+?? tests/unit/mesh/test_multiblock_mesh.cpp
+?? tests/unit/mesh/test_structured_quad_mesh.cpp
+?? tests/unit/thermal/test_sparse_assembly3d.cpp
+?? tests/unit/thermal/test_thermal_boundary_consistency.cpp

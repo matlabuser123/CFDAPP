@@ -1,0 +1,54 @@
+# G6.3 full-precision readout (NOT a gate criterion); 2026-09-17T15:55:00Z; git HEAD b66310ca871811c4c7671056beec291a451af55c
+# source tests/solver/piso/test_ale_piso.cpp sha256 b198d38cc8773c47d46d9df7f3e913bfe8a1233340b89ad675de3436d2d4dd05
+# copy written: the G6.3 summary printf's three %.3e -> %.17e
+## diff (source -> diagnostic copy)
+543,544c543,544
+<       "G6.3 translating cavity (ALE): max |u_B - b - u_A| %.3e (<= 1e-8), gauge-aligned |p| %.3e "
+<       "(<= 1e-8), |F_rel,B - F_A| %.3e (<= 6.25e-10)\n",
+---
+>       "G6.3 translating cavity (ALE): max |u_B - b - u_A| %.17e (<= 1e-8), gauge-aligned |p| %.17e "
+>       "(<= 1e-8), |F_rel,B - F_A| %.17e (<= 6.25e-10)\n",
+## diff lines: 4 (expected 4: two changed lines each side)
+## compile: /usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/solver/piso/../../support -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/pressure_velocity -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -isystem /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/include -isystem /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Wconversion -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -std=c++20 -o /root/m7fp/test_ale_piso_fp.o -c /root/m7fp/test_ale_piso_fp.cpp
+# libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+## run
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AlePisoGalilean.TranslatingCavityIsTheFixedCavityPlusTheTranslation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AlePisoGalilean
+[ RUN      ] AlePisoGalilean.TranslatingCavityIsTheFixedCavityPlusTheTranslation
+  G6.3 step  1: max |u_B - b - u_A| 2.268e-14, |dp| 7.781e-13, |F_rel,B - F_A| 1.243e-15, R_P 1.181e-14, global 1.599e-14
+  G6.3 step  2: max |u_B - b - u_A| 3.568e-14, |dp| 5.115e-13, |F_rel,B - F_A| 7.772e-16, R_P 2.220e-14, global 3.819e-14
+  G6.3 step  3: max |u_B - b - u_A| 1.885e-14, |dp| 4.592e-13, |F_rel,B - F_A| 1.086e-15, R_P 2.359e-14, global -7.294e-14
+  G6.3 step  4: max |u_B - b - u_A| 2.227e-14, |dp| 3.587e-13, |F_rel,B - F_A| 7.780e-16, R_P 2.228e-14, global 6.056e-14
+  G6.3 step  5: max |u_B - b - u_A| 2.854e-14, |dp| 7.128e-13, |F_rel,B - F_A| 9.202e-16, R_P 2.224e-14, global -8.377e-14
+  G6.3 step  6: max |u_B - b - u_A| 3.036e-14, |dp| 7.891e-13, |F_rel,B - F_A| 9.764e-16, R_P 2.223e-14, global 1.615e-14
+  G6.3 step  7: max |u_B - b - u_A| 3.530e-14, |dp| 6.414e-13, |F_rel,B - F_A| 1.079e-15, R_P 2.146e-14, global -6.058e-15
+  G6.3 step  8: max |u_B - b - u_A| 3.988e-14, |dp| 6.456e-13, |F_rel,B - F_A| 1.615e-15, R_P 1.215e-14, global 1.565e-14
+  G6.3 step  9: max |u_B - b - u_A| 5.167e-14, |dp| 1.367e-12, |F_rel,B - F_A| 2.072e-15, R_P 3.403e-14, global 2.675e-14
+  G6.3 step 10: max |u_B - b - u_A| 6.715e-14, |dp| 1.360e-12, |F_rel,B - F_A| 4.149e-15, R_P 3.324e-14, global -1.765e-14
+  G6.3 step 11: max |u_B - b - u_A| 3.758e-14, |dp| 2.263e-12, |F_rel,B - F_A| 1.849e-15, R_P 2.083e-14, global 4.552e-15
+  G6.3 step 12: max |u_B - b - u_A| 8.671e-14, |dp| 3.409e-12, |F_rel,B - F_A| 6.601e-15, R_P 2.217e-14, global -3.986e-14
+  G6.3 step 13: max |u_B - b - u_A| 5.983e-14, |dp| 1.714e-12, |F_rel,B - F_A| 1.423e-15, R_P 2.222e-14, global 3.786e-14
+  G6.3 step 14: max |u_B - b - u_A| 9.525e-14, |dp| 1.869e-12, |F_rel,B - F_A| 5.776e-15, R_P 3.406e-14, global -5.551e-15
+  G6.3 step 15: max |u_B - b - u_A| 1.900e-13, |dp| 2.900e-12, |F_rel,B - F_A| 1.147e-14, R_P 2.227e-14, global -5.551e-15
+  G6.3 step 16: max |u_B - b - u_A| 7.103e-14, |dp| 4.671e-12, |F_rel,B - F_A| 2.311e-15, R_P 2.293e-14, global 5.553e-15
+  G6.3 step 17: max |u_B - b - u_A| 5.949e-14, |dp| 8.753e-13, |F_rel,B - F_A| 1.825e-15, R_P 2.289e-14, global 5.551e-15
+  G6.3 step 18: max |u_B - b - u_A| 6.798e-14, |dp| 9.750e-13, |F_rel,B - F_A| 1.351e-15, R_P 2.222e-14, global 5.551e-15
+  G6.3 step 19: max |u_B - b - u_A| 7.388e-14, |dp| 5.490e-13, |F_rel,B - F_A| 1.858e-15, R_P 2.295e-14, global 1.665e-14
+  G6.3 step 20: max |u_B - b - u_A| 6.021e-14, |dp| 4.440e-13, |F_rel,B - F_A| 1.426e-15, R_P 2.292e-14, global 1.666e-14
+G6.3 translating cavity (ALE): max |u_B - b - u_A| 1.89974564178970561e-13 (<= 1e-8), gauge-aligned |p| 4.67050009778091635e-12 (<= 1e-8), |F_rel,B - F_A| 1.14724717356282091e-14 (<= 6.25e-10)
+[       OK ] AlePisoGalilean.TranslatingCavityIsTheFixedCavityPlusTheTranslation (58 ms)
+[----------] 1 test from AlePisoGalilean (59 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (59 ms total)
+[  PASSED  ] 1 test.
+exit 0
+# end 2026-09-17T15:55:08Z
+## consistency with log 22
+  max |u_B - b - u_A|: full precision 1.89974564178970561e-13  -> %.3e 1.900e-13; log 22 prints 1.900e-13
+  gauge-aligned |p|: full precision 4.67050009778091635e-12  -> %.3e 4.671e-12; log 22 prints 4.671e-12
+  |F_rel,B - F_A|: full precision 1.14724717356282091e-14  -> %.3e 1.147e-14; log 22 prints 1.147e-14
+CONSISTENCY with log 22: NOT REPRODUCED

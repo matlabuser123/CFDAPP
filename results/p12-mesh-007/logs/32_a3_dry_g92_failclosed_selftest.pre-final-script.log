@@ -1,0 +1,51 @@
+# G9.2 fail-closed self-test (A3 dry-run support); 2026-09-17T16:41:22Z; g9_compat.sh 5e138b6e22951070
+# subset ^(lid_driven_cavity|data_valid_cavity|data_bad_solver|data_does_not_converge)$
+# fake crash:
+#   #!/usr/bin/env bash
+#   kill -ABRT $$
+# fake noexport:
+#   #!/usr/bin/env bash
+#   /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/apps/cli/cfdapp "$@"; rc=$?; rm -f "$2/results/solution.vtk"; exit $rc
+# fake tamper:
+#   #!/usr/bin/env bash
+#   /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/apps/cli/cfdapp "$@"; rc=$?
+#   [ -f "$2/results/metadata.json" ] && python3 -c "import json,sys; p=sys.argv[1]; d=json.load(open(p)); d[\"selftest\"]=1; json.dump(d, open(p, \"w\"), indent=2)" "$2/results/metadata.json"
+#   exit $rc
+## real
+ref vs new  lid_driven_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+ref vs new  data_bad_solver: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_does_not_converge: IDENTICAL | files compared 3 | exit 3/exit 3
+ref vs new  data_valid_cavity: IDENTICAL | files compared 3 | exit 0/exit 0
+=== totals: 4 IDENTICAL of 4; INVALID 0; DIFFERENT (valid runs) 0
+=> as required (IDENTICAL 4, INVALID 0)
+environment: line 5: 230541 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230550 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230552 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230561 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230564 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230570 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230573 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+environment: line 5: 230576 Aborted                 (core dumped) $1 --case $W/$2/$4 > $W/$2/$4.stdout 2>&1
+## crash
+ref vs new  lid_driven_cavity: INVALID(ref exit 134, expected 0) IDENTICAL | files compared 0 | exit 134/exit 134
+ref vs new  data_bad_solver: INVALID(ref exit 134, expected 2) IDENTICAL | files compared 0 | exit 134/exit 134
+ref vs new  data_does_not_converge: INVALID(ref exit 134, expected 3) IDENTICAL | files compared 0 | exit 134/exit 134
+ref vs new  data_valid_cavity: INVALID(ref exit 134, expected 0) IDENTICAL | files compared 0 | exit 134/exit 134
+=== totals: 0 IDENTICAL of 4; INVALID 4; DIFFERENT (valid runs) 0
+=> as required (IDENTICAL 0, INVALID 4)
+## noexport
+ref vs new  lid_driven_cavity: INVALID(ref wrote no results/solution.vtk) IDENTICAL | files compared 2 | exit 0/exit 0
+ref vs new  data_bad_solver: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_does_not_converge: IDENTICAL | files compared 2 | exit 3/exit 3
+ref vs new  data_valid_cavity: INVALID(ref wrote no results/solution.vtk) IDENTICAL | files compared 2 | exit 0/exit 0
+=== totals: 2 IDENTICAL of 4; INVALID 2; DIFFERENT (valid runs) 0
+=> as required (IDENTICAL 2, INVALID 2)
+## tamper
+ref vs new  lid_driven_cavity: DIFFERENT(metadata) | files compared 3 | exit 0/exit 0
+ref vs new  data_bad_solver: IDENTICAL | files compared 0 | exit 2/exit 2
+ref vs new  data_does_not_converge: DIFFERENT(metadata) | files compared 3 | exit 3/exit 3
+ref vs new  data_valid_cavity: DIFFERENT(metadata) | files compared 3 | exit 0/exit 0
+=== totals: 1 IDENTICAL of 4; INVALID 0; DIFFERENT (valid runs) 3
+=> as required (IDENTICAL 1, INVALID 0)
+G9.2 FAIL-CLOSED SELF-TEST: PASS
+# end 2026-09-17T16:41:54Z

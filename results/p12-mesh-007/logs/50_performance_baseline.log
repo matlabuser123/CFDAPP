@@ -1,0 +1,80 @@
+# P12-MESH-007 performance baseline 2026-09-17T17:57:04Z; git HEAD b66310ca871811c4c7671056beec291a451af55c
+## environment
+nproc 32; Model name: Intel(R) Core(TM) i9-14900HX
+CPU(s): 32
+Thread(s) per core: 2
+Core(s) per socket: 16
+Socket(s): 1
+               total        used        free      shared  buff/cache   available
+Mem:            31Gi       675Mi        29Gi       4.0Mi       603Mi        30Gi
+6.6.87.2-microsoft-standard-WSL2
+gcc: c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+clang: Ubuntu clang version 14.0.0-1ubuntu1.1
+cmake: cmake version 3.22.1; ninja: 1.10.1
+nvcc: Cuda compilation tools, release 11.5, V11.5.119
+nvidia-smi (WSL): NVIDIA RTX 5000 Ada Generation Laptop GPU, 580.97, 53, 31.98 W, 0 %
+nvidia-smi driver-supported CUDA: CUDA Version: 13.0
+  (GPU telemetry is recorded for context only; this baseline is CPU-only. Windows nvidia-smi has shown implausible power readings before, so power values are not relied on.)
+build: CFDAPP_ENABLE_CUDA:BOOL=OFF CFDAPP_ENABLE_OPENMP:BOOL=OFF CFDAPP_ENABLE_SANITIZERS:BOOL=OFF CMAKE_BUILD_TYPE:STRING=Release CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG 
+libcfdcore.a 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+threads: 1 (OpenMP off; the program is pinned with taskset -c 3)
+thermal: WSL exposes no CPU temperature sensor here; throttling cannot be excluded directly. The per-run CPU MHz snapshots and the run-to-run spread below are the available evidence.
+## build
+perf_baseline.cpp 7c12837c214095cc built
+## runs
+load average (1 min) before: 0.47
+warm-up run (discarded): CPU mean 2419 min 2419 max 2419 MHz over 32 cpus
+run 1: start CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.56
+run 1: exit 0; end CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.62
+   # P12-MESH-007 performance baseline (Release, one thread)
+   GEOM 2D 128^2   cells    16384 faces    33024 | advance (geometry + swept volumes + GCL) median     1.731 ms/step, min     1.487, max     2.836, first     2.836 ms, max GCL 1.62e-16
+   GEOM 2D 256^2   cells    65536 faces   131584 | advance (geometry + swept volumes + GCL) median     9.463 ms/step, min     8.477, max    13.281, first    13.070 ms, max GCL 1.87e-16
+   GEOM 3D 32^3    cells    32768 faces   101376 | advance (geometry + swept volumes + GCL) median    13.153 ms/step, min    12.315, max    14.555, first    14.319 ms, max GCL 1.86e-20
+   GEOM 3D 64^3    cells   262144 faces   798720 | advance (geometry + swept volumes + GCL) median   109.261 ms/step, min   105.875, max   137.615, first   131.154 ms, max GCL 3.39e-21
+   SOLV  128^2 static PISO   median   289.849 ms/step, min   256.723, max   337.235 (10 steps, dt 0.001953)
+   SOLV  128^2 AlePISO (SN2) median   341.870 ms/step, min   309.490, max   392.814 (10 steps, dt 0.001953)
+run 2: start CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.62
+run 2: exit 0; end CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.68
+   # P12-MESH-007 performance baseline (Release, one thread)
+   GEOM 2D 128^2   cells    16384 faces    33024 | advance (geometry + swept volumes + GCL) median     1.760 ms/step, min     1.556, max     2.664, first     2.664 ms, max GCL 1.62e-16
+   GEOM 2D 256^2   cells    65536 faces   131584 | advance (geometry + swept volumes + GCL) median     9.803 ms/step, min     8.156, max    13.036, first    13.036 ms, max GCL 1.87e-16
+   GEOM 3D 32^3    cells    32768 faces   101376 | advance (geometry + swept volumes + GCL) median    13.005 ms/step, min    11.902, max    16.540, first    16.540 ms, max GCL 1.86e-20
+   GEOM 3D 64^3    cells   262144 faces   798720 | advance (geometry + swept volumes + GCL) median   112.922 ms/step, min   108.184, max   141.309, first   135.633 ms, max GCL 3.39e-21
+   SOLV  128^2 static PISO   median   297.487 ms/step, min   263.036, max   349.536 (10 steps, dt 0.001953)
+   SOLV  128^2 AlePISO (SN2) median   341.091 ms/step, min   319.725, max   400.277 (10 steps, dt 0.001953)
+run 3: start CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.68
+run 3: exit 0; end CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.71
+   # P12-MESH-007 performance baseline (Release, one thread)
+   GEOM 2D 128^2   cells    16384 faces    33024 | advance (geometry + swept volumes + GCL) median     1.614 ms/step, min     1.413, max     3.296, first     3.296 ms, max GCL 1.62e-16
+   GEOM 2D 256^2   cells    65536 faces   131584 | advance (geometry + swept volumes + GCL) median     9.648 ms/step, min     7.736, max    17.660, first    13.740 ms, max GCL 1.87e-16
+   GEOM 3D 32^3    cells    32768 faces   101376 | advance (geometry + swept volumes + GCL) median    12.894 ms/step, min    11.993, max    14.754, first    14.754 ms, max GCL 1.86e-20
+   GEOM 3D 64^3    cells   262144 faces   798720 | advance (geometry + swept volumes + GCL) median   110.012 ms/step, min   104.423, max   142.598, first   142.598 ms, max GCL 3.39e-21
+   SOLV  128^2 static PISO   median   291.434 ms/step, min   270.845, max   356.402 (10 steps, dt 0.001953)
+   SOLV  128^2 AlePISO (SN2) median   334.235 ms/step, min   311.567, max   390.138 (10 steps, dt 0.001953)
+run 4: start CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.71
+run 4: exit 0; end CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.75
+   # P12-MESH-007 performance baseline (Release, one thread)
+   GEOM 2D 128^2   cells    16384 faces    33024 | advance (geometry + swept volumes + GCL) median     1.579 ms/step, min     1.426, max     2.669, first     2.669 ms, max GCL 1.62e-16
+   GEOM 2D 256^2   cells    65536 faces   131584 | advance (geometry + swept volumes + GCL) median     8.800 ms/step, min     7.566, max    12.272, first    11.466 ms, max GCL 1.87e-16
+   GEOM 3D 32^3    cells    32768 faces   101376 | advance (geometry + swept volumes + GCL) median    13.045 ms/step, min    12.128, max    15.246, first    14.231 ms, max GCL 1.86e-20
+   GEOM 3D 64^3    cells   262144 faces   798720 | advance (geometry + swept volumes + GCL) median   109.278 ms/step, min   103.159, max   150.762, first   140.342 ms, max GCL 3.39e-21
+   SOLV  128^2 static PISO   median   300.070 ms/step, min   259.113, max   341.964 (10 steps, dt 0.001953)
+   SOLV  128^2 AlePISO (SN2) median   331.080 ms/step, min   320.312, max   392.226 (10 steps, dt 0.001953)
+run 5: start CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.75
+run 5: exit 0; end CPU mean 2419 min 2419 max 2419 MHz over 32 cpus; load 0.79
+   # P12-MESH-007 performance baseline (Release, one thread)
+   GEOM 2D 128^2   cells    16384 faces    33024 | advance (geometry + swept volumes + GCL) median     1.665 ms/step, min     1.552, max     2.624, first     2.624 ms, max GCL 1.62e-16
+   GEOM 2D 256^2   cells    65536 faces   131584 | advance (geometry + swept volumes + GCL) median     9.405 ms/step, min     7.960, max    13.570, first    13.570 ms, max GCL 1.87e-16
+   GEOM 3D 32^3    cells    32768 faces   101376 | advance (geometry + swept volumes + GCL) median    12.836 ms/step, min    11.962, max    15.364, first    15.364 ms, max GCL 1.86e-20
+   GEOM 3D 64^3    cells   262144 faces   798720 | advance (geometry + swept volumes + GCL) median   110.091 ms/step, min   105.064, max   140.819, first   138.694 ms, max GCL 3.39e-21
+   SOLV  128^2 static PISO   median   288.535 ms/step, min   260.068, max   344.421 (10 steps, dt 0.001953)
+   SOLV  128^2 AlePISO (SN2) median   337.646 ms/step, min   319.993, max   403.644 (10 steps, dt 0.001953)
+load average (1 min) after: 0.79
+## aggregate (median of the per-run medians; spread = min-max of the per-run medians)
+GEOM 2D 128^2                    median     1.665 ms/step  spread     1.579 -     1.760  ( 10.9 % of the median, n = 5)
+GEOM 2D 256^2                    median     9.463 ms/step  spread     8.800 -     9.803  ( 10.6 % of the median, n = 5)
+GEOM 3D 32^3                     median    13.005 ms/step  spread    12.836 -    13.153  (  2.4 % of the median, n = 5)
+GEOM 3D 64^3                     median   110.012 ms/step  spread   109.261 -   112.922  (  3.3 % of the median, n = 5)
+SOLV  128^2 static PISO          median   291.434 ms/step  spread   288.535 -   300.070  (  4.0 % of the median, n = 5)
+SOLV  128^2 AlePISO (SN2)        median   337.646 ms/step  spread   331.080 -   341.870  (  3.2 % of the median, n = 5)
+# end 2026-09-17T17:58:05Z

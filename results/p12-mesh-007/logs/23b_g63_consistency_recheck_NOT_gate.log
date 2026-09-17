@@ -1,0 +1,12 @@
+# G6.3 full-precision readout: consistency recheck (NOT a gate criterion); 2026-09-17T15:55:27Z
+# Log 23 ends with 'CONSISTENCY with log 22: NOT REPRODUCED'. That verdict is an instrument bug, not a
+# mismatch: its number regex also matched the printed threshold 6.25e-10, so each line yielded 4
+# numbers and the 'exactly 3' check failed. The three values it printed do agree. Log 23 is kept
+# unchanged; the fixed check (thresholds in parentheses removed before matching) is rerun here
+# on the same two files.
+# g63_full_precision.sh sha256 after the fix: 09269a3308219af06e23afe7359c648736997037f0a4ea98e11db1a3535d34e1
+# log 23 sha256: f39f4f3d26e348bff797a19f5170be5d5ebfe601d6e8f6b5575a60f01d919772
+  max |u_B - b - u_A|: full precision 1.89974564178970561e-13  -> %.3e 1.900e-13; log 22 prints 1.900e-13
+  gauge-aligned |p|: full precision 4.67050009778091635e-12  -> %.3e 4.671e-12; log 22 prints 4.671e-12
+  |F_rel,B - F_A|: full precision 1.14724717356282091e-14  -> %.3e 1.147e-14; log 22 prints 1.147e-14
+CONSISTENCY with log 22: REPRODUCED

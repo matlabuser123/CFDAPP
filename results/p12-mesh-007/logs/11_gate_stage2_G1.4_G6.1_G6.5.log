@@ -1,0 +1,51 @@
+# P12-MESH-007 gate stage: stage 2 (G1.4 G6.1 G6.5); 2026-09-15T21:21:15Z
+# gate sha256 5b45fed9c473b3b4 (A1+A2: 5b45fed9...)
+# binary CFDDiscretizationTests sha256 103d9077560995ef; filter 'AleOperators*'
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = AleOperators*
+[==========] Running 8 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from AleOperatorsStaticLimit
+[ RUN      ] AleOperatorsStaticLimit.TimeDerivativeWithUnchangedVolumesIsTheStaticOne
+G1.4 C16: aleImplicitEulerTimeDerivative(V^n = V) bitwise = implicitEulerTimeDerivative
+G1.4 Q16: aleImplicitEulerTimeDerivative(V^n = V) bitwise = implicitEulerTimeDerivative
+G1.4 H8: aleImplicitEulerTimeDerivative(V^n = V) bitwise = implicitEulerTimeDerivative
+[       OK ] AleOperatorsStaticLimit.TimeDerivativeWithUnchangedVolumesIsTheStaticOne (1 ms)
+[ RUN      ] AleOperatorsStaticLimit.RelativeFluxWithoutMeshMotionIsTheFlux
+G1.4 C16: relativeMassFlux(F, 0) bitwise = F
+G1.4 Q16: relativeMassFlux(F, 0) bitwise = F
+G1.4 H8: relativeMassFlux(F, 0) bitwise = F
+[       OK ] AleOperatorsStaticLimit.RelativeFluxWithoutMeshMotionIsTheFlux (0 ms)
+[ RUN      ] AleOperatorsStaticLimit.AleMomentumAssemblyWithoutMotionIsTheStaticAssembly
+G1.4 C16: ALE momentum assembly (no motion) bitwise = the effective-viscosity static assembly, U and V
+G1.4 Q16: ALE momentum assembly (no motion) bitwise = the effective-viscosity static assembly, U and V
+[       OK ] AleOperatorsStaticLimit.AleMomentumAssemblyWithoutMotionIsTheStaticAssembly (1 ms)
+[ RUN      ] AleOperatorsStaticLimit.BothMomentumAssembliesRefuseA3DMesh
+[       OK ] AleOperatorsStaticLimit.BothMomentumAssembliesRefuseA3DMesh (0 ms)
+[ RUN      ] AleOperatorsStaticLimit.ThreeDimensionalConvectionAndTimeTermStaticLimit
+G1.4 H8: convection with relativeMassFlux(F, 0) and the ALE time term (V^n = V) bitwise = the static operators, U, V and W
+[       OK ] AleOperatorsStaticLimit.ThreeDimensionalConvectionAndTimeTermStaticLimit (0 ms)
+[----------] 5 tests from AleOperatorsStaticLimit (5 ms total)
+
+[----------] 2 tests from AleOperatorsHandDerived
+[ RUN      ] AleOperatorsHandDerived.UnitCellWithAMovingEastFace
+G6.1(a): swept (0, 0.10000000000000009, 0, 0), F_rel (-1, 0.79999999999999982, 0, 0), row diag 3 rhs 3 (hand: 3, 3)
+[       OK ] AleOperatorsHandDerived.UnitCellWithAMovingEastFace (0 ms)
+[ RUN      ] AleOperatorsHandDerived.TwoCellsWithAMovingInternalFaceIncludingUpwindReversal
+G6.1(b) uf = 1.0: F_rel = 0.5, A = [[3, 0], [-0.5, 2.5]], rhs = (3, 2)
+G6.1(b) uf = 0.2: F_rel = -0.29999999999999999, A = [[2.5, -0.29999999999999999], [0, 2]], rhs = (0.44000000000000006, 0.40000000000000002)
+[       OK ] AleOperatorsHandDerived.TwoCellsWithAMovingInternalFaceIncludingUpwindReversal (0 ms)
+[----------] 2 tests from AleOperatorsHandDerived (0 ms total)
+
+[----------] 1 test from AleOperators3D
+[ RUN      ] AleOperators3D.UniformFieldIsAnExactSolutionOfTheAleOperator
+G6.5 H8/SN3: relative residual of the uniform field -- ALE 5.732e-16 (<= 1e-10); N1 (no mesh flux) 7.396e-03, N2 (V^{n+1} both levels) 7.396e-03 (each >= 1e-4); static formulation 2.403e-16 (recorded)
+G6.5 H8/EX3: relative residual of the uniform field -- ALE 8.332e-16 (<= 1e-10); N1 (no mesh flux) 2.447e-02, N2 (V^{n+1} both levels) 2.447e-02 (each >= 1e-4); static formulation 2.083e-16 (recorded)
+[       OK ] AleOperators3D.UniformFieldIsAnExactSolutionOfTheAleOperator (3 ms)
+[----------] 1 test from AleOperators3D (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 3 test suites ran. (10 ms total)
+[  PASSED  ] 8 tests.
+exit 0
+# end 2026-09-15T21:21:15Z
