@@ -31,7 +31,24 @@ using cfd::mesh::MeshGeometry;
 namespace {
 
 Real selectComponent(const Vector2& v, VelocityComponent component) {
-  return (component == VelocityComponent::U) ? v.x : v.y;
+  return velocityComponentValue(v, component);
+}
+
+// The gradient of `component` in a computed velocity gradient (P12-MESH-006:
+// gradW for W, which computeVelocityGradient fills on a 3D mesh).
+const VectorField* componentGradient(
+    const std::optional<cfd::discretization::VelocityGradientField>& gradient,
+    VelocityComponent component) {
+  if (!gradient.has_value()) return nullptr;
+  switch (component) {
+    case VelocityComponent::U:
+      return &gradient->gradU;
+    case VelocityComponent::V:
+      return &gradient->gradV;
+    case VelocityComponent::W:
+      return &gradient->gradW;
+  }
+  return nullptr;
 }
 
 // Evaluates the boundary velocity for `face` (must be a boundary face)
@@ -80,15 +97,15 @@ void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
   // P12-NUM-003: computed once, only when requested -- every pre-
   // P12-NUM-003 call site (which never passes this flag) pays no extra
   // cost at all and is byte-identical to before this parameter existed.
-  std::optional<cfd::discretization::VelocityGradientField> velocityGradient;
-  if (applyNonOrthogonalCorrection) {
-    velocityGradient = cfd::discretization::computeVelocityGradient(
-        mesh, velocity, velocityBoundaries, correctionGradientScheme);
-  }
-  const VectorField* gradPhi = velocityGradient.has_value() ? ((component == VelocityComponent::U)
-                                                                   ? &velocityGradient->gradU
-                                                                   : &velocityGradient->gradV)
-                                                            : nullptr;
+  // P12-DIFF-002 A2: always computed -- the Dirichlet wall-flux reconstruction needs it and
+  // WHICH wall-flux scheme is used must not depend on the iterative non-orthogonal control
+  // (a2/activation_architecture.md). applyNonOrthogonalCorrection now gates only the
+  // INTERNAL-face correction.
+  std::optional<cfd::discretization::VelocityGradientField> velocityGradient =
+      cfd::discretization::computeVelocityGradient(mesh, velocity, velocityBoundaries,
+                                                   correctionGradientScheme);
+  const VectorField* gradPhi = componentGradient(velocityGradient, component);
+  const VectorField* internalGradPhi = applyNonOrthogonalCorrection ? gradPhi : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -101,20 +118,26 @@ void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
       // otherwise exactly the pre-existing mu*|Sf|/distance).
       const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
           mesh, face, dynamicViscosity, distance, gradPhi,
-          gradPhi != nullptr && prescribesVelocity(mesh, face, velocityBoundaries));
+          prescribesVelocity(mesh, face, velocityBoundaries));
       const Real diffusionCoefficient = terms.coefficient;
 
       const Vector2 uB = boundaryVelocity(mesh, face, velocity, velocityBoundaries);
       const Real phiB = selectComponent(uB, component);
-      if (gradPhi != nullptr) {
-        rhs[ownerId] += terms.explicitFlux;
-      }
+      // A2: always applied -- the transfer term is exactly 0 on an orthogonal face.
+      rhs[ownerId] += terms.explicitFlux;
 
       // A(P,P) += Df; the -Df*phiB (known) part of the boundary flux
       // moves to the RHS as +Df*phiB (see TODO.md section 10/26 sign
       // derivation in the physics assembly comment above).
+      // P12-DIFF-002: the prescribed value carries its own coefficient
+      // (equal to Df for the two-point form), and the second-order
+      // reconstruction adds one implicit entry coupling this cell to the far
+      // cell across its opposite interior face.
       builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += diffusionCoefficient * phiB;
+      rhs[ownerId] += terms.boundaryValueCoefficient * phiB;
+      if (terms.farCellCoefficient != 0.0) {
+        builder.add(ownerId, terms.farCell, -terms.farCellCoefficient);
+      }
       continue;
     }
 
@@ -124,10 +147,10 @@ void assembleDiffusionContribution(const Mesh& mesh, Real dynamicViscosity,
     // P12-NUM-003: shared face-diffusion geometry -- see
     // NonOrthogonalDiffusion.hpp. The known part moves to the RHS
     // face-once, equal/opposite (sign derivation: this function's header).
-    const auto terms =
-        cfd::discretization::internalFaceDiffusionTerms(mesh, face, dynamicViscosity, dPN, gradPhi);
+    const auto terms = cfd::discretization::internalFaceDiffusionTerms(mesh, face, dynamicViscosity,
+                                                                       dPN, internalGradPhi);
     const Real diffusionCoefficient = terms.coefficient;
-    if (gradPhi != nullptr) {
+    if (internalGradPhi != nullptr) {
       rhs[ownerId] += terms.explicitFlux;
       rhs[neighborId] -= terms.explicitFlux;
     }
@@ -178,16 +201,16 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
 
   // P12-NUM-003: same as the constant-viscosity overload above, except
   // the gradient may come from `correctionVelocity` (see header comment).
-  std::optional<cfd::discretization::VelocityGradientField> velocityGradient;
-  if (applyNonOrthogonalCorrection) {
-    velocityGradient = cfd::discretization::computeVelocityGradient(
-        mesh, (correctionVelocity != nullptr) ? *correctionVelocity : velocity, velocityBoundaries,
-        correctionGradientScheme);
-  }
-  const VectorField* gradPhi = velocityGradient.has_value() ? ((component == VelocityComponent::U)
-                                                                   ? &velocityGradient->gradU
-                                                                   : &velocityGradient->gradV)
-                                                            : nullptr;
+  // P12-DIFF-002 A2: always computed -- the Dirichlet wall-flux reconstruction needs it and
+  // WHICH wall-flux scheme is used must not depend on the iterative non-orthogonal control
+  // (a2/activation_architecture.md). applyNonOrthogonalCorrection now gates only the
+  // INTERNAL-face correction.
+  std::optional<cfd::discretization::VelocityGradientField> velocityGradient =
+      cfd::discretization::computeVelocityGradient(
+          mesh, (correctionVelocity != nullptr) ? *correctionVelocity : velocity,
+          velocityBoundaries, correctionGradientScheme);
+  const VectorField* gradPhi = componentGradient(velocityGradient, component);
+  const VectorField* internalGradPhi = applyNonOrthogonalCorrection ? gradPhi : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -201,17 +224,20 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
       const Real muFace = effectiveViscosity[ownerId];
       const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
           mesh, face, muFace, distance, gradPhi,
-          gradPhi != nullptr && prescribesVelocity(mesh, face, velocityBoundaries));
+          prescribesVelocity(mesh, face, velocityBoundaries));
       const Real diffusionCoefficient = terms.coefficient;
 
       const Vector2 uB = boundaryVelocity(mesh, face, velocity, velocityBoundaries);
       const Real phiB = selectComponent(uB, component);
-      if (gradPhi != nullptr) {
-        rhs[ownerId] += terms.explicitFlux;
-      }
+      // A2: always applied -- the transfer term is exactly 0 on an orthogonal face.
+      rhs[ownerId] += terms.explicitFlux;
 
+      // P12-DIFF-002: as in the constant-viscosity overload above.
       builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += diffusionCoefficient * phiB;
+      rhs[ownerId] += terms.boundaryValueCoefficient * phiB;
+      if (terms.farCellCoefficient != 0.0) {
+        builder.add(ownerId, terms.farCell, -terms.farCellCoefficient);
+      }
       continue;
     }
 
@@ -221,9 +247,9 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
     const Real muFace =
         cfd::discretization::interpolateInternalFace(mesh, face, effectiveViscosity);
     const auto terms =
-        cfd::discretization::internalFaceDiffusionTerms(mesh, face, muFace, dPN, gradPhi);
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, muFace, dPN, internalGradPhi);
     const Real diffusionCoefficient = terms.coefficient;
-    if (gradPhi != nullptr) {
+    if (internalGradPhi != nullptr) {
       rhs[ownerId] += terms.explicitFlux;
       rhs[neighborId] -= terms.explicitFlux;
     }
@@ -259,10 +285,7 @@ void assembleConvectionContribution(const Mesh& mesh, const SurfaceField& massFl
     velocityGradient =
         cfd::discretization::computeVelocityGradient(mesh, velocity, velocityBoundaries);
   }
-  const VectorField* gradPhi = velocityGradient.has_value() ? ((component == VelocityComponent::U)
-                                                                   ? &velocityGradient->gradU
-                                                                   : &velocityGradient->gradV)
-                                                            : nullptr;
+  const VectorField* gradPhi = componentGradient(velocityGradient, component);
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -427,7 +450,7 @@ void assembleMomentumSourceContribution(const Mesh& mesh, const VectorField& sou
   }
   for (const auto& cell : mesh.cells()) {
     const Vector2& source = sourcePerUnitVolume[cell.id()];
-    if (!std::isfinite(source.x) || !std::isfinite(source.y)) {
+    if (!isFinite(source)) {
       throw InvalidArgumentError("assembleMomentumSourceContribution: source must be finite");
     }
     rhs[cell.id()] += cell.volume() * selectComponent(source, component);
@@ -473,6 +496,7 @@ MomentumSystems assembleMomentum(const Mesh& mesh, const VectorField& velocity,
                                  const FluidProperties& fluid,
                                  const BoundaryConditionSet& velocityBoundaries,
                                  const BoundaryConditionSet& pressureBoundaries) {
+  cfd::mesh::requireTwoDimensional(mesh, "assembleMomentum");
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError("assembleMomentum: velocity size does not match mesh cell count");
   }

@@ -1,5 +1,6 @@
 #include "CaseModelAdapter.hpp"
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <utility>
@@ -118,14 +119,19 @@ QVariantMap toVariant(const GeometryConfig& config) {
   m["type"] = QString::fromStdString(config.type);
   m["length"] = config.length;
   m["height"] = config.height;
+  m["depth"] = config.depth;  // P12-MESH-006: a box's z extent (0 for every 2D geometry)
   return m;
 }
 
-GeometryConfig geometryConfigFromVariant(const QVariantMap& variant) {
+GeometryConfig geometryConfigFromVariant(const QVariantMap& variant,
+                                         const GeometryConfig& previous) {
   GeometryConfig config;
   config.type = str(variant, "type", "rectangle");
   config.length = num(variant, "length");
   config.height = num(variant, "height");
+  // P12-MESH-006: an editor map without "depth" keeps the previous depth, so a 3D case's depth
+  // survives a commit from a page that does not show it.
+  config.depth = variant.contains(QStringLiteral("depth")) ? num(variant, "depth") : previous.depth;
   return config;
 }
 
@@ -134,14 +140,110 @@ QVariantMap toVariant(const MeshConfig& config) {
   m["type"] = QString::fromStdString(config.type);
   m["nx"] = static_cast<int>(config.nx);
   m["ny"] = static_cast<int>(config.ny);
+  m["nz"] = static_cast<int>(config.nz);  // P12-MESH-006: cells along z (0 for a 2D mesh)
+  // P12-MESH-001: read-only -- the vertex grid of a structured_quad mesh
+  // is not editable in the GUI (it comes from mesh.json).
+  m["vertexCount"] = static_cast<int>(config.vertices.size());
+  // P12-MESH-003: read-only -- a multiblock mesh (blocks, interfaces,
+  // patches) comes from mesh.json; the editor shows its size only.
+  cfd::Index cells = config.nx * config.ny * (config.nz > 0 ? config.nz : 1);
+  if (config.type == "multiblock") {
+    cells = 0;
+    QVariantList blocks;
+    for (const auto& block : config.blocks) {
+      cells += block.nx * block.ny;
+      QVariantMap b;
+      b["name"] = QString::fromStdString(block.name);
+      b["nx"] = static_cast<int>(block.nx);
+      b["ny"] = static_cast<int>(block.ny);
+      blocks.push_back(b);
+    }
+    m["blocks"] = blocks;
+    m["interfaceCount"] = static_cast<int>(config.interfaces.size());
+  }
+  m["cellCount"] = static_cast<double>(cells);
+  // P12-MESH-002: grading, flattened per axis for the mesh editor (an
+  // absent "grading" reads as uniform on both axes).
+  const cfd::io::MeshGradingConfig grading = config.grading.value_or(cfd::io::MeshGradingConfig{});
+  m["hasGrading"] = config.grading.has_value();
+  for (const bool xAxis : {true, false}) {
+    const cfd::mesh::AxisGrading& g = xAxis ? grading.x : grading.y;
+    const QString prefix = xAxis ? QStringLiteral("xGrading") : QStringLiteral("yGrading");
+    m[prefix + "Type"] = QString::fromLatin1(cfd::io::gradingTypeName(g.type));
+    m[prefix + "Ratio"] = g.ratio;
+    m[prefix + "Cluster"] = QString::fromLatin1(cfd::io::gradingClusterName(g.cluster, xAxis));
+  }
   return m;
 }
 
-MeshConfig meshConfigFromVariant(const QVariantMap& variant) {
+namespace {
+
+// One axis of the mesh editor's flattened grading keys. The vocabulary is
+// that of mesh.json (MeshConfig.hpp); anything else maps to a value the
+// real CaseReader then validates (an unknown type reads as geometric so a
+// typo is rejected there instead of silently becoming uniform).
+cfd::mesh::AxisGrading axisGradingFromVariant(const QVariantMap& variant, bool xAxis) {
+  const char* type = xAxis ? "xGradingType" : "yGradingType";
+  const char* ratio = xAxis ? "xGradingRatio" : "yGradingRatio";
+  const char* cluster = xAxis ? "xGradingCluster" : "yGradingCluster";
+  cfd::mesh::AxisGrading g;
+  if (str(variant, type, "uniform") == "uniform") return g;
+  g.type = cfd::mesh::GradingType::Geometric;
+  g.ratio = num(variant, ratio, 1.0);
+  const std::string side = str(variant, cluster, "both");
+  if (side == (xAxis ? "left" : "bottom")) {
+    g.cluster = cfd::mesh::GradingCluster::Start;
+  } else if (side == (xAxis ? "right" : "top")) {
+    g.cluster = cfd::mesh::GradingCluster::End;
+  } else {
+    g.cluster = cfd::mesh::GradingCluster::Both;
+  }
+  return g;
+}
+
+}  // namespace
+
+MeshConfig meshConfigFromVariant(const QVariantMap& variant, const MeshConfig& previous) {
   MeshConfig config;
   config.type = str(variant, "type", "structured_cartesian");
   config.nx = static_cast<cfd::Index>(integer(variant, "nx"));
   config.ny = static_cast<cfd::Index>(integer(variant, "ny"));
+  // P12-MESH-006: a map without "nz" keeps the previous nz (a 3D case's z resolution survives a
+  // commit from a page that does not show it); validity is CaseReader's check.
+  config.nz = variant.contains(QStringLiteral("nz"))
+                  ? static_cast<cfd::Index>(std::max(0, integer(variant, "nz")))
+                  : previous.nz;
+  // P12-MESH-001: the editor never carries vertices; a structured_quad
+  // mesh keeps the previous (mesh.json) vertex grid, so saving never drops
+  // it. If nx/ny were changed, the kept grid no longer matches and
+  // validation reports that (CaseReader: vertex count).
+  if (config.type == "structured_quad") config.vertices = previous.vertices;
+  // P12-MESH-003: likewise a multiblock mesh keeps its blocks, interfaces
+  // and patches (nx/ny stay 0).
+  if (config.type == "multiblock") {
+    config.nx = 0;
+    config.ny = 0;
+    config.blocks = previous.blocks;
+    config.interfaces = previous.interfaces;
+    config.patches = previous.patches;
+  }
+  // P12-MESH-002: grading (structured_cartesian only). A map without the
+  // grading keys keeps the previous grading unchanged; with them, a grading
+  // is recorded when either axis is geometric or the case already had one
+  // (so an ungraded case still saves exactly {type, nx, ny}).
+  if (config.type == "structured_cartesian") {
+    if (!variant.contains(QStringLiteral("xGradingType")) &&
+        !variant.contains(QStringLiteral("yGradingType"))) {
+      config.grading = previous.grading;
+    } else {
+      cfd::io::MeshGradingConfig grading{axisGradingFromVariant(variant, true),
+                                         axisGradingFromVariant(variant, false)};
+      if (previous.grading.has_value() || grading.x.type == cfd::mesh::GradingType::Geometric ||
+          grading.y.type == cfd::mesh::GradingType::Geometric) {
+        config.grading = grading;
+      }
+    }
+  }
   return config;
 }
 
@@ -149,14 +251,20 @@ QVariantMap toVariant(const InitialConditions& config) {
   QVariantMap m;
   m["velocityX"] = config.velocity.x;
   m["velocityY"] = config.velocity.y;
+  m["velocityZ"] = config.velocity.z;  // P12-MESH-006 (0 for a 2D case)
   m["pressure"] = config.pressure;
   return m;
 }
 
-InitialConditions initialConditionsFromVariant(const QVariantMap& variant) {
+InitialConditions initialConditionsFromVariant(const QVariantMap& variant,
+                                               const InitialConditions& previous) {
   InitialConditions config;
-  config.velocity = Vector2{num(variant, "velocityX"), num(variant, "velocityY")};
+  // P12-MESH-006: velocityZ (absent: keep the previous w); CaseWriter writes [u, v, w] for a box
+  // geometry and [u, v] otherwise, whatever the component count read from case.json was.
+  config.velocity = Vector2{num(variant, "velocityX"), num(variant, "velocityY"),
+                            num(variant, "velocityZ", previous.velocity.z)};
   config.pressure = num(variant, "pressure");
+  config.velocityComponents = previous.velocityComponents;
   return config;
 }
 
@@ -301,12 +409,13 @@ QVariantMap velocityToVariant(const VelocityBoundarySpec& spec) {
   m["type"] = QString::fromStdString(spec.type);
   m["valueX"] = spec.value.x;
   m["valueY"] = spec.value.y;
+  m["valueZ"] = spec.value.z;  // P12-MESH-006 (0 for a 2D case; CaseWriter writes it only in 3D)
   return m;
 }
 VelocityBoundarySpec velocityFromVariant(const QVariantMap& m) {
   VelocityBoundarySpec spec;
   spec.type = str(m, "type", "wall");
-  spec.value = Vector2{num(m, "valueX"), num(m, "valueY")};
+  spec.value = Vector2{num(m, "valueX"), num(m, "valueY"), num(m, "valueZ")};
   return spec;
 }
 QVariantMap pressureToVariant(const PressureBoundarySpec& spec) {
@@ -384,17 +493,43 @@ QVariantMap toVariant(const BoundaryConfig& config) {
   return m;
 }
 
+QVariantMap toVariant(const cfd::mesh::MeshQualityReport& report) {
+  QVariantMap m;
+  m["status"] = QString::fromLatin1(cfd::mesh::meshQualityStatusName(report.status));
+  m["summary"] = QString::fromStdString(report.summaryLine());
+  m["cells"] = static_cast<double>(report.cellCount);
+  m["minimumCellArea"] = report.cellArea.minimum;
+  m["maximumCellArea"] = report.cellArea.maximum;
+  m["maximumAspectRatio"] = report.aspectRatio.maximum;
+  m["maximumNonOrthogonality"] = report.nonOrthogonality.maximum;
+  m["maximumSkewness"] = report.skewness.maximum;
+  m["maximumExpansionRatio"] =
+      report.expansionRatio.count > 0 ? report.expansionRatio.maximum : 1.0;
+  m["degenerateCells"] = static_cast<double>(report.degenerateCells);
+  m["invalidFaces"] = static_cast<double>(report.invalidFaces);
+  QVariantList issues;
+  for (const auto& issue : report.issues) {
+    QVariantMap i;
+    i["severity"] = QString::fromLatin1(cfd::mesh::meshQualitySeverityName(issue.severity));
+    i["metric"] = QString::fromStdString(issue.metric);
+    i["message"] = QString::fromStdString(issue.message);
+    i["text"] = QString::fromStdString(cfd::mesh::formatMeshQualityIssue(issue));
+    issues.push_back(i);
+  }
+  m["issues"] = issues;
+  return m;
+}
+
 BoundaryConfig boundaryConfigFromVariant(const QVariantMap& variant) {
   BoundaryConfig config;
-  // Only the four patches the one supported geometry/mesh combination
-  // produces are ever GUI-editable (BoundaryEditor.qml's own fixed
-  // left/right/bottom/top tab set) -- reading any other key here would
-  // just be silently ignored data, so this loop deliberately walks the
-  // canonical four rather than `variant`'s own keys.
-  for (const char* patchName : {"left", "right", "bottom", "top"}) {
-    const QString key = QString::fromUtf8(patchName);
-    if (!variant.contains(key)) continue;
-    const QVariantMap patchMap = variant.value(key).toMap();
+  // Every patch in the map (BoundaryEditor.qml edits a deep copy of the
+  // whole boundary configuration and hands all of it back): the four
+  // canonical patches of a single-grid mesh, or a P12-MESH-003 multiblock
+  // mesh's own named patches -- which patch names are valid is CaseReader's
+  // check (they must be exactly the mesh's), not this adapter's.
+  for (auto entry = variant.begin(); entry != variant.end(); ++entry) {
+    const std::string patchName = entry.key().toStdString();
+    const QVariantMap patchMap = entry->toMap();
     PatchBoundaryConfig patch;
     patch.velocity = velocityFromVariant(patchMap.value(QStringLiteral("velocity")).toMap());
     patch.pressure = pressureFromVariant(patchMap.value(QStringLiteral("pressure")).toMap());

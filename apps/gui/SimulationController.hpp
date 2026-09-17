@@ -56,6 +56,10 @@ class SimulationController : public QObject {
   Q_PROPERTY(QStringList availableResidualSeriesNames READ availableResidualSeriesNames NOTIFY
                  resultsChanged)
   Q_PROPERTY(QVariantMap meshBounds READ meshBounds NOTIFY resultsChanged)
+  // P12-MESH-006: true for a 3D (hexahedral) result -- the field map, contours, vectors, probe and
+  // line sampler below are two-dimensional views and return nothing for it (no exception); the
+  // residual history (with "w") and the exported files are the 3D result views.
+  Q_PROPERTY(bool resultsThreeDimensional READ resultsThreeDimensional NOTIFY resultsChanged)
 
   // --- P7-GUI -- Case Editing ---------------------------------------------
   // One property per cfd::io::CaseDefinition section (see
@@ -97,6 +101,12 @@ class SimulationController : public QObject {
   // not), not to promise multi-error aggregation the underlying
   // validation pipeline does not do.
   Q_PROPERTY(QVariantList validationIssues READ validationIssues NOTIFY validationChanged)
+  // P12-MESH-004: the production mesh-quality report of the open case (the
+  // toVariant(MeshQualityReport) shape of CaseModelAdapter.hpp), refreshed
+  // when a case is opened (by building it) and by every validateDraft();
+  // {status: "invalid", summary: <the case error>} when the case cannot be
+  // built, {} when no case is open.
+  Q_PROPERTY(QVariantMap meshQuality READ meshQuality NOTIFY validationChanged)
 
  public:
   explicit SimulationController(QObject* parent = nullptr);
@@ -136,6 +146,7 @@ class SimulationController : public QObject {
   [[nodiscard]] QVariantMap initialConditions() const;
   [[nodiscard]] QVariantMap validationStatus() const { return validationStatus_; }
   [[nodiscard]] QVariantList validationIssues() const;
+  [[nodiscard]] QVariantMap meshQuality() const { return meshQuality_; }
 
   // Each commits a structural QVariantMap -> typed cfd::io::* conversion
   // (CaseModelAdapter.hpp) into the session's in-memory CaseDefinition
@@ -205,6 +216,7 @@ class SimulationController : public QObject {
   // becomes a validateDraft() error). Never itself a validity check --
   // nx <= 0/ny <= 0/length <= 0/height <= 0 are reported through
   // validateDraft() like every other field, not invented here.
+  // P12-MESH-006: for a box geometry with nz > 0, cellCount = nx*ny*nz and dz = depth/nz.
   Q_INVOKABLE QVariantMap meshCellInfo(const QVariantMap& mesh, const QVariantMap& geometry) const;
 
  public:
@@ -220,6 +232,7 @@ class SimulationController : public QObject {
   [[nodiscard]] QStringList availableFields() const;
   [[nodiscard]] QStringList availableResidualSeriesNames() const;
   [[nodiscard]] QVariantMap meshBounds() const;
+  [[nodiscard]] bool resultsThreeDimensional() const;
 
   // Loads a completed case's own results/ directory without solving
   // (section 9) -- called automatically after a successful openCase()
@@ -276,6 +289,9 @@ class SimulationController : public QObject {
 
  private:
   void joinWorkerIfAny();
+  // P12-MESH-004: rebuilds the open case (CaseBuilder, the production path)
+  // and stores its mesh-quality report in meshQuality_.
+  void refreshMeshQuality();
   void setSnapshot(cfd::app::VisualizationSnapshot snapshot);
   [[nodiscard]] cfd::app::VisualizationSnapshot currentSnapshot() const;
 
@@ -307,4 +323,5 @@ class SimulationController : public QObject {
   // needed the way snapshot_ above has one.
   QVariantMap validationStatus_{
       {"valid", true}, {"section", QString()}, {"field", QString()}, {"message", QString()}};
+  QVariantMap meshQuality_;
 };

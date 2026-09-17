@@ -59,7 +59,10 @@ TransientResult TransientSolver::solve(TransientState initialState,
 
     // A failed step's own state is never accepted -- `state` (the last
     // accepted state) becomes the returned finalState unchanged.
+    // (P12-MESH-007: each rejection first tells the step solver, so it can
+    // undo side effects such as a mesh motion -- see onStepRejected.)
     if (stepResult.status != TransientStepStatus::Converged) {
+      stepSolver_.onStepRejected();
       return TransientResult{toTransientStatus(stepResult.status), std::move(history),
                              std::move(state)};
     }
@@ -67,12 +70,14 @@ TransientResult TransientSolver::solve(TransientState initialState,
     // it anyway (TODO.md P2 section 15/51 -- "verify finite state" is its
     // own line in the loop, not folded into "perform PISO time step").
     if (anyNonFinite(stepResult.state)) {
+      stepSolver_.onStepRejected();
       return TransientResult{TransientStatus::NonFiniteState, std::move(history), std::move(state)};
     }
     if (stepResult.maxCFL > cflFailAbove_) {
       // Reject, same as a failed step -- "must not be silently accepted"
       // applies equally to a numerically successful step whose CFL is
       // outside the caller's declared safe range.
+      stepSolver_.onStepRejected();
       return TransientResult{TransientStatus::CFLViolation, std::move(history), std::move(state)};
     }
 

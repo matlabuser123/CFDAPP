@@ -14,6 +14,12 @@ add_executable(CFDIoTests
   test_json_writer.cpp
   test_vtk_writer.cpp
   test_robustness_config.cpp
+  test_structured_quad_case.cpp
+  test_mesh_quality_case.cpp
+  test_graded_mesh_case.cpp
+  test_multiblock_case.cpp
+  test_vtk3d.cpp
+  test_case3d.cpp
 )
 
 target_link_libraries(CFDIoTests

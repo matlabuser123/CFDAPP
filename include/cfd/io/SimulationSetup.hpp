@@ -8,6 +8,7 @@
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/mesh/MeshQuality.hpp"
 #include "cfd/multiphase/MultiphaseProperties.hpp"
 #include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/physics/FluidProperties.hpp"
@@ -183,6 +184,11 @@ struct SimulationSetup {
   // PhysicsConfigParser.cpp's own cross-block rejection).
   std::optional<MultiphaseSetup> multiphase;
   std::optional<CompressibleSetup> compressible;
+
+  // P12-MESH-004: the production mesh-quality report of `mesh` -- the one
+  // evaluation CaseBuilder's validity gate ran (status Valid or
+  // ValidWithWarnings; an Invalid mesh never produces a SimulationSetup).
+  cfd::mesh::MeshQualityReport meshQuality;
 };
 
 }  // namespace cfd::io

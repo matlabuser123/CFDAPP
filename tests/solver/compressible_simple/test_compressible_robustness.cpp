@@ -6,9 +6,10 @@
 //     nothing); the adaptive controller on the genuinely compressible air
 //     cavity converges faster than the fixed default relaxation, with the
 //     EOS density still iterated;
-//   - FallbackRecovery: the P12-COMP-002 channel started from rest breaks
-//     down in the BiCGSTAB pressure solve; the fallback recovers (CG, SPD
-//     proven) and the outer solve continues;
+//   - FallbackRecovery: the P12-COMP-002 channel started from rest -- its
+//     BiCGSTAB pressure solve used to break down falsely (a scale artefact
+//     fixed in P12-MESH-004); it now runs to its budget and the fallback is
+//     never needed;
 //   - LowMachRegression: with adaptive relaxation and the normalized
 //     criterion in BOTH solvers, a near-incompressible gas still reproduces
 //     incompressible SIMPLE's converged solution (the iteration paths --
@@ -176,9 +177,14 @@ TEST(CompressibleSIMPLERobustnessTest, RobustnessRegression) {
 
 // The P12-COMP-002 channel (48x8, 1.0 x 0.05, inlet 20 m/s, fixed-pressure
 // outlet, isothermal air at 300 K, p_ref = 101325) started from rest with the
-// BiCGSTAB pressure solver: its pressure solve breaks down in outer
-// iteration 64 without the fallback; with it, CG recovers and the solve
-// continues to its budget.
+// BiCGSTAB pressure solver. Before P12-MESH-004 its pressure solve reported
+// Breakdown in outer iteration 64 and the fallback (CG) recovered it; that
+// was the scale-dependent false breakdown P12-MESH-004 fixed (t . t =
+// 9.0e-31 < 1e-30 only because |t| / |s| = 5.3e-8 times |s| = 1.8e-8 --
+// results/p12-mesh-004/solver-robustness/05). Now the solve never breaks
+// down: it runs to its budget with no linear failure, and enabling the
+// fallback changes nothing. The fallback policy on a GENUINE breakdown is
+// covered by LinearFallbackTest (tests/unit/algebra).
 TEST(CompressibleSIMPLERobustnessTest, FallbackRecovery) {
   const Mesh mesh = MeshGeometry::createCartesian2D(48, 8, 1.0, 0.05);
   BoundaryConditionSet velocity;
@@ -227,21 +233,15 @@ TEST(CompressibleSIMPLERobustnessTest, FallbackRecovery) {
       static_cast<unsigned long long>(with.robustness.linearSolverFallbacks),
       static_cast<unsigned long long>(with.robustness.linearSolverFallbackRecoveries));
 
-  ASSERT_EQ(without.status, CompressibleSIMPLEStatus::PressureCorrectionFailure);
-  EXPECT_EQ(without.iterations, 63u);
-  EXPECT_EQ(with.status, CompressibleSIMPLEStatus::MaxIterations);
-  EXPECT_EQ(with.iterations, 80u);
-  ASSERT_GE(with.robustness.linearSolverFallbacks, 1u);
-  EXPECT_EQ(with.robustness.linearSolverFallbackRecoveries, with.robustness.linearSolverFallbacks);
-  const auto& first = with.robustness.fallbackEvents.front();
-  EXPECT_EQ(first.iteration, 64u);
-  EXPECT_EQ(first.equation, "pressure-correction");
-  EXPECT_TRUE(first.report.cgEligible);
-  EXPECT_EQ(first.report.attempts.front().type, cfd::algebra::LinearSolverType::CG);
-  EXPECT_EQ(first.report.attempts.front().status, cfd::algebra::SolverStatus::Converged);
+  EXPECT_EQ(without.status, CompressibleSIMPLEStatus::MaxIterations);  // ran to the budget
+  EXPECT_EQ(without.iterations, 80u);
+  EXPECT_TRUE(without.robustness.statusDetail.empty());  // no linear-solver failure
+  EXPECT_EQ(with.robustness.linearSolverFallbacks, 0u);
+  EXPECT_TRUE(with.robustness.fallbackEvents.empty());
+  expectBitIdentical(without, with);
   for (Index i = 0; i < n; ++i) {
-    EXPECT_TRUE(std::isfinite(with.density[i]));
-    EXPECT_GT(with.density[i], 0.0);
+    EXPECT_TRUE(std::isfinite(without.density[i]));
+    EXPECT_GT(without.density[i], 0.0);
   }
 }
 

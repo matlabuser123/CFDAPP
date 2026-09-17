@@ -6,15 +6,14 @@
 
 #include "cfd/core/Exception.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
+#include "cfd/thermal/EnergyEquation.hpp"
 
 namespace cfd::thermal {
 
 using cfd::algebra::SparseMatrix;
 using cfd::algebra::SparseMatrixBuilder;
 using cfd::algebra::Vector;
-using cfd::boundary::BoundaryCondition;
 using cfd::boundary::BoundaryConditionSet;
-using cfd::boundary::ScalarBoundaryCondition;
 using cfd::fields::ScalarField;
 using cfd::mesh::Face;
 using cfd::mesh::Mesh;
@@ -27,25 +26,6 @@ void requirePositiveFinite(Real value, const char* what) {
     throw InvalidArgumentError(std::string("interfaceConductance: ") + what +
                                " must be finite and > 0");
   }
-}
-
-// Same evaluate-at-current-state pattern as EnergyEquation.cpp's own
-// (private, so not reusable directly) boundaryTemperatureValue -- every
-// file in this codebase that needs this defines its own tiny copy rather
-// than sharing one across translation units for a two-line helper (same
-// convention as the SIMPLE.cpp/PISO.cpp/RestartSnapshot.cpp allFinite()
-// precedent).
-Real boundaryTemperatureValue(const Mesh& mesh, const Face& face, const ScalarField& temperature,
-                              const BoundaryConditionSet& temperatureBoundaries) {
-  const BoundaryCondition& bc =
-      cfd::boundary::boundaryConditionForFace(mesh, face.id(), temperatureBoundaries);
-  const auto* scalarBc = dynamic_cast<const ScalarBoundaryCondition*>(&bc);
-  if (scalarBc == nullptr) {
-    throw InvalidArgumentError("ThermalInterface: boundary condition is not scalar-valued");
-  }
-  const Real ownerValue = temperature[face.owner()];
-  const Real distance = MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
-  return scalarBc->boundaryValue(ownerValue, distance);
 }
 
 }  // namespace
@@ -74,19 +54,37 @@ void assembleRegionAwareThermalDiffusionContribution(
         "count");
   }
 
+  // P12-DIFF-002: the cell gradient the Dirichlet wall reconstruction needs for its tangential
+  // transfer term (exactly zero on an orthogonal face). Built once per assembly, and always --
+  // which wall-flux scheme is used must not depend on any iterative control. The conjugate path
+  // itself remains uncorrected on INTERNAL faces, unchanged.
+  const cfd::fields::VectorField gradT =
+      thermalBoundaryCorrectionGradient(mesh, temperature, temperatureBoundaries);
+
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
 
     if (face.isBoundary()) {
-      const Index ownerId = face.owner();
-      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const Real conductivity = regions.regionForCell(ownerId).properties.conductivity();
-      const Real diffusionCoefficient = conductivity * face.area() / distance;
-
-      const Real tB = boundaryTemperatureValue(mesh, face, temperature, temperatureBoundaries);
-
-      builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += diffusionCoefficient * tB;
+      // Exactly the single-material assembly's boundary treatment, through the ONE shared
+      // implementation (EnergyEquation's assembleThermalBoundaryFaceContribution): the P12-DIFF-002
+      // second-order one-sided Dirichlet reconstruction where a valid inward stencil exists, the
+      // historical two-point fallback where none does, and the exact prescribed flux for
+      // gradient-type conditions.
+      //
+      // This branch used to compute `conductivity * face.area() / distance` itself and pass only
+      // that coefficient, which selected the pre-DIFF-002 two-point wall flux. When P12-DIFF-002 A2
+      // made the single-material wall flux unconditionally second order, this copy silently stopped
+      // matching it: a SINGLE-region conjugate solve differed from the equivalent single-material
+      // solve by up to 3.02 K (results/p12-diff-002/thermal-interface-fix/acceptance_gate.md
+      // section 1). Sharing the implementation is what stops that recurring -- do not reintroduce a
+      // local boundary-coefficient formula here.
+      //
+      // The owner cell's own conductivity is the right one: a boundary face has no neighbour to
+      // interpolate against, and for a face of a multi-region mesh the wall is in contact with the
+      // owner's material only.
+      assembleThermalBoundaryFaceContribution(
+          mesh, face, regions.regionForCell(face.owner()).properties.conductivity(), temperature,
+          temperatureBoundaries, gradT, builder, rhs);
       continue;
     }
 
@@ -145,7 +143,7 @@ EnergyAssembly assembleConjugateConductionEquation(
 
   Vector diagonal(n);
   for (Index row = 0; row < n; ++row) {
-    diagonal[row] = matrix.diagonal(row);
+    diagonal[row] = storedDiagonalOrZero(matrix, row);
   }
 
   if (!matrix.allFinite() || !rhs.allFinite()) {

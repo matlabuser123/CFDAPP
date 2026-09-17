@@ -6,9 +6,12 @@
 
 namespace cfd::fields {
 
-// One Vector2 value per mesh cell: velocity, gradient-like vector
-// quantities, vector source terms, ... . 2D for the current phase; a
-// Vector3-based generalization arrives alongside a 3D mesh.
+// One vector value per mesh cell: velocity, gradient-like vector
+// quantities, vector source terms, ... . P12-MESH-005: always three
+// components (u, v, w) -- Vector2 is an alias of Vector3 -- rather than a
+// dimension-dependent size: on a 2D mesh w is 0 and every 2D operation is
+// unchanged; on a 3D mesh the same field carries w. One field type for both
+// dimensions, so no operator needs a 2D and a 3D version of its signature.
 class VectorField : public Field<Vector2> {
  public:
   using Field<Vector2>::Field;

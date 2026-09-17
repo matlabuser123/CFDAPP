@@ -75,6 +75,7 @@ ThermalResult runPicardLoop(const ThermalSolverSettings& settings, BiCGSTAB& lin
   ScalarField temperature = initialTemperature;
   ThermalStatus finalStatus = ThermalStatus::MaxIterations;
   Index outerIterationsRun = 0;
+  Real referenceResidual = 0.0;  // ||b - A T|| at the start of the first linear solve
 
   for (Index outer = 0; outer < settings.maxIterations; ++outer) {
     // Sizes and finiteness are already checked (before the loop, and via
@@ -95,12 +96,29 @@ ThermalResult runPicardLoop(const ThermalSolverSettings& settings, BiCGSTAB& lin
     }
 
     const SolverResult linearResult = linearSolver.solve(assembly->system, toVector(temperature));
+    if (outer == 0) referenceResidual = linearResult.initialResidual;
     result.linearIterations = linearResult.iterations;
     result.initialResidual = linearResult.initialResidual;
     result.finalResidual = linearResult.finalResidual;
     result.residualHistory = linearResult.residualHistory;
 
-    if (!linearResult.converged()) {
+    // P12-MESH-003: once the boundary values no longer lag
+    // (boundaryDiffusionContribution), a later outer iteration re-solves a
+    // system whose solution the previous iteration already produced, and
+    // the relative target (of a residual that is already tiny) can be
+    // below round-off -- BiCGSTAB then reports Breakdown after having
+    // reduced the residual further. Such a breakdown is an attained solve
+    // when its residual meets the linear tolerance measured against the
+    // ORIGINAL imbalance (the first outer iteration's initial residual);
+    // its solution is kept and the outer criterion (max |dT| < tolerance)
+    // decides as usual. Every other non-converged solve (and any in the
+    // first outer iteration) is still a LinearSolveFailure.
+    const bool attainedBreakdown =
+        outer > 0 && linearResult.status == cfd::algebra::SolverStatus::Breakdown &&
+        std::isfinite(linearResult.finalResidual) &&
+        (linearResult.finalResidual <= settings.linearSolver.absoluteTolerance ||
+         linearResult.finalResidual <= settings.linearSolver.relativeTolerance * referenceResidual);
+    if (!linearResult.converged() && !attainedBreakdown) {
       finalStatus = ThermalStatus::LinearSolveFailure;
       outerIterationsRun = outer + 1;
       break;

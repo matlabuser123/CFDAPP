@@ -193,4 +193,29 @@ std::array<Real, 2> getRequiredVector2(const nlohmann::json& node,
   return result;
 }
 
+std::array<Real, 3> getRequiredVector3(const nlohmann::json& node,
+                                       const std::filesystem::path& path, std::string_view field,
+                                       std::string_view label) {
+  requireField(node, path, field, label);
+  const auto& value = node.at(field);
+  if (!value.is_array() || value.size() != 3) {
+    throwConfigError(path, resolveLabel(field, label),
+                     "be an array of exactly 3 numbers [x, y, z] (a 3D case)",
+                     describeJsonValue(value));
+  }
+  std::array<Real, 3> result{};
+  for (std::size_t i = 0; i < 3; ++i) {
+    if (!value[i].is_number()) {
+      throwConfigError(path, resolveLabel(field, label), "have numeric components",
+                       describeJsonValue(value));
+    }
+    result.at(i) = value[i].get<Real>();
+    if (!std::isfinite(result.at(i))) {
+      throwConfigError(path, resolveLabel(field, label), "have finite components",
+                       describeJsonValue(value));
+    }
+  }
+  return result;
+}
+
 }  // namespace cfd::io::detail

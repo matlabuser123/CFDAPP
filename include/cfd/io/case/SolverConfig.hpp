@@ -69,6 +69,10 @@ struct SolverConfig {
   // -> default-constructed = absolute convergence criterion and every
   // feature disabled, i.e. exactly the pre-P12-NUM-004 solver.
   cfd::solver::SolverRobustnessSettings robustness;
+  // P12-MESH-006: solver.json's optional "face_flux": "automatic" (default:
+  // linear in 2D, Rhie-Chow in 3D), "linear" or "rhie_chow" --
+  // cfd::pressure_velocity::FaceFluxScheme.
+  std::string faceFlux{"automatic"};
 };
 
 }  // namespace cfd::io

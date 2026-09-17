@@ -92,13 +92,39 @@ struct PairAveragedPressureGradient {
                                         const cfd::fields::SurfaceField& massFlux, cfd::Real x);
 
 // The EXACT fully developed solution of this code's discretisation on ny
-// uniform rows (central diffusion, wall face gradient over the half cell
-// dy/2): u_j = (G/2) y_j (H - y_j) + G dy^2/8, G = -(dp/dx)/mu, whose mean
-// over the rows equals meanVelocity for
-//   dp/dx = -12 mu meanVelocity / H^2 * ny^2 / (ny^2 + 2).
-// It differs from the continuous solution only by O(dy^2) -- the formal
-// second order -- so comparing against both separates the discretisation
-// error (predicted exactly) from entrance, outlet and iterative effects.
+// uniform rows (central diffusion + the P12-DIFF-002 second-order one-sided
+// wall-flux reconstruction).
+//
+// P12-DIFF-002-UC-001: DIFF-002 replaced the first-order wall gradient over
+// the half cell dy/2 with the two-point one-sided reconstruction
+//   cP = mu|S| h2/(h1(h2-h1)), cF = mu|S| h1/(h2(h2-h1)), cB = mu|S|(1/h1+1/h2),
+//   h1 = dy/2, h2 = 3dy/2  =>  cP = 3mu|S|/dy, cF = mu|S|/(3dy), cB = 8mu|S|/(3dy),
+// so the wall row became -4u_0 + (4/3)u_1 = G dy^2 (it was -3u_0 + u_1 = G dy^2).
+// The solution of the new system is the continuum parabola EXACTLY at the cell
+// centres, with only the flow-rate-consistent gradient scaled:
+//   u_j = (G/2) y_j (H - y_j),  G = -(dp/dx)/mu,
+//   dp/dx = -12 mu meanVelocity / H^2 * 2 ny^2 / (2 ny^2 + 1),
+// i.e. a relative discretisation error of exactly 1/(2 ny^2 + 1) and a
+// pressure-drop ratio of exactly 2 ny^2 / (2 ny^2 + 1). The superseded
+// two-point form -- u_j with an extra +G dy^2/8 offset, dp/dx scaled by
+// ny^2/(ny^2+2), relative error 2/(ny^2+2) -- is four times less accurate at
+// the same ny; both are second order, so DIFF-002 changed the error constant,
+// not the order. Full derivation, exact-rational cross-check and the
+// machine-precision comparison against the assembled matrix:
+// results/p12-diff-002/uc-001/acceptance_gate.md.
+//
+// Comparing against this AND the continuous solution separates the
+// discretisation error (predicted exactly) from entrance, outlet and
+// iterative effects.
+//
+// CAUTION when sampling the centreline. The tests read
+// interpolateProfile(profile, H/2), not a cell value, and that sampling has a
+// parity-dependent error constant:
+//   1.5 U - u_c = 1.5/(2 ny^2 + 1)   (ny odd -- H/2 is a cell centre)
+//                 4.5/(2 ny^2 + 1)   (ny even -- H/2 is the chord midpoint)
+// exactly three times larger for even ny. A centreline grid-convergence
+// triplet must therefore use ny values of a single parity, or the observed
+// order is meaningless (the exact reference itself then reports p = 0.94).
 [[nodiscard]] cfd::Real discretePressureGradient(cfd::Real dynamicViscosity, cfd::Real meanVelocity,
                                                  cfd::Real channelHeight, cfd::Index ny);
 [[nodiscard]] cfd::Real discretePoiseuilleVelocity(cfd::Real y, cfd::Real channelHeight,

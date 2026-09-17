@@ -37,4 +37,30 @@ struct ContinuityResult {
 [[nodiscard]] ContinuityResult evaluateContinuity(const cfd::mesh::Mesh& mesh,
                                                   const cfd::fields::SurfaceField& massFlux);
 
+// P12-MESH-006: the global mass balance of a face mass flux (owner-oriented,
+// so a boundary face's F_f > 0 leaves the domain), for the production
+// diagnostics of a converged solve:
+//   inflow   = sum over boundary faces with F_f < 0 of -F_f
+//   outflow  = sum over boundary faces with F_f > 0 of  F_f
+//   net      = sum over boundary faces of F_f (= outflow - inflow; the same
+//              sum, in patch order, as ContinuityResult::globalNetFlux)
+//   relativeImbalance = |net| / max(inflow, outflow)   (0 if both are 0)
+//   maxCellImbalance, rmsCellImbalance: of ContinuityResult::cellImbalance
+//   fluxScale = max(inflow, outflow, mean |F_f| over internal faces) -- the
+//              scale of the flux field (a closed domain has no inflow)
+//   normalizedContinuity = rmsCellImbalance / fluxScale (0 if fluxScale 0).
+struct MassBalance {
+  Real inflow{};
+  Real outflow{};
+  Real net{};
+  Real relativeImbalance{};
+  Real maxCellImbalance{};
+  Real rmsCellImbalance{};
+  Real fluxScale{};
+  Real normalizedContinuity{};
+};
+// Throws InvalidArgumentError if massFlux.size() != mesh.numberOfFaces().
+[[nodiscard]] MassBalance computeMassBalance(const cfd::mesh::Mesh& mesh,
+                                             const cfd::fields::SurfaceField& massFlux);
+
 }  // namespace cfd::physics

@@ -33,11 +33,16 @@ struct VisualizationSnapshot {
 
   Index nx{};
   Index ny{};
+  // P12-MESH-006: cells along z of a 3D (hexahedral) result; 0 for every 2D result. The field
+  // map, contours, vector plot, probe and line sampler are two-dimensional views and show nothing
+  // for a 3D result (the exported solution.vtk is the 3D view).
+  Index nz{};
   std::vector<Vector2> points;  // per-cell coordinates.
 
   std::vector<Real> pressure;
   std::vector<Real> velocityX;
   std::vector<Real> velocityY;
+  std::vector<Real> velocityZ;  // P12-MESH-006: 3D results only (empty in 2D).
   std::vector<Real> velocityMagnitude;
   std::optional<std::vector<Real>> temperature;  // present iff the case is thermal-enabled.
 
@@ -59,8 +64,11 @@ struct VisualizationSnapshot {
   // never a second, GUI-computed residual), 1..N in iteration order.
   std::vector<Real> uResidualHistory;
   std::vector<Real> vResidualHistory;
+  std::vector<Real> wResidualHistory;  // P12-MESH-006: 3D results only (empty in 2D).
   std::vector<Real> pressureResidualHistory;
   std::vector<Real> continuityResidualHistory;
+
+  [[nodiscard]] bool threeDimensional() const noexcept { return nz > 0; }
 
   // The scalar fields a GUI field selector can list/plot, in a fixed,
   // stable order -- "pressure", "velocity_magnitude", (iff `temperature`
@@ -81,7 +89,8 @@ struct VisualizationSnapshot {
 
   // The four residual series (section 8's own always-present set; a
   // thermal/species/turbulence case would add more once those are
-  // wired into ProjectRunner's dispatch -- not yet, see TODO.md).
+  // wired into ProjectRunner's dispatch -- not yet, see TODO.md), plus
+  // P12-MESH-006's "w" (between "v" and "pressure") for a 3D result.
   [[nodiscard]] std::vector<std::string> availableResidualSeries() const;
   [[nodiscard]] const std::vector<Real>* residualSeries(const std::string& name) const;
 };
@@ -95,7 +104,9 @@ struct VisualizationSnapshot {
 [[nodiscard]] VisualizationSnapshot buildSnapshot(const ProjectRunResult& run);
 
 // Loaded from a previously-written results/ directory (metadata.json +
-// fields.csv + residuals.csv, ResultExporter's own fixed filenames) --
+// fields.csv + residuals.csv, ResultExporter's own fixed filenames; the
+// CSV columns are located by their header names, so the 3D files -- with
+// z, velocity_z and w_residual -- load as well as the 2D ones) --
 // section 9's "without rerunning the solver". `valid` is false (not a
 // throw) if any of the three files is missing or unparseable, or if
 // fields.csv/residuals.csv are empty -- a results/ directory from a

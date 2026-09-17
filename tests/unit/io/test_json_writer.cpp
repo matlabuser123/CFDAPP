@@ -14,6 +14,7 @@
 
 #include "cfd/io/JSONWriter.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
+#include "cfd/mesh/MeshQuality.hpp"
 
 using cfd::Vector2;
 using cfd::fields::ScalarField;
@@ -317,4 +318,86 @@ TEST(JSONWriterTest, RobustnessStatusesAndDiagnosticsAreExported) {
   EXPECT_EQ(r["relaxation_decreases"], 1);
   EXPECT_EQ(r["linear_solver_fallbacks"], 3);
   EXPECT_EQ(r["linear_solver_fallback_recoveries"], 2);
+}
+
+// --- P12-MESH-004: "mesh_quality" -----------------------------------------------
+
+TEST(JSONWriterTest, MeshQualityIsAbsentWhenNotGiven) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  const auto path = tempFile("no_mesh_quality.json");
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, makeConvergedResultFor2x2());
+  EXPECT_FALSE(readJson(path).contains("mesh_quality"));
+}
+
+TEST(JSONWriterTest, MeshQualityIsExportedWithEveryMetricAndIssue) {
+  // 1 x 4 cells of 1 x 0.25: aspect ratio 4 everywhere, above a warning
+  // threshold of 3 -> one aggregated warning.
+  const Mesh mesh = MeshGeometry::createCartesian2D(1, 4, 1.0, 1.0);
+  cfd::mesh::MeshQualityThresholds thresholds;
+  thresholds.aspectRatioWarning = 3.0;
+  const auto report = cfd::mesh::MeshQuality::evaluate(mesh, thresholds);
+  const auto path = tempFile("mesh_quality.json");
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, makeConvergedResultFor2x2(), std::nullopt,
+                            {}, std::nullopt, std::nullopt, report);
+  const auto q = readJson(path)["mesh_quality"];
+  EXPECT_EQ(q["status"], "valid_with_warnings");
+  EXPECT_EQ(q["cells"], 4);
+  EXPECT_EQ(q["faces"], 13);
+  EXPECT_EQ(q["internal_faces"], 3);
+  EXPECT_EQ(q["boundary_faces"], 10);
+  for (const char* metric : {"cell_area", "face_length", "aspect_ratio", "non_orthogonality_deg",
+                             "skewness", "expansion_ratio"}) {
+    for (const char* key : {"count", "min", "max", "mean", "rms", "worst_id", "worst_location",
+                            "above_warning", "warning_threshold"}) {
+      EXPECT_TRUE(q[metric].contains(key)) << metric << "." << key;
+    }
+  }
+  EXPECT_DOUBLE_EQ(q["aspect_ratio"]["max"].get<double>(), 4.0);
+  EXPECT_EQ(q["aspect_ratio"]["above_warning"], 4);
+  EXPECT_DOUBLE_EQ(q["aspect_ratio"]["warning_threshold"].get<double>(), 3.0);
+  EXPECT_EQ(q["aspect_ratio"]["worst_id"], 0);
+  EXPECT_DOUBLE_EQ(q["aspect_ratio"]["worst_location"][0].get<double>(), 0.5);
+  EXPECT_DOUBLE_EQ(q["aspect_ratio"]["worst_location"][1].get<double>(), 0.125);
+  EXPECT_TRUE(q["cell_area"]["warning_threshold"].is_null());  // no warning for areas
+  EXPECT_DOUBLE_EQ(q["non_orthogonality_deg"]["warning_threshold"].get<double>(), 70.0);
+  EXPECT_EQ(q["degenerate_cells"], 0);
+  EXPECT_EQ(q["invalid_faces"], 0);
+  EXPECT_EQ(q["connected_components"], 1);
+  ASSERT_EQ(q["issues"].size(), 1u);
+  const auto issue = q["issues"][0];
+  EXPECT_EQ(issue["severity"], "warning");
+  EXPECT_EQ(issue["metric"], "aspect_ratio");
+  EXPECT_EQ(issue["entity"], "cell");
+  EXPECT_EQ(issue["id"], 0);
+  EXPECT_DOUBLE_EQ(issue["value"].get<double>(), 4.0);
+  EXPECT_DOUBLE_EQ(issue["threshold"].get<double>(), 3.0);
+  EXPECT_EQ(issue["count"], 4);
+  EXPECT_EQ(issue["message"].get<std::string>(), report.issues[0].message);
+}
+
+TEST(JSONWriterTest, MeshQualityNonFiniteAndUnavailableValuesAreNull) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
+  cfd::mesh::MeshQualityReport report;  // status invalid, every metric count 0
+  report.cellArea.count = 1;
+  report.cellArea.minimum = std::numeric_limits<double>::quiet_NaN();
+  report.cellArea.maximum = std::numeric_limits<double>::infinity();
+  report.issues.push_back(
+      cfd::mesh::MeshQualityIssue{cfd::mesh::MeshQualitySeverity::Fatal, "cell_area", "cell", 3,
+                                  std::nullopt, std::numeric_limits<double>::quiet_NaN(), 0.0, 1,
+                                  "cell 3 has non-positive or non-finite area"});
+  const auto path = tempFile("mesh_quality_null.json");
+  JSONWriter::writeMetadata(path, makeMetadata(), mesh, makeConvergedResultFor2x2(), std::nullopt,
+                            {}, std::nullopt, std::nullopt, report);
+  const auto q = readJson(path)["mesh_quality"];  // parses: no NaN / Infinity tokens
+  EXPECT_EQ(q["status"], "invalid");
+  EXPECT_TRUE(q["cell_area"]["min"].is_null());
+  EXPECT_TRUE(q["cell_area"]["max"].is_null());
+  EXPECT_EQ(q["skewness"]["count"], 0);
+  for (const char* key : {"min", "max", "mean", "rms", "worst_id", "worst_location"}) {
+    EXPECT_TRUE(q["skewness"][key].is_null()) << key;
+  }
+  EXPECT_EQ(q["issues"][0]["severity"], "fatal");
+  EXPECT_TRUE(q["issues"][0]["value"].is_null());
+  EXPECT_TRUE(q["issues"][0]["location"].is_null());
+  EXPECT_EQ(q["issues"][0]["id"], 3);
 }

@@ -56,12 +56,13 @@ void assembleSpeciesDiffusionContribution(
   }
   // P12-NUM-003: grad(Y) for the explicit non-orthogonal term, only when
   // enabled (lagged -- SpeciesSolver's outer Picard loop converges it).
-  std::optional<cfd::fields::VectorField> gradY;
-  if (nonOrthogonal.enabled) {
-    gradY = cfd::discretization::gradient(mesh, concentration, concentrationBoundaries,
-                                          nonOrthogonal.gradientScheme);
-  }
-  const cfd::fields::VectorField* gradYPtr = gradY.has_value() ? &(*gradY) : nullptr;
+  // P12-DIFF-002 A2: always built -- the Dirichlet wall-flux scheme must not depend on the
+  // iterative non-orthogonal control (a2/activation_architecture.md). `enabled` now gates only
+  // the INTERNAL-face correction.
+  const cfd::fields::VectorField gradY = cfd::discretization::gradient(
+      mesh, concentration, concentrationBoundaries, nonOrthogonal.gradientScheme);
+  const cfd::fields::VectorField* gradYPtr = &gradY;
+  const cfd::fields::VectorField* internalGradY = nonOrthogonal.enabled ? &gradY : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -69,23 +70,24 @@ void assembleSpeciesDiffusionContribution(
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
       const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const bool prescribed =
-          gradYPtr != nullptr &&
-          cfd::discretization::prescribesBoundaryValue(
-              cfd::boundary::boundaryConditionForFace(mesh, face.id(), concentrationBoundaries)
-                  .type());
+      const bool prescribed = cfd::discretization::prescribesBoundaryValue(
+          cfd::boundary::boundaryConditionForFace(mesh, face.id(), concentrationBoundaries).type());
       const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
           mesh, face, diffusionCoefficient, distance, gradYPtr, prescribed);
       const Real conductance = terms.coefficient;
 
       const Real yB =
           boundaryConcentrationValue(mesh, face, concentration, concentrationBoundaries);
-      if (gradYPtr != nullptr) {
-        rhs[ownerId] += terms.explicitFlux;
-      }
+      // A2: always applied -- the transfer term is exactly 0 on an orthogonal face.
+      rhs[ownerId] += terms.explicitFlux;
 
+      // P12-DIFF-002: the prescribed value carries its own coefficient, and the
+      // second-order reconstruction adds one implicit far-cell entry.
       builder.add(ownerId, ownerId, conductance);
-      rhs[ownerId] += conductance * yB;
+      rhs[ownerId] += terms.boundaryValueCoefficient * yB;
+      if (terms.farCellCoefficient != 0.0) {
+        builder.add(ownerId, terms.farCell, -terms.farCellCoefficient);
+      }
       continue;
     }
 
@@ -93,9 +95,9 @@ void assembleSpeciesDiffusionContribution(
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
     const auto terms = cfd::discretization::internalFaceDiffusionTerms(
-        mesh, face, diffusionCoefficient, dPN, gradYPtr);
+        mesh, face, diffusionCoefficient, dPN, internalGradY);
     const Real conductance = terms.coefficient;
-    if (gradYPtr != nullptr) {
+    if (internalGradY != nullptr) {
       rhs[ownerId] += terms.explicitFlux;
       rhs[neighborId] -= terms.explicitFlux;
     }

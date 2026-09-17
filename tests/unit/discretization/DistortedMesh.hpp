@@ -32,6 +32,7 @@
 #include "cfd/mesh/Cell.hpp"
 #include "cfd/mesh/Face.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/mesh/MeshGeometry.hpp"
 
 namespace cfd::test {
 
@@ -108,134 +109,10 @@ inline cfd::mesh::Mesh createDistortedQuad2D(Index nx, Index ny, Real lengthX, R
     }
   }
 
-  const auto cellIndex = [nx](Index i, Index j) noexcept -> Index { return (j * nx) + i; };
-
-  // --- Cells: polygon centroid/area (shoelace) from the 4 CCW corners. -
-  std::vector<cfd::mesh::Cell> cells;
-  cells.reserve(nx * ny);
-  for (Index j = 0; j < ny; ++j) {
-    for (Index i = 0; i < nx; ++i) {
-      const Vector2& v00 = vertices[vertexIndex(i, j)];
-      const Vector2& v10 = vertices[vertexIndex(i + 1, j)];
-      const Vector2& v11 = vertices[vertexIndex(i + 1, j + 1)];
-      const Vector2& v01 = vertices[vertexIndex(i, j + 1)];
-      const Vector2 corners[4] = {v00, v10, v11, v01};
-
-      Real signedArea = 0.0;
-      Real cx = 0.0;
-      Real cy = 0.0;
-      for (int k = 0; k < 4; ++k) {
-        const Vector2& a = corners[k];
-        const Vector2& b = corners[(k + 1) % 4];
-        const Real cross = (a.x * b.y) - (b.x * a.y);
-        signedArea += cross;
-        cx += (a.x + b.x) * cross;
-        cy += (a.y + b.y) * cross;
-      }
-      signedArea *= 0.5;
-      if (!(signedArea > 0.0)) {
-        throw InvalidArgumentError(
-            "createDistortedQuad2D: distortionAmplitude too large -- cell (" + std::to_string(i) +
-            "," + std::to_string(j) + ") has non-positive area (self-intersecting/folded quad)");
-      }
-      cx /= (6.0 * signedArea);
-      cy /= (6.0 * signedArea);
-
-      cells.emplace_back(cellIndex(i, j), Vector2{cx, cy}, signedArea);
-    }
-  }
-
-  std::vector<cfd::mesh::Face> faces;
-  faces.reserve((2 * nx * ny) + nx + ny);
-
-  std::vector<Index> leftFaceIds;
-  std::vector<Index> rightFaceIds;
-  std::vector<Index> bottomFaceIds;
-  std::vector<Index> topFaceIds;
-  leftFaceIds.reserve(ny);
-  rightFaceIds.reserve(ny);
-  bottomFaceIds.reserve(nx);
-  topFaceIds.reserve(nx);
-
-  Index nextFaceId = 0;
-
-  // --- Vertical faces (edge from vertex(i,j) to vertex(i,j+1)), column i
-  // in [0, nx] -- same owner/neighbor/boundary topology as
-  // MeshGeometry::createCartesian2D. Area vector = edge rotated so that
-  // (on the undistorted grid) it reduces exactly to that function's own
-  // {+dy, 0} internal-face convention; negated for the left boundary to
-  // point outward, matching that same function's {-dy, 0}.
-  for (Index j = 0; j < ny; ++j) {
-    for (Index i = 0; i <= nx; ++i) {
-      const Vector2& a = vertices[vertexIndex(i, j)];
-      const Vector2& b = vertices[vertexIndex(i, j + 1)];
-      const Vector2 centroid = (a + b) * 0.5;
-      const Vector2 edge = b - a;
-      Vector2 areaVector{edge.y, -edge.x};  // points toward increasing i.
-      const Index faceId = nextFaceId++;
-
-      if (i == 0) {
-        areaVector = areaVector * -1.0;  // outward from the domain (toward decreasing i).
-        const Index owner = cellIndex(0, j);
-        faces.emplace_back(faceId, owner, std::nullopt, centroid, areaVector);
-        leftFaceIds.push_back(faceId);
-        cells[owner].addFace(faceId);
-      } else if (i == nx) {
-        const Index owner = cellIndex(nx - 1, j);
-        faces.emplace_back(faceId, owner, std::nullopt, centroid, areaVector);
-        rightFaceIds.push_back(faceId);
-        cells[owner].addFace(faceId);
-      } else {
-        const Index owner = cellIndex(i - 1, j);
-        const Index neighbor = cellIndex(i, j);
-        faces.emplace_back(faceId, owner, neighbor, centroid, areaVector);
-        cells[owner].addFace(faceId);
-        cells[neighbor].addFace(faceId);
-      }
-    }
-  }
-
-  // --- Horizontal faces (edge from vertex(i,j) to vertex(i+1,j)), row j
-  // in [0, ny]. Rotated the opposite way so the undistorted grid reduces
-  // exactly to createCartesian2D's {0, +dx}/{0, -dx}.
-  for (Index j = 0; j <= ny; ++j) {
-    for (Index i = 0; i < nx; ++i) {
-      const Vector2& a = vertices[vertexIndex(i, j)];
-      const Vector2& b = vertices[vertexIndex(i + 1, j)];
-      const Vector2 centroid = (a + b) * 0.5;
-      const Vector2 edge = b - a;
-      Vector2 areaVector{-edge.y, edge.x};  // points toward increasing j.
-      const Index faceId = nextFaceId++;
-
-      if (j == 0) {
-        areaVector = areaVector * -1.0;  // outward from the domain (toward decreasing j).
-        const Index owner = cellIndex(i, 0);
-        faces.emplace_back(faceId, owner, std::nullopt, centroid, areaVector);
-        bottomFaceIds.push_back(faceId);
-        cells[owner].addFace(faceId);
-      } else if (j == ny) {
-        const Index owner = cellIndex(i, ny - 1);
-        faces.emplace_back(faceId, owner, std::nullopt, centroid, areaVector);
-        topFaceIds.push_back(faceId);
-        cells[owner].addFace(faceId);
-      } else {
-        const Index owner = cellIndex(i, j - 1);
-        const Index neighbor = cellIndex(i, j);
-        faces.emplace_back(faceId, owner, neighbor, centroid, areaVector);
-        cells[owner].addFace(faceId);
-        cells[neighbor].addFace(faceId);
-      }
-    }
-  }
-
-  std::vector<cfd::mesh::BoundaryPatch> patches;
-  patches.reserve(4);
-  patches.emplace_back("left", std::move(leftFaceIds));
-  patches.emplace_back("right", std::move(rightFaceIds));
-  patches.emplace_back("bottom", std::move(bottomFaceIds));
-  patches.emplace_back("top", std::move(topFaceIds));
-
-  return cfd::mesh::Mesh(std::move(cells), std::move(faces), std::move(patches));
+  // P12-MESH-001: the vertex -> cell/face geometry step is the production
+  // builder (one implementation); it also rejects any cell that is not a
+  // strictly convex counter-clockwise quadrilateral (InvalidArgumentError).
+  return cfd::mesh::MeshGeometry::createStructuredQuad2D(nx, ny, vertices);
 }
 
 }  // namespace cfd::test

@@ -98,18 +98,39 @@ const MMSStudy& momentumStudy(ConvectionScheme scheme) {
     study.levels.push_back(mc::runMomentumLevel(n, options));
   if (mc::allLevelsAccepted(study)) {
     const Band band = bandFor(scheme);
+    // P12-DIFF-002 A6-3 (validation-migration/acceptance_gate_A6.md section 2.3): gated on the
+    // finest PAIRWISE observed order, not the three-level Richardson triplet. DIFF-002 makes the
+    // boundary ring converge at ~formal+1 (measured 2.95 here), so the total error is a two-rate
+    // A h^2 + B h^3 whose pairwise order lies in (formal, formal+1) and decays to formal, while the
+    // triplet estimator overshoots past formal+1 during that decay. The upper limit is therefore
+    // the faster component's own order, formal + 1 -- derived, not widened. Lower limits unchanged.
+    const Real pairwiseHi = band.formal + 1.0;
     for (const std::string component : {"u", "v"}) {
       mc::addDecreaseGate(study, component, component);
-      mc::addOrderGate(study, component, component, NormKind::L2, band.formal, band.lo, band.hi);
-      mc::addOrderGate(study, component, component, NormKind::L1, band.formal, band.lo, band.hi);
+      mc::addPairwiseOrderGate(study, component, component, NormKind::L2, band.formal, band.lo,
+                               pairwiseHi);
+      mc::addPairwiseOrderGate(study, component, component, NormKind::L1, band.formal, band.lo,
+                               pairwiseHi);
       // Linf: the same class; the boundary-adjacent ring carries the
-      // largest error, measured converging at the same rate.
-      mc::addOrderGate(study, component, component, NormKind::Linf, band.formal, band.lo - 0.2,
-                       band.hi);
+      // largest error, and it is the ring that now converges faster.
+      mc::addPairwiseOrderGate(study, component, component, NormKind::Linf, band.formal,
+                               band.lo - 0.2, pairwiseHi);
     }
     mc::addOrder(study, "velocity", NormKind::L2, band.formal);
     mc::addOrder(study, "u_interior", NormKind::L2, band.formal);
-    mc::addOrder(study, "u_boundary_ring", NormKind::L2, band.formal);
+    // A6-3, the added gate: pin DIFF-002's second-order wall flux directly. The boundary ring must
+    // converge one order faster than the interior scheme -- measured 3.017, 2.932, 2.948, 2.947 on
+    // 16..256 (a6/resumed/logs/05). This is the non-vacuity half of the amendment: on the
+    // pre-DIFF-002 library the same quantity converges at 1.789, 1.886, 1.949, 1.976, so the gate
+    // FAILS there (a6/resumed/logs/06) -- it detects a disabled DIFF-002 reconstruction, which the
+    // order band above cannot. Only for the second-order schemes: with first-order upwind
+    // convection the interior error swamps the wall term, so the ring is not wall-flux-dominated.
+    if (band.formal >= 2.0) {
+      mc::addPairwiseOrderGate(study, "u", "u_boundary_ring", NormKind::L2, band.formal + 1.0, 2.5,
+                               3.5);
+    } else {
+      mc::addOrder(study, "u_boundary_ring", NormKind::L2, band.formal);
+    }
   }
   return cache.emplace(scheme, std::move(study)).first->second;
 }

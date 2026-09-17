@@ -40,4 +40,22 @@ struct TimeDerivativeCoefficients {
 [[nodiscard]] TimeDerivativeCoefficients implicitEulerTimeDerivative(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phiOld, Real density, Real dt);
 
+// P12-MESH-007 -- implicit Euler on a MOVING control volume (ALE):
+// d(rho V phi)/dt ~ (rho V^{n+1} phi^{n+1} - rho V^n phi^n) / dt, with V^{n+1}
+// the mesh's current cell volume and V^n = previousVolume (the volume before
+// the mesh moved, MeshMotionStep::previousVolumes):
+//   diagonal[P] = rho * V_P^{n+1} / dt
+//   source[P]   = (rho * V_P^n / dt) * phiOld[P]
+// The same operation order as implicitEulerTimeDerivative, so a mesh that did
+// not move (previousVolume == the current volumes) gives its coefficients bit
+// for bit. Consistent with the discrete geometric conservation law only when
+// V^{n+1} - V^n equals the cells' swept volumes (MeshGeometry::sweptVolumes).
+//
+// Throws InvalidArgumentError as implicitEulerTimeDerivative, and if
+// previousVolume.size() != mesh.numberOfCells() or a previous volume is not
+// finite and > 0.
+[[nodiscard]] TimeDerivativeCoefficients aleImplicitEulerTimeDerivative(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phiOld,
+    const cfd::fields::ScalarField& previousVolume, Real density, Real dt);
+
 }  // namespace cfd::discretization

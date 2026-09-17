@@ -171,19 +171,25 @@ Real sectionMassFlow(const Mesh& mesh, const cfd::fields::SurfaceField& massFlux
   return flow;
 }
 
+// P12-DIFF-002-UC-001: both forms follow from the wall-face stencil, derived in
+// results/p12-diff-002/uc-001/acceptance_gate.md section 1 and reproduced there in exact
+// rational arithmetic. The superseded two-point factors ny^2/(ny^2+2) and the +G dy^2/8 offset
+// belonged to the first-order wall gradient over the half cell; see the header.
 Real discretePressureGradient(Real dynamicViscosity, Real meanVelocity, Real channelHeight,
                               Index ny) {
   const Real n2 = static_cast<Real>(ny) * static_cast<Real>(ny);
-  return analyticalPressureGradient(dynamicViscosity, meanVelocity, channelHeight) * n2 /
-         (n2 + 2.0);
+  return analyticalPressureGradient(dynamicViscosity, meanVelocity, channelHeight) * (2.0 * n2) /
+         (2.0 * n2 + 1.0);
 }
 
 Real discretePoiseuilleVelocity(Real y, Real channelHeight, Real meanVelocity, Index ny) {
-  const Real dy = channelHeight / static_cast<Real>(ny);
-  // G = -(dp/dx)/mu with dp/dx from discretePressureGradient (mu cancels).
+  // G = -(dp/dx)/mu with dp/dx from discretePressureGradient (mu cancels). The second-order
+  // reconstruction makes the discrete solution the continuum parabola EXACTLY at the cell
+  // centres -- there is no dy^2/8 offset -- with only the flow-rate-consistent gradient scaled.
   const Real n2 = static_cast<Real>(ny) * static_cast<Real>(ny);
-  const Real g = 12.0 * meanVelocity / (channelHeight * channelHeight) * n2 / (n2 + 2.0);
-  return 0.5 * g * y * (channelHeight - y) + g * dy * dy / 8.0;
+  const Real g =
+      12.0 * meanVelocity / (channelHeight * channelHeight) * (2.0 * n2) / (2.0 * n2 + 1.0);
+  return 0.5 * g * y * (channelHeight - y);
 }
 
 Real interpolateProfile(const std::vector<ProfileSample>& profile, Real coordinate) {

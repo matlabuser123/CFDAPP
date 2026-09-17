@@ -8,8 +8,10 @@
 #
 # P12-NUM-007 production validation (test_poiseuille_production_validation.cpp):
 # Profile / MassFlow / PressureDrop (64x8) and ProductionGridConvergence
-# (64x8/96x12/144x18, writes results/validation/production/poiseuille.json)
-# -- all in the default suite.
+# (64x8/96x12/144x18/216x27, writes results/validation/production/poiseuille.json)
+# -- all in the default suite. P12-DIFF-002-UC-001 added the 216x27 grid so
+# the dp/dx asymptotic-order claim is measured where the pressure estimator's
+# bias is small; see that test's header comment.
 add_executable(CFDPoiseuilleValidationTests
   PoiseuilleValidationUtils.cpp
   test_poiseuille_validation.cpp

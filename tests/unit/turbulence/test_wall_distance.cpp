@@ -3,8 +3,11 @@
 // outlet/symmetry patches are never mistaken for walls.
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
+#include <vector>
 
 #include "cfd/boundary/Inlet.hpp"
 #include "cfd/boundary/Outlet.hpp"
@@ -108,4 +111,74 @@ TEST(WallDistanceTest, RejectsNoWallPatches) {
   velocityBoundaries.set(mesh, "top", std::make_unique<Symmetry>());
 
   EXPECT_THROW((void)computeWallDistance(mesh, velocityBoundaries), InvalidArgumentError);
+}
+
+// P12-MESH-001: on a structured_quad channel whose grid lines meet both
+// walls obliquely (vertical lines tilted by up to ~30 degrees; y rows kept
+// straight), the distance is the exact perpendicular wall distance
+// min(y, H - y) of every centroid. The pre-P12-MESH-001 face-centroid
+// distance overestimated it in the wall-adjacent cells (checked below, so
+// this test proves the mesh actually exercises the difference).
+TEST(WallDistanceTest, ExactPerpendicularDistanceOnTiltedStructuredQuadMesh) {
+  const Index nx = 24;
+  const Index ny = 6;
+  const cfd::Real length = 4.0;
+  const cfd::Real height = 1.0;
+  const cfd::Real pi = std::acos(-1.0);
+  std::vector<Vector2> vertices;
+  for (Index j = 0; j <= ny; ++j) {
+    for (Index i = 0; i <= nx; ++i) {
+      const cfd::Real xi = length * static_cast<cfd::Real>(i) / static_cast<cfd::Real>(nx);
+      const cfd::Real eta = height * static_cast<cfd::Real>(j) / static_cast<cfd::Real>(ny);
+      cfd::Real x = xi + (0.08 * std::sin(pi * xi / length) * std::sin(2.0 * pi * eta / height));
+      if (i == 0) x = 0.0;
+      if (i == nx) x = length;
+      vertices.push_back(Vector2{x, eta});
+    }
+  }
+  const Mesh mesh = MeshGeometry::createStructuredQuad2D(nx, ny, vertices);
+  BoundaryConditionSet velocityBoundaries;
+  velocityBoundaries.set(mesh, "left", std::make_unique<Inlet>(Vector2{1.0, 0.0}));
+  velocityBoundaries.set(mesh, "right", std::make_unique<Outlet>());
+  velocityBoundaries.set(mesh, "bottom", std::make_unique<Wall>());
+  velocityBoundaries.set(mesh, "top", std::make_unique<Wall>());
+
+  const auto distance = computeWallDistance(mesh, velocityBoundaries);
+  cfd::Real worstFaceCentroidOverestimate = 0.0;
+  for (const auto& cell : mesh.cells()) {
+    const cfd::Real exact = std::min(cell.centroid().y, height - cell.centroid().y);
+    EXPECT_NEAR(distance[cell.id()], exact, 1e-12 * height) << "cell " << cell.id();
+    cfd::Real faceCentroidDistance = std::numeric_limits<cfd::Real>::infinity();
+    for (const char* wall : {"bottom", "top"}) {
+      for (const Index f : mesh.boundaryPatch(wall).faceIds()) {
+        faceCentroidDistance = std::min(
+            faceCentroidDistance, MeshGeometry::distance(cell.centroid(), mesh.face(f).centroid()));
+      }
+    }
+    worstFaceCentroidOverestimate =
+        std::max(worstFaceCentroidOverestimate, faceCentroidDistance / exact - 1.0);
+  }
+  EXPECT_GT(worstFaceCentroidOverestimate, 0.05);
+}
+
+// P12-MESH-001 backward compatibility: on a Cartesian mesh the segment
+// distance equals the pre-P12-MESH-001 face-centroid distance bit for bit
+// (the nearest face's projection parameter is exactly zero).
+TEST(WallDistanceTest, CartesianDistanceIsBitIdenticalToFaceCentroidDistance) {
+  const Mesh mesh = MeshGeometry::createCartesian2D(7, 5, 2.0, 0.9);
+  BoundaryConditionSet velocityBoundaries;
+  for (const char* patch : {"left", "right", "bottom", "top"}) {
+    velocityBoundaries.set(mesh, patch, std::make_unique<Wall>());
+  }
+  const auto distance = computeWallDistance(mesh, velocityBoundaries);
+  for (const auto& cell : mesh.cells()) {
+    cfd::Real faceCentroidDistance = std::numeric_limits<cfd::Real>::infinity();
+    for (const auto& face : mesh.faces()) {
+      if (face.isBoundary()) {
+        faceCentroidDistance = std::min(faceCentroidDistance,
+                                        MeshGeometry::distance(cell.centroid(), face.centroid()));
+      }
+    }
+    EXPECT_EQ(distance[cell.id()], faceCentroidDistance) << "cell " << cell.id();
+  }
 }

@@ -7,6 +7,8 @@
 
 namespace cfd::mesh {
 
+class Mesh;
+
 // One finite-volume control volume: identity and topology only. Mesh
 // stores geometry; fields store solution values (pressure, velocity,
 // temperature, residuals, equation coefficients, ...) -- never mix the
@@ -26,6 +28,15 @@ class Cell {
   void addFace(Index faceId);
 
  private:
+  // P12-MESH-007: only Mesh::setGeometry (a topology-preserving geometry
+  // update, already validated there) changes a cell's centroid and volume;
+  // its id and face list never change after construction.
+  friend class Mesh;
+  void setGeometry(const Vector2& centroid, Real volume) noexcept {
+    centroid_ = centroid;
+    volume_ = volume;
+  }
+
   Id id_{};
   Vector2 centroid_{};
   Real volume_{};

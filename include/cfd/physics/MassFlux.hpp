@@ -31,4 +31,18 @@ namespace cfd::physics {
     const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
     const FluidProperties& fluid, const cfd::boundary::BoundaryConditionSet& velocityBoundaries);
 
+// P12-MESH-007 -- the mass flux RELATIVE to a moving mesh (ALE):
+//   relative_f = massFlux_f - density * meshVolumeFlux_f  =  rho (u - u_mesh) . S_f
+// where meshVolumeFlux_f = dV_f / dt is the volume the face swept per unit
+// time (MeshMotionStep::meshVolumeFlux, positive along S_f). This is the
+// convecting flux of ALE transport; a stationary mesh (meshVolumeFlux all 0)
+// returns massFlux unchanged. Same owner-oriented sign convention as
+// calculateMassFlux.
+//
+// Throws InvalidArgumentError if the two sizes differ or density is not
+// finite and > 0.
+[[nodiscard]] cfd::fields::SurfaceField relativeMassFlux(
+    const cfd::fields::SurfaceField& massFlux, const cfd::fields::SurfaceField& meshVolumeFlux,
+    Real density);
+
 }  // namespace cfd::physics

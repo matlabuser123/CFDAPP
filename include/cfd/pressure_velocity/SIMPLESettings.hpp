@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/core/Types.hpp"
 #include "cfd/discretization/Convection.hpp"
@@ -8,6 +10,28 @@
 #include "cfd/solver/SolverRobustness.hpp"
 
 namespace cfd::pressure_velocity {
+
+// P12-MESH-006: how SIMPLE builds the predictor face mass flux F*_f.
+//   Linear    -- rho (linearly interpolated u*)_f . Sf: the pre-MESH-006
+//                collocated flux, with no pressure-velocity stabilization of
+//                its own (documented odd-even pressure mode on open domains).
+//   RhieChow  -- Rhie-Chow momentum interpolation: the linear flux minus
+//                (D_f / alpha_u) [(p_N - p_P) - (grad p)_f . d], D_f the
+//                pressure-correction coupling of the same face (see
+//                RhieChow.hpp), so the converged face flux carries the compact
+//                pressure difference and continuity is enforced on it.
+//   Automatic -- the default: Linear on a 2D mesh (every existing case,
+//                bit-identical), RhieChow on a 3D mesh (3D is never silently
+//                run with the unstabilized linear flux).
+// Linear and RhieChow may be selected explicitly in either dimension.
+enum class FaceFluxScheme { Automatic, Linear, RhieChow };
+
+// "automatic" | "linear" | "rhie_chow" (the case-file vocabulary).
+[[nodiscard]] const char* faceFluxSchemeName(FaceFluxScheme scheme) noexcept;
+// Throws InvalidArgumentError for any other name.
+[[nodiscard]] FaceFluxScheme parseFaceFluxScheme(std::string_view name);
+// The scheme a SIMPLE solve on a mesh of `dimension` uses (Automatic resolved).
+[[nodiscard]] FaceFluxScheme resolveFaceFluxScheme(FaceFluxScheme scheme, int dimension) noexcept;
 
 // Every numerical control SIMPLE needs, gathered in one place rather
 // than scattered as magic numbers through the iteration (TODO.md P0 --
@@ -96,6 +120,10 @@ struct SIMPLESettings {
   // the adaptive controller enabled they are its INITIAL values). The
   // normalized residual histories are always reported.
   cfd::solver::SolverRobustnessSettings robustness;
+
+  // P12-MESH-006: the predictor face-flux scheme (see FaceFluxScheme). The
+  // default, Automatic, keeps every 2D solve exactly as before.
+  FaceFluxScheme faceFlux{FaceFluxScheme::Automatic};
 };
 
 // Throws InvalidArgumentError if:

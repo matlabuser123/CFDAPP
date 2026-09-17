@@ -7,7 +7,8 @@
 namespace cfd::turbulence {
 
 // P2-TURB-006 sections 9-10: for every cell, the minimum Euclidean
-// distance from the cell centroid to the centroid of any boundary face
+// distance from the cell centroid to any boundary face (P12-MESH-001: to
+// the face's straight segment, not its centroid -- see below)
 // whose assigned *velocity* boundary condition is a wall
 // (BoundaryConditionType::Wall or MovingWall) -- "wall" is determined by
 // reusing the model's own already-existing velocityBoundaries (the same
@@ -16,14 +17,18 @@ namespace cfd::turbulence {
 // patches are never mistaken for walls this way, since only their
 // assigned condition *type* is inspected, nothing else.
 //
-// Face-centroid-to-cell-centroid distance, not a true point-to-plane
-// projection: exact on the structured Cartesian meshes this codebase
-// currently supports (the nearest wall face is always the one directly
-// across the cell in its own row/column, whose centroid sits at the
-// exact perpendicular foot -- verified independently in
-// WallDistanceTest's own hand-derived cases), and this task's own scope
-// (section 9) only requires correctness "on structured Cartesian
-// meshes", not a general-mesh point-to-plane distance transform.
+// P12-MESH-001: the distance to each wall face is the exact point-to-
+// segment distance (the face is the straight edge centroid +/- half its
+// area along its tangent), so the minimum over a straight wall's faces is
+// the exact perpendicular wall distance on any mesh. The pre-existing
+// face-centroid distance was exact only when the nearest wall face's
+// centroid sits at the perpendicular foot (every structured Cartesian
+// mesh); on a structured_quad mesh whose grid lines meet the wall
+// obliquely it overestimated wall-adjacent distances by 22-24% (measured,
+// results/p12-mesh-001/summary.md), a relative error that does not shrink
+// under refinement. On a Cartesian mesh the nearest face's projection
+// parameter is exactly 0, so the result is bit-identical to before
+// (WallDistanceTest's hand-derived cases).
 //
 // Computed once, not on every RANS iteration (P2-TURB-006 section 58:
 // "for fixed meshes, wall distance can be computed once") -- the mesh

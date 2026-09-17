@@ -144,6 +144,8 @@ bool SimulationController::openCase(const QString& caseDirectory) {
   // would be actively misleading here.
   validationStatus_ = QVariantMap{
       {"valid", true}, {"section", QString()}, {"field", QString()}, {"message", QString()}};
+  // P12-MESH-004: the opened case's mesh quality (built once, production path).
+  refreshMeshQuality();
   emit validationChanged();
   emit caseChanged();
   emit stateChanged();
@@ -164,6 +166,7 @@ void SimulationController::newCase() {
   session_.newCase();
   validationStatus_ = QVariantMap{
       {"valid", true}, {"section", QString()}, {"field", QString()}, {"message", QString()}};
+  meshQuality_.clear();  // P12-MESH-004: known again after validateDraft()
   emit validationChanged();
   emit caseChanged();
   emit stateChanged();
@@ -307,6 +310,11 @@ QVariantMap SimulationController::meshBounds() const {
   return bounds;
 }
 
+bool SimulationController::resultsThreeDimensional() const {
+  std::lock_guard<std::mutex> lock(snapshotMutex_);
+  return snapshot_.valid && snapshot_.threeDimensional();
+}
+
 bool SimulationController::loadCompletedResults() {
   const auto dir = session_.directory();
   if (!dir.has_value()) return false;
@@ -321,7 +329,8 @@ QVariantMap SimulationController::scalarFieldGrid(const QString& field) const {
   QVariantMap grid;
   const std::vector<Real>* values =
       snapshot.valid ? snapshot.scalarField(field.toStdString()) : nullptr;
-  if (values == nullptr) return grid;
+  // P12-MESH-006: one nx x ny grid is a 2D view; a 3D result has none.
+  if (values == nullptr || snapshot.threeDimensional()) return grid;
 
   // Every value here already passed buildSnapshot()'s/
   // loadSnapshotFromResults()'s own all-finite gate (a snapshot is never
@@ -344,7 +353,8 @@ QVariantMap SimulationController::scalarFieldGrid(const QString& field) const {
 QVariantList SimulationController::contourSegments(const QString& field, int numberOfLevels) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
   QVariantList segments;
-  if (!snapshot.valid || numberOfLevels <= 0) return segments;
+  // P12-MESH-006: marching squares on one nx x ny grid -- nothing for a 3D result.
+  if (!snapshot.valid || numberOfLevels <= 0 || snapshot.threeDimensional()) return segments;
   const std::vector<Real>* values = snapshot.scalarField(field.toStdString());
   if (values == nullptr || snapshot.nx < 2 || snapshot.ny < 2) return segments;
 
@@ -368,7 +378,7 @@ QVariantList SimulationController::contourSegments(const QString& field, int num
 QVariantList SimulationController::vectorSamples(int stride) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
   QVariantList samples;
-  if (!snapshot.valid || stride < 1) return samples;
+  if (!snapshot.valid || stride < 1 || snapshot.threeDimensional()) return samples;  // 2D view
   const auto raw = cfd::viz::sampleVectorFieldRaw(snapshot.points, snapshot.velocityX,
                                                   snapshot.velocityY, static_cast<Index>(stride));
   for (const auto& s : raw) {
@@ -385,7 +395,8 @@ QVariantList SimulationController::vectorSamples(int stride) const {
 QVariantMap SimulationController::probeAt(double x, double y) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
   QVariantMap result;
-  if (!snapshot.valid || snapshot.points.empty()) return result;
+  // P12-MESH-006: an (x, y) click does not name a cell of a 3D result.
+  if (!snapshot.valid || snapshot.points.empty() || snapshot.threeDimensional()) return result;
 
   const auto index = cfd::viz::nearestIndex(snapshot.points, Vector2{x, y});
   if (!index.has_value()) return result;
@@ -405,7 +416,7 @@ QVariantList SimulationController::sampleLine(const QString& field, double x0, d
                                               double y1, int numberOfSamples) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
   QVariantList samples;
-  if (!snapshot.valid || numberOfSamples < 2) return samples;
+  if (!snapshot.valid || numberOfSamples < 2 || snapshot.threeDimensional()) return samples;  // 2D
   const std::vector<Real>* values = snapshot.scalarField(field.toStdString());
   if (values == nullptr) return samples;
 
@@ -425,7 +436,7 @@ bool SimulationController::exportLineSampleCsv(const QString& path, const QStrin
                                                double y0, double x1, double y1,
                                                int numberOfSamples) const {
   const VisualizationSnapshot snapshot = currentSnapshot();
-  if (!snapshot.valid || numberOfSamples < 2) return false;
+  if (!snapshot.valid || numberOfSamples < 2 || snapshot.threeDimensional()) return false;  // 2D
   const std::vector<Real>* values = snapshot.scalarField(field.toStdString());
   if (values == nullptr) return false;
 

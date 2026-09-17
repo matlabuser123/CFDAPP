@@ -50,12 +50,15 @@ using CellMask = std::vector<bool>;
                                            const CellMask* mask = nullptr);
 
 // Vector error: each component separately and the pointwise magnitude of
-// the error vector |e| = sqrt(e_x^2 + e_y^2) (L2 of the magnitude is the
-// RMS vector error; Linf the largest vector error).
+// the error vector |e| = sqrt(e_x^2 + e_y^2 + e_z^2) (L2 of the magnitude is
+// the RMS vector error; Linf the largest vector error). P12-MESH-005: `z`
+// and the z term are the third component (identically zero for 2D fields,
+// whose x, y and magnitude norms are therefore exactly the 2D ones).
 struct VectorErrorNorms {
   ErrorNorms x;
   ErrorNorms y;
   ErrorNorms magnitude;
+  ErrorNorms z;
 };
 [[nodiscard]] VectorErrorNorms computeVectorErrorNorms(const cfd::mesh::Mesh& mesh,
                                                        const cfd::fields::VectorField& numeric,

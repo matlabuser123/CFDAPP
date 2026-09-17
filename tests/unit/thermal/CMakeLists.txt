@@ -6,6 +6,9 @@ add_executable(CFDThermalTests
   test_thermal_solver_variable_properties.cpp
   test_thermal_region.cpp
   test_thermal_non_orthogonal.cpp
+  test_thermal_boundary_consistency.cpp
+  test_conjugate_boundary_equivalence.cpp
+  test_sparse_assembly3d.cpp
 )
 
 target_link_libraries(CFDThermalTests
@@ -20,6 +23,9 @@ target_link_libraries(CFDThermalTests
 target_include_directories(CFDThermalTests
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../discretization
+    # P12-DIFF-002 validation migration: tests/support/BoundaryFluxProbe.hpp, the one shared
+    # "flux production actually assembles" diagnostic used by the conservation tests.
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../support
 )
 
 gtest_discover_tests(CFDThermalTests PROPERTIES LABELS "numerical")

@@ -57,6 +57,7 @@ MomentumAssembly assembleCompressibleMomentumComponent(
     const ScalarField& densityNew, Real dynamicViscosity,
     const BoundaryConditionSet& velocityBoundaries, const BoundaryConditionSet& pressureBoundaries,
     VelocityComponent component, Real dt) {
+  cfd::mesh::requireTwoDimensional(mesh, "assembleCompressibleMomentumComponent");
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleCompressibleMomentumComponent: velocity size does not match mesh cell count");

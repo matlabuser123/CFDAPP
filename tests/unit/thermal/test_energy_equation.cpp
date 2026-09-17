@@ -88,10 +88,22 @@ Index cellTouchingPatch(const Mesh& mesh, std::string_view patchName) {
 // A. Two-cell diffusion system (hand-derived).
 // ---------------------------------------------------------------------
 TEST(EnergyEquationDiffusionTest, TwoCellSystemMatchesHandDerivedCoefficients) {
-  // k=3: boundary conductance = k*A/d = 3*1.0/0.5 = 6 per boundary face
-  // (3 per cell: one left-or-right, one top, one bottom); internal
-  // conductance = k*A/d = 3*1.0/1.0 = 3. FixedValue ignores the owner
-  // field value, so the temperature field's own contents are irrelevant.
+  // P12-DIFF-002 A5, entry 2 (validation-migration/acceptance_gate_A5.md). The Dirichlet wall flux
+  // is the second-order one-sided reconstruction, so a value-prescribing wall is no longer k|S|/d.
+  // Re-derived by hand below and independently in a5/tools/derive_expected.py; the mesh is
+  // 2 x 1 cells on 2.0 x 1.0, so h = 1 in both directions, every face area is 1 (unit depth), k
+  // = 3.
+  //
+  // left/right walls -- the x axis has 2 cells, so a second cell exists inward and the
+  // reconstruction applies, with h1 = h/2 = 0.5 and h2 = 3h/2 = 1.5:
+  //   cP = k|S| h2 / (h1 (h2 - h1)) = 3 * 1.5 / (0.5 * 1.0) = 9
+  //   cF = k|S| h1 / (h2 (h2 - h1)) = 3 * 0.5 / (1.5 * 1.0) = 1
+  //   cB = k|S| (1/h1 + 1/h2)       = 3 * (2 + 2/3)         = 8      and cP - cF = cB
+  // top/bottom walls -- normal to the ONE-cell-thick y axis, so no inward stencil exists and they
+  // keep the historical two-point form exactly: k|S|/h1 = 3 * 1.0 / 0.5 = 6.
+  // internal face: k|S|/dPN = 3 * 1.0 / 1.0 = 3, untouched by DIFF-002.
+  //
+  // FixedValue ignores the owner field value, so the temperature field's contents are irrelevant.
   const Mesh mesh = makeTwoCellMesh();
   const Real k = 3.0;
   const Real tLeft = 10.0, tRight = 20.0, tTop = 15.0, tBottom = 5.0;
@@ -109,9 +121,14 @@ TEST(EnergyEquationDiffusionTest, TwoCellSystemMatchesHandDerivedCoefficients) {
   const Index leftCell = cellTouchingPatch(mesh, "left");
   const Index rightCell = cellTouchingPatch(mesh, "right");
 
-  const Real boundaryConductance = 6.0;  // k*A/d = 3*1.0/0.5
-  const Real internalConductance = 3.0;  // k*A/d = 3*1.0/1.0
-  const Real expectedDiagonal = 3.0 * boundaryConductance + internalConductance;  // 21
+  const Real cP = 9.0;                   // reconstructed x-wall, owner coefficient
+  const Real cF = 1.0;                   // reconstructed x-wall, far-cell coefficient
+  const Real cB = 8.0;                   // reconstructed x-wall, prescribed-value multiplier
+  const Real fallbackConductance = 6.0;  // y-walls, one cell thick: k*A/h1 = 3*1.0/0.5
+  const Real internalConductance = 3.0;  // k*A/dPN = 3*1.0/1.0
+  // The reconstruction's own analytic identity, so the three constants above cannot drift apart.
+  ASSERT_DOUBLE_EQ(cP - cF, cB);
+  const Real expectedDiagonal = cP + 2.0 * fallbackConductance + internalConductance;  // 24
 
   Vector eA(n, 0.0);
   eA[cellA] = 1.0;
@@ -119,12 +136,14 @@ TEST(EnergyEquationDiffusionTest, TwoCellSystemMatchesHandDerivedCoefficients) {
   eB[cellB] = 1.0;
   EXPECT_NEAR(matrix.multiply(eA)[cellA], expectedDiagonal, 1e-10);
   EXPECT_NEAR(matrix.multiply(eB)[cellB], expectedDiagonal, 1e-10);
-  EXPECT_NEAR(matrix.multiply(eB)[cellA], -internalConductance, 1e-10);
-  EXPECT_NEAR(matrix.multiply(eA)[cellB], -internalConductance, 1e-10);
+  // Each cell's x-wall reaches its far cell through the shared internal face, so the far-cell
+  // coefficient lands on the same entry as the internal coupling: -(3 + 1) = -4.
+  EXPECT_NEAR(matrix.multiply(eB)[cellA], -(internalConductance + cF), 1e-10);
+  EXPECT_NEAR(matrix.multiply(eA)[cellB], -(internalConductance + cF), 1e-10);
 
-  const Real commonRhs = boundaryConductance * tTop + boundaryConductance * tBottom;
-  const Real expectedRhsLeft = boundaryConductance * tLeft + commonRhs;
-  const Real expectedRhsRight = boundaryConductance * tRight + commonRhs;
+  const Real commonRhs = fallbackConductance * tTop + fallbackConductance * tBottom;
+  const Real expectedRhsLeft = cB * tLeft + commonRhs;    // 8*10 + 6*15 + 6*5 = 200
+  const Real expectedRhsRight = cB * tRight + commonRhs;  // 8*20 + 6*15 + 6*5 = 280
   EXPECT_NEAR(rhs[leftCell], expectedRhsLeft, 1e-9);
   EXPECT_NEAR(rhs[rightCell], expectedRhsRight, 1e-9);
 }
@@ -133,6 +152,22 @@ TEST(EnergyEquationDiffusionTest, TwoCellSystemMatchesHandDerivedCoefficients) {
 // B. Diffusion symmetry (conservative equal/opposite internal coupling).
 // ---------------------------------------------------------------------
 TEST(EnergyEquationDiffusionTest, InternalFaceCoefficientsAreSymmetric) {
+  // P12-DIFF-002 A5, entry 3 (validation-migration/acceptance_gate_A5.md, class M-A/2). The
+  // property under test -- an internal face contributes equally and oppositely to its two rows --
+  // is unchanged, and is still asserted below. What changed is that A(0,1) is no longer a pure
+  // internal coupling: cell 0's xmin wall reaches its far cell THROUGH the face it shares with
+  // cell 1, so the one-sided far-cell coefficient lands on that same matrix entry. Cell 1 is in the
+  // middle column and has no x-normal wall, so A(1,0) remains a pure internal coupling.
+  //
+  // That entry-level asymmetry is deliberate (results/p12-diff-002/architecture.md section 2 -- it
+  // is why every equation using this treatment is solved with BiCGSTAB and never CG) and is
+  // asserted directly by BoundaryReconstruction.AssembledThermalSystemMatchesTheHandDerivedOne. It
+  // does NOT weaken conservation, which telescopes over faces and is covered by
+  // ThermalBoundaryConsistency.
+  //
+  // Derived independently (a5/tools/derive_expected.py, block D): h = 1/3, |S| = 1/3, k = 1, so
+  //   cInt = k|S|/dPN = 1        cF = k|S| h1 / (h2 (h2 - h1)) = 1/3
+  //   A(1,0) = -cInt = -1        A(0,1) = -(cInt + cF) = -4/3       A(0,1) - A(1,0) = -cF
   const Mesh mesh = MeshGeometry::createCartesian2D(3, 3, 1.0, 1.0);
   const auto boundaries = makeFixedTemperatureBoundaries(mesh, 0.0, 0.0, 0.0, 0.0);
   const Index n = mesh.numberOfCells();
@@ -143,15 +178,69 @@ TEST(EnergyEquationDiffusionTest, InternalFaceCoefficientsAreSymmetric) {
   assembleThermalDiffusionContribution(mesh, 1.0, temperature, boundaries, builder, rhs);
   const auto matrix = builder.build();
 
+  const Real cInt = 1.0;      // k |S| / dPN = 1 * (1/3) / (1/3)
+  const Real cF = 1.0 / 3.0;  // k |S| h1 / (h2 (h2 - h1)), h1 = 1/6, h2 = 1/2, |S| = 1/3
+
   Vector e0(n, 0.0);
   e0[0] = 1.0;
   Vector e1(n, 0.0);
   e1[1] = 1.0;
-  const Real a10 = matrix.multiply(e0)[1];  // A(1,0)
-  const Real a01 = matrix.multiply(e1)[0];  // A(0,1)
-  EXPECT_NEAR(a01, a10, 1e-12);
+  const Real a10 = matrix.multiply(e0)[1];  // A(1,0) -- pure internal coupling
+  const Real a01 = matrix.multiply(e1)[0];  // A(0,1) -- internal coupling + cell 0's far-cell term
+  EXPECT_NEAR(a10, -cInt, 1e-12);
+  EXPECT_NEAR(a01, -(cInt + cF), 1e-12);
+  // The one-sided far-cell coefficient is the ONLY thing that breaks entry-level symmetry here.
+  EXPECT_NEAR(a01 - a10, -cF, 1e-12);
   EXPECT_LT(a01, 0.0);
+  EXPECT_LT(a10, 0.0);
   EXPECT_TRUE(matrix.allFinite());
+
+  // The equal/opposite internal-face property, tested where no far-cell term can reach.
+  //
+  // (a) Between two INTERIOR cells. On a 5x5 mesh cells 6 = (1,1) and 7 = (2,1) have no boundary
+  //     face at all, so neither row receives a far-cell entry and their coupling must be exactly
+  //     symmetric.
+  {
+    const Mesh wide = MeshGeometry::createCartesian2D(5, 5, 1.0, 1.0);
+    const auto wideBcs = makeFixedTemperatureBoundaries(wide, 0.0, 0.0, 0.0, 0.0);
+    const Index m = wide.numberOfCells();
+    const ScalarField t(m, 0.0);
+    SparseMatrixBuilder b(m, m);
+    Vector r(m, 0.0);
+    assembleThermalDiffusionContribution(wide, 1.0, t, wideBcs, b, r);
+    const auto wideMatrix = b.build();
+    Vector e6(m, 0.0);
+    e6[6] = 1.0;
+    Vector e7(m, 0.0);
+    e7[7] = 1.0;
+    EXPECT_DOUBLE_EQ(wideMatrix.multiply(e6)[7], wideMatrix.multiply(e7)[6]);
+    EXPECT_LT(wideMatrix.multiply(e6)[7], 0.0);
+  }
+
+  // (b) Over EVERY internal face at once: with gradient-type boundaries no wall is ever
+  //     reconstructed, so no far-cell entry exists anywhere and the whole off-diagonal structure
+  //     must be exactly symmetric.
+  {
+    const auto neumann = makeZeroGradientBoundaries(mesh);
+    SparseMatrixBuilder b(n, n);
+    Vector r(n, 0.0);
+    assembleThermalDiffusionContribution(mesh, 1.0, temperature, neumann, b, r);
+    const auto sym = b.build();
+    std::size_t offDiagonalsChecked = 0;
+    for (Index row = 0; row < n; ++row) {
+      Vector eRow(n, 0.0);
+      eRow[row] = 1.0;
+      const auto column = sym.multiply(eRow);
+      for (Index col = 0; col < n; ++col) {
+        if (col == row) continue;
+        Vector eCol(n, 0.0);
+        eCol[col] = 1.0;
+        EXPECT_DOUBLE_EQ(column[col], sym.multiply(eCol)[row]) << row << "," << col;
+        if (column[col] != 0.0) ++offDiagonalsChecked;
+      }
+    }
+    EXPECT_EQ(offDiagonalsChecked, 24u);  // 12 internal faces on a 3x3 mesh, two entries each
+  }
 }
 
 // ---------------------------------------------------------------------
@@ -405,10 +494,19 @@ TEST(EnergyEquationAssemblyTest, CombinedAssemblyMatchesHandDerivedCoefficients)
   const auto& matrix = assembly.system.matrix();
   const auto& rhs = assembly.system.rhs();
 
-  const Real boundaryConductance = 6.0;                                       // k*A/d = 3*1.0/0.5
-  const Real internalConductance = 3.0;                                       // k*A/d = 3*1.0/1.0
-  const Real convection = cp * fluxAtoB;                                      // 8.0
-  const Real diagonalBase = 3.0 * boundaryConductance + internalConductance;  // 21
+  // P12-DIFF-002 A5, entry 4. Same wall reconstruction as
+  // EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients above (k = 3, h = 1,
+  // |S| = 1 -> cP = 9, cF = 1, cB = 8; the one-cell-thick y walls keep the two-point 6). The
+  // convection and source terms are untouched by DIFF-002. Derived independently in
+  // a5/tools/derive_expected.py, block A2.
+  const Real cP = 9.0;
+  const Real cF = 1.0;
+  const Real cB = 8.0;
+  const Real fallbackConductance = 6.0;   // y walls
+  const Real internalConductance = 3.0;   // k*A/dPN
+  const Real convection = cp * fluxAtoB;  // 8.0
+  ASSERT_DOUBLE_EQ(cP - cF, cB);
+  const Real diagonalBase = cP + 2.0 * fallbackConductance + internalConductance;  // 24
 
   Vector eA(n, 0.0);
   eA[cellA] = 1.0;
@@ -416,15 +514,16 @@ TEST(EnergyEquationAssemblyTest, CombinedAssemblyMatchesHandDerivedCoefficients)
   eB[cellB] = 1.0;
   EXPECT_NEAR(matrix.multiply(eA)[cellA], diagonalBase + convection, 1e-9);  // cellA upwind
   EXPECT_NEAR(matrix.multiply(eB)[cellB], diagonalBase, 1e-9);               // cellB not upwind
-  EXPECT_NEAR(matrix.multiply(eB)[cellA], -internalConductance, 1e-9);       // diffusion only
-  EXPECT_NEAR(matrix.multiply(eA)[cellB], -internalConductance - convection, 1e-9);
+  // Diffusion only, but now carrying the far-cell coefficient on the same entry.
+  EXPECT_NEAR(matrix.multiply(eB)[cellA], -(internalConductance + cF), 1e-9);
+  EXPECT_NEAR(matrix.multiply(eA)[cellB], -(internalConductance + cF) - convection, 1e-9);
 
   const Index leftCell = cellTouchingPatch(mesh, "left");
   const Index rightCell = cellTouchingPatch(mesh, "right");
-  const Real commonRhs = boundaryConductance * tTop + boundaryConductance * tBottom;
+  const Real commonRhs = fallbackConductance * tTop + fallbackConductance * tBottom;
   const Real volume = mesh.cell(0).volume();  // both cells are unit squares here.
-  EXPECT_NEAR(rhs[leftCell], boundaryConductance * tLeft + commonRhs + q * volume, 1e-9);
-  EXPECT_NEAR(rhs[rightCell], boundaryConductance * tRight + commonRhs + q * volume, 1e-9);
+  EXPECT_NEAR(rhs[leftCell], cB * tLeft + commonRhs + q * volume, 1e-9);    // 206
+  EXPECT_NEAR(rhs[rightCell], cB * tRight + commonRhs + q * volume, 1e-9);  // 286
 
   EXPECT_TRUE(matrix.allFinite());
   EXPECT_TRUE(rhs.allFinite());
@@ -486,13 +585,20 @@ TEST(EnergyEquationAssemblyTest, RejectsNonFiniteHeatSource) {
 
 TEST(EnergyEquationAssemblyTest, NonFiniteTemperatureAtGradientBoundaryThrowsNumericalError) {
   // FixedGradient reconstructs its face value from the *owner* temperature
-  // (unlike FixedValue, which ignores it) -- a non-finite owner value
-  // therefore propagates into the assembled RHS.
+  // (unlike FixedValue, which ignores it). Since P12-MESH-003 the diffusion
+  // term no longer needs it (a gradient-type face contributes its exact
+  // prescribed flux, boundaryDiffusionContribution), but fluid entering
+  // through such a face carries that reconstructed value -- so a
+  // non-finite owner value with inflow on its gradient face propagates
+  // into the assembled RHS.
   const Mesh mesh = MeshGeometry::createCartesian2D(2, 2, 1.0, 1.0);
   const auto boundaries = makeZeroGradientBoundaries(mesh);
   ScalarField temperature(mesh.numberOfCells(), 300.0);
   temperature[0] = std::numeric_limits<Real>::quiet_NaN();
-  const SurfaceField massFlux(mesh.numberOfFaces(), 0.0);
+  SurfaceField massFlux(mesh.numberOfFaces(), 0.0);
+  for (const auto& face : mesh.faces()) {
+    if (face.isBoundary() && face.owner() == 0) massFlux[face.id()] = -1.0;  // inflow
+  }
   const ThermalProperties thermal(1.0, 1.0);
 
   EXPECT_THROW((void)assembleEnergyEquation(mesh, temperature, massFlux, thermal, boundaries),
@@ -581,9 +687,16 @@ TEST(EnergyEquationThermalBCIntegrationTest,
   const Index leftCell = cellTouchingPatch(mesh, "left");
   const Index rightCell = cellTouchingPatch(mesh, "right");
 
-  const Real boundaryConductance = 6.0;
+  // P12-DIFF-002 A5, entry 5. Same reconstruction as
+  // EnergyEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients (cP = 9, cF = 1,
+  // cB = 8; one-cell-thick y walls keep the two-point 6); derived in a5/tools/derive_expected.py.
+  const Real cP = 9.0;
+  const Real cF = 1.0;
+  const Real cB = 8.0;
+  const Real fallbackConductance = 6.0;
   const Real internalConductance = 3.0;
-  const Real expectedDiagonal = 3.0 * boundaryConductance + internalConductance;  // 21
+  ASSERT_DOUBLE_EQ(cP - cF, cB);
+  const Real expectedDiagonal = cP + 2.0 * fallbackConductance + internalConductance;  // 24
 
   Vector eA(n, 0.0);
   eA[cellA] = 1.0;
@@ -591,11 +704,27 @@ TEST(EnergyEquationThermalBCIntegrationTest,
   eB[cellB] = 1.0;
   EXPECT_NEAR(matrix.multiply(eA)[cellA], expectedDiagonal, 1e-10);
   EXPECT_NEAR(matrix.multiply(eB)[cellB], expectedDiagonal, 1e-10);
-  EXPECT_NEAR(matrix.multiply(eB)[cellA], -internalConductance, 1e-10);
+  EXPECT_NEAR(matrix.multiply(eB)[cellA], -(internalConductance + cF), 1e-10);
 
-  const Real commonRhs = boundaryConductance * tTop + boundaryConductance * tBottom;
-  EXPECT_NEAR(rhs[leftCell], boundaryConductance * tLeft + commonRhs, 1e-9);
-  EXPECT_NEAR(rhs[rightCell], boundaryConductance * tRight + commonRhs, 1e-9);
+  const Real commonRhs = fallbackConductance * tTop + fallbackConductance * tBottom;
+  EXPECT_NEAR(rhs[leftCell], cB * tLeft + commonRhs, 1e-9);    // 200
+  EXPECT_NEAR(rhs[rightCell], cB * tRight + commonRhs, 1e-9);  // 280
+
+  // A5 strengthening: this test is named for the equivalence of FixedTemperature and FixedValue but
+  // only ever re-checked the same constants. Assert the equivalence itself, bitwise -- a property
+  // that holds under any wall operator and would have survived the A2 change untouched.
+  SparseMatrixBuilder genericBuilder(n, n);
+  Vector genericRhs(n, 0.0);
+  assembleThermalDiffusionContribution(
+      mesh, k, temperature, makeFixedTemperatureBoundaries(mesh, tLeft, tRight, tTop, tBottom),
+      genericBuilder, genericRhs);
+  const auto genericMatrix = genericBuilder.build();
+  ASSERT_EQ(matrix.nonZeros(), genericMatrix.nonZeros());
+  for (Index k2 = 0; k2 < matrix.nonZeros(); ++k2) {
+    EXPECT_EQ(matrix.columnIndicesData()[k2], genericMatrix.columnIndicesData()[k2]) << k2;
+    EXPECT_EQ(matrix.valuesData()[k2], genericMatrix.valuesData()[k2]) << k2;
+  }
+  for (Index row = 0; row < n; ++row) EXPECT_EQ(rhs[row], genericRhs[row]) << row;
 }
 
 TEST(EnergyEquationThermalBCIntegrationTest, HeatFluxAndAdiabaticBoundariesMatchHandDerivedRhs) {
@@ -615,25 +744,24 @@ TEST(EnergyEquationThermalBCIntegrationTest, HeatFluxAndAdiabaticBoundariesMatch
 
   const Index n = mesh.numberOfCells();
   ASSERT_EQ(n, 1u);
-  const Real t0 = 100.0;
-  const ScalarField temperature(n, t0);
-
-  SparseMatrixBuilder builder(n, n);
-  Vector rhs(n, 0.0);
-  assembleThermalDiffusionContribution(mesh, k, temperature, boundaries, builder, rhs);
-  const auto matrix = builder.build();
-
   const Real diffusionCoefficient = 6.0;  // k*A/d = 3*1.0/0.5, every boundary face here.
-  EXPECT_NEAR(matrix.diagonal(0), 4.0 * diffusionCoefficient, 1e-10);  // 24
-
-  // Adiabatic's boundaryValue is the owner value itself (zero-gradient),
-  // so each of the 3 Adiabatic faces contributes diffusionCoefficient*t0.
-  const Real adiabaticContribution = 3.0 * diffusionCoefficient * t0;  // 1800
-  // HeatFlux: dT/dn = -q/k_bc = -6/3 = -2 -> tB = t0 + dT/dn*distance =
-  // 100 + (-2*0.5) = 99 -> contribution = diffusionCoefficient*tB = 594.
-  const Real heatFluxGradient = -q / heatFluxConductivity;
-  const Real heatFluxBoundaryValue = t0 + (heatFluxGradient * 0.5);
-  const Real heatFluxContribution = diffusionCoefficient * heatFluxBoundaryValue;
-  EXPECT_NEAR(rhs[0], adiabaticContribution + heatFluxContribution, 1e-9);
-  EXPECT_NEAR(rhs[0], 2394.0, 1e-9);  // literal hand-derived total.
+  // P12-MESH-003: a gradient-type face contributes its exact prescribed
+  // heat flow -Df (T_b - T_P) = -Df g d to the RHS and nothing to the
+  // diagonal (the pre-fix form, Df on the diagonal and Df T_b(T_P^old) on
+  // the RHS, lagged the flux by one outer iteration). Independent of the
+  // cell temperature, so checked at two of them.
+  for (const Real t0 : {100.0, -50.0}) {
+    const ScalarField temperature(n, t0);
+    SparseMatrixBuilder builder(n, n);
+    Vector rhs(n, 0.0);
+    assembleThermalDiffusionContribution(mesh, k, temperature, boundaries, builder, rhs);
+    const auto matrix = builder.build();
+    EXPECT_EQ(matrix.nonZeros(), 0u);  // nothing depends on T: no coefficient at all
+    // Adiabatic: g = 0 -> no heat through the 3 insulated faces.
+    // HeatFlux: g = dT/dn = -q/k_bc = -6/3 = -2 -> Df * g * d = 6 * (-2 * 0.5)
+    // = -6 = -q * A: the 6 W leaving through the right face.
+    const Real heatFluxGradient = -q / heatFluxConductivity;
+    EXPECT_NEAR(rhs[0], diffusionCoefficient * (heatFluxGradient * 0.5), 1e-12);
+    EXPECT_NEAR(rhs[0], -q * 1.0, 1e-12);  // literal hand-derived total.
+  }
 }

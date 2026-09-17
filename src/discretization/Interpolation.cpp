@@ -52,7 +52,7 @@ Real interpolateInternalFaceSkewCorrected(const Mesh& mesh, const Face& face,
   const auto crossing = MeshGeometry::ownerNeighborCrossing(mesh, face);
   // Undefined crossing, or an unskewed face (skew vector exactly zero):
   // the plain interpolation, bit-for-bit.
-  if (!crossing.has_value() || (crossing->skewVector.x == 0.0 && crossing->skewVector.y == 0.0)) {
+  if (!crossing.has_value() || crossing->skewVector == Vector3{}) {
     return interpolateInternalFace(mesh, face, field);
   }
   const Index ownerId = face.owner();
@@ -65,17 +65,24 @@ Real interpolateInternalFaceSkewCorrected(const Mesh& mesh, const Face& face,
 
 Vector2 interpolateInternalFaceSkewCorrected(const Mesh& mesh, const Face& face,
                                              const VectorField& field, const VectorField& gradientX,
-                                             const VectorField& gradientY) {
+                                             const VectorField& gradientY,
+                                             const VectorField* gradientZ) {
   if (face.isBoundary()) {
     throw InvalidArgumentError("interpolateInternalFaceSkewCorrected: face is a boundary face");
   }
   if (field.size() != mesh.numberOfCells() || gradientX.size() != mesh.numberOfCells() ||
-      gradientY.size() != mesh.numberOfCells()) {
+      gradientY.size() != mesh.numberOfCells() ||
+      (gradientZ != nullptr && gradientZ->size() != mesh.numberOfCells())) {
     throw InvalidArgumentError(
         "interpolateInternalFaceSkewCorrected: field/gradient size does not match mesh cell count");
   }
+  // P12-MESH-006: a 3D velocity needs the w gradient too (a 2D one has none).
+  if (mesh.dimension() == 3 && gradientZ == nullptr) {
+    throw InvalidArgumentError(
+        "interpolateInternalFaceSkewCorrected: a 3D velocity field needs gradientZ");
+  }
   const auto crossing = MeshGeometry::ownerNeighborCrossing(mesh, face);
-  if (!crossing.has_value() || (crossing->skewVector.x == 0.0 && crossing->skewVector.y == 0.0)) {
+  if (!crossing.has_value() || crossing->skewVector == Vector3{}) {
     return interpolateInternalFace(mesh, face, field);
   }
   const Index ownerId = face.owner();
@@ -86,8 +93,15 @@ Vector2 interpolateInternalFaceSkewCorrected(const Mesh& mesh, const Face& face,
       gradientX[ownerId] + ((gradientX[neighborId] - gradientX[ownerId]) * t);
   const Vector2 gradYCrossing =
       gradientY[ownerId] + ((gradientY[neighborId] - gradientY[ownerId]) * t);
-  return Vector2{valueCrossing.x + dot(gradXCrossing, crossing->skewVector),
-                 valueCrossing.y + dot(gradYCrossing, crossing->skewVector)};
+  if (gradientZ == nullptr) {
+    return Vector2{valueCrossing.x + dot(gradXCrossing, crossing->skewVector),
+                   valueCrossing.y + dot(gradYCrossing, crossing->skewVector)};
+  }
+  const Vector3 gradZCrossing =
+      (*gradientZ)[ownerId] + (((*gradientZ)[neighborId] - (*gradientZ)[ownerId]) * t);
+  return Vector3{valueCrossing.x + dot(gradXCrossing, crossing->skewVector),
+                 valueCrossing.y + dot(gradYCrossing, crossing->skewVector),
+                 valueCrossing.z + dot(gradZCrossing, crossing->skewVector)};
 }
 
 Real interpolateBoundaryFace(const Mesh& mesh, const Face& face, const ScalarField& field,

@@ -5,10 +5,12 @@
 // still the one SimulationController class; see its own header comment
 // on why editing lives on the same controller/CaseSession as run/
 // visualize rather than a second controller with a second CaseSession).
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <random>
 #include <sstream>
+#include <vector>
 
 #include "CaseModelAdapter.hpp"
 #include "SimulationController.hpp"
@@ -18,6 +20,7 @@
 #include "cfd/io/CaseWriter.hpp"
 #include "cfd/io/case/BoundaryVocabulary.hpp"
 #include "cfd/io/case/PhysicsVocabulary.hpp"
+#include "cfd/mesh/MeshGrading.hpp"
 
 using cfd::io::CaseDefinition;
 
@@ -150,8 +153,8 @@ bool SimulationController::setMeshAndGeometry(const QVariantMap& mesh,
                                               const QVariantMap& geometry) {
   auto def = session_.caseDefinition();
   if (!def.has_value()) return false;
-  def->mesh = cfd::gui::meshConfigFromVariant(mesh);
-  def->geometry = cfd::gui::geometryConfigFromVariant(geometry);
+  def->mesh = cfd::gui::meshConfigFromVariant(mesh, def->mesh);
+  def->geometry = cfd::gui::geometryConfigFromVariant(geometry, def->geometry);
   session_.setCaseDefinition(std::move(*def));
   emit caseChanged();
   emit stateChanged();
@@ -191,11 +194,27 @@ bool SimulationController::setSolverConfig(const QVariantMap& solver) {
 bool SimulationController::setInitialConditions(const QVariantMap& initialConditions) {
   auto def = session_.caseDefinition();
   if (!def.has_value()) return false;
-  def->initialConditions = cfd::gui::initialConditionsFromVariant(initialConditions);
+  def->initialConditions =
+      cfd::gui::initialConditionsFromVariant(initialConditions, def->initialConditions);
   session_.setCaseDefinition(std::move(*def));
   emit caseChanged();
   emit stateChanged();
   return true;
+}
+
+void SimulationController::refreshMeshQuality() {
+  meshQuality_.clear();
+  const auto def = session_.caseDefinition();
+  if (!def.has_value()) return;
+  try {
+    const auto built = cfd::io::CaseBuilder{}.build(*def);
+    meshQuality_ = cfd::gui::toVariant(built.meshQuality);
+    // P12-MESH-006: the dimension of the mesh the production pipeline actually built (2 or 3).
+    meshQuality_["dimension"] = built.mesh.dimension();
+  } catch (const cfd::Error& e) {
+    meshQuality_ = QVariantMap{{"status", QStringLiteral("invalid")},
+                               {"summary", QString::fromStdString(e.what())}};
+  }
 }
 
 QVariantMap SimulationController::validateDraft() {
@@ -210,10 +229,15 @@ QVariantMap SimulationController::validateDraft() {
     ScratchDirectory scratch;
     cfd::io::CaseWriter::write(scratch.path(), *def);
     const CaseDefinition reread = cfd::io::CaseReader{}.read(scratch.path());
-    (void)cfd::io::CaseBuilder{}.build(reread);
+    const auto built = cfd::io::CaseBuilder{}.build(reread);
+    meshQuality_ = cfd::gui::toVariant(built.meshQuality);
+    meshQuality_["dimension"] = built.mesh.dimension();  // P12-MESH-006: 2 or 3
   } catch (const cfd::Error& e) {
     const QString message = QString::fromStdString(e.what());
     validationStatus_ = invalidResult(sectionForMessage(message), message);
+    if (message.contains(QStringLiteral("mesh is invalid"))) {
+      meshQuality_ = QVariantMap{{"status", QStringLiteral("invalid")}, {"summary", message}};
+    }
     emit validationChanged();
     return validationStatus_;
   }
@@ -224,7 +248,21 @@ QVariantMap SimulationController::validateDraft() {
 }
 
 QVariantList SimulationController::validationIssues() const {
-  if (validationStatus_.value(QStringLiteral("valid")).toBool()) return {};
+  if (validationStatus_.value(QStringLiteral("valid")).toBool()) {
+    // P12-MESH-004: a valid case may still carry mesh-quality warnings --
+    // listed (severity "Warning", section "Mesh") so the shared validation
+    // panel shows them; informational items stay on the Mesh page.
+    QVariantList warnings;
+    for (const QVariant& entry : meshQuality_.value(QStringLiteral("issues")).toList()) {
+      const QVariantMap item = entry.toMap();
+      if (item.value(QStringLiteral("severity")).toString() != QStringLiteral("warning")) continue;
+      warnings.push_back(QVariantMap{{"severity", QStringLiteral("Warning")},
+                                     {"section", QStringLiteral("Mesh")},
+                                     {"field", item.value(QStringLiteral("metric"))},
+                                     {"message", item.value(QStringLiteral("text"))}});
+    }
+    return warnings;
+  }
   QVariantMap issue;
   issue["severity"] = QStringLiteral("Error");
   issue["section"] = validationStatus_.value(QStringLiteral("section"));
@@ -262,15 +300,55 @@ QVariantMap SimulationController::meshCellInfo(const QVariantMap& mesh,
   const double length = geometry.value(QStringLiteral("length")).toDouble();
   const double height = geometry.value(QStringLiteral("height")).toDouble();
 
+  // P12-MESH-006: a box geometry (3D) adds nz cells over the depth.
+  const int nz = mesh.value(QStringLiteral("nz")).toInt();
+  const double depth = geometry.value(QStringLiteral("depth")).toDouble();
+
   QVariantMap info;
-  const qint64 cellCount = static_cast<qint64>(nx) * static_cast<qint64>(ny);
+  const qint64 cellCount =
+      static_cast<qint64>(nx) * static_cast<qint64>(ny) * (nz > 0 ? static_cast<qint64>(nz) : 1);
   info["cellCount"] = static_cast<double>(cellCount);
   info["dx"] = nx > 0 ? length / nx : 0.0;
   info["dy"] = ny > 0 ? height / ny : 0.0;
+  if (nz > 0) info["dz"] = depth / nz;
   // A UX nicety only -- see this method's own header comment. 250,000
   // cells is well past every case shipped under cases/ (the largest,
   // compressible_validation, is 24x6=144) but nowhere near a hard
   // production limit.
   info["isLarge"] = cellCount > 250000;
+
+  // P12-MESH-002: the graded cell sizes the real mesh will have
+  // (cfd::mesh::gradedNodeCoordinates -- the same function CaseReader and
+  // MeshGeometry use), min/max width per axis and the node positions as
+  // fractions of the axis (for the preview; up to 2000 cells per axis). A
+  // grading the library rejects is reported as gradingError, and
+  // validateDraft() reports it as the Mesh-section error.
+  const cfd::io::MeshConfig config = cfd::gui::meshConfigFromVariant(mesh);
+  const cfd::io::MeshGradingConfig grading = config.grading.value_or(cfd::io::MeshGradingConfig{});
+  for (const bool xAxis : {true, false}) {
+    const int cells = xAxis ? nx : ny;
+    const double extent = xAxis ? length : height;
+    if (cells <= 0 || !(extent > 0.0)) continue;
+    const QString axis = xAxis ? QStringLiteral("x") : QStringLiteral("y");
+    try {
+      const std::vector<cfd::Real> nodes = cfd::mesh::gradedNodeCoordinates(
+          static_cast<cfd::Index>(cells), extent, xAxis ? grading.x : grading.y);
+      double smallest = extent;
+      double largest = 0.0;
+      QVariantList fractions;
+      for (std::size_t k = 0; k + 1 < nodes.size(); ++k) {
+        smallest = std::min(smallest, nodes[k + 1] - nodes[k]);
+        largest = std::max(largest, nodes[k + 1] - nodes[k]);
+      }
+      if (cells <= 2000) {
+        for (const double node : nodes) fractions.push_back(node / extent);
+      }
+      info["min" + axis.toUpper() + "Width"] = smallest;
+      info["max" + axis.toUpper() + "Width"] = largest;
+      info[axis + "Nodes"] = fractions;
+    } catch (const cfd::InvalidArgumentError& e) {
+      info["gradingError"] = QString::fromStdString(e.what());
+    }
+  }
   return info;
 }

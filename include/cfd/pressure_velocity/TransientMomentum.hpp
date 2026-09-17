@@ -80,4 +80,30 @@ void applyTransientTerm(cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra
     cfd::physics::VelocityComponent component,
     const cfd::fields::ScalarField& previousComponentValue, Real dt);
 
+// P12-MESH-007 -- the ALE (moving-mesh) momentum component: the effective-
+// viscosity overload above with exactly two differences (results/p12-mesh-007/
+// architecture.md section 3.6):
+//   - convection uses `convectingMassFlux`, the flux RELATIVE to the moving
+//     mesh (cfd::physics::relativeMassFlux: F - rho dV/dt), through the same
+//     shared assembleConvectionContribution;
+//   - the time term is cfd::discretization::aleImplicitEulerTimeDerivative
+//     with V^n = previousVolume and V^{n+1} = the mesh's current volumes.
+// Everything else (diffusion with mu_eff, pressure source, the 2D guard, the
+// size checks, the non-finite check) is identical, and so is the operation
+// order: with a stationary mesh (convectingMassFlux == the mass flux,
+// previousVolume == the current volumes) the result is bit for bit that of the
+// effective-viscosity overload.
+//
+// Throws as the effective-viscosity overload, plus InvalidArgumentError if
+// previousVolume.size() != mesh.numberOfCells().
+[[nodiscard]] cfd::physics::MomentumAssembly assembleAleTransientMomentumComponent(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
+    const cfd::fields::ScalarField& pressure, const cfd::fields::SurfaceField& convectingMassFlux,
+    const cfd::physics::FluidProperties& fluid, const cfd::fields::ScalarField& effectiveViscosity,
+    const cfd::boundary::BoundaryConditionSet& velocityBoundaries,
+    const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
+    cfd::physics::VelocityComponent component,
+    const cfd::fields::ScalarField& previousComponentValue,
+    const cfd::fields::ScalarField& previousVolume, Real dt);
+
 }  // namespace cfd::pressure_velocity

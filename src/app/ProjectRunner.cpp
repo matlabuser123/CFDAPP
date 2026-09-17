@@ -45,7 +45,7 @@ namespace {
 
 bool anyNonFinite(const SIMPLEResult& result) {
   for (cfd::Index i = 0; i < result.velocity.size(); ++i) {
-    if (!std::isfinite(result.velocity[i].x) || !std::isfinite(result.velocity[i].y)) return true;
+    if (!cfd::isFinite(result.velocity[i])) return true;
   }
   for (cfd::Index i = 0; i < result.pressure.size(); ++i) {
     if (!std::isfinite(result.pressure[i])) return true;
@@ -231,6 +231,7 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
   out.caseDefinition = caseDefinition;
   const cfd::io::SimulationSetup& setup = *setupOpt;
   out.mesh = setup.mesh;
+  out.meshQuality = setup.meshQuality;
 
   // Same turbulence-model construction/dispatch as the pre-P5 CLI
   // runCase() (see that function's own header comment for why this is
@@ -584,7 +585,7 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
     out.exportSummary = cfd::io::ResultExporter::write(
         caseDirectory / "results", setup.mesh, result, exportMetadata, temperatureForExport,
         thermalMetadata, extraFieldsForExport, speciesMetadataForExport, multiphaseMetadata,
-        compressibleMetadata);
+        compressibleMetadata, setup.meshQuality);
   } catch (const cfd::Error& e) {
     out.status = ProjectRunStatus::ApplicationError;
     out.errorMessage = e.what();

@@ -6,6 +6,10 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <fstream>
+#include <iterator>
+#include <string>
+#include <vector>
 
 #include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
@@ -171,4 +175,82 @@ TEST(VisualizationSnapshotTest, CompressibleCaseExposesThermodynamicFieldsLiveAn
     EXPECT_NE(std::find(fields.begin(), fields.end(), "density"), fields.end());
     EXPECT_NE(std::find(fields.begin(), fields.end(), "mach_number"), fields.end());
   }
+}
+
+// P12-MESH-006: a 3D (hexahedral) result -- live and reloaded -- carries nz, the w velocity and the
+// W residual history; the reload locates the 3D CSV columns (z, velocity_z, w_residual) by name and
+// reproduces the live values exactly (17 significant digits in the files).
+TEST(VisualizationSnapshotTest, ThreeDimensionalResultLiveAndReloaded) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cube3d_cli_smoke");
+  const auto run = ProjectRunner::run(fixture.path());
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged) << run.errorMessage;
+
+  const VisualizationSnapshot live = buildSnapshot(run);
+  ASSERT_TRUE(live.valid);
+  EXPECT_TRUE(live.threeDimensional());
+  EXPECT_EQ(live.nx, 6u);
+  EXPECT_EQ(live.ny, 6u);
+  EXPECT_EQ(live.nz, 6u);
+  ASSERT_EQ(live.points.size(), 216u);
+  ASSERT_EQ(live.velocityZ.size(), 216u);
+  EXPECT_EQ(live.availableResidualSeries(),
+            (std::vector<std::string>{"u", "v", "w", "pressure", "continuity"}));
+  ASSERT_NE(live.residualSeries("w"), nullptr);
+  EXPECT_EQ(live.residualSeries("w")->size(), live.uResidualHistory.size());
+
+  const VisualizationSnapshot reloaded = loadSnapshotFromResults(fixture.path() / "results");
+  ASSERT_TRUE(reloaded.valid);
+  EXPECT_EQ(reloaded.nz, 6u);
+  ASSERT_EQ(reloaded.points.size(), live.points.size());
+  ASSERT_EQ(reloaded.velocityZ.size(), live.velocityZ.size());
+  for (std::size_t i = 0; i < live.points.size(); ++i) {
+    EXPECT_EQ(reloaded.points[i], live.points[i]) << i;
+    EXPECT_EQ(reloaded.velocityX[i], live.velocityX[i]) << i;
+    EXPECT_EQ(reloaded.velocityZ[i], live.velocityZ[i]) << i;
+    EXPECT_EQ(reloaded.pressure[i], live.pressure[i]) << i;
+  }
+  EXPECT_EQ(reloaded.wResidualHistory, live.wResidualHistory);
+  EXPECT_EQ(reloaded.pressureResidualHistory, live.pressureResidualHistory);
+  EXPECT_EQ(reloaded.continuityResidualHistory, live.continuityResidualHistory);
+}
+
+// P12-MESH-006: a 2D result is unchanged -- nz 0, no w velocity, no W series.
+TEST(VisualizationSnapshotTest, TwoDimensionalResultHasNoThirdComponent) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const auto run = ProjectRunner::run(fixture.path());
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged);
+  for (const VisualizationSnapshot& snapshot :
+       {buildSnapshot(run), loadSnapshotFromResults(fixture.path() / "results")}) {
+    ASSERT_TRUE(snapshot.valid);
+    EXPECT_FALSE(snapshot.threeDimensional());
+    EXPECT_EQ(snapshot.nz, 0u);
+    EXPECT_TRUE(snapshot.velocityZ.empty());
+    EXPECT_TRUE(snapshot.wResidualHistory.empty());
+    EXPECT_EQ(snapshot.residualSeries("w"), nullptr);
+    EXPECT_EQ(snapshot.availableResidualSeries(),
+              (std::vector<std::string>{"u", "v", "pressure", "continuity"}));
+  }
+}
+
+// P12-MESH-006: a results directory written with CRLF line endings (e.g. committed from Windows)
+// still reloads -- the header's last column name carries no '\r'.
+TEST(LoadSnapshotFromResultsTest, CrlfResultsFilesReload) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const auto run = ProjectRunner::run(fixture.path());
+  ASSERT_EQ(run.status, ProjectRunStatus::Converged);
+  const VisualizationSnapshot lf = loadSnapshotFromResults(fixture.path() / "results");
+  ASSERT_TRUE(lf.valid);
+  for (const char* name : {"fields.csv", "residuals.csv"}) {
+    const auto path = fixture.path() / "results" / name;
+    std::ifstream in(path, std::ios::binary);
+    std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    std::string crlf;
+    for (const char c : text) crlf += (c == '\n') ? std::string("\r\n") : std::string(1, c);
+    std::ofstream(path, std::ios::binary) << crlf;
+  }
+  const VisualizationSnapshot reloaded = loadSnapshotFromResults(fixture.path() / "results");
+  ASSERT_TRUE(reloaded.valid);
+  EXPECT_EQ(reloaded.pressure, lf.pressure);
+  EXPECT_EQ(reloaded.continuityResidualHistory, lf.continuityResidualHistory);
 }

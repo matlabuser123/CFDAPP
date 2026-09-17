@@ -62,7 +62,9 @@ namespace cfd::io::detail {
 // thermalEnabled.
 [[nodiscard]] cfd::io::BoundaryConfig parseBoundaryConfig(
     const nlohmann::json& json, const std::filesystem::path& path, bool thermalEnabled,
-    const std::vector<std::string>& speciesNames, bool multiphaseEnabled);
+    const std::vector<std::string>& speciesNames, bool multiphaseEnabled, int dimension = 2);
+// P12-MESH-006: `dimension` (from geometry.json) is the component count of the
+// velocity "value" arrays: [u, v] in 2D (unchanged), [u, v, w] in 3D.
 
 [[nodiscard]] cfd::io::SolverConfig parseSolverConfig(const nlohmann::json& json,
                                                       const std::filesystem::path& path);

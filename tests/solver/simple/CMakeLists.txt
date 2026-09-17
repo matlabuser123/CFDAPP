@@ -20,6 +20,7 @@ add_executable(CFDSimpleTests
   test_simple_non_orthogonal.cpp
   test_pressure_correction_non_orthogonal.cpp
   test_simple_robustness.cpp
+  test_simple3d.cpp
 )
 
 target_link_libraries(CFDSimpleTests

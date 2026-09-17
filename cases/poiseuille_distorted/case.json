@@ -1,0 +1,10 @@
+{
+  "name": "Distorted Poiseuille Flow Re=10 (structured_quad 64x8)",
+  "description": "P12-MESH-001 production non-orthogonal mesh validation case: the planar Poiseuille channel of cases/poiseuille_flow (H=1, L=8, Re=10, uniform inlet U=1, zero-gradient outlet with p=0, no-slip walls) on a smoothly distorted structured_quad mesh, 64x8 cells. Vertex (i,j) = (x, y) with xi = L*i/nx, eta = H*j/ny, x = xi + 0.1*sin(pi*xi/L)*sin(2*pi*eta/H), y = eta + 0.05*sin(2*pi*xi/H)*sin(pi*eta/H) (boundary vertices exactly on the rectangle): max face non-orthogonality ~45 degrees, tilted grid lines at both walls, wavy grid lines across the flow. Solved with non_orthogonal_corrections=1 and linear_upwind convection (first-order upwind has an O(h) error on a grid not aligned with the flow) and a CG pressure solver (the symmetric pressure-correction system; unpreconditioned BiCGSTAB breaks down on the refined grids) -- see results/p12-mesh-001/summary.md. Reference: the analytical fully developed solution u = 6U(y/H)(1-y/H), dp/dx = -12 mu U/H^2 -- see tests/integration/case/test_structured_quad_production_case.cpp. The Rhie-Chow face flux (face_flux=rhie_chow) is selected because the 2D linear flux leaves an undamped odd-even pressure mode on this open domain, so its solutions keep moving long after the outer tolerance is met -- see results/p12-grad-002/drift-001/summary.md.",
+  "format_version": 1,
+  "geometry": "geometry.json",
+  "mesh": "mesh.json",
+  "physics": "physics.json",
+  "boundaries": "boundaries.json",
+  "solver": "solver.json"
+}

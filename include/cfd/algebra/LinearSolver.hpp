@@ -107,6 +107,10 @@ struct SolverResult {
   Real initialResidual{};
   Real finalResidual{};
   std::vector<Real> residualHistory;
+  // P12-MESH-004: BiCGSTAB only -- how many times the Krylov sequence was
+  // restarted after a numerical breakdown of its recurrence (see
+  // BiCGSTAB.hpp). 0 for every other solver.
+  Index restarts{0};
 
   // P6-GPU-002 -- Performance: which backend actually produced this
   // result -- every concrete solver sets this itself (CG/BiCGSTAB always

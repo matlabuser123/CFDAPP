@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <memory>
 
 #include "cfd/boundary/FixedGradient.hpp"
@@ -49,6 +50,7 @@
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/ContinuityEquation.hpp"
 #include "cfd/physics/FluidProperties.hpp"
+#include "cfd/physics/MassFlux.hpp"
 #include "cfd/pressure_velocity/SIMPLE.hpp"
 
 using cfd::Index;
@@ -129,10 +131,13 @@ SIMPLESettings makeFlowSettings() {
 
 struct LowMachOutcome {
   Real machMax{};
+  Real inletMach{};  // Mach number of the mean inlet speed (the maximum of the solved profile
+                     // exceeds it)
   Real deltaRhoOverRho{};
   Real maxEosError{};
   Real maxRelativeMassFluxDifference{};
   Real globalMassImbalance{};
+  Real globalMassImbalanceBound{};  // see GlobalMassImbalanceIsSmall
   ScalarField density;
 };
 
@@ -143,10 +148,17 @@ LowMachOutcome runLowMachCase(Index nx, Index ny) {
   const FluidProperties fluid(kDensity, kViscosity);
 
   const SIMPLE simple(makeFlowSettings());
-  VectorField velocity(mesh.numberOfCells(), Vector2{kMeanVelocity, 0.0});
-  ScalarField pressure(mesh.numberOfCells(), 0.0);
   const SIMPLEResult flow =
-      simple.solve(mesh, fluid, velocityBoundaries, pressureBoundaries, velocity, pressure);
+      simple.solve(mesh, fluid, velocityBoundaries, pressureBoundaries,
+                   VectorField(mesh.numberOfCells(), Vector2{kMeanVelocity, 0.0}),
+                   ScalarField(mesh.numberOfCells(), 0.0));
+  // P12-DIFF-002-LOWMACH-001: every compressible quantity below is built from the SOLVED
+  // velocity. The Mach number and the compressible mass flux used to read a local copy of the
+  // uniform initial guess (SIMPLE::solve takes the initial field by value, so that copy was never
+  // updated), which made the "9 % flux difference" the uniform-versus-parabolic profile
+  // difference and the "mass imbalance" the inlet-outlet density change of a uniform stream
+  // (results/p12-diff-002/lowmach-001/summary.md).
+  const VectorField& velocity = flow.velocity;
   if (flow.status != SIMPLEStatus::Converged) {
     ADD_FAILURE() << "incompressible reference flow did not converge (nx=" << nx << ", ny=" << ny
                   << ", status=" << static_cast<int>(flow.status) << ")";
@@ -211,8 +223,33 @@ LowMachOutcome runLowMachCase(Index nx, Index ny) {
 
   const auto continuity = evaluateContinuity(mesh, compressibleMassFlux);
 
+  // The derived bound on the compressible flux's global imbalance (GlobalMassImbalanceIsSmall).
+  // The flux on a boundary face is rho_f F'_f, F'_f the face's volumetric flux of the same
+  // velocity field. Every boundary density lies in [rhoLo, rhoHi] -- the EOS density at the
+  // pressures the boundary conditions imply: the owner cell's for the zero-gradient inlet and
+  // walls, the reference pressure for the p = 0 outlet. For any rhoMid,
+  //   sum rho_f F'_f = sum (rho_f - rhoMid) F'_f + rhoMid sum F'_f
+  // so with rhoMid the midpoint of that range,
+  //   |net| <= (rhoHi - rhoLo)/2 * sum |F'_f| + rhoMid * |sum F'_f|.
+  const cfd::fields::SurfaceField volumetricFlux = cfd::physics::calculateMassFlux(
+      mesh, velocity, FluidProperties(1.0, kViscosity), velocityBoundaries);
+  const Real rhoReference = thermo.density(kReferencePressure, kTemperature);
+  const Real rhoHi = std::max(rhoMax, rhoReference);
+  const Real rhoLo = std::min(rhoMin, rhoReference);
+  Real boundaryThroughput = 0.0;
+  Real volumetricImbalance = 0.0;
+  for (const auto& face : mesh.faces()) {
+    if (!face.isBoundary()) continue;
+    boundaryThroughput += std::abs(volumetricFlux[face.id()]);
+    volumetricImbalance += volumetricFlux[face.id()];
+  }
+
   LowMachOutcome outcome;
   outcome.machMax = machMax;
+  outcome.inletMach = machNumber(kMeanVelocity, soundSpeed);
+  outcome.globalMassImbalanceBound = ((0.5 * (rhoHi - rhoLo) * boundaryThroughput) +
+                                      (0.5 * (rhoHi + rhoLo) * std::abs(volumetricImbalance))) /
+                                     std::max<Real>(1e-9, rhoAvg * kMeanVelocity * kChannelHeight);
   outcome.deltaRhoOverRho = (rhoMax - rhoMin) / rhoAvg;
   outcome.maxEosError = maxEosError;
   outcome.maxRelativeMassFluxDifference = maxRelativeDifference;
@@ -228,6 +265,10 @@ TEST(LowMachRegressionTest, MachNumberStaysWellBelowPointOne) {
   const auto outcome = runLowMachCase(32, 6);
   EXPECT_GT(outcome.machMax, 0.0);
   EXPECT_LT(outcome.machMax, 0.1);
+  // The Mach number is the SOLVED field's: the developed channel profile peaks at 1.5 U, so its
+  // maximum must exceed the mean inlet speed's Mach number (LOWMACH-001: the uniform initial
+  // guess, which the test used to read, gives exactly the inlet value).
+  EXPECT_GT(outcome.machMax, 1.25 * outcome.inletMach);
 }
 
 TEST(LowMachRegressionTest, DensityVariationIsSmallRelativeToReferenceDensity) {
@@ -243,22 +284,32 @@ TEST(LowMachRegressionTest, EosConsistencyErrorIsAtFloatingPointTolerance) {
 TEST(LowMachRegressionTest, CompressibleMassFluxApproachesTheIncompressibleLimit) {
   // In the low-Mach limit, the compressible mass flux (built from the
   // EOS-computed, near-uniform density) must closely track the
-  // incompressible one scaled by the average density -- diagnosed
-  // (empirically, at this grid) at ~9% max local relative difference:
-  // most of the domain matches far more closely, but a handful of
-  // low-flux faces (near the channel walls, where the incompressible
-  // flux itself is close to zero) amplify the local density's own
-  // small deviation from rhoAvg into a larger *relative* difference
-  // there, even though the *absolute* difference stays tiny everywhere
-  // (bounded by fluxScale*0.15 here) -- a real, bounded, low-Mach-
-  // consistent result, not a symptom of the foundation being wrong.
+  // incompressible one scaled by the average density: the difference is
+  // (rho_f - rhoAvg) times the face flux, i.e. O(delta-rho/rho) of the
+  // flux scale -- measured 3.4e-05 at this grid. (The ~9 % this comment
+  // used to explain was LOWMACH-001's uniform-versus-parabolic velocity
+  // artifact, not a density effect.) The bound is unchanged.
   const auto outcome = runLowMachCase(32, 6);
   EXPECT_LT(outcome.maxRelativeMassFluxDifference, 0.15);
 }
 
+// The global continuity imbalance of the post-hoc compressible flux. An incompressible
+// (discretely divergence-free) solution re-weighted by pressure-dependent densities cannot be
+// divergence-free: its net boundary flux is the density change across the boundaries times the
+// throughput -- the low-Mach parameter itself, not a solver error. The imbalance must therefore be
+// bounded by that, as derived in runLowMachCase: the flux assembly is consistent with EOS
+// densities inside the physically admissible boundary range (measured 4.5e-05 against a bound of
+// 1.7e-04 at 32x6; the bound is exact, so a boundary density outside that range, or a spurious
+// boundary flux, violates it). P12-DIFF-002-LOWMACH-001 replaced the former fixed 1e-4: it was set
+// just above a value that was really the inlet-outlet pressure drop over p_ref (a uniform stream,
+// see runLowMachCase), a quantity that converges to ~1.09e-4 under refinement, so the more
+// accurate DIFF-002 pressure drop crossed it (1.034e-4).
 TEST(LowMachRegressionTest, GlobalMassImbalanceIsSmall) {
   const auto outcome = runLowMachCase(32, 6);
-  EXPECT_LT(outcome.globalMassImbalance, 1e-4);
+  std::printf("global imbalance %.6e, derived bound %.6e, density variation %.6e\n",
+              outcome.globalMassImbalance, outcome.globalMassImbalanceBound,
+              outcome.deltaRhoOverRho);
+  EXPECT_LE(outcome.globalMassImbalance, outcome.globalMassImbalanceBound);
 }
 
 TEST(LowMachRegressionTest, GridRefinementKeepsAllMetricsSmall) {

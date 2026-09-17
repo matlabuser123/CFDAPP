@@ -22,7 +22,28 @@ namespace cfd::physics {
 // are inherently vector-valued (a Wall gives one (0,0), not two
 // independent scalar conditions), so callers pass the full vector
 // BoundaryConditionSet and this says which component to extract.
-enum class VelocityComponent { U, V };
+//
+// P12-MESH-006: W is the third component. Every contribution assembler below
+// is dimension-independent (face loops, 3D area vectors, 3D gradients), so the
+// same code assembles U, V on a 2D mesh and U, V, W on a 3D mesh -- W is not a
+// special-case equation. On a 2D mesh only U and V are assembled, exactly as
+// before. (assembleMomentum, the two-component convenience wrapper, remains
+// 2D-only.)
+enum class VelocityComponent { U, V, W };
+
+// The component of `v` that `component` selects: x for U, y for V, z for W.
+[[nodiscard]] inline Real velocityComponentValue(const Vector2& v,
+                                                 VelocityComponent component) noexcept {
+  switch (component) {
+    case VelocityComponent::U:
+      return v.x;
+    case VelocityComponent::V:
+      return v.y;
+    case VelocityComponent::W:
+      return v.z;
+  }
+  return v.x;
+}
 
 // Result of assembling one scalar momentum component. The diagonal
 // (aP per cell) is exposed directly rather than requiring callers to

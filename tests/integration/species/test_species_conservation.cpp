@@ -44,6 +44,9 @@
 #include "cfd/species/SpeciesProperties.hpp"
 #include "cfd/species/SpeciesSolver.hpp"
 
+// P12-DIFF-002 validation migration: the shared production-operator flux diagnostic.
+#include "BoundaryFluxProbe.hpp"
+
 using cfd::Index;
 using cfd::Real;
 using cfd::Vector2;
@@ -247,6 +250,24 @@ TEST(SpeciesConservationTest, OpenChannelWithVolumetricSourceBalancesNetOutflowA
   Real totalVolume = 0.0;
   for (const auto& cell : mesh.cells()) totalVolume += cell.volume();
 
+  // P12-DIFF-002 A5-10, M-B migration (validation-migration/acceptance_gate_A5.md). The diffusive
+  // term used to be estimated inline as
+  //     rho*D * |S| / d * (y_P - y_b)
+  // which is the pre-DIFF-002 TWO-POINT wall flux. Production now assembles the second-order
+  // one-sided reconstruction wherever a valid inward stencil exists, so that estimator measured a
+  // different operator than the solver used and reported an imbalance the solver did not have:
+  // 1.587e-03 against an assembled balance of 3.5e-08, a factor of 45 600
+  // (results/p12-diff-002/investigation-f/summary.md section 2).
+  //
+  // It now uses tests/support/BoundaryFluxProbe.hpp, the one shared diagnostic that evaluates the
+  // SAME operator production assembles. The conservation statement itself is still formed and
+  // summed here, independently, and its 1e-3 threshold below is unchanged -- only the instrument
+  // was replaced. The probe returns the flux INTO the owner; this function's sign convention is
+  // outflow, hence the negation.
+  const Real diffusionCoefficient = fluid.density() * diffusivity;
+  const cfd::fields::VectorField gradY = cfd::testutil::diffusionCorrectionGradient(
+      mesh, result.concentration, concentrationBoundaries);
+
   Real netOut = 0.0;
   for (const auto& face : mesh.faces()) {
     if (!face.isBoundary()) continue;
@@ -257,9 +278,8 @@ TEST(SpeciesConservationTest, OpenChannelWithVolumetricSourceBalancesNetOutflowA
     const Real distance =
         cfd::mesh::MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
     const Real yBoundary = scalarBc.boundaryValue(result.concentration[ownerId], distance);
-    const Real diffusionCoefficient = fluid.density() * diffusivity;
-    const Real diffusiveOut =
-        diffusionCoefficient * face.area() / distance * (result.concentration[ownerId] - yBoundary);
+    const Real diffusiveOut = -cfd::testutil::boundaryDiffusiveFluxIntoOwner(
+        mesh, face, diffusionCoefficient, result.concentration, concentrationBoundaries, gradY);
     const Real ownerFlux = massFlux[face.id()];
     const Real convectiveOut =
         ownerFlux * ((ownerFlux >= 0.0) ? result.concentration[ownerId] : yBoundary);

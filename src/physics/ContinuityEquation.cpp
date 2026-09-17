@@ -54,4 +54,41 @@ ContinuityResult evaluateContinuity(const Mesh& mesh, const SurfaceField& massFl
   return result;
 }
 
+MassBalance computeMassBalance(const Mesh& mesh, const SurfaceField& massFlux) {
+  const ContinuityResult continuity = evaluateContinuity(mesh, massFlux);
+  MassBalance balance;
+  for (const auto& patch : mesh.boundaryPatches()) {
+    for (const Index faceId : patch.faceIds()) {
+      const Real flux = massFlux[faceId];
+      if (flux < 0.0) balance.inflow -= flux;
+      if (flux > 0.0) balance.outflow += flux;
+    }
+  }
+  balance.net = continuity.globalNetFlux;
+  const Real throughFlow = std::max(balance.inflow, balance.outflow);
+  balance.relativeImbalance = throughFlow > 0.0 ? std::abs(balance.net) / throughFlow : 0.0;
+
+  Real sumSquares = 0.0;
+  for (Index i = 0; i < continuity.cellImbalance.size(); ++i) {
+    sumSquares += continuity.cellImbalance[i] * continuity.cellImbalance[i];
+  }
+  balance.maxCellImbalance = continuity.maxCellImbalance;
+  balance.rmsCellImbalance =
+      std::sqrt(sumSquares / static_cast<Real>(continuity.cellImbalance.size()));
+
+  Real sumInternal = 0.0;
+  Index internalFaces = 0;
+  for (const auto& face : mesh.faces()) {
+    if (face.isBoundary()) continue;
+    sumInternal += std::abs(massFlux[face.id()]);
+    ++internalFaces;
+  }
+  const Real meanInternal =
+      internalFaces > 0 ? sumInternal / static_cast<Real>(internalFaces) : 0.0;
+  balance.fluxScale = std::max(throughFlow, meanInternal);
+  balance.normalizedContinuity =
+      balance.fluxScale > 0.0 ? balance.rmsCellImbalance / balance.fluxScale : 0.0;
+  return balance;
+}
+
 }  // namespace cfd::physics

@@ -95,6 +95,12 @@ void requireField(const nlohmann::json& node, const std::filesystem::path& path,
                                    std::string_view label = {});
 
 // A required 2-component finite array, e.g. "velocity": [1.0, 0.0].
+// P12-MESH-006: exactly 3 finite numbers [x, y, z] (a 3D case's vectors).
+[[nodiscard]] std::array<Real, 3> getRequiredVector3(const nlohmann::json& node,
+                                                     const std::filesystem::path& path,
+                                                     std::string_view field,
+                                                     std::string_view label = {});
+
 [[nodiscard]] std::array<Real, 2> getRequiredVector2(const nlohmann::json& node,
                                                      const std::filesystem::path& path,
                                                      std::string_view field,

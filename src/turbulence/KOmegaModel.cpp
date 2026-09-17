@@ -66,6 +66,8 @@ KOmegaModel::KOmegaModel(const Mesh& mesh, const FluidProperties& fluid,
       k_(mesh.numberOfCells(), config_.initialK),
       omega_(mesh.numberOfCells(), config_.initialOmega),
       turbulentViscosity_(mesh.numberOfCells(), 0.0) {
+  // P12-MESH-006: 2D production term only.
+  cfd::mesh::requireTwoDimensional(mesh, "KOmegaModel");
   validateCoefficients(config_.coefficients);
   if (!std::isfinite(config_.initialK) || !(config_.initialK > 0.0)) {
     throw InvalidArgumentError("KOmegaModel: initialK must be finite and > 0");

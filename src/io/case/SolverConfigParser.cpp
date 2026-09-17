@@ -224,7 +224,7 @@ SolverConfig parseSolverConfig(const nlohmann::json& json, const std::filesystem
                     {"type", "max_iterations", "velocity_relaxation", "pressure_relaxation",
                      "velocity_tolerance", "pressure_tolerance", "continuity_tolerance",
                      "momentum_linear_solver", "pressure_linear_solver", "convection_scheme",
-                     "gradient_scheme", "non_orthogonal_corrections", "robustness"});
+                     "gradient_scheme", "non_orthogonal_corrections", "robustness", "face_flux"});
 
   SolverConfig config;
   config.type = getRequiredString(json, path, "type");
@@ -294,6 +294,14 @@ SolverConfig parseSolverConfig(const nlohmann::json& json, const std::filesystem
                      std::to_string(nonOrthogonalCorrections));
   }
   config.nonOrthogonalCorrections = static_cast<Index>(nonOrthogonalCorrections);
+
+  // P12-MESH-006: optional, defaults to "automatic" (linear flux in 2D -- every
+  // existing case, unchanged; Rhie-Chow in 3D). See SIMPLESettings.hpp.
+  config.faceFlux = getOptionalString(json, path, "face_flux", "automatic", "face_flux");
+  if (config.faceFlux != "automatic" && config.faceFlux != "linear" &&
+      config.faceFlux != "rhie_chow") {
+    throwConfigError(path, "face_flux", "be one of: automatic, linear, rhie_chow", config.faceFlux);
+  }
 
   // P12-NUM-004: optional -- absent in every pre-P12-NUM-004 case file,
   // which keeps every existing case parsing into exactly today's solver.

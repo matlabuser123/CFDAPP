@@ -30,7 +30,7 @@ bool isOneOf(std::string_view value, const auto& options) {
 
 VelocityBoundarySpec parseVelocitySpec(const nlohmann::json& json,
                                        const std::filesystem::path& path,
-                                       const std::string& patchName) {
+                                       const std::string& patchName, int dimension) {
   const std::string context = "patches." + patchName + ".velocity";
   requireObject(json, path, context);
 
@@ -46,8 +46,13 @@ VelocityBoundarySpec parseVelocitySpec(const nlohmann::json& json,
                     needsValue ? std::vector<std::string_view>{"type", "value"}
                                : std::vector<std::string_view>{"type"});
   if (needsValue) {
-    const auto components = getRequiredVector2(json, path, "value", context + ".value");
-    spec.value = Vector2{components[0], components[1]};
+    if (dimension == 3) {  // P12-MESH-006: [u, v, w] in a 3D (box) case.
+      const auto components = getRequiredVector3(json, path, "value", context + ".value");
+      spec.value = Vector3{components[0], components[1], components[2]};
+    } else {
+      const auto components = getRequiredVector2(json, path, "value", context + ".value");
+      spec.value = Vector2{components[0], components[1]};
+    }
   }
   return spec;
 }
@@ -135,7 +140,7 @@ TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
 BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesystem::path& path,
                                    bool thermalEnabled,
                                    const std::vector<std::string>& speciesNames,
-                                   bool multiphaseEnabled) {
+                                   bool multiphaseEnabled, int dimension) {
   requireObject(json, path);
   rejectUnknownKeys(json, path, "boundaries.json", {"patches"});
   requireField(json, path, "patches");
@@ -166,7 +171,7 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
     }
 
     PatchBoundaryConfig patchConfig;
-    patchConfig.velocity = parseVelocitySpec(patchJson.at("velocity"), path, patchName);
+    patchConfig.velocity = parseVelocitySpec(patchJson.at("velocity"), path, patchName, dimension);
     patchConfig.pressure = parsePressureSpec(patchJson.at("pressure"), path, patchName);
     if (thermalEnabled) {
       patchConfig.temperature = parseTemperatureSpec(patchJson.at("temperature"), path, patchName);

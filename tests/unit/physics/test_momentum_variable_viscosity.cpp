@@ -24,6 +24,7 @@
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
 #include "cfd/boundary/MovingWall.hpp"
+#include "cfd/boundary/Outlet.hpp"
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/physics/MomentumEquation.hpp"
@@ -129,24 +130,49 @@ TEST(MomentumVariableViscosityTest, InternalFaceMatchesHandDerivedLinearMuValue)
   const Real muFaceExpected = 0.5 * (0.01 + 0.012);
   const Real internalCoefficientExpected = muFaceExpected * /*area=*/1.0 / /*dPN=*/1.0;
 
+  // P12-DIFF-002 A5, entry 14 (validation-migration/acceptance_gate_A5.md, class M-A/2). The
+  // interpolated face value 0.011 is unchanged and is still asserted -- in isolation, below. What
+  // changed is that each cell's x-wall reaches its far cell through the shared internal face, so
+  // each row's entry at the other cell also carries that row's OWN one-sided far-cell coefficient,
+  // scaled by its own owner viscosity. Those differ here (0.01 vs 0.012), which is exactly why the
+  // two entries are no longer equal. Derived in a5/tools/derive_expected.py, block B3, with
+  // h1 = 0.5, h2 = 1.5, |S| = 1:
+  //   cF(owner) = mu_owner |S| h1 / (h2 (h2 - h1)) = mu_owner / 3
+  //   A(1,0) = -(0.011 + 0.012/3) = -0.015      A(0,1) = -(0.011 + 0.01/3) = -0.0143333...
+  const Real cF0 = 0.01 / 3.0;   // owner = cell 0
+  const Real cF1 = 0.012 / 3.0;  // owner = cell 1
+
   Vector e0(n, 0.0);
   e0[0] = 1.0;
-  const Real a10 = matrix.multiply(e0)[1];  // A(1,0), off-diagonal from the internal face.
-  EXPECT_NEAR(-a10, internalCoefficientExpected, 1e-12);
+  const Real a10 = matrix.multiply(e0)[1];  // A(1,0): internal face + cell 1's far-cell term
+  EXPECT_NEAR(-a10, internalCoefficientExpected + cF1, 1e-12);
 
   Vector e1(n, 0.0);
   e1[1] = 1.0;
-  const Real a01 = matrix.multiply(e1)[0];  // A(0,1)
-  EXPECT_NEAR(-a01, internalCoefficientExpected, 1e-12);
+  const Real a01 = matrix.multiply(e1)[0];  // A(0,1): internal face + cell 0's far-cell term
+  EXPECT_NEAR(-a01, internalCoefficientExpected + cF0, 1e-12);
 
-  // Equal-and-opposite conservation: the internal face's contribution to
-  // cell 0's diagonal and cell 1's diagonal must match the same
-  // coefficient (each row's diagonal also includes its two boundary-face
-  // contributions, so compare the isolated internal-face piece via the
-  // off-diagonal entries already checked above, which are exactly
-  // -internalCoefficientExpected on both sides -- symmetric by
-  // construction).
-  EXPECT_NEAR(a01, a10, 1e-12);
+  // The two entries differ by exactly the difference of the two one-sided far-cell coefficients --
+  // nothing else has become asymmetric.
+  EXPECT_NEAR(a01 - a10, cF1 - cF0, 1e-12);
+
+  // Equal-and-opposite conservation, isolated: with gradient-type boundaries no wall is
+  // reconstructed, so no far-cell term exists and the internal face's contribution stands alone at
+  // exactly the interpolated coefficient on both sides.
+  // Outlet is the velocity equation's gradient-type condition (prescribesBoundaryValue == false),
+  // so no wall is reconstructed and no far-cell entry exists.
+  BoundaryConditionSet neumann;
+  for (const auto& patch : mesh.boundaryPatches()) {
+    neumann.set(mesh, patch.name(), std::make_unique<cfd::boundary::Outlet>());
+  }
+  SparseMatrixBuilder isolated(n, n);
+  Vector isolatedRhs(n, 0.0);
+  assembleDiffusionContribution(mesh, muField, velocity, neumann, VelocityComponent::U, isolated,
+                                isolatedRhs);
+  const auto isolatedMatrix = isolated.build();
+  EXPECT_NEAR(-isolatedMatrix.multiply(e0)[1], internalCoefficientExpected, 1e-12);
+  EXPECT_NEAR(-isolatedMatrix.multiply(e1)[0], internalCoefficientExpected, 1e-12);
+  EXPECT_DOUBLE_EQ(isolatedMatrix.multiply(e0)[1], isolatedMatrix.multiply(e1)[0]);
 }
 
 TEST(MomentumVariableViscosityTest, TabulatedMuGivesTheExpectedFaceValue) {
@@ -175,10 +201,30 @@ TEST(MomentumVariableViscosityTest, TabulatedMuGivesTheExpectedFaceValue) {
   const Real muFaceExpected = 0.5 * (1.00e-2 + 0.73e-2);
   const Real internalCoefficientExpected = muFaceExpected * 1.0 / 1.0;
 
+  // P12-DIFF-002 A5, entry 15 (class M-A/2), exactly as entry 14 above: the interpolated face value
+  // 0.00865 is unchanged, but A(1,0) also carries cell 1's own one-sided far-cell coefficient
+  // mu[1]/3 = 0.0073/3 from the second-order wall reconstruction. Derived in
+  // a5/tools/derive_expected.py, block B4: A(1,0) = -(0.00865 + 0.0073/3) = -0.0110833...
+  const Real cF1 = 0.73e-2 / 3.0;  // owner = cell 1
+
   Vector e0(n, 0.0);
   e0[0] = 1.0;
   const Real a10 = matrix.multiply(e0)[1];
-  EXPECT_NEAR(-a10, internalCoefficientExpected, 1e-12);
+  EXPECT_NEAR(-a10, internalCoefficientExpected + cF1, 1e-12);
+
+  // The interpolated value itself, isolated from the wall treatment: gradient-type boundaries are
+  // never reconstructed, so no far-cell term exists.
+  // Outlet is the velocity equation's gradient-type condition (prescribesBoundaryValue == false),
+  // so no wall is reconstructed and no far-cell entry exists.
+  BoundaryConditionSet neumann;
+  for (const auto& patch : mesh.boundaryPatches()) {
+    neumann.set(mesh, patch.name(), std::make_unique<cfd::boundary::Outlet>());
+  }
+  SparseMatrixBuilder isolated(n, n);
+  Vector isolatedRhs(n, 0.0);
+  assembleDiffusionContribution(mesh, muField, velocity, neumann, VelocityComponent::U, isolated,
+                                isolatedRhs);
+  EXPECT_NEAR(-isolated.build().multiply(e0)[1], internalCoefficientExpected, 1e-12);
 }
 
 TEST(MomentumVariableViscosityTest,

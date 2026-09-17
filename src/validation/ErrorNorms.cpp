@@ -76,10 +76,12 @@ VectorErrorNorms computeVectorErrorNorms(const Mesh& mesh, const VectorField& nu
   VectorErrorNorms norms;
   norms.x = accumulate(mesh, mask, [&](Index cell) { return numeric[cell].x - exact[cell].x; });
   norms.y = accumulate(mesh, mask, [&](Index cell) { return numeric[cell].y - exact[cell].y; });
+  norms.z = accumulate(mesh, mask, [&](Index cell) { return numeric[cell].z - exact[cell].z; });
   norms.magnitude = accumulate(mesh, mask, [&](Index cell) {
     const Real ex = numeric[cell].x - exact[cell].x;
     const Real ey = numeric[cell].y - exact[cell].y;
-    return std::sqrt((ex * ex) + (ey * ey));
+    const Real ez = numeric[cell].z - exact[cell].z;
+    return std::sqrt((ex * ex) + (ey * ey) + (ez * ez));
   });
   return norms;
 }

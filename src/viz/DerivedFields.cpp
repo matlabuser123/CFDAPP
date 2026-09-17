@@ -44,6 +44,7 @@ ScalarField velocityMagnitude(const VectorField& velocity) {
 }
 
 ScalarField vorticity2D(const Mesh& mesh, const VectorField& velocity) {
+  cfd::mesh::requireTwoDimensional(mesh, "vorticity2D");
   if (static_cast<std::size_t>(velocity.size()) != mesh.numberOfCells()) {
     throw InvalidArgumentError("vorticity2D: velocity size does not match mesh cell count");
   }

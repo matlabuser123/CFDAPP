@@ -613,6 +613,35 @@ bool addOrderGate(MMSStudy& study, const std::string& category, const std::strin
                  passed, detail);
 }
 
+bool addPairwiseOrderGate(MMSStudy& study, const std::string& category, const std::string& quantity,
+                          NormKind norm, Real formalOrder, Real lo, Real hi) {
+  const auto& order = addOrder(study, quantity, norm, formalOrder);
+  // The finest pair: the last recorded reduction factor, against that pair's own refinement ratio.
+  std::optional<Real> p;
+  if (!order.reductionFactors.empty() && order.reductionFactors.back().has_value() &&
+      study.levels.size() >= 2) {
+    const Real factor = *order.reductionFactors.back();
+    const Real hCoarse = study.levels[study.levels.size() - 2].h;
+    const Real hFine = study.levels.back().h;
+    if (factor > 0.0 && hFine > 0.0 && hCoarse > hFine) {
+      p = std::log(factor) / std::log(hCoarse / hFine);
+    }
+  }
+  const bool passed = p.has_value() && *p >= lo && *p <= hi;
+  std::string detail = "finest-PAIRWISE observed order " +
+                       (p ? format("%.3f", *p) : std::string("--")) + " (vs formal " +
+                       format("%.0f", formalOrder) + "; the triplet estimator is not used here --" +
+                       " see MMSCases.hpp addPairwiseOrderGate); reduction factors";
+  for (const auto& f : order.reductionFactors)
+    detail += " " + (f ? format("%.3f", *f) : std::string("--"));
+  return addGate(study,
+                 category + ": " + quantity + " " +
+                     std::string(cfd::validation::normKindName(norm)) +
+                     " finest-pairwise observed order in [" + format("%.2f", lo) + ", " +
+                     format("%.2f", hi) + "]",
+                 passed, detail);
+}
+
 bool addDecreaseGate(MMSStudy& study, const std::string& category, const std::string& quantity) {
   const bool passed = monotonicallyDecreasing(study, quantity, NormKind::L1) &&
                       monotonicallyDecreasing(study, quantity, NormKind::L2) &&

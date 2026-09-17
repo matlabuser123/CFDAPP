@@ -85,7 +85,8 @@ class ResultExporter {
       const std::vector<NamedScalarField>& extraFields = {},
       const std::vector<SpeciesRunMetadata>& speciesMetadata = {},
       const std::optional<MultiphaseRunMetadata>& multiphaseMetadata = std::nullopt,
-      const std::optional<CompressibleRunMetadata>& compressibleMetadata = std::nullopt);
+      const std::optional<CompressibleRunMetadata>& compressibleMetadata = std::nullopt,
+      const std::optional<cfd::mesh::MeshQualityReport>& meshQuality = std::nullopt);
 };
 
 }  // namespace cfd::io

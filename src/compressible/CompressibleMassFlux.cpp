@@ -81,6 +81,7 @@ SurfaceField calculateCompressibleMassFlux(
     const BoundaryConditionSet& pressureBoundaries, Real referencePressure,
     const ThermodynamicProperties& thermodynamics, const ScalarField& temperature,
     const BoundaryConditionSet* temperatureBoundaries) {
+  cfd::mesh::requireTwoDimensional(mesh, "calculateCompressibleMassFlux");
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "calculateCompressibleMassFlux: velocity size does not match mesh cell count");

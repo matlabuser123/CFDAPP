@@ -106,10 +106,13 @@ TEST(ThermalSolverTest, InvalidConfigurationForMismatchedMassFluxSize) {
 }
 
 TEST(ThermalSolverTest, MaxIterationsWhenOuterBudgetTooSmall) {
-  // The Adiabatic top/bottom boundaries need many outer iterations to
-  // converge (see ThermalSolverSettings's own header comment) -- a
-  // budget of 1 cannot possibly reach the default 1e-8 tolerance for
-  // this case, so this must report MaxIterations, never Converged.
+  // Convergence needs at least two outer iterations: the first solve
+  // changes the field by up to 10 K from the uniform initial guess, and
+  // only a second iteration can confirm the field is consistent with its
+  // own equation (P12-MESH-003: with the Adiabatic walls assembled exactly
+  // that second iteration already confirms it) -- a budget of 1 cannot
+  // reach the default 1e-8 tolerance, so this must report MaxIterations,
+  // never Converged.
   const Mesh mesh = makeConductionMesh();
   const auto boundaries = makeConductionBoundaries(mesh, 310.0, 290.0);
   const ScalarField initialTemperature(mesh.numberOfCells(), 300.0);

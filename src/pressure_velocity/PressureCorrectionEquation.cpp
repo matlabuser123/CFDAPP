@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 
 #include "cfd/algebra/SparseMatrix.hpp"
@@ -52,32 +53,40 @@ BoundaryConditionSet makeGradientBoundaries(const Mesh& mesh,
   return boundaries;
 }
 
-// Exactly axis-aligned area vector (exactly one component zero): the case
+// Exactly axis-aligned area vector (exactly one non-zero component): the case
 // in which S_D = D_f Sf is exactly d_comp * Sf, see
-// pressureCorrectionFaceCoupling's header comment.
+// pressureCorrectionFaceCoupling's header comment. (P12-MESH-006: x, y or z;
+// for a 2D vector, z = 0, this is the former two-component test.)
 bool isAxisAligned(const Vector2& sf) noexcept {
-  return ((sf.y == 0.0) && (sf.x != 0.0)) || ((sf.x == 0.0) && (sf.y != 0.0));
+  const int nonZero = (sf.x != 0.0 ? 1 : 0) + (sf.y != 0.0 ? 1 : 0) + (sf.z != 0.0 ? 1 : 0);
+  return nonZero == 1;
 }
 
 bool exactlyParallel(const Vector2& a, const Vector2& b) noexcept {
-  return (a.x * b.y) - (a.y * b.x) == 0.0;
+  return cross(a, b) == Vector3{};
 }
 
 // The shared coupling formula for one face, given the face-level response
 // coefficients (distance-weighted for an internal face, owner values for a
 // boundary face) and the face's owner-to-{neighbor, face} vector d.
+// P12-MESH-006: `dw` is the W response (used only on a 3D mesh, i.e. only for
+// area vectors with a z component; 0 and unused in 2D).
 PressureFaceCoupling coupling(const Face& face, const Vector2& d, Real faceDensity, Real du,
-                              Real dv, bool nonOrthogonal) {
+                              Real dv, Real dw, bool nonOrthogonal) {
   const Vector2& sf = face.areaVector();
   const Real distance = magnitude(d);
   if (isAxisAligned(sf) && exactlyParallel(d, sf)) {
     // S_D = d_comp * Sf exactly and E = S_D, T = 0 -- evaluated in the
     // pre-P12-NUM-003 operand order (bit-identical on Cartesian meshes).
-    const Real dComponent = (sf.y == 0.0) ? du : dv;
+    // d_comp is the response of the face's normal velocity component.
+    const Real dComponent = (sf.x != 0.0) ? du : ((sf.y != 0.0) ? dv : dw);
     return PressureFaceCoupling{faceDensity * face.area() * dComponent / distance,
                                 Vector2{0.0, 0.0}};
   }
-  const Vector2 responseVector{du * sf.x, dv * sf.y};
+  // S_D = (d_u Sx, d_v Sy[, d_w Sz]); a 2D area vector keeps the former
+  // two-component expression (z = 0).
+  const Vector2 responseVector =
+      (sf.z == 0.0) ? Vector2{du * sf.x, dv * sf.y} : Vector3{du * sf.x, dv * sf.y, dw * sf.z};
   if (nonOrthogonal) {
     const auto decomposition = MeshGeometry::decomposeAreaVector(d, responseVector);
     if (decomposition.valid) {
@@ -112,12 +121,24 @@ namespace {
 // into NonFiniteState -- instead of surfacing later as a generic
 // SparseMatrix validation error.
 PressureFaceCoupling checked(PressureFaceCoupling coupling) {
-  if (!std::isfinite(coupling.coefficient) || !std::isfinite(coupling.nonOrthogonal.x) ||
-      !std::isfinite(coupling.nonOrthogonal.y)) {
+  if (!std::isfinite(coupling.coefficient) || !isFinite(coupling.nonOrthogonal)) {
     throw NumericalError(
         "pressureCorrectionFaceCoupling: non-finite face coupling (degenerate face geometry)");
   }
   return coupling;
+}
+
+// P12-MESH-006: a 3D mesh needs the W response coefficient; a 2D one has none.
+void requireWResponse(const Mesh& mesh, const ScalarField* wResponseCoefficient,
+                      const char* component) {
+  if ((mesh.dimension() == 3) && wResponseCoefficient == nullptr) {
+    throw InvalidArgumentError(std::string(component) +
+                               ": a 3D mesh needs the w response coefficient");
+  }
+  if (wResponseCoefficient != nullptr && wResponseCoefficient->size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(std::string(component) +
+                               ": w response coefficient size does not match mesh cell count");
+  }
 }
 
 }  // namespace
@@ -126,26 +147,34 @@ PressureFaceCoupling pressureCorrectionFaceCoupling(const Mesh& mesh, const Face
                                                     Real faceDensity,
                                                     const ScalarField& uResponseCoefficient,
                                                     const ScalarField& vResponseCoefficient,
-                                                    bool nonOrthogonal) {
+                                                    bool nonOrthogonal,
+                                                    const ScalarField* wResponseCoefficient) {
+  requireWResponse(mesh, wResponseCoefficient, "pressureCorrectionFaceCoupling");
   const Index ownerId = face.owner();
   if (face.isBoundary()) {
     const Vector2 d = face.centroid() - mesh.cell(ownerId).centroid();
-    return checked(coupling(face, d, faceDensity, uResponseCoefficient[ownerId],
-                            vResponseCoefficient[ownerId], nonOrthogonal));
+    return checked(coupling(
+        face, d, faceDensity, uResponseCoefficient[ownerId], vResponseCoefficient[ownerId],
+        wResponseCoefficient != nullptr ? (*wResponseCoefficient)[ownerId] : 0.0, nonOrthogonal));
   }
   const Vector2 d = mesh.cell(*face.neighbor()).centroid() - mesh.cell(ownerId).centroid();
   const Vector2& sf = face.areaVector();
   if (isAxisAligned(sf) && exactlyParallel(d, sf)) {
-    // Interpolate only the component the legacy formula used (the other is
+    // Interpolate only the component the legacy formula used (the others are
     // multiplied by an exact zero anyway) -- same arithmetic as before.
-    const ScalarField& response = (sf.y == 0.0) ? uResponseCoefficient : vResponseCoefficient;
+    const ScalarField& response = (sf.x != 0.0)   ? uResponseCoefficient
+                                  : (sf.y != 0.0) ? vResponseCoefficient
+                                                  : *wResponseCoefficient;
     const Real dFace = cfd::discretization::interpolateInternalFace(mesh, face, response);
-    return checked(coupling(face, d, faceDensity, dFace, dFace, nonOrthogonal));
+    return checked(coupling(face, d, faceDensity, dFace, dFace, dFace, nonOrthogonal));
   }
   return checked(
       coupling(face, d, faceDensity,
                cfd::discretization::interpolateInternalFace(mesh, face, uResponseCoefficient),
                cfd::discretization::interpolateInternalFace(mesh, face, vResponseCoefficient),
+               wResponseCoefficient != nullptr
+                   ? cfd::discretization::interpolateInternalFace(mesh, face, *wResponseCoefficient)
+                   : 0.0,
                nonOrthogonal));
 }
 
@@ -153,7 +182,9 @@ PressureCorrectionAssembly assembleGeometricPressureCorrection(
     const Mesh& mesh, const SurfaceField& predictorMassFlux, const SurfaceField& faceDensity,
     const ScalarField& uResponseCoefficient, const ScalarField& vResponseCoefficient,
     Index referenceCell, const BoundaryConditionSet& pressureBoundaries,
-    const PressureCorrectionOptions& options, const ScalarField* additionalDiagonal) {
+    const PressureCorrectionOptions& options, const ScalarField* additionalDiagonal,
+    const ScalarField* wResponseCoefficient) {
+  requireWResponse(mesh, wResponseCoefficient, "assembleGeometricPressureCorrection");
   const Index n = mesh.numberOfCells();
   if (predictorMassFlux.size() != mesh.numberOfFaces() ||
       faceDensity.size() != mesh.numberOfFaces()) {
@@ -225,9 +256,9 @@ PressureCorrectionAssembly assembleGeometricPressureCorrection(
       // using the owner cell's own response coefficients (no
       // interpolation -- there is no neighbor cell) and the vector from
       // the owner centroid to the boundary face.
-      const auto terms =
-          pressureCorrectionFaceCoupling(mesh, face, faceDensity[faceId], uResponseCoefficient,
-                                         vResponseCoefficient, options.nonOrthogonal);
+      const auto terms = pressureCorrectionFaceCoupling(
+          mesh, face, faceDensity[faceId], uResponseCoefficient, vResponseCoefficient,
+          options.nonOrthogonal, wResponseCoefficient);
       faceCoefficient[faceId] = terms.coefficient;
       if (gradPrevious.has_value()) {
         explicitFaceFlux[faceId] = -dot(terms.nonOrthogonal, (*gradPrevious)[ownerId]);
@@ -238,9 +269,9 @@ PressureCorrectionAssembly assembleGeometricPressureCorrection(
       continue;
     }
 
-    const auto terms =
-        pressureCorrectionFaceCoupling(mesh, face, faceDensity[faceId], uResponseCoefficient,
-                                       vResponseCoefficient, options.nonOrthogonal);
+    const auto terms = pressureCorrectionFaceCoupling(mesh, face, faceDensity[faceId],
+                                                      uResponseCoefficient, vResponseCoefficient,
+                                                      options.nonOrthogonal, wResponseCoefficient);
     const Real dCoefficient = terms.coefficient;
     faceCoefficient[faceId] = dCoefficient;
     if (gradPrevious.has_value()) {
@@ -311,7 +342,7 @@ PressureCorrectionAssembly assemblePressureCorrection(
     const Mesh& mesh, const SurfaceField& predictorMassFlux,
     const ScalarField& uResponseCoefficient, const ScalarField& vResponseCoefficient, Real density,
     Index referenceCell, const BoundaryConditionSet& pressureBoundaries,
-    const PressureCorrectionOptions& options) {
+    const PressureCorrectionOptions& options, const ScalarField* wResponseCoefficient) {
   const Index n = mesh.numberOfCells();
   if (predictorMassFlux.size() != mesh.numberOfFaces()) {
     throw InvalidArgumentError(
@@ -330,9 +361,9 @@ PressureCorrectionAssembly assemblePressureCorrection(
   // Constant density: every face carries the same rho (bit-identical to the
   // pre-P12-NUM-003 single `density` multiply).
   const SurfaceField faceDensity(mesh.numberOfFaces(), density);
-  return assembleGeometricPressureCorrection(mesh, predictorMassFlux, faceDensity,
-                                             uResponseCoefficient, vResponseCoefficient,
-                                             referenceCell, pressureBoundaries, options, nullptr);
+  return assembleGeometricPressureCorrection(
+      mesh, predictorMassFlux, faceDensity, uResponseCoefficient, vResponseCoefficient,
+      referenceCell, pressureBoundaries, options, nullptr, wResponseCoefficient);
 }
 
 SurfaceField correctFaceMassFlux(const Mesh& mesh, const SurfaceField& predictorMassFlux,
@@ -375,12 +406,14 @@ VectorField correctVelocity(const Mesh& mesh, const VectorField& predictorVeloci
                             const ScalarField& vResponseCoefficient,
                             const ScalarField& pressureCorrection,
                             const BoundaryConditionSet& pressureBoundaries,
-                            cfd::discretization::GradientScheme scheme) {
+                            cfd::discretization::GradientScheme scheme,
+                            const ScalarField* wResponseCoefficient) {
   const Index n = mesh.numberOfCells();
   if (predictorVelocity.size() != n || uResponseCoefficient.size() != n ||
       vResponseCoefficient.size() != n || pressureCorrection.size() != n) {
     throw InvalidArgumentError("correctVelocity: field size does not match mesh cell count");
   }
+  requireWResponse(mesh, wResponseCoefficient, "correctVelocity");
 
   const BoundaryConditionSet boundaries = makeGradientBoundaries(mesh, pressureBoundaries);
   const VectorField gradPPrime =
@@ -389,9 +422,17 @@ VectorField correctVelocity(const Mesh& mesh, const VectorField& predictorVeloci
   VectorField corrected(n);
   for (const auto& cell : mesh.cells()) {
     const Index id = cell.id();
-    corrected[id] =
-        Vector2{predictorVelocity[id].x - (uResponseCoefficient[id] * gradPPrime[id].x),
-                predictorVelocity[id].y - (vResponseCoefficient[id] * gradPPrime[id].y)};
+    if (wResponseCoefficient == nullptr) {
+      corrected[id] =
+          Vector2{predictorVelocity[id].x - (uResponseCoefficient[id] * gradPPrime[id].x),
+                  predictorVelocity[id].y - (vResponseCoefficient[id] * gradPPrime[id].y)};
+    } else {
+      // P12-MESH-006: w_P = w*_P - d_w,P (dp'/dz)_P.
+      corrected[id] =
+          Vector3{predictorVelocity[id].x - (uResponseCoefficient[id] * gradPPrime[id].x),
+                  predictorVelocity[id].y - (vResponseCoefficient[id] * gradPPrime[id].y),
+                  predictorVelocity[id].z - ((*wResponseCoefficient)[id] * gradPPrime[id].z)};
+    }
   }
   return corrected;
 }

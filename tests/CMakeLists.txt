@@ -46,13 +46,86 @@ set_tests_properties(CFDAppCliValidCase PROPERTIES
 # crashing or reporting success. WILL_FAIL makes ctest treat the
 # underlying command's nonzero exit as this test PASSING.
 foreach(invalid_case IN ITEMS missing_mesh bad_physics bad_boundary bad_solver malformed_json
-                              does_not_converge)
+                              does_not_converge mesh_quality_invalid_cli
+                              mesh_quality_disconnected_cli)
   add_test(
     NAME CFDAppCli_${invalid_case}
     COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/${invalid_case}
     WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
   )
   set_tests_properties(CFDAppCli_${invalid_case} PROPERTIES WILL_FAIL TRUE LABELS "integration")
+endforeach()
+
+# P12-MESH-004 -- the CLI's mesh-quality report. The two invalid fixtures
+# are rejected before any solver runs (they write no results, so their two
+# tests each may share the fixture); the error must name the defect and
+# where it is. The warning fixture is solved and its report must carry the
+# status and the aggregated warning (one test: it writes results/).
+add_test(
+  NAME CFDAppCliMeshQualityInvalidNamesTheCell
+  COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/mesh_quality_invalid_cli
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliMeshQualityInvalidNamesTheCell PROPERTIES
+  PASS_REGULAR_EXPRESSION
+    "cell \\(1,0\\) is not a strictly convex counter-clockwise quadrilateral: not convex at corner"
+  LABELS "integration"
+)
+add_test(
+  NAME CFDAppCliMeshQualityDisconnectedIsFatal
+  COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/mesh_quality_disconnected_cli
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliMeshQualityDisconnectedIsFatal PROPERTIES
+  PASS_REGULAR_EXPRESSION
+    "the multiblock mesh is invalid \\(invalid: 32 cells.*fatal connected_components: mesh has 2 disconnected cell regions \\(cells per region: 16, 16\\)"
+  LABELS "integration"
+)
+add_test(
+  NAME CFDAppCliMeshQualityWarning
+  COMMAND "$<TARGET_FILE:cfdapp>" --case tests/data/cases/mesh_quality_warning_cli
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliMeshQualityWarning PROPERTIES
+  PASS_REGULAR_EXPRESSION
+    "Mesh quality: valid_with_warnings.*warning expansion_ratio: expansion_ratio 2\\.5 > 2 at face [0-9]+ .*Converged: yes"
+  LABELS "integration"
+)
+
+# P12-MESH-006 -- the 3D production CLI. tests/cli_expect.cmake runs `cfdapp --case` on a copy of
+# the fixture in the build tree (nothing is written into tests/data) and checks the exact exit code
+# plus every expected report line ("@@" separates the regular expressions).
+set(CFDAPP_CLI_3D_REPORT
+    "Mesh quality: valid@@Converged: yes@@U residual: @@V residual: @@W residual: @@P residual: @@Continuity: @@Mass imbalance: @@Face flux: rhie_chow@@Mass balance: inflow [^,]+, outflow [^,]+, relative imbalance @@Cell continuity: max ")
+foreach(spec IN ITEMS "valid_duct3d_cli_smoke|Mesh: 12 x 4 x 4 \\(3D\\)"
+                      "valid_cube3d_cli_smoke|Mesh: 6 x 6 x 6 \\(3D\\)")
+  string(REPLACE "|" ";" parts "${spec}")
+  list(GET parts 0 fixture)
+  list(GET parts 1 meshLine)
+  add_test(
+    NAME CFDAppCli3D_${fixture}
+    COMMAND "${CMAKE_COMMAND}" "-DCLI=$<TARGET_FILE:cfdapp>"
+            "-DCASE=${CFDApp_SOURCE_DIR}/tests/data/cases/${fixture}"
+            "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/cli3d/${fixture}" -DEXPECT_EXIT=0
+            "-DEXPECT_REGEX=${meshLine}@@${CFDAPP_CLI_3D_REPORT}"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/cli_expect.cmake")
+  set_tests_properties(CFDAppCli3D_${fixture} PROPERTIES LABELS "integration")
+endforeach()
+# Malformed 3D cases: rejected before any solver runs with exit code 2 (InvalidCase) and a message
+# naming the file and the field.
+foreach(spec IN ITEMS "invalid_3d_box_without_nz|mesh\\.json: field \"nz\""
+                      "invalid_3d_two_component_velocity|boundaries\\.json: field \"patches\\.xmin\\.velocity\\.value\""
+                      "invalid_3d_thermal|physics\\.json: field \"thermal\".*3D")
+  string(REPLACE "|" ";" parts "${spec}")
+  list(GET parts 0 fixture)
+  list(GET parts 1 message)
+  add_test(
+    NAME CFDAppCli3D_${fixture}
+    COMMAND "${CMAKE_COMMAND}" "-DCLI=$<TARGET_FILE:cfdapp>"
+            "-DCASE=${CFDApp_SOURCE_DIR}/tests/data/cases/${fixture}"
+            "-DWORK=${CMAKE_CURRENT_BINARY_DIR}/cli3d/${fixture}" -DEXPECT_EXIT=2
+            "-DEXPECT_REGEX=${message}" -P "${CMAKE_CURRENT_SOURCE_DIR}/cli_expect.cmake")
+  set_tests_properties(CFDAppCli3D_${fixture} PROPERTIES LABELS "integration")
 endforeach()
 
 # --- GoogleTest -------------------------------------------------------------

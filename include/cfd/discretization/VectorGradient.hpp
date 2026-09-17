@@ -15,10 +15,14 @@ namespace cfd::discretization {
 // *vector* condition per patch (Wall/MovingWall/Inlet/Outlet/Symmetry),
 // not two independent scalar ones.
 struct VelocityGradientField {
-  // gradU[i] = (du/dx, du/dy) at cell i.
+  // gradU[i] = (du/dx, du/dy[, du/dz]) at cell i.
   cfd::fields::VectorField gradU;
-  // gradV[i] = (dv/dx, dv/dy) at cell i.
+  // gradV[i] = (dv/dx, dv/dy[, dv/dz]) at cell i.
   cfd::fields::VectorField gradV;
+  // P12-MESH-006: gradW[i] = (dw/dx, dw/dy, dw/dz) on a 3D mesh; EMPTY (size 0)
+  // on a 2D mesh, which has no w -- so every 2D result, and every 2D consumer
+  // of gradU/gradV (turbulence production, momentum corrections), is unchanged.
+  cfd::fields::VectorField gradW{};
 };
 
 // Plain (unpaired) finite-volume Gauss/Green gradient of each velocity
@@ -63,6 +67,11 @@ struct VelocityGradientField {
 // the property the momentum equation's non-orthogonal diffusion
 // correction needs there (see MomentumEquation.hpp and
 // results/p12-num-003/summary.md).
+//
+// P12-MESH-006: dimension-independent -- on a 3D mesh the same formulas give
+// 3-component gradients of u, v and w (gradW filled; the least-squares path
+// then uses Gradient.hpp's 3 x 3 system); on a 2D mesh gradW stays empty and
+// gradU/gradV are bit-identical to before.
 //
 // Throws InvalidArgumentError if velocity.size() != mesh.numberOfCells().
 [[nodiscard]] VelocityGradientField computeVelocityGradient(

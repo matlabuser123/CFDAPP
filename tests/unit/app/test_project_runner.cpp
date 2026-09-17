@@ -14,6 +14,7 @@
 
 #include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
+#include "cfd/mesh/MeshQuality.hpp"
 
 using cfd::app::ProjectRunner;
 using cfd::app::ProjectRunResult;
@@ -146,4 +147,36 @@ TEST(ProjectRunnerTest, StagnationDetectionReportsDidNotConverge) {
   const std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
   EXPECT_NE(text.find("\"Stagnated\""), std::string::npos);
   EXPECT_NE(text.find("\"robustness\""), std::string::npos);
+}
+
+// P12-MESH-004: the production mesh-quality report reaches the run result
+// and the exported metadata; a warning never stops the run.
+TEST(ProjectRunnerTest, MeshQualityReportIsReturnedAndExported) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
+  ASSERT_TRUE(run.meshQuality.has_value());
+  ASSERT_TRUE(run.mesh.has_value());
+  EXPECT_EQ(run.meshQuality->status, cfd::mesh::MeshQualityStatus::Valid);
+  EXPECT_EQ(run.meshQuality->cellCount, run.mesh->numberOfCells());
+  EXPECT_EQ(run.meshQuality->summaryLine(),
+            cfd::mesh::MeshQuality::evaluate(*run.mesh).summaryLine());
+  ASSERT_TRUE(run.exportSummary.has_value());
+  std::ifstream in(run.exportSummary->metadataPath);
+  const std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+  EXPECT_NE(text.find("\"mesh_quality\""), std::string::npos);
+  EXPECT_NE(text.find("\"status\": \"valid\""), std::string::npos);
+}
+
+TEST(ProjectRunnerTest, MeshQualityWarningDoesNotStopTheRun) {
+  const CaseFixtureCopy fixture("tests/data/cases/mesh_quality_warning_cli");
+  const ProjectRunResult run = ProjectRunner::run(fixture.path());
+  EXPECT_EQ(run.status, ProjectRunStatus::Converged);
+  ASSERT_TRUE(run.meshQuality.has_value());
+  EXPECT_EQ(run.meshQuality->status, cfd::mesh::MeshQualityStatus::ValidWithWarnings);
+  EXPECT_EQ(run.meshQuality->expansionRatio.aboveWarning, 8u);
+  ASSERT_TRUE(run.exportSummary.has_value());
+  std::ifstream in(run.exportSummary->metadataPath);
+  const std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+  EXPECT_NE(text.find("\"valid_with_warnings\""), std::string::npos);
+  EXPECT_NE(text.find("\"severity\": \"warning\""), std::string::npos);
 }

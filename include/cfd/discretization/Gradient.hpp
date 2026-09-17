@@ -86,7 +86,7 @@ inline constexpr Index kGreenGaussSkewCorrectionSweeps = 4;
 // local system (too few independent neighbor directions -- e.g. every
 // neighbor colinear with the cell center) NEVER silently returns a
 // bogus value; `wellConditioned = false` (with `gradient` left as a
-// harmless {0,0} placeholder, never NaN/Inf) signals the caller must
+// harmless {0,0,0} placeholder, never NaN/Inf) signals the caller must
 // use its own documented fallback -- see leastSquaresGradient's own
 // policy below.
 struct LeastSquaresGradientResult {
@@ -112,6 +112,13 @@ struct LeastSquaresGradientResult {
 // relative to `(Sxx+Syy)^2` (a scale-invariant threshold) -- the
 // geometric signature of every displacement lying (near-)colinear, so
 // the two-direction gradient is not well-determined by this stencil.
+//
+// P12-MESH-005: if any displacement has a non-zero z component (a 3D
+// cell), the same weighted normal equations are solved in three
+// dimensions -- the symmetric 3 x 3 system with Sxz, Syz, Szz, bz added,
+// by the adjugate formula -- and `wellConditioned` is false when det(S) <
+// 1e-10 (trace S)^3 (coplanar or colinear displacements). Planar
+// displacements (every 2D cell) take the 2 x 2 path above unchanged.
 // Throws InvalidArgumentError if the two input vectors' sizes differ.
 [[nodiscard]] LeastSquaresGradientResult solveLeastSquaresGradient(
     const std::vector<Vector2>& displacements, const std::vector<Real>& valueDifferences);
@@ -135,7 +142,9 @@ struct LeastSquaresGradientResult {
 // degeneracy is not reachable from an actual produced mesh in this
 // codebase -- confirmed by inspection and tested directly at the
 // solveLeastSquaresGradient primitive level instead (see
-// test_gradient.cpp and results/p12-num-002/summary.md).
+// test_gradient.cpp and results/p12-num-002/summary.md). (P12-MESH-005:
+// likewise every hexahedron of createCartesian3D has 2 faces per axis, so
+// its 3 x 3 system is always well-conditioned.)
 [[nodiscard]] cfd::fields::VectorField leastSquaresGradient(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& field,
     const cfd::boundary::BoundaryConditionSet& boundaries);

@@ -45,4 +45,29 @@ cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonalOptions(
                                                              settings.gradientScheme};
 }
 
+const char* faceFluxSchemeName(FaceFluxScheme scheme) noexcept {
+  switch (scheme) {
+    case FaceFluxScheme::Automatic:
+      return "automatic";
+    case FaceFluxScheme::Linear:
+      return "linear";
+    case FaceFluxScheme::RhieChow:
+      return "rhie_chow";
+  }
+  return "automatic";
+}
+
+FaceFluxScheme parseFaceFluxScheme(std::string_view name) {
+  if (name == "automatic") return FaceFluxScheme::Automatic;
+  if (name == "linear") return FaceFluxScheme::Linear;
+  if (name == "rhie_chow") return FaceFluxScheme::RhieChow;
+  throw InvalidArgumentError("parseFaceFluxScheme: unknown face flux scheme \"" +
+                             std::string(name) + "\" (automatic, linear, rhie_chow)");
+}
+
+FaceFluxScheme resolveFaceFluxScheme(FaceFluxScheme scheme, int dimension) noexcept {
+  if (scheme != FaceFluxScheme::Automatic) return scheme;
+  return dimension == 3 ? FaceFluxScheme::RhieChow : FaceFluxScheme::Linear;
+}
+
 }  // namespace cfd::pressure_velocity

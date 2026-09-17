@@ -1,6 +1,8 @@
 #include "cfd/io/CaseBuilder.hpp"
 
+#include <cmath>
 #include <memory>
+#include <string>
 
 #include "cfd/boundary/Adiabatic.hpp"
 #include "cfd/boundary/FixedGradient.hpp"
@@ -17,6 +19,7 @@
 #include "cfd/discretization/Convection.hpp"
 #include "cfd/discretization/Gradient.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
+#include "cfd/mesh/MeshQuality.hpp"
 
 namespace cfd::io {
 
@@ -311,7 +314,94 @@ SIMPLESettings buildSolverSettings(const SolverConfig& solver) {
   settings.nonOrthogonalCorrections = solver.nonOrthogonalCorrections;
   // P12-NUM-004: solver.json's "robustness" block (default: all off).
   settings.robustness = solver.robustness;
+  // P12-MESH-006: already validated (automatic | linear | rhie_chow).
+  settings.faceFlux = cfd::pressure_velocity::parseFaceFluxScheme(solver.faceFlux);
   return settings;
+}
+
+}  // namespace
+
+namespace {
+
+// P12-MESH-001: mesh.json "structured_quad" -> MeshGeometry::
+// createStructuredQuad2D, its cell-level validity failures reported as
+// case-configuration errors, plus a tiling check: the cells must cover the
+// geometry.json rectangle exactly once (their areas sum to length * height
+// to a relative 1e-9).
+Mesh buildStructuredQuadMesh(const CaseDefinition& definition) {
+  try {
+    Mesh mesh = MeshGeometry::createStructuredQuad2D(definition.mesh.nx, definition.mesh.ny,
+                                                     definition.mesh.vertices);
+    Real area = 0.0;
+    for (const auto& cell : mesh.cells()) area += cell.volume();
+    const Real expected = definition.geometry.length * definition.geometry.height;
+    if (!(std::abs(area - expected) <= 1e-9 * expected)) {
+      throw CaseConfigurationError(
+          "mesh.json: the structured_quad cells do not tile the geometry.json rectangle (total "
+          "cell area " +
+          std::to_string(area) + " vs length * height " + std::to_string(expected) + ")");
+    }
+    return mesh;
+  } catch (const InvalidArgumentError& e) {
+    throw CaseConfigurationError(std::string("mesh.json: invalid structured_quad mesh: ") +
+                                 e.what());
+  }
+}
+
+// P12-MESH-003: mesh.json "multiblock" -> MeshGeometry::createMultiBlock2D,
+// block names resolved to indices; every geometric failure (non-convex or
+// inverted cells, non-coincident interfaces, coincident boundary faces,
+// overlapping blocks) becomes a case-configuration error.
+Mesh buildMultiBlockMesh(const CaseDefinition& definition) {
+  cfd::mesh::MultiBlockSpec spec;
+  const auto blockIndex = [&](const std::string& name) -> Index {
+    for (std::size_t b = 0; b < definition.mesh.blocks.size(); ++b) {
+      if (definition.mesh.blocks[b].name == name) return b;
+    }
+    throw CaseConfigurationError("mesh.json: unknown block '" + name + "'");
+  };
+  const auto sideOf = [](const std::string& side) {
+    if (side == "left") return cfd::mesh::BlockSide::Left;
+    if (side == "right") return cfd::mesh::BlockSide::Right;
+    if (side == "bottom") return cfd::mesh::BlockSide::Bottom;
+    if (side == "top") return cfd::mesh::BlockSide::Top;
+    throw CaseConfigurationError("mesh.json: unknown block side '" + side + "'");
+  };
+  const auto refOf = [&](const MeshSideRefConfig& ref) {
+    return cfd::mesh::BlockSideRef{blockIndex(ref.block), sideOf(ref.side)};
+  };
+  for (const auto& block : definition.mesh.blocks) {
+    spec.blocks.push_back(cfd::mesh::BlockSpec{block.name, block.nx, block.ny, block.vertices});
+  }
+  for (const auto& iface : definition.mesh.interfaces) {
+    spec.interfaces.push_back(
+        cfd::mesh::BlockInterfaceSpec{refOf(iface.first), refOf(iface.second), iface.reversed});
+  }
+  for (const auto& patch : definition.mesh.patches) {
+    cfd::mesh::BoundaryPatchSpec p;
+    p.name = patch.name;
+    for (const auto& ref : patch.sides) p.sides.push_back(refOf(ref));
+    spec.patches.push_back(std::move(p));
+  }
+  try {
+    return MeshGeometry::createMultiBlock2D(spec);
+  } catch (const InvalidArgumentError& e) {
+    throw CaseConfigurationError(std::string("mesh.json: invalid multiblock mesh: ") + e.what());
+  }
+}
+
+// P12-MESH-002: mesh.json "grading" -> MeshGeometry::createGraded2D (the
+// rectilinear generalization of createCartesian2D; a uniform axis is the
+// Cartesian spacing bit for bit). Invalid gradings were already rejected by
+// CaseReader; a failure here is still reported as a case error.
+Mesh buildGradedMesh(const CaseDefinition& definition) {
+  try {
+    return MeshGeometry::createGraded2D(definition.mesh.nx, definition.mesh.ny,
+                                        definition.geometry.length, definition.geometry.height,
+                                        definition.mesh.grading->x, definition.mesh.grading->y);
+  } catch (const InvalidArgumentError& e) {
+    throw CaseConfigurationError(std::string("mesh.json: invalid grading: ") + e.what());
+  }
 }
 
 }  // namespace
@@ -324,9 +414,47 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
   // 42's "geometry dimensions incompatible with mesh configuration" cross
   // check has nothing left to check once both are already this
   // constrained).
-  Mesh mesh =
-      MeshGeometry::createCartesian2D(definition.mesh.nx, definition.mesh.ny,
-                                      definition.geometry.length, definition.geometry.height);
+  // P12-MESH-001: "structured_quad" builds the vertex-defined structured
+  // quad mesh (CaseReader already checked the vertices against the
+  // geometry.json rectangle); "structured_cartesian" is exactly the
+  // pre-existing Cartesian construction.
+  // P12-MESH-002: "grading" (structured_cartesian only) builds the graded
+  // rectilinear mesh; without it the mesh is exactly the pre-existing
+  // uniform Cartesian construction.
+  // P12-MESH-006: a geometry.json "box" (with mesh.json nz, checked by
+  // CaseReader) builds the 3D Cartesian hexahedral mesh
+  // (MeshGeometry::createCartesian3D: patches xmin, xmax, ymin, ymax, zmin,
+  // zmax).
+  Mesh mesh = [&] {
+    if (definition.geometry.type == "box") {
+      return MeshGeometry::createCartesian3D(definition.mesh.nx, definition.mesh.ny,
+                                             definition.mesh.nz, definition.geometry.length,
+                                             definition.geometry.height, definition.geometry.depth);
+    }
+    if (definition.mesh.type == "structured_quad") return buildStructuredQuadMesh(definition);
+    if (definition.mesh.type == "multiblock") return buildMultiBlockMesh(definition);
+    if (definition.mesh.grading.has_value()) return buildGradedMesh(definition);
+    return MeshGeometry::createCartesian2D(definition.mesh.nx, definition.mesh.ny,
+                                           definition.geometry.length, definition.geometry.height);
+  }();
+  // Production mesh-validity gate (every mesh type): positive volumes and
+  // areas, face ownership/connectivity, closure, orientation (usable
+  // diffusion coefficients), patch coverage -- MeshQuality::evaluate. A
+  // mesh that fails never reaches a solver.
+  // P12-MESH-004: the report (metrics, warnings, fatal conditions with their
+  // location) travels with the setup; an Invalid mesh is rejected here,
+  // before any solver, with every fatal condition listed.
+  cfd::mesh::MeshQualityReport meshQuality = cfd::mesh::MeshQuality::evaluate(mesh);
+  if (!meshQuality.valid) {
+    std::string detail;
+    for (const auto& issue : meshQuality.issues) {
+      if (issue.severity == cfd::mesh::MeshQualitySeverity::Fatal) {
+        detail += "\n  " + cfd::mesh::formatMeshQualityIssue(issue);
+      }
+    }
+    throw CaseConfigurationError("mesh.json: the " + definition.mesh.type + " mesh is invalid (" +
+                                 meshQuality.summaryLine() + "):" + detail);
+  }
   FluidProperties fluid(definition.physics.density, definition.physics.dynamicViscosity);
 
   BoundaryConditionSet velocityBoundaries;
@@ -491,7 +619,8 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                         .omegaBoundaries = std::nullopt,
                         .species = {},
                         .multiphase = std::nullopt,
-                        .compressible = std::nullopt};
+                        .compressible = std::nullopt,
+                        .meshQuality = std::move(meshQuality)};
   if (thermalEnabled) {
     setup.thermal = thermal;
     setup.temperatureBoundaries = std::move(temperatureBoundaries);

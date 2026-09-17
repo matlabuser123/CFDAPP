@@ -8,11 +8,13 @@
 #include "cfd/algebra/LinearSolverFactory.hpp"
 #include "cfd/algebra/LinearSolverFallback.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/discretization/Gradient.hpp"
 #include "cfd/gpu/GpuResidencyManager.hpp"
 #include "cfd/physics/ContinuityEquation.hpp"
 #include "cfd/physics/MassFlux.hpp"
 #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
 #include "cfd/pressure_velocity/RelaxedMomentum.hpp"
+#include "cfd/pressure_velocity/RhieChow.hpp"
 #include "cfd/solver/SolverRobustness.hpp"
 #include "cfd/turbulence/LaminarModel.hpp"
 
@@ -51,7 +53,7 @@ bool allFinite(const SurfaceField& field) {
 
 bool allFinite(const VectorField& field) {
   for (Index i = 0; i < field.size(); ++i) {
-    if (!std::isfinite(field[i].x) || !std::isfinite(field[i].y)) return false;
+    if (!isFinite(field[i])) return false;
   }
   return true;
 }
@@ -73,7 +75,7 @@ ScalarField toScalarField(const Vector& v) {
 ScalarField selectComponent(const VectorField& velocity, VelocityComponent component) {
   ScalarField field(velocity.size());
   for (Index i = 0; i < velocity.size(); ++i) {
-    field[i] = (component == VelocityComponent::U) ? velocity[i].x : velocity[i].y;
+    field[i] = cfd::physics::velocityComponentValue(velocity[i], component);
   }
   return field;
 }
@@ -88,6 +90,15 @@ VectorField combineComponents(const Vector& u, const Vector& v) {
   VectorField result(u.size());
   for (Index i = 0; i < u.size(); ++i) {
     result[i] = Vector2{u[i], v[i]};
+  }
+  return result;
+}
+
+// P12-MESH-006: the 3D velocity (u, v, w).
+VectorField combineComponents(const Vector& u, const Vector& v, const Vector& w) {
+  VectorField result(u.size());
+  for (Index i = 0; i < u.size(); ++i) {
+    result[i] = Vector3{u[i], v[i], w[i]};
   }
   return result;
 }
@@ -116,6 +127,13 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
                            const BoundaryConditionSet& pressureBoundaries,
                            VectorField initialVelocity, ScalarField initialPressure) const {
   SIMPLEResult result;
+  // P12-MESH-006: a 3D mesh adds the W momentum equation (same assembly, same
+  // relaxation, same linear solver as U and V) and the W response in the
+  // pressure/velocity correction; the face-flux scheme is resolved for the
+  // mesh (Automatic -> Linear in 2D, exactly as before; RhieChow in 3D).
+  const bool threeDimensional = mesh.dimension() == 3;
+  const FaceFluxScheme faceFlux = resolveFaceFluxScheme(settings_.faceFlux, mesh.dimension());
+  result.faceFlux = faceFlux;
 
   // Configuration problems are a legitimate solve()-time outcome a
   // caller should branch on via `status`, not an exception escaping
@@ -263,6 +281,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
 
     const ScalarField previousU = selectComponent(velocity, VelocityComponent::U);
     const ScalarField previousV = selectComponent(velocity, VelocityComponent::V);
+    std::optional<ScalarField> previousW;
+    if (threeDimensional) previousW = selectComponent(velocity, VelocityComponent::W);
     // P12-NUM-004: this iteration's relaxation factors -- fixed for the
     // whole iteration (the adaptive controller only updates them after a
     // completed iteration); equal to the settings unless it is enabled.
@@ -271,6 +291,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
 
     std::optional<MomentumAssembly> uAssembly;
     std::optional<MomentumAssembly> vAssembly;
+    std::optional<MomentumAssembly> wAssembly;
     std::optional<ScalarField> effectiveViscosity;
     try {
       // Correct the turbulence model against the current (previous-
@@ -307,6 +328,14 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
           buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
           settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
           momentumSource_);
+      if (threeDimensional) {
+        wAssembly = assembleRelaxedMomentumComponent(
+            mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+            pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity, temperature_,
+            buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+            settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
+            momentumSource_);
+      }
     } catch (const NumericalError&) {
       // uAssembly/vAssembly left empty -- fall through to the check below.
     } catch (const InvalidArgumentError&) {
@@ -316,7 +345,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // configuration error -- treated the same as NonFiniteState below,
       // not left to propagate out of solve() uncaught.
     }
-    if (!uAssembly.has_value() || !vAssembly.has_value()) {
+    if (!uAssembly.has_value() || !vAssembly.has_value() ||
+        (threeDimensional && !wAssembly.has_value())) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -333,6 +363,10 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       gpuResidency.syncMatrix("momentum_v", vAssembly->system.matrix());
       gpuResidency.syncField("u", previousU);
       gpuResidency.syncField("v", previousV);
+      if (threeDimensional) {
+        gpuResidency.syncMatrix("momentum_w", wAssembly->system.matrix());
+        gpuResidency.syncField("w", *previousW);
+      }
     }
 
     // Warm-start from the previous iterate -- this is not just an
@@ -365,8 +399,22 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     cfd::solver::recordLinearSolverFallback(monitor.diagnostics(), outerIteration, "v-momentum",
                                             vResult.fallback);
     result.momentumLinearIterations += uResult.iterations + vResult.iterations;
+    std::optional<cfd::algebra::SolverResult> wResult;
+    if (threeDimensional) {
+      wResult = momentumSolver->solve(wAssembly->system, toVector(*previousW));
+      if (!wResult->converged()) {
+        failLinearSolve("w-momentum", settings_.momentumSolver, *wResult, outerIteration);
+        finalStatus = SIMPLEStatus::MomentumFailure;
+        break;
+      }
+      cfd::solver::recordLinearSolverFallback(monitor.diagnostics(), outerIteration, "w-momentum",
+                                              wResult->fallback);
+      result.momentumLinearIterations += wResult->iterations;
+    }
 
-    VectorField velocityStar = combineComponents(uResult.solution, vResult.solution);
+    VectorField velocityStar =
+        threeDimensional ? combineComponents(uResult.solution, vResult.solution, wResult->solution)
+                         : combineComponents(uResult.solution, vResult.solution);
     if (!allFinite(velocityStar)) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
@@ -393,7 +441,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
           settings_.nonOrthogonalCorrections, velocityStar, *momentumSolver, mesh, velocity,
           pressure, massFlux, *effectiveViscosity, velocityBoundaries, pressureBoundaries,
           previousU, previousV, relaxation.velocity, temperature_, buoyancy_,
-          settings_.convectionScheme, settings_.gradientScheme, momentumSource_);
+          settings_.convectionScheme, settings_.gradientScheme, momentumSource_,
+          previousW.has_value() ? &*previousW : nullptr);
       for (const auto& report : passes.fallbackReports) {
         cfd::solver::recordLinearSolverFallback(monitor.diagnostics(), outerIteration,
                                                 "momentum-pass", report);
@@ -413,20 +462,47 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       velocityStar = std::move(passes.velocityStar);
       uAssembly = std::move(passes.u);
       vAssembly = std::move(passes.v);
+      if (passes.w.has_value()) wAssembly = std::move(passes.w);
       result.momentumPredictorPasses += passes.passesExecuted;
       result.momentumLinearIterations += passes.linearIterations;
     }
     ++result.momentumPredictorPasses;
 
-    const SurfaceField predictorFlux =
-        calculateMassFlux(mesh, velocityStar, fluid, velocityBoundaries);
+    // Response coefficients d = V/aP of this iteration's (relaxed) momentum
+    // diagonals -- pure functions of them, so computing them before the
+    // predictor flux (which Rhie-Chow needs) changes nothing for Linear.
+    const ScalarField dU = computeMomentumResponseCoefficient(mesh, uAssembly->diagonal);
+    const ScalarField dV = computeMomentumResponseCoefficient(mesh, vAssembly->diagonal);
+    std::optional<ScalarField> dW;
+    if (threeDimensional) dW = computeMomentumResponseCoefficient(mesh, wAssembly->diagonal);
+    const ScalarField* dWPointer = dW.has_value() ? &*dW : nullptr;
+
+    // P12-MESH-006: the predictor face flux -- the linear interpolation of u*
+    // (Linear, exactly as before), or Rhie-Chow (RhieChow.hpp) with the same
+    // cell pressure gradient the momentum equations used this iteration.
+    SurfaceField predictorFlux;
+    if (faceFlux == FaceFluxScheme::RhieChow) {
+      std::optional<SurfaceField> rhieChowFlux;
+      try {
+        const VectorField gradP = cfd::discretization::gradient(mesh, pressure, pressureBoundaries,
+                                                                settings_.gradientScheme);
+        rhieChowFlux = rhieChowMassFlux(mesh, velocityStar, pressure, gradP, dU, dV, dWPointer,
+                                        fluid, velocityBoundaries, relaxation.velocity);
+      } catch (const NumericalError&) {
+        // left empty -- NonFiniteState below.
+      }
+      if (!rhieChowFlux.has_value()) {
+        finalStatus = SIMPLEStatus::NonFiniteState;
+        break;
+      }
+      predictorFlux = std::move(*rhieChowFlux);
+    } else {
+      predictorFlux = calculateMassFlux(mesh, velocityStar, fluid, velocityBoundaries);
+    }
     if (!allFinite(predictorFlux)) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
-
-    const ScalarField dU = computeMomentumResponseCoefficient(mesh, uAssembly->diagonal);
-    const ScalarField dV = computeMomentumResponseCoefficient(mesh, vAssembly->diagonal);
 
     // P12-NUM-003: pressure-correction non-orthogonal corrector loop
     // (N = settings_.nonOrthogonalCorrections). The face coupling is always
@@ -452,8 +528,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
 
     std::optional<PressureCorrectionAssembly> pAssembly;
     try {
-      pAssembly = assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(),
-                                             referenceCell_, pressureBoundaries, pressureOptions);
+      pAssembly =
+          assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
+                                     pressureBoundaries, pressureOptions, dWPointer);
     } catch (const NumericalError&) {
       // pAssembly left empty -- fall through to the check below.
     }
@@ -494,7 +571,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       try {
         passAssembly =
             assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
-                                       pressureBoundaries, pressureOptions);
+                                       pressureBoundaries, pressureOptions, dWPointer);
       } catch (const NumericalError&) {
         // passAssembly left empty -- fall through to the check below.
       }
@@ -540,8 +617,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       pressureNew[cell.id()] = pressure[cell.id()] + (relaxation.pressure * pPrime[cell.id()]);
     }
 
-    const VectorField velocityNew = correctVelocity(mesh, velocityStar, dU, dV, pPrime,
-                                                    pressureBoundaries, settings_.gradientScheme);
+    const VectorField velocityNew =
+        correctVelocity(mesh, velocityStar, dU, dV, pPrime, pressureBoundaries,
+                        settings_.gradientScheme, dWPointer);
     const SurfaceField fluxNew = correctFaceMassFlux(
         mesh, predictorFlux, pAssembly->faceCoefficient, pPrime,
         (settings_.nonOrthogonalCorrections > 1) ? &pAssembly->explicitFaceFlux : nullptr);
@@ -568,6 +646,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     result.vResidualHistory.push_back(vResidual);
     result.pressureResidualHistory.push_back(pResidual);
     result.continuityHistory.push_back(continuityResidual);
+    // P12-MESH-006: the W residual (same definition as U/V), 3D only.
+    const Real wResidual = threeDimensional ? wResult->initialResidual : 0.0;
+    if (threeDimensional) result.wResidualHistory.push_back(wResidual);
 
     velocity = velocityNew;
     pressure = pressureNew;
@@ -579,6 +660,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     result.finalPressureResidual = pResidual;
     result.finalContinuityResidual = continuityResidual;
     result.globalMassImbalance = globalImbalance;
+    result.finalWResidual = wResidual;
 
     // P5-B section 14: fired once per completed outer iteration, with
     // exactly the residuals just pushed into result's own history above
@@ -587,7 +669,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     if (progressCallback_) {
       progressCallback_(SIMPLEIterationProgress{result.iterations, settings_.maxIterations,
                                                 uResidual, vResidual, pResidual, continuityResidual,
-                                                globalImbalance});
+                                                globalImbalance, wResidual, threeDimensional});
     }
 
     // P2-TURB-004 section 24: gate on the active turbulence model's own
@@ -603,9 +685,11 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     // continuity and global imbalance <= continuityTolerance, turbulence
     // residual (when reported) <= turbulenceTolerance), then -- only if
     // enabled -- divergence, stagnation, and the relaxation update.
-    const cfd::solver::OuterIterationVerdict verdict = monitor.record(
-        cfd::solver::OuterResidualSample{uResidual, vResidual, pResidual, continuityResidual,
-                                         globalImbalance, turbulenceResidual});
+    // P12-MESH-006: a 3D solve also gates on W (never Converged while W is not).
+    const cfd::solver::OuterIterationVerdict verdict =
+        monitor.record(cfd::solver::OuterResidualSample{
+            uResidual, vResidual, pResidual, continuityResidual, globalImbalance,
+            turbulenceResidual, threeDimensional ? std::optional<Real>(wResidual) : std::nullopt});
     if (verdict == cfd::solver::OuterIterationVerdict::Converged) {
       finalStatus = SIMPLEStatus::Converged;
       break;

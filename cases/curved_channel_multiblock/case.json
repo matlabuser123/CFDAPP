@@ -1,0 +1,10 @@
+{
+  "name": "Curved Channel 270 deg (3-block multiblock)",
+  "description": "P12-MESH-003 quantitative benchmark: 2D laminar flow through a 270-degree curved channel (annular bend, inner wall r1 = 1, outer wall r2 = 2, centred on the origin) built from three conformal 90-degree structured blocks (bend_a, bend_b, bend_c; block-local i = radius, j = angle; two interfaces at 90 and 180 degrees). Uniform inflow U = 1 through the theta = 0 section (x in [1, 2], y = 0, velocity [0, 1]); outlet p = 0 at theta = 270 degrees; no-slip inner and outer walls; rho = 1, mu = 0.1 (Re = U (r2 - r1) rho / mu = 10). The fully developed flow is an exact Navier-Stokes solution: u_theta(r) = A (r ln r + c1 r + c2 / r), u_r = 0, dp/dtheta = 2 mu A, dp/dr = rho u_theta^2 / r, with A fixed by the flow rate U (r2 - r1). Mesh 12 x 30 per block (1080 cells). See results/p12-mesh-003/acceptance_gate.md. The Rhie-Chow face flux (face_flux=rhie_chow) is selected because the 2D linear flux leaves an undamped odd-even pressure mode on this open domain, which contaminates the pressure gradient long after the outer tolerance is met -- see results/p12-grad-002/drift-001/summary.md.",
+  "format_version": 1,
+  "geometry": "geometry.json",
+  "mesh": "mesh.json",
+  "physics": "physics.json",
+  "boundaries": "boundaries.json",
+  "solver": "solver.json"
+}

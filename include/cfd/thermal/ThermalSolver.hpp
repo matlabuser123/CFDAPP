@@ -47,6 +47,21 @@ enum class ThermalStatus {
 // outer iterations even at 80x80 resolution, well inside the default
 // budget below) since only the boundary evaluation is lagged, not the
 // whole equation.
+//
+// P12-MESH-003: gradient-type faces are no longer lagged -- their
+// prescribed flux is assembled exactly (boundaryDiffusionContribution,
+// EnergyEquation.hpp), because stopping on max |dT| < tolerance returned a
+// field never solved with its own boundary values (a residual wall flux of
+// up to Df * tolerance per face). A linear conduction problem now converges
+// in two or three outer iterations (one solve, then refinement /
+// confirmation). The loop remains for what still lags: the explicit
+// non-orthogonal correction, temperature-dependent properties, and the
+// value carried by inflow through a gradient-type face; and it still
+// refines a solve made with a loose linear tolerance (outer iterations
+// re-solve until the change is below `tolerance`). In an outer iteration
+// after the first, a BiCGSTAB breakdown whose residual already meets the
+// linear tolerance relative to the first iteration's initial residual is
+// an attained solve, not a LinearSolveFailure (runPicardLoop).
 struct ThermalSolverSettings {
   cfd::algebra::LinearSolverSettings linearSolver;
   Index maxIterations{2000};

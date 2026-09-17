@@ -69,6 +69,15 @@ class CSVWriter {
   // InvalidArgumentError if the four histories' sizes disagree (section
   // 9: reject rather than silently truncate); IOError if `path` cannot
   // be opened.
+  // P12-MESH-006: cell-centred results of a 3D solve: cell_id, x, y, z,
+  // velocity_x, velocity_y, velocity_z, velocity_magnitude, pressure (the
+  // deterministic 17-digit format). Throws InvalidArgumentError for a 2D mesh
+  // or a size mismatch, NumericalError for a non-finite value.
+  static void writeFields3D(const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
+                            const cfd::pressure_velocity::SIMPLEResult& result);
+
+  // P12-MESH-006: a 3D result (non-empty wResidualHistory) gets a w_residual
+  // column after v_residual; a 2D result's file is unchanged.
   static void writeResiduals(const std::filesystem::path& path,
                              const cfd::pressure_velocity::SIMPLEResult& result);
 };

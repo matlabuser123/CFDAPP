@@ -63,6 +63,8 @@ KEpsilonModel::KEpsilonModel(const Mesh& mesh, const FluidProperties& fluid,
       k_(mesh.numberOfCells(), config_.initialK),
       epsilon_(mesh.numberOfCells(), config_.initialEpsilon),
       turbulentViscosity_(mesh.numberOfCells(), 0.0) {
+  // P12-MESH-006: 2D production term (du/dx, du/dy, dv/dx, dv/dy) only.
+  cfd::mesh::requireTwoDimensional(mesh, "KEpsilonModel");
   validateCoefficients(config_.coefficients);
   if (!std::isfinite(config_.initialK) || !(config_.initialK > 0.0)) {
     throw InvalidArgumentError("KEpsilonModel: initialK must be finite and > 0");

@@ -1,5 +1,7 @@
 #include "cfd/physics/MassFlux.hpp"
 
+#include <cmath>
+
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/Interpolation.hpp"
 
@@ -31,6 +33,21 @@ SurfaceField calculateMassFlux(const Mesh& mesh, const VectorField& velocity,
     massFlux[faceId] = fluid.density() * dot(faceVelocity, face.areaVector());
   }
   return massFlux;
+}
+
+SurfaceField relativeMassFlux(const SurfaceField& massFlux, const SurfaceField& meshVolumeFlux,
+                              Real density) {
+  if (massFlux.size() != meshVolumeFlux.size()) {
+    throw InvalidArgumentError("relativeMassFlux: massFlux and meshVolumeFlux sizes differ");
+  }
+  if (!std::isfinite(density) || !(density > 0.0)) {
+    throw InvalidArgumentError("relativeMassFlux: density must be finite and > 0");
+  }
+  SurfaceField relative(massFlux.size());
+  for (Index faceId = 0; faceId < massFlux.size(); ++faceId) {
+    relative[faceId] = massFlux[faceId] - (density * meshVolumeFlux[faceId]);
+  }
+  return relative;
 }
 
 }  // namespace cfd::physics

@@ -301,7 +301,30 @@ TEST(SIMPLERobustnessTest, DivergenceStatus) {
   printSummary("Aggressive fixed relaxation 0.9/0.9, divergence detection on", result);
   std::printf("\n");
   ASSERT_EQ(result.status, SIMPLEStatus::Diverging);
-  EXPECT_EQ(result.iterations, 20u);
+  // P12-DIFF-002 A6-1 (validation-migration/acceptance_gate_A6.md §1). This used to assert
+  // `iterations == 20`. Twenty is the EARLIEST iteration at which the windowed rules may fire at
+  // all -- `record()` does not evaluate them before
+  //     max(divergence.startIteration, 1) + divergence.window
+  // (SolverRobustness.cpp:481-482) -- so the historical value was a lower bound asserted as if it
+  // were a prediction. Which iteration the detector actually reaches depends on the trajectory and
+  // on which of the two growth rules trips first: measured 20/20/21/20/20 across 4x4...16x16 and
+  // 11-41 across a sweep of window/startIteration/growthFactor, with rule 1 and rule 2 alternating
+  // (results/p12-diff-002/validation-migration/a6/resumed/logs/02).
+  //
+  // Both bounds below are derived from the settings, not from an observation:
+  //   lower  max(start, 1) + window       -- the rules cannot be evaluated any earlier
+  //   upper  max(start, 1) + 2 * window   -- with b the minimum over [start, start + window), once
+  //          every later value exceeds growth * b the whole window is above the threshold and the
+  //          persistent-excursion rule fires; this run's growth (>= 1e3 overall, asserted below)
+  //          guarantees that.
+  // The one path that can stop earlier -- a residual norm overflowing to non-finite -- cannot apply
+  // here, because allFinite(result) is asserted.
+  const auto& divergence = settings.robustness.divergence;
+  const Index earliestPossible = std::max<Index>(divergence.startIteration, 1) + divergence.window;
+  const Index guaranteedBy = earliestPossible + divergence.window;
+  EXPECT_EQ(earliestPossible, 20u) << "the historical value, now asserted as the bound it is";
+  EXPECT_GE(result.iterations, earliestPossible);
+  EXPECT_LE(result.iterations, guaranteedBy);
   EXPECT_TRUE(allFinite(result));
   EXPECT_GT(result.finalUResidual, 1e3 * result.uResidualHistory.front());
   EXPECT_NE(result.robustness.statusDetail.find("divergence"), std::string::npos);
@@ -347,12 +370,18 @@ TEST(SIMPLERobustnessTest, AdaptiveRelaxationRecovery) {
   EXPECT_LE(adaptiveResult.finalContinuityResidual, 1e-6);
 }
 
-// The P12-COMP-002 failure, reproduced and recovered. Without the fallback
-// the unpreconditioned BiCGSTAB pressure solve breaks down in outer
-// iteration 33 (PressureCorrectionFailure, 32 completed iterations -- the
-// same point as the P12-COMP-002 record). With it, the primary still breaks
-// down, the policy proves the pressure matrix SPD, CG converges, and the
-// outer solve CONTINUES to its iteration budget.
+// The P12-COMP-002 channel's BiCGSTAB pressure solve. Before P12-MESH-004
+// the unpreconditioned BiCGSTAB pressure solve reported Breakdown in outer
+// iteration 33 (PressureCorrectionFailure after 32 iterations), and the
+// fallback (CG, SPD proven) recovered it. That breakdown was the
+// scale-dependent false breakdown P12-MESH-004 fixed: t . t = 5.6e-31 fell
+// below the absolute 1e-30 only because |t| / |s| = 3.9e-8 (the pressure-
+// correction matrix's own scale) times |s| = 1.9e-8 (the residual's) --
+// results/p12-mesh-004/solver-robustness/05. With the scale-invariant test
+// the solve never breaks down: the outer solve runs to its budget with no
+// linear failure, and enabling the fallback changes nothing (it is never
+// needed). The fallback policy on a GENUINE breakdown is covered by
+// LinearFallbackTest (tests/unit/algebra/test_linear_solver_fallback.cpp).
 TEST(SIMPLERobustnessTest, LinearSolverFallbackRecovery) {
   const Case c = comp002Channel();
   SIMPLESettings settings = comp002Settings(60);
@@ -363,33 +392,13 @@ TEST(SIMPLERobustnessTest, LinearSolverFallbackRecovery) {
   printSummary("P12-COMP-002 channel, BiCGSTAB pressure, fallback on", with);
   std::printf("\n");
 
-  ASSERT_EQ(without.status, SIMPLEStatus::PressureCorrectionFailure);
-  EXPECT_EQ(without.iterations, 32u);
-  EXPECT_NE(without.robustness.statusDetail.find("BiCGSTAB Breakdown"), std::string::npos);
-
-  EXPECT_EQ(with.status, SIMPLEStatus::MaxIterations);  // continued to the budget
-  EXPECT_EQ(with.iterations, 60u);
-  const auto& d = with.robustness;
-  ASSERT_GE(d.linearSolverFallbacks, 1u);
-  EXPECT_EQ(d.linearSolverFallbackRecoveries, d.linearSolverFallbacks);
-  ASSERT_FALSE(d.fallbackEvents.empty());
-  const auto& first = d.fallbackEvents.front();
-  EXPECT_EQ(first.iteration, 33u);
-  EXPECT_EQ(first.equation, "pressure-correction");
-  EXPECT_EQ(first.report.primaryType, cfd::algebra::LinearSolverType::BiCGSTAB);
-  EXPECT_EQ(first.report.primaryStatus, cfd::algebra::SolverStatus::Breakdown);
-  EXPECT_TRUE(first.report.cgEligible);
-  ASSERT_EQ(first.report.attempts.size(), 1u);
-  EXPECT_EQ(first.report.attempts[0].type, cfd::algebra::LinearSolverType::CG);
-  EXPECT_EQ(first.report.attempts[0].status, cfd::algebra::SolverStatus::Converged);
-  // Identical history up to the failure point: the fallback changes nothing
-  // before it is needed.
-  for (Index k = 0; k < without.iterations; ++k) {
-    EXPECT_EQ(with.uResidualHistory[k], without.uResidualHistory[k]);
-    EXPECT_EQ(with.pressureResidualHistory[k], without.pressureResidualHistory[k]);
-  }
-  EXPECT_TRUE(allFinite(with));
-  EXPECT_LT(with.finalUResidual, without.finalUResidual);
+  EXPECT_EQ(without.status, SIMPLEStatus::MaxIterations);  // ran to the budget
+  EXPECT_EQ(without.iterations, 60u);
+  EXPECT_TRUE(without.robustness.statusDetail.empty());  // no linear-solver failure
+  EXPECT_TRUE(allFinite(without));
+  EXPECT_EQ(with.robustness.linearSolverFallbacks, 0u);
+  EXPECT_TRUE(with.robustness.fallbackEvents.empty());
+  expectBitIdentical(without, with);
 }
 
 // Repeated identical runs with every feature enabled give identical

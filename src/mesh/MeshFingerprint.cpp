@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "cfd/core/Vector2.hpp"
+#include "cfd/core/Vector3.hpp"
 
 namespace cfd::mesh {
 
@@ -29,9 +29,12 @@ void hashReal(std::uint64_t& hash, Real value) {
   hashBytes(hash, &bits, sizeof(bits));
 }
 
-void hashVector2(std::uint64_t& hash, const Vector2& v) {
+// P12-MESH-005: z is hashed for a 3D mesh only, so every 2D mesh keeps the
+// fingerprint it had before (restart files store it).
+void hashVector(std::uint64_t& hash, const Vector3& v, bool threeDimensional) {
   hashReal(hash, v.x);
   hashReal(hash, v.y);
+  if (threeDimensional) hashReal(hash, v.z);
 }
 
 void hashIndex(std::uint64_t& hash, Index value) {
@@ -50,9 +53,10 @@ constexpr std::uint64_t kNoNeighborSentinel = 0xFFFFFFFFFFFFFFFFULL;
 
 std::string computeMeshFingerprint(const Mesh& mesh) {
   std::uint64_t hash = kFnvOffsetBasis;
+  const bool threeDimensional = mesh.dimension() == 3;
 
   for (const auto& cell : mesh.cells()) {
-    hashVector2(hash, cell.centroid());
+    hashVector(hash, cell.centroid(), threeDimensional);
     hashReal(hash, cell.volume());
   }
 
@@ -63,8 +67,8 @@ std::string computeMeshFingerprint(const Mesh& mesh) {
     } else {
       hashBytes(hash, &kNoNeighborSentinel, sizeof(kNoNeighborSentinel));
     }
-    hashVector2(hash, face.centroid());
-    hashVector2(hash, face.areaVector());
+    hashVector(hash, face.centroid(), threeDimensional);
+    hashVector(hash, face.areaVector(), threeDimensional);
   }
 
   for (const auto& patch : mesh.boundaryPatches()) {

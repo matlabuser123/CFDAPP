@@ -93,11 +93,13 @@ void assembleScalarDiffusionContribution(
 
   // P12-NUM-003: grad(phi) for the explicit non-orthogonal term, only when
   // enabled.
-  std::optional<cfd::fields::VectorField> gradPhi;
-  if (nonOrthogonal.enabled) {
-    gradPhi = cfd::discretization::gradient(mesh, phi, boundaries, nonOrthogonal.gradientScheme);
-  }
-  const cfd::fields::VectorField* gradPhiPtr = gradPhi.has_value() ? &(*gradPhi) : nullptr;
+  // P12-DIFF-002 A2: always built -- the Dirichlet wall-flux scheme must not depend on the
+  // iterative non-orthogonal control (a2/activation_architecture.md). `enabled` now gates only
+  // the INTERNAL-face correction.
+  const cfd::fields::VectorField gradPhi =
+      cfd::discretization::gradient(mesh, phi, boundaries, nonOrthogonal.gradientScheme);
+  const cfd::fields::VectorField* gradPhiPtr = &gradPhi;
+  const cfd::fields::VectorField* internalGradPhi = nonOrthogonal.enabled ? &gradPhi : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
@@ -115,15 +117,19 @@ void assembleScalarDiffusionContribution(
       }
       const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
           mesh, face, gammaFace, distance, gradPhiPtr,
-          gradPhiPtr != nullptr && cfd::discretization::prescribesBoundaryValue(bc.type()));
+          cfd::discretization::prescribesBoundaryValue(bc.type()));
       const Real diffusionCoefficient = terms.coefficient;
       const Real phiB = scalarBc->boundaryValue(phi[ownerId], distance);
-      if (gradPhiPtr != nullptr) {
-        rhs[ownerId] += terms.explicitFlux;
-      }
+      // A2: always applied -- the transfer term is exactly 0 on an orthogonal face.
+      rhs[ownerId] += terms.explicitFlux;
 
+      // P12-DIFF-002: the prescribed value carries its own coefficient, and the
+      // second-order reconstruction adds one implicit far-cell entry.
       builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += diffusionCoefficient * phiB;
+      rhs[ownerId] += terms.boundaryValueCoefficient * phiB;
+      if (terms.farCellCoefficient != 0.0) {
+        builder.add(ownerId, terms.farCell, -terms.farCellCoefficient);
+      }
       continue;
     }
 
@@ -131,10 +137,10 @@ void assembleScalarDiffusionContribution(
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
     const Real gammaFace = cfd::discretization::interpolateInternalFace(mesh, face, diffusivity);
-    const auto terms =
-        cfd::discretization::internalFaceDiffusionTerms(mesh, face, gammaFace, dPN, gradPhiPtr);
+    const auto terms = cfd::discretization::internalFaceDiffusionTerms(mesh, face, gammaFace, dPN,
+                                                                       internalGradPhi);
     const Real diffusionCoefficient = terms.coefficient;
-    if (gradPhiPtr != nullptr) {
+    if (internalGradPhi != nullptr) {
       rhs[ownerId] += terms.explicitFlux;
       rhs[neighborId] -= terms.explicitFlux;
     }

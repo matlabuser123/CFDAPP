@@ -104,6 +104,12 @@ struct PressureCorrectionAssembly {
 // safely positive) falls back to the two-point coupling for that face; a
 // coupling that is non-finite (e.g. |d| = 0) throws NumericalError, the
 // category SIMPLE/CompressibleSIMPLE report as NonFiniteState.
+//
+// P12-MESH-006, 3D: D = diag(d_u, d_v, d_w) and S_D = (d_u Sx, d_v Sy, d_w Sz);
+// on an axis-aligned face d_comp is the response of the face's NORMAL
+// component (d_u for an x-face, d_v for a y-face, d_w for a z-face).
+// `wResponseCoefficient` must be given for a 3D mesh (InvalidArgumentError
+// otherwise) and is not used for a 2D one, whose results are unchanged.
 struct PressureFaceCoupling {
   Real coefficient{};
   // T scaled by rho_f: the explicit flux is -dot(nonOrthogonal, grad p'_f).
@@ -112,7 +118,8 @@ struct PressureFaceCoupling {
 [[nodiscard]] PressureFaceCoupling pressureCorrectionFaceCoupling(
     const cfd::mesh::Mesh& mesh, const cfd::mesh::Face& face, Real faceDensity,
     const cfd::fields::ScalarField& uResponseCoefficient,
-    const cfd::fields::ScalarField& vResponseCoefficient, bool nonOrthogonal);
+    const cfd::fields::ScalarField& vResponseCoefficient, bool nonOrthogonal,
+    const cfd::fields::ScalarField* wResponseCoefficient = nullptr);
 
 // P12-NUM-003: controls the non-orthogonal part of the pressure-correction
 // equation. Default: two-point coupling, no explicit term (on Cartesian
@@ -148,7 +155,8 @@ struct PressureCorrectionOptions {
     const cfd::fields::ScalarField& uResponseCoefficient,
     const cfd::fields::ScalarField& vResponseCoefficient, Index referenceCell,
     const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
-    const PressureCorrectionOptions& options, const cfd::fields::ScalarField* additionalDiagonal);
+    const PressureCorrectionOptions& options, const cfd::fields::ScalarField* additionalDiagonal,
+    const cfd::fields::ScalarField* wResponseCoefficient = nullptr);
 
 // Assembles sum_f F_f' = -R_P* (TODO.md section 19/21), where R_P* is
 // cell P's predictor mass imbalance (from evaluateContinuity on
@@ -180,7 +188,8 @@ struct PressureCorrectionOptions {
     const cfd::fields::ScalarField& uResponseCoefficient,
     const cfd::fields::ScalarField& vResponseCoefficient, Real density, Index referenceCell,
     const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
-    const PressureCorrectionOptions& options = {});
+    const PressureCorrectionOptions& options = {},
+    const cfd::fields::ScalarField* wResponseCoefficient = nullptr);
 
 // F_f = F_f* + F_f', using the SAME faceCoefficient the pressure-
 // correction matrix was assembled with (never interpolate(correctedU) --
@@ -201,7 +210,9 @@ struct PressureCorrectionOptions {
     const cfd::fields::SurfaceField* explicitFaceFlux = nullptr);
 
 // u_P = u*_P - d_u,P * (dp'/dx)_P, v_P = v*_P - d_v,P * (dp'/dy)_P
-// (TODO.md section 18), using the gradient of the pressure-correction
+// (TODO.md section 18) -- and, P12-MESH-006, w_P = w*_P - d_w,P (dp'/dz)_P
+// with `wResponseCoefficient` (required on a 3D mesh, absent in 2D, whose
+// result is unchanged) -- using the gradient of the pressure-correction
 // field. Boundary condition for that gradient, per patch: FixedValue(0.0)
 // (p'=0) where pressureBoundaries has a FixedValue pressure condition,
 // matching assemblePressureCorrection's treatment there; FixedGradient(0.0)
@@ -216,6 +227,7 @@ struct PressureCorrectionOptions {
     const cfd::fields::ScalarField& vResponseCoefficient,
     const cfd::fields::ScalarField& pressureCorrection,
     const cfd::boundary::BoundaryConditionSet& pressureBoundaries,
-    cfd::discretization::GradientScheme scheme = cfd::discretization::GradientScheme::GreenGauss);
+    cfd::discretization::GradientScheme scheme = cfd::discretization::GradientScheme::GreenGauss,
+    const cfd::fields::ScalarField* wResponseCoefficient = nullptr);
 
 }  // namespace cfd::pressure_velocity

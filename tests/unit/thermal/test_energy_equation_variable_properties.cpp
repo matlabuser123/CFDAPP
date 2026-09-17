@@ -123,16 +123,41 @@ TEST(EnergyEquationVariablePropertiesTest, DiffusionInternalFaceMatchesHandDeriv
 
   const Index cellA = mesh.face(internalFaceId(mesh)).owner();
   const Index cellB = *mesh.face(internalFaceId(mesh)).neighbor();
-  const Real internalConductanceExpected = 4.0;  // (3+5)/2 * 1.0/1.0
+  const Real internalConductanceExpected = 4.0;  // (3+5)/2 * 1.0/1.0 -- UNCHANGED by DIFF-002
+
+  // P12-DIFF-002 A5, entry 6 (acceptance_gate_A5.md, class M-A/2). The interpolated internal-face
+  // value is still exactly 4.0, and is still asserted -- in isolation, below. What changed is that
+  // each cell's x-wall reaches its far cell through the shared internal face, so each row's entry
+  // at the other cell also carries that row's OWN one-sided far-cell coefficient, scaled by its own
+  // owner conductivity. Those two coefficients differ here (k = 3 vs 5), which is exactly why the
+  // two entries are no longer equal. Derived in a5/tools/derive_expected.py, block B1:
+  //   cF(owner) = k_owner |S| h1 / (h2 (h2 - h1)) = k_owner / 3   (h1 = 0.5, h2 = 1.5, |S| = 1)
+  //   A(1,0) = -(4 + 5/3) = -17/3      A(0,1) = -(4 + 3/3) = -5      difference = 2/3
+  const Real cFa = 3.0 / 3.0;  // owner = cell 0, k = 3
+  const Real cFb = 5.0 / 3.0;  // owner = cell 1, k = 5
 
   Vector eA(n, 0.0);
   eA[cellA] = 1.0;
   Vector eB(n, 0.0);
   eB[cellB] = 1.0;
-  EXPECT_NEAR(-matrix.multiply(eA)[cellB], internalConductanceExpected, 1e-10);
-  EXPECT_NEAR(-matrix.multiply(eB)[cellA], internalConductanceExpected, 1e-10);
-  // Equal-and-opposite conservation.
-  EXPECT_NEAR(matrix.multiply(eA)[cellB], matrix.multiply(eB)[cellA], 1e-12);
+  // matrix.multiply(eX)[Y] reads A(Y, X): the row is Y, so the far-cell term is row Y's own.
+  EXPECT_NEAR(-matrix.multiply(eA)[cellB], internalConductanceExpected + cFb, 1e-10);
+  EXPECT_NEAR(-matrix.multiply(eB)[cellA], internalConductanceExpected + cFa, 1e-10);
+  // The difference between the two entries is exactly the difference of the two one-sided far-cell
+  // coefficients -- nothing else has become asymmetric.
+  EXPECT_NEAR(matrix.multiply(eB)[cellA] - matrix.multiply(eA)[cellB], cFb - cFa, 1e-12);
+
+  // The interpolated value and the equal-and-opposite property, isolated: with gradient-type
+  // boundaries no wall is reconstructed, so no far-cell term exists and the internal face's
+  // contribution stands alone.
+  SparseMatrixBuilder isolated(n, n);
+  Vector isolatedRhs(n, 0.0);
+  assembleThermalDiffusionContribution(mesh, kField, temperature, makeZeroGradientBoundaries(mesh),
+                                       isolated, isolatedRhs);
+  const auto isolatedMatrix = isolated.build();
+  EXPECT_NEAR(-isolatedMatrix.multiply(eA)[cellB], internalConductanceExpected, 1e-10);
+  EXPECT_NEAR(-isolatedMatrix.multiply(eB)[cellA], internalConductanceExpected, 1e-10);
+  EXPECT_DOUBLE_EQ(isolatedMatrix.multiply(eA)[cellB], isolatedMatrix.multiply(eB)[cellA]);
 }
 
 TEST(EnergyEquationVariablePropertiesTest, DiffusionBoundaryFaceUsesOwnerConductivityDirectly) {
@@ -153,11 +178,35 @@ TEST(EnergyEquationVariablePropertiesTest, DiffusionBoundaryFaceUsesOwnerConduct
 
   const Index leftCell = cellTouchingPatch(mesh, "left");
   ASSERT_EQ(leftCell, 0u);
-  const Real boundaryConductanceExpected = 3.0 * 1.0 / 0.5;  // k[0]*A/d = 6.
-  // leftCell's diagonal = 3 boundary faces (left/top/bottom, all using
-  // k[0]=3) + 1 internal face ((3+100)/2 * 1/1 = 51.5).
-  const Real expectedDiagonal = 3.0 * boundaryConductanceExpected + 51.5;
+  // P12-DIFF-002 A5, entry 7. Every wall face of cell 0 is still driven by cell 0's own k = 3, but
+  // the left wall is now the second-order reconstruction while top/bottom fall back (the y axis is
+  // one cell thick). Derived in a5/tools/derive_expected.py, block B2, with h = 1 and |S| = 1:
+  //   left wall:        cP = k[0] * 3/h = 9        (two-point would be k[0]/h1 = 6)
+  //   top/bottom walls: k[0]/h1 = 6 each, fallback
+  //   internal face:    (3 + 100)/2 * 1/1 = 51.5
+  const Real cP = 3.0 * 3.0 / 1.0;        // k[0] * 3/h, reconstructed left wall
+  const Real fallback = 3.0 * 1.0 / 0.5;  // k[0]*A/h1 = 6, one-cell-thick y walls
+  const Real internalConductance = 51.5;
+  const Real expectedDiagonal = cP + 2.0 * fallback + internalConductance;  // 72.5
   EXPECT_NEAR(matrix.diagonal(leftCell), expectedDiagonal, 1e-9);
+
+  // A5 strengthening: the property this test is named for -- that a boundary face uses the OWNER's
+  // conductivity and nothing else -- is now asserted directly. Only the internal face may react to
+  // the neighbour's k, so cell 0's wall contribution (diagonal minus the internal coefficient) must
+  // be identical when k[1] changes by an order of magnitude.
+  ScalarField louder(n);
+  louder[0] = 3.0;
+  louder[1] = 1000.0;
+  SparseMatrixBuilder loudBuilder(n, n);
+  Vector loudRhs(n, 0.0);
+  assembleThermalDiffusionContribution(mesh, louder, temperature, boundaries, loudBuilder, loudRhs);
+  const auto loudMatrix = loudBuilder.build();
+  const Real loudInternal = (3.0 + 1000.0) / 2.0;  // 501.5
+  EXPECT_NEAR(loudMatrix.diagonal(leftCell) - loudInternal,
+              matrix.diagonal(leftCell) - internalConductance, 1e-9);
+  EXPECT_NEAR(loudMatrix.diagonal(leftCell) - loudInternal, cP + 2.0 * fallback, 1e-9);
+  // ... and the prescribed-value term on cell 0's own walls is likewise owner-driven.
+  EXPECT_NEAR(loudRhs[leftCell], rhs[leftCell], 1e-9);
 }
 
 TEST(EnergyEquationVariablePropertiesTest, RejectsNonFiniteOrNonPositiveConductivityField) {

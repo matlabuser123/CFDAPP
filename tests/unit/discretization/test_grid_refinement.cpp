@@ -391,16 +391,54 @@ TEST(GridRefinementTest, LeastSquaresGradientCartesianConvergesAtSecondOrderInIn
 }
 
 TEST(GridRefinementTest, GreenGaussGradientDistortedGlobalOrderReflectsBoundaryTreatment) {
-  // GreenGauss on a DISTORTED mesh loses its Cartesian-specific boundary
-  // advantage (the paired-face-area assumption is no longer exact) --
-  // its global rate drops to ~1.58-1.72, similar to least-squares'
-  // global rate on either mesh. Recorded honestly (task requirement 8:
-  // "also test Green-Gauss on distorted meshes... record its actual
-  // performance rather than assuming second order").
+  // HISTORICAL (P12-NUM-002, superseded -- kept so the chronology is legible):
+  //   "GreenGauss on a DISTORTED mesh loses its Cartesian-specific boundary
+  //   advantage (the paired-face-area assumption is no longer exact) -- its
+  //   global rate drops to ~1.58-1.72... record its actual performance rather
+  //   than assuming second order."
+  // That band was [1.4, 1.9]: a descriptive envelope around a measured
+  // DEGRADATION, not a derived correctness property.
+  //
+  // P12-GRAD-002-VAL-001 -- why the upper bound moved. Full derivation and
+  // non-vacuity evidence: results/p12-grad-002/val-001/acceptance_gate.md
+  // (sha256 9baf3344..., frozen before this line changed).
+  //
+  // Plain Green-Gauss mixes an EXACT boundary face value with an INTERPOLATED
+  // opposite-face value carrying -1/2 w(1-w) L^2 d2phi/dxi^2 = O(h^2). In the
+  // interior those two O(h^2) face errors sit on opposite area vectors and
+  // cancel, leaving order 2; at a boundary the cancellation is broken, so the
+  // ring degrades to O(h). The ring is ~4n cells of volume ~h^2 -- a volume
+  // FRACTION ~4h -- so the global volume-weighted L2 obeys
+  //     L2^2 ~ C_i^2 h^4 + 4 C_b^2 h^3   ->   global order -> 3/2,
+  // which is what the old band recorded. GRAD-002 removes that interpolation
+  // bias from the opposite face, restoring the cancellation at the boundary,
+  // so the ring returns to O(h^2) and
+  //     L2^2 ~ C_i^2 h^4 + 4 C_b'^2 h^5  ->   global order -> 2 FROM BELOW.
+  //
+  // Measured (val-001/logs/01, grids 16..256), confirming the derivation:
+  //   plain    ring 1.0036, global 1.5233, global Linf 0.9997
+  //   GRAD-002 ring 1.9936, global 1.9958
+  //   interior 2.0002 (current) / 2.0008 (plain) -- UNCHANGED, so the whole
+  //   difference is confined to the ring, exactly where GRAD-002 acted.
+  //
+  // The band below is derived, not widened to fit: the sub-leading term gives
+  // p(n) = 2 - c/n with c ~= 0.5 measured (0.494..0.538 across five pairs), so
+  // with a 2x safety factor the coarsest pair used here (n = 8) predicts
+  // p >= 2 - 1.0/8 = 1.875; the order approaches 2 strictly from below, so the
+  // upper bound need only reject a super-convergence artifact: 2 + 0.15.
+  // The LOWER bound is RAISED 1.4 -> 1.875, i.e. this assertion is strictly
+  // stronger than the one it replaces.
+  //
+  // Non-vacuity, measured before this line changed (val-001/logs/02): the band
+  // rejects plain Green-Gauss (1.7204/1.6393/1.5802), a first-order boundary
+  // value (0.5517/0.5128/0.5032), a wrong boundary-coefficient sign (negative
+  // orders, errors growing) and an O(h) boundary perturbation (0.6053/...).
+  // The superseded [1.4, 1.9] does the opposite: it ACCEPTS plain Green-Gauss
+  // and REJECTS the corrected treatment.
   runGradientSchemeGridRefinement(
       GradientScheme::GreenGauss, /*distorted=*/true,
       "GreenGauss gradient, Distorted GLOBAL (phi = sin(pi x) cos(pi y))",
-      /*restrictToInterior=*/false, 1.4, 1.9);
+      /*restrictToInterior=*/false, 1.875, 2.15);
 }
 
 TEST(GridRefinementTest, GreenGaussGradientDistortedConvergesAtSecondOrderInInterior) {

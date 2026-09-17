@@ -10,17 +10,43 @@
 
 #include <filesystem>
 #include <optional>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "cfd/fields/ScalarField.hpp"
+#include "cfd/fields/VectorField.hpp"
 #include "cfd/io/CSVWriter.hpp"
 #include "cfd/mesh/Mesh.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 
 namespace cfd::io {
 
+// P12-MESH-005: one named cell-centred vector field (all three components
+// are written), the vector counterpart of NamedScalarField.
+using NamedVectorField = std::pair<std::string, cfd::fields::VectorField>;
+
 class VTKWriter {
  public:
+  // P12-MESH-005: dimension-generic export of cell-centred fields on a mesh
+  // with exactly one structured vertex grid (Mesh::structuredGrid()) --
+  // a 3D hexahedral mesh (MeshGeometry::createCartesian3D: POINTS = the
+  // (nx+1)(ny+1)(nz+1) grid vertices, one VTK_HEXAHEDRON (12) per cell with
+  // corners vertex(i,j,k), (i+1,j,k), (i+1,j+1,k), (i,j+1,k), then the same
+  // four at k+1) or a single-grid 2D mesh (VTK_QUAD (9), z = 0). Cells in
+  // cell-id order; CELL_DATA: one SCALARS block per scalar field, then one
+  // 3-component VECTORS block per vector field, each in the given order,
+  // written with the deterministic 17-significant-digit format (values
+  // round-trip exactly). Throws InvalidArgumentError if the mesh has no
+  // single structured grid, a field size is not the cell count, or a field
+  // name is empty or contains whitespace, and NumericalError for a
+  // non-finite value -- both before the file is opened; IOError if `path`
+  // cannot be opened. writeSolution below remains the 2D SIMPLE-result
+  // writer.
+  static void writeCellFields(const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
+                              const std::vector<NamedScalarField>& scalarFields,
+                              const std::vector<NamedVectorField>& vectorFields = {});
+
   // Mesh stores no explicit vertices (P0 scope), so point geometry is
   // reconstructed deterministically from the mesh's inferred structured-
   // Cartesian layout (see src/io/StructuredMeshInfo.hpp) -- an export-
@@ -45,7 +71,8 @@ class VTKWriter {
   // (or temperature's/any extraFields entry's, when present) does not
   // match mesh.numberOfCells(), or if mesh does not fit the structured
   // layout this exporter assumes; NumericalError if any exported value
-  // is non-finite; IOError if `path` cannot be opened.
+  // is non-finite; IOError if `path` cannot be opened. Two-dimensional
+  // meshes only (InvalidArgumentError for a 3D mesh; P12-MESH-005).
   static void writeSolution(
       const std::filesystem::path& path, const cfd::mesh::Mesh& mesh,
       const cfd::pressure_velocity::SIMPLEResult& result,

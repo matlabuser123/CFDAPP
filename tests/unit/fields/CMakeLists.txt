@@ -4,6 +4,7 @@ add_executable(CFDFieldTests
   test_vector_field.cpp
   test_surface_field.cpp
   test_field_arithmetic.cpp
+  test_fields3d.cpp
 )
 
 target_link_libraries(CFDFieldTests

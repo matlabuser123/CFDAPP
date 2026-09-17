@@ -30,6 +30,11 @@ struct SIMPLEIterationProgress {
   Real pressureResidual{};
   Real continuityResidual{};
   Real globalMassImbalance{};
+  // P12-MESH-006: the W momentum residual of a 3D solve (0 in 2D, which has
+  // no w equation; `threeDimensional` says which). Appended, so every
+  // existing positional initializer keeps its meaning.
+  Real wResidual{};
+  bool threeDimensional{false};
 };
 
 using SIMPLEProgressCallback = std::function<void(const SIMPLEIterationProgress&)>;

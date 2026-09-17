@@ -46,15 +46,20 @@ Real boundaryTemperatureValue(const Mesh& mesh, const Face& face, const ScalarFi
 
 // P12-NUM-003: grad(T) for the explicit non-orthogonal term, computed once
 // per assembly and only when the correction is enabled.
-std::optional<cfd::fields::VectorField> correctionGradient(
+// P12-DIFF-002 A2: the Dirichlet wall-flux reconstruction needs a cell gradient for its tangential
+// transfer term, and WHICH wall-flux scheme is used must not depend on `options.enabled` -- that
+// flag controls the iterative/deferred non-orthogonal correction, a separate concept (see
+// results/p12-diff-002/a2/activation_architecture.md). The gradient is therefore always computed,
+// and `options.enabled` now gates only the INTERNAL-face correction. Before A2 this returned
+// nullopt when disabled, which silently made the Dirichlet wall flux first order for every case
+// leaving solver.json's `non_orthogonal_corrections` at its default of 0 -- including every
+// orthogonal case, where P12-DIFF-001 measured that error as exactly 0.5 h.
+cfd::fields::VectorField correctionGradient(
     const Mesh& mesh, const ScalarField& temperature,
     const BoundaryConditionSet& temperatureBoundaries,
     const cfd::discretization::NonOrthogonalCorrectionOptions& options) {
-  if (!options.enabled) {
-    return std::nullopt;
-  }
-  return cfd::discretization::gradient(mesh, temperature, temperatureBoundaries,
-                                       options.gradientScheme);
+  return thermalBoundaryCorrectionGradient(mesh, temperature, temperatureBoundaries,
+                                           options.gradientScheme);
 }
 
 bool prescribesTemperature(const Mesh& mesh, const Face& face,
@@ -65,6 +70,77 @@ bool prescribesTemperature(const Mesh& mesh, const Face& face,
 
 }  // namespace
 
+Real storedDiagonalOrZero(const SparseMatrix& matrix, Index row) {
+  const Index* offsets = matrix.rowOffsetsData();
+  const Index* columns = matrix.columnIndicesData();
+  const Real* values = matrix.valuesData();
+  for (Index k = offsets[row]; k < offsets[row + 1]; ++k) {
+    if (columns[k] == row) return values[k];
+  }
+  return 0.0;
+}
+
+BoundaryDiffusionContribution boundaryDiffusionContribution(
+    const Mesh& mesh, const Face& face, const ScalarField& temperature,
+    const BoundaryConditionSet& temperatureBoundaries, Real coefficient,
+    std::optional<Real> boundaryValueCoefficient) {
+  const BoundaryCondition& bc =
+      cfd::boundary::boundaryConditionForFace(mesh, face.id(), temperatureBoundaries);
+  const auto* scalarBc = dynamic_cast<const ScalarBoundaryCondition*>(&bc);
+  if (scalarBc == nullptr) {
+    throw InvalidArgumentError("EnergyEquation: boundary condition is not scalar-valued");
+  }
+  const Real distance = MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
+  if (cfd::discretization::prescribesBoundaryValue(bc.type())) {
+    // Unchanged: T_b is known -- exactly the pre-existing A(P,P) += Df,
+    // rhs += Df * T_b.
+    // P12-DIFF-002: the prescribed value's multiplier may differ from the diagonal.
+    return {coefficient, boundaryValueCoefficient.value_or(coefficient) *
+                             scalarBc->boundaryValue(temperature[face.owner()], distance)};
+  }
+  // T_b = T_P + g d: the flow Df (T_P - T_b) = -Df g d is known exactly
+  // (boundaryValue(0, d) = g d); nothing depends on T_P.
+  return {0.0, coefficient * scalarBc->boundaryValue(0.0, distance)};
+}
+
+cfd::fields::VectorField thermalBoundaryCorrectionGradient(
+    const Mesh& mesh, const ScalarField& temperature,
+    const BoundaryConditionSet& temperatureBoundaries,
+    cfd::discretization::GradientScheme gradientScheme) {
+  return cfd::discretization::gradient(mesh, temperature, temperatureBoundaries, gradientScheme);
+}
+
+void assembleThermalBoundaryFaceContribution(const Mesh& mesh, const Face& face, Real conductivity,
+                                             const ScalarField& temperature,
+                                             const BoundaryConditionSet& temperatureBoundaries,
+                                             const cfd::fields::VectorField& gradT,
+                                             SparseMatrixBuilder& builder, Vector& rhs) {
+  const Index ownerId = face.owner();
+  const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
+  const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
+      mesh, face, conductivity, distance, &gradT,
+      prescribesTemperature(mesh, face, temperatureBoundaries));
+
+  // Always applied -- the transfer term is exactly 0 on an orthogonal face.
+  rhs[ownerId] += terms.explicitFlux;
+
+  // Prescribed T_b: A(P,P) += Df, the -Df*tB (known) part of the boundary flux
+  // moves to the RHS as +Df*tB -- same derivation as
+  // MomentumEquation::assembleDiffusionContribution's boundary branch, with k in
+  // place of mu and T in place of u. Gradient-type conditions: the prescribed
+  // flux, exactly (P12-MESH-003 fix; see boundaryDiffusionContribution).
+  const auto boundary =
+      boundaryDiffusionContribution(mesh, face, temperature, temperatureBoundaries,
+                                    terms.coefficient, terms.boundaryValueCoefficient);
+  builder.add(ownerId, ownerId, boundary.diagonal);
+  rhs[ownerId] += boundary.source;
+  // P12-DIFF-002: one implicit far-cell entry when the reconstruction applies
+  // (only for value-prescribing faces, where boundary.diagonal != 0).
+  if (terms.farCellCoefficient != 0.0 && boundary.diagonal != 0.0) {
+    builder.add(ownerId, terms.farCell, -terms.farCellCoefficient);
+  }
+}
+
 void assembleThermalDiffusionContribution(
     const Mesh& mesh, Real conductivity, const ScalarField& temperature,
     const BoundaryConditionSet& temperatureBoundaries, SparseMatrixBuilder& builder, Vector& rhs,
@@ -74,40 +150,28 @@ void assembleThermalDiffusionContribution(
         "assembleThermalDiffusionContribution: temperature size does not match mesh cell count");
   }
   const auto gradT = correctionGradient(mesh, temperature, temperatureBoundaries, nonOrthogonal);
-  const cfd::fields::VectorField* gradTPtr = gradT.has_value() ? &(*gradT) : nullptr;
+  // A2: boundary faces always get the gradient (the wall-flux SCHEME must not depend on the
+  // iterative control); internal faces keep the pre-existing gate, so `enabled` still means
+  // "apply the non-orthogonal correction".
+  const cfd::fields::VectorField* internalGradT = nonOrthogonal.enabled ? &gradT : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
 
     if (face.isBoundary()) {
-      const Index ownerId = face.owner();
-      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
-          mesh, face, conductivity, distance, gradTPtr,
-          gradTPtr != nullptr && prescribesTemperature(mesh, face, temperatureBoundaries));
-      const Real diffusionCoefficient = terms.coefficient;
-
-      const Real tB = boundaryTemperatureValue(mesh, face, temperature, temperatureBoundaries);
-      if (gradTPtr != nullptr) {
-        rhs[ownerId] += terms.explicitFlux;
-      }
-
-      // A(P,P) += Df; the -Df*tB (known) part of the boundary flux moves
-      // to the RHS as +Df*tB -- same derivation as
-      // MomentumEquation::assembleDiffusionContribution's boundary
-      // branch, with k in place of mu and T in place of u.
-      builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += diffusionCoefficient * tB;
+      // One shared implementation, also used by the region-aware conjugate assembly.
+      assembleThermalBoundaryFaceContribution(mesh, face, conductivity, temperature,
+                                              temperatureBoundaries, gradT, builder, rhs);
       continue;
     }
 
     const Index ownerId = face.owner();
     const Index neighborId = *face.neighbor();
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
-    const auto terms =
-        cfd::discretization::internalFaceDiffusionTerms(mesh, face, conductivity, dPN, gradTPtr);
+    const auto terms = cfd::discretization::internalFaceDiffusionTerms(mesh, face, conductivity,
+                                                                       dPN, internalGradT);
     const Real diffusionCoefficient = terms.coefficient;
-    if (gradTPtr != nullptr) {
+    if (internalGradT != nullptr) {
       rhs[ownerId] += terms.explicitFlux;
       rhs[neighborId] -= terms.explicitFlux;
     }
@@ -147,30 +211,22 @@ void assembleThermalDiffusionContribution(
   }
 
   const auto gradT = correctionGradient(mesh, temperature, temperatureBoundaries, nonOrthogonal);
-  const cfd::fields::VectorField* gradTPtr = gradT.has_value() ? &(*gradT) : nullptr;
+  // A2: boundary faces always get the gradient (the wall-flux SCHEME must not depend on the
+  // iterative control); internal faces keep the pre-existing gate, so `enabled` still means
+  // "apply the non-orthogonal correction".
+  const cfd::fields::VectorField* internalGradT = nonOrthogonal.enabled ? &gradT : nullptr;
 
   for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
     const Face& face = mesh.face(faceId);
 
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
-      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
       // No neighbor cell to interpolate against at a boundary face -- use
       // the owner cell's own conductivity (see this overload's header
-      // comment).
-      const Real kFace = conductivity[ownerId];
-      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
-          mesh, face, kFace, distance, gradTPtr,
-          gradTPtr != nullptr && prescribesTemperature(mesh, face, temperatureBoundaries));
-      const Real diffusionCoefficient = terms.coefficient;
-
-      const Real tB = boundaryTemperatureValue(mesh, face, temperature, temperatureBoundaries);
-      if (gradTPtr != nullptr) {
-        rhs[ownerId] += terms.explicitFlux;
-      }
-
-      builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += diffusionCoefficient * tB;
+      // comment). One shared implementation, also used by the region-aware
+      // conjugate assembly.
+      assembleThermalBoundaryFaceContribution(mesh, face, conductivity[ownerId], temperature,
+                                              temperatureBoundaries, gradT, builder, rhs);
       continue;
     }
 
@@ -179,9 +235,9 @@ void assembleThermalDiffusionContribution(
     const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
     const Real kFace = cfd::discretization::interpolateInternalFace(mesh, face, conductivity);
     const auto terms =
-        cfd::discretization::internalFaceDiffusionTerms(mesh, face, kFace, dPN, gradTPtr);
+        cfd::discretization::internalFaceDiffusionTerms(mesh, face, kFace, dPN, internalGradT);
     const Real diffusionCoefficient = terms.coefficient;
-    if (gradTPtr != nullptr) {
+    if (internalGradT != nullptr) {
       rhs[ownerId] += terms.explicitFlux;
       rhs[neighborId] -= terms.explicitFlux;
     }
@@ -374,7 +430,7 @@ EnergyAssembly assembleConstantPropertyEnergyEquation(
 
   Vector diagonal(n);
   for (Index row = 0; row < n; ++row) {
-    diagonal[row] = matrix.diagonal(row);
+    diagonal[row] = storedDiagonalOrZero(matrix, row);
   }
 
   if (!matrix.allFinite() || !rhs.allFinite()) {
@@ -434,7 +490,7 @@ EnergyAssembly assembleEnergyEquation(
 
   Vector diagonal(n);
   for (Index row = 0; row < n; ++row) {
-    diagonal[row] = matrix.diagonal(row);
+    diagonal[row] = storedDiagonalOrZero(matrix, row);
   }
 
   if (!matrix.allFinite() || !rhs.allFinite()) {

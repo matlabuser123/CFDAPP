@@ -24,7 +24,10 @@ std::vector<Real> toVector(const cfd::fields::ScalarField& field) {
   return values;
 }
 
-std::vector<std::string> splitCsvLine(const std::string& line) {
+std::vector<std::string> splitCsvLine(std::string line) {
+  // P12-MESH-006: a CRLF file (e.g. results committed from Windows) keeps no trailing '\r' on its
+  // last column -- columns are located by header name, and "pressure\r" is not "pressure".
+  if (!line.empty() && line.back() == '\r') line.pop_back();
   std::vector<std::string> fields;
   std::stringstream ss(line);
   std::string field;
@@ -58,6 +61,8 @@ const std::vector<Real>* VisualizationSnapshot::scalarField(const std::string& n
 
 std::vector<std::string> VisualizationSnapshot::availableResidualSeries() const {
   if (!valid) return {};
+  // P12-MESH-006: a 3D result also has the W residual (never offered for a 2D result).
+  if (!wResidualHistory.empty()) return {"u", "v", "w", "pressure", "continuity"};
   return {"u", "v", "pressure", "continuity"};
 }
 
@@ -65,6 +70,7 @@ const std::vector<Real>* VisualizationSnapshot::residualSeries(const std::string
   if (!valid) return nullptr;
   if (name == "u") return &uResidualHistory;
   if (name == "v") return &vResidualHistory;
+  if (name == "w" && !wResidualHistory.empty()) return &wResidualHistory;
   if (name == "pressure") return &pressureResidualHistory;
   if (name == "continuity") return &continuityResidualHistory;
   return nullptr;
@@ -83,10 +89,12 @@ VisualizationSnapshot buildSnapshot(const ProjectRunResult& run) {
   }
 
   const std::size_t n = mesh.numberOfCells();
+  const bool threeDimensional = mesh.dimension() == 3;  // P12-MESH-006
   snapshot.points.resize(n);
   snapshot.pressure.resize(n);
   snapshot.velocityX.resize(n);
   snapshot.velocityY.resize(n);
+  if (threeDimensional) snapshot.velocityZ.resize(n);
   snapshot.velocityMagnitude.resize(n);
   for (const auto& cell : mesh.cells()) {
     const Index id = cell.id();
@@ -94,13 +102,14 @@ VisualizationSnapshot buildSnapshot(const ProjectRunResult& run) {
     snapshot.pressure[static_cast<std::size_t>(id)] = result.pressure[id];
     snapshot.velocityX[static_cast<std::size_t>(id)] = result.velocity[id].x;
     snapshot.velocityY[static_cast<std::size_t>(id)] = result.velocity[id].y;
+    if (threeDimensional) snapshot.velocityZ[static_cast<std::size_t>(id)] = result.velocity[id].z;
     snapshot.velocityMagnitude[static_cast<std::size_t>(id)] = magnitude(result.velocity[id]);
   }
 
   // section: "only a fully-finite solution is worth showing" -- same
   // policy ResultExporter's own field-file gating already applies.
   if (!allFinite(snapshot.pressure) || !allFinite(snapshot.velocityX) ||
-      !allFinite(snapshot.velocityY)) {
+      !allFinite(snapshot.velocityY) || !allFinite(snapshot.velocityZ)) {
     return VisualizationSnapshot{};
   }
 
@@ -165,8 +174,10 @@ VisualizationSnapshot buildSnapshot(const ProjectRunResult& run) {
 
   snapshot.nx = run.caseDefinition->mesh.nx;
   snapshot.ny = run.caseDefinition->mesh.ny;
+  if (threeDimensional) snapshot.nz = run.caseDefinition->mesh.nz;
   snapshot.uResidualHistory = result.uResidualHistory;
   snapshot.vResidualHistory = result.vResidualHistory;
+  snapshot.wResidualHistory = result.wResidualHistory;  // empty for a 2D run
   snapshot.pressureResidualHistory = result.pressureResidualHistory;
   snapshot.continuityResidualHistory = result.continuityHistory;
   snapshot.valid = true;
@@ -190,6 +201,9 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
     metadataIn >> metadata;
     snapshot.nx = metadata.at("mesh").at("nx").get<Index>();
     snapshot.ny = metadata.at("mesh").at("ny").get<Index>();
+    // P12-MESH-006: a 3D result's metadata names its dimension and nz (JSONWriter).
+    const auto& meshMetadata = metadata.at("mesh");
+    if (meshMetadata.value("dimension", 2) == 3) snapshot.nz = meshMetadata.at("nz").get<Index>();
   } catch (const std::exception&) {
     return VisualizationSnapshot{};
   }
@@ -205,20 +219,50 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
   // supplies the full column name, no fixed per-physics-module set"
   // convention) rather than hardcoding one column per physics module, so
   // a future physics module's own export needs no change here either.
+  // P12-MESH-006: every column is located by its header name. The 2D layout is exactly the one
+  // above; a 3D result adds z (after y) and velocity_z (after velocity_y) -- CSVWriter::
+  // writeFields3D -- which the old fixed column positions would have misread.
   std::ifstream fieldsIn(fieldsPath);
   std::string headerLine;
   if (!std::getline(fieldsIn, headerLine)) return VisualizationSnapshot{};
   const std::vector<std::string> header = splitCsvLine(headerLine);
-  if (header.size() < 7) return VisualizationSnapshot{};
+  const auto columnOf = [&header](const std::string& name) -> std::optional<std::size_t> {
+    const auto it = std::find(header.begin(), header.end(), name);
+    return it == header.end()
+               ? std::nullopt
+               : std::optional<std::size_t>(static_cast<std::size_t>(it - header.begin()));
+  };
+  const auto xColumn = columnOf("x");
+  const auto yColumn = columnOf("y");
+  const auto zColumn = columnOf("z");
+  const auto uColumn = columnOf("velocity_x");
+  const auto vColumn = columnOf("velocity_y");
+  const auto wColumn = columnOf("velocity_z");
+  const auto magnitudeColumn = columnOf("velocity_magnitude");
+  const auto pressureColumn = columnOf("pressure");
+  if (header.size() < 7 || !xColumn || !yColumn || !uColumn || !vColumn || !magnitudeColumn ||
+      !pressureColumn ||
+      (snapshot.threeDimensional() != (zColumn.has_value() && wColumn.has_value()))) {
+    return VisualizationSnapshot{};
+  }
   std::optional<std::size_t> temperatureColumn;
   std::vector<std::pair<std::string, std::size_t>> extraColumns;  // {name, column index}.
-  for (std::size_t col = 7; col < header.size(); ++col) {
-    if (header[col] == "temperature") {
+  for (std::size_t col = 0; col < header.size(); ++col) {
+    const std::string& name = header[col];
+    if (name == "cell_id" || name == "x" || name == "y" || name == "z" || name == "velocity_x" ||
+        name == "velocity_y" || name == "velocity_z" || name == "velocity_magnitude" ||
+        name == "pressure") {
+      continue;
+    }
+    if (name == "temperature") {
       temperatureColumn = col;
     } else {
-      extraColumns.emplace_back(header[col], col);
+      extraColumns.emplace_back(name, col);
     }
   }
+  const std::size_t requiredColumns =
+      1 + std::max({*xColumn, *yColumn, *uColumn, *vColumn, *magnitudeColumn, *pressureColumn,
+                    zColumn.value_or(0), wColumn.value_or(0)});
 
   std::vector<Real> temperatureValues;
   std::vector<std::vector<Real>> extraColumnValues(extraColumns.size());
@@ -226,15 +270,17 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
   while (std::getline(fieldsIn, line)) {
     if (line.empty()) continue;
     const std::vector<std::string> row = splitCsvLine(line);
-    if (row.size() < 7) return VisualizationSnapshot{};
+    if (row.size() < requiredColumns) return VisualizationSnapshot{};
     try {
-      const Real x = std::stod(row[1]);
-      const Real y = std::stod(row[2]);
-      snapshot.points.push_back(Vector2{x, y});
-      snapshot.velocityX.push_back(std::stod(row[3]));
-      snapshot.velocityY.push_back(std::stod(row[4]));
-      snapshot.velocityMagnitude.push_back(std::stod(row[5]));
-      snapshot.pressure.push_back(std::stod(row[6]));
+      const Real x = std::stod(row[*xColumn]);
+      const Real y = std::stod(row[*yColumn]);
+      const Real z = zColumn.has_value() ? std::stod(row[*zColumn]) : 0.0;
+      snapshot.points.push_back(Vector2{x, y, z});
+      snapshot.velocityX.push_back(std::stod(row[*uColumn]));
+      snapshot.velocityY.push_back(std::stod(row[*vColumn]));
+      if (wColumn.has_value()) snapshot.velocityZ.push_back(std::stod(row[*wColumn]));
+      snapshot.velocityMagnitude.push_back(std::stod(row[*magnitudeColumn]));
+      snapshot.pressure.push_back(std::stod(row[*pressureColumn]));
       if (temperatureColumn.has_value() && row.size() > *temperatureColumn) {
         temperatureValues.push_back(std::stod(row[*temperatureColumn]));
       }
@@ -259,18 +305,42 @@ VisualizationSnapshot loadSnapshotFromResults(const std::filesystem::path& resul
 
   // --- residuals.csv:
   // iteration,u_residual,v_residual,p_residual,continuity_residual,global_mass_imbalance
+  // (P12-MESH-006: a 3D result inserts w_residual after v_residual -- columns located by name).
   std::ifstream residualsIn(residualsPath);
-  std::string residualsHeader;
-  if (!std::getline(residualsIn, residualsHeader)) return VisualizationSnapshot{};
+  std::string residualsHeaderLine;
+  if (!std::getline(residualsIn, residualsHeaderLine)) return VisualizationSnapshot{};
+  const std::vector<std::string> residualsHeader = splitCsvLine(residualsHeaderLine);
+  const auto residualColumn =
+      [&residualsHeader](const std::string& name) -> std::optional<std::size_t> {
+    const auto it = std::find(residualsHeader.begin(), residualsHeader.end(), name);
+    return it == residualsHeader.end()
+               ? std::nullopt
+               : std::optional<std::size_t>(static_cast<std::size_t>(it - residualsHeader.begin()));
+  };
+  const auto uResidualColumn = residualColumn("u_residual");
+  const auto vResidualColumn = residualColumn("v_residual");
+  const auto wResidualColumn = residualColumn("w_residual");
+  const auto pResidualColumn = residualColumn("p_residual");
+  const auto continuityColumn = residualColumn("continuity_residual");
+  if (!uResidualColumn || !vResidualColumn || !pResidualColumn || !continuityColumn ||
+      snapshot.threeDimensional() != wResidualColumn.has_value()) {
+    return VisualizationSnapshot{};
+  }
+  const std::size_t requiredResidualColumns =
+      1 + std::max({*uResidualColumn, *vResidualColumn, *pResidualColumn, *continuityColumn,
+                    wResidualColumn.value_or(0)});
   while (std::getline(residualsIn, line)) {
     if (line.empty()) continue;
     const std::vector<std::string> row = splitCsvLine(line);
-    if (row.size() < 5) return VisualizationSnapshot{};
+    if (row.size() < requiredResidualColumns) return VisualizationSnapshot{};
     try {
-      snapshot.uResidualHistory.push_back(std::stod(row[1]));
-      snapshot.vResidualHistory.push_back(std::stod(row[2]));
-      snapshot.pressureResidualHistory.push_back(std::stod(row[3]));
-      snapshot.continuityResidualHistory.push_back(std::stod(row[4]));
+      snapshot.uResidualHistory.push_back(std::stod(row[*uResidualColumn]));
+      snapshot.vResidualHistory.push_back(std::stod(row[*vResidualColumn]));
+      if (wResidualColumn.has_value()) {
+        snapshot.wResidualHistory.push_back(std::stod(row[*wResidualColumn]));
+      }
+      snapshot.pressureResidualHistory.push_back(std::stod(row[*pResidualColumn]));
+      snapshot.continuityResidualHistory.push_back(std::stod(row[*continuityColumn]));
     } catch (const std::exception&) {
       return VisualizationSnapshot{};
     }

@@ -3,6 +3,8 @@
 #include <cmath>
 #include <optional>
 
+#include "PisoStep.hpp"
+
 #include "cfd/algebra/BiCGSTAB.hpp"
 #include "cfd/core/Exception.hpp"
 #include "cfd/physics/ContinuityEquation.hpp"
@@ -110,6 +112,27 @@ const PISOSettings& PISO::settings() const noexcept { return settings_; }
 Index PISO::referenceCell() const noexcept { return referenceCell_; }
 
 TransientStepResult PISO::solveTimeStep(const TransientState& previousState, Real dt) const {
+  // P12-MESH-006: PISO is two-dimensional (u, v) -- 3D transient flow is not
+  // implemented; refused explicitly on a 3D mesh.
+  cfd::mesh::requireTwoDimensional(mesh_, "PISO");
+  // P12-MESH-007: the algorithm itself lives in detail::solvePisoStep, shared
+  // with AlePISO; ale == nullptr is exactly this class's former body.
+  return detail::solvePisoStep(mesh_, fluid_, velocityBoundaries_, pressureBoundaries_, settings_,
+                               referenceCell_, turbulenceModel_, previousState, dt, nullptr);
+}
+
+namespace detail {
+
+TransientStepResult solvePisoStep(const Mesh& mesh_, const FluidProperties& fluid_,
+                                  const BoundaryConditionSet& velocityBoundaries_,
+                                  const BoundaryConditionSet& pressureBoundaries_,
+                                  const PISOSettings& settings_, Index referenceCell_,
+                                  TurbulenceModel* turbulenceModel_,
+                                  const TransientState& previousState, Real dt,
+                                  const AleStepTerms* ale) {
+  // (The parameter names keep PISO's member names so that the algorithm
+  // below is PISO::solveTimeStep's former body, unchanged except for the two
+  // `ale` branches: the pre-step CFL and the momentum predictor.)
   // Configuration problems are a legitimate solveTimeStep()-time outcome
   // a caller branches on via `status`, not an exception escaping this
   // function -- mirrors SIMPLE::solve()'s own treatment of its
@@ -129,6 +152,11 @@ TransientStepResult PISO::solveTimeStep(const TransientState& previousState, Rea
     }
     if (!std::isfinite(dt) || !(dt > 0.0)) {
       throw InvalidArgumentError("PISO::solveTimeStep: dt must be finite and > 0");
+    }
+    if (ale != nullptr && (ale->previousVolume == nullptr || ale->convectingMassFlux == nullptr ||
+                           ale->previousVolume->size() != mesh_.numberOfCells() ||
+                           ale->convectingMassFlux->size() != mesh_.numberOfFaces())) {
+      throw InvalidArgumentError("AlePISO: ALE terms do not match the mesh");
     }
     momentumSolver.emplace(settings_.momentumSolver);
     pressureSolver.emplace(settings_.pressureSolver);
@@ -154,7 +182,11 @@ TransientStepResult PISO::solveTimeStep(const TransientState& previousState, Rea
   // before the momentum predictor runs at all -- available regardless of
   // how the rest of this step turns out, matching TransientStepResult's
   // own documented convention.
-  result.maxCFL = calculateCFL(mesh_, previousState.massFlux, fluid_.density(), dt).maxCFL;
+  // P12-MESH-007: on a moving mesh the convecting flux is the relative one.
+  result.maxCFL =
+      calculateCFL(mesh_, ale != nullptr ? *ale->convectingMassFlux : previousState.massFlux,
+                   fluid_.density(), dt)
+          .maxCFL;
 
   const ScalarField previousU = selectComponent(previousState.velocity, VelocityComponent::U);
   const ScalarField previousV = selectComponent(previousState.velocity, VelocityComponent::V);
@@ -180,14 +212,27 @@ TransientStepResult PISO::solveTimeStep(const TransientState& previousState, Rea
     // before it.
     activeModel->correct(mesh_, previousState.velocity, previousState.pressure);
     effectiveViscosity = activeModel->effectiveViscosity(fluid_.dynamicViscosity());
-    uAssembly = assembleTransientMomentumComponent(
-        mesh_, previousState.velocity, previousState.pressure, previousState.massFlux, fluid_,
-        *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::U,
-        previousU, dt);
-    vAssembly = assembleTransientMomentumComponent(
-        mesh_, previousState.velocity, previousState.pressure, previousState.massFlux, fluid_,
-        *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::V,
-        previousV, dt);
+    if (ale == nullptr) {
+      uAssembly = assembleTransientMomentumComponent(
+          mesh_, previousState.velocity, previousState.pressure, previousState.massFlux, fluid_,
+          *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::U,
+          previousU, dt);
+      vAssembly = assembleTransientMomentumComponent(
+          mesh_, previousState.velocity, previousState.pressure, previousState.massFlux, fluid_,
+          *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::V,
+          previousV, dt);
+    } else {
+      // P12-MESH-007: ALE predictor -- relative convecting flux, V^n in the
+      // time term (assembleAleTransientMomentumComponent).
+      uAssembly = assembleAleTransientMomentumComponent(
+          mesh_, previousState.velocity, previousState.pressure, *ale->convectingMassFlux, fluid_,
+          *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::U,
+          previousU, *ale->previousVolume, dt);
+      vAssembly = assembleAleTransientMomentumComponent(
+          mesh_, previousState.velocity, previousState.pressure, *ale->convectingMassFlux, fluid_,
+          *effectiveViscosity, velocityBoundaries_, pressureBoundaries_, VelocityComponent::V,
+          previousV, *ale->previousVolume, dt);
+    }
   } catch (const NumericalError&) {
     // uAssembly/vAssembly left empty -- fall through to the check below.
   } catch (const InvalidArgumentError&) {
@@ -300,5 +345,7 @@ TransientStepResult PISO::solveTimeStep(const TransientState& previousState, Rea
   result.massImbalance = std::abs(finalContinuity.globalNetFlux);
   return result;
 }
+
+}  // namespace detail
 
 }  // namespace cfd::pressure_velocity

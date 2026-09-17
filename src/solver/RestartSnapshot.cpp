@@ -34,6 +34,7 @@ bool allFinite(const cfd::fields::VectorField& field) {
 
 RestartSnapshot makeRestartSnapshot(const cfd::mesh::Mesh& mesh, const TransientState& state,
                                     Real time, Real deltaTUsedToReachThisState, Index step) {
+  cfd::mesh::requireTwoDimensional(mesh, "makeRestartSnapshot");
   RestartSnapshot snapshot;
   snapshot.formatVersion = kRestartFormatVersion;
   snapshot.time = time;
@@ -51,6 +52,7 @@ RestartSnapshot makeRestartSnapshot(const cfd::mesh::Mesh& mesh, const Transient
 }
 
 void validateRestartSnapshot(const RestartSnapshot& snapshot, const cfd::mesh::Mesh& mesh) {
+  cfd::mesh::requireTwoDimensional(mesh, "validateRestartSnapshot");
   if (snapshot.formatVersion != kRestartFormatVersion) {
     throw InvalidArgumentError("validateRestartSnapshot: unsupported restart format version");
   }

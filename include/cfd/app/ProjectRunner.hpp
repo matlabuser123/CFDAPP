@@ -179,6 +179,8 @@ struct ProjectRunResult {
   // VectorSampling) need this; MarchingSquares does not (it takes plain
   // coordinate/value arrays -- see its own header comment).
   std::optional<cfd::mesh::Mesh> mesh;
+  // P12-MESH-004: the production mesh-quality report of `mesh` (set with it).
+  std::optional<cfd::mesh::MeshQualityReport> meshQuality;
   std::optional<cfd::pressure_velocity::SIMPLEResult> simpleResult;
   std::optional<cfd::thermal::ThermalResult> thermalResult;
   // P6-PHYS-001: one entry per physics.json-declared species, in

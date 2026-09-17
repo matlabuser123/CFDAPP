@@ -15,25 +15,32 @@ using cfd::mesh::Mesh;
 
 namespace {
 
+// P12-MESH-006: the w gradient only on a 3D mesh (gradW stays empty in 2D;
+// the u and v sums are unchanged, operation for operation).
 VelocityGradientField greenGaussSum(const Mesh& mesh, const std::vector<Vector2>& faceVelocity) {
+  const bool threeDimensional = mesh.dimension() == 3;
   VectorField gradU(mesh.numberOfCells(), Vector2{0.0, 0.0});
   VectorField gradV(mesh.numberOfCells(), Vector2{0.0, 0.0});
+  VectorField gradW(threeDimensional ? mesh.numberOfCells() : 0, Vector3{});
 
   for (const auto& cell : mesh.cells()) {
     Vector2 sumU{0.0, 0.0};
     Vector2 sumV{0.0, 0.0};
+    Vector3 sumW{};
     for (const Index faceId : cell.faceIds()) {
       const auto& face = mesh.face(faceId);
       const Vector2 sfCell =
           (face.owner() == cell.id()) ? face.areaVector() : (face.areaVector() * -1.0);
       sumU += sfCell * faceVelocity[faceId].x;
       sumV += sfCell * faceVelocity[faceId].y;
+      if (threeDimensional) sumW += sfCell * faceVelocity[faceId].z;
     }
     gradU[cell.id()] = sumU * (1.0 / cell.volume());
     gradV[cell.id()] = sumV * (1.0 / cell.volume());
+    if (threeDimensional) gradW[cell.id()] = sumW * (1.0 / cell.volume());
   }
 
-  return VelocityGradientField{std::move(gradU), std::move(gradV)};
+  return VelocityGradientField{std::move(gradU), std::move(gradV), std::move(gradW)};
 }
 
 // Plain Green-Gauss (the pre-P12-NUM-003 formula), plus -- P12-NUM-003 --
@@ -51,15 +58,16 @@ VelocityGradientField greenGaussVelocityGradient(const Mesh& mesh, const VectorF
       continue;
     }
     const auto crossing = cfd::mesh::MeshGeometry::ownerNeighborCrossing(mesh, face);
-    if (crossing.has_value() && (crossing->skewVector.x != 0.0 || crossing->skewVector.y != 0.0)) {
+    if (crossing.has_value() && crossing->skewVector != Vector3{}) {
       skewedFaces.push_back(face.id());
     }
   }
   VelocityGradientField result = greenGaussSum(mesh, faceVelocity);
   for (Index sweep = 0; sweep < kGreenGaussSkewCorrectionSweeps && !skewedFaces.empty(); ++sweep) {
     for (const Index faceId : skewedFaces) {
-      faceVelocity[faceId] = interpolateInternalFaceSkewCorrected(mesh, mesh.face(faceId), velocity,
-                                                                  result.gradU, result.gradV);
+      faceVelocity[faceId] = interpolateInternalFaceSkewCorrected(
+          mesh, mesh.face(faceId), velocity, result.gradU, result.gradV,
+          mesh.dimension() == 3 ? &result.gradW : nullptr);
     }
     result = greenGaussSum(mesh, faceVelocity);
   }
@@ -81,15 +89,19 @@ VelocityGradientField leastSquaresVelocityGradient(const Mesh& mesh, const Vecto
   const VelocityGradientField greenGaussFallback =
       greenGaussVelocityGradient(mesh, velocity, velocityBoundaries);
 
+  const bool threeDimensional = mesh.dimension() == 3;
   VectorField gradU(mesh.numberOfCells(), Vector2{0.0, 0.0});
   VectorField gradV(mesh.numberOfCells(), Vector2{0.0, 0.0});
+  VectorField gradW(threeDimensional ? mesh.numberOfCells() : 0, Vector3{});
   for (const auto& cell : mesh.cells()) {
     std::vector<Vector2> displacements;
     std::vector<Real> uDifferences;
     std::vector<Real> vDifferences;
+    std::vector<Real> wDifferences;
     displacements.reserve(cell.faceIds().size());
     uDifferences.reserve(cell.faceIds().size());
     vDifferences.reserve(cell.faceIds().size());
+    if (threeDimensional) wDifferences.reserve(cell.faceIds().size());
 
     const Vector2& uP = velocity[cell.id()];
     for (const Index faceId : cell.faceIds()) {
@@ -107,6 +119,7 @@ VelocityGradientField leastSquaresVelocityGradient(const Mesh& mesh, const Vecto
       displacements.push_back(position - cell.centroid());
       uDifferences.push_back(value.x - uP.x);
       vDifferences.push_back(value.y - uP.y);
+      if (threeDimensional) wDifferences.push_back(value.z - uP.z);
     }
 
     const LeastSquaresGradientResult uResult =
@@ -117,8 +130,14 @@ VelocityGradientField leastSquaresVelocityGradient(const Mesh& mesh, const Vecto
         uResult.wellConditioned ? uResult.gradient : greenGaussFallback.gradU[cell.id()];
     gradV[cell.id()] =
         vResult.wellConditioned ? vResult.gradient : greenGaussFallback.gradV[cell.id()];
+    if (threeDimensional) {
+      const LeastSquaresGradientResult wResult =
+          solveLeastSquaresGradient(displacements, wDifferences);
+      gradW[cell.id()] =
+          wResult.wellConditioned ? wResult.gradient : greenGaussFallback.gradW[cell.id()];
+    }
   }
-  return VelocityGradientField{std::move(gradU), std::move(gradV)};
+  return VelocityGradientField{std::move(gradU), std::move(gradV), std::move(gradW)};
 }
 
 }  // namespace
@@ -131,6 +150,7 @@ VelocityGradientField computeVelocityGradient(const Mesh& mesh, const VectorFiel
         "computeVelocityGradient: velocity size does not match mesh cell "
         "count");
   }
+  // P12-MESH-006: dimension-independent (gradW only on a 3D mesh).
   if (scheme == GradientScheme::LeastSquares) {
     return leastSquaresVelocityGradient(mesh, velocity, velocityBoundaries);
   }

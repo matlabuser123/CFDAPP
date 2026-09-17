@@ -9,10 +9,10 @@ namespace cfd::mesh {
 namespace {
 
 void validate(const Vector2& centroid, const Vector2& areaVector) {
-  if (!std::isfinite(centroid.x) || !std::isfinite(centroid.y)) {
+  if (!isFinite(centroid)) {
     throw InvalidArgumentError("Face centroid must be finite");
   }
-  if (!std::isfinite(areaVector.x) || !std::isfinite(areaVector.y)) {
+  if (!isFinite(areaVector)) {
     throw InvalidArgumentError("Face area vector must be finite");
   }
   if (!(magnitude(areaVector) > 0.0)) {

@@ -126,6 +126,8 @@ struct NonOrthogonalPassResult {
   cfd::fields::VectorField velocityStar;
   std::optional<cfd::physics::MomentumAssembly> u;
   std::optional<cfd::physics::MomentumAssembly> v;
+  // P12-MESH-006: the W pass (3D mesh only; unset in 2D).
+  std::optional<cfd::physics::MomentumAssembly> w;
   std::vector<Real> passIncrements;
   // P12-NUM-004: the fallback report of every pass solve that went through
   // the linear-solver fallback policy (empty unless the policy was enabled
@@ -148,6 +150,10 @@ struct NonOrthogonalPassResult {
     const cfd::physics::BoussinesqBuoyancy* buoyancy,
     cfd::discretization::ConvectionScheme convectionScheme,
     cfd::discretization::GradientScheme gradientScheme,
-    const cfd::fields::VectorField* momentumSource = nullptr);
+    const cfd::fields::VectorField* momentumSource = nullptr,
+    const cfd::fields::ScalarField* previousW = nullptr);
+// P12-MESH-006: `previousW` (the W analogue of previousU/previousV) must be
+// given exactly when `mesh` is 3D -- each pass then also re-assembles and
+// re-solves the W equation (result.w); otherwise InvalidArgumentError.
 
 }  // namespace cfd::pressure_velocity

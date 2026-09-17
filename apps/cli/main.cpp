@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -7,6 +8,7 @@
 #include "cfd/app/ProjectRunner.hpp"
 #include "cfd/core/Types.hpp"
 #include "cfd/core/Version.hpp"
+#include "cfd/physics/ContinuityEquation.hpp"
 
 // P5 -- Application, section 0: the CLI is now a thin argument-parsing/
 // printing wrapper around cfd::app::ProjectRunner -- the one production
@@ -92,7 +94,7 @@ std::string_view speciesStatusLabel(cfd::species::SpeciesStatus status) {
 
 bool anyNonFinite(const cfd::pressure_velocity::SIMPLEResult& result) {
   for (cfd::Index i = 0; i < result.velocity.size(); ++i) {
-    if (!std::isfinite(result.velocity[i].x) || !std::isfinite(result.velocity[i].y)) return true;
+    if (!cfd::isFinite(result.velocity[i])) return true;
   }
   for (cfd::Index i = 0; i < result.pressure.size(); ++i) {
     if (!std::isfinite(result.pressure[i])) return true;
@@ -100,19 +102,72 @@ bool anyNonFinite(const cfd::pressure_velocity::SIMPLEResult& result) {
   return false;
 }
 
+// "nx x ny", "nx x ny x nz (3D)" (P12-MESH-006), or for a P12-MESH-003
+// multiblock mesh its block and cell counts.
+std::string meshLabel(const cfd::io::MeshConfig& mesh) {
+  if (mesh.nz > 0) {
+    return std::to_string(mesh.nx) + " x " + std::to_string(mesh.ny) + " x " +
+           std::to_string(mesh.nz) + " (3D)";
+  }
+  if (mesh.type != "multiblock") return std::to_string(mesh.nx) + " x " + std::to_string(mesh.ny);
+  cfd::Index cells = 0;
+  for (const auto& block : mesh.blocks) cells += block.nx * block.ny;
+  return "multiblock, " + std::to_string(mesh.blocks.size()) + " blocks, " + std::to_string(cells) +
+         " cells";
+}
+
+// P12-MESH-004: the production mesh-quality summary -- status, the key
+// metrics with their worst entity, and every warning / informational issue
+// (fatal issues never get here: an Invalid mesh is a case error).
+void printMeshQuality(std::ostream& out, const cfd::mesh::MeshQualityReport& q) {
+  const auto worst = [](const cfd::mesh::MeshQualityMetric& m, const char* entity) {
+    char buffer[160];
+    std::snprintf(buffer, sizeof(buffer), "%.6g (%s %zu at (%.6g, %.6g))", m.maximum, entity,
+                  static_cast<std::size_t>(m.worstId), m.worstLocation.x, m.worstLocation.y);
+    return m.count > 0 ? std::string(buffer) : std::string("n/a");
+  };
+  char areas[96];
+  std::snprintf(areas, sizeof(areas), "%.6g .. %.6g", q.cellArea.minimum, q.cellArea.maximum);
+  out << "Mesh quality: " << cfd::mesh::meshQualityStatusName(q.status) << "\n"
+      << "  cells: " << q.cellCount << ", cell area: " << areas
+      << ", degenerate cells: " << q.degenerateCells << ", invalid faces: " << q.invalidFaces
+      << "\n"
+      << "  max aspect ratio: " << worst(q.aspectRatio, "cell") << "\n"
+      << "  max non-orthogonality (deg): " << worst(q.nonOrthogonality, "face") << "\n"
+      << "  max skewness: " << worst(q.skewness, "face") << "\n"
+      << "  max expansion ratio: " << worst(q.expansionRatio, "face") << "\n";
+  for (const auto& issue : q.issues) {
+    out << "  " << cfd::mesh::formatMeshQualityIssue(issue) << "\n";
+  }
+}
+
 void printReport(std::ostream& out, const ProjectRunResult& run) {
   out << cfd::core::projectName() << "\n\n"
       << "Case: " << run.caseDefinition->caseConfig.name << "\n"
-      << "Mesh: " << run.caseDefinition->mesh.nx << " x " << run.caseDefinition->mesh.ny << "\n"
-      << "Solver: " << run.caseDefinition->solver.type << "\n\n"
+      << "Mesh: " << meshLabel(run.caseDefinition->mesh) << "\n";
+  if (run.meshQuality.has_value()) printMeshQuality(out, *run.meshQuality);
+  out << "Solver: " << run.caseDefinition->solver.type << "\n\n"
       << "Converged: " << statusLabel(run.simpleResult->status) << "\n"
       << "Iterations: " << run.simpleResult->iterations << "\n\n"
       << "U residual: " << run.simpleResult->finalUResidual << "\n"
-      << "V residual: " << run.simpleResult->finalVResidual << "\n"
-      << "P residual: " << run.simpleResult->finalPressureResidual << "\n"
+      << "V residual: " << run.simpleResult->finalVResidual << "\n";
+  // P12-MESH-006: a 3D run adds its W residual (a 2D report is unchanged).
+  const bool threeDimensional = run.mesh.has_value() && run.mesh->dimension() == 3;
+  if (threeDimensional) out << "W residual: " << run.simpleResult->finalWResidual << "\n";
+  out << "P residual: " << run.simpleResult->finalPressureResidual << "\n"
       << "Continuity: " << run.simpleResult->finalContinuityResidual << "\n"
       << "Mass imbalance: " << run.simpleResult->globalMassImbalance << "\n"
       << "NaN/Inf: " << (anyNonFinite(*run.simpleResult) ? "yes" : "no") << "\n\n";
+  // P12-MESH-006: the 3D mass balance of the corrected (canonical) face flux.
+  if (threeDimensional && run.simpleResult->massFlux.size() == run.mesh->numberOfFaces()) {
+    const auto balance = cfd::physics::computeMassBalance(*run.mesh, run.simpleResult->massFlux);
+    out << "Face flux: " << cfd::pressure_velocity::faceFluxSchemeName(run.simpleResult->faceFlux)
+        << "\n"
+        << "Mass balance: inflow " << balance.inflow << ", outflow " << balance.outflow
+        << ", relative imbalance " << balance.relativeImbalance << "\n"
+        << "Cell continuity: max " << balance.maxCellImbalance << ", rms "
+        << balance.rmsCellImbalance << ", normalized " << balance.normalizedContinuity << "\n\n";
+  }
   // P12-NUM-004: printed only when there is something to report, so the
   // report of a default (robustness features off, no failure) run is
   // unchanged.

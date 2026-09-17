@@ -6,6 +6,7 @@ add_executable(CFDCoreTests
   test_timer.cpp
   test_gpu_backend.cpp
   test_gpu_residency_manager.cpp
+  test_vector3.cpp
 )
 
 target_link_libraries(CFDCoreTests

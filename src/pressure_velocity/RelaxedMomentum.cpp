@@ -108,7 +108,7 @@ namespace {
 Vector componentVector(const VectorField& velocity, VelocityComponent component) {
   Vector v(velocity.size());
   for (Index i = 0; i < velocity.size(); ++i) {
-    v[i] = (component == VelocityComponent::U) ? velocity[i].x : velocity[i].y;
+    v[i] = cfd::physics::velocityComponentValue(velocity[i], component);
   }
   return v;
 }
@@ -123,13 +123,20 @@ NonOrthogonalPassResult runNonOrthogonalCorrectionPasses(
     const BoundaryConditionSet& pressureBoundaries, const ScalarField& previousU,
     const ScalarField& previousV, Real alpha, const ScalarField* temperature,
     const BoussinesqBuoyancy* buoyancy, cfd::discretization::ConvectionScheme convectionScheme,
-    cfd::discretization::GradientScheme gradientScheme, const VectorField* momentumSource) {
+    cfd::discretization::GradientScheme gradientScheme, const VectorField* momentumSource,
+    const ScalarField* previousW) {
   NonOrthogonalPassResult result;
   result.velocityStar = velocityStar;
+  // P12-MESH-006: a W pass exactly like the U and V ones, on a 3D mesh only.
+  if ((mesh.dimension() == 3) != (previousW != nullptr)) {
+    throw InvalidArgumentError(
+        "runNonOrthogonalCorrectionPasses: previousW must be given exactly for a 3D mesh");
+  }
 
   for (Index pass = 1; pass < totalPasses; ++pass) {
     std::optional<MomentumAssembly> uPass;
     std::optional<MomentumAssembly> vPass;
+    std::optional<MomentumAssembly> wPass;
     try {
       uPass = assembleRelaxedMomentumComponent(
           mesh, velocity, pressure, massFlux, effectiveViscosity, velocityBoundaries,
@@ -141,6 +148,13 @@ NonOrthogonalPassResult runNonOrthogonalCorrectionPasses(
           pressureBoundaries, VelocityComponent::V, previousV, alpha, temperature, buoyancy,
           convectionScheme, gradientScheme, /*applyNonOrthogonalCorrection=*/true,
           &result.velocityStar, momentumSource);
+      if (previousW != nullptr) {
+        wPass = assembleRelaxedMomentumComponent(
+            mesh, velocity, pressure, massFlux, effectiveViscosity, velocityBoundaries,
+            pressureBoundaries, VelocityComponent::W, *previousW, alpha, temperature, buoyancy,
+            convectionScheme, gradientScheme, /*applyNonOrthogonalCorrection=*/true,
+            &result.velocityStar, momentumSource);
+      }
     } catch (const NumericalError&) {
       result.status = NonOrthogonalPassStatus::NonFiniteState;
       return result;
@@ -165,13 +179,26 @@ NonOrthogonalPassResult runNonOrthogonalCorrectionPasses(
       result.failedSolve = vSolve;
       return result;
     }
+    std::optional<cfd::algebra::SolverResult> wSolve;
+    if (wPass.has_value()) {
+      wSolve = momentumSolver.solve(wPass->system,
+                                    componentVector(result.velocityStar, VelocityComponent::W));
+      if (wSolve->fallback.attempted) result.fallbackReports.push_back(wSolve->fallback);
+      if (!wSolve->converged()) {
+        result.status = NonOrthogonalPassStatus::MomentumFailure;
+        result.failedSolve = *wSolve;
+        return result;
+      }
+    }
 
     VectorField next(mesh.numberOfCells());
     Real increment = 0.0;
     bool finite = true;
     for (Index i = 0; i < mesh.numberOfCells(); ++i) {
-      next[i] = Vector2{uSolve.solution[i], vSolve.solution[i]};
-      finite = finite && std::isfinite(next[i].x) && std::isfinite(next[i].y);
+      next[i] = wSolve.has_value()
+                    ? Vector3{uSolve.solution[i], vSolve.solution[i], wSolve->solution[i]}
+                    : Vector2{uSolve.solution[i], vSolve.solution[i]};
+      finite = finite && isFinite(next[i]);
       increment = std::max(increment, magnitude(next[i] - result.velocityStar[i]));
     }
     if (!finite) {
@@ -181,8 +208,10 @@ NonOrthogonalPassResult runNonOrthogonalCorrectionPasses(
     result.velocityStar = std::move(next);
     result.u = std::move(uPass);
     result.v = std::move(vPass);
+    result.w = std::move(wPass);
     result.passIncrements.push_back(increment);
     result.linearIterations += uSolve.iterations + vSolve.iterations;
+    if (wSolve.has_value()) result.linearIterations += wSolve->iterations;
     ++result.passesExecuted;
   }
   return result;

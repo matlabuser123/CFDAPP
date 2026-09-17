@@ -296,6 +296,10 @@ struct OuterIterationDiagnostics {
   Real vReference{};
   Real pressureReference{};
   Real continuityReference{};
+  // P12-MESH-006: the W residual's normalized history and reference (3D
+  // solves only; empty / 0 when the samples carry no w).
+  std::vector<Real> wNormalizedHistory;
+  Real wReference{};
   // max over all gates of value / threshold; <= 1 on every gate means
   // converged. One entry per completed iteration.
   std::vector<Real> convergenceDistanceHistory;
@@ -339,6 +343,11 @@ struct OuterResidualSample {
   Real continuity{};
   Real globalImbalance{};
   std::optional<Real> turbulence;
+  // P12-MESH-006: the W momentum residual of a 3D solve (absent in 2D). When
+  // present it is gated exactly like u and v (velocity tolerance), and joins
+  // the convergence distance, the divergence check and the relaxation
+  // controller's input; absent, every decision is exactly the 2D one.
+  std::optional<Real> w{};
 };
 
 struct OuterConvergenceTolerances {
@@ -410,6 +419,7 @@ class OuterIterationMonitor {
   [[nodiscard]] RelaxationAction lastRelaxationAction() const noexcept { return lastAction_; }
   [[nodiscard]] const ResidualTracker& u() const noexcept { return u_; }
   [[nodiscard]] const ResidualTracker& v() const noexcept { return v_; }
+  [[nodiscard]] const ResidualTracker& w() const noexcept { return w_; }
   [[nodiscard]] const ResidualTracker& pressure() const noexcept { return p_; }
   [[nodiscard]] const ResidualTracker& continuity() const noexcept { return c_; }
   [[nodiscard]] Real convergenceDistance() const noexcept { return distance_; }
@@ -428,6 +438,7 @@ class OuterIterationMonitor {
   ResidualTracker v_;
   ResidualTracker p_;
   ResidualTracker c_;
+  ResidualTracker w_;  // P12-MESH-006: fed only by samples that carry w.
   ResidualTracker distanceTracker_;
   AdaptiveRelaxationController controller_;
   RelaxationAction lastAction_{RelaxationAction::Hold};

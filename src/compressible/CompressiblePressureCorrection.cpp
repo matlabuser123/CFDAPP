@@ -25,6 +25,7 @@ PressureCorrectionAssembly assembleCompressiblePressureCorrection(
     const ThermodynamicProperties& thermodynamics, Real pseudoTimeStep, Index referenceCell,
     const BoundaryConditionSet& pressureBoundaries,
     const cfd::pressure_velocity::PressureCorrectionOptions& options) {
+  cfd::mesh::requireTwoDimensional(mesh, "assembleCompressiblePressureCorrection");
   const Index n = mesh.numberOfCells();
   if (predictorMassFlux.size() != mesh.numberOfFaces() ||
       faceDensity.size() != mesh.numberOfFaces()) {

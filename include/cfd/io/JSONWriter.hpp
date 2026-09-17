@@ -13,6 +13,7 @@
 
 #include "cfd/core/Types.hpp"
 #include "cfd/mesh/Mesh.hpp"
+#include "cfd/mesh/MeshQuality.hpp"
 #include "cfd/pressure_velocity/SIMPLEResult.hpp"
 
 namespace cfd::io {
@@ -135,6 +136,12 @@ class JSONWriter {
   // case configured the corresponding block -- "multiphase.enabled"/
   // "compressible.enabled" are always written (same documented-default
   // convention as "thermal.enabled" above).
+  // P12-MESH-004: `meshQuality`, when given, is written as the top-level
+  // "mesh_quality" object (status, entity counts, one statistics object per
+  // metric -- count/min/max/mean/rms/worst_id/worst_location/above_warning/
+  // warning_threshold -- degenerate_cells, invalid_faces,
+  // connected_components and the issues list); non-finite numbers are
+  // written as null. Absent (unchanged metadata) when not given.
   // Throws IOError if `path` cannot be opened.
   static void writeMetadata(
       const std::filesystem::path& path, const RunMetadata& metadata, const cfd::mesh::Mesh& mesh,
@@ -142,7 +149,8 @@ class JSONWriter {
       const std::optional<ThermalRunMetadata>& thermal = std::nullopt,
       const std::vector<SpeciesRunMetadata>& species = {},
       const std::optional<MultiphaseRunMetadata>& multiphase = std::nullopt,
-      const std::optional<CompressibleRunMetadata>& compressible = std::nullopt);
+      const std::optional<CompressibleRunMetadata>& compressible = std::nullopt,
+      const std::optional<cfd::mesh::MeshQualityReport>& meshQuality = std::nullopt);
 };
 
 }  // namespace cfd::io

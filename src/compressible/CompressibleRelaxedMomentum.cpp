@@ -32,6 +32,7 @@ MomentumAssembly assembleRelaxedCompressibleMomentumComponent(
     const ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep,
     const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
     cfd::discretization::GradientScheme pressureGradientScheme, const VectorField* momentumSource) {
+  cfd::mesh::requireTwoDimensional(mesh, "assembleRelaxedCompressibleMomentumComponent");
   const Index n = mesh.numberOfCells();
   if (velocity.size() != n || pressure.size() != n) {
     throw InvalidArgumentError(

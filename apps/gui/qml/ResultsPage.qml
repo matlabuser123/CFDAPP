@@ -88,6 +88,25 @@ ColumnLayout {
                 text: simulationController.hasResults ? "" : "No results yet -- run a case or open one with existing results."
                 visible: !simulationController.hasResults
             }
+            Label {
+                // P12-MESH-003: the field map and contours draw one nx x ny
+                // grid; a multi-block result has none (metadata nx = ny = 0).
+                text: "Field map and contours need a single structured grid; this multi-block result is "
+                      + "in the exported files (results/solution.vtk, fields.csv)."
+                visible: simulationController.hasResults && simulationController.meshConfig.type === "multiblock"
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+            Label {
+                // P12-MESH-006: the field map, contours, vectors, probe and line sampler are 2D
+                // views; a 3D result is shown by its residual history (with W) and exported files.
+                text: "3D result: the field map, contours, vectors, probe and line sampler are 2D views "
+                      + "and are not shown. Open results/solution.vtk (hexahedral cells, pressure and "
+                      + "3-component velocity) in ParaView; the residual history includes W."
+                visible: simulationController.hasResults && simulationController.resultsThreeDimensional
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
 
             Canvas {
                 id: resultCanvas
@@ -303,7 +322,7 @@ ColumnLayout {
             anchors.margins: 8
 
             property var seriesNames: []
-            property var seriesColors: ({ "u": "#d62728", "v": "#1f77b4", "pressure": "#2ca02c", "continuity": "#9467bd" })
+            property var seriesColors: ({ "u": "#d62728", "v": "#1f77b4", "w": "#ff7f0e", "pressure": "#2ca02c", "continuity": "#9467bd" })
 
             onPaint: {
                 var ctx = getContext("2d")

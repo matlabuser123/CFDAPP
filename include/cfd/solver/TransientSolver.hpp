@@ -68,6 +68,14 @@ class TransientStepSolver {
 
   [[nodiscard]] virtual TransientStepResult solveTimeStep(const TransientState& previousState,
                                                           Real dt) const = 0;
+
+  // P12-MESH-007: called by TransientSolver whenever it REJECTS the step this
+  // solver just returned (a non-Converged status, a non-finite state or a CFL
+  // violation), before it stops. A step solver that changes state outside
+  // TransientState -- AlePISO moves the mesh -- restores that state here, so
+  // the run ends on the mesh of its last accepted step. The default does
+  // nothing: every existing step solver is unaffected.
+  virtual void onStepRejected() const {}
 };
 
 // Overall run outcome (TODO.md P2 section 16): every distinct way a

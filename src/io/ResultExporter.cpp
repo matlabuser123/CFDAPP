@@ -17,7 +17,7 @@ namespace {
 
 bool allFieldsFinite(const SIMPLEResult& result) {
   for (Index i = 0; i < result.velocity.size(); ++i) {
-    if (!std::isfinite(result.velocity[i].x) || !std::isfinite(result.velocity[i].y)) return false;
+    if (!isFinite(result.velocity[i])) return false;
   }
   for (Index i = 0; i < result.pressure.size(); ++i) {
     if (!std::isfinite(result.pressure[i])) return false;
@@ -41,7 +41,8 @@ ResultExportSummary ResultExporter::write(
     const std::vector<NamedScalarField>& extraFields,
     const std::vector<SpeciesRunMetadata>& speciesMetadata,
     const std::optional<MultiphaseRunMetadata>& multiphaseMetadata,
-    const std::optional<CompressibleRunMetadata>& compressibleMetadata) {
+    const std::optional<CompressibleRunMetadata>& compressibleMetadata,
+    const std::optional<cfd::mesh::MeshQualityReport>& meshQuality) {
   std::error_code createError;
   std::filesystem::create_directories(outputDirectory, createError);
   if (createError) {
@@ -53,10 +54,30 @@ ResultExportSummary ResultExporter::write(
 
   summary.metadataPath = outputDirectory / "metadata.json";
   JSONWriter::writeMetadata(summary.metadataPath, metadata, mesh, result, thermalMetadata,
-                            speciesMetadata, multiphaseMetadata, compressibleMetadata);
+                            speciesMetadata, multiphaseMetadata, compressibleMetadata, meshQuality);
 
   summary.residualsCsvPath = outputDirectory / "residuals.csv";
   CSVWriter::writeResiduals(summary.residualsCsvPath, result);
+
+  // P12-MESH-006: a 3D result -- fields.csv (writeFields3D) and hexahedral
+  // VTK (writeCellFields: pressure, velocity magnitude, 3-component velocity).
+  // CaseReader admits no thermal/species/multiphase/compressible field in 3D.
+  if (mesh.dimension() == 3) {
+    if (allFieldsFinite(result)) {
+      const std::filesystem::path fieldsPath = outputDirectory / "fields.csv";
+      CSVWriter::writeFields3D(fieldsPath, mesh, result);
+      summary.fieldsCsvPath = fieldsPath;
+
+      cfd::fields::ScalarField speed(mesh.numberOfCells());
+      for (Index i = 0; i < mesh.numberOfCells(); ++i) speed[i] = magnitude(result.velocity[i]);
+      const std::filesystem::path vtkPath = outputDirectory / "solution.vtk";
+      VTKWriter::writeCellFields(vtkPath, mesh,
+                                 {{"pressure", result.pressure}, {"velocity_magnitude", speed}},
+                                 {{"velocity", result.velocity}});
+      summary.vtkPath = vtkPath;
+    }
+    return summary;
+  }
 
   if (allFieldsFinite(result)) {
     // Only include temperature in the field files once it is itself

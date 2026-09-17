@@ -17,6 +17,7 @@ void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
                             const SIMPLEResult& result,
                             const std::optional<cfd::fields::ScalarField>& temperature,
                             const std::vector<NamedScalarField>& extraFields) {
+  cfd::mesh::requireTwoDimensional(mesh, "CSVWriter::writeFields");
   const Index n = mesh.numberOfCells();
   if (result.velocity.size() != n || result.pressure.size() != n) {
     throw InvalidArgumentError(
@@ -75,6 +76,32 @@ void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
   }
 }
 
+void CSVWriter::writeFields3D(const std::filesystem::path& path, const Mesh& mesh,
+                              const SIMPLEResult& result) {
+  if (mesh.dimension() != 3) {
+    throw InvalidArgumentError("CSVWriter::writeFields3D: the mesh is not three-dimensional");
+  }
+  const Index n = mesh.numberOfCells();
+  if (result.velocity.size() != n || result.pressure.size() != n) {
+    throw InvalidArgumentError(
+        "CSVWriter::writeFields3D: result field size does not match mesh cell count");
+  }
+  auto out = detail::openDeterministicOutput(path);
+  out << "cell_id,x,y,z,velocity_x,velocity_y,velocity_z,velocity_magnitude,pressure\n";
+  for (Index id = 0; id < n; ++id) {
+    const Vector3& centroid = mesh.cell(id).centroid();
+    const Vector3& velocity = result.velocity[id];
+    const Real pressure = result.pressure[id];
+    if (!isFinite(velocity) || !std::isfinite(pressure)) {
+      throw NumericalError("CSVWriter::writeFields3D: non-finite value at cell " +
+                           std::to_string(id));
+    }
+    out << id << ',' << centroid.x << ',' << centroid.y << ',' << centroid.z << ',' << velocity.x
+        << ',' << velocity.y << ',' << velocity.z << ',' << magnitude(velocity) << ',' << pressure
+        << '\n';
+  }
+}
+
 void CSVWriter::writeResiduals(const std::filesystem::path& path, const SIMPLEResult& result) {
   const std::size_t n = result.uResidualHistory.size();
   if (result.vResidualHistory.size() != n || result.pressureResidualHistory.size() != n ||
@@ -82,8 +109,25 @@ void CSVWriter::writeResiduals(const std::filesystem::path& path, const SIMPLERe
     throw InvalidArgumentError(
         "CSVWriter::writeResiduals: residual history arrays have inconsistent lengths");
   }
+  // P12-MESH-006: a 3D solve (non-empty W history) adds the w_residual column;
+  // a 2D file is exactly as before.
+  const bool withW = !result.wResidualHistory.empty();
+  if (withW && result.wResidualHistory.size() != n) {
+    throw InvalidArgumentError(
+        "CSVWriter::writeResiduals: residual history arrays have inconsistent lengths");
+  }
 
   auto out = detail::openDeterministicOutput(path);
+  if (withW) {
+    out << "iteration,u_residual,v_residual,w_residual,p_residual,continuity_residual,"
+           "global_mass_imbalance\n";
+    for (std::size_t k = 0; k < n; ++k) {
+      out << (k + 1) << ',' << result.uResidualHistory[k] << ',' << result.vResidualHistory[k]
+          << ',' << result.wResidualHistory[k] << ',' << result.pressureResidualHistory[k] << ','
+          << result.continuityHistory[k] << ',' << result.globalMassImbalance << '\n';
+    }
+    return;
+  }
   out << "iteration,u_residual,v_residual,p_residual,continuity_residual,global_mass_imbalance\n";
   // globalMassImbalance is SIMPLEResult's single *final* value (see
   // SIMPLEResult.hpp) -- SIMPLE does not track a per-iteration history of

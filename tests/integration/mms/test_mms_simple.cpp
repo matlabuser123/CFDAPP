@@ -83,10 +83,20 @@ MMSStudy buildSimpleStudy(ConvectionScheme scheme, const std::vector<Index>& gri
   // below. Central: second-order class [1.6, 2.4] (measured 1.8-1.9).
   const Real vLo = upwind ? 0.55 : 1.6;
   const Real vHi = upwind ? 1.3 : 2.4;
+  // P12-DIFF-002 A6-3 (validation-migration/acceptance_gate_A6.md section 2.3): gated on the finest
+  // PAIRWISE observed order rather than the three-level Richardson triplet, with an upper limit of
+  // formal + 1 -- the order of DIFF-002's faster-converging boundary ring, which makes the total
+  // error a two-rate A h^formal + B h^(formal+1) whose pairwise order decays to formal while the
+  // triplet estimator overshoots above formal + 1. See MMSCases.hpp addPairwiseOrderGate. The lower
+  // limit vLo is unchanged: it is what detects a loss of formal accuracy.
+  const Real vHiPairwise = (upwind ? 1.0 : 2.0) + 1.0;
+  static_cast<void>(vHi);
   for (const std::string c : {"u", "v"}) {
     mc::addDecreaseGate(study, "velocity", c);
-    mc::addOrderGate(study, "velocity", c, NormKind::L2, upwind ? 1.0 : 2.0, vLo, vHi);
-    mc::addOrderGate(study, "velocity", c, NormKind::L1, upwind ? 1.0 : 2.0, vLo, vHi);
+    mc::addPairwiseOrderGate(study, "velocity", c, NormKind::L2, upwind ? 1.0 : 2.0, vLo,
+                             vHiPairwise);
+    mc::addPairwiseOrderGate(study, "velocity", c, NormKind::L1, upwind ? 1.0 : 2.0, vLo,
+                             vHiPairwise);
   }
   mc::addOrder(study, "velocity", NormKind::L2, upwind ? 1.0 : 2.0);
   mc::addOrder(study, "u", NormKind::Linf, upwind ? 1.0 : 2.0);

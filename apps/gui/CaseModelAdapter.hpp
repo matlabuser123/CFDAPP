@@ -31,6 +31,7 @@
 #include <QVariantMap>
 
 #include "cfd/io/case/CaseDefinition.hpp"
+#include "cfd/mesh/MeshQuality.hpp"
 
 namespace cfd::gui {
 
@@ -41,6 +42,12 @@ namespace cfd::gui {
 [[nodiscard]] QVariantMap toVariant(const cfd::io::BoundaryConfig& config);
 [[nodiscard]] QVariantMap toVariant(const cfd::io::SolverConfig& config);
 [[nodiscard]] QVariantMap toVariant(const cfd::io::InitialConditions& config);
+// P12-MESH-004: the production mesh-quality report, read-only, for the GUI
+// -- {status, summary, cells, minimumCellArea, maximumCellArea,
+// maximumAspectRatio, maximumNonOrthogonality, maximumSkewness,
+// maximumExpansionRatio, degenerateCells, invalidFaces, issues: [{severity,
+// metric, message, text}]} (text = formatMeshQualityIssue).
+[[nodiscard]] QVariantMap toVariant(const cfd::mesh::MeshQualityReport& report);
 
 // caseConfigFromVariant only reads "name"/"description" (formatVersion is
 // never GUI-editable -- see CaseConfig.hpp's own "the only currently-
@@ -48,11 +55,17 @@ namespace cfd::gui {
 // formatVersion it already had, defaulting to 1 via newCase()).
 [[nodiscard]] cfd::io::CaseConfig caseConfigFromVariant(const QVariantMap& variant,
                                                         const cfd::io::CaseConfig& previous);
-[[nodiscard]] cfd::io::GeometryConfig geometryConfigFromVariant(const QVariantMap& variant);
-[[nodiscard]] cfd::io::MeshConfig meshConfigFromVariant(const QVariantMap& variant);
+// P12-MESH-006: `previous` supplies what an editor map may omit -- a box geometry's depth, a 3D
+// mesh's nz, the initial w -- so a 3D case keeps them through a commit from a page that does not
+// show them. Velocity maps carry valueZ / velocityZ (0 in 2D).
+[[nodiscard]] cfd::io::GeometryConfig geometryConfigFromVariant(
+    const QVariantMap& variant, const cfd::io::GeometryConfig& previous = {});
+[[nodiscard]] cfd::io::MeshConfig meshConfigFromVariant(const QVariantMap& variant,
+                                                        const cfd::io::MeshConfig& previous = {});
 [[nodiscard]] cfd::io::PhysicsConfig physicsConfigFromVariant(const QVariantMap& variant);
 [[nodiscard]] cfd::io::BoundaryConfig boundaryConfigFromVariant(const QVariantMap& variant);
 [[nodiscard]] cfd::io::SolverConfig solverConfigFromVariant(const QVariantMap& variant);
-[[nodiscard]] cfd::io::InitialConditions initialConditionsFromVariant(const QVariantMap& variant);
+[[nodiscard]] cfd::io::InitialConditions initialConditionsFromVariant(
+    const QVariantMap& variant, const cfd::io::InitialConditions& previous = {});
 
 }  // namespace cfd::gui

@@ -59,6 +59,34 @@ struct FaceDiffusionTerms {
   // Known (explicit) part of the flux INTO THE OWNER: Gamma_f * S_nonorth .
   // grad(phi)_f; exactly 0 when uncorrected.
   Real explicitFlux{};
+
+  // P12-DIFF-002 -- the three fields below carry the second-order one-sided
+  // Dirichlet boundary reconstruction (results/p12-diff-002/architecture.md).
+  // Their default/neutral values reproduce the two-point form exactly, so a
+  // caller that only reads `coefficient` and `explicitFlux` is unchanged as
+  // long as it uses `boundaryValueCoefficient` for the prescribed-value term
+  // -- which equals `coefficient` whenever the reconstruction is not used.
+  //
+  // The assembled row holds -flux_into_owner, so a caller does:
+  //     builder.add(P, P, coefficient);
+  //     rhs[P] += boundaryValueCoefficient * phi_b;
+  //     rhs[P] += explicitFlux;
+  //     if (farCellCoefficient != 0) builder.add(P, farCell, -farCellCoefficient);
+  //
+  // Multiplier of the PRESCRIBED boundary value on the right-hand side,
+  // Gamma |S| cB. Equals `coefficient` for the two-point form (cP = cB there);
+  // differs from it for the three-point reconstruction, where cB = 1/h1 + 1/h2
+  // while cP = h2 / (h1 (h2 - h1)).
+  Real boundaryValueCoefficient{};
+  // Implicit coupling to the far cell, Gamma |S| cF: the assembler subtracts
+  // this at A(owner, farCell). Exactly 0 when the reconstruction is not used,
+  // in which case `farCell` is meaningless and no entry must be added.
+  Real farCellCoefficient{};
+  Index farCell{};
+  // True only when the three-point reconstruction was applied to this face.
+  // Diagnostic/reporting; the numerical behaviour is fully determined by the
+  // coefficients above.
+  bool higherOrder{false};
 };
 
 // Internal face. `gradPhi` null -> uncorrected. Otherwise the face gradient

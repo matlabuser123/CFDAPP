@@ -11,7 +11,8 @@ namespace cfd::discretization {
 // Converts cell-centered values to face-centered values. Distance-weighted
 // linear interpolation: phi_f = (dNf*phiP + dPf*phiN) / (dPf + dNf),
 // which reduces to phi_f = 0.5*(phiP+phiN) on a uniform grid but stays
-// correct if cell spacing is ever non-uniform.
+// correct if cell spacing is ever non-uniform. Dimension-independent
+// (P12-MESH-005: 3D distances; all three vector components).
 [[nodiscard]] Real interpolateInternalFace(const cfd::mesh::Mesh& mesh, const cfd::mesh::Face& face,
                                            const cfd::fields::ScalarField& field);
 [[nodiscard]] Vector2 interpolateInternalFace(const cfd::mesh::Mesh& mesh,
@@ -46,11 +47,16 @@ namespace cfd::discretization {
                                                         const cfd::fields::VectorField& gradient);
 
 // Vector-field counterpart (each component transported with its own
-// gradient: gradientX = grad(field.x), gradientY = grad(field.y)) -- the
-// same formula, used by computeVelocityGradient's Green-Gauss path.
+// gradient: gradientX = grad(field.x), gradientY = grad(field.y), and --
+// P12-MESH-006 -- gradientZ = grad(field.z) for a 3D field) -- the same
+// formula, used by computeVelocityGradient's Green-Gauss path. Without
+// gradientZ (every 2D caller) the z component of the result is 0 and x, y are
+// exactly the former two-component values. Throws InvalidArgumentError for a
+// 3D mesh without gradientZ.
 [[nodiscard]] Vector2 interpolateInternalFaceSkewCorrected(
     const cfd::mesh::Mesh& mesh, const cfd::mesh::Face& face, const cfd::fields::VectorField& field,
-    const cfd::fields::VectorField& gradientX, const cfd::fields::VectorField& gradientY);
+    const cfd::fields::VectorField& gradientX, const cfd::fields::VectorField& gradientY,
+    const cfd::fields::VectorField* gradientZ = nullptr);
 
 // Boundary face value from the assigned boundary condition -- never just
 // the owner cell's value (that would make Dirichlet boundaries wrong).

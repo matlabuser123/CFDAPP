@@ -615,3 +615,89 @@ TEST(SolverRobustnessPerformance, BookkeepingIsFixedWindowCost) {
   EXPECT_EQ(monitor.u().windowCapacity(), 5u);
   EXPECT_EQ(monitor.u().windowSize(), 5u);
 }
+
+// ---------------------------------------------------------------------------
+// P12-DIFF-002-ROB-001: the divergence detector's two growth rules must apply the SAME meaningful
+// residual floor.
+//
+// Rule 1 ("persistent excursion") bases its comparison on max(tracker.floor(), bestBeforeWindow),
+// so it can never fire on a residual that is already converged -- tracker.floor() IS the
+// convergence tolerance. Rule 2 ("sustained runaway") compares the newest value against the oldest
+// one in the window, and must apply the same floor, or a monotone drift of an already-converged
+// residual at round-off scale reads as physical divergence.
+//
+// That is not hypothetical: it aborted a converging 4x4 lid-driven cavity at iteration 112 with
+// status Diverging and an unconverged field, on a continuity residual drifting 1.958e-14 ->
+// 3.100e-13 against a 1e-6 tolerance (results/p12-diff-002/rob-001/, gate criterion R5).
+//
+// All three sequences below drive the CONTINUITY channel only, holding u/v/pressure above
+// tolerance, because that is how production reaches the rule: a sample whose every residual is
+// sub-tolerance is Converged before the divergence rules are evaluated.
+namespace {
+
+// u/v/pressure fixed above tolerance (so the sample is never "converged"); continuity supplied.
+OuterResidualSample continuityOnly(Real continuity) {
+  return OuterResidualSample{1e-2, 1e-2, 1e-2, continuity, 0.0, std::nullopt};
+}
+
+// Feeds a continuity sequence until the monitor stops; {verdict, 1-based iteration}.
+std::pair<OuterIterationVerdict, Index> runContinuity(OuterIterationMonitor& monitor,
+                                                      const std::vector<Real>& values) {
+  for (Index k = 0; k < values.size(); ++k) {
+    const auto verdict = monitor.record(continuityOnly(values[k]));
+    if (verdict != OuterIterationVerdict::Continue) return {verdict, k + 1};
+  }
+  return {OuterIterationVerdict::Continue, values.size()};
+}
+
+SolverRobustnessSettings divergenceOnly() {
+  SolverRobustnessSettings settings = detection();
+  settings.stagnation.enabled = false;  // isolate the divergence rules
+  return settings;
+}
+
+}  // namespace
+
+TEST(ResidualTrend, HealthyDecreasingContinuityDoesNotTriggerDivergence) {
+  // (a) A healthy decreasing residual, entirely above the floor: no growth rule may fire.
+  std::vector<Real> values;
+  for (int k = 0; k < 200; ++k) values.push_back(1e-2 * std::pow(0.95, k));
+  OuterIterationMonitor monitor(divergenceOnly(), tolerances(), 0.7, 0.3);
+  const auto [verdict, iteration] = runContinuity(monitor, values);
+  EXPECT_EQ(verdict, OuterIterationVerdict::Continue) << "stopped at " << iteration;
+}
+
+TEST(ResidualTrend, SubFloorRoundOffGrowthIsNotDivergence) {
+  // (b) The defect. A converged residual drifting monotonically upward at round-off scale, doubling
+  // each iteration so that the growth ACROSS THE WINDOW (5) is 2^4 = 16x -- comfortably past the
+  // 10x factor, exactly as the production case's 15.8x over its 10-wide window -- while EVERY value
+  // stays far below the 1e-6 convergence tolerance, so none of it is physically meaningful. Neither
+  // rule may fire.
+  std::vector<Real> values;
+  values.reserve(20);
+  for (int k = 0; k < 20; ++k) values.push_back(1e-14 * std::pow(2.0, k));
+  ASSERT_LT(values.back(), 1e-6) << "the whole sequence must stay below the tolerance";
+  const Real windowGrowth = values[19] / values[15];
+  ASSERT_GT(windowGrowth, divergenceOnly().divergence.growthFactor)
+      << "the growth across one window must exceed the factor, or this test is vacuous";
+  OuterIterationMonitor monitor(divergenceOnly(), tolerances(), 0.7, 0.3);
+  const auto [verdict, iteration] = runContinuity(monitor, values);
+  EXPECT_EQ(verdict, OuterIterationVerdict::Continue)
+      << "sub-tolerance round-off drift was reported as " << static_cast<int>(verdict)
+      << " at iteration " << iteration;
+}
+
+TEST(ResidualTrend, AboveFloorContinuityRunawayStillTriggersDivergence) {
+  // (c) The non-vacuity half: the SAME channel, the SAME monotone shape, but now genuinely above
+  // the floor -- 1e-3 rising by 10x per step. Rule 2 must still fire, and the floor must not soften
+  // it. Values #10..#14 are 1e-3 .. 1e+1; the window (5) is strictly increasing and 1e+1 >= 10 *
+  // 1e-3, so it fires at iteration 15 -- reached through rule 2, since the persistent-excursion
+  // rule 1 would need every one of the last 5 values to be >= 10x the best since iteration 10.
+  std::vector<Real> values(10, 1e-3);
+  for (int k = 1; k <= 5; ++k) values.push_back(1e-3 * std::pow(10.0, k));
+  ASSERT_GT(values[9], tolerances().continuity) << "the oldest window value must exceed the floor";
+  OuterIterationMonitor monitor(divergenceOnly(), tolerances(), 0.7, 0.3);
+  const auto [verdict, iteration] = runContinuity(monitor, values);
+  EXPECT_EQ(verdict, OuterIterationVerdict::Diverging);
+  EXPECT_EQ(iteration, 15u);
+}

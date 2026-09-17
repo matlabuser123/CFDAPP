@@ -3,9 +3,10 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 
 // GUI-004 -- Boundary-Condition Editor: edits cfd::io::BoundaryConfig
-// (the four structured patches -- left/right/top/bottom, the exact
-// vocabulary CaseModelAdapter.cpp's own boundaryConfigFromVariant() walks)
-// via simulationController.setBoundaryConfig(). A patch selector on the
+// (the four structured patches -- left/right/top/bottom -- or, P12-MESH-003,
+// a multiblock mesh's own named patches; CaseModelAdapter.cpp's
+// boundaryConfigFromVariant() takes every patch of the map back) via
+// simulationController.setBoundaryConfig(). A patch selector on the
 // left plus a highlighted rectangle preview, a field-specific editor on
 // the right -- "Boundary list/diagram -> selected boundary -> field-
 // specific BC editor". Velocity/pressure/temperature/species/alpha type
@@ -25,8 +26,20 @@ ColumnLayout {
     readonly property var speciesNames: physics.species ? physics.species.map(function(s) { return s.name }) : []
     property string selectedPatch: "left"
     property var draft: ({})
+    // P12-MESH-006: a 3D (box) case has the six patches xmin .. zmax and 3-component velocities.
+    readonly property bool is3D: simulationController.geometryConfig.type === "box"
+    // The case's patches: the four structured patches in their usual order,
+    // (P12-MESH-006) the six faces of a 3D box, or (P12-MESH-003) a
+    // multiblock mesh's own named patches.
+    readonly property var patchNames: boundaries.left !== undefined
+        ? ["left", "right", "top", "bottom"]
+        : (boundaries.xmin !== undefined ? ["xmin", "xmax", "ymin", "ymax", "zmin", "zmax"]
+                                         : Object.keys(boundaries))
 
-    function resetDraft() { draft = JSON.parse(JSON.stringify(simulationController.boundaryConfig)) }
+    function resetDraft() {
+        draft = JSON.parse(JSON.stringify(simulationController.boundaryConfig))
+        if (patchNames.indexOf(selectedPatch) < 0 && patchNames.length > 0) selectedPatch = patchNames[0]
+    }
     function commit() { simulationController.setBoundaryConfig(draft); draft = draft }
     function patch() { return draft[selectedPatch] || {}; }
 
@@ -53,7 +66,7 @@ ColumnLayout {
                 ColumnLayout {
                     anchors.fill: parent
                     Repeater {
-                        model: ["left", "right", "top", "bottom"]
+                        model: patchNames
                         delegate: Button {
                             Layout.fillWidth: true
                             text: modelData
@@ -84,9 +97,12 @@ ColumnLayout {
                         ctx.strokeStyle = "#1565c0"
                         ctx.lineWidth = 5
                         ctx.beginPath()
-                        if (selectedPatch === "left") { ctx.moveTo(m, m); ctx.lineTo(m, height - m) }
-                        else if (selectedPatch === "right") { ctx.moveTo(width - m, m); ctx.lineTo(width - m, height - m) }
-                        else if (selectedPatch === "top") { ctx.moveTo(m, m); ctx.lineTo(width - m, m) }
+                        // P12-MESH-006: a 3D box is drawn as its x-y face; zmin/zmax (the faces
+                        // parallel to it) highlight the whole outline.
+                        if (selectedPatch === "left" || selectedPatch === "xmin") { ctx.moveTo(m, m); ctx.lineTo(m, height - m) }
+                        else if (selectedPatch === "right" || selectedPatch === "xmax") { ctx.moveTo(width - m, m); ctx.lineTo(width - m, height - m) }
+                        else if (selectedPatch === "top" || selectedPatch === "ymax") { ctx.moveTo(m, m); ctx.lineTo(width - m, m) }
+                        else if (selectedPatch === "zmin" || selectedPatch === "zmax") { ctx.rect(m, m, width - 2 * m, height - 2 * m) }
                         else { ctx.moveTo(m, height - m); ctx.lineTo(width - m, height - m) }
                         ctx.stroke()
                     }
@@ -124,7 +140,7 @@ ColumnLayout {
                                 currentIndex: model.indexOf(patch().velocity ? patch().velocity.type : "wall")
                                 onActivated: {
                                     var p = patch()
-                                    p.velocity = p.velocity || { valueX: 0, valueY: 0 }
+                                    p.velocity = p.velocity || { valueX: 0, valueY: 0, valueZ: 0 }
                                     p.velocity.type = model[currentIndex]
                                     draft[selectedPatch] = p
                                     commit()
@@ -133,7 +149,7 @@ ColumnLayout {
                         }
                         RowLayout {
                             visible: patch().velocity && simulationController.velocityTypeHasValue(patch().velocity.type)
-                            Label { text: "Value X / Y"; Layout.preferredWidth: 100 }
+                            Label { text: is3D ? "Value X / Y / Z" : "Value X / Y"; Layout.preferredWidth: 100 }
                             TextField {
                                 Layout.preferredWidth: 90
                                 text: patch().velocity ? patch().velocity.valueX : 0
@@ -145,6 +161,14 @@ ColumnLayout {
                                 text: patch().velocity ? patch().velocity.valueY : 0
                                 validator: DoubleValidator {}
                                 onEditingFinished: { patch().velocity.valueY = parseFloat(text) || 0; commit() }
+                            }
+                            TextField {
+                                // P12-MESH-006: the w component of a 3D case.
+                                visible: is3D
+                                Layout.preferredWidth: 90
+                                text: patch().velocity && patch().velocity.valueZ !== undefined ? patch().velocity.valueZ : 0
+                                validator: DoubleValidator {}
+                                onEditingFinished: { patch().velocity.valueZ = parseFloat(text) || 0; commit() }
                             }
                         }
                     }

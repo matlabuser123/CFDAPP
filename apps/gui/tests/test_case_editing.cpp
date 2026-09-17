@@ -21,6 +21,9 @@
 
 #include "CaseFixtureCopy.hpp"
 #include "cfd/app/ProjectRunner.hpp"
+#include "cfd/io/CaseReader.hpp"
+#include "cfd/io/CaseWriter.hpp"
+#include "cfd/mesh/MeshGrading.hpp"
 
 #include "../SimulationController.hpp"
 
@@ -156,6 +159,8 @@ TEST(CaseEditingTest, SetPhysicsConfigRoundTripsAThermalBlock) {
   EXPECT_DOUBLE_EQ(reread.value("thermal").toMap().value("conductivity").toDouble(), 0.6);
 }
 
+// (P12-MESH-003: the adapter takes back every patch of the map -- a
+// Cartesian case's map holds exactly its four.)
 TEST(CaseEditingTest, SetBoundaryConfigOnlyKeepsTheFourCanonicalPatches) {
   SimulationController controller;
   ASSERT_TRUE(
@@ -596,4 +601,400 @@ TEST(CaseEditingTest, FullCaseCreationFromScratchValidatesSavesRunsAndMatchesCli
   // against the GUI-saved directory.
   const cfd::app::ProjectRunResult cliEquivalentRun = cfd::app::ProjectRunner::run(target.path());
   EXPECT_EQ(cliEquivalentRun.status, cfd::app::ProjectRunStatus::Converged);
+}
+
+// P12-MESH-001: the GUI has no vertex editor, so a structured_quad case's
+// vertex grid must survive an edit/save/reopen round trip unchanged (the
+// mesh editor's QVariantMap carries type/nx/ny only), and the mesh map
+// reports the vertex count read-only.
+TEST(CaseEditingTest, StructuredQuadVerticesSurviveEditSaveReopen) {
+  const CaseFixtureCopy fixture("cases/poiseuille_distorted");
+  const auto original = cfd::io::CaseReader{}.read(fixture.path());
+  SimulationController editor;
+  ASSERT_TRUE(editor.openCase(fixtureQString(fixture)));
+  QVariantMap mesh = editor.meshConfig();
+  EXPECT_EQ(mesh.value("type").toString(), QStringLiteral("structured_quad"));
+  EXPECT_EQ(mesh.value("vertexCount").toInt(), 585);
+
+  // A mesh-page commit (same nx/ny) plus a metadata edit, then save.
+  ASSERT_TRUE(editor.setMeshAndGeometry(mesh, editor.geometryConfig()));
+  QVariantMap metadata = editor.caseMetadata();
+  metadata["name"] = QStringLiteral("edited distorted channel");
+  ASSERT_TRUE(editor.setCaseMetadata(metadata));
+  ASSERT_TRUE(editor.validateDraft().value("valid").toBool());
+  ASSERT_TRUE(editor.saveAs(fixtureQString(fixture)));
+
+  const auto reread = cfd::io::CaseReader{}.read(fixture.path());
+  EXPECT_EQ(reread.caseConfig.name, "edited distorted channel");
+  EXPECT_EQ(reread.mesh.type, "structured_quad");
+  ASSERT_EQ(reread.mesh.vertices.size(), original.mesh.vertices.size());
+  for (std::size_t k = 0; k < original.mesh.vertices.size(); ++k) {
+    EXPECT_EQ(reread.mesh.vertices[k].x, original.mesh.vertices[k].x) << k;
+    EXPECT_EQ(reread.mesh.vertices[k].y, original.mesh.vertices[k].y) << k;
+  }
+}
+
+// Changing nx/ny of a structured_quad case in the GUI without a matching
+// vertex grid is a validation error on the Mesh section, not a silent
+// re-mesh.
+TEST(CaseEditingTest, StructuredQuadResolutionChangeWithoutVerticesIsInvalid) {
+  SimulationController controller;
+  ASSERT_TRUE(controller.openCase(fixtureQString(CaseFixtureCopy("cases/poiseuille_distorted"))));
+  QVariantMap mesh = controller.meshConfig();
+  mesh["nx"] = 32;
+  ASSERT_TRUE(controller.setMeshAndGeometry(mesh, controller.geometryConfig()));
+  const QVariantMap result = controller.validateDraft();
+  EXPECT_FALSE(result.value("valid").toBool());
+  EXPECT_EQ(result.value("section").toString(), QStringLiteral("Mesh"));
+  EXPECT_EQ(result.value("field").toString(), QStringLiteral("vertices"));
+}
+
+// P12-MESH-002: grading through the mesh editor's flattened keys --
+// loaded from mesh.json, edited, validated by the real CaseReader, saved,
+// and reopened unchanged.
+TEST(CaseEditingTest, GradingRoundTripsThroughEditSaveReopen) {
+  const CaseFixtureCopy fixture("cases/channel_transpiration_graded");
+  SimulationController editor;
+  ASSERT_TRUE(editor.openCase(fixtureQString(fixture)));
+  QVariantMap mesh = editor.meshConfig();
+  EXPECT_TRUE(mesh.value("hasGrading").toBool());
+  EXPECT_EQ(mesh.value("yGradingType").toString(), QStringLiteral("geometric"));
+  EXPECT_DOUBLE_EQ(mesh.value("yGradingRatio").toDouble(), 1.2);
+  EXPECT_EQ(mesh.value("yGradingCluster").toString(), QStringLiteral("both"));
+  EXPECT_EQ(mesh.value("xGradingType").toString(), QStringLiteral("uniform"));
+
+  mesh["xGradingType"] = QStringLiteral("geometric");
+  mesh["xGradingRatio"] = 1.05;
+  mesh["xGradingCluster"] = QStringLiteral("left");
+  ASSERT_TRUE(editor.setMeshAndGeometry(mesh, editor.geometryConfig()));
+  ASSERT_TRUE(editor.validateDraft().value("valid").toBool());
+  ASSERT_TRUE(editor.saveAs(fixtureQString(fixture)));
+
+  const auto reread = cfd::io::CaseReader{}.read(fixture.path());
+  ASSERT_TRUE(reread.mesh.grading.has_value());
+  EXPECT_EQ(reread.mesh.grading->x.type, cfd::mesh::GradingType::Geometric);
+  EXPECT_DOUBLE_EQ(reread.mesh.grading->x.ratio, 1.05);
+  EXPECT_EQ(reread.mesh.grading->x.cluster, cfd::mesh::GradingCluster::Start);
+  EXPECT_DOUBLE_EQ(reread.mesh.grading->y.ratio, 1.2);
+  EXPECT_EQ(reread.mesh.grading->y.cluster, cfd::mesh::GradingCluster::Both);
+}
+
+// An invalid ratio entered in the editor is a Mesh-section validation error
+// on the offending field (the real CaseReader message), and meshCellInfo
+// reports the graded sizes for the preview.
+TEST(CaseEditingTest, GradingValidationAndCellInfo) {
+  SimulationController controller;
+  ASSERT_TRUE(
+      controller.openCase(fixtureQString(CaseFixtureCopy("tests/data/cases/valid_cavity"))));
+  QVariantMap mesh = controller.meshConfig();
+  EXPECT_FALSE(mesh.value("hasGrading").toBool());
+  mesh["yGradingType"] = QStringLiteral("geometric");
+  mesh["yGradingRatio"] = 0.5;
+  mesh["yGradingCluster"] = QStringLiteral("top");
+  ASSERT_TRUE(controller.setMeshAndGeometry(mesh, controller.geometryConfig()));
+  QVariantMap result = controller.validateDraft();
+  EXPECT_FALSE(result.value("valid").toBool());
+  EXPECT_EQ(result.value("section").toString(), QStringLiteral("Mesh"));
+  EXPECT_EQ(result.value("field").toString(), QStringLiteral("grading.y.ratio"));
+
+  mesh["yGradingRatio"] = 1.1;
+  ASSERT_TRUE(controller.setMeshAndGeometry(mesh, controller.geometryConfig()));
+  EXPECT_TRUE(controller.validateDraft().value("valid").toBool());
+
+  const QVariantMap info = controller.meshCellInfo(mesh, controller.geometryConfig());
+  const int ny = mesh.value("ny").toInt();
+  const QVariantList yNodes = info.value("yNodes").toList();
+  ASSERT_EQ(yNodes.size(), ny + 1);
+  EXPECT_DOUBLE_EQ(yNodes.front().toDouble(), 0.0);
+  EXPECT_DOUBLE_EQ(yNodes.back().toDouble(), 1.0);
+  EXPECT_LT(info.value("minYWidth").toDouble(), info.value("maxYWidth").toDouble());
+  EXPECT_DOUBLE_EQ(info.value("minXWidth").toDouble(), info.value("maxXWidth").toDouble());
+  EXPECT_FALSE(info.contains("gradingError"));
+
+  // 1000 over 4 cells: smallest cell ~1e-9 of the height, below the 1e-8
+  // floor (kMinimumRelativeCellWidth).
+  mesh["yGradingRatio"] = 1000.0;
+  EXPECT_TRUE(controller.meshCellInfo(mesh, controller.geometryConfig()).contains("gradingError"));
+}
+
+// Editing an ungraded case's mesh page (grading keys present, both axes
+// uniform) keeps it ungraded: mesh.json is saved as {type, nx, ny}.
+TEST(CaseEditingTest, UngradedCaseStaysUngradedThroughTheMeshEditor) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  SimulationController editor;
+  ASSERT_TRUE(editor.openCase(fixtureQString(fixture)));
+  QVariantMap mesh = editor.meshConfig();
+  mesh["nx"] = 10;
+  ASSERT_TRUE(editor.setMeshAndGeometry(mesh, editor.geometryConfig()));
+  ASSERT_TRUE(editor.saveAs(fixtureQString(fixture)));
+  EXPECT_FALSE(cfd::io::CaseReader{}.read(fixture.path()).mesh.grading.has_value());
+}
+
+// P12-MESH-003: a multiblock (general 2D geometry) case in the GUI -- load,
+// display its mesh metadata read-only, edit a named patch's boundary
+// condition, validate, save (blocks, interfaces and patches bitwise
+// intact), run, and the result views degrade safely (no nx x ny grid).
+// A coarse variant of cases/step_channel_multiblock (104 cells) keeps the
+// run short.
+TEST(CaseEditingTest, MultiBlockCaseLoadsValidatesSavesAndRunsFromTheGui) {
+  const CaseFixtureCopy fixture("cases/step_channel_multiblock");
+  cfd::io::CaseDefinition coarse = cfd::io::CaseReader{}.read(fixture.path());
+  const auto line = [](double a, double b, cfd::Index n, cfd::Index k) {
+    return a + ((b - a) * static_cast<double>(k) / static_cast<double>(n));
+  };
+  const auto rect = [&](const char* name, double x0, double x1, double y0, double y1, cfd::Index nx,
+                        cfd::Index ny) {
+    cfd::io::MeshBlockConfig block{name, nx, ny, {}};
+    for (cfd::Index j = 0; j <= ny; ++j) {
+      for (cfd::Index i = 0; i <= nx; ++i) {
+        block.vertices.push_back(cfd::Vector2{line(x0, x1, nx, i), line(y0, y1, ny, j)});
+      }
+    }
+    return block;
+  };
+  coarse.mesh.blocks = {rect("upstream", 0.0, 2.0, 0.5, 1.0, 4, 2),
+                        rect("upper", 2.0, 14.0, 0.5, 1.0, 24, 2),
+                        rect("lower", 2.0, 14.0, 0.0, 0.5, 24, 2)};
+  cfd::io::CaseWriter::write(fixture.path(), coarse);
+  const auto original = cfd::io::CaseReader{}.read(fixture.path());
+
+  SimulationController editor;
+  ASSERT_TRUE(editor.openCase(fixtureQString(fixture)));
+  const QVariantMap mesh = editor.meshConfig();
+  EXPECT_EQ(mesh.value("type").toString(), QStringLiteral("multiblock"));
+  EXPECT_EQ(mesh.value("cellCount").toInt(), 104);
+  EXPECT_EQ(mesh.value("interfaceCount").toInt(), 2);
+  const QVariantList blocks = mesh.value("blocks").toList();
+  ASSERT_EQ(blocks.size(), 3);
+  EXPECT_EQ(blocks[1].toMap().value("name").toString(), QStringLiteral("upper"));
+  EXPECT_EQ(blocks[1].toMap().value("nx").toInt(), 24);
+  EXPECT_EQ(editor.geometryConfig().value("type").toString(), QStringLiteral("mesh_defined"));
+  QVariantMap boundaries = editor.boundaryConfig();
+  EXPECT_EQ(boundaries.keys(), (QStringList{"bottom_wall", "inlet", "outlet", "step", "top_wall"}));
+
+  // A mesh-page commit (nothing editable), a boundary edit on a named
+  // patch, then validate and save.
+  ASSERT_TRUE(editor.setMeshAndGeometry(mesh, editor.geometryConfig()));
+  QVariantMap inlet = boundaries.value("inlet").toMap();
+  QVariantMap velocity = inlet.value("velocity").toMap();
+  velocity["valueX"] = 0.5;
+  inlet["velocity"] = velocity;
+  boundaries["inlet"] = inlet;
+  ASSERT_TRUE(editor.setBoundaryConfig(boundaries));
+  const QVariantMap validation = editor.validateDraft();
+  ASSERT_TRUE(validation.value("valid").toBool())
+      << validation.value("section").toString().toStdString() << ": "
+      << validation.value("message").toString().toStdString();
+  ASSERT_TRUE(editor.saveAs(fixtureQString(fixture)));
+
+  const auto reread = cfd::io::CaseReader{}.read(fixture.path());
+  EXPECT_EQ(reread.geometry.type, "mesh_defined");
+  ASSERT_EQ(reread.mesh.blocks.size(), 3u);
+  for (std::size_t b = 0; b < 3; ++b) {
+    EXPECT_EQ(reread.mesh.blocks[b].name, original.mesh.blocks[b].name);
+    EXPECT_EQ(reread.mesh.blocks[b].vertices, original.mesh.blocks[b].vertices) << b;
+  }
+  ASSERT_EQ(reread.mesh.interfaces.size(), 2u);
+  EXPECT_EQ(reread.mesh.interfaces[1].first, original.mesh.interfaces[1].first);
+  ASSERT_EQ(reread.mesh.patches.size(), 5u);
+  EXPECT_EQ(reread.mesh.patches[1].sides, original.mesh.patches[1].sides);
+  EXPECT_EQ(reread.boundaries.patches.at("inlet").velocity.value.x, 0.5);
+  EXPECT_EQ(reread.boundaries.patches.at("step").velocity.type, "wall");
+
+  // Run from the GUI; the structured field map / contours report nothing
+  // (no nx x ny grid) instead of drawing a wrong one.
+  QSignalSpy completedSpy(&editor, &SimulationController::completed);
+  editor.run();
+  ASSERT_TRUE(completedSpy.wait(60000));
+  ASSERT_TRUE(editor.hasResults());
+  const QVariantMap grid = editor.scalarFieldGrid(QStringLiteral("pressure"));
+  EXPECT_EQ(grid.value("nx").toInt(), 0);
+  EXPECT_TRUE(editor.contourSegments(QStringLiteral("pressure"), 8).isEmpty());
+  EXPECT_EQ(cfd::app::ProjectRunner::run(fixture.path()).status,
+            cfd::app::ProjectRunStatus::Converged);
+}
+
+// P12-MESH-004: the production mesh-quality report on the Mesh page and in
+// the validation panel.
+TEST(CaseEditingTest, MeshQualityIsReportedWhenACaseOpens) {
+  SimulationController controller;
+  ASSERT_TRUE(controller.openCase(fixtureQString(CaseFixtureCopy("cases/poiseuille_distorted"))));
+  const QVariantMap quality = controller.meshQuality();
+  EXPECT_EQ(quality.value("status").toString(), QStringLiteral("valid"));
+  EXPECT_EQ(quality.value("cells").toInt(), 512);
+  EXPECT_NEAR(quality.value("maximumNonOrthogonality").toDouble(), 44.76, 0.01);
+  EXPECT_TRUE(quality.value("summary").toString().startsWith(QStringLiteral("valid: 512 cells")));
+  bool advice = false;
+  for (const QVariant& entry : quality.value("issues").toList()) {
+    const QVariantMap issue = entry.toMap();
+    advice =
+        advice ||
+        (issue.value("severity").toString() == QStringLiteral("info") &&
+         issue.value("text").toString().contains(QStringLiteral("non_orthogonal_corrections")));
+  }
+  EXPECT_TRUE(advice);
+  // Information is not a validation-panel item.
+  ASSERT_TRUE(controller.validateDraft().value("valid").toBool());
+  EXPECT_EQ(controller.validationIssues().size(), 0);
+}
+
+TEST(CaseEditingTest, MeshQualityWarningsAppearInTheValidationPanel) {
+  SimulationController controller;
+  ASSERT_TRUE(controller.openCase(
+      fixtureQString(CaseFixtureCopy("tests/data/cases/mesh_quality_warning_cli"))));
+  ASSERT_TRUE(controller.validateDraft().value("valid").toBool());  // warnings never block
+  EXPECT_EQ(controller.meshQuality().value("status").toString(),
+            QStringLiteral("valid_with_warnings"));
+  const QVariantList issues = controller.validationIssues();
+  ASSERT_EQ(issues.size(), 1);
+  const QVariantMap issue = issues.front().toMap();
+  EXPECT_EQ(issue.value("severity").toString(), QStringLiteral("Warning"));
+  EXPECT_EQ(issue.value("section").toString(), QStringLiteral("Mesh"));
+  EXPECT_EQ(issue.value("field").toString(), QStringLiteral("expansion_ratio"));
+  EXPECT_TRUE(issue.value("message").toString().contains(QStringLiteral("2.5 > 2")));
+}
+
+TEST(CaseEditingTest, InvalidMeshShowsAnInvalidMeshQualityWithTheReason) {
+  SimulationController controller;
+  ASSERT_TRUE(controller.openCase(
+      fixtureQString(CaseFixtureCopy("tests/data/cases/mesh_quality_disconnected_cli"))));
+  EXPECT_EQ(controller.meshQuality().value("status").toString(), QStringLiteral("invalid"));
+  EXPECT_TRUE(controller.meshQuality().value("summary").toString().contains(
+      QStringLiteral("2 disconnected cell regions")));
+  const QVariantMap result = controller.validateDraft();
+  EXPECT_FALSE(result.value("valid").toBool());
+  EXPECT_EQ(result.value("section").toString(), QStringLiteral("Mesh"));
+  EXPECT_EQ(controller.meshQuality().value("status").toString(), QStringLiteral("invalid"));
+  const QVariantList issues = controller.validationIssues();
+  ASSERT_EQ(issues.size(), 1);
+  EXPECT_EQ(issues.front().toMap().value("severity").toString(), QStringLiteral("Error"));
+}
+
+TEST(CaseEditingTest, NewCaseClearsTheMeshQuality) {
+  SimulationController controller;
+  ASSERT_TRUE(
+      controller.openCase(fixtureQString(CaseFixtureCopy("tests/data/cases/valid_cavity"))));
+  EXPECT_FALSE(controller.meshQuality().isEmpty());
+  controller.newCase();
+  EXPECT_TRUE(controller.meshQuality().isEmpty());
+}
+
+// P12-MESH-006 gate G9.4 -- a 3D (box, hexahedral) case in the GUI controller: it opens, the
+// production validation builds a 3D mesh, nz / depth / w survive the editor commits (including the
+// 2D-shaped maps a page without z fields sends) and a save round trip, a run completes through
+// ProjectRunner with a "w" residual series, the 2D-only views return nothing (no exception), and
+// the written 3D results reload from disk (fields.csv / residuals.csv columns located by name).
+TEST(CaseEditingTest, ThreeDimensionalCaseLoadsValidatesPreservesZAndRunsFromTheGui) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cube3d_cli_smoke");
+  SimulationController editor;
+  ASSERT_TRUE(editor.openCase(fixtureQString(fixture)));
+
+  QVariantMap mesh = editor.meshConfig();
+  QVariantMap geometry = editor.geometryConfig();
+  EXPECT_EQ(geometry.value("type").toString(), QStringLiteral("box"));
+  EXPECT_DOUBLE_EQ(geometry.value("depth").toDouble(), 1.0);
+  EXPECT_EQ(mesh.value("nz").toInt(), 6);
+  EXPECT_EQ(mesh.value("cellCount").toInt(), 216);
+  QVariantMap boundaries = editor.boundaryConfig();
+  EXPECT_EQ(boundaries.keys(), (QStringList{"xmax", "xmin", "ymax", "ymin", "zmax", "zmin"}));
+  EXPECT_DOUBLE_EQ(
+      boundaries.value("ymax").toMap().value("velocity").toMap().value("valueX").toDouble(), 1.0);
+  EXPECT_DOUBLE_EQ(
+      boundaries.value("ymax").toMap().value("velocity").toMap().value("valueZ").toDouble(), 0.0);
+  const QVariantMap cells = editor.meshCellInfo(mesh, geometry);
+  EXPECT_EQ(cells.value("cellCount").toInt(), 216);
+  EXPECT_DOUBLE_EQ(cells.value("dz").toDouble(), 1.0 / 6.0);
+
+  // A commit from a page that shows no z fields (the 2D-shaped maps) keeps nz and depth ...
+  ASSERT_TRUE(
+      editor.setMeshAndGeometry(QVariantMap{{"type", "structured_cartesian"}, {"nx", 6}, {"ny", 6}},
+                                QVariantMap{{"type", "box"}, {"length", 1.0}, {"height", 1.0}}));
+  EXPECT_EQ(editor.meshConfig().value("nz").toInt(), 6);
+  EXPECT_DOUBLE_EQ(editor.geometryConfig().value("depth").toDouble(), 1.0);
+  // ... and the 3D mesh page's own maps set them.
+  mesh = editor.meshConfig();
+  geometry = editor.geometryConfig();
+  mesh["nz"] = 6;
+  geometry["depth"] = 1.0;
+  ASSERT_TRUE(editor.setMeshAndGeometry(mesh, geometry));
+  // The w component of a boundary velocity and of the initial state.
+  QVariantMap lid = boundaries.value("ymax").toMap();
+  QVariantMap lidVelocity = lid.value("velocity").toMap();
+  lidVelocity["valueZ"] = 0.25;
+  lid["velocity"] = lidVelocity;
+  boundaries["ymax"] = lid;
+  ASSERT_TRUE(editor.setBoundaryConfig(boundaries));
+  QVariantMap initial = editor.initialConditions();
+  initial["velocityZ"] = 0.1;
+  ASSERT_TRUE(editor.setInitialConditions(initial));
+  ASSERT_TRUE(editor.setInitialConditions(
+      QVariantMap{{"velocityX", 0.0}, {"velocityY", 0.0}, {"pressure", 0.0}}));  // no velocityZ key
+  EXPECT_DOUBLE_EQ(editor.initialConditions().value("velocityZ").toDouble(), 0.1);
+
+  // Validation runs the production parse + build: a valid 3D case.
+  const QVariantMap validation = editor.validateDraft();
+  ASSERT_TRUE(validation.value("valid").toBool())
+      << validation.value("section").toString().toStdString() << ": "
+      << validation.value("message").toString().toStdString();
+  EXPECT_EQ(editor.meshQuality().value("dimension").toInt(), 3);
+
+  // Save round trip: every z quantity reaches the case files.
+  ASSERT_TRUE(editor.saveAs(fixtureQString(fixture)));
+  const auto reread = cfd::io::CaseReader{}.read(fixture.path());
+  EXPECT_EQ(reread.geometry.type, "box");
+  EXPECT_EQ(reread.geometry.depth, 1.0);
+  EXPECT_EQ(reread.mesh.nz, 6u);
+  EXPECT_EQ(reread.boundaries.patches.at("ymax").velocity.value, (cfd::Vector3{1.0, 0.0, 0.25}));
+  EXPECT_EQ(reread.initialConditions.velocityComponents, 3);
+  EXPECT_EQ(reread.initialConditions.velocity.z, 0.1);
+
+  // Run from the GUI.
+  QSignalSpy completedSpy(&editor, &SimulationController::completed);
+  editor.run();
+  ASSERT_TRUE(completedSpy.wait(120000));
+  EXPECT_TRUE(completedSpy.front().front().toBool());  // converged
+  ASSERT_TRUE(editor.hasResults());
+  EXPECT_TRUE(editor.resultsThreeDimensional());
+  EXPECT_EQ(editor.availableResidualSeriesNames(),
+            (QStringList{"u", "v", "w", "pressure", "continuity"}));
+  const auto iterations = editor.residualSeries(QStringLiteral("u")).size();
+  EXPECT_GT(iterations, 0);
+  EXPECT_EQ(editor.residualSeries(QStringLiteral("w")).size(), iterations);
+  // The 2D-only views return nothing for a 3D result (no exception).
+  EXPECT_TRUE(editor.scalarFieldGrid(QStringLiteral("pressure")).isEmpty());
+  EXPECT_TRUE(editor.contourSegments(QStringLiteral("pressure"), 8).isEmpty());
+  EXPECT_TRUE(editor.vectorSamples(1).isEmpty());
+  EXPECT_TRUE(editor.probeAt(0.5, 0.5).isEmpty());
+  EXPECT_TRUE(editor.sampleLine(QStringLiteral("pressure"), 0.0, 0.5, 1.0, 0.5, 10).isEmpty());
+  EXPECT_FALSE(editor.availableFields().isEmpty());
+
+  // The written 3D results reload from disk with the same series.
+  SimulationController reopened;
+  ASSERT_TRUE(reopened.openCase(fixtureQString(fixture)));
+  ASSERT_TRUE(reopened.hasResults());
+  EXPECT_TRUE(reopened.resultsThreeDimensional());
+  EXPECT_EQ(reopened.residualSeries(QStringLiteral("w")).size(), iterations);
+  EXPECT_EQ(reopened.residualSeries(QStringLiteral("w")),
+            editor.residualSeries(QStringLiteral("w")));
+  EXPECT_TRUE(reopened.contourSegments(QStringLiteral("pressure"), 8).isEmpty());
+}
+
+// P12-MESH-006: a 2D result is unchanged -- no "w" series, 2D views available.
+TEST(CaseEditingTest, TwoDimensionalResultsHaveNoWSeries) {
+  const CaseFixtureCopy fixture("tests/data/cases/valid_cavity");
+  SimulationController controller;
+  ASSERT_TRUE(controller.openCase(fixtureQString(fixture)));
+  const QVariantMap validation = controller.validateDraft();
+  ASSERT_TRUE(validation.value("valid").toBool());
+  EXPECT_EQ(controller.meshQuality().value("dimension").toInt(), 2);
+  EXPECT_EQ(controller.meshConfig().value("nz").toInt(), 0);
+  QSignalSpy completedSpy(&controller, &SimulationController::completed);
+  controller.run();
+  ASSERT_TRUE(completedSpy.wait(120000));
+  ASSERT_TRUE(controller.hasResults());
+  EXPECT_FALSE(controller.resultsThreeDimensional());
+  EXPECT_EQ(controller.availableResidualSeriesNames(),
+            (QStringList{"u", "v", "pressure", "continuity"}));
+  EXPECT_TRUE(controller.residualSeries(QStringLiteral("w")).isEmpty());
+  EXPECT_FALSE(controller.scalarFieldGrid(QStringLiteral("pressure")).isEmpty());
 }

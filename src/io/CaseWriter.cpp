@@ -50,6 +50,13 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
     throw IOError("CaseWriter: could not create case directory: " + caseDirectory.string());
   }
 
+  // P12-MESH-006: a 3D (box) case writes 3-component velocities, depth and nz;
+  // a 2D case writes exactly what it wrote before.
+  const bool threeDimensional = geometryDimension(d.geometry) == 3;
+  const auto vectorJson = [threeDimensional](const Vector2& v) {
+    return threeDimensional ? json::array({v.x, v.y, v.z}) : json::array({v.x, v.y});
+  };
+
   // --- case.json ----------------------------------------------------------
   json caseJson{
       {"name", d.caseConfig.name},
@@ -60,20 +67,76 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
       {"physics", "physics.json"},
       {"boundaries", "boundaries.json"},
       {"solver", "solver.json"},
-      {"initial_conditions", json{{"velocity", json::array({d.initialConditions.velocity.x,
-                                                            d.initialConditions.velocity.y})},
+      {"initial_conditions", json{{"velocity", vectorJson(d.initialConditions.velocity)},
                                   {"pressure", d.initialConditions.pressure}}},
   };
   writeJsonFile(caseDirectory / "case.json", caseJson);
 
   // --- geometry.json --------------------------------------------------------
-  writeJsonFile(caseDirectory / "geometry.json", json{{"type", d.geometry.type},
-                                                      {"length", d.geometry.length},
-                                                      {"height", d.geometry.height}});
+  if (d.geometry.type == "mesh_defined") {  // P12-MESH-003
+    writeJsonFile(caseDirectory / "geometry.json", json{{"type", d.geometry.type}});
+  } else if (threeDimensional) {  // P12-MESH-006
+    writeJsonFile(caseDirectory / "geometry.json", json{{"type", d.geometry.type},
+                                                        {"length", d.geometry.length},
+                                                        {"height", d.geometry.height},
+                                                        {"depth", d.geometry.depth}});
+  } else {
+    writeJsonFile(caseDirectory / "geometry.json", json{{"type", d.geometry.type},
+                                                        {"length", d.geometry.length},
+                                                        {"height", d.geometry.height}});
+  }
 
   // --- mesh.json ------------------------------------------------------------
-  writeJsonFile(caseDirectory / "mesh.json",
-                json{{"type", d.mesh.type}, {"nx", d.mesh.nx}, {"ny", d.mesh.ny}});
+  json meshJson{{"type", d.mesh.type}, {"nx", d.mesh.nx}, {"ny", d.mesh.ny}};
+  if (d.mesh.nz > 0) meshJson["nz"] = d.mesh.nz;  // P12-MESH-006: written iff 3D
+  if (d.mesh.type == "multiblock") {              // P12-MESH-003
+    const auto sideJson = [](const MeshSideRefConfig& ref) {
+      return json{{"block", ref.block}, {"side", ref.side}};
+    };
+    json blocks = json::array();
+    for (const auto& block : d.mesh.blocks) {
+      json vertices = json::array();
+      for (const auto& v : block.vertices) vertices.push_back(json::array({v.x, v.y}));
+      blocks.push_back(json{{"name", block.name},
+                            {"nx", block.nx},
+                            {"ny", block.ny},
+                            {"vertices", std::move(vertices)}});
+    }
+    json interfaces = json::array();
+    for (const auto& iface : d.mesh.interfaces) {
+      interfaces.push_back(json{{"first", sideJson(iface.first)},
+                                {"second", sideJson(iface.second)},
+                                {"orientation", iface.reversed ? "reversed" : "aligned"}});
+    }
+    json patches = json::array();
+    for (const auto& patch : d.mesh.patches) {
+      json sides = json::array();
+      for (const auto& ref : patch.sides) sides.push_back(sideJson(ref));
+      patches.push_back(json{{"name", patch.name}, {"sides", std::move(sides)}});
+    }
+    meshJson = json{{"type", d.mesh.type},
+                    {"blocks", std::move(blocks)},
+                    {"interfaces", std::move(interfaces)},
+                    {"patches", std::move(patches)}};
+  }
+  if (d.mesh.type == "structured_quad") {  // P12-MESH-001
+    json vertices = json::array();
+    for (const auto& v : d.mesh.vertices) vertices.push_back(json::array({v.x, v.y}));
+    meshJson["vertices"] = std::move(vertices);
+  }
+  if (d.mesh.grading.has_value()) {  // P12-MESH-002: written iff present
+    const auto axisJson = [](const cfd::mesh::AxisGrading& g, bool xAxis) {
+      json axis{{"type", gradingTypeName(g.type)}};
+      if (g.type == cfd::mesh::GradingType::Geometric) {
+        axis["ratio"] = g.ratio;
+        axis["cluster"] = gradingClusterName(g.cluster, xAxis);
+      }
+      return axis;
+    };
+    meshJson["grading"] =
+        json{{"x", axisJson(d.mesh.grading->x, true)}, {"y", axisJson(d.mesh.grading->y, false)}};
+  }
+  writeJsonFile(caseDirectory / "mesh.json", meshJson);
 
   // --- physics.json -----------------------------------------------------
   json physicsJson{
@@ -155,7 +218,7 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
   for (const auto& [patchName, patch] : d.boundaries.patches) {
     json velocityJson{{"type", patch.velocity.type}};
     if (velocityTypeHasValue(patch.velocity.type)) {
-      velocityJson["value"] = json::array({patch.velocity.value.x, patch.velocity.value.y});
+      velocityJson["value"] = vectorJson(patch.velocity.value);
     }
     json pressureJson{{"type", patch.pressure.type}, {"value", patch.pressure.value}};
     json patchJson{{"velocity", std::move(velocityJson)}, {"pressure", std::move(pressureJson)}};
@@ -211,6 +274,9 @@ void CaseWriter::write(const std::filesystem::path& caseDirectory, const CaseDef
       {"gradient_scheme", d.solver.gradientScheme},
       {"non_orthogonal_corrections", d.solver.nonOrthogonalCorrections},
   };
+  // P12-MESH-006: written only when not the default "automatic", so every
+  // existing case's solver.json is unchanged.
+  if (d.solver.faceFlux != "automatic") solverJson["face_flux"] = d.solver.faceFlux;
   // P12-NUM-004: the "robustness" block is written only when it differs
   // from the defaults, so a default case's solver.json is unchanged; when
   // written, every field is explicit.

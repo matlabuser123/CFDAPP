@@ -141,6 +141,10 @@ CompressibleSIMPLEResult CompressibleSIMPLE::solve(
     const BoundaryConditionSet& pressureBoundaries, const ScalarField& temperature,
     const BoundaryConditionSet* temperatureBoundaries, VectorField initialVelocity,
     ScalarField initialPressure, ScalarField initialDensity) const {
+  // P12-MESH-006: the compressible solver is two-dimensional (u, v); refused
+  // explicitly on a 3D mesh now that the shared momentum/pressure components
+  // accept one.
+  cfd::mesh::requireTwoDimensional(mesh, "CompressibleSIMPLE");
   CompressibleSIMPLEResult result;
 
   bool configurationValid = true;

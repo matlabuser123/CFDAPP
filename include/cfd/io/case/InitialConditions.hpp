@@ -13,6 +13,10 @@ namespace cfd::io {
 struct InitialConditions {
   Vector2 velocity{};
   Real pressure{};
+  // P12-MESH-006: how many velocity components case.json gave -- 2 ([u, v])
+  // or 3 ([u, v, w]); CaseReader checks it against the geometry's dimension.
+  // Absent block = the zero default, valid in both dimensions (0).
+  int velocityComponents{0};
 };
 
 }  // namespace cfd::io

@@ -7,6 +7,8 @@
 
 namespace cfd::mesh {
 
+class Mesh;
+
 // A finite-volume face -- fluxes pass through faces, so orientation is
 // load-bearing. Convention (see PROJECT_STRUCTURE.md / docs): the area
 // vector Sf = n * A points from owner toward neighbor for an internal
@@ -26,6 +28,15 @@ class Face {
   [[nodiscard]] bool isBoundary() const noexcept;
 
  private:
+  // P12-MESH-007: only Mesh::setGeometry (a topology-preserving geometry
+  // update, already validated there) changes a face's centroid and area
+  // vector; its id, owner and neighbor never change after construction.
+  friend class Mesh;
+  void setGeometry(const Vector2& centroid, const Vector2& areaVector) noexcept {
+    centroid_ = centroid;
+    areaVector_ = areaVector;
+  }
+
   Index id_{};
   Index owner_{};
   std::optional<Index> neighbor_;

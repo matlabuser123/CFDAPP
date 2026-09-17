@@ -116,9 +116,21 @@ TEST(SpeciesEquationDiffusionTest, TwoCellSystemMatchesHandDerivedCoefficients) 
   const Index leftCell = cellTouchingPatch(mesh, "left");
   const Index rightCell = cellTouchingPatch(mesh, "right");
 
-  const Real boundaryConductance = 6.0;  // coeff*A/d = 3*1.0/0.5
-  const Real internalConductance = 3.0;  // coeff*A/d = 3*1.0/1.0
-  const Real expectedDiagonal = 3.0 * boundaryConductance + internalConductance;  // 21
+  // P12-DIFF-002 A5, entry 16 (validation-migration/acceptance_gate_A5.md). The Dirichlet wall flux
+  // is the second-order one-sided reconstruction, so a value-prescribing wall is no longer
+  // coeff*|S|/d. The mesh is 2 x 1 cells on 2.0 x 1.0, so h = 1, every face area is 1 (unit depth),
+  // rho*D = 3. Derived independently in a5/tools/derive_expected.py, block A1:
+  //   left/right walls (x axis has 2 cells -> reconstructed), h1 = 0.5, h2 = 1.5:
+  //     cP = 3 * 1.5/(0.5*1.0) = 9     cF = 3 * 0.5/(1.5*1.0) = 1     cB = 3 * (2 + 2/3) = 8
+  //   top/bottom walls: normal to the ONE-cell-thick y axis, no inward stencil, so they keep the
+  //   historical two-point form exactly: 3 * 1.0/0.5 = 6.
+  const Real cP = 9.0;
+  const Real cF = 1.0;
+  const Real cB = 8.0;
+  const Real fallbackConductance = 6.0;  // y walls, one cell thick
+  const Real internalConductance = 3.0;  // coeff*A/dPN = 3*1.0/1.0
+  ASSERT_DOUBLE_EQ(cP - cF, cB);         // the reconstruction's own analytic identity
+  const Real expectedDiagonal = cP + 2.0 * fallbackConductance + internalConductance;  // 24
 
   Vector eA(n, 0.0);
   eA[cellA] = 1.0;
@@ -126,15 +138,28 @@ TEST(SpeciesEquationDiffusionTest, TwoCellSystemMatchesHandDerivedCoefficients) 
   eB[cellB] = 1.0;
   EXPECT_NEAR(matrix.multiply(eA)[cellA], expectedDiagonal, 1e-10);
   EXPECT_NEAR(matrix.multiply(eB)[cellB], expectedDiagonal, 1e-10);
-  EXPECT_NEAR(matrix.multiply(eB)[cellA], -internalConductance, 1e-10);
-  EXPECT_NEAR(matrix.multiply(eA)[cellB], -internalConductance, 1e-10);
+  // Each cell's x-wall reaches its far cell through the shared internal face, so the far-cell
+  // coefficient lands on the same entry as the internal coupling.
+  EXPECT_NEAR(matrix.multiply(eB)[cellA], -(internalConductance + cF), 1e-10);
+  EXPECT_NEAR(matrix.multiply(eA)[cellB], -(internalConductance + cF), 1e-10);
 
-  const Real commonRhs = boundaryConductance * yTop + boundaryConductance * yBottom;
-  EXPECT_NEAR(rhs[leftCell], boundaryConductance * yLeft + commonRhs, 1e-9);
-  EXPECT_NEAR(rhs[rightCell], boundaryConductance * yRight + commonRhs, 1e-9);
+  const Real commonRhs = fallbackConductance * yTop + fallbackConductance * yBottom;
+  EXPECT_NEAR(rhs[leftCell], cB * yLeft + commonRhs, 1e-9);    // 8*1 + 6*0.5 + 6*0.5 = 14
+  EXPECT_NEAR(rhs[rightCell], cB * yRight + commonRhs, 1e-9);  // 8*0 + 6*0.5 + 6*0.5 = 6
 }
 
 TEST(SpeciesEquationDiffusionTest, InternalFaceCoefficientsAreSymmetric) {
+  // P12-DIFF-002 A5, entry 17 (validation-migration/acceptance_gate_A5.md, class M-A/2). The
+  // equal/opposite internal-face property is unchanged and is still asserted below. What changed is
+  // that A(0,1) is no longer a pure internal coupling: cell 0's xmin wall reaches its far cell
+  // THROUGH the face it shares with cell 1, so the second-order reconstruction's one-sided far-cell
+  // coefficient lands on that same entry. Cell 1 is in the middle column, has no x-normal wall, and
+  // so A(1,0) stays a pure internal coupling. The asymmetry is deliberate
+  // (results/p12-diff-002/architecture.md section 2).
+  //
+  // Derived independently (a5/tools/derive_expected.py, block D): h = 1/3, |S| = 1/3, coeff = 1:
+  //   cInt = 1        cF = coeff |S| h1 / (h2 (h2 - h1)) = 1/3
+  //   A(1,0) = -1     A(0,1) = -(1 + 1/3) = -4/3
   const Mesh mesh = MeshGeometry::createCartesian2D(3, 3, 1.0, 1.0);
   const auto boundaries = makeFixedConcentrationBoundaries(mesh, 0.0, 0.0, 0.0, 0.0);
   const Index n = mesh.numberOfCells();
@@ -145,15 +170,38 @@ TEST(SpeciesEquationDiffusionTest, InternalFaceCoefficientsAreSymmetric) {
   assembleSpeciesDiffusionContribution(mesh, 1.0, concentration, boundaries, builder, rhs);
   const auto matrix = builder.build();
 
+  const Real cInt = 1.0;
+  const Real cF = 1.0 / 3.0;
+
   Vector e0(n, 0.0);
   e0[0] = 1.0;
   Vector e1(n, 0.0);
   e1[1] = 1.0;
-  const Real a10 = matrix.multiply(e0)[1];
-  const Real a01 = matrix.multiply(e1)[0];
-  EXPECT_NEAR(a01, a10, 1e-12);
+  const Real a10 = matrix.multiply(e0)[1];  // pure internal coupling
+  const Real a01 = matrix.multiply(e1)[0];  // internal coupling + cell 0's far-cell term
+  EXPECT_NEAR(a10, -cInt, 1e-12);
+  EXPECT_NEAR(a01, -(cInt + cF), 1e-12);
+  EXPECT_NEAR(a01 - a10, -cF, 1e-12);
   EXPECT_LT(a01, 0.0);
+  EXPECT_LT(a10, 0.0);
   EXPECT_TRUE(matrix.allFinite());
+
+  // The equal/opposite property where no far-cell term can reach: cells 6 = (1,1) and 7 = (2,1) of
+  // a 5x5 mesh have no boundary face, so neither row receives a far-cell entry.
+  const Mesh wide = MeshGeometry::createCartesian2D(5, 5, 1.0, 1.0);
+  const auto wideBcs = makeFixedConcentrationBoundaries(wide, 0.0, 0.0, 0.0, 0.0);
+  const Index m = wide.numberOfCells();
+  const ScalarField wideY(m, 0.0);
+  SparseMatrixBuilder wideBuilder(m, m);
+  Vector wideRhs(m, 0.0);
+  assembleSpeciesDiffusionContribution(wide, 1.0, wideY, wideBcs, wideBuilder, wideRhs);
+  const auto wideMatrix = wideBuilder.build();
+  Vector e6(m, 0.0);
+  e6[6] = 1.0;
+  Vector e7(m, 0.0);
+  e7[7] = 1.0;
+  EXPECT_DOUBLE_EQ(wideMatrix.multiply(e6)[7], wideMatrix.multiply(e7)[6]);
+  EXPECT_LT(wideMatrix.multiply(e6)[7], 0.0);
 }
 
 TEST(SpeciesEquationDiffusionTest, ConstantConcentrationGivesZeroContributionEverywhere) {
@@ -371,9 +419,17 @@ TEST(SpeciesEquationAssemblyTest, CombinedAssemblyUsesDensityTimesDiffusivityAsC
   const auto& matrix = assembly.system.matrix();
   const auto& rhs = assembly.system.rhs();
 
-  const Real boundaryConductance = 6.0;  // (rho*D)*A/d = 3*1.0/0.5
-  const Real internalConductance = 3.0;  // (rho*D)*A/d = 3*1.0/1.0
-  const Real diagonalBase = 3.0 * boundaryConductance + internalConductance;  // 21
+  // P12-DIFF-002 A5, entry 18. Identical wall reconstruction to
+  // SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients above (rho*D = 3,
+  // h = 1, |S| = 1 -> cP = 9, cF = 1, cB = 8; the one-cell-thick y walls keep the two-point 6).
+  // The convection term is untouched by DIFF-002. Derived in a5/tools/derive_expected.py, block A3.
+  const Real cP = 9.0;
+  const Real cF = 1.0;
+  const Real cB = 8.0;
+  const Real fallbackConductance = 6.0;  // y walls, one cell thick
+  const Real internalConductance = 3.0;  // (rho*D)*A/dPN = 3*1.0/1.0
+  ASSERT_DOUBLE_EQ(cP - cF, cB);
+  const Real diagonalBase = cP + 2.0 * fallbackConductance + internalConductance;  // 24
 
   Vector eA(n, 0.0);
   eA[cellA] = 1.0;
@@ -381,12 +437,12 @@ TEST(SpeciesEquationAssemblyTest, CombinedAssemblyUsesDensityTimesDiffusivityAsC
   eB[cellB] = 1.0;
   EXPECT_NEAR(matrix.multiply(eA)[cellA], diagonalBase + fluxAtoB, 1e-9);
   EXPECT_NEAR(matrix.multiply(eB)[cellB], diagonalBase, 1e-9);
-  EXPECT_NEAR(matrix.multiply(eB)[cellA], -internalConductance, 1e-9);
-  EXPECT_NEAR(matrix.multiply(eA)[cellB], -internalConductance - fluxAtoB, 1e-9);
+  EXPECT_NEAR(matrix.multiply(eB)[cellA], -(internalConductance + cF), 1e-9);
+  EXPECT_NEAR(matrix.multiply(eA)[cellB], -(internalConductance + cF) - fluxAtoB, 1e-9);
 
   const Index leftCell = cellTouchingPatch(mesh, "left");
-  const Real commonRhs = boundaryConductance * yTop + boundaryConductance * yBottom;
-  EXPECT_NEAR(rhs[leftCell], boundaryConductance * yLeft + commonRhs, 1e-9);
+  const Real commonRhs = fallbackConductance * yTop + fallbackConductance * yBottom;
+  EXPECT_NEAR(rhs[leftCell], cB * yLeft + commonRhs, 1e-9);  // 8*10 + 6*15 + 6*5 = 200
 
   EXPECT_TRUE(matrix.allFinite());
   EXPECT_TRUE(rhs.allFinite());

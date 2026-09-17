@@ -40,8 +40,21 @@ InitialConditions parseInitialConditions(const nlohmann::json& json,
   requireObject(block, path, "initial_conditions");
   rejectUnknownKeys(block, path, "initial_conditions", {"velocity", "pressure"});
 
-  const auto velocity = getRequiredVector2(block, path, "velocity", "initial_conditions.velocity");
-  config.velocity = Vector2{velocity[0], velocity[1]};
+  // P12-MESH-006: a 3-element array is a 3D case's [u, v, w] (CaseReader
+  // checks the count against geometry.json); anything else goes through the
+  // unchanged 2D reader and its messages.
+  if (block.contains("velocity") && block.at("velocity").is_array() &&
+      block.at("velocity").size() == 3) {
+    const auto velocity =
+        getRequiredVector3(block, path, "velocity", "initial_conditions.velocity");
+    config.velocity = Vector3{velocity[0], velocity[1], velocity[2]};
+    config.velocityComponents = 3;
+  } else {
+    const auto velocity =
+        getRequiredVector2(block, path, "velocity", "initial_conditions.velocity");
+    config.velocity = Vector2{velocity[0], velocity[1]};
+    config.velocityComponents = 2;
+  }
   config.pressure = getRequiredReal(block, path, "pressure", "initial_conditions.pressure");
   return config;
 }

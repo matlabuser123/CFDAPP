@@ -7,6 +7,7 @@
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
+#include "cfd/pressure_velocity/SIMPLESettings.hpp"
 #include "cfd/solver/SolverRobustness.hpp"
 
 namespace cfd::pressure_velocity {
@@ -88,6 +89,13 @@ struct SIMPLEResult {
   Real finalPressureResidual{};
   Real finalContinuityResidual{};
   Real globalMassImbalance{};
+  // P12-MESH-006: the W momentum residual of a 3D solve (same definition as
+  // U/V: the warm-started linear solve's initial residual); 0 in 2D.
+  Real finalWResidual{};
+
+  // P12-MESH-006: the predictor face-flux scheme the solve actually used
+  // (SIMPLESettings::faceFlux with Automatic resolved for the mesh).
+  FaceFluxScheme faceFlux{FaceFluxScheme::Linear};
 
   // P2-TURB-004 section 23: the active TurbulenceModel's own
   // convergenceResidual() after the final iteration -- std::nullopt for
@@ -118,6 +126,8 @@ struct SIMPLEResult {
   std::vector<Real> vResidualHistory;
   std::vector<Real> pressureResidualHistory;
   std::vector<Real> continuityHistory;
+  // P12-MESH-006: one entry per completed iteration of a 3D solve; EMPTY in 2D.
+  std::vector<Real> wResidualHistory;
 
   // P12-NUM-004: normalized residual histories and references, the
   // relaxation factors used each iteration, linear-solver fallback events,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include "cfd/algebra/LinearSystem.hpp"
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/algebra/Vector.hpp"
@@ -52,6 +53,55 @@ struct EnergyAssembly {
 // FixedTemperature(T), and FixedGradient(0.0) to Adiabatic -- and several
 // of this file's own unit tests still use them directly for that reason.
 
+// The diffusion contribution of one boundary face to its owner's row, for
+// a face whose two-point coefficient is Df: the conduction heat flow out
+// of the owner through the face is Df (T_P - T_b).
+//   - A value-prescribing condition (FixedTemperature, FixedValue:
+//     cfd::discretization::prescribesBoundaryValue) fixes T_b:
+//     diagonal = Df, source = Df T_b.
+//   - A gradient-type condition (Adiabatic, FixedGradient, HeatFlux --
+//     every such boundaryValue() is ownerValue + g d) gives T_b = T_P + g d,
+//     so the flow is -Df g d whatever T_P is: diagonal = 0, source =
+//     Df * boundaryValue(0, d) = Df g d. The prescribed flux is assembled
+//     exactly (zero for Adiabatic), with no dependence on any iterate.
+// Add `diagonal` to A(P, P) and `source` to the RHS of the owner row.
+//
+// P12-MESH-003 fix: gradient-type faces previously used A(P, P) += Df,
+// rhs += Df T_b with T_b evaluated from the PREVIOUS outer iterate, i.e. a
+// wall flow Df (T_P^new - T_P^old - g d) in the solved system. The outer
+// loop stopped on max |dT| < tolerance and returned a field whose own
+// boundary values it had never been solved with, leaving up to
+// Df * tolerance of spurious flow per Neumann face (and hundreds of outer
+// iterations for a linear conduction problem). `temperature` is still
+// needed for value-prescribing conditions that read the owner value.
+struct BoundaryDiffusionContribution {
+  Real diagonal{0.0};
+  Real source{0.0};
+};
+// P12-DIFF-002: `boundaryValueCoefficient` is the multiplier of a PRESCRIBED
+// boundary temperature on the RHS (FaceDiffusionTerms::boundaryValueCoefficient).
+// It equals `coefficient` for the two-point form, and differs from it only when
+// the second-order one-sided reconstruction is active. Gradient-type conditions
+// are unaffected either way: their prescribed flux still uses `coefficient`
+// exactly as before.
+//
+// Prefer assembleThermalBoundaryFaceContribution below over calling this
+// directly: passing only `coefficient` silently selects the historical two-point
+// wall flux, which is what made the conjugate path diverge from the
+// single-material one (see that function's own comment).
+[[nodiscard]] BoundaryDiffusionContribution boundaryDiffusionContribution(
+    const cfd::mesh::Mesh& mesh, const cfd::mesh::Face& face,
+    const cfd::fields::ScalarField& temperature,
+    const cfd::boundary::BoundaryConditionSet& temperatureBoundaries, Real coefficient,
+    std::optional<Real> boundaryValueCoefficient = std::nullopt);
+
+// The stored diagonal coefficient of `row`, or 0 when the matrix builder
+// dropped it as an exact zero: a cell with no internal face, no
+// prescribed-temperature face and no outflow (every face gradient-type, a
+// one-cell mesh). Its equation is singular and the linear solve reports
+// that through ThermalResult::status instead of the assembly throwing.
+[[nodiscard]] Real storedDiagonalOrZero(const cfd::algebra::SparseMatrix& matrix, Index row);
+
 // k*Af/d diffusion contribution: symmetric internal-face contribution
 // (equal/opposite to owner and neighbor rows, same convention as
 // MomentumEquation's assembleDiffusionContribution with k in place of
@@ -69,6 +119,41 @@ struct EnergyAssembly {
 // nonOrthogonal.gradientScheme), evaluated from the temperature passed in
 // (lagged -- ThermalSolver's outer Picard loop converges it). On an
 // orthogonal mesh the corrected assembly is bit-identical.
+// P12-DIFF-002: the cell gradient the Dirichlet wall reconstruction needs for its tangential
+// transfer term. Always built -- WHICH wall-flux scheme is used must not depend on whether the
+// iterative non-orthogonal correction is enabled (see
+// results/p12-diff-002/a2/activation_architecture.md).
+[[nodiscard]] cfd::fields::VectorField thermalBoundaryCorrectionGradient(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& temperature,
+    const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
+    cfd::discretization::GradientScheme gradientScheme =
+        cfd::discretization::GradientScheme::GreenGauss);
+
+// P12-DIFF-002: the COMPLETE contribution of one boundary face to a thermal diffusion assembly --
+// the second-order one-sided Dirichlet reconstruction where a valid inward stencil exists (owner
+// coefficient, far-cell coefficient, prescribed-value coefficient and the explicit transfer term),
+// the historical two-point fallback where none exists, and the exact prescribed flux for
+// gradient-type conditions.
+//
+// This exists as ONE function because it must not be re-implemented per caller. It originally lived
+// inline in assembleThermalDiffusionContribution; the region-aware conjugate assembly
+// (ThermalInterface.cpp) had its own hard-coded `conductivity * face.area() / distance` copy, and
+// when P12-DIFF-002 A2 made the single-material wall flux unconditionally second order the two
+// paths silently diverged -- a single-region conjugate solve differed from the equivalent
+// single-material solve by up to 3.02 K
+// (results/p12-diff-002/thermal-interface-fix/acceptance_gate.md section 1). Both callers now share
+// this implementation, so that divergence cannot recur.
+//
+// `face` must be a boundary face and `gradT` the field from
+// thermalBoundaryCorrectionGradient above. Stencil availability is topological (MeshGeometry::
+// boundaryInwardStencil); no floating-point geometry predicate decides it.
+void assembleThermalBoundaryFaceContribution(
+    const cfd::mesh::Mesh& mesh, const cfd::mesh::Face& face, Real conductivity,
+    const cfd::fields::ScalarField& temperature,
+    const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
+    const cfd::fields::VectorField& gradT, cfd::algebra::SparseMatrixBuilder& builder,
+    cfd::algebra::Vector& rhs);
+
 void assembleThermalDiffusionContribution(
     const cfd::mesh::Mesh& mesh, Real conductivity, const cfd::fields::ScalarField& temperature,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,

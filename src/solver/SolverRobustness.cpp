@@ -342,6 +342,8 @@ OuterIterationMonitor::OuterIterationMonitor(const SolverRobustnessSettings& set
          settings.divergence.window, settings.divergence.startIteration),
       c_(tolerances.continuity, settings.normalization.referenceIterations,
          settings.divergence.window, settings.divergence.startIteration),
+      w_(tolerances.velocity, settings.normalization.referenceIterations,
+         settings.divergence.window, settings.divergence.startIteration),
       distanceTracker_(1.0, 1, settings.stagnation.window, 1),
       controller_(settings.adaptiveRelaxation, initialVelocityRelaxation,
                   initialPressureRelaxation) {
@@ -360,20 +362,25 @@ bool OuterIterationMonitor::isConverged(const OuterResidualSample& sample) const
   const bool turbulenceConverged =
       !sample.turbulence.has_value() || (*sample.turbulence <= tolerances_.turbulence);
   if (settings_.convergenceCriterion == ConvergenceCriterion::Absolute) {
-    // Exactly the pre-P12-NUM-004 gate (same comparisons, same operands).
+    // Exactly the pre-P12-NUM-004 gate (same comparisons, same operands);
+    // P12-MESH-006: plus w <= velocity tol when the sample carries w.
+    const bool wConverged = !sample.w.has_value() || (*sample.w <= tolerances_.velocity);
     return (sample.u <= tolerances_.velocity) && (sample.v <= tolerances_.velocity) &&
            (sample.pressure <= tolerances_.pressure) &&
            (sample.continuity <= tolerances_.continuity) &&
-           (sample.globalImbalance <= tolerances_.continuity) && turbulenceConverged;
+           (sample.globalImbalance <= tolerances_.continuity) && turbulenceConverged && wConverged;
   }
   const bool finite = std::isfinite(sample.u) && std::isfinite(sample.v) &&
                       std::isfinite(sample.pressure) && std::isfinite(sample.continuity) &&
-                      std::isfinite(sample.globalImbalance);
+                      std::isfinite(sample.globalImbalance) &&
+                      (!sample.w.has_value() || std::isfinite(*sample.w));
+  const bool wConverged = !sample.w.has_value() ||
+                          (*sample.w <= threshold(w_, settings_.normalization.velocityTolerance));
   return finite && (sample.u <= threshold(u_, settings_.normalization.velocityTolerance)) &&
          (sample.v <= threshold(v_, settings_.normalization.velocityTolerance)) &&
          (sample.pressure <= threshold(p_, settings_.normalization.pressureTolerance)) &&
          (sample.continuity <= tolerances_.continuity) &&
-         (sample.globalImbalance <= tolerances_.continuity) && turbulenceConverged;
+         (sample.globalImbalance <= tolerances_.continuity) && turbulenceConverged && wConverged;
 }
 
 bool OuterIterationMonitor::diverging(const ResidualTracker& tracker, std::string_view name) {
@@ -399,7 +406,18 @@ bool OuterIterationMonitor::diverging(const ResidualTracker& tracker, std::strin
     }
   }
   const Real oldest = tracker.valueAgo(window - 1);
-  if (increasing && tracker.valueAgo(0) >= growth * oldest) {
+  // P12-DIFF-002-ROB-001: compare against the same meaningful-residual floor the persistent-
+  // excursion rule above already applies. `tracker.floor()` IS this residual's convergence
+  // tolerance (see threshold(), which returns it as the absolute convergence threshold), so a
+  // value below it is already converged and its growth is round-off, not divergence. Without this
+  // floor a continuity residual drifting 1.958e-14 -> 3.100e-13 against a 1e-6 tolerance -- every
+  // value in the window eight orders of magnitude below it -- aborted a converging lid-driven
+  // cavity at iteration 112 as Diverging, returning an unconverged field
+  // (results/p12-diff-002/rob-001/acceptance_gate.md). Growth above the floor is unaffected: there
+  // `meaningfulOldest == oldest`. `oldest` itself stays raw for the diagnostic below, which reports
+  // what was actually observed.
+  const Real meaningfulOldest = std::max(tracker.floor(), oldest);
+  if (increasing && tracker.valueAgo(0) >= growth * meaningfulOldest) {
     diagnostics_.statusDetail =
         "divergence: the " + std::string(name) + " residual increased at each of the last " +
         std::to_string(window - 1) + " iterations, " + formatReal(oldest) + " -> " +
@@ -426,6 +444,11 @@ OuterIterationVerdict OuterIterationMonitor::record(const OuterResidualSample& s
   diagnostics_.vReference = v_.effectiveReference();
   diagnostics_.pressureReference = p_.effectiveReference();
   diagnostics_.continuityReference = c_.effectiveReference();
+  if (sample.w.has_value()) {  // P12-MESH-006
+    w_.push(*sample.w);
+    diagnostics_.wNormalizedHistory.push_back(w_.normalized());
+    diagnostics_.wReference = w_.effectiveReference();
+  }
 
   const auto ratio = [](Real value, Real limit) {
     const Real r = value / limit;
@@ -439,6 +462,10 @@ OuterIterationVerdict OuterIterationMonitor::record(const OuterResidualSample& s
                 ratio(sample.globalImbalance, tolerances_.continuity)});
   if (sample.turbulence.has_value()) {
     distance_ = std::max(distance_, ratio(*sample.turbulence, tolerances_.turbulence));
+  }
+  if (sample.w.has_value()) {
+    distance_ = std::max(
+        distance_, ratio(*sample.w, threshold(w_, settings_.normalization.velocityTolerance)));
   }
   diagnostics_.convergenceDistanceHistory.push_back(distance_);
   distanceTracker_.push(distance_);
@@ -454,7 +481,8 @@ OuterIterationVerdict OuterIterationMonitor::record(const OuterResidualSample& s
   // exclude non-finite values), so it is Diverging at once -- when enabled.
   if (settings_.divergence.enabled &&
       !(std::isfinite(sample.u) && std::isfinite(sample.v) && std::isfinite(sample.pressure) &&
-        std::isfinite(sample.continuity) && std::isfinite(sample.globalImbalance))) {
+        std::isfinite(sample.continuity) && std::isfinite(sample.globalImbalance) &&
+        (!sample.w.has_value() || std::isfinite(*sample.w)))) {
     diagnostics_.statusDetail =
         "divergence: a residual norm overflowed to a non-finite value at iteration " +
         std::to_string(n) + " (u " + formatReal(sample.u) + ", v " + formatReal(sample.v) + ", p " +
@@ -464,7 +492,7 @@ OuterIterationVerdict OuterIterationMonitor::record(const OuterResidualSample& s
   if (settings_.divergence.enabled &&
       n >= std::max<Index>(settings_.divergence.startIteration, 1) + settings_.divergence.window) {
     if (diverging(u_, "u") || diverging(v_, "v") || diverging(p_, "pressure") ||
-        diverging(c_, "continuity")) {
+        diverging(c_, "continuity") || (sample.w.has_value() && diverging(w_, "w"))) {
       return OuterIterationVerdict::Diverging;
     }
   }
@@ -487,7 +515,10 @@ OuterIterationVerdict OuterIterationMonitor::record(const OuterResidualSample& s
     }
   }
 
-  lastAction_ = controller_.update(std::max({u_.normalized(), v_.normalized(), p_.normalized()}));
+  lastAction_ = controller_.update(
+      sample.w.has_value()
+          ? std::max({u_.normalized(), v_.normalized(), p_.normalized(), w_.normalized()})
+          : std::max({u_.normalized(), v_.normalized(), p_.normalized()}));
   diagnostics_.relaxationIncreases = controller_.increases();
   diagnostics_.relaxationDecreases = controller_.decreases();
   return OuterIterationVerdict::Continue;

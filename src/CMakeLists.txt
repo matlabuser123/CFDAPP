@@ -42,8 +42,12 @@ target_sources(cfdcore
     mesh/BoundaryPatch.cpp
     mesh/Mesh.cpp
     mesh/MeshGeometry.cpp
+    mesh/MeshGrading.cpp
     mesh/MeshQuality.cpp
     mesh/MeshFingerprint.cpp
+    # P12-MESH-007: topology-preserving mesh motion (prescribed motions,
+    # geometry update, mesh velocity, swept volumes, GCL).
+    mesh/MeshMotion.cpp
 )
 
 target_sources(cfdcore
@@ -127,6 +131,7 @@ target_sources(cfdcore
     pressure_velocity/UnderRelaxation.cpp
     pressure_velocity/PressureCorrectionEquation.cpp
     pressure_velocity/RelaxedMomentum.cpp
+    pressure_velocity/RhieChow.cpp
     pressure_velocity/SIMPLE.cpp
     # P2 -- Transient CFD, TASK P2-005: the transient momentum predictor
     # building block (PISO-A/B/C), plus the actual one-timestep PISO
@@ -134,6 +139,9 @@ target_sources(cfdcore
     # correction machinery -- no TransientSolver wiring yet (PISO-I).
     pressure_velocity/TransientMomentum.cpp
     pressure_velocity/PISO.cpp
+    # P12-MESH-007: ALE PISO on a prescribed moving mesh (shares PISO's
+    # algorithm through the library-internal PisoStep.hpp).
+    pressure_velocity/AlePISO.cpp
 )
 
 # P2 -- Transient CFD: TimeController (P2-001), CFL (P2-003), and

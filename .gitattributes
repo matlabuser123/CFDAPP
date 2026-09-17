@@ -1,0 +1,9 @@
+# Store every file byte-for-byte: no end-of-line conversion, in either direction.
+#
+# CFDApp's evidence rules hash working-tree files (acceptance gates, freeze logs,
+# instrument and library hashes). Line-ending conversion would change those bytes,
+# so a recorded sha256 would no longer reproduce from a clone. Committed as part of
+# the P12 lineage, where 23 files carry CRLF -- among them the frozen MESH-007
+# instrument tests/unit/discretization/test_ale_operators.cpp (df2e9626...) and
+# fixtures inside the 733-file build-input hash 34cd655d...
+*	-text

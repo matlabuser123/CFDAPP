@@ -30,10 +30,13 @@ ColumnLayout {
     Repeater {
         model: simulationController.validationIssues
         delegate: Rectangle {
+            // P12-MESH-004: mesh-quality warnings of a valid case are listed
+            // too (severity "Warning") -- amber, not the error red.
+            readonly property bool isWarning: modelData.severity === "Warning"
             Layout.fillWidth: true
             implicitHeight: issueLabel.implicitHeight + 12
-            color: "#fdecea"
-            border.color: "#b00020"
+            color: isWarning ? "#fff4e5" : "#fdecea"
+            border.color: isWarning ? "#b06000" : "#b00020"
             radius: 3
 
             MouseArea {
@@ -55,7 +58,7 @@ ColumnLayout {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.margins: 6
                 wrapMode: Text.WrapAnywhere
-                color: "#611a15"
+                color: parent.isWarning ? "#663c00" : "#611a15"
                 text: modelData.severity + " | " + modelData.section +
                       (modelData.field ? (" | " + modelData.field) : "") +
                       " | " + modelData.message

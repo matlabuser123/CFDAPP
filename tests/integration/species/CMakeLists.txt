@@ -40,6 +40,11 @@ target_link_libraries(CFDSpeciesConservationValidationTests
     cfdapp::compiler_warnings
     GTest::gtest_main
 )
+# P12-DIFF-002 validation migration: tests/support/BoundaryFluxProbe.hpp.
+target_include_directories(CFDSpeciesConservationValidationTests
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../support
+)
 gtest_discover_tests(CFDSpeciesConservationValidationTests
   WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
   PROPERTIES LABELS "validation"

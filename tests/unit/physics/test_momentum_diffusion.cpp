@@ -127,9 +127,20 @@ TEST(MomentumDiffusionTest, InteriorCellsMatchKnownQuadraticLaplacian) {
 }
 
 TEST(MomentumDiffusionTest, InternalFaceCoefficientsAreSymmetric) {
-  // Cells 0 (bottom-left) and 1 (its right neighbor) share an internal
-  // face on this 3x3 mesh -- A(0,1) and A(1,0) should be equal
-  // (TODO.md section 10's "equal/opposite" neighbor-row contribution).
+  // Cells 0 (bottom-left) and 1 (its right neighbor) share an internal face on this 3x3 mesh.
+  //
+  // P12-DIFF-002 A5, entry 13 (validation-migration/acceptance_gate_A5.md, class M-A/2). The
+  // "equal/opposite" neighbour-row contribution of TODO.md section 10 is unchanged and is still
+  // asserted below. What changed is that A(0,1) is no longer a pure internal coupling: cell 0's
+  // xmin wall reaches its far cell THROUGH the face it shares with cell 1, so the one-sided
+  // far-cell coefficient of the second-order wall reconstruction lands on that same entry. Cell 1
+  // is in the middle column and has no x-normal wall, so A(1,0) stays a pure internal coupling.
+  // The asymmetry is deliberate (results/p12-diff-002/architecture.md section 2) and is why these
+  // systems are solved with BiCGSTAB rather than CG.
+  //
+  // Derived independently (a5/tools/derive_expected.py, block D): h = 1/3, |S| = 1/3, mu = 1:
+  //   cInt = mu |S| / dPN = 1        cF = mu |S| h1 / (h2 (h2 - h1)) = 1/3
+  //   A(1,0) = -cInt = -1            A(0,1) = -(cInt + cF) = -4/3
   const Mesh mesh = MeshGeometry::createCartesian2D(3, 3, 1.0, 1.0);
   const auto boundaries = makeConstantVelocityBoundaries(mesh, Vector2{0.0, 0.0});
   const Index n = mesh.numberOfCells();
@@ -145,11 +156,37 @@ TEST(MomentumDiffusionTest, InternalFaceCoefficientsAreSymmetric) {
   e0[0] = 1.0;
   Vector e1(n, 0.0);
   e1[1] = 1.0;
-  const Real a10 = matrix.multiply(e0)[1];  // A(1,0)
-  const Real a01 = matrix.multiply(e1)[0];  // A(0,1)
-  EXPECT_NEAR(a01, a10, 1e-12);
+  const Real cInt = 1.0;      // mu |S| / dPN = 1 * (1/3) / (1/3)
+  const Real cF = 1.0 / 3.0;  // mu |S| h1 / (h2 (h2 - h1)), h1 = 1/6, h2 = 1/2, |S| = 1/3
+
+  const Real a10 = matrix.multiply(e0)[1];  // A(1,0) -- pure internal coupling
+  const Real a01 = matrix.multiply(e1)[0];  // A(0,1) -- internal coupling + cell 0's far-cell term
+  EXPECT_NEAR(a10, -cInt, 1e-12);
+  EXPECT_NEAR(a01, -(cInt + cF), 1e-12);
+  // The one-sided far-cell coefficient is the ONLY thing that breaks entry-level symmetry.
+  EXPECT_NEAR(a01 - a10, -cF, 1e-12);
   EXPECT_LT(a01, 0.0);  // off-diagonal diffusion coefficients are negative
+  EXPECT_LT(a10, 0.0);
   EXPECT_TRUE(matrix.allFinite());
+
+  // The equal/opposite property itself, where no far-cell term can reach: two INTERIOR cells of a
+  // 5x5 mesh (cells 6 = (1,1) and 7 = (2,1) have no boundary face, so neither row receives a
+  // far-cell entry) must couple exactly symmetrically.
+  const Mesh wide = MeshGeometry::createCartesian2D(5, 5, 1.0, 1.0);
+  const auto wideBcs = makeConstantVelocityBoundaries(wide, Vector2{0.0, 0.0});
+  const Index m = wide.numberOfCells();
+  SparseMatrixBuilder wideBuilder(m, m);
+  Vector wideRhs(m, 0.0);
+  const VectorField wideVelocity(m, Vector2{0.0, 0.0});
+  assembleDiffusionContribution(wide, 1.0, wideVelocity, wideBcs, VelocityComponent::U, wideBuilder,
+                                wideRhs);
+  const auto wideMatrix = wideBuilder.build();
+  Vector e6(m, 0.0);
+  e6[6] = 1.0;
+  Vector e7(m, 0.0);
+  e7[7] = 1.0;
+  EXPECT_DOUBLE_EQ(wideMatrix.multiply(e6)[7], wideMatrix.multiply(e7)[6]);
+  EXPECT_LT(wideMatrix.multiply(e6)[7], 0.0);
 }
 
 TEST(MomentumDiffusionTest, DiagonalIsFinitePositiveAndNonzero) {

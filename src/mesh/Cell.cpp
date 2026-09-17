@@ -9,7 +9,7 @@ namespace cfd::mesh {
 namespace {
 
 void validate(const Vector2& centroid, Real volume) {
-  if (!std::isfinite(centroid.x) || !std::isfinite(centroid.y)) {
+  if (!isFinite(centroid)) {
     throw InvalidArgumentError("Cell centroid must be finite");
   }
   if (!std::isfinite(volume)) {

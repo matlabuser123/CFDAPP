@@ -338,6 +338,110 @@ CoupledOutcome runNaturalConvectionCavity(const GridCase& grid, Real beta,
   return outcome;
 }
 
+// P12-DIFF-002-UF-001 -- how the de Vahl Davis benchmark is applied.
+//
+// The literature values are FIXED and are never changed here. What UF-001
+// changed is WHERE the agreement claim is made.
+//
+// The superseded criterion compared a single 10x10 solve against the
+// benchmark with tolerances its own comment recorded as "locked from
+// diagnosed evidence (coarsest grid, largest error): u_max 10.1%, v_max
+// 6.7%, Nu_avg 4.9% -- margin above each". Those are the pre-DIFF-002
+// production numbers (measured: v_max 6.714%, Nu_avg 4.856%), so the bound
+// was a regression lock on one non-asymptotic grid rather than an
+// application of the benchmark -- and de Vahl Davis's tabulated values are
+// themselves h->0 Richardson-extrapolated, not values on any mesh. Two
+// measured consequences, both in
+// results/p12-diff-002/uf-001/acceptance_gate.md:
+//   * 10x10 is not in the asymptotic range (v_max error 13.0%, Nu_avg 2.2%);
+//   * on the v_max assertion specifically the old bound is ANTI-correlated
+//     with wall-operator correctness -- a deliberately far-cell-doubled
+//     operator scores 0.01855 there against the correct code's 0.13026.
+//
+// The claim is therefore made against a refinement PAIR, and strengthened:
+//   P1  each error must SHRINK toward the fixed literature value;
+//   P2  by at least 1.5x per doubling (formal order 1 -- first-order upwind
+//       convection -- predicts 2.0; 1.5 admits a 25% pre-asymptotic
+//       shortfall);
+//   P3  the 20x20 errors must meet the bounds THIS FILE already carried in
+//       DISABLED_Grid20x20MatchesDeVahlDavisRa1e3 (0.08/0.08/0.05) -- no
+//       threshold is loosened, the precision claim simply moves to the grid
+//       that can support it;
+//   P4  each extremum's LOCATION must sit within one cell of the location
+//       the literature reports (u_max y=0.813, v_max x=0.179) -- benchmark
+//       data that DeVahlDavis1983.hpp carried and no test used.
+//
+// Non-vacuity, measured before this was written: a far-cell-doubled operator
+// fails 8 of 13 criteria and a sign-flipped one 7 of 13, while the
+// superseded two-point operator PASSES -- correctly, since it converges to
+// the same continuum limit and is a legitimate lower-order scheme, not a
+// defect. These criteria deliberately do NOT discriminate the wall operator;
+// that is pinned by the wall-shear order study (two-point 1.000 vs DIFF-002
+// 2.000, quadratic-exact) in uf-001/logs/07,08.
+//
+// n = 10 and n = 20 are both EVEN on purpose: the mid-plane is a
+// cell-centre line for odd n and interpolated between two lines for even n,
+// so a mixed-parity sequence is not an h-refinement sequence for these
+// sampled extrema (this file's own GridConvergence comment already records
+// that u_max "oscillates" on the mixed 10/15/20 family).
+void expectApproachesDeVahlDavis(const cfd::validation::NaturalConvectionValidationRecord& coarse,
+                                 const cfd::validation::NaturalConvectionValidationRecord& fine) {
+  using cfd::validation::de_vahl_davis_1983::kRa1e3;
+  ASSERT_EQ(coarse.nx, 10);
+  ASSERT_EQ(fine.nx, 20);
+  ASSERT_EQ(coarse.nx % 2, 0) << "parity rule: both grids must be even";
+  ASSERT_EQ(fine.nx % 2, 0) << "parity rule: both grids must be even";
+
+  struct Quantity {
+    const char* name;
+    Real coarseError;
+    Real fineError;
+    Real fineEnvelope;  // this file's own pre-existing 20x20 bound
+    Real reference;     // the FIXED literature value, kept visible
+  };
+  const Quantity quantities[] = {{"nu_avg", coarse.nuAvgError, fine.nuAvgError, 0.05, kRa1e3.nuAvg},
+                                 {"u_max", coarse.uMaxError, fine.uMaxError, 0.08, kRa1e3.uMax},
+                                 {"v_max", coarse.vMaxError, fine.vMaxError, 0.08, kRa1e3.vMax}};
+
+  constexpr Real kRateFloor = 1.5;
+  for (const auto& q : quantities) {
+    // P1 -- refinement moves toward the fixed literature value.
+    EXPECT_LT(q.fineError, q.coarseError)
+        << q.name << ": refining 10x10 -> 20x20 must move TOWARD the de Vahl Davis value "
+        << q.reference << " (errors " << q.coarseError << " -> " << q.fineError << ")";
+    // P2 -- at a rate consistent with the scheme's formal order of 1.
+    ASSERT_GT(q.fineError, 0.0) << q.name << ": zero fine error, rate undefined";
+    const Real rate = q.coarseError / q.fineError;
+    EXPECT_GE(rate, kRateFloor) << q.name << ": error reduction per grid doubling " << rate
+                                << " is below the " << kRateFloor
+                                << " floor (formal order 1 predicts 2.0)";
+    // P3 -- the 20x20 precision envelope this file already carried.
+    EXPECT_LT(q.fineError, q.fineEnvelope)
+        << q.name << ": 20x20 relative error against " << q.reference << " exceeds the envelope";
+  }
+
+  // P4 -- the extremum LOCATIONS against the locations the literature reports.
+  for (const auto& r : {coarse, fine}) {
+    const Real cell = 1.0 / static_cast<Real>(r.nx);
+    EXPECT_LE(std::abs(r.uMaxComputedY - kRa1e3.uMaxY), cell)
+        << r.nx << "x" << r.ny << ": u_max is at y=" << r.uMaxComputedY
+        << ", literature y=" << kRa1e3.uMaxY << " (tolerance one cell, " << cell << ")";
+    EXPECT_LE(std::abs(r.vMaxComputedX - kRa1e3.vMaxX), cell)
+        << r.nx << "x" << r.ny << ": v_max is at x=" << r.vMaxComputedX
+        << ", literature x=" << kRa1e3.vMaxX << " (tolerance one cell, " << cell << ")";
+  }
+
+  // The 10x10 benchmark errors are PRESERVED as diagnostic evidence; they are
+  // no longer an acceptance bound. (Measured when UF-001 froze its gate:
+  // Nu_avg 0.02246, u_max 0.13703, v_max 0.13026.)
+  std::printf(
+      "de Vahl Davis Ra=1e3 -- 10x10 errors: Nu_avg %.5f u_max %.5f v_max %.5f | "
+      "20x20 errors: Nu_avg %.5f u_max %.5f v_max %.5f | reduction factors %.3f/%.3f/%.3f\n",
+      coarse.nuAvgError, coarse.uMaxError, coarse.vMaxError, fine.nuAvgError, fine.uMaxError,
+      fine.vMaxError, coarse.nuAvgError / fine.nuAvgError, coarse.uMaxError / fine.uMaxError,
+      coarse.vMaxError / fine.vMaxError);
+}
+
 }  // namespace
 
 // =====================================================================
@@ -352,13 +456,16 @@ TEST(NaturalConvectionValidation, Grid10x10MatchesDeVahlDavisRa1e3) {
   EXPECT_LT(r.globalMassImbalance, 1e-6);
   EXPECT_LT(r.maxWallNormalFlux, 1e-6);
   EXPECT_LT(r.heatImbalance, 0.05);
-  // Thresholds locked from diagnosed evidence (coarsest grid, largest
-  // error): u_max 10.1%, v_max 6.7%, Nu_avg 4.9% -- margin above each.
-  EXPECT_LT(r.uMaxError, 0.15);
-  EXPECT_LT(r.vMaxError, 0.12);
-  EXPECT_LT(r.nuAvgError, 0.10);
   EXPECT_GE(r.minTheta, -1e-6);
   EXPECT_LE(r.maxTheta, 1.0 + 1e-6);
+  // P12-DIFF-002-UF-001: the benchmark-agreement claim is made against the
+  // refinement pair, not against this single coarse grid -- see
+  // expectApproachesDeVahlDavis and
+  // results/p12-diff-002/uf-001/acceptance_gate.md.
+  const auto fine = runNaturalConvectionCavity(kGrid20, kBeta, "10x10_refinement_pair");
+  ASSERT_TRUE(fine.record.flowConverged) << "20x20 flow did not converge";
+  ASSERT_TRUE(fine.record.thermalConverged) << "20x20 thermal did not converge";
+  expectApproachesDeVahlDavis(r, fine.record);
 }
 
 // P3-PHYS-003 section 21: the same 10x10/Ra=1e3 benchmark case above, but
@@ -381,13 +488,17 @@ TEST(NaturalConvectionValidation, Grid10x10ConstantPropertyModelsMatchDeVahlDavi
   EXPECT_LT(r.globalMassImbalance, 1e-6);
   EXPECT_LT(r.maxWallNormalFlux, 1e-6);
   EXPECT_LT(r.heatImbalance, 0.05);
-  // Same thresholds as Grid10x10MatchesDeVahlDavisRa1e3 above -- this is
-  // the identical physics through a different (field-based) code path.
-  EXPECT_LT(r.uMaxError, 0.15);
-  EXPECT_LT(r.vMaxError, 0.12);
-  EXPECT_LT(r.nuAvgError, 0.10);
   EXPECT_GE(r.minTheta, -1e-6);
   EXPECT_LE(r.maxTheta, 1.0 + 1e-6);
+  // P12-DIFF-002-UF-001: the same refinement-pair claim as
+  // Grid10x10MatchesDeVahlDavisRa1e3 above -- this is the identical physics
+  // through a different (field-based) code path, so it must clear the
+  // identical criteria.
+  const auto fine = runNaturalConvectionCavity(kGrid20, kBeta, "20x20_variable_property_regression",
+                                               /*useVariablePropertyThermalSolve=*/true);
+  ASSERT_TRUE(fine.record.flowConverged) << "20x20 flow did not converge";
+  ASSERT_TRUE(fine.record.thermalConverged) << "20x20 thermal did not converge";
+  expectApproachesDeVahlDavis(r, fine.record);
 }
 
 TEST(NaturalConvectionValidation, Grid15x15MatchesDeVahlDavisRa1e3) {

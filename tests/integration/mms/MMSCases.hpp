@@ -139,6 +139,25 @@ bool monotonicallyDecreasing(const cfd::validation::MMSStudy& study, const std::
 bool addOrderGate(cfd::validation::MMSStudy& study, const std::string& category,
                   const std::string& quantity, cfd::validation::NormKind norm, Real formalOrder,
                   Real lo, Real hi);
+// P12-DIFF-002 A6-3 (validation-migration/acceptance_gate_A6.md section 2.3). As addOrderGate, but
+// gates the FINEST PAIRWISE observed order log_r(E_coarse / E_fine) instead of the finest triplet's
+// three-level Richardson order.
+//
+// Why: P12-DIFF-002 makes the boundary ring converge one order faster than the interior (measured
+// 2.95 against a formal 2), so the total error behaves as E(h) = A h^2 + B h^3 and its pairwise
+// observed order lies strictly between 2 and 3, decaying to 2 as h -> 0. The three-level Richardson
+// estimator is a difference of differences and OVERSHOOTS past 3 while that decay is in progress --
+// 2.6 to 3.1 on these studies' grids, which the framework itself labels
+// `monotonic_not_asymptotic`. Extending the momentum study to 256^2 shows every quantity settling
+// at the formal order (1.99-2.04), so the overshoot is a pre-asymptotic artefact of the estimator,
+// not an order above 2 (a6/resumed/logs/05).
+//
+// The pairwise estimator's range for such an error IS bounded by the faster component's order, so
+// an upper limit of formalOrder + 1 is derived rather than widened. The lower limit is unchanged:
+// that is what detects a loss of formal accuracy.
+bool addPairwiseOrderGate(cfd::validation::MMSStudy& study, const std::string& category,
+                          const std::string& quantity, cfd::validation::NormKind norm,
+                          Real formalOrder, Real lo, Real hi);
 // Gate "<category>: <quantity> L1/L2/Linf decrease on every refinement".
 bool addDecreaseGate(cfd::validation::MMSStudy& study, const std::string& category,
                      const std::string& quantity);
