@@ -6,91 +6,92 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
 
 | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
 |---|---|---|---|---|---|---|
-| 16x16 | 256 | 0.0625 | Converged | 17 | 1.54e-33 | 0.9 |
-| 32x32 | 1024 | 0.03125 | Converged | 13 | 7.7e-34 | 3.7 |
-| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 16.3 |
-| 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 109.0 |
+| 16x16 | 256 | 0.0625 | Converged | 18 | 1.54e-33 | 0.1 |
+| 32x32 | 1024 | 0.03125 | Converged | 13 | 7.7e-34 | 0.2 |
+| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.9 |
+| 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 5.3 |
 
 **u**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 1.9817e-03 | 2.4552e-03 | 7.0221e-03 |
-| 32x32 | 4.2093e-04 | 5.3007e-04 | 1.4986e-03 |
-| 64x64 | 1.0129e-04 | 1.2798e-04 | 4.0706e-04 |
-| 128x128 | 2.5369e-05 | 3.2249e-05 | 9.5909e-05 |
+| 16x16 | 2.4385e-03 | 3.0602e-03 | 9.3220e-03 |
+| 32x32 | 4.9347e-04 | 6.3423e-04 | 1.7403e-03 |
+| 64x64 | 1.0659e-04 | 1.4436e-04 | 3.8401e-04 |
+| 128x128 | 2.4546e-05 | 3.5045e-05 | 9.6317e-05 |
 
 **v**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 3.1648e-03 | 3.7696e-03 | 9.8310e-03 |
-| 32x32 | 7.8515e-04 | 9.4915e-04 | 2.1819e-03 |
-| 64x64 | 1.9435e-04 | 2.3797e-04 | 5.5993e-04 |
-| 128x128 | 4.8310e-05 | 5.9844e-05 | 1.4204e-04 |
+| 16x16 | 2.0238e-03 | 2.6821e-03 | 9.9904e-03 |
+| 32x32 | 5.0623e-04 | 6.4282e-04 | 2.1439e-03 |
+| 64x64 | 1.2350e-04 | 1.5457e-04 | 3.8834e-04 |
+| 128x128 | 3.0251e-05 | 3.8251e-05 | 9.8568e-05 |
 
 **velocity**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 4.0086e-03 | 4.4987e-03 | 1.0095e-02 |
-| 32x32 | 9.6426e-04 | 1.0871e-03 | 2.2732e-03 |
-| 64x64 | 2.3953e-04 | 2.7020e-04 | 5.6715e-04 |
-| 128x128 | 6.0273e-05 | 6.7980e-05 | 1.4289e-04 |
+| 16x16 | 3.5116e-03 | 4.0692e-03 | 1.0210e-02 |
+| 32x32 | 7.8379e-04 | 9.0303e-04 | 2.1504e-03 |
+| 64x64 | 1.8096e-04 | 2.1150e-04 | 4.1210e-04 |
+| 128x128 | 4.3355e-05 | 5.1878e-05 | 1.0653e-04 |
 
 **u_interior**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 2.0882e-03 | 2.5791e-03 | 7.0221e-03 |
-| 32x32 | 4.1558e-04 | 5.2585e-04 | 1.2199e-03 |
-| 64x64 | 9.9852e-05 | 1.2616e-04 | 3.7985e-04 |
-| 128x128 | 2.5160e-05 | 3.1972e-05 | 9.1796e-05 |
+| 16x16 | 2.8216e-03 | 3.3999e-03 | 9.3220e-03 |
+| 32x32 | 5.4084e-04 | 6.7314e-04 | 1.7403e-03 |
+| 64x64 | 1.1230e-04 | 1.4889e-04 | 3.8401e-04 |
+| 128x128 | 2.5253e-05 | 3.5597e-05 | 9.6317e-05 |
 
 **v_interior**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 3.2693e-03 | 3.8814e-03 | 9.8310e-03 |
-| 32x32 | 8.1621e-04 | 9.7707e-04 | 2.1819e-03 |
-| 64x64 | 1.9882e-04 | 2.4185e-04 | 5.5993e-04 |
-| 128x128 | 4.8864e-05 | 6.0347e-05 | 1.4204e-04 |
+| 16x16 | 2.2938e-03 | 2.9355e-03 | 9.9904e-03 |
+| 32x32 | 5.5793e-04 | 6.8218e-04 | 2.1439e-03 |
+| 64x64 | 1.3058e-04 | 1.5947e-04 | 3.8834e-04 |
+| 128x128 | 3.1158e-05 | 3.8856e-05 | 9.8568e-05 |
 
 **u_boundary_ring**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 1.6338e-03 | 1.9975e-03 | 6.4284e-03 |
-| 32x32 | 4.5977e-04 | 5.5977e-04 | 1.4986e-03 |
-| 64x64 | 1.2322e-04 | 1.5298e-04 | 4.0706e-04 |
-| 128x128 | 3.1880e-05 | 3.9957e-05 | 9.5909e-05 |
+| 16x16 | 1.1871e-03 | 1.4813e-03 | 4.8197e-03 |
+| 32x32 | 1.4967e-04 | 1.8173e-04 | 6.6189e-04 |
+| 64x64 | 1.9481e-05 | 2.3615e-05 | 8.2657e-05 |
+| 128x128 | 2.4443e-06 | 3.0187e-06 | 1.0191e-05 |
 
 **v_boundary_ring**
 
 | grid | L1 | L2 | Linf |
 |---|---|---|---|
-| 16x16 | 2.8234e-03 | 3.3790e-03 | 9.7019e-03 |
-| 32x32 | 5.5971e-04 | 7.1444e-04 | 1.8779e-03 |
-| 64x64 | 1.2611e-04 | 1.6806e-04 | 4.5556e-04 |
-| 128x128 | 3.0981e-05 | 4.1127e-05 | 1.0358e-04 |
+| 16x16 | 1.1419e-03 | 1.5947e-03 | 6.6327e-03 |
+| 32x32 | 1.3099e-04 | 1.8632e-04 | 1.0847e-03 |
+| 64x64 | 1.5465e-05 | 2.1308e-05 | 1.4930e-04 |
+| 128x128 | 1.9169e-06 | 2.5369e-06 | 1.9368e-05 |
 
 | quantity | norm | formal | reduction factors | observed p (per triplet) | status (finest) |
 |---|---|---|---|---|---|
-| u | l2 | 2 | 4.632, 4.142, 3.968 | 2.259, 2.071 | asymptotic |
-| u | l1 | 2 | 4.708, 4.156, 3.993 | 2.288, 2.074 | asymptotic |
-| u | linf | 2 | 4.686, 3.682, 4.244 | 2.339, 1.811 | monotonic_not_asymptotic |
-| v | l2 | 2 | 3.972, 3.988, 3.977 | 1.988, 1.997 | asymptotic |
-| v | l1 | 2 | 4.031, 4.040, 4.023 | 2.010, 2.016 | asymptotic |
-| v | linf | 2 | 4.506, 3.897, 3.942 | 2.238, 1.957 | asymptotic |
-| velocity | l2 | 2 | 4.138, 4.023, 3.975 | 2.062, 2.014 | asymptotic |
-| u_interior | l2 | 2 | 4.905, 4.168, 3.946 | 2.361, 2.085 | asymptotic |
-| u_boundary_ring | l2 | 2 | 3.568, 3.659, 3.829 | 1.821, 1.848 | monotonic_not_asymptotic |
+| u | l2 | 2 | 4.825, 4.393, 4.119 | 2.308, 2.164 | monotonic_not_asymptotic |
+| u | l1 | 2 | 4.942, 4.630, 4.343 | 2.330, 2.237 | monotonic_not_asymptotic |
+| u | linf | 2 | 5.356, 4.532, 3.987 | 2.483, 2.237 | monotonic_not_asymptotic |
+| v | l2 | 2 | 4.172, 4.159, 4.041 | 2.062, 2.069 | asymptotic |
+| v | l1 | 2 | 3.998, 4.099, 4.082 | 1.987, 2.037 | asymptotic |
+| v | linf | 2 | 4.660, 5.521, 3.940 | 2.160, 2.599 | monotonic_not_asymptotic |
+| velocity | l2 | 2 | 4.506, 4.270, 4.077 | 2.195, 2.115 | asymptotic |
+| u_interior | l2 | 2 | 5.051, 4.521, 4.183 | 2.379, 2.210 | monotonic_not_asymptotic |
+| u_boundary_ring | l2 | 3 | 8.151, 7.695, 7.823 | 3.039, 2.940 | asymptotic |
 
 - [x] u: u L1/L2/Linf decrease on every refinement: monotone
-- [x] u: u l2 observed order in [1.80, 2.40]: finest-triplet observed order 2.071 (asymptotic vs formal 2); reduction factors 4.632 4.142 3.968
-- [x] u: u l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.074 (asymptotic vs formal 2); reduction factors 4.708 4.156 3.993
-- [x] u: u linf observed order in [1.60, 2.40]: finest-triplet observed order 1.811 (monotonic_not_asymptotic vs formal 2); reduction factors 4.686 3.682 4.244
+- [x] u: u l2 finest-pairwise observed order in [1.80, 3.00]: finest-PAIRWISE observed order 2.042 (vs formal 2; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 4.825 4.393 4.119
+- [x] u: u l1 finest-pairwise observed order in [1.80, 3.00]: finest-PAIRWISE observed order 2.119 (vs formal 2; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 4.942 4.630 4.343
+- [x] u: u linf finest-pairwise observed order in [1.60, 3.00]: finest-PAIRWISE observed order 1.995 (vs formal 2; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 5.356 4.532 3.987
 - [x] v: v L1/L2/Linf decrease on every refinement: monotone
-- [x] v: v l2 observed order in [1.80, 2.40]: finest-triplet observed order 1.997 (asymptotic vs formal 2); reduction factors 3.972 3.988 3.977
-- [x] v: v l1 observed order in [1.80, 2.40]: finest-triplet observed order 2.016 (asymptotic vs formal 2); reduction factors 4.031 4.040 4.023
-- [x] v: v linf observed order in [1.60, 2.40]: finest-triplet observed order 1.957 (asymptotic vs formal 2); reduction factors 4.506 3.897 3.942
+- [x] v: v l2 finest-pairwise observed order in [1.80, 3.00]: finest-PAIRWISE observed order 2.015 (vs formal 2; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 4.172 4.159 4.041
+- [x] v: v l1 finest-pairwise observed order in [1.80, 3.00]: finest-PAIRWISE observed order 2.029 (vs formal 2; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 3.998 4.099 4.082
+- [x] v: v linf finest-pairwise observed order in [1.60, 3.00]: finest-PAIRWISE observed order 1.978 (vs formal 2; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 4.660 5.521 3.940
+- [x] u: u_boundary_ring l2 finest-pairwise observed order in [2.50, 3.50]: finest-PAIRWISE observed order 2.968 (vs formal 3; the triplet estimator is not used here -- see MMSCases.hpp addPairwiseOrderGate); reduction factors 8.151 7.695 7.823

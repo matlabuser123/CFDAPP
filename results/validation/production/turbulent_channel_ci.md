@@ -6,30 +6,30 @@ Reference: Kim, Moin & Moser (1987) J. Fluid Mech. 177; Moser, Kim & Mansour (19
 
 | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
 |---|---|---|---|---|---|---|---|---|---|
-| turbulent_channel_re_tau_180_SST/medium/upwind | 180 | medium | upwind | Converged | 1286 | 21006 / 123792 | 2.92e-09 | 506.2 | yes |
+| turbulent_channel_re_tau_180_SST/medium/upwind | 180 | medium | upwind | Converged | 1164 | 19418 / 121241 | 2.58e-08 | 31.0 | yes |
 
 **u_plus_log_region**
 
 | run | L1 | L2 | Linf |
 |---|---|---|---|
-| turbulent_channel_re_tau_180_SST/medium/upwind | 8.5884e+00 | 8.6236e+00 | 9.2425e+00 |
+| turbulent_channel_re_tau_180_SST/medium/upwind | 8.6115e+00 | 8.6367e+00 | 9.2233e+00 |
 
 **u_plus_all_regions**
 
 | run | L1 | L2 | Linf |
 |---|---|---|---|
-| turbulent_channel_re_tau_180_SST/medium/upwind | 7.3594e+00 | 7.7278e+00 | 9.2425e+00 |
+| turbulent_channel_re_tau_180_SST/medium/upwind | 7.4250e+00 | 7.7730e+00 | 9.2233e+00 |
 
 **u_plus_log_region_momentum_balance_u_tau**
 
 | run | L1 | L2 | Linf |
 |---|---|---|---|
-| turbulent_channel_re_tau_180_SST/medium/upwind | 4.9669e+00 | 4.9900e+00 | 5.8698e+00 |
+| turbulent_channel_re_tau_180_SST/medium/upwind | 4.1733e+00 | 4.2020e+00 | 5.0814e+00 |
 
 - [x] turbulent_channel_re_tau_180_SST/medium/upwind: solve_accepted: Converged
-- [x] turbulent_channel_re_tau_180_SST/medium/upwind: re_tau: achieved Re_tau 131.71 vs 180: relative error 0.2683 (bound 0.40)
-- [x] turbulent_channel_re_tau_180_SST/medium/upwind: log_law: u+ vs log law, y+ > 30: L2 8.624 over 6 samples (bound 15.0)
-- [x] turbulent_channel_re_tau_180_SST/medium/upwind: developed: profile change 0.8 L -> 0.9 L 0.0091 (bound 0.05)
+- [x] turbulent_channel_re_tau_180_SST/medium/upwind: re_tau: achieved Re_tau 131.36 vs 180: relative error 0.2702 (bound 0.40)
+- [x] turbulent_channel_re_tau_180_SST/medium/upwind: log_law: u+ vs log law, y+ > 30: L2 8.637 over 6 samples (bound 15.0)
+- [x] turbulent_channel_re_tau_180_SST/medium/upwind: developed: profile change 0.8 L -> 0.9 L 0.0085 (bound 0.05)
 
 Limitations:
 
