@@ -29,35 +29,173 @@ on:
 
 jobs:
   # --- section 33: build-test, matrixed per section 31 --------------------
+  # Parallelised and sharded (CI-PERF-001, 2026-09-18). Measured on run
+  # 35352132866 (the green qualification of c1355ea), this job was the whole
+  # pipeline's critical path at 276 min:
+  #
+  #   clang debug   build 5.5 min + test 270.1 min = 276.3 min
+  #   gcc   debug   build 3.0 min + test 227.1 min = 230.7 min
+  #   gcc   release build 5.0 min + test  33.0 min =  38.5 min
+  #
+  # Two causes, both fixed here, neither of which drops or weakens a test:
+  #
+  # 1. The test step ran SERIALLY. CMakePresets.json's testPresets carry no
+  #    "jobs" field, so a bare `ctest --preset X` uses one worker -- while the
+  #    sanitizers job has run the very same 1977-test population under
+  #    `-j$(nproc)` for months, so parallel execution of this suite is already
+  #    proven on this runner at a strictly harsher configuration (ASan/UBSan
+  #    memory and time overhead on top). Adding -j$(nproc) here is the single
+  #    largest win: ~4x on a 4-vCPU runner.
+  #
+  # 2. Even parallel, one job still serialised 270 min of tests. The suite is
+  #    extremely skewed (mean 8.4 s, slowest single test 890 s), so the shards
+  #    are balanced by MEASURED RUNTIME, not by test count -- see
+  #    scripts/ci/shard_tests.py. Stride sharding (`-I <shard>,,N`) balances
+  #    count and produced a 65..101 min spread on the sanitizer job; LPT
+  #    assignment over the recorded times gives a 1.00x spread.
+  #
+  # Predicted here: clang debug 3 shards -> 22.5 min of tests each, gcc debug
+  # 3 -> 18.9 min, gcc release 1 -> 8.3 min. The floor no partition can beat
+  # is the heaviest single test (890 s clang / 750 s gcc).
+  #
+  # --timeout 7200 is NEW and is a hang guard only: this job previously had no
+  # timeout at all, so a deadlock consumed the full 6h job limit before
+  # failing. 7200 s is >=4.8x the slowest measured test even allowing for -j
+  # contention.
   build-test:
+    name: build-test (${{ matrix.group }} ${{ matrix.shard }}/${{ matrix.shards }})
     strategy:
-      fail-fast: false
+      fail-fast: false # one shard's failure must not hide the others' results
       matrix:
         include:
-          - compiler: gcc
-            build_type: debug
-          - compiler: gcc
-            build_type: release
-          - compiler: clang
-            build_type: debug
+          - { compiler: gcc, build_type: release, group: gcc-release, shard: 1, shards: 1 }
+          - { compiler: gcc, build_type: debug, group: gcc-debug, shard: 1, shards: 3 }
+          - { compiler: gcc, build_type: debug, group: gcc-debug, shard: 2, shards: 3 }
+          - { compiler: gcc, build_type: debug, group: gcc-debug, shard: 3, shards: 3 }
+          - { compiler: clang, build_type: debug, group: clang-debug, shard: 1, shards: 3 }
+          - { compiler: clang, build_type: debug, group: clang-debug, shard: 2, shards: 3 }
+          - { compiler: clang, build_type: debug, group: clang-debug, shard: 3, shards: 3 }
     runs-on: ubuntu-latest
     env:
       CC: ${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
       CXX: ${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
+      # Runtime-table key. gcc-release is unsharded, so it needs no weights.
+      RUNTIME_CONFIG: ${{ matrix.compiler }}_${{ matrix.build_type }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install build tools
-        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build
+        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build ccache
+
+      # ccache is keyed by compiler+build type so Debug/Release and gcc/clang
+      # objects can never be served to one another; ccache itself hashes the
+      # preprocessed source, the compiler binary and the full flag set, so a
+      # changed source or flag is a miss, not a stale hit. A miss compiles
+      # normally -- the cache can make a build faster, never different.
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ matrix.group }}-${{ github.sha }}
+          restore-keys: ccache-${{ matrix.group }}-
 
       - name: Configure (${{ matrix.compiler }}, ${{ matrix.build_type }})
-        run: cmake --preset ${{ matrix.build_type }}
+        run: cmake --preset ${{ matrix.build_type }} -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
-        run: cmake --build --preset ${{ matrix.build_type }} -- -j$(nproc)
+        run: |
+          ccache --zero-stats >/dev/null
+          cmake --build --preset ${{ matrix.build_type }} -- -j$(nproc)
+          ccache --show-stats
+
+      # Only one shard per group writes the cache: parallel shards racing on
+      # the same key would have all but the first fail their upload anyway.
+      - name: Save ccache
+        if: matrix.shard == 1
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ matrix.group }}-${{ github.sha }}
+
+      # Recorded from the same configured build that runs the tests, so the
+      # audit reflects reality rather than a re-derivation elsewhere.
+      - name: Select this shard's tests
+        run: |
+          set -euo pipefail
+          FULL="${{ matrix.group }}__full__${{ matrix.shard }}.txt"
+          SEL="${{ matrix.group }}__sel__${{ matrix.shard }}.txt"
+          ctest --preset ${{ matrix.build_type }} -N > "$FULL"
+          : > shard_indices.txt
+          if [ "${{ matrix.shards }}" -gt 1 ]; then
+            python3 scripts/ci/shard_tests.py --list-file "$FULL" --config "$RUNTIME_CONFIG" \
+              --shards ${{ matrix.shards }} --shard ${{ matrix.shard }} > shard_indices.txt
+            ctest --preset ${{ matrix.build_type }} -N -I "0,0,0,$(cat shard_indices.txt)" > "$SEL"
+          else
+            cp "$FULL" "$SEL"
+          fi
+          echo "full $(grep -cE '^ *Test +#' "$FULL"), this shard $(grep -cE '^ *Test +#' "$SEL")"
 
       - name: Test
-        run: ctest --preset ${{ matrix.build_type }} --output-on-failure
+        run: |
+          set -o pipefail
+          if [ -s shard_indices.txt ]; then
+            SELECT=(-I "0,0,0,$(cat shard_indices.txt)")
+          else
+            SELECT=()
+          fi
+          ctest --preset ${{ matrix.build_type }} -j"$(nproc)" --output-on-failure \
+            --timeout 7200 "${SELECT[@]}" 2>&1 | tee ctest_output.txt
+
+      # Tests that produced a real result -- Passed, ***Failed, ***Timeout,
+      # ***Exception. Lines reading ***Not Run or ***Skipped are deliberately
+      # excluded: ctest prints a line for every listed test whether or not it
+      # ran, so matching every line would record a test that never executed as
+      # if it had, and the audit below would then pass over a silently skipped
+      # test. Disabled tests print "***Not Run (Disabled)" and drop out here,
+      # which is correct -- the audit only requires the ENABLED set to have run.
+      - name: Record the tests that executed
+        if: always()
+        run: |
+          RUN="${{ matrix.group }}__run__${{ matrix.shard }}.txt"
+          grep -vE '\*\*\*(Not Run|Skipped)' ctest_output.txt \
+            | sed -n 's|^ *[0-9]*/[0-9]* *Test *#[0-9]*: *\([^ ]*\) .*|\1|p' \
+            | sort -u > "$RUN"
+          echo "executed $(wc -l < "$RUN")"
+
+      - name: Upload this shard's test lists
+        if: always() # the audit must also run when a shard fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-test-lists-${{ matrix.group }}-${{ matrix.shard }}
+          path: |
+            ${{ matrix.group }}__full__${{ matrix.shard }}.txt
+            ${{ matrix.group }}__sel__${{ matrix.shard }}.txt
+            ${{ matrix.group }}__run__${{ matrix.shard }}.txt
+          retention-days: 14
+
+  # --- section 33b: build-test shard coverage audit ---------------------------
+  # Same guarantee the sanitizer job has had: prove from the shards' own
+  # recorded lists that each group ran every test exactly once, that no shard
+  # was empty, and that no enabled test was selected yet silently never
+  # executed. Runs even when a shard fails, so a partition defect can never
+  # hide behind a test failure. scripts/ci/selftest_audit.sh is this audit's
+  # own negative control: 6 injected defects, all detected.
+  build-test-coverage:
+    needs: build-test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download the shards' test lists
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-test-lists-*
+          path: lists
+          merge-multiple: true
+
+      - name: Each group's shards must cover its full test list exactly once
+        run: python3 scripts/ci/audit_shards.py lists
 
   # --- section 34: format ---------------------------------------------------
   # Pinned to clang-format-18 explicitly (not the runner image's default
@@ -135,13 +273,34 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install build tools
-        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build
+        run: sudo apt-get update -q && sudo apt-get install -y -q ninja-build ccache
+
+      # Keyed separately from every build-test group, so sanitizer objects
+      # (built with -fsanitize=address,undefined) can never be served to a
+      # non-sanitized build or vice versa -- and ccache's own hash covers the
+      # flags regardless, so the key is defence in depth, not the guarantee.
+      - name: Restore ccache
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.ccache
+          key: ccache-asan-${{ github.sha }}
+          restore-keys: ccache-asan-
 
       - name: Configure (ASan + UBSan)
-        run: cmake --preset asan
+        run: cmake --preset asan -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
-        run: cmake --build --preset asan -- -j$(nproc)
+        run: |
+          ccache --zero-stats >/dev/null
+          cmake --build --preset asan -- -j$(nproc)
+          ccache --show-stats
+
+      - name: Save ccache
+        if: matrix.shard == 1
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.ccache
+          key: ccache-asan-${{ github.sha }}
 
       # Parallelized: CMakePresets.json's asan testPreset carries no "jobs"
       # field, so `ctest --preset asan` alone still runs serially -- this is
@@ -187,17 +346,50 @@ jobs:
       # Recorded before the run so the coverage audit uses the same configured
       # build that executes the tests: the full list every shard sees, and
       # this shard's slice of it.
+      #
+      # CI-PERF-001 (2026-09-18): the slice is now balanced by MEASURED RUNTIME
+      # rather than by `-I <shard>,,5`, which strided over the test index and so
+      # balanced COUNT. Measured on run 35352132866, stride sharding gave
+      # 65.5 / 101.2 / 72.4 / 93.4 / 65.5 min -- a 1.55x spread, with the whole
+      # job paying for the worst shard. The suite costs 1382 min of serial ASan
+      # test time over 1977 listed tests and is heavily skewed, so LPT
+      # assignment over the recorded per-test times flattens the spread to
+      # 1.00x. Partition semantics are unchanged: exhaustive, disjoint, every
+      # test in exactly one shard, and audited for real below. No sanitizer
+      # flag, option, timeout, tolerance or enabled/disabled-test change.
+      #
+      # The floor no partition can beat is the heaviest single test,
+      # CompressibleCoupledProductionCaseTest.RepeatedRunIsDeterministic at
+      # 4838 s (80.6 min) under ASan; at 5 shards this job is already at that
+      # floor, which is why it stays at 5 rather than growing.
       - name: Record the test lists (full and this shard)
         run: |
-          ctest --preset asan -N > ctest_full_from_shard${{ matrix.shard }}.txt
-          ctest --preset asan -N -I ${{ matrix.shard }},,5 > ctest_shard${{ matrix.shard }}.txt
-          echo "full $(grep -cE '^ *Test +#' ctest_full_from_shard${{ matrix.shard }}.txt), this shard $(grep -cE '^ *Test +#' ctest_shard${{ matrix.shard }}.txt)"
+          set -euo pipefail
+          ctest --preset asan -N > "asan__full__${{ matrix.shard }}.txt"
+          python3 scripts/ci/shard_tests.py --list-file "asan__full__${{ matrix.shard }}.txt" \
+            --config asan --shards 5 --shard ${{ matrix.shard }} > shard_indices.txt
+          ctest --preset asan -N -I "0,0,0,$(cat shard_indices.txt)" > "asan__sel__${{ matrix.shard }}.txt"
+          echo "full $(grep -cE '^ *Test +#' "asan__full__${{ matrix.shard }}.txt"), this shard $(grep -cE '^ *Test +#' "asan__sel__${{ matrix.shard }}.txt")"
 
       - name: Test under ASan+UBSan (shard ${{ matrix.shard }}/5)
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=0
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=0
-        run: ctest --preset asan -j$(nproc) --output-on-failure --timeout 7200 -I ${{ matrix.shard }},,5
+        run: |
+          set -o pipefail
+          ctest --preset asan -j"$(nproc)" --output-on-failure --timeout 7200 \
+            -I "0,0,0,$(cat shard_indices.txt)" 2>&1 | tee ctest_output.txt
+
+      # Passed / ***Failed / ***Timeout / ***Exception only -- ***Not Run and
+      # ***Skipped are excluded so a test that never executed can never be
+      # recorded as if it had. See the same step in build-test.
+      - name: Record the tests that executed
+        if: always()
+        run: |
+          grep -vE '\*\*\*(Not Run|Skipped)' ctest_output.txt \
+            | sed -n 's|^ *[0-9]*/[0-9]* *Test *#[0-9]*: *\([^ ]*\) .*|\1|p' \
+            | sort -u > "asan__run__${{ matrix.shard }}.txt"
+          echo "executed $(wc -l < "asan__run__${{ matrix.shard }}.txt")"
 
       - name: Upload this shard's test lists
         if: always() # the audit must also run when a shard fails
@@ -205,8 +397,9 @@ jobs:
         with:
           name: sanitizer-lists-shard-${{ matrix.shard }}
           path: |
-            ctest_full_from_shard${{ matrix.shard }}.txt
-            ctest_shard${{ matrix.shard }}.txt
+            asan__full__${{ matrix.shard }}.txt
+            asan__sel__${{ matrix.shard }}.txt
+            asan__run__${{ matrix.shard }}.txt
           retention-days: 14
 
   # --- section 36b: sanitizer shard coverage audit -----------------------------
@@ -220,6 +413,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download the shards' test lists
         uses: actions/download-artifact@v4
         with:
@@ -227,40 +422,17 @@ jobs:
           path: lists
           merge-multiple: true
 
+      # Same audit the build-test shards use (scripts/ci/audit_shards.py), so
+      # the two partitions are proved by one implementation with one negative
+      # control (scripts/ci/selftest_audit.sh: 6 injected defects, all caught).
+      # Strictly stronger than the inline check it replaces: that one proved
+      # union == full list without overlap; this also fails an empty shard and
+      # an enabled test that was selected but never reported a result.
       - name: Union of the shards must equal the full test list, without overlap
         run: |
-          python3 - <<'PY'
-          import glob, re, sys
-          rx = re.compile(r"^\s*Test\s+#\d+:\s+(.*\S)\s*$")
-          def names(path):
-              return [m.group(1) for m in map(rx.match, open(path)) if m]
-          fulls = {p: names(p) for p in sorted(glob.glob("lists/ctest_full_from_shard*.txt"))}
-          shards = {p: names(p) for p in sorted(glob.glob("lists/ctest_shard*.txt"))}
-          ok = True
-          if len(fulls) != 5 or len(shards) != 5:
-              print(f"FAIL: expected 5 full lists and 5 shard lists, got {len(fulls)} and {len(shards)}")
-              sys.exit(1)
-          ref = next(iter(fulls.values()))
-          for p, v in fulls.items():
-              if v != ref:
-                  print(f"FAIL: {p} disagrees about the full test list ({len(v)} vs {len(ref)})")
-                  ok = False
-          union = [n for v in shards.values() for n in v]
-          dupes = sorted({n for n in union if union.count(n) > 1})
-          missing = sorted(set(ref) - set(union))
-          extra = sorted(set(union) - set(ref))
-          for label, items in (("run by more than one shard", dupes),
-                               ("run by no shard", missing),
-                               ("run but not in the full list", extra)):
-              if items:
-                  ok = False
-                  print(f"FAIL: {len(items)} tests {label}: {items[:10]}")
-          for p, v in sorted(shards.items()):
-              print(f"  {p}: {len(v)} tests")
-          print(f"full list {len(ref)} tests; union {len(union)} ({len(set(union))} distinct)")
-          print("sanitizer shard coverage: " + ("COMPLETE, each test in exactly one shard" if ok else "BROKEN"))
-          sys.exit(0 if ok else 1)
-          PY
+          test -n "$(find lists -name 'asan__sel__*.txt' -print -quit)" \
+            || { echo "FAIL: no sanitizer shard lists were uploaded"; exit 1; }
+          python3 scripts/ci/audit_shards.py lists
 
   # --- section 37: python ------------------------------------------------------
   python:
