@@ -299,6 +299,25 @@ COMMIT:            <none / sha — only if authorized>
 PUSH:              <none / verified — only if authorized>
 ```
 
+## CFDApp Agent Skills
+
+For non-trivial engineering tasks use the repository-local skills under `.claude/skills/`. Start
+with **`cfdapp-task`**, which classifies the task and selects the rest. Default lifecycle:
+
+```text
+understand → blast radius → architecture → implementation → verification → review → closeout
+```
+
+* Numerical work must use `cfdapp-numerics`.
+* CUDA work must use `cfdapp-cuda`.
+* Bug investigations must use `cfdapp-debug`.
+* All verification goes through `cfdapp-verify`, which sizes the ladder to the change.
+* `cfdapp-review` and `cfdapp-closeout` are never skipped.
+
+The skills carry procedure — commands, paths, decision tables. **This file remains authoritative
+for governance, authorization and evidence rules**, and a skill never overrides it. See
+[docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md).
+
 ## Local Hardware / Resource Policy
 
 Primary workstation: Intel i9-14900HX (24 cores / 32 threads, hybrid), 64 GB RAM, NVIDIA RTX 5000
