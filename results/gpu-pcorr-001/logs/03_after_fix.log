@@ -1,0 +1,31 @@
+# GPU-PCORR-001: after the minimal fix (scale-relative breakdown tests in GpuBiCGSTAB)
+# 2026-09-18T12:55:47Z; libcfdcuda 2cf4609492e0a791e261a85746d5c5487d0078d8d7b92139c0f03f3345b64876
+
+== scale dependence, the experiment that isolated the cause (must now be scale-invariant)
+# same matrix (320x320, n=102400), RHS scaled; BiCGSTAB, no preconditioner,
+# relative tolerance only, so the scale factor cannot change the work required.
+b scale    | CPU BiCGSTAB                 | GPU BiCGSTAB                
+1e+00      | Converged     it  374        | Converged     it  354       
+1e-06      | Converged     it  349        | Converged     it  375       
+1e-12      | Converged     it  318        | Converged     it  331       
+1e-16      | Converged     it  357        | Converged     it  309       
+1e-20      | Converged     it  349        | Converged     it  363       
+
+== the production reproducer, the failure this phase exists for
+## grid 160x160, 2 outer iterations, cudaAvailable true
+  CPU  | cells   25600 | status MaxIterations            | outer it   2 | p-res 2.676e-03 | cont 8.572e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1159
+       | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+  GPU  | cells   25600 | status MaxIterations            | outer it   2 | p-res 2.676e-03 | cont 7.848e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1145
+       | GPU kernelLaunches 17653, fallbacks 0, H2D 22, D2H 8236
+
+## grid 320x320, 2 outer iterations, cudaAvailable true
+  CPU  | cells  102400 | status MaxIterations            | outer it   2 | p-res 1.343e-03 | cont 7.780e-08
+       | mass imbalance 0.000e+00 | p linear iterations 2265
+       | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+  GPU  | cells  102400 | status MaxIterations            | outer it   2 | p-res 1.343e-03 | cont 8.254e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1719
+       | GPU kernelLaunches 26263, fallbacks 0, H2D 22, D2H 12254
+
+# end 2026-09-18T12:56:04Z

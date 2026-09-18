@@ -81,6 +81,25 @@ __global__ void partialDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Re
   }
 }
 
+// partialDotKernel over |a[i] * b[i]| -- see absDot()'s header comment. Same
+// exact halving tree, same out-of-range convention.
+__global__ void partialAbsDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Real* b,
+                                    cfd::Real* partialSums) {
+  extern __shared__ cfd::Real shared[];
+  const cfd::Index i = static_cast<cfd::Index>(blockIdx.x) * blockDim.x + threadIdx.x;
+  shared[threadIdx.x] = (i < n) ? fabs(a[i] * b[i]) : 0.0;
+  __syncthreads();
+  for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride) {
+      shared[threadIdx.x] += shared[threadIdx.x + stride];
+    }
+    __syncthreads();
+  }
+  if (threadIdx.x == 0) {
+    partialSums[blockIdx.x] = shared[0];
+  }
+}
+
 }  // namespace
 
 void waxpby(cfd::Real a, const DeviceVector& x, cfd::Real b, const DeviceVector& y,
@@ -172,5 +191,38 @@ cfd::Real dot(const DeviceVector& a, const DeviceVector& b) {
 }
 
 cfd::Real l2Norm(const DeviceVector& v) { return std::sqrt(dot(v, v)); }
+
+cfd::Real absDot(const DeviceVector& a, const DeviceVector& b) {
+  checkSameSize(a.size(), b.size(), "absDot");
+  const cfd::Index n = a.size();
+  if (n == 0) return 0.0;
+
+  cfd::Timer totalTimer;
+  const int blocks = blockCountFor(n);
+  // Same persistent high-water-mark reduction buffer rationale as dot()'s,
+  // and a separate cache so neither call can disturb the other's contents.
+  static DeviceBuffer<cfd::Real> partialSumsCache;
+  partialSumsCache.resize(static_cast<cfd::Index>(blocks));
+  DeviceBuffer<cfd::Real>& partialSums = partialSumsCache;
+
+  cfd::Timer kernelTimer;
+  partialAbsDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
+      n, a.data(), b.data(), partialSums.data());
+  checkCuda(cudaGetLastError(), "partialAbsDotKernel launch");
+  ++gpuExecutionStats().kernelLaunches;
+  checkCuda(cudaDeviceSynchronize(), "partialAbsDotKernel execution");
+  auto& stats = gpuExecutionStats();
+  stats.kernelSeconds += kernelTimer.elapsedSeconds();
+  ++stats.synchronizations;
+
+  std::vector<cfd::Real> hostPartials(static_cast<std::size_t>(blocks));
+  partialSums.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks));
+
+  cfd::Real sum = 0.0;
+  for (cfd::Real partial : hostPartials) sum += partial;
+
+  stats.dotSeconds += totalTimer.elapsedSeconds();
+  return sum;
+}
 
 }  // namespace cfd::gpu

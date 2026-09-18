@@ -49,4 +49,14 @@ void fill(DeviceVector& v, cfd::Index count, cfd::Real value);
 // sqrt(dot(v, v)).
 [[nodiscard]] cfd::Real l2Norm(const DeviceVector& v);
 
+// absDot(a, b) = sum(|a[i] * b[i]|) -- dot()'s reduction over the magnitudes
+// of the terms rather than the terms themselves, so it cannot cancel. It
+// bounds the rounding error of dot(a, b)'s own sum, which is what decides
+// whether a computed inner product can be distinguished from zero:
+// GpuBiCGSTAB's scale-relative breakdown test needs exactly this quantity,
+// mirroring cfd::algebra::BiCGSTAB's cancelledToRoundingLevel (GPU-PCORR-001).
+// Same cost and instrumentation as dot(). Throws InvalidArgumentError on a
+// size mismatch.
+[[nodiscard]] cfd::Real absDot(const DeviceVector& a, const DeviceVector& b);
+
 }  // namespace cfd::gpu

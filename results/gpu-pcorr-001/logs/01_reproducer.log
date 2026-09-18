@@ -1,0 +1,27 @@
+# GPU-PCORR-001 step 1: canonical reproducer; 2026-09-18T12:50:00Z
+# git HEAD 999d6a33170993afca2affbf25161dd029bc10db (CUDA-QUAL-001 checkpoint), working tree clean apart from this phase
+# binary sha256 b2531eeac067a67834033a1c60e557b74144fc94d3c5d6bbf254895b99a69698
+# source sha256 4936b0e352cd96d814dcc41e2b5311ea07d7cfaab55728789739d3dd5ec3cefe
+# libcfdcuda ecd6a9780b32572b, libcfdcore 98a80ef7dd2b1642
+# settings copied from benchmarks/gpu/benchmark_cuda_end_to_end.cpp: pressure BiCGSTAB,
+# maxIterations 5000, absTol 1e-7, relTol 1e-5, preconditioner None; CPU and GPU differ only in backend.
+
+## grid 160x160, 2 outer iterations, cudaAvailable true
+  CPU  | cells   25600 | status MaxIterations            | outer it   2 | p-res 2.676e-03 | cont 8.572e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1159
+       | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+  GPU  | cells   25600 | status MaxIterations            | outer it   2 | p-res 2.676e-03 | cont 7.848e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1145
+       | GPU kernelLaunches 16476, fallbacks 0, H2D 22, D2H 7059
+  (exit 0)
+
+## grid 320x320, 2 outer iterations, cudaAvailable true
+  CPU  | cells  102400 | status MaxIterations            | outer it   2 | p-res 1.343e-03 | cont 7.780e-08
+       | mass imbalance 0.000e+00 | p linear iterations 2265
+       | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+  GPU  | cells  102400 | status PressureCorrectionFailure | outer it   0 | p-res 0.000e+00 | cont 0.000e+00
+       | mass imbalance 0.000e+00 | p linear iterations 0
+       | statusDetail: pressure-correction linear solve failed: BiCGSTAB Breakdown after 876 iterations
+       | GPU kernelLaunches 12421, fallbacks 0, H2D 13, D2H 5324
+  (exit 0)
+# end 2026-09-18T12:50:12Z

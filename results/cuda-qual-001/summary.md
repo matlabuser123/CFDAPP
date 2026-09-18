@@ -230,3 +230,22 @@ Production/build: `cmake/CUDA.cmake`, `cuda/CMakeLists.txt`. Everything else is 
 2. Re-run this phase's item 9 once that is resolved; items 1–8 and 10–15 stand on the evidence here.
 3. If the GPU backend is to be used for performance, §10's transfer-bound end-to-end result is the
    starting point — a separate, authorized optimization phase.
+
+---
+
+## 13. Gate resolution (2026-09-18, after GPU-PCORR-001)
+
+Added after this document's checkpoint commit `999d6a3`; nothing above is rewritten.
+
+The §7 blocker is fixed. GPU-PCORR-001 traced it to the GPU BiCGSTAB's **absolute** breakdown
+tests, which the CPU replaced with scale-relative ones in P12-MESH-004 and the GPU mirror never
+received, and repaired that criterion alone. Evidence: `results/gpu-pcorr-001/summary.md`.
+
+Acceptance item 9, "CPU/GPU equivalence passes", now holds. The authoritative end-to-end benchmark
+completes on the GPU at every grid, `ran_cleanly=yes` throughout, with the 320² and 640² pressure
+residuals identical to the CPU's, and the rejected zero-work "18.8x"/"22.9x" speed-ups replaced by
+genuine 1.33x and 3.20x.
+
+**All 15 CUDA-QUAL-001 acceptance items therefore pass** — contingent on the GPU-PCORR-001 fix,
+which is implemented, verified and **not yet committed**. The §10 transfer pathology is unchanged
+and still belongs to a future, separately authorized phase.

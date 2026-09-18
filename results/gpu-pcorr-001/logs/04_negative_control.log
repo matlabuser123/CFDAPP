@@ -1,0 +1,16 @@
+# GPU-PCORR-001 step 6: negative control -- restore the absolute breakdown test; 2026-09-18T12:56:38Z
+## mutation: the scale-relative tests are replaced by the pre-fix absolute |.| < constants::tiny
+  reverted 3 criteria to the absolute form
+  configure exit 0
+  build exit 0; libcfdcuda e8dc2b95049c6d6f
+  probe build exit 0
+## the reproducer against the mutant (the 320^2 GPU failure MUST return)
+## grid 320x320, 2 outer iterations, cudaAvailable true
+  CPU  | cells  102400 | status MaxIterations            | outer it   2 | p-res 1.343e-03 | cont 7.780e-08
+       | mass imbalance 0.000e+00 | p linear iterations 2265
+       | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+  GPU  | cells  102400 | status PressureCorrectionFailure | outer it   0 | p-res 0.000e+00 | cont 0.000e+00
+       | mass imbalance 0.000e+00 | p linear iterations 0
+       | statusDetail: pressure-correction linear solve failed: BiCGSTAB Breakdown after 876 iterations
+       | GPU kernelLaunches 12421, fallbacks 0, H2D 13, D2H 5324
+# end 2026-09-18T12:58:40Z

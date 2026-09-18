@@ -7,23 +7,25 @@
 > `[x]` = implemented **and** verified with real evidence. Everything else stays `[ ]`.
 
 ```text
-COMPLETED THROUGH:  the whole P12 lineage -- committed, pushed and CI-green on 67b9e3e
+COMPLETED THROUGH:  the whole P12 lineage (pushed, exact-SHA CI green on 67b9e3e)
+                    CUDA-QUAL-001  COMPLETE
+                    GPU-PCORR-001  COMPLETE
 
-CURRENT:            CUDA-QUAL-001 -- STOPPED at a failed gate (CPU/GPU equivalence at
-                    production scale); toolchain work itself passed, uncommitted
+CURRENT:            none
 
-NEXT:               user decision on the CUDA-QUAL-001 gate failure
-                    (no other phase is authorized)
+NEXT:               user scope decision
+                    GPU-PIPE-001 is a FUTURE candidate, NOT AUTHORIZED
+                    P13 NOT AUTHORIZED
 
-PUSH BLOCKER:       none in tests; CUDA-QUAL-001's changes are uncommitted
-                    commit/push requires explicit authorization
+PUSH BLOCKER:       none in tests
+                    commit/push requires explicit authorization, each time
 ```
 
 | State                  | Value                                                                                                   |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- |
 | Release                | `v0.2.0` (`1e960c7`)                                                                                    |
 | Last pushed            | `67b9e3e` (P12 lineage + CI repair), CI run 35313512418 green on that exact SHA, 12/12 jobs             |
-| Working tree           | clean except CUDA-QUAL-001's two build files and its evidence, all uncommitted                          |
+| CUDA work              | `999d6a3` (CUDA-QUAL-001 toolchain) and the GPU-PCORR-001 repair commit, pushed together after it       |
 | Latest full regression | on `67b9e3e` in CI: GCC Release 1932/1932, GCC Debug 1932/1932, Clang Debug 1932/1932, sanitizers 1932 enabled tests across 5 shards, 0 ASan/UBSan/LSan diagnostics |
 | Historical TODO        | `results/todo-archive/TODO-2026-09-17-pre-restructure.md`                                               |
 
@@ -174,6 +176,66 @@ results/p12-mesh-007/summary.md
 
 ---
 
+
+## CUDA-QUAL-001 — Ada CUDA toolchain qualification
+
+**Status: ✅ COMPLETE (2026-09-18) — all 15 acceptance items pass.**
+
+Items 1–8 and 10–15 passed at the checkpoint. Item 9, production-scale CPU/GPU equivalence, failed
+there (`PressureCorrectionFailure` at 320² and 640²) and was unblocked by GPU-PCORR-001; the
+authoritative end-to-end benchmark now completes on the GPU at every grid. Gate resolution recorded
+in `results/cuda-qual-001/summary.md` §13, which leaves the original failure text intact.
+
+Verified and passing:
+
+```text
+CUDA 12.9.86 active (no driver package touched)   sm_89 cubin present in the built library
+independent smoke kernel: __CUDA_ARCH__ 890       clean build, 0 warnings
+real GPU execution, CPU fallback ruled out        83/83 GPU ctest, 66/66 GPU unit tests
+equivalence <= 1.6e-9 relative, NaN/Inf 0         determinism bitwise
+compute-sanitizer memcheck/initcheck/synccheck/racecheck: 0 errors
+CPU regression green: Release 1932/1932, Debug + GUI 1984/1984
+```
+
+Also found: the documented sm_80 target had never applied — `enable_language(CUDA)` sets the
+architecture from nvcc's default (52) before `cuda/CMakeLists.txt`'s guard could, so every GPU build
+was sm_52 + PTX. Fixed in `cmake/CUDA.cmake` (committed at `999d6a3`).
+
+Evidence: `results/cuda-qual-001/summary.md`.
+
+* [x] Resolve the 320²/640² `PressureCorrectionFailure` — GPU-PCORR-001 below
+* [x] Re-run acceptance item 9 — the end-to-end benchmark completes on the GPU at every grid
+
+## GPU-PCORR-001 — production GPU pressure-correction recovery
+
+**Status: ✅ COMPLETE (2026-09-18).**
+
+Root cause: `GpuBiCGSTAB`'s breakdown tests were **absolute** (`|rho| < constants::tiny = 1e-30`),
+while the CPU's have been **scale-relative** since P12-MESH-004 (`cancelledToRoundingLevel`). The
+pressure-correction residual shrinks with the grid, so at 320² a healthy iteration was read as a
+breakdown. Not the toolchain: the historical CUDA 11.5 / sm_52 build fails identically.
+
+Minimal fix, GPU only: `absDot` (a device reduction over term magnitudes) plus the CPU's criteria in
+`GpuBiCGSTAB`. `GpuCG` is deliberately untouched — its absolute test matches the CPU's and is the
+separate "CG absolute breakdown threshold" debt item.
+
+```text
+160^2 / 320^2 / 640^2 GPU   PASS, ran_cleanly yes, residuals identical to CPU
+negative control            absolute test restored -> the same failure at the same 876 iterations
+end-to-end benchmark        every grid clean; real 1.33x at 320^2 and 3.20x at 640^2
+GPU ctest 83/83, GPU units 66/66, CPU solver units 42, sanitizers 0 errors (4 tools)
+CPU regression              Release 1932/1932, Debug + GUI 1984/1984, clang-format clean
+```
+
+Known remaining asymmetry, not fixed: the CPU restarts its Krylov sequence on cancellation; the GPU
+reports Breakdown. Unreachable in the measured cases now that the criterion no longer misfires.
+
+Evidence: `results/gpu-pcorr-001/summary.md`.
+
+* [ ] Commit / push decision (no commit authorized yet)
+
+---
+
 ## Closed Without Completion
 
 Historical only. Do not resume without authorization.
@@ -194,37 +256,7 @@ Historical only. Do not resume without authorization.
 
 # 2. Active
 
-## CUDA-QUAL-001 — Ada CUDA toolchain qualification
-
-**Status: 🔴 INCOMPLETE — 13/15 acceptance items passed; BLOCKED on production-scale CPU/GPU SIMPLE
-equivalence (2026-09-18). Checkpointed locally, not pushed.**
-
-13 of 15 acceptance items pass. It stops at **CPU/GPU equivalence at production scale**: the GPU
-backend cannot complete a SIMPLE solve at 320² or 640² (`PressureCorrectionFailure`, 0 outer
-iterations) where the CPU backend completes. The failure is **not** caused by this phase — it
-reproduces identically on the historical CUDA 11.5 / sm_52 toolchain — and the GPU linear solvers
-are healthy at that same size, so it lies in the production pressure-correction path.
-
-Verified and passing:
-
-```text
-CUDA 12.9.86 active (no driver package touched)   sm_89 cubin present in the built library
-independent smoke kernel: __CUDA_ARCH__ 890       clean build, 0 warnings
-real GPU execution, CPU fallback ruled out        83/83 GPU ctest, 66/66 GPU unit tests
-equivalence <= 1.6e-9 relative, NaN/Inf 0         determinism bitwise
-compute-sanitizer memcheck/initcheck/synccheck/racecheck: 0 errors
-CPU regression green: Release 1932/1932, Debug + GUI 1984/1984
-```
-
-Also found: the documented sm_80 target had never applied — `enable_language(CUDA)` sets the
-architecture from nvcc's default (52) before `cuda/CMakeLists.txt`'s guard could, so every GPU build
-was sm_52 + PTX. Fixed in `cmake/CUDA.cmake` (uncommitted).
-
-Evidence: `results/cuda-qual-001/summary.md`.
-
-* [ ] Resolve the 320²/640² `PressureCorrectionFailure` (needs its own authorization)
-* [ ] Re-run acceptance item 9 afterwards; items 1–8 and 10–15 stand on the evidence above
-* [ ] Commit / push decision for the toolchain change
+None. CUDA-QUAL-001 and GPU-PCORR-001 are complete; see section 1.
 
 ---
 
@@ -323,29 +355,32 @@ results/p12-grad-002/drift-001/summary.md
     sm_80 default never applied;
   * evidence: `results/cuda-qual-001/{toolchain,build}.md`.
 
-* [ ] **GPU backend fails a production solve at 320² and above**
+* [x] **GPU backend fails a production solve at 320² and above** — fixed by GPU-PCORR-001,
+  **uncommitted**
 
-  * `PressureCorrectionFailure` on the first outer iteration, 0 iterations completed, where the CPU
-    backend completes normally; a regression against the P7 evidence, which recorded 320² on the GPU
-    converging at 2.0× speed-up;
-  * **not** toolchain-related: identical on CUDA 11.5/sm_52 and 12.9/sm_89, and the GPU CG and
-    BiCGSTAB both converge and match the CPU at that exact size;
-  * blocks CUDA-QUAL-001's equivalence gate; needs its own authorization (found 2026-09-18).
+  * was `PressureCorrectionFailure` on the first outer iteration where the CPU completed; a
+    regression against P7's recorded 320² GPU run;
+  * cause was `GpuBiCGSTAB`'s absolute breakdown threshold, not the toolchain (it reproduced on
+    CUDA 11.5 / sm_52 too);
+  * evidence: `results/gpu-pcorr-001/summary.md`, `results/cuda-qual-001/summary.md` §7 and §13.
 
-Evidence:
+* [ ] **GPU BiCGSTAB has no Krylov restart, the CPU does**
 
-```text
-results/cuda-qual-001/summary.md  section 7
-```
+  * on detecting cancellation the CPU restarts the sequence and only reports Breakdown if that
+    cannot help; the GPU reports Breakdown immediately;
+  * unreachable in the cases measured after GPU-PCORR-001, but still a real difference from the CPU
+    solver (found 2026-09-18).
 
-* [ ] **GPU end-to-end performance is transfer-bound and below the CPU**
+* [ ] **GPU end-to-end performance is transfer-bound below the crossover**
 
-  * at every grid where the GPU backend completes (20²–160²) it is 1.7× to 45× slower than the CPU,
-    with 33–45 % of its time in host↔device transfer and a per-iteration device→host round trip
-    (71 031 downloads against 544 uploads at 160²);
+  * the GPU backend is slower than the CPU at 20²–160² (0.02×–0.51×), with 35–46 % of its time in
+    host↔device transfer and a per-iteration device→host round trip (71 031 downloads against 544
+    uploads at 160²);
+  * the crossover is at 320² (1.33×), reaching 3.20× at 640² once transfer falls to 12 %;
   * the SpMV kernel itself reaches 51× over the CPU when data stays resident, so the cost is the
     transfer pattern, not the kernel;
-  * no crossover is demonstrated; optimization is a separate, unauthorized phase.
+  * future scope candidate **GPU-PIPE-001 — persistent GPU-resident production pipeline**; only
+    after production GPU correctness is committed, and never mixed with a correctness fix.
 
 ---
 
@@ -398,9 +433,20 @@ Being listed here is **not authorization**.
 * [ ] Case-format, CLI and GUI integration of mesh motion and transient PISO
 * [ ] 3D ALE flow solver; moving-mesh MMS; time-dependent moving walls; moving-mesh restart
 
+## GPU
+
+* [ ] **GPU-PIPE-001 — persistent GPU-resident production pipeline** — NOT AUTHORIZED
+
+  * motivation, measured by CUDA-QUAL-001 and GPU-PCORR-001: the GPU backend is slower than the CPU
+    below the 320² crossover, 33–46 % of its time is host↔device transfer, and at 160² it makes
+    ~71 031 downloads against ~544 uploads, while the resident SpMV kernel reaches ~51×;
+  * so the next bottleneck is host/device traffic, not GPU compute;
+  * only after the production GPU correctness work is committed, and never mixed with a correctness
+    fix.
+
 ## Production
 
-* [ ] **P13 — Production Maturity**
+* [ ] **P13 — Production Maturity** — NOT AUTHORIZED
 
 ---
 

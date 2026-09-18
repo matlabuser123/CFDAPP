@@ -1,0 +1,1212 @@
+# GPU-PCORR-001 step 8: regression and diagnostics; 2026-09-18T13:10:11Z
+## changed production files
+   M cuda/kernels/DeviceVectorOpsKernel.cu
+   M cuda/kernels/GpuLinearSolverCuda.cpp
+   M include/cfd/gpu/DeviceVectorOps.hpp
+  ?? results/gpu-pcorr-001/
+  src/ + include/ hash now: 378e2b452e94c3f9fa5cdbbab087f79c5e0c826e759dda700611f84142268067
+  (was 42c3d9df... at the CUDA-QUAL-001 checkpoint; include/cfd/gpu/DeviceVectorOps.hpp changed)
+
+## CPU/GPU equivalence and determinism probe (CUDA-QUAL-001's own instrument)
+       4x4    n      16 | abs 4.441e-16 rel 2.228e-16 | NaN 0 Inf 0 | launches 1
+    SpMV matches the CPU reference within 1e-12 relative       PASS
+      64x64   n    4096 | abs 8.882e-16 rel 4.441e-16 | NaN 0 Inf 0 | launches 1
+    SpMV matches the CPU reference within 1e-12 relative       PASS
+     256x256  n   65536 | abs 4.441e-16 rel 5.685e-16 | NaN 0 Inf 0 | launches 1
+    SpMV matches the CPU reference within 1e-12 relative       PASS
+    CG  | CPU it 88 res 2.067e-08 | GPU it 88 res 2.067e-08 | abs 1.776e-15 rel 8.898e-16
+    BiC | CPU it 55 res 1.772e-08 | GPU it 62 res 1.493e-08 | abs 3.179e-09 rel 1.593e-09
+    BiC repeat: bitwise differing entries 0 of 102400, abs 0.000e+00
+  PROBE PASS (failures 0)
+
+## the repository's GPU/CUDA tests
+  solver       = 121.03 sec*proc (6 tests)
+  unit         =   1.33 sec*proc (12 tests)
+  
+  Total Test time (real) =  59.23 sec
+## the GPU unit binary alone
+  [  PASSED  ] 66 tests.
+## standalone CPU CG/BiCGSTAB unit tests (the fix must not touch the CPU solvers)
+  unit         =   2.79 sec*proc (42 tests)
+  
+  Total Test time (real) =   3.40 sec
+
+## CUDA diagnostics on the repaired path
+  memcheck: exit 0; ========= ERROR SUMMARY: 0 errors; [  PASSED  ] 66 tests.
+  initcheck: exit 0; ========= ERROR SUMMARY: 0 errors; [  PASSED  ] 66 tests.
+  synccheck: exit 0; ========= ERROR SUMMARY: 0 errors; [  PASSED  ] 66 tests.
+  racecheck: exit 0; ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings); [  PASSED  ] 66 tests.
+
+## full CPU regression
+  release build: ninja: no work to do.
+  debug build:   ninja: no work to do.
+  GCC Release ctest exit 0
+  100% tests passed, 0 tests failed out of 1932
+  GCC Debug+GUI ctest exit 0
+  100% tests passed, 0 tests failed out of 1984
+
+## clang-format and whitespace
+  clang-format exit 0; violations 0
+  cuda/ formatting: 17 violations
+cuda/kernels/GpuLinearSolverCuda.cpp:1: trailing whitespace.
++// P6-GPU-002 -- Performance: the real, CUDA-backed GpuCG/GpuBiCGSTAB
+cuda/kernels/GpuLinearSolverCuda.cpp:2: trailing whitespace.
++// implementations -- see include/cfd/gpu/GpuLinearSolver.hpp's own
+cuda/kernels/GpuLinearSolverCuda.cpp:3: trailing whitespace.
++// header comment for the ODR split with src/gpu/GpuLinearSolver.cpp's
+cuda/kernels/GpuLinearSolverCuda.cpp:4: trailing whitespace.
++// CPU stub (both factories there always return nullptr). A plain .cpp
+cuda/kernels/GpuLinearSolverCuda.cpp:5: trailing whitespace.
++// (host-compiled, not nvcc) for the same reason
+cuda/kernels/GpuLinearSolverCuda.cpp:6: trailing whitespace.
++// cuda/kernels/GpuResidencyManagerCuda.cpp is one -- no __global__ kernel
+cuda/kernels/GpuLinearSolverCuda.cpp:7: trailing whitespace.
++// of its own here, only calls into the kernels DeviceVectorOpsKernel.cu
+cuda/kernels/GpuLinearSolverCuda.cpp:8: trailing whitespace.
++// and CsrSpmvKernel.cu already define, and this project's nvcc 11.5
+cuda/kernels/GpuLinearSolverCuda.cpp:9: trailing whitespace.
++// cannot parse this GCC 11 toolchain's <functional>/<memory> template
+cuda/kernels/GpuLinearSolverCuda.cpp:10: trailing whitespace.
++// internals reliably (see GpuResidencyManagerCuda's own header comment
+cuda/kernels/GpuLinearSolverCuda.cpp:11: trailing whitespace.
++// for the discovered incompatibility) -- <memory> for
+cuda/kernels/GpuLinearSolverCuda.cpp:12: trailing whitespace.
++// std::unique_ptr/make_unique is unavoidable here, so this stays a
+cuda/kernels/GpuLinearSolverCuda.cpp:13: trailing whitespace.
++// g++-compiled .cpp, still linked into the cfdcuda target.
+cuda/kernels/GpuLinearSolverCuda.cpp:14: trailing whitespace.
++//
+cuda/kernels/GpuLinearSolverCuda.cpp:15: trailing whitespace.
++// Both classes below are declared and defined entirely in this
+cuda/kernels/GpuLinearSolverCuda.cpp:16: trailing whitespace.
++// translation unit -- deliberately no public header names them (only
+cuda/kernels/GpuLinearSolverCuda.cpp:17: trailing whitespace.
++// makeGpuCG()/makeGpuBiCGSTAB()'s return type, the existing
+cuda/kernels/GpuLinearSolverCuda.cpp:18: trailing whitespace.
++// CUDA-independent cfd::algebra::LinearSolver base, is ever visible
+cuda/kernels/GpuLinearSolverCuda.cpp:19: trailing whitespace.
++// outside this file). Each mirrors its CPU counterpart
+cuda/kernels/GpuLinearSolverCuda.cpp:20: trailing whitespace.
++// (src/algebra/CG.cpp / BiCGSTAB.cpp) instruction-for-instruction --
+cuda/kernels/GpuLinearSolverCuda.cpp:21: trailing whitespace.
++// same convergence formula, same breakdown thresholds, same status
+cuda/kernels/GpuLinearSolverCuda.cpp:22: trailing whitespace.
++// values -- the only difference is every Vector lives in persistent
+cuda/kernels/GpuLinearSolverCuda.cpp:23: trailing whitespace.
++// device memory (DeviceVector, reused across repeated solve() calls on
+cuda/kernels/GpuLinearSolverCuda.cpp:24: trailing whitespace.
++// the same instance -- P6-GPU-001's pipeline) and every vector operation
+cuda/kernels/GpuLinearSolverCuda.cpp:25: trailing whitespace.
++// (waxpby/axpy/dot/l2Norm/fill/deviceCopy, DeviceVectorOps.hpp) runs on
+cuda/kernels/GpuLinearSolverCuda.cpp:26: trailing whitespace.
++// the GPU instead of the host. Where the CPU version names a fresh local
+cuda/kernels/GpuLinearSolverCuda.cpp:27: trailing whitespace.
++// (rNew, zNew, ...), the GPU version instead overwrites the
+cuda/kernels/GpuLinearSolverCuda.cpp:28: trailing whitespace.
++// already-persistent buffer in place -- always safe for these
+cuda/kernels/GpuLinearSolverCuda.cpp:29: trailing whitespace.
++// elementwise/reduction kernels since none of them has a cross-index
+cuda/kernels/GpuLinearSolverCuda.cpp:30: trailing whitespace.
++// dependency, and it is exactly what lets repeated solve() calls avoid
+cuda/kernels/GpuLinearSolverCuda.cpp:31: trailing whitespace.
++// reallocating: see this file's own per-class header comment for exactly
+cuda/kernels/GpuLinearSolverCuda.cpp:32: trailing whitespace.
++// which buffer plays which CPU-algorithm role.
+cuda/kernels/GpuLinearSolverCuda.cpp:33: trailing whitespace.
++#include <cmath>
+cuda/kernels/GpuLinearSolverCuda.cpp:34: trailing whitespace.
++#include <cstdint>
+cuda/kernels/GpuLinearSolverCuda.cpp:35: trailing whitespace.
++#include <limits>
+cuda/kernels/GpuLinearSolverCuda.cpp:36: trailing whitespace.
++#include <memory>
+cuda/kernels/GpuLinearSolverCuda.cpp:37: trailing whitespace.
++#include <utility>
+cuda/kernels/GpuLinearSolverCuda.cpp:38: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:39: trailing whitespace.
++#include "cfd/algebra/LinearSystem.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:40: trailing whitespace.
++#include "cfd/algebra/Preconditioner.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:41: trailing whitespace.
++#include "cfd/algebra/SparseMatrix.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:42: trailing whitespace.
++#include "cfd/algebra/Vector.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:43: trailing whitespace.
++#include "cfd/core/Constants.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:44: trailing whitespace.
++#include "cfd/core/Exception.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:45: trailing whitespace.
++#include "cfd/core/Timer.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:46: trailing whitespace.
++#include "cfd/gpu/DeviceCsrMatrix.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:47: trailing whitespace.
++#include "cfd/gpu/DeviceVectorOps.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:48: trailing whitespace.
++#include "cfd/gpu/GPUBackend.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:49: trailing whitespace.
++#include "cfd/gpu/GPUExecutionStats.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:50: trailing whitespace.
++#include "cfd/gpu/GpuLinearSolver.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:51: trailing whitespace.
++#include "cfd/gpu/GpuPreconditioner.hpp"
+cuda/kernels/GpuLinearSolverCuda.cpp:52: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:53: trailing whitespace.
++namespace cfd::gpu {
+cuda/kernels/GpuLinearSolverCuda.cpp:54: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:55: trailing whitespace.
++namespace {
+cuda/kernels/GpuLinearSolverCuda.cpp:56: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:57: trailing whitespace.
++using cfd::Index;
+cuda/kernels/GpuLinearSolverCuda.cpp:58: trailing whitespace.
++using cfd::Real;
+cuda/kernels/GpuLinearSolverCuda.cpp:59: trailing whitespace.
++using cfd::algebra::LinearSolver;
+cuda/kernels/GpuLinearSolverCuda.cpp:60: trailing whitespace.
++using cfd::algebra::LinearSolverBackend;
+cuda/kernels/GpuLinearSolverCuda.cpp:61: trailing whitespace.
++using cfd::algebra::LinearSolverSettings;
+cuda/kernels/GpuLinearSolverCuda.cpp:62: trailing whitespace.
++using cfd::algebra::LinearSystem;
+cuda/kernels/GpuLinearSolverCuda.cpp:63: trailing whitespace.
++using cfd::algebra::Preconditioner;
+cuda/kernels/GpuLinearSolverCuda.cpp:64: trailing whitespace.
++using cfd::algebra::PreconditionerType;
+cuda/kernels/GpuLinearSolverCuda.cpp:65: trailing whitespace.
++using cfd::algebra::SolverResult;
+cuda/kernels/GpuLinearSolverCuda.cpp:66: trailing whitespace.
++using cfd::algebra::SolverStatus;
+cuda/kernels/GpuLinearSolverCuda.cpp:67: trailing whitespace.
++using cfd::algebra::SparseMatrix;
+cuda/kernels/GpuLinearSolverCuda.cpp:68: trailing whitespace.
++using cfd::algebra::Vector;
+cuda/kernels/GpuLinearSolverCuda.cpp:69: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:70: trailing whitespace.
++// Shared by GpuCG/GpuBiCGSTAB: uploads matrix structure once per
+cuda/kernels/GpuLinearSolverCuda.cpp:71: trailing whitespace.
++// distinct structure, value-only re-upload thereafter -- the exact same
+cuda/kernels/GpuLinearSolverCuda.cpp:72: trailing whitespace.
++// auto-detection GpuResidencyManager's own syncMatrix() uses (P6-GPU-001
+cuda/kernels/GpuLinearSolverCuda.cpp:73: trailing whitespace.
++// -- see that file's own header comment).
+cuda/kernels/GpuLinearSolverCuda.cpp:74: trailing whitespace.
++void syncMatrix(DeviceCsrMatrix& deviceMatrix, const SparseMatrix& matrix) {
+cuda/kernels/GpuLinearSolverCuda.cpp:75: trailing whitespace.
++  if (!deviceMatrix.hasStructure() || deviceMatrix.rows() != matrix.rows() ||
+cuda/kernels/GpuLinearSolverCuda.cpp:76: trailing whitespace.
++      deviceMatrix.columns() != matrix.columns() || deviceMatrix.nonZeros() != matrix.nonZeros()) {
+cuda/kernels/GpuLinearSolverCuda.cpp:77: trailing whitespace.
++    deviceMatrix.uploadStructureAndValues(matrix);
+cuda/kernels/GpuLinearSolverCuda.cpp:78: trailing whitespace.
++  } else {
+cuda/kernels/GpuLinearSolverCuda.cpp:79: trailing whitespace.
++    deviceMatrix.updateValues(matrix);
+cuda/kernels/GpuLinearSolverCuda.cpp:80: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:81: trailing whitespace.
++}
+cuda/kernels/GpuLinearSolverCuda.cpp:82: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:83: trailing whitespace.
++// Applies the active preconditioner (or the identity) to `input`, writing
+cuda/kernels/GpuLinearSolverCuda.cpp:84: trailing whitespace.
++// into `output`. Three cases, checked in order:
+cuda/kernels/GpuLinearSolverCuda.cpp:85: trailing whitespace.
++//
+cuda/kernels/GpuLinearSolverCuda.cpp:86: trailing whitespace.
++//   1. useGpuJacobi: settings requested PreconditionerType::Jacobi and no
+cuda/kernels/GpuLinearSolverCuda.cpp:87: trailing whitespace.
++//      explicit CPU-side preconditioner was supplied (see solveImpl's own
+cuda/kernels/GpuLinearSolverCuda.cpp:88: trailing whitespace.
++//      build-step comment) -- applies GpuPreconditioner.hpp's device-
+cuda/kernels/GpuLinearSolverCuda.cpp:89: trailing whitespace.
++//      resident diag(A)^-1 entirely on the GPU, no host round trip at
+cuda/kernels/GpuLinearSolverCuda.cpp:90: trailing whitespace.
++//      all. This is P6-GPU-003's actual production fast path.
+cuda/kernels/GpuLinearSolverCuda.cpp:91: trailing whitespace.
++//   2. preconditioner != nullptr: an explicit CPU-side
+cuda/kernels/GpuLinearSolverCuda.cpp:92: trailing whitespace.
++//      cfd::algebra::Preconditioner the caller constructed directly
+cuda/kernels/GpuLinearSolverCuda.cpp:93: trailing whitespace.
++//      (e.g. a test injecting a custom preconditioner, or JacobiPrecon-
+cuda/kernels/GpuLinearSolverCuda.cpp:94: trailing whitespace.
++//      ditioner passed in by hand rather than selected via settings).
+cuda/kernels/GpuLinearSolverCuda.cpp:95: trailing whitespace.
++//      Preconditioner::apply() takes host Vectors by interface, so this
+cuda/kernels/GpuLinearSolverCuda.cpp:96: trailing whitespace.
++//      is the one remaining path that pays a real per-iteration
+cuda/kernels/GpuLinearSolverCuda.cpp:97: trailing whitespace.
++//      device<->host round trip -- of exactly the one vector being
+cuda/kernels/GpuLinearSolverCuda.cpp:98: trailing whitespace.
++//      preconditioned, not the whole iterative state. Kept as a general-
+cuda/kernels/GpuLinearSolverCuda.cpp:99: trailing whitespace.
++//      purpose escape hatch for a preconditioner this codebase has no
+cuda/kernels/GpuLinearSolverCuda.cpp:100: trailing whitespace.
++//      GPU-resident implementation of; not the production default.
+cuda/kernels/GpuLinearSolverCuda.cpp:101: trailing whitespace.
++//   3. neither: identity (M = I), unchanged pre-P6-GPU-003 behavior.
+cuda/kernels/GpuLinearSolverCuda.cpp:102: trailing whitespace.
++void applyPreconditioner(const Preconditioner* preconditioner, bool useGpuJacobi,
+cuda/kernels/GpuLinearSolverCuda.cpp:103: trailing whitespace.
++                         const DeviceVector& jacobiInverseDiagonal, const DeviceVector& input,
+cuda/kernels/GpuLinearSolverCuda.cpp:104: trailing whitespace.
++                         DeviceVector& output) {
+cuda/kernels/GpuLinearSolverCuda.cpp:105: trailing whitespace.
++  if (useGpuJacobi) {
+cuda/kernels/GpuLinearSolverCuda.cpp:106: trailing whitespace.
++    applyJacobiDiagonal(jacobiInverseDiagonal, input, output);
+cuda/kernels/GpuLinearSolverCuda.cpp:107: trailing whitespace.
++    return;
+cuda/kernels/GpuLinearSolverCuda.cpp:108: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:109: trailing whitespace.
++  if (preconditioner == nullptr) {
+cuda/kernels/GpuLinearSolverCuda.cpp:110: trailing whitespace.
++    deviceCopy(output, input);
+cuda/kernels/GpuLinearSolverCuda.cpp:111: trailing whitespace.
++    return;
+cuda/kernels/GpuLinearSolverCuda.cpp:112: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:113: trailing whitespace.
++  const Vector hostInput = input.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:114: trailing whitespace.
++  Vector hostOutput(hostInput.size());
+cuda/kernels/GpuLinearSolverCuda.cpp:115: trailing whitespace.
++  preconditioner->apply(hostInput, hostOutput);
+cuda/kernels/GpuLinearSolverCuda.cpp:116: trailing whitespace.
++  output.uploadFrom(hostOutput);
+cuda/kernels/GpuLinearSolverCuda.cpp:117: trailing whitespace.
++}
+cuda/kernels/GpuLinearSolverCuda.cpp:118: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:119: trailing whitespace.
++// Shared by GpuCG/GpuBiCGSTAB's own solveImpl: builds whichever
+cuda/kernels/GpuLinearSolverCuda.cpp:120: trailing whitespace.
++// preconditioner state `settings`/`preconditioner` select, returning
+cuda/kernels/GpuLinearSolverCuda.cpp:121: trailing whitespace.
++// true if the build failed and the caller must report
+cuda/kernels/GpuLinearSolverCuda.cpp:122: trailing whitespace.
++// SolverStatus::InvalidSystem and stop (mirrors CG.cpp/BiCGSTAB.cpp's own
+cuda/kernels/GpuLinearSolverCuda.cpp:123: trailing whitespace.
++// identical CPU-side try/catch around Preconditioner::build()). On
+cuda/kernels/GpuLinearSolverCuda.cpp:124: trailing whitespace.
++// success, sets `useGpuJacobi` to whether the fast device-resident Jacobi
+cuda/kernels/GpuLinearSolverCuda.cpp:125: trailing whitespace.
++// path is now active (mutually exclusive with a non-null `preconditioner`
+cuda/kernels/GpuLinearSolverCuda.cpp:126: trailing whitespace.
++// -- an explicit CPU-side preconditioner always takes priority over
+cuda/kernels/GpuLinearSolverCuda.cpp:127: trailing whitespace.
++// `settings.preconditioner`, matching LinearSolverFactory.cpp's own
+cuda/kernels/GpuLinearSolverCuda.cpp:128: trailing whitespace.
++// "explicit argument wins" contract).
+cuda/kernels/GpuLinearSolverCuda.cpp:129: trailing whitespace.
++[[nodiscard]] bool buildPreconditionerFailed(Preconditioner* preconditioner,
+cuda/kernels/GpuLinearSolverCuda.cpp:130: trailing whitespace.
++                                             const LinearSolverSettings& settings,
+cuda/kernels/GpuLinearSolverCuda.cpp:131: trailing whitespace.
++                                             const SparseMatrix& A,
+cuda/kernels/GpuLinearSolverCuda.cpp:132: trailing whitespace.
++                                             DeviceVector& jacobiInverseDiagonal,
+cuda/kernels/GpuLinearSolverCuda.cpp:133: trailing whitespace.
++                                             bool& useGpuJacobi) {
+cuda/kernels/GpuLinearSolverCuda.cpp:134: trailing whitespace.
++  useGpuJacobi = false;
+cuda/kernels/GpuLinearSolverCuda.cpp:135: trailing whitespace.
++  if (preconditioner != nullptr) {
+cuda/kernels/GpuLinearSolverCuda.cpp:136: trailing whitespace.
++    try {
+cuda/kernels/GpuLinearSolverCuda.cpp:137: trailing whitespace.
++      preconditioner->build(A);
+cuda/kernels/GpuLinearSolverCuda.cpp:138: trailing whitespace.
++    } catch (const cfd::InvalidArgumentError&) {
+cuda/kernels/GpuLinearSolverCuda.cpp:139: trailing whitespace.
++      return true;
+cuda/kernels/GpuLinearSolverCuda.cpp:140: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:141: trailing whitespace.
++    return false;
+cuda/kernels/GpuLinearSolverCuda.cpp:142: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:143: trailing whitespace.
++  if (settings.preconditioner == PreconditionerType::Jacobi) {
+cuda/kernels/GpuLinearSolverCuda.cpp:144: trailing whitespace.
++    try {
+cuda/kernels/GpuLinearSolverCuda.cpp:145: trailing whitespace.
++      buildJacobiDiagonal(A, jacobiInverseDiagonal);
+cuda/kernels/GpuLinearSolverCuda.cpp:146: trailing whitespace.
++    } catch (const cfd::InvalidArgumentError&) {
+cuda/kernels/GpuLinearSolverCuda.cpp:147: trailing whitespace.
++      return true;
+cuda/kernels/GpuLinearSolverCuda.cpp:148: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:149: trailing whitespace.
++    useGpuJacobi = true;
+cuda/kernels/GpuLinearSolverCuda.cpp:150: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:151: trailing whitespace.
++  return false;
+cuda/kernels/GpuLinearSolverCuda.cpp:152: trailing whitespace.
++}
+cuda/kernels/GpuLinearSolverCuda.cpp:153: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:154: trailing whitespace.
++// ---------------------------------------------------------------------
+cuda/kernels/GpuLinearSolverCuda.cpp:155: trailing whitespace.
++// GpuCG
+cuda/kernels/GpuLinearSolverCuda.cpp:156: trailing whitespace.
++// ---------------------------------------------------------------------
+cuda/kernels/GpuLinearSolverCuda.cpp:157: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:158: trailing whitespace.
++// Device-buffer roles mirror CG.cpp's own locals exactly: x_/r_/p_ are
+cuda/kernels/GpuLinearSolverCuda.cpp:159: trailing whitespace.
++// the algorithm's own persistent x/r/p; ap_ holds A*p (CPU's `Ap`); z_
+cuda/kernels/GpuLinearSolverCuda.cpp:160: trailing whitespace.
++// holds the current preconditioned residual (CPU's `z`, later
+cuda/kernels/GpuLinearSolverCuda.cpp:161: trailing whitespace.
++// overwritten in place to become `zNew` -- old z is never needed again
+cuda/kernels/GpuLinearSolverCuda.cpp:162: trailing whitespace.
++// once rz has been read into the host-side `Real rz`).
+cuda/kernels/GpuLinearSolverCuda.cpp:163: trailing whitespace.
++class GpuCG final : public LinearSolver {
+cuda/kernels/GpuLinearSolverCuda.cpp:164: trailing whitespace.
++ public:
+cuda/kernels/GpuLinearSolverCuda.cpp:165: trailing whitespace.
++  explicit GpuCG(LinearSolverSettings settings, std::shared_ptr<Preconditioner> preconditioner)
+cuda/kernels/GpuLinearSolverCuda.cpp:166: trailing whitespace.
++      : LinearSolver(settings), preconditioner_(std::move(preconditioner)) {}
+cuda/kernels/GpuLinearSolverCuda.cpp:167: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:168: trailing whitespace.
++  using LinearSolver::solve;
+cuda/kernels/GpuLinearSolverCuda.cpp:169: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:170: trailing whitespace.
++  [[nodiscard]] SolverResult solve(const LinearSystem& system,
+cuda/kernels/GpuLinearSolverCuda.cpp:171: trailing whitespace.
++                                   const Vector& initialGuess) const override {
+cuda/kernels/GpuLinearSolverCuda.cpp:172: trailing whitespace.
++    cfd::Timer solveTimer;
+cuda/kernels/GpuLinearSolverCuda.cpp:173: trailing whitespace.
++    SolverResult result = solveImpl(system, initialGuess);
+cuda/kernels/GpuLinearSolverCuda.cpp:174: trailing whitespace.
++    auto& stats = gpuExecutionStats();
+cuda/kernels/GpuLinearSolverCuda.cpp:175: trailing whitespace.
++    stats.gpuSolveSeconds += solveTimer.elapsedSeconds();
+cuda/kernels/GpuLinearSolverCuda.cpp:176: trailing whitespace.
++    ++stats.gpuLinearSolves;
+cuda/kernels/GpuLinearSolverCuda.cpp:177: trailing whitespace.
++    stats.gpuLinearSolverIterations += static_cast<std::uint64_t>(result.iterations);
+cuda/kernels/GpuLinearSolverCuda.cpp:178: trailing whitespace.
++    return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:179: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:180: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:181: trailing whitespace.
++ private:
+cuda/kernels/GpuLinearSolverCuda.cpp:182: trailing whitespace.
++  [[nodiscard]] SolverResult solveImpl(const LinearSystem& system, const Vector& initialGuess) const {
+cuda/kernels/GpuLinearSolverCuda.cpp:183: trailing whitespace.
++    const SparseMatrix& A = system.matrix();
+cuda/kernels/GpuLinearSolverCuda.cpp:184: trailing whitespace.
++    const Vector& b = system.rhs();
+cuda/kernels/GpuLinearSolverCuda.cpp:185: trailing whitespace.
++    const Index n = system.size();
+cuda/kernels/GpuLinearSolverCuda.cpp:186: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:187: trailing whitespace.
++    SolverResult result;
+cuda/kernels/GpuLinearSolverCuda.cpp:188: trailing whitespace.
++    result.solution = initialGuess;
+cuda/kernels/GpuLinearSolverCuda.cpp:189: trailing whitespace.
++    result.backendUsed = LinearSolverBackend::GPU;
+cuda/kernels/GpuLinearSolverCuda.cpp:190: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:191: trailing whitespace.
++    if (initialGuess.size() != n || !A.allFinite() || !b.allFinite() || !initialGuess.allFinite()) {
+cuda/kernels/GpuLinearSolverCuda.cpp:192: trailing whitespace.
++      result.status = SolverStatus::NonFiniteInput;
+cuda/kernels/GpuLinearSolverCuda.cpp:193: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:194: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:195: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:196: trailing whitespace.
++    syncMatrix(deviceMatrix_, A);
+cuda/kernels/GpuLinearSolverCuda.cpp:197: trailing whitespace.
++    bool useGpuJacobi = false;
+cuda/kernels/GpuLinearSolverCuda.cpp:198: trailing whitespace.
++    if (buildPreconditionerFailed(preconditioner_.get(), settings_, A, jacobiInverseDiagonal_,
+cuda/kernels/GpuLinearSolverCuda.cpp:199: trailing whitespace.
++                                  useGpuJacobi)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:200: trailing whitespace.
++      result.status = SolverStatus::InvalidSystem;
+cuda/kernels/GpuLinearSolverCuda.cpp:201: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:202: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:203: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:204: trailing whitespace.
++    // Every persistent buffer must already be the right size *before*
+cuda/kernels/GpuLinearSolverCuda.cpp:205: trailing whitespace.
++    // it is first used as an spmv() output target -- spmv() itself
+cuda/kernels/GpuLinearSolverCuda.cpp:206: trailing whitespace.
++    // throws InvalidArgumentError on a size mismatch rather than
+cuda/kernels/GpuLinearSolverCuda.cpp:207: trailing whitespace.
++    // resizing its own output (DeviceCsrMatrix.hpp's own contract).
+cuda/kernels/GpuLinearSolverCuda.cpp:208: trailing whitespace.
++    // resize() is a no-op once a buffer is already this size (P6-GPU-001
+cuda/kernels/GpuLinearSolverCuda.cpp:209: trailing whitespace.
++    // -- DeviceBuffer::resize()'s own contract), so this costs nothing
+cuda/kernels/GpuLinearSolverCuda.cpp:210: trailing whitespace.
++    // on repeated solve() calls.
+cuda/kernels/GpuLinearSolverCuda.cpp:211: trailing whitespace.
++    x_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:212: trailing whitespace.
++    b_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:213: trailing whitespace.
++    r_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:214: trailing whitespace.
++    p_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:215: trailing whitespace.
++    ap_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:216: trailing whitespace.
++    z_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:217: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:218: trailing whitespace.
++    b_.uploadFrom(b);
+cuda/kernels/GpuLinearSolverCuda.cpp:219: trailing whitespace.
++    x_.uploadFrom(initialGuess);
+cuda/kernels/GpuLinearSolverCuda.cpp:220: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:221: trailing whitespace.
++    spmv(deviceMatrix_, x_, ap_);          // ap_ := A*x0 (temporary reuse)
+cuda/kernels/GpuLinearSolverCuda.cpp:222: trailing whitespace.
++    waxpby(1.0, b_, -1.0, ap_, r_);        // r_ := b - A*x0
+cuda/kernels/GpuLinearSolverCuda.cpp:223: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:224: trailing whitespace.
++    const Real b0 = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:225: trailing whitespace.
++    result.initialResidual = b0;
+cuda/kernels/GpuLinearSolverCuda.cpp:226: trailing whitespace.
++    result.residualHistory.push_back(b0);
+cuda/kernels/GpuLinearSolverCuda.cpp:227: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:228: trailing whitespace.
++    const auto converged = [&](Real absRes) {
+cuda/kernels/GpuLinearSolverCuda.cpp:229: trailing whitespace.
++      const bool absOk = absRes <= settings_.absoluteTolerance;
+cuda/kernels/GpuLinearSolverCuda.cpp:230: trailing whitespace.
++      const bool relOk = (b0 > 0.0) && (absRes / b0 <= settings_.relativeTolerance);
+cuda/kernels/GpuLinearSolverCuda.cpp:231: trailing whitespace.
++      return absOk || relOk;
+cuda/kernels/GpuLinearSolverCuda.cpp:232: trailing whitespace.
++    };
+cuda/kernels/GpuLinearSolverCuda.cpp:233: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:234: trailing whitespace.
++    if (b0 == 0.0 || converged(b0)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:235: trailing whitespace.
++      result.status = SolverStatus::Converged;
+cuda/kernels/GpuLinearSolverCuda.cpp:236: trailing whitespace.
++      result.iterations = 0;
+cuda/kernels/GpuLinearSolverCuda.cpp:237: trailing whitespace.
++      result.finalResidual = b0;
+cuda/kernels/GpuLinearSolverCuda.cpp:238: trailing whitespace.
++      result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:239: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:240: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:241: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:242: trailing whitespace.
++    applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, r_, z_);
+cuda/kernels/GpuLinearSolverCuda.cpp:243: trailing whitespace.
++    deviceCopy(p_, z_);
+cuda/kernels/GpuLinearSolverCuda.cpp:244: trailing whitespace.
++    Real rz = dot(r_, z_);
+cuda/kernels/GpuLinearSolverCuda.cpp:245: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:246: trailing whitespace.
++    if (!std::isfinite(rz)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:247: trailing whitespace.
++      result.status = SolverStatus::Breakdown;
+cuda/kernels/GpuLinearSolverCuda.cpp:248: trailing whitespace.
++      result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:249: trailing whitespace.
++      result.finalResidual = b0;
+cuda/kernels/GpuLinearSolverCuda.cpp:250: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:251: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:252: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:253: trailing whitespace.
++    for (Index iter = 1; iter <= settings_.maxIterations; ++iter) {
+cuda/kernels/GpuLinearSolverCuda.cpp:254: trailing whitespace.
++      spmv(deviceMatrix_, p_, ap_);
+cuda/kernels/GpuLinearSolverCuda.cpp:255: trailing whitespace.
++      const Real pAp = dot(p_, ap_);
+cuda/kernels/GpuLinearSolverCuda.cpp:256: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:257: trailing whitespace.
++      if (!std::isfinite(pAp) || std::abs(pAp) < constants::tiny) {
+cuda/kernels/GpuLinearSolverCuda.cpp:258: trailing whitespace.
++        result.status = SolverStatus::Breakdown;
+cuda/kernels/GpuLinearSolverCuda.cpp:259: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:260: trailing whitespace.
++        result.finalResidual = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:261: trailing whitespace.
++        result.iterations = iter - 1;
+cuda/kernels/GpuLinearSolverCuda.cpp:262: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:263: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:264: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:265: trailing whitespace.
++      const Real alpha = rz / pAp;
+cuda/kernels/GpuLinearSolverCuda.cpp:266: trailing whitespace.
++      if (!std::isfinite(alpha)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:267: trailing whitespace.
++        result.status = SolverStatus::Breakdown;
+cuda/kernels/GpuLinearSolverCuda.cpp:268: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:269: trailing whitespace.
++        result.finalResidual = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:270: trailing whitespace.
++        result.iterations = iter - 1;
+cuda/kernels/GpuLinearSolverCuda.cpp:271: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:272: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:273: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:274: trailing whitespace.
++      axpy(alpha, p_, x_);    // x_ += alpha * p_
+cuda/kernels/GpuLinearSolverCuda.cpp:275: trailing whitespace.
++      axpy(-alpha, ap_, r_);  // r_ -= alpha * Ap  (becomes r_new in place)
+cuda/kernels/GpuLinearSolverCuda.cpp:276: trailing whitespace.
++      const Real residualNorm = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:277: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:278: trailing whitespace.
++      if (!std::isfinite(residualNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:279: trailing whitespace.
++        result.status = SolverStatus::NonFiniteResidual;
+cuda/kernels/GpuLinearSolverCuda.cpp:280: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:281: trailing whitespace.
++        result.finalResidual = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:282: trailing whitespace.
++        result.iterations = iter;
+cuda/kernels/GpuLinearSolverCuda.cpp:283: trailing whitespace.
++        result.residualHistory.push_back(residualNorm);
+cuda/kernels/GpuLinearSolverCuda.cpp:284: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:285: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:286: trailing whitespace.
++      result.residualHistory.push_back(residualNorm);
+cuda/kernels/GpuLinearSolverCuda.cpp:287: trailing whitespace.
++      result.iterations = iter;
+cuda/kernels/GpuLinearSolverCuda.cpp:288: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:289: trailing whitespace.
++      if (converged(residualNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:290: trailing whitespace.
++        result.status = SolverStatus::Converged;
+cuda/kernels/GpuLinearSolverCuda.cpp:291: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:292: trailing whitespace.
++        result.finalResidual = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:293: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:294: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:295: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:296: trailing whitespace.
++      applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, r_,
+cuda/kernels/GpuLinearSolverCuda.cpp:297: trailing whitespace.
++                         z_);  // z_ becomes z_new in place
+cuda/kernels/GpuLinearSolverCuda.cpp:298: trailing whitespace.
++      const Real rzNew = dot(r_, z_);
+cuda/kernels/GpuLinearSolverCuda.cpp:299: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:300: trailing whitespace.
++      if (!std::isfinite(rzNew)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:301: trailing whitespace.
++        result.status = SolverStatus::Breakdown;
+cuda/kernels/GpuLinearSolverCuda.cpp:302: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:303: trailing whitespace.
++        result.finalResidual = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:304: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:305: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:306: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:307: trailing whitespace.
++      const Real beta = rzNew / rz;
+cuda/kernels/GpuLinearSolverCuda.cpp:308: trailing whitespace.
++      if (!std::isfinite(beta)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:309: trailing whitespace.
++        result.status = SolverStatus::Breakdown;
+cuda/kernels/GpuLinearSolverCuda.cpp:310: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:311: trailing whitespace.
++        result.finalResidual = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:312: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:313: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:314: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:315: trailing whitespace.
++      waxpby(1.0, z_, beta, p_, p_);  // p_ := z_ + beta * p_  (old p_ read then overwritten)
+cuda/kernels/GpuLinearSolverCuda.cpp:316: trailing whitespace.
++      rz = rzNew;
+cuda/kernels/GpuLinearSolverCuda.cpp:317: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:318: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:319: trailing whitespace.
++    result.status = SolverStatus::MaxIterations;
+cuda/kernels/GpuLinearSolverCuda.cpp:320: trailing whitespace.
++    result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:321: trailing whitespace.
++    result.finalResidual = result.residualHistory.back();
+cuda/kernels/GpuLinearSolverCuda.cpp:322: trailing whitespace.
++    return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:323: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:324: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:325: trailing whitespace.
++  std::shared_ptr<Preconditioner> preconditioner_;
+cuda/kernels/GpuLinearSolverCuda.cpp:326: trailing whitespace.
++  mutable DeviceCsrMatrix deviceMatrix_;
+cuda/kernels/GpuLinearSolverCuda.cpp:327: trailing whitespace.
++  mutable DeviceVector x_, b_, r_, p_, ap_, z_;
+cuda/kernels/GpuLinearSolverCuda.cpp:328: trailing whitespace.
++  // P6-GPU-003: device-resident diag(A)^-1, reused across repeated
+cuda/kernels/GpuLinearSolverCuda.cpp:329: trailing whitespace.
++  // solve() calls (rebuilt once per call when settings_.preconditioner
+cuda/kernels/GpuLinearSolverCuda.cpp:330: trailing whitespace.
++  // == Jacobi -- see buildPreconditionerFailed's own header comment) --
+cuda/kernels/GpuLinearSolverCuda.cpp:331: trailing whitespace.
++  // never reallocated mid-solve, only ever mid-iteration-loop reused via
+cuda/kernels/GpuLinearSolverCuda.cpp:332: trailing whitespace.
++  // applyJacobiDiagonal().
+cuda/kernels/GpuLinearSolverCuda.cpp:333: trailing whitespace.
++  mutable DeviceVector jacobiInverseDiagonal_;
+cuda/kernels/GpuLinearSolverCuda.cpp:334: trailing whitespace.
++};
+cuda/kernels/GpuLinearSolverCuda.cpp:335: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:336: trailing whitespace.
++// ---------------------------------------------------------------------
+cuda/kernels/GpuLinearSolverCuda.cpp:337: trailing whitespace.
++// GpuBiCGSTAB
+cuda/kernels/GpuLinearSolverCuda.cpp:338: trailing whitespace.
++// ---------------------------------------------------------------------
+cuda/kernels/GpuLinearSolverCuda.cpp:339: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:340: trailing whitespace.
++// Device-buffer roles mirror BiCGSTAB.cpp's own locals: x_/r_/p_/v_/s_/
+cuda/kernels/GpuLinearSolverCuda.cpp:341: trailing whitespace.
++// t_ are the algorithm's own x/r/p/v/s/t; rHat_ is the fixed shadow
+cuda/kernels/GpuLinearSolverCuda.cpp:342: trailing whitespace.
++// residual (uploaded once, never mutated for the rest of the solve());
+cuda/kernels/GpuLinearSolverCuda.cpp:343: trailing whitespace.
++// pHat_/sHat_ hold the current preconditioned p/s (CPU's `pHat`/`sHat`).
+cuda/kernels/GpuLinearSolverCuda.cpp:344: trailing whitespace.
++class GpuBiCGSTAB final : public LinearSolver {
+cuda/kernels/GpuLinearSolverCuda.cpp:345: trailing whitespace.
++ public:
+cuda/kernels/GpuLinearSolverCuda.cpp:346: trailing whitespace.
++  explicit GpuBiCGSTAB(LinearSolverSettings settings, std::shared_ptr<Preconditioner> preconditioner)
+cuda/kernels/GpuLinearSolverCuda.cpp:347: trailing whitespace.
++      : LinearSolver(settings), preconditioner_(std::move(preconditioner)) {}
+cuda/kernels/GpuLinearSolverCuda.cpp:348: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:349: trailing whitespace.
++  using LinearSolver::solve;
+cuda/kernels/GpuLinearSolverCuda.cpp:350: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:351: trailing whitespace.
++  [[nodiscard]] SolverResult solve(const LinearSystem& system,
+cuda/kernels/GpuLinearSolverCuda.cpp:352: trailing whitespace.
++                                   const Vector& initialGuess) const override {
+cuda/kernels/GpuLinearSolverCuda.cpp:353: trailing whitespace.
++    cfd::Timer solveTimer;
+cuda/kernels/GpuLinearSolverCuda.cpp:354: trailing whitespace.
++    SolverResult result = solveImpl(system, initialGuess);
+cuda/kernels/GpuLinearSolverCuda.cpp:355: trailing whitespace.
++    auto& stats = gpuExecutionStats();
+cuda/kernels/GpuLinearSolverCuda.cpp:356: trailing whitespace.
++    stats.gpuSolveSeconds += solveTimer.elapsedSeconds();
+cuda/kernels/GpuLinearSolverCuda.cpp:357: trailing whitespace.
++    ++stats.gpuLinearSolves;
+cuda/kernels/GpuLinearSolverCuda.cpp:358: trailing whitespace.
++    stats.gpuLinearSolverIterations += static_cast<std::uint64_t>(result.iterations);
+cuda/kernels/GpuLinearSolverCuda.cpp:359: trailing whitespace.
++    return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:360: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:361: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:362: trailing whitespace.
++ private:
+cuda/kernels/GpuLinearSolverCuda.cpp:363: trailing whitespace.
++  [[nodiscard]] SolverResult solveImpl(const LinearSystem& system, const Vector& initialGuess) const {
+cuda/kernels/GpuLinearSolverCuda.cpp:364: trailing whitespace.
++    const SparseMatrix& A = system.matrix();
+cuda/kernels/GpuLinearSolverCuda.cpp:365: trailing whitespace.
++    const Vector& b = system.rhs();
+cuda/kernels/GpuLinearSolverCuda.cpp:366: trailing whitespace.
++    const Index n = system.size();
+cuda/kernels/GpuLinearSolverCuda.cpp:367: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:368: trailing whitespace.
++    SolverResult result;
+cuda/kernels/GpuLinearSolverCuda.cpp:369: trailing whitespace.
++    result.solution = initialGuess;
+cuda/kernels/GpuLinearSolverCuda.cpp:370: trailing whitespace.
++    result.backendUsed = LinearSolverBackend::GPU;
+cuda/kernels/GpuLinearSolverCuda.cpp:371: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:372: trailing whitespace.
++    if (initialGuess.size() != n || !A.allFinite() || !b.allFinite() || !initialGuess.allFinite()) {
+cuda/kernels/GpuLinearSolverCuda.cpp:373: trailing whitespace.
++      result.status = SolverStatus::NonFiniteInput;
+cuda/kernels/GpuLinearSolverCuda.cpp:374: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:375: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:376: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:377: trailing whitespace.
++    syncMatrix(deviceMatrix_, A);
+cuda/kernels/GpuLinearSolverCuda.cpp:378: trailing whitespace.
++    bool useGpuJacobi = false;
+cuda/kernels/GpuLinearSolverCuda.cpp:379: trailing whitespace.
++    if (buildPreconditionerFailed(preconditioner_.get(), settings_, A, jacobiInverseDiagonal_,
+cuda/kernels/GpuLinearSolverCuda.cpp:380: trailing whitespace.
++                                  useGpuJacobi)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:381: trailing whitespace.
++      result.status = SolverStatus::InvalidSystem;
+cuda/kernels/GpuLinearSolverCuda.cpp:382: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:383: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:384: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:385: trailing whitespace.
++    // See GpuCG::solveImpl's identical comment -- every persistent
+cuda/kernels/GpuLinearSolverCuda.cpp:386: trailing whitespace.
++    // buffer must be correctly sized before its first use as an spmv()
+cuda/kernels/GpuLinearSolverCuda.cpp:387: trailing whitespace.
++    // output target, and this resize is a no-op on repeated calls.
+cuda/kernels/GpuLinearSolverCuda.cpp:388: trailing whitespace.
++    x_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:389: trailing whitespace.
++    b_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:390: trailing whitespace.
++    r_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:391: trailing whitespace.
++    rHat_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:392: trailing whitespace.
++    p_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:393: trailing whitespace.
++    v_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:394: trailing whitespace.
++    s_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:395: trailing whitespace.
++    t_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:396: trailing whitespace.
++    pHat_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:397: trailing whitespace.
++    sHat_.resize(n);
+cuda/kernels/GpuLinearSolverCuda.cpp:398: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:399: trailing whitespace.
++    b_.uploadFrom(b);
+cuda/kernels/GpuLinearSolverCuda.cpp:400: trailing whitespace.
++    x_.uploadFrom(initialGuess);
+cuda/kernels/GpuLinearSolverCuda.cpp:401: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:402: trailing whitespace.
++    spmv(deviceMatrix_, x_, v_);      // v_ temporarily holds A*x0
+cuda/kernels/GpuLinearSolverCuda.cpp:403: trailing whitespace.
++    waxpby(1.0, b_, -1.0, v_, r_);    // r_ := b - A*x0
+cuda/kernels/GpuLinearSolverCuda.cpp:404: trailing whitespace.
++    deviceCopy(rHat_, r_);            // rHat_ fixed for the rest of this solve
+cuda/kernels/GpuLinearSolverCuda.cpp:405: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:406: trailing whitespace.
++    const Real b0 = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:407: trailing whitespace.
++    result.initialResidual = b0;
+cuda/kernels/GpuLinearSolverCuda.cpp:408: trailing whitespace.
++    result.residualHistory.push_back(b0);
+cuda/kernels/GpuLinearSolverCuda.cpp:409: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:410: trailing whitespace.
++    const auto converged = [&](Real absRes) {
+cuda/kernels/GpuLinearSolverCuda.cpp:411: trailing whitespace.
++      const bool absOk = absRes <= settings_.absoluteTolerance;
+cuda/kernels/GpuLinearSolverCuda.cpp:412: trailing whitespace.
++      const bool relOk = (b0 > 0.0) && (absRes / b0 <= settings_.relativeTolerance);
+cuda/kernels/GpuLinearSolverCuda.cpp:413: trailing whitespace.
++      return absOk || relOk;
+cuda/kernels/GpuLinearSolverCuda.cpp:414: trailing whitespace.
++    };
+cuda/kernels/GpuLinearSolverCuda.cpp:415: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:416: trailing whitespace.
++    if (b0 == 0.0 || converged(b0)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:417: trailing whitespace.
++      result.status = SolverStatus::Converged;
+cuda/kernels/GpuLinearSolverCuda.cpp:418: trailing whitespace.
++      result.iterations = 0;
+cuda/kernels/GpuLinearSolverCuda.cpp:419: trailing whitespace.
++      result.finalResidual = b0;
+cuda/kernels/GpuLinearSolverCuda.cpp:420: trailing whitespace.
++      result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:421: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:422: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:423: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:424: trailing whitespace.
++    Real rhoOld = 1.0;
+cuda/kernels/GpuLinearSolverCuda.cpp:425: trailing whitespace.
++    Real alpha = 1.0;
+cuda/kernels/GpuLinearSolverCuda.cpp:426: trailing whitespace.
++    Real omega = 1.0;
+cuda/kernels/GpuLinearSolverCuda.cpp:427: trailing whitespace.
++    fill(v_, n, 0.0);
+cuda/kernels/GpuLinearSolverCuda.cpp:428: trailing whitespace.
++    fill(p_, n, 0.0);
+cuda/kernels/GpuLinearSolverCuda.cpp:429: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:430: trailing whitespace.
++    const auto breakdown = [&](Index completedIterations) {
+cuda/kernels/GpuLinearSolverCuda.cpp:431: trailing whitespace.
++      result.status = SolverStatus::Breakdown;
+cuda/kernels/GpuLinearSolverCuda.cpp:432: trailing whitespace.
++      result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:433: trailing whitespace.
++      result.finalResidual = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:434: trailing whitespace.
++      result.iterations = completedIterations;
+cuda/kernels/GpuLinearSolverCuda.cpp:435: trailing whitespace.
++      return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:436: trailing whitespace.
++    };
+cuda/kernels/GpuLinearSolverCuda.cpp:437: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:438: trailing whitespace.
++    // GPU-PCORR-001: scale-relative breakdown tests, mirroring
+cuda/kernels/GpuLinearSolverCuda.cpp:439: trailing whitespace.
++    // cfd::algebra::BiCGSTAB's cancelledToRoundingLevel. The absolute
+cuda/kernels/GpuLinearSolverCuda.cpp:440: trailing whitespace.
++    // |rho| < constants::tiny = 1e-30 this file used before is not invariant
+cuda/kernels/GpuLinearSolverCuda.cpp:441: trailing whitespace.
++    // under (A, b) -> (A, beta b): it read a healthy iteration of a
+cuda/kernels/GpuLinearSolverCuda.cpp:442: trailing whitespace.
++    // small-residual system as a breakdown, which is exactly how production
+cuda/kernels/GpuLinearSolverCuda.cpp:443: trailing whitespace.
++    // SIMPLE's pressure correction failed on the GPU at 320^2 and above while
+cuda/kernels/GpuLinearSolverCuda.cpp:444: trailing whitespace.
++    // the CPU -- already fixed this way by P12-MESH-004 -- completed. An inner
+cuda/kernels/GpuLinearSolverCuda.cpp:445: trailing whitespace.
++    // product is zero only once it has cancelled down to the rounding level of
+cuda/kernels/GpuLinearSolverCuda.cpp:446: trailing whitespace.
++    // its own terms, sum_i |x_i y_i|, which absDot() computes on the device.
+cuda/kernels/GpuLinearSolverCuda.cpp:447: trailing whitespace.
++    const auto cancelledToRoundingLevel = [](Real innerProduct, const DeviceVector& x,
+cuda/kernels/GpuLinearSolverCuda.cpp:448: trailing whitespace.
++                                             const DeviceVector& y, Real normX, Real normY) {
+cuda/kernels/GpuLinearSolverCuda.cpp:449: trailing whitespace.
++      const Real epsilon = std::numeric_limits<Real>::epsilon();
+cuda/kernels/GpuLinearSolverCuda.cpp:450: trailing whitespace.
++      if (std::abs(innerProduct) > epsilon * normX * normY) return false;
+cuda/kernels/GpuLinearSolverCuda.cpp:451: trailing whitespace.
++      return std::abs(innerProduct) <= epsilon * absDot(x, y);
+cuda/kernels/GpuLinearSolverCuda.cpp:452: trailing whitespace.
++    };
+cuda/kernels/GpuLinearSolverCuda.cpp:453: trailing whitespace.
++    const Real rHatNorm = b0;  // rHat_ is fixed for this solve, so its norm is b0
+cuda/kernels/GpuLinearSolverCuda.cpp:454: trailing whitespace.
++    Real rNorm = b0;
+cuda/kernels/GpuLinearSolverCuda.cpp:455: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:456: trailing whitespace.
++    for (Index iter = 1; iter <= settings_.maxIterations; ++iter) {
+cuda/kernels/GpuLinearSolverCuda.cpp:457: trailing whitespace.
++      const Real rho = dot(rHat_, r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:458: trailing whitespace.
++      if (!std::isfinite(rho) || cancelledToRoundingLevel(rho, rHat_, r_, rHatNorm, rNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:459: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:460: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:461: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:462: trailing whitespace.
++      const Real beta = (rho / rhoOld) * (alpha / omega);
+cuda/kernels/GpuLinearSolverCuda.cpp:463: trailing whitespace.
++      if (!std::isfinite(beta)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:464: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:465: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:466: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:467: trailing whitespace.
++      waxpby(1.0, p_, -omega, v_, p_);  // p_ := p_ - omega * v_
+cuda/kernels/GpuLinearSolverCuda.cpp:468: trailing whitespace.
++      waxpby(1.0, r_, beta, p_, p_);    // p_ := r_ + beta * p_
+cuda/kernels/GpuLinearSolverCuda.cpp:469: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:470: trailing whitespace.
++      applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, p_, pHat_);
+cuda/kernels/GpuLinearSolverCuda.cpp:471: trailing whitespace.
++      spmv(deviceMatrix_, pHat_, v_);
+cuda/kernels/GpuLinearSolverCuda.cpp:472: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:473: trailing whitespace.
++      const Real rHatDotV = dot(rHat_, v_);
+cuda/kernels/GpuLinearSolverCuda.cpp:474: trailing whitespace.
++      if (!std::isfinite(rHatDotV) ||
+cuda/kernels/GpuLinearSolverCuda.cpp:475: trailing whitespace.
++          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, l2Norm(v_))) {
+cuda/kernels/GpuLinearSolverCuda.cpp:476: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:477: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:478: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:479: trailing whitespace.
++      alpha = rho / rHatDotV;
+cuda/kernels/GpuLinearSolverCuda.cpp:480: trailing whitespace.
++      if (!std::isfinite(alpha)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:481: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:482: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:483: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:484: trailing whitespace.
++      waxpby(1.0, r_, -alpha, v_, s_);  // s_ := r_ - alpha * v_
+cuda/kernels/GpuLinearSolverCuda.cpp:485: trailing whitespace.
++      const Real sNorm = l2Norm(s_);
+cuda/kernels/GpuLinearSolverCuda.cpp:486: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:487: trailing whitespace.
++      if (!std::isfinite(sNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:488: trailing whitespace.
++        result.status = SolverStatus::NonFiniteResidual;
+cuda/kernels/GpuLinearSolverCuda.cpp:489: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:490: trailing whitespace.
++        result.finalResidual = sNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:491: trailing whitespace.
++        result.iterations = iter;
+cuda/kernels/GpuLinearSolverCuda.cpp:492: trailing whitespace.
++        result.residualHistory.push_back(sNorm);
+cuda/kernels/GpuLinearSolverCuda.cpp:493: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:494: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:495: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:496: trailing whitespace.
++      if (converged(sNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:497: trailing whitespace.
++        axpy(alpha, pHat_, x_);
+cuda/kernels/GpuLinearSolverCuda.cpp:498: trailing whitespace.
++        result.status = SolverStatus::Converged;
+cuda/kernels/GpuLinearSolverCuda.cpp:499: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:500: trailing whitespace.
++        result.finalResidual = sNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:501: trailing whitespace.
++        result.iterations = iter;
+cuda/kernels/GpuLinearSolverCuda.cpp:502: trailing whitespace.
++        result.residualHistory.push_back(sNorm);
+cuda/kernels/GpuLinearSolverCuda.cpp:503: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:504: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:505: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:506: trailing whitespace.
++      applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, s_, sHat_);
+cuda/kernels/GpuLinearSolverCuda.cpp:507: trailing whitespace.
++      spmv(deviceMatrix_, sHat_, t_);
+cuda/kernels/GpuLinearSolverCuda.cpp:508: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:509: trailing whitespace.
++      // t . t is a sum of squares (no cancellation): "zero" only when t is, or
+cuda/kernels/GpuLinearSolverCuda.cpp:510: trailing whitespace.
++      // when it underflows below the normal range -- the CPU's own criterion.
+cuda/kernels/GpuLinearSolverCuda.cpp:511: trailing whitespace.
++      const Real tDotT = dot(t_, t_);
+cuda/kernels/GpuLinearSolverCuda.cpp:512: trailing whitespace.
++      if (!std::isfinite(tDotT) || tDotT < std::numeric_limits<Real>::min()) {
+cuda/kernels/GpuLinearSolverCuda.cpp:513: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:514: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:515: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:516: trailing whitespace.
++      const Real tDotS = dot(t_, s_);
+cuda/kernels/GpuLinearSolverCuda.cpp:517: trailing whitespace.
++      if (!std::isfinite(tDotS) ||
+cuda/kernels/GpuLinearSolverCuda.cpp:518: trailing whitespace.
++          cancelledToRoundingLevel(tDotS, t_, s_, std::sqrt(tDotT), sNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:519: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:520: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:521: trailing whitespace.
++      omega = tDotS / tDotT;
+cuda/kernels/GpuLinearSolverCuda.cpp:522: trailing whitespace.
++      if (!std::isfinite(omega)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:523: trailing whitespace.
++        return breakdown(iter - 1);
+cuda/kernels/GpuLinearSolverCuda.cpp:524: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:525: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:526: trailing whitespace.
++      axpy(alpha, pHat_, x_);
+cuda/kernels/GpuLinearSolverCuda.cpp:527: trailing whitespace.
++      axpy(omega, sHat_, x_);
+cuda/kernels/GpuLinearSolverCuda.cpp:528: trailing whitespace.
++      waxpby(1.0, s_, -omega, t_, r_);  // r_ := s_ - omega * t_
+cuda/kernels/GpuLinearSolverCuda.cpp:529: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:530: trailing whitespace.
++      const Real residualNorm = l2Norm(r_);
+cuda/kernels/GpuLinearSolverCuda.cpp:531: trailing whitespace.
++      rNorm = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:532: trailing whitespace.
++      if (!std::isfinite(residualNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:533: trailing whitespace.
++        result.status = SolverStatus::NonFiniteResidual;
+cuda/kernels/GpuLinearSolverCuda.cpp:534: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:535: trailing whitespace.
++        result.finalResidual = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:536: trailing whitespace.
++        result.iterations = iter;
+cuda/kernels/GpuLinearSolverCuda.cpp:537: trailing whitespace.
++        result.residualHistory.push_back(residualNorm);
+cuda/kernels/GpuLinearSolverCuda.cpp:538: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:539: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:540: trailing whitespace.
++      result.residualHistory.push_back(residualNorm);
+cuda/kernels/GpuLinearSolverCuda.cpp:541: trailing whitespace.
++      result.iterations = iter;
+cuda/kernels/GpuLinearSolverCuda.cpp:542: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:543: trailing whitespace.
++      if (converged(residualNorm)) {
+cuda/kernels/GpuLinearSolverCuda.cpp:544: trailing whitespace.
++        result.status = SolverStatus::Converged;
+cuda/kernels/GpuLinearSolverCuda.cpp:545: trailing whitespace.
++        result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:546: trailing whitespace.
++        result.finalResidual = residualNorm;
+cuda/kernels/GpuLinearSolverCuda.cpp:547: trailing whitespace.
++        return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:548: trailing whitespace.
++      }
+cuda/kernels/GpuLinearSolverCuda.cpp:549: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:550: trailing whitespace.
++      rhoOld = rho;
+cuda/kernels/GpuLinearSolverCuda.cpp:551: trailing whitespace.
++    }
+cuda/kernels/GpuLinearSolverCuda.cpp:552: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:553: trailing whitespace.
++    result.status = SolverStatus::MaxIterations;
+cuda/kernels/GpuLinearSolverCuda.cpp:554: trailing whitespace.
++    result.solution = x_.downloadToVector();
+cuda/kernels/GpuLinearSolverCuda.cpp:555: trailing whitespace.
++    result.finalResidual = result.residualHistory.back();
+cuda/kernels/GpuLinearSolverCuda.cpp:556: trailing whitespace.
++    return result;
+cuda/kernels/GpuLinearSolverCuda.cpp:557: trailing whitespace.
++  }
+cuda/kernels/GpuLinearSolverCuda.cpp:558: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:559: trailing whitespace.
++  std::shared_ptr<Preconditioner> preconditioner_;
+cuda/kernels/GpuLinearSolverCuda.cpp:560: trailing whitespace.
++  mutable DeviceCsrMatrix deviceMatrix_;
+cuda/kernels/GpuLinearSolverCuda.cpp:561: trailing whitespace.
++  mutable DeviceVector x_, b_, r_, rHat_, p_, v_, s_, t_, pHat_, sHat_;
+cuda/kernels/GpuLinearSolverCuda.cpp:562: trailing whitespace.
++  // P6-GPU-003: see GpuCG's identical member comment.
+cuda/kernels/GpuLinearSolverCuda.cpp:563: trailing whitespace.
++  mutable DeviceVector jacobiInverseDiagonal_;
+cuda/kernels/GpuLinearSolverCuda.cpp:564: trailing whitespace.
++};
+cuda/kernels/GpuLinearSolverCuda.cpp:565: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:566: trailing whitespace.
++}  // namespace
+cuda/kernels/GpuLinearSolverCuda.cpp:567: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:568: trailing whitespace.
++std::unique_ptr<LinearSolver> makeGpuCG(LinearSolverSettings settings,
+cuda/kernels/GpuLinearSolverCuda.cpp:569: trailing whitespace.
++                                        std::shared_ptr<Preconditioner> preconditioner) {
+cuda/kernels/GpuLinearSolverCuda.cpp:570: trailing whitespace.
++  if (!cudaAvailable()) return nullptr;
+cuda/kernels/GpuLinearSolverCuda.cpp:571: trailing whitespace.
++  return std::make_unique<GpuCG>(settings, std::move(preconditioner));
+cuda/kernels/GpuLinearSolverCuda.cpp:572: trailing whitespace.
++}
+cuda/kernels/GpuLinearSolverCuda.cpp:573: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:574: trailing whitespace.
++std::unique_ptr<LinearSolver> makeGpuBiCGSTAB(LinearSolverSettings settings,
+cuda/kernels/GpuLinearSolverCuda.cpp:575: trailing whitespace.
++                                              std::shared_ptr<Preconditioner> preconditioner) {
+cuda/kernels/GpuLinearSolverCuda.cpp:576: trailing whitespace.
++  if (!cudaAvailable()) return nullptr;
+cuda/kernels/GpuLinearSolverCuda.cpp:577: trailing whitespace.
++  return std::make_unique<GpuBiCGSTAB>(settings, std::move(preconditioner));
+cuda/kernels/GpuLinearSolverCuda.cpp:578: trailing whitespace.
++}
+cuda/kernels/GpuLinearSolverCuda.cpp:579: trailing whitespace.
++
+cuda/kernels/GpuLinearSolverCuda.cpp:580: trailing whitespace.
++}  // namespace cfd::gpu
+  dirty generated outputs after the runs: 54
+# end 2026-09-18T13:37:18Z

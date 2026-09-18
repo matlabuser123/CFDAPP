@@ -32,6 +32,7 @@
 // which buffer plays which CPU-algorithm role.
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <utility>
 
@@ -434,9 +435,27 @@ class GpuBiCGSTAB final : public LinearSolver {
       return result;
     };
 
+    // GPU-PCORR-001: scale-relative breakdown tests, mirroring
+    // cfd::algebra::BiCGSTAB's cancelledToRoundingLevel. The absolute
+    // |rho| < constants::tiny = 1e-30 this file used before is not invariant
+    // under (A, b) -> (A, beta b): it read a healthy iteration of a
+    // small-residual system as a breakdown, which is exactly how production
+    // SIMPLE's pressure correction failed on the GPU at 320^2 and above while
+    // the CPU -- already fixed this way by P12-MESH-004 -- completed. An inner
+    // product is zero only once it has cancelled down to the rounding level of
+    // its own terms, sum_i |x_i y_i|, which absDot() computes on the device.
+    const auto cancelledToRoundingLevel = [](Real innerProduct, const DeviceVector& x,
+                                             const DeviceVector& y, Real normX, Real normY) {
+      const Real epsilon = std::numeric_limits<Real>::epsilon();
+      if (std::abs(innerProduct) > epsilon * normX * normY) return false;
+      return std::abs(innerProduct) <= epsilon * absDot(x, y);
+    };
+    const Real rHatNorm = b0;  // rHat_ is fixed for this solve, so its norm is b0
+    Real rNorm = b0;
+
     for (Index iter = 1; iter <= settings_.maxIterations; ++iter) {
       const Real rho = dot(rHat_, r_);
-      if (!std::isfinite(rho) || std::abs(rho) < constants::tiny) {
+      if (!std::isfinite(rho) || cancelledToRoundingLevel(rho, rHat_, r_, rHatNorm, rNorm)) {
         return breakdown(iter - 1);
       }
 
@@ -452,7 +471,8 @@ class GpuBiCGSTAB final : public LinearSolver {
       spmv(deviceMatrix_, pHat_, v_);
 
       const Real rHatDotV = dot(rHat_, v_);
-      if (!std::isfinite(rHatDotV) || std::abs(rHatDotV) < constants::tiny) {
+      if (!std::isfinite(rHatDotV) ||
+          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, l2Norm(v_))) {
         return breakdown(iter - 1);
       }
 
@@ -486,13 +506,20 @@ class GpuBiCGSTAB final : public LinearSolver {
       applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, s_, sHat_);
       spmv(deviceMatrix_, sHat_, t_);
 
+      // t . t is a sum of squares (no cancellation): "zero" only when t is, or
+      // when it underflows below the normal range -- the CPU's own criterion.
       const Real tDotT = dot(t_, t_);
-      if (!std::isfinite(tDotT) || tDotT < constants::tiny) {
+      if (!std::isfinite(tDotT) || tDotT < std::numeric_limits<Real>::min()) {
         return breakdown(iter - 1);
       }
 
-      omega = dot(t_, s_) / tDotT;
-      if (!std::isfinite(omega) || std::abs(omega) < constants::tiny) {
+      const Real tDotS = dot(t_, s_);
+      if (!std::isfinite(tDotS) ||
+          cancelledToRoundingLevel(tDotS, t_, s_, std::sqrt(tDotT), sNorm)) {
+        return breakdown(iter - 1);
+      }
+      omega = tDotS / tDotT;
+      if (!std::isfinite(omega)) {
         return breakdown(iter - 1);
       }
 
@@ -501,6 +528,7 @@ class GpuBiCGSTAB final : public LinearSolver {
       waxpby(1.0, s_, -omega, t_, r_);  // r_ := s_ - omega * t_
 
       const Real residualNorm = l2Norm(r_);
+      rNorm = residualNorm;
       if (!std::isfinite(residualNorm)) {
         result.status = SolverStatus::NonFiniteResidual;
         result.solution = x_.downloadToVector();

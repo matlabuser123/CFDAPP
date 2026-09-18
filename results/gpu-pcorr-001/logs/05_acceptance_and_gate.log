@@ -1,0 +1,54 @@
+# GPU-PCORR-001 step 7 + CUDA-QUAL-001 gate rerun; 2026-09-18T12:58:59Z
+# libcfdcuda 2cf4609492e0a791e261a85746d5c5487d0078d8d7b92139c0f03f3345b64876
+
+== 640x640 reproducer (1 outer iteration: the benchmark's own budget there is 8)
+## grid 640x640, 1 outer iterations, cudaAvailable true
+  CPU  | cells  409600 | status MaxIterations            | outer it   1 | p-res 8.126e-04 | cont 3.387e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1119
+       | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+  GPU  | cells  409600 | status MaxIterations            | outer it   1 | p-res 8.126e-04 | cont 3.464e-08
+       | mass imbalance 0.000e+00 | p linear iterations 1019
+       | GPU kernelLaunches 15427, fallbacks 0, H2D 13, D2H 7199
+  (exit 0)
+
+== the authoritative end-to-end CPU-vs-GPU benchmark, the CUDA-QUAL-001 gate
+  grid | cells | backend | outer_iters | total_min_s | total_median_s | total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged
+  20x20 | 400 | CPU | 200 | 0.300852 | 0.311041 | 0.309993 | 0.00707505 | 1.5552 | n/a | yes
+  20x20 | 400 | GPU | 200 | 10.711 | 13.0213 | 12.3007 | 1.12571 | 65.1065 | 45.898 | yes
+  40x40 | 1600 | CPU | 200 | 1.38222 | 1.40094 | 1.40686 | 0.0229187 | 7.00468 | n/a | yes
+  40x40 | 1600 | GPU | 200 | 24.3136 | 24.4735 | 24.6141 | 0.318658 | 122.367 | 45.8201 | yes
+  80x80 | 6400 | CPU | 200 | 6.79242 | 6.8154 | 6.86604 | 0.0883745 | 34.077 | n/a | yes
+  80x80 | 6400 | GPU | 200 | 31.4332 | 32.8447 | 33.5518 | 2.07945 | 164.223 | 41.4507 | yes
+  160x160 | 25600 | CPU | 60 | 11.2821 | 11.5813 | 11.5312 | 0.186327 | 193.022 | n/a | yes
+  160x160 | 25600 | GPU | 60 | 20.8132 | 22.8993 | 22.2045 | 0.98383 | 381.655 | 35.3415 | yes
+  320x320 | 102400 | CPU | 20 | 27.4798 | 27.7579 | 27.7926 | 0.270674 | 1387.9 | n/a | yes
+  320x320 | 102400 | GPU | 20 | 19.6809 | 20.8209 | 20.6469 | 0.728159 | 1041.05 | 23.7179 | yes
+  640x640 | 409600 | CPU | 8 | 89.8038 | 89.8038 | 89.8038 | 0 | 11225.5 | n/a | yes
+  640x640 | 409600 | GPU | 8 | 28.033 | 28.033 | 28.033 | 0 | 3504.13 | 11.6859 | yes
+  Grid | Cells | CPU Median | GPU Median | Speedup | Transfer % | Converged
+  20x20 | 400 | 0.311041s | 13.0213s | 0.0238871x | 45.898% | yes
+  40x40 | 1600 | 1.40094s | 24.4735s | 0.057243x | 45.8201% | yes
+  80x80 | 6400 | 6.8154s | 32.8447s | 0.207504x | 41.4507% | yes
+  160x160 | 25600 | 11.5813s | 22.8993s | 0.50575x | 35.3415% | yes
+  320x320 | 102400 | 27.7579s | 20.8209s | 1.33317x | 23.7179% | yes
+  640x640 | 409600 | 89.8038s | 28.033s | 3.2035x | 11.6859% | yes
+  (exit 0)
+
+== GPU status column, all grids
+  20x20,GPU,200,MaxIterations,yes
+  20x20,GPU,200,MaxIterations,yes
+  20x20,GPU,200,MaxIterations,yes
+  40x40,GPU,200,MaxIterations,yes
+  40x40,GPU,200,MaxIterations,yes
+  40x40,GPU,200,MaxIterations,yes
+  80x80,GPU,200,MaxIterations,yes
+  80x80,GPU,200,MaxIterations,yes
+  80x80,GPU,200,MaxIterations,yes
+  160x160,GPU,60,MaxIterations,yes
+  160x160,GPU,60,MaxIterations,yes
+  160x160,GPU,60,MaxIterations,yes
+  320x320,GPU,20,MaxIterations,yes
+  320x320,GPU,20,MaxIterations,yes
+  320x320,GPU,20,MaxIterations,yes
+  640x640,GPU,8,MaxIterations,yes
+# end 2026-09-18T13:09:28Z

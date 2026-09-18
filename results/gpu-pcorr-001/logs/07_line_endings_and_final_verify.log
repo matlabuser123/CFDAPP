@@ -1,0 +1,26 @@
+# GPU-PCORR-001: line-ending repair and final verification; 2026-09-18T13:38:11Z
+## Three files were edited through Windows Python, which rewrote them CRLF. The repository
+## is LF, and .gitattributes '* -text' stores bytes verbatim, so this had to be corrected
+## before any commit. Content is otherwise untouched.
+  cuda/kernels/GpuLinearSolverCuda.cpp: CRLF -> LF
+  results/gpu-pcorr-001/tools/pcorr_repro.cpp: CRLF -> LF
+  results/gpu-pcorr-001/tools/scale_breakdown.cpp: CRLF -> LF
+  any CRLF left among the changed files: 0
+
+## rebuild after the rewrite, then re-verify the fix with the final bytes
+  build exit 0; 1 steps; warnings 0
+  libcfdcuda 2cf4609492e0a791e261a85746d5c5487d0078d8d7b92139c0f03f3345b64876
+  ## grid 320x320, 2 outer iterations, cudaAvailable true
+    CPU  | cells  102400 | status MaxIterations            | outer it   2 | p-res 1.343e-03 | cont 7.780e-08
+         | mass imbalance 0.000e+00 | p linear iterations 2265
+         | GPU kernelLaunches 0, fallbacks 0, H2D 0, D2H 0
+    GPU  | cells  102400 | status MaxIterations            | outer it   2 | p-res 1.343e-03 | cont 8.254e-08
+         | mass imbalance 0.000e+00 | p linear iterations 1719
+         | GPU kernelLaunches 26263, fallbacks 0, H2D 22, D2H 12254
+
+## formatting and whitespace on the final bytes
+  clang-format (CI scope): exit 0; violations 0
+  clang-format (cuda/):    exit 123; violations 17
+  git diff --check on the source changes:
+    clean
+# end 2026-09-18T13:38:54Z
