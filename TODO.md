@@ -18,21 +18,19 @@ FINISHED
   P12-GRAD-002
   CUDA-QUAL-001
   GPU-PCORR-001
+  AGENT-INFRA-001
+  CI-PERF-001
 
-  Exact-SHA CI — PASSED 12/12
   KNOWN-GOOD BASELINE
-  c1355eaa77a1b98e37926d20f262b6dae76e45c5
+  548401aef0d3cbab9552b1964ceac7efd7ad6154
+  run 35385979133 — 17/17, 100.6 min
 
 PROCESSING
   None
 
 NEXT
-  CI-PERF-001
   GPU-PIPE-001
   P13
-
-AWAITING REVIEW
-  AGENT-INFRA-001 (.claude/skills/, uncommitted)
 
 AUTHORIZED NEW DEVELOPMENT
   None
@@ -87,12 +85,29 @@ AUTHORIZED NEW DEVELOPMENT
   * 640²: 3.20× GPU
   * negative control passed
 
+## Infrastructure
+
+* [x] **AGENT-INFRA-001** — ten repository-local agent skills under `.claude/skills/`,
+  `docs/AGENT_WORKFLOW.md`, a `CLAUDE.md` section. Routing dry-run by independent agents on three
+  tasks; 24 defects found and fixed. No production behaviour changed.
+
+* [x] **CI-PERF-001** — CI 276.3 → **100.6 min (2.75×, −63.6 %)**
+
+  * causes: `build-test` ran tests **serially**; sharding balanced count, not runtime
+  * `build-test` now 7 runtime-balanced shards with `-j$(nproc)`; sanitizers rebalanced
+  * 1977 listed / 1932 executed / 45 disabled — **unchanged**
+  * both coverage audits PASS; audit detects 6/6 injected defects
+  * qualified on run 35385979133, 17/17, exact SHA `548401a`
+
 Evidence:
 
 ```text
-results/cuda-qual-001/
-results/gpu-pcorr-001/
+results/cuda-qual-001/    results/agent-infra-001/
+results/gpu-pcorr-001/    results/ci-perf-001/
 ```
+
+GitHub runners have **no GPU**: CI does not validate `sm_89` execution.
+GPU evidence is local only — `results/cuda-qual-001/`, `results/gpu-pcorr-001/`.
 
 ---
 
@@ -100,64 +115,9 @@ results/gpu-pcorr-001/
 
 **None.**
 
-## Exact-SHA CI — PASSED
-
-```text
-SHA: c1355eaa77a1b98e37926d20f262b6dae76e45c5
-Run: 35352132866   2026-09-18 13:45Z → 18:22Z   12/12 success
-
-python · format · clang-tidy · GCC Release · GCC Debug · Clang Debug
-sanitizers ×5 · sanitizer-coverage
-
-1932/1932 tests pass in each of GCC Release, GCC Debug and Clang Debug
-sanitizer shards 389+387+388+384+384 = 1932, 0 failures
-coverage audit: full list 1977, union 1977 distinct — each test in exactly one shard
-
-GATE MET → c1355ea IS THE KNOWN-GOOD BASELINE
-```
-
-GitHub runners have **no GPU**: this run does not validate `sm_89` execution.
-GPU evidence is local only — `results/cuda-qual-001/`, `results/gpu-pcorr-001/`.
-
-## AGENT-INFRA-001 — awaiting review
-
-```text
-.claude/skills/ (10 skills) · docs/AGENT_WORKFLOW.md · CLAUDE.md section
-evidence: results/agent-infra-001/
-uncommitted; no production code, numerics, CUDA or CI touched
-```
-
 ---
 
 # 3. Next
-
-## CI-PERF-001 — Faster CI — BLOCKED (needs a push to measure)
-
-* [x] Profile build/test time — `results/ci-perf-001/baseline/`
-* [x] Balance shards using test runtimes — LPT, spread 1.00x on all three configs
-* [x] Add coverage audit — 6/6 injected defects detected
-* [x] Investigate compiler caching — ccache added, keyed per compiler+build type
-* [ ] Shard GCC Debug — implemented + locally verified; unproven in real CI
-* [ ] Shard Clang Debug — implemented + locally verified; unproven in real CI
-* [ ] Preserve all tests and sanitizers — locally 1984/1984; unproven in real CI
-
-```text
-Baseline   276.3 min (4 h 36 min)   run 35352132866
-Predicted   ~85 min                 3.2x, floor-bound
-Goal        <120 min
-```
-
-Root causes found: the `build-test` test step ran **serially** (no `-j`), and sharding balanced
-test **count** rather than **runtime** (65.5-101.2 min sanitizer spread).
-
-Floor: `CompressibleCoupledProductionCaseTest.RepeatedRunIsDeterministic`, 4838 s under ASan.
-No partition beats it, so ~85 min is the limit without a production change.
-
-**Blocked on:** authorization to commit + push, then one CI run. The gate's
-"actual optimized CI evidence" and "<2 h achieved" cannot be met without it, and are
-not being marked met. Evidence: `results/ci-perf-001/summary.md`.
-
----
 
 ## GPU-PIPE-001 — Persistent GPU Pipeline
 
@@ -284,7 +244,11 @@ Exact-SHA CI             ✓
    ↓
 Known-good baseline      ✓  c1355ea
    ↓
-CI-PERF-001              ◉ PROCESSING
+AGENT-INFRA-001          ✓
+   ↓
+CI-PERF-001              ✓  100.6 min, 2.75×, run 35385979133
+   ↓
+Known-good baseline      ✓  548401a
    ↓
 GPU-PIPE-001
    ↓

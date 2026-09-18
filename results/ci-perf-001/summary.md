@@ -1,11 +1,16 @@
 # CI-PERF-001 — faster CI
 
-**Status: IMPLEMENTED AND LOCALLY VERIFIED — BLOCKED on the acceptance gate's final item.**
+**Status: ✅ COMPLETE — qualified on the real CI run.**
 
-The gate requires *"actual optimized CI evidence recorded"* and *"target <2 h achieved"*. Both need a
-real GitHub Actions run of the new workflow, which needs a push. **Push is not authorized**, so those
-two items are **NOT MET** and CI-PERF-001 stays `[ ]`. Everything else in the gate is done and
-verified locally; §7 states exactly what remains.
+```text
+commit      548401aef0d3cbab9552b1964ceac7efd7ad6154
+run         35385979133   exact-SHA match, 17/17 success
+baseline    276.3 min  ->  measured 100.6 min     2.75x, 63.6% reduction
+gate        < 120 min  ->  PASS with 19.4 min margin
+tests       1977 listed / 1932 executed / 45 disabled, unchanged
+```
+
+Full qualification evidence: [`qualification/summary.md`](qualification/summary.md).
 
 Baseline: `c1355eaa77a1b98e37926d20f262b6dae76e45c5`, run 35352132866 (12/12 green).
 No production CFD, numerics, CUDA, test or threshold behaviour was changed.
@@ -81,7 +86,17 @@ A second defect followed from the fix: with weight 0, a disabled test never rais
 load, so that bucket stayed the minimum and absorbed every remaining zero-weight test. Time balance
 was still 1.00×, but the counts were absurd. Fixed by breaking ties on test count, then index.
 
-## 5. Predicted result
+## 5. Predicted result — and where the prediction was wrong
+
+Recorded as written before the run, because two of its assumptions did not hold:
+
+* it assumed wall = serial ÷ 4 vCPU; the measured parallel efficiency was **2.4–3.6×**, not 4×;
+* it assumed equal serial load gives equal wall time, which is false under `-j` — a shard's wall
+  time is its parallel makespan, bounded below by its longest single test.
+
+Predicted ~85 min; **measured 100.6 min**. The direction and the mechanism were right, the
+arithmetic was optimistic. The measured run is the evidence; see
+[`qualification/summary.md`](qualification/summary.md).
 
 Predicted wall per shard = `max(heaviest single test, serial load ÷ 4 vCPU)` + build:
 
