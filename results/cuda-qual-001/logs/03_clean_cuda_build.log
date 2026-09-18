@@ -1,0 +1,71 @@
+# CUDA-QUAL-001 steps 4-5: clean CUDA build; 2026-09-18T11:39:21Z
+## toolchain of record
+  nvcc:      /usr/local/cuda-12.9/bin/nvcc V12.9.86
+  host c++:  c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+  cmake:     cmake version 3.22.1
+  git HEAD:  67b9e3e07a8d06330cd5845627ed03e5d07eda64  (+ uncommitted CUDA-QUAL-001 changes)
+  cuda/CMakeLists.txt sha256 7b0556dfa61f71ce884366ff3a41651f94acc859c76fcbaded2c8d82435b9962
+## clean: the build directory is removed first, so no stale CUDA object can survive
+  removed build/cuda (existed: no)
+## configure (no -DCMAKE_CUDA_ARCHITECTURES: the in-tree default must choose)
+  -- Using the multi-header code from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/cuda/_deps/nlohmann_json-src/include/
+  -- Looking for a CUDA compiler
+  -- Looking for a CUDA compiler - /usr/local/cuda-12.9/bin/nvcc
+  -- CFDApp: nvcc 12.9 -> CUDA architectures 80;89 (nvcc's own default is not used)
+  -- The CUDA compiler identification is NVIDIA 12.9.86
+  -- Detecting CUDA compiler ABI info
+  -- Detecting CUDA compiler ABI info - done
+  -- Check for working CUDA compiler: /usr/local/cuda-12.9/bin/nvcc - skipped
+  -- Detecting CUDA compile features
+  -- Detecting CUDA compile features - done
+  -- Unable to find cublas_v2.h in either "/usr/local/cuda-12.9/include" or "/usr/math_libs/include"
+  -- Found CUDAToolkit: /usr/local/cuda-12.9/include (found version "12.9.86") 
+  -- cfdcuda: CUDA 12.9.86, architectures 80;89
+  -- Build files have been written to: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/cuda
+  configure exit 0
+## cache
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+  CMAKE_CUDA_COMPILER:STRING=/usr/local/cuda-12.9/bin/nvcc
+  CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+  CUDA_ARCHITECTURES property on cfdcuda: 
+## build (-j20 per the local resource policy)
+  build exit 0 in 149 s; 392 compile steps
+  warnings: 0; errors: 0
+    [68/448] Building CXX object src/CMakeFiles/cfdcore.dir/validation/ErrorNorms.cpp.o
+## the CUDA gencode flags actually used
+## code objects embedded in the built CUDA library (cuobjdump)
+  library: build/cuda/cuda/libcfdcuda.a  sha256 ecd6a9780b32572ba050ab4b6842cb8c6cd58254229e99b121d0154fc9868e55
+    
+    member build/cuda/cuda/libcfdcuda.a:CsrSpmvKernel.cu.o:
+    ELF file    1: libcfdcuda.1.sm_80.cubin
+    ELF file    2: libcfdcuda.2.sm_89.cubin
+    
+    member build/cuda/cuda/libcfdcuda.a:GpuResidencyManagerCuda.cpp.o:
+    
+    member build/cuda/cuda/libcfdcuda.a:DeviceVectorOpsKernel.cu.o:
+    ELF file    3: libcfdcuda.3.sm_80.cubin
+    ELF file    4: libcfdcuda.4.sm_89.cubin
+    
+    member build/cuda/cuda/libcfdcuda.a:GpuPreconditionerKernel.cu.o:
+    ELF file    5: libcfdcuda.5.sm_80.cubin
+    ELF file    6: libcfdcuda.6.sm_89.cubin
+    
+    member build/cuda/cuda/libcfdcuda.a:GpuLinearSolverCuda.cpp.o:
+    
+    member build/cuda/cuda/libcfdcuda.a:CsrSpmvKernel.cu.o:
+    PTX file    1: libcfdcuda.1.sm_80.ptx
+    PTX file    2: libcfdcuda.2.sm_89.ptx
+    
+    member build/cuda/cuda/libcfdcuda.a:GpuResidencyManagerCuda.cpp.o:
+    
+    member build/cuda/cuda/libcfdcuda.a:DeviceVectorOpsKernel.cu.o:
+## same, for a linked GPU test binary
+  binary: build/cuda/tests/unit/gpu/CFDGpuTests
+    ELF file    1: CFDGpuTests.1.sm_80.cubin
+    ELF file    2: CFDGpuTests.2.sm_89.cubin
+    ELF file    3: CFDGpuTests.3.sm_80.cubin
+    ELF file    4: CFDGpuTests.4.sm_89.cubin
+    ELF file    5: CFDGpuTests.5.sm_80.cubin
+    ELF file    6: CFDGpuTests.6.sm_89.cubin
+# end 2026-09-18T11:43:00Z

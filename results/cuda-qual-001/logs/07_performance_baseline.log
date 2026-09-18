@@ -1,0 +1,80 @@
+# CUDA-QUAL-001 step 11: controlled CPU-vs-GPU baseline (not an optimization pass); 2026-09-18T12:15:13Z
+## conditions (local hardware policy: Release, no sanitizers, machine otherwise idle)
+  load average before: 0.59 6.13 9.52
+  build: Release, CUDA 12.9.86, architectures 80;89, libcfdcuda ecd6a9780b32572b
+  GPU: NVIDIA RTX 5000 Ada Generation Laptop GPU, 8.9, 15352 MiB, 3105 MHz
+  GPU before: 0 MiB, 62, 0 %
+  CPU: Intel(R) Core(TM) i9-14900HX, threads 32, OpenMP off in this build
+  benchmarks are run from /root/cudaqual/perf so they cannot overwrite the committed results/performance evidence
+
+## 1. SpMV microbenchmark (transfer vs kernel vs persistent path)
+  cfd_benchmark_gpu_spmv -- 'stateless' is cfd::gpu::csrSpmvCuda(), a fresh cudaMalloc+H2D-transfer+kernel+D2H-transfer *every call*; 'persistent' uploads the matrix/vector once outside the timed loop and only launches the kernel inside it (P6-PERF-001).
+  grid      | n      | cpu_s(30) | gpu_stateless_s(30) | gpu_persistent_s(30) | speedup_stateless | speedup_persistent | stateless_h2d_calls | persistent_h2d_calls
+  20x20  | 400 | 6.9664e-05 | 0.0911502 | 0.00112107 | 0.000764277 | 0.0621407 | 120 | 0
+  50x50  | 2500 | 0.000409873 | 0.0192854 | 0.000760407 | 0.0212531 | 0.539018 | 120 | 0
+  100x100  | 10000 | 0.00180037 | 0.0285055 | 0.000870031 | 0.0631587 | 2.06931 | 120 | 0
+  200x200  | 40000 | 0.00788281 | 0.0541584 | 0.000758606 | 0.145551 | 10.3912 | 120 | 0
+  400x400  | 160000 | 0.0354914 | 0.117553 | 0.00165839 | 0.301918 | 21.4011 | 120 | 0
+  800x800  | 640000 | 0.157227 | 0.314407 | 0.00306244 | 0.500075 | 51.3404 | 120 | 0
+  
+  persistent-path reuse evidence (300x300 grid, structure/vector uploaded once):
+  Operation 1 (first persistent-path spmv() after setup):
+    allocations:      0
+    reallocations:    0
+    H2D transfers:    0
+    H2D bytes:        0
+    D2H transfers:    0
+    D2H bytes:        0
+    upload time (s):  0
+    download time(s): 0
+    kernel time (s):  8.6293e-05
+  Operation 2 (second call, same matrix/vectors, no re-upload):
+    allocations:      0
+    reallocations:    0
+    H2D transfers:    0
+    H2D bytes:        0
+    D2H transfers:    0
+    D2H bytes:        0
+    upload time (s):  0
+    download time(s): 0
+    kernel time (s):  2.6069e-05
+  exit 0
+  GPU after spmv: 0 MiB, 63
+
+## 2. end-to-end production SIMPLE solve, CPU vs GPU backend (same case, settings, budgets)
+  cfd_benchmark_cuda_end_to_end -- CFDApp version 0.2.0-dev
+  cuda_available_at_runtime: yes
+  
+  Cold GPU warm-up (CUDA context init, first kernel load) -- untimed for the per-grid results below, reported separately.
+  cold_gpu_first_use_seconds: 0.575259
+  
+  grid | cells | backend | outer_iters | total_min_s | total_median_s | total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged
+  20x20 | 400 | CPU | 200 | 0.299088 | 0.300754 | 0.30071 | 0.00130703 | 1.50377 | n/a | yes
+  20x20 | 400 | GPU | 200 | 10.0243 | 13.6261 | 12.4376 | 1.70654 | 68.1304 | 44.9152 | yes
+  40x40 | 1600 | CPU | 200 | 1.41725 | 1.43731 | 1.44619 | 0.0279685 | 7.18657 | n/a | yes
+  40x40 | 1600 | GPU | 200 | 23.2531 | 24.4679 | 24.3052 | 0.80089 | 122.34 | 43.8952 | yes
+  80x80 | 6400 | CPU | 200 | 6.37282 | 6.40089 | 6.5048 | 0.167192 | 32.0044 | n/a | yes
+  80x80 | 6400 | GPU | 200 | 32.5606 | 32.7459 | 32.7802 | 0.194771 | 163.73 | 40.7694 | yes
+  160x160 | 25600 | CPU | 60 | 11.3013 | 11.4108 | 11.3807 | 0.0566569 | 190.179 | n/a | yes
+  160x160 | 25600 | GPU | 60 | 18.4488 | 19.8275 | 19.9565 | 1.28698 | 330.459 | 33.0802 | yes
+  320x320 | 102400 | CPU | 20 | 27.3752 | 27.8485 | 27.7762 | 0.302318 | 1392.43 | n/a | yes
+  320x320 | 102400 | GPU | 0 | 1.47491 | 1.47935 | 1.48341 | 0.00907091 | 0 | 27.2351 | NO
+  640x640 | 409600 | CPU | 8 | 89.8465 | 89.8465 | 89.8465 | 0 | 11230.8 | n/a | yes
+  640x640 | 409600 | GPU | 0 | 3.92645 | 3.92645 | 3.92645 | 0 | 0 | 15.8352 | NO
+  
+  === Summary ===
+  Grid | Cells | CPU Median | GPU Median | Speedup | Transfer % | Converged
+  20x20 | 400 | 0.300754s | 13.6261s | 0.0220719x | 44.9152% | yes
+  40x40 | 1600 | 1.43731s | 24.4679s | 0.0587429x | 43.8952% | yes
+  80x80 | 6400 | 6.40089s | 32.7459s | 0.195471x | 40.7694% | yes
+  160x160 | 25600 | 11.4108s | 19.8275s | 0.575501x | 33.0802% | yes
+  320x320 | 102400 | 27.8485s | 1.47935s | 18.8249x | 27.2351% | NO
+  640x640 | 409600 | 89.8465s | 3.92645s | 22.8824x | 15.8352% | NO
+  
+  cold_gpu_first_use_seconds: 0.575259
+  gpu_break_even_grid: 320x320
+  max_measured_speedup: 22.8824x at 640x640
+  exit 0
+  load average after: 1.00 1.89 5.84
+  GPU after: 0 MiB, 56
+# end 2026-09-18T12:23:50Z

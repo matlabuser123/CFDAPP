@@ -1,0 +1,24 @@
+# CUDA-QUAL-001 step 9: CPU regression after the CUDA/toolchain change; 2026-09-18T11:48:24Z
+## the change cannot reach a CPU build
+  files changed: cmake/CUDA.cmake cuda/CMakeLists.txt results/cuda-qual-001/ 
+  src/ + include/ hash: 42c3d9df70e83705d5052bbb880ab6239ce8fb3054e7831b7a68daf4c46c1aa6  (baseline 42c3d9df...)
+  build/release CFDAPP_ENABLE_CUDA: CFDAPP_ENABLE_CUDA:BOOL=OFF
+  build/debug   CFDAPP_ENABLE_CUDA: CFDAPP_ENABLE_CUDA:BOOL=OFF
+  (cmake/CUDA.cmake and cuda/CMakeLists.txt are only read when that option is ON)
+## rebuild both CPU trees (must be no-ops)
+  release: ninja: no work to do.
+  debug:   ninja: no work to do.
+  libcfdcore.a release 143a1dda0680bc1d481a0360095ca7c643ffc9e2a2dc53bbd1d55d5a8202132a
+## GCC Release
+  ctest exit 0
+  100% tests passed, 0 tests failed out of 1932
+## GCC Debug + GUI
+  ctest exit 0
+  100% tests passed, 0 tests failed out of 1984
+## clang-format (CI scope)
+  exit 0; violations 0
+## git diff --check
+  clean
+## generated outputs rewritten by the runs
+  dirty: 53
+# end 2026-09-18T12:13:38Z

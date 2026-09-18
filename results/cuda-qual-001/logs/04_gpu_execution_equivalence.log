@@ -1,0 +1,62 @@
+# CUDA-QUAL-001 steps 6-8: GPU execution, CPU/GPU equivalence, determinism; 2026-09-18T11:45:11Z
+# probe source sha256 e7a765d2c1feb1324f22d549e805b3c31c628ff5e1efe75f8a77fca506bb7a21
+# probe binary sha256 b3eb714acc12c3fbc3bcb0f8cd9b9220d76d0660abe7c5def346e3f637589b3e
+# libcfdcuda.a sha256 ecd6a9780b32572ba050ab4b6842cb8c6cd58254229e99b121d0154fc9868e55
+
+=== POSITIVE RUN (GPU visible)
+# CUDA-QUAL-001 GPU execution probe
+## device as the CUDA runtime sees it
+  cudaGetDeviceCount -> no error, count 1
+  device 0: NVIDIA RTX 5000 Ada Generation Laptop GPU, compute capability 8.9, 15352 MiB, uuid 991873eb7773eb18a19e56959564a88d
+## cfd::gpu::cudaAvailable() -> true
+  cudaAvailable() is true                                    PASS
+## SpMV: cfd::gpu::csrSpmvCuda vs SparseMatrix::multiply
+     4x4    n      16 | abs 4.441e-16 rel 2.228e-16 | NaN 0 Inf 0 | launches 1
+  SpMV result has no NaN or Inf                              PASS
+  SpMV matches the CPU reference within 1e-12 relative       PASS
+  SpMV launched at least one CUDA kernel                     PASS
+    64x64   n    4096 | abs 8.882e-16 rel 4.441e-16 | NaN 0 Inf 0 | launches 1
+  SpMV result has no NaN or Inf                              PASS
+  SpMV matches the CPU reference within 1e-12 relative       PASS
+  SpMV launched at least one CUDA kernel                     PASS
+   256x256  n   65536 | abs 4.441e-16 rel 5.685e-16 | NaN 0 Inf 0 | launches 1
+  SpMV result has no NaN or Inf                              PASS
+  SpMV matches the CPU reference within 1e-12 relative       PASS
+  SpMV launched at least one CUDA kernel                     PASS
+## determinism: 5 repeats of the same GPU SpMV
+  bitwise differing entries across repeats: 0 of 65536
+  repeated GPU SpMV is bitwise identical                     PASS
+## linear solves: GPU vs CPU, same system and settings
+  makeGpuCG() returns a solver when a GPU is present         PASS
+    stats[gpu-cg] kernelLaunches 646, fallbacks 0, H2D 5 calls/952328 B, D2H 278 calls/153504 B, allocations 10, syncs 646, kernelSeconds 0.019971
+  CG  | CPU it 92 res 5.410e-09 | GPU it 92 res 5.410e-09 | abs 8.882e-16 rel 6.780e-16
+  GPU CG converged                                           PASS
+  GPU CG solution has no NaN or Inf                          PASS
+  GPU CG solution matches CPU CG within 1e-8 relative        PASS
+  GPU CG launched CUDA kernels                               PASS
+  GPU CG did not fall back to the CPU                        PASS
+  makeGpuBiCGSTAB() returns a solver when a GPU is present   PASS
+    stats[gpu-bicgstab] kernelLaunches 909, fallbacks 0, H2D 5 calls/952328 B, D2H 389 calls/185472 B, allocations 13, syncs 909, kernelSeconds 0.024037
+  BiC | CPU it 65 res 6.616e-09 | GPU it 65 res 6.785e-09 | abs 1.044e-10 rel 7.966e-11
+  GPU BiCGSTAB converged                                     PASS
+  GPU BiCGSTAB solution has no NaN or Inf                    PASS
+  GPU BiCGSTAB solution matches CPU BiCGSTAB within 1e-8 relative PASS
+  GPU BiCGSTAB launched CUDA kernels                         PASS
+  GPU BiCGSTAB did not fall back                             PASS
+  BiC repeat: bitwise differing entries 0 of 9216, abs 0.000e+00
+  repeated GPU BiCGSTAB solve is bitwise identical           PASS
+PROBE PASS (failures 0)
+exit 0
+
+=== NEGATIVE CONTROL (CUDA_VISIBLE_DEVICES='')
+# CUDA-QUAL-001 GPU execution probe (NEGATIVE CONTROL: no visible device expected)
+## device as the CUDA runtime sees it
+  cudaGetDeviceCount -> no CUDA-capable device is detected, count 0
+## cfd::gpu::cudaAvailable() -> false
+  cudaAvailable() is false with no visible device            PASS
+  makeGpuBiCGSTAB() returns nullptr with no visible device   PASS
+    stats[negative-control] kernelLaunches 0, fallbacks 0, H2D 0 calls/0 B, D2H 0 calls/0 B, allocations 0, syncs 0, kernelSeconds 0.000000
+  no kernels were launched                                   PASS
+PROBE PASS (failures 0)
+exit 0
+# end 2026-09-18T11:45:14Z

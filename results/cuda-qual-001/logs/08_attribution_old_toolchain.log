@@ -1,0 +1,36 @@
+# CUDA-QUAL-001: attribution of the 320x320/640x640 GPU PressureCorrectionFailure; 2026-09-18T12:25:20Z
+## question: does the historical toolchain (CUDA 11.5, sm_52) fail the same way on TODAY's source?
+## build B: the pre-CUDA-QUAL-001 configuration, unchanged source
+  configure exit 0; nvcc /usr/bin/nvcc arch 52
+  build exit 0; libcfdcuda 95bbda19eaa4ac01
+  code objects: sm_52 
+## run the same end-to-end benchmark with that library
+  grid | cells | backend | outer_iters | total_min_s | total_median_s | total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged
+  20x20 | 400 | CPU | 200 | 0.332967 | 0.344626 | 0.3451 | 0.0101062 | 1.72313 | n/a | yes
+  20x20 | 400 | GPU | 200 | 10.7233 | 12.131 | 12.326 | 1.39505 | 60.6551 | 44.898 | yes
+  40x40 | 1600 | CPU | 200 | 1.42481 | 1.42528 | 1.43897 | 0.0196864 | 7.12641 | n/a | yes
+  40x40 | 1600 | GPU | 200 | 22.3192 | 22.7799 | 22.7626 | 0.355206 | 113.9 | 44.0978 | yes
+  80x80 | 6400 | CPU | 200 | 6.42422 | 6.48071 | 6.5368 | 0.121473 | 32.4036 | n/a | yes
+  80x80 | 6400 | GPU | 200 | 31.1945 | 32.93 | 32.5388 | 0.977903 | 164.65 | 40.5218 | yes
+  160x160 | 25600 | CPU | 60 | 11.4235 | 11.5148 | 11.5831 | 0.165417 | 191.913 | n/a | yes
+  160x160 | 25600 | GPU | 60 | 19.9166 | 20.9773 | 20.8358 | 0.699909 | 349.622 | 33.0281 | yes
+  320x320 | 102400 | CPU | 20 | 28.7735 | 28.9442 | 28.917 | 0.10787 | 1447.21 | n/a | yes
+  320x320 | 102400 | GPU | 0 | 1.45897 | 1.52606 | 1.52434 | 0.052686 | 0 | 29.032 | NO
+  640x640 | 409600 | CPU | 8 | 93.4409 | 93.4409 | 93.4409 | 0 | 11680.1 | n/a | yes
+  640x640 | 409600 | GPU | 0 | 3.55442 | 3.55442 | 3.55442 | 0 | 0 | 14.4412 | NO
+  20x20 | 400 | 0.344626s | 12.131s | 0.0284086x | 44.898% | yes
+  40x40 | 1600 | 1.42528s | 22.7799s | 0.0625675x | 44.0978% | yes
+  80x80 | 6400 | 6.48071s | 32.93s | 0.196803x | 40.5218% | yes
+  160x160 | 25600 | 11.5148s | 20.9773s | 0.548918x | 33.0281% | yes
+  320x320 | 102400 | 28.9442s | 1.52606s | 18.9667x | 29.032% | NO
+  640x640 | 409600 | 93.4409s | 3.55442s | 26.2887x | 14.4412% | NO
+  exit 0
+## status column, old toolchain
+  160x160,GPU,60,MaxIterations,yes
+  160x160,GPU,60,MaxIterations,yes
+  160x160,GPU,60,MaxIterations,yes
+  320x320,GPU,0,PressureCorrectionFailure,no
+  320x320,GPU,0,PressureCorrectionFailure,no
+  320x320,GPU,0,PressureCorrectionFailure,no
+  640x640,GPU,0,PressureCorrectionFailure,no
+# end 2026-09-18T12:35:51Z

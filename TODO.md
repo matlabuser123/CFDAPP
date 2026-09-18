@@ -7,29 +7,30 @@
 > `[x]` = implemented **and** verified with real evidence. Everything else stays `[ ]`.
 
 ```text
-COMPLETED THROUGH:  P12-DIFF-002 + P12-ASAN-001 + P12-GRAD-002 + P12-MESH-007
+COMPLETED THROUGH:  the whole P12 lineage -- committed, pushed and CI-green on 67b9e3e
 
-CURRENT:            none -- the authorized chain DIFF-002 → GRAD-002 → MESH-007 is complete
+CURRENT:            CUDA-QUAL-001 -- STOPPED at a failed gate (CPU/GPU equivalence at
+                    production scale); toolchain work itself passed, uncommitted
 
-NEXT:               user decision: commit / push of the verified P12 lineage
-                    (no phase is authorized)
+NEXT:               user decision on the CUDA-QUAL-001 gate failure
+                    (no other phase is authorized)
 
-PUSH BLOCKER:       none known in tests
+PUSH BLOCKER:       none in tests; CUDA-QUAL-001's changes are uncommitted
                     commit/push requires explicit authorization
 ```
 
 | State                  | Value                                                                                                   |
 | ---------------------- | ------------------------------------------------------------------------------------------------------- |
 | Release                | `v0.2.0` (`1e960c7`)                                                                                    |
-| Last pushed            | P12-NUM `105383d` + CI fix `44b996a`, CI green                                                          |
-| Working tree           | P12-MESH-001 onward is **uncommitted**. No commit or push authorized.                                   |
-| Latest full regression | GRAD-002 A3: Release 1932/1932, Debug + GUI 1984/1984, ASan + UBSan 1932/1932, 0 sanitizer diagnostics  |
+| Last pushed            | `67b9e3e` (P12 lineage + CI repair), CI run 35313512418 green on that exact SHA, 12/12 jobs             |
+| Working tree           | clean except CUDA-QUAL-001's two build files and its evidence, all uncommitted                          |
+| Latest full regression | on `67b9e3e` in CI: GCC Release 1932/1932, GCC Debug 1932/1932, Clang Debug 1932/1932, sanitizers 1932 enabled tests across 5 shards, 0 ASan/UBSan/LSan diagnostics |
 | Historical TODO        | `results/todo-archive/TODO-2026-09-17-pre-restructure.md`                                               |
 
-**Authorized chain (2026-09-17):**
+**Authorized chain (2026-09-17, complete):**
 
 ```text
-DIFF-002 → GRAD-002 → MESH-007
+DIFF-002 → GRAD-002 → MESH-007   ✓ committed + pushed + exact-SHA CI green
 ```
 
 Do not start Technical Debt or Future work without explicit authorization.
@@ -193,15 +194,46 @@ Historical only. Do not resume without authorization.
 
 # 2. Active
 
-None. The authorized chain DIFF-002 → GRAD-002 → MESH-007 is complete (2026-09-17).
+## CUDA-QUAL-001 — Ada CUDA toolchain qualification
+
+**Status: 🔴 INCOMPLETE — 13/15 acceptance items passed; BLOCKED on production-scale CPU/GPU SIMPLE
+equivalence (2026-09-18). Checkpointed locally, not pushed.**
+
+13 of 15 acceptance items pass. It stops at **CPU/GPU equivalence at production scale**: the GPU
+backend cannot complete a SIMPLE solve at 320² or 640² (`PressureCorrectionFailure`, 0 outer
+iterations) where the CPU backend completes. The failure is **not** caused by this phase — it
+reproduces identically on the historical CUDA 11.5 / sm_52 toolchain — and the GPU linear solvers
+are healthy at that same size, so it lies in the production pressure-correction path.
+
+Verified and passing:
+
+```text
+CUDA 12.9.86 active (no driver package touched)   sm_89 cubin present in the built library
+independent smoke kernel: __CUDA_ARCH__ 890       clean build, 0 warnings
+real GPU execution, CPU fallback ruled out        83/83 GPU ctest, 66/66 GPU unit tests
+equivalence <= 1.6e-9 relative, NaN/Inf 0         determinism bitwise
+compute-sanitizer memcheck/initcheck/synccheck/racecheck: 0 errors
+CPU regression green: Release 1932/1932, Debug + GUI 1984/1984
+```
+
+Also found: the documented sm_80 target had never applied — `enable_language(CUDA)` sets the
+architecture from nvcc's default (52) before `cuda/CMakeLists.txt`'s guard could, so every GPU build
+was sm_52 + PTX. Fixed in `cmake/CUDA.cmake` (uncommitted).
+
+Evidence: `results/cuda-qual-001/summary.md`.
+
+* [ ] Resolve the 320²/640² `PressureCorrectionFailure` (needs its own authorization)
+* [ ] Re-run acceptance item 9 afterwards; items 1–8 and 10–15 stand on the evidence above
+* [ ] Commit / push decision for the toolchain change
 
 ---
 
 # 3. Next
 
-* [ ] **Commit / push decision** for the verified P12 lineage (MESH-001 … MESH-007, DIFF-002,
-  GRAD-002, ASAN-001). A green CI run on the exact SHA is required. This needs the user's explicit
-  authorization; no phase is authorized.
+* [x] **Commit / push of the verified P12 lineage** — done 2026-09-18. `67b9e3e` on `origin/main`;
+  CI run 35313512418 green on that exact SHA (12/12 jobs). The lineage (MESH-001 … MESH-007,
+  DIFF-002, GRAD-002, ASAN-001) and a CI portability repair are committed, pushed and CI-qualified.
+* [ ] **User scope decision** after CUDA-QUAL-001's gate failure. No phase is authorized.
 
 ---
 
@@ -283,10 +315,37 @@ results/p12-grad-002/drift-001/summary.md
   * WSL2 + CUDA verified;
   * native Windows remains manual/unverified.
 
-* [ ] **CUDA toolchain vs GPU**
+* [ ] **CUDA toolchain vs GPU** — addressed by CUDA-QUAL-001, committed at its checkpoint, not pushed
 
-  * WSL has nvcc 11.5 and `CMAKE_CUDA_ARCHITECTURES=52`, but the GPU is Ada (compute capability 8.9);
-  * upgrade the toolkit and architecture before producing GPU performance evidence (found in an environment check, 2026-09-17).
+  * was: WSL nvcc 11.5 and sm_52 against an Ada (8.9) GPU, so every GPU build ran by PTX JIT;
+  * now: CUDA 12.9.86 and architectures `80;89`, with sm_89 cubin proven present in the built
+    library; the architecture choice moved before `enable_language(CUDA)`, which is why the old
+    sm_80 default never applied;
+  * evidence: `results/cuda-qual-001/{toolchain,build}.md`.
+
+* [ ] **GPU backend fails a production solve at 320² and above**
+
+  * `PressureCorrectionFailure` on the first outer iteration, 0 iterations completed, where the CPU
+    backend completes normally; a regression against the P7 evidence, which recorded 320² on the GPU
+    converging at 2.0× speed-up;
+  * **not** toolchain-related: identical on CUDA 11.5/sm_52 and 12.9/sm_89, and the GPU CG and
+    BiCGSTAB both converge and match the CPU at that exact size;
+  * blocks CUDA-QUAL-001's equivalence gate; needs its own authorization (found 2026-09-18).
+
+Evidence:
+
+```text
+results/cuda-qual-001/summary.md  section 7
+```
+
+* [ ] **GPU end-to-end performance is transfer-bound and below the CPU**
+
+  * at every grid where the GPU backend completes (20²–160²) it is 1.7× to 45× slower than the CPU,
+    with 33–45 % of its time in host↔device transfer and a per-iteration device→host round trip
+    (71 031 downloads against 544 uploads at 160²);
+  * the SpMV kernel itself reaches 51× over the CPU when data stays resident, so the cost is the
+    transfer pattern, not the kernel;
+  * no crossover is demonstrated; optimization is a separate, unauthorized phase.
 
 ---
 

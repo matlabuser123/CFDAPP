@@ -1,0 +1,61 @@
+# CUDA-QUAL-001: where does the GPU path stop matching the CPU? 2026-09-18T12:36:37Z
+# The end-to-end benchmark fails at 320x320 with PressureCorrectionFailure on BOTH toolchains.
+# This isolates the linear solver alone at the same unknown count.
+## grid 96x96 (n = 9216)
+    makeGpuCG() returns a solver when a GPU is present         PASS
+      stats[gpu-cg] kernelLaunches 646, fallbacks 0, H2D 5 calls/952328 B, D2H 278 calls/153504 B, allocations 10, syncs 646, kernelSeconds 0.017332
+    CG  | CPU it 92 res 5.410e-09 | GPU it 92 res 5.410e-09 | abs 8.882e-16 rel 6.780e-16
+    GPU CG converged                                           PASS
+    GPU CG solution has no NaN or Inf                          PASS
+    GPU CG solution matches CPU CG within 1e-8 relative        PASS
+    GPU CG launched CUDA kernels                               PASS
+    GPU CG did not fall back to the CPU                        PASS
+    makeGpuBiCGSTAB() returns a solver when a GPU is present   PASS
+      stats[gpu-bicgstab] kernelLaunches 909, fallbacks 0, H2D 5 calls/952328 B, D2H 389 calls/185472 B, allocations 13, syncs 909, kernelSeconds 0.022002
+    BiC | CPU it 65 res 6.616e-09 | GPU it 65 res 6.785e-09 | abs 1.044e-10 rel 7.966e-11
+    GPU BiCGSTAB converged                                     PASS
+    GPU BiCGSTAB solution has no NaN or Inf                    PASS
+    GPU BiCGSTAB solution matches CPU BiCGSTAB within 1e-8 relative PASS
+    GPU BiCGSTAB launched CUDA kernels                         PASS
+    GPU BiCGSTAB did not fall back                             PASS
+    repeated GPU BiCGSTAB solve is bitwise identical           PASS
+  PROBE PASS (failures 0)
+## grid 160x160 (n = 25600)
+    makeGpuCG() returns a solver when a GPU is present         PASS
+      stats[gpu-cg] kernelLaunches 632, fallbacks 0, H2D 5 calls/2652168 B, D2H 272 calls/421600 B, allocations 10, syncs 632, kernelSeconds 0.021175
+    CG  | CPU it 90 res 1.076e-08 | GPU it 90 res 1.076e-08 | abs 1.332e-15 rel 1.106e-15
+    GPU CG converged                                           PASS
+    GPU CG solution has no NaN or Inf                          PASS
+    GPU CG solution matches CPU CG within 1e-8 relative        PASS
+    GPU CG launched CUDA kernels                               PASS
+    GPU CG did not fall back to the CPU                        PASS
+    makeGpuBiCGSTAB() returns a solver when a GPU is present   PASS
+      stats[gpu-bicgstab] kernelLaunches 867, fallbacks 0, H2D 5 calls/2652168 B, D2H 371 calls/500800 B, allocations 13, syncs 867, kernelSeconds 0.025680
+    BiC | CPU it 66 res 8.594e-09 | GPU it 62 res 9.045e-09 | abs 2.821e-10 rel 2.343e-10
+    GPU BiCGSTAB converged                                     PASS
+    GPU BiCGSTAB solution has no NaN or Inf                    PASS
+    GPU BiCGSTAB solution matches CPU BiCGSTAB within 1e-8 relative PASS
+    GPU BiCGSTAB launched CUDA kernels                         PASS
+    GPU BiCGSTAB did not fall back                             PASS
+    repeated GPU BiCGSTAB solve is bitwise identical           PASS
+  PROBE PASS (failures 0)
+## grid 320x320 (n = 102400)
+    makeGpuCG() returns a solver when a GPU is present         PASS
+      stats[gpu-cg] kernelLaunches 618, fallbacks 0, H2D 5 calls/10629128 B, D2H 266 calls/1667200 B, allocations 10, syncs 618, kernelSeconds 0.021298
+    CG  | CPU it 88 res 2.067e-08 | GPU it 88 res 2.067e-08 | abs 1.776e-15 rel 8.898e-16
+    GPU CG converged                                           PASS
+    GPU CG solution has no NaN or Inf                          PASS
+    GPU CG solution matches CPU CG within 1e-8 relative        PASS
+    GPU CG launched CUDA kernels                               PASS
+    GPU CG did not fall back to the CPU                        PASS
+    makeGpuBiCGSTAB() returns a solver when a GPU is present   PASS
+      stats[gpu-bicgstab] kernelLaunches 873, fallbacks 0, H2D 5 calls/10629128 B, D2H 374 calls/2012800 B, allocations 13, syncs 873, kernelSeconds 0.019951
+    BiC | CPU it 55 res 1.772e-08 | GPU it 62 res 1.493e-08 | abs 3.179e-09 rel 1.593e-09
+    GPU BiCGSTAB converged                                     PASS
+    GPU BiCGSTAB solution has no NaN or Inf                    PASS
+    GPU BiCGSTAB solution matches CPU BiCGSTAB within 1e-8 relative PASS
+    GPU BiCGSTAB launched CUDA kernels                         PASS
+    GPU BiCGSTAB did not fall back                             PASS
+    repeated GPU BiCGSTAB solve is bitwise identical           PASS
+  PROBE PASS (failures 0)
+# end 2026-09-18T12:36:41Z

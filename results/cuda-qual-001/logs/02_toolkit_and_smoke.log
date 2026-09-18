@@ -1,0 +1,34 @@
+# CUDA-QUAL-001 step 3: toolkit activation + independent smoke test; 2026-09-18T11:32:44Z
+## activation
+  CUDA_HOME=/usr/local/cuda-12.9
+  which nvcc: /usr/local/cuda-12.9/bin/nvcc
+    nvcc: NVIDIA (R) Cuda compiler driver
+    Copyright (c) 2005-2025 NVIDIA Corporation
+    Built on Tue_May_27_02:21:03_PDT_2025
+    Cuda compilation tools, release 12.9, V12.9.86
+    Build cuda_12.9.r12.9/compiler.36037853_0
+  apt default (unchanged, for the record): /usr/bin/nvcc V11.5.119
+## build the smoke test natively for the installed GPU (sm_89)
+  source sha256 64783c06cf3e88345edbe86158613a2dc0fc08b5829fb04e4ee43597d38ccd73
++ nvcc -std=c++17 -O2 -gencode arch=compute_89,code=sm_89 -gencode arch=compute_89,code=compute_89 results/cuda-qual-001/tools/cuda_smoke.cu -o /root/cudaqual/cuda_smoke_sm89
++ sed 's/^/    /'
++ set +x
+  build exit 0; binary be192cfbbaf021d6
+## embedded code objects (cuobjdump)
+    ELF file    1: cuda_smoke_sm89.1.sm_89.cubin
+    ELF file    2: cuda_smoke_sm89.2.sm_89.cubin
+    PTX file    1: cuda_smoke_sm89.1.sm_89.ptx
+## run
+    driver API version   13000
+    runtime API version  12090
+    device count         1
+    device 0             NVIDIA RTX 5000 Ada Generation Laptop GPU
+    compute capability   8.9
+    global memory        15352 MiB
+    multiprocessors      76
+    uuid                 991873eb7773eb18a19e56959564a88d
+    kernel __CUDA_ARCH__ 890  (890 = sm_89)
+    saxpy mismatches     0 of 65536 (worst |error| 0.000e+00)
+    SMOKE PASS
+  run exit 0
+# end 2026-09-18T11:32:47Z

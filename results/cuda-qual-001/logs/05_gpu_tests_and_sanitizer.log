@@ -1,0 +1,41 @@
+# CUDA-QUAL-001 steps 7/10: the repository's GPU tests, then CUDA diagnostics; 2026-09-18T11:45:45Z
+## GPU test binary: build/cuda/tests/unit/gpu/CFDGpuTests  sha256 2af1fb5019c5eb0c91aa5cbe817db4f7934d5a81551ebcf41263a90bd0a53fab
+## 1. the repository's own GPU/CUDA tests (ctest, build/cuda)
+81/83 Test #1654: SIMPLEGpuSolverTest.RepeatedOuterIterationsReuseGpuSolverBuffersWithoutReallocating ..............   Passed    2.10 sec
+82/83 Test #1653: SIMPLEGpuSolverTest.GpuBackendSatisfiesTheSameConvergenceCriteria ................................   Passed   51.73 sec
+83/83 Test #1652: SIMPLEGpuSolverTest.GpuBackendReproducesCpuCavitySolutionWithinTolerance .........................   Passed   52.11 sec
+
+100% tests passed, 0 tests failed out of 83
+
+Label Time Summary:
+numerical    =  12.97 sec*proc (65 tests)
+solver       = 106.34 sec*proc (6 tests)
+unit         =   8.84 sec*proc (12 tests)
+
+Total Test time (real) =  58.00 sec
+
+## 2. the whole GPU unit-test binary
+[==========] Running 66 tests from 11 test suites.
+[==========] 66 tests from 11 test suites ran. (1430 ms total)
+[  PASSED  ] 66 tests.
+
+## 3. CUDA diagnostics: compute-sanitizer 
+   tool path: /usr/local/cuda-12.9/bin/compute-sanitizer
+### --tool memcheck
+   exit 0
+   ========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+   ========= ERROR SUMMARY: 0 errors
+   gtest result: [  PASSED  ] 66 tests. 
+### --tool initcheck
+   exit 0
+   ========= ERROR SUMMARY: 0 errors
+   gtest result: [  PASSED  ] 66 tests. 
+### --tool synccheck
+   exit 0
+   ========= ERROR SUMMARY: 0 errors
+   gtest result: [  PASSED  ] 66 tests. 
+### --tool racecheck
+   exit 0
+   ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+   gtest result: [  PASSED  ] 66 tests. 
+# end 2026-09-18T11:47:51Z

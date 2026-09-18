@@ -1,0 +1,67 @@
+# CUDA-QUAL-001 baseline + environment audit; 2026-09-18T11:26:51Z
+## 0. baseline (must be the known-good P12 SHA, clean)
+  HEAD:        67b9e3e07a8d06330cd5845627ed03e5d07eda64
+  origin/main: 67b9e3e07a8d06330cd5845627ed03e5d07eda64
+  ahead/behind: 0	0
+  working tree entries: 0
+  src+include: 42c3d9df70e83705d5052bbb880ab6239ce8fb3054e7831b7a68daf4c46c1aa6
+
+## 1. GPU (nvidia-smi)
+  name, uuid, memory.total [MiB], compute_cap, driver_version
+  NVIDIA RTX 5000 Ada Generation Laptop GPU, GPU-991873eb-7773-eb18-a19e-56959564a88d, 15352 MiB, 8.9, 580.97
+  driver-supported CUDA: CUDA Version: 13.0
+  nvidia-smi path: /usr/lib/wsl/lib/nvidia-smi
+
+## 2. CUDA toolkit(s) present
+  which nvcc: /usr/bin/nvcc
+    nvcc: NVIDIA (R) Cuda compiler driver
+    Copyright (c) 2005-2021 NVIDIA Corporation
+    Built on Thu_Nov_18_09:45:30_PST_2021
+    Cuda compilation tools, release 11.5, V11.5.119
+    Build cuda_11.5.r11.5/compiler.30672275_0
+  /usr/local/cuda*: 
+  apt cuda packages:
+    libcudart11.0:amd64 11.5.117~11.5.1-1ubuntu1
+    libnvidia-compute-495:amd64 510.108.03-0ubuntu0.22.04.1
+    libnvidia-compute-510:amd64 525.147.05-0ubuntu2.22.04.1
+    libnvidia-compute-535:amd64 535.309.01-0ubuntu0.22.04.2
+    libnvidia-compute-580:amd64 580.178.04-0ubuntu0.22.04.1
+    libnvidia-ml-dev:amd64 11.5.50~11.5.1-1ubuntu1
+    nvidia-cuda-dev:amd64 11.5.1-1ubuntu1
+    nvidia-cuda-gdb 11.5.114~11.5.1-1ubuntu1
+    nvidia-cuda-toolkit 11.5.1-1ubuntu1
+    nvidia-cuda-toolkit-doc 11.5.1-1ubuntu1
+    nvidia-firmware-580-580.178.04 580.178.04-0ubuntu0.22.04.1
+    nvidia-kernel-common-580 580.178.04-0ubuntu0.22.04.1
+    nvidia-opencl-dev:amd64 11.5.1-1ubuntu1
+    nvidia-profiler 11.5.114~11.5.1-1ubuntu1
+    nvidia-visual-profiler 11.5.114~11.5.1-1ubuntu1
+  libcudart: 2 entries
+    	libcudart.so.11.0 (libc6,x86-64) => /lib/x86_64-linux-gnu/libcudart.so.11.0
+    	libcudart.so (libc6,x86-64) => /lib/x86_64-linux-gnu/libcudart.so
+  WSL CUDA driver libs (/usr/lib/wsl/lib): libcuda.so libcuda.so.1 libcuda.so.1.1 libcudadebugger.so.1 libd3d12.so libd3d12core.so libdxcore.so libnvcuvid.so libnvcuvid.so.1 libnvdxdlkernels.so libnvidia-encode.so libnvidia-encode.so.1 libnvid
+
+## 3. host toolchain
+  cmake:  cmake version 3.22.1
+  ninja:  1.10.1
+  gcc:    g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+  clang:  Ubuntu clang version 14.0.0-1ubuntu1.1
+  kernel: 6.6.87.2-microsoft-standard-WSL2
+  distro: Ubuntu 22.04.5 LTS
+  user:   root (uid 0)
+
+## 4. CUDA-related environment
+  PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Users/Hasib/bin:/mnt/c/Program Files/Git/mingw64/bin:/mnt/c/Program Files/Git/usr/local/bin:/mnt/c/Program Files/Git/usr/bin:/mnt/c/Program Files/Git/usr/bin:/mnt/c/Program Files/Git/mingw64/bin:/mnt/c/Program Files/Git/usr/bin:/mnt/c/Users/Hasib/bin:/mnt/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.0/bin/x64:/mnt/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.0/bin:/mnt/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/bin:/mnt/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/libnvvp:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files/MATLAB/R2025a/runtime/win64:/mnt/c/Program Files/MATLAB/R2025a/bin:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn:/mnt/c/Program Files/Microsoft SQL Server/150/Tools/Binn:/mnt/c/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit:/mnt/c/Program Files/NVIDIA Corporation/Nsight Compute 2025.3.0:/mnt/c/Program Files/Siemens/NX2506/CAPITALINTEGRATION/capitalnxremote:/mnt/c/Program Files/Microsoft SQL Server/170/Tools/Binn:/mnt/c/Program Files/GitHub CLI:/mnt/c/Program Files/Git/cmd:/mnt/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/bin:/mnt/c/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.9/libnvvp:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/System32/WindowsPowerShell/v1.0:/mnt/c/WINDOWS/System32/OpenSSH:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/Program Files/dotnet:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files/MATLAB/R2025a/runtime/win64:/mnt/c/Program Files/MATLAB/R2025a/bin:/mnt/c/Program Files/NVIDIA Corporation/Nsight Compute 2025.2.1:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Users/Hasib/AppData/Local/Programs/Python/Python313/Scripts:/mnt/c/Users/Hasib/AppData/Local/Programs/Python/Python313:/mnt/c/Users/Hasib/miniconda3:/mnt/c/Users/Hasib/miniconda3/Library/mingw-w64/bin:/mnt/c/Users/Hasib/miniconda3/Library/usr/bin:/mnt/c/Users/Hasib/miniconda3/Library/bin:/mnt/c/Users/Hasib/miniconda3/Scripts:/mnt/c/Users/Hasib/anaconda3:/mnt/c/Users/Hasib/anaconda3/Library/mingw-w64/bin:/mnt/c/Users/Hasib/anaconda3/Library/usr/bin:/mnt/c/Users/Hasib/anaconda3/Library/bin:/mnt/c/Users/Hasib/anaconda3/Scripts:/mnt/c/Users/Hasib/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Hasib/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Program Files/JetBrains/PyCharm 2025.1.3.1/bin:/mnt/c/Users/Hasib/AppData/Local/Programs/Microsoft VS Code Insiders/bin:/mnt/c/Users/Hasib/.cache/trunk/launcher:/mnt/c/Users/Hasib/AppData/Roaming/Code/User/globalStorage/github.copilot-chat/debugCommand:/mnt/c/Program Files/Git/cmd:/mnt/c/Users/Hasib/.dotnet/tools:/mnt/c/Users/Hasib/AppData/Local/Programs/Windsurf/bin:/mnt/c/Users/Hasib/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Hasib/.refact/bin:/mnt/c/Users/Hasib/.dotnet/tools:/mnt/c/Program Files/GitHub CLI:/mnt/c/Program Files/GitHub CLI:/mnt/c/Program Files/Git/usr/bin/vendor_perl:/mnt/c/Program Files/Git/usr/bin/core_perl
+  LD_LIBRARY_PATH=(unset)
+
+## 5. CFDApp's CUDA assumptions in-tree
+  cmake/CUDA.cmake:9:if(CMAKE_CUDA_COMPILER)
+  cmake/CUDA.cmake:16:  find_package(CUDAToolkit REQUIRED)
+  cuda/CMakeLists.txt:26:# -DCMAKE_CUDA_ARCHITECTURES=... for a different target GPU generation.
+  cuda/CMakeLists.txt:27:if(NOT CMAKE_CUDA_ARCHITECTURES)
+  cuda/CMakeLists.txt:28:  set(CMAKE_CUDA_ARCHITECTURES 80)
+  cuda/CMakeLists.txt:30:set_target_properties(cfdcuda PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+
+## 6. existing build dirs with CUDA enabled
+  build/perf: CMAKE_BUILD_TYPE:STRING=Release CMAKE_CUDA_ARCHITECTURES:STRING=52 CMAKE_CUDA_COMPILER:STRING=/usr/bin/nvcc 
+# end 2026-09-18T11:26:59Z
