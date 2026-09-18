@@ -102,8 +102,35 @@ jobs:
         run: run-clang-tidy -p build/debug -j$(nproc) '^(include|src)/.*\.(cpp|hpp)$'
 
   # --- section 36: sanitizers -------------------------------------------------
+  # Sharded (2026-09-18). As one job this exceeded the 360-minute GitHub job
+  # limit on the P12 lineage's first push (run 35259730403): cancelled at
+  # 1958/1977 with zero ASan/UBSan/LSan diagnostics and zero test failures --
+  # a wall-clock limit, not a defect. The suite costs 23.6 CPU-hours under
+  # ASan (measured: this runner 83161s over 1919 tests before the cancel;
+  # the local build/asan run 84813s over 1932, so runner ~= workstation per
+  # test), and a 4-vCPU runner cannot fit that in 6h: modelling ctest's
+  # greedy scheduler over the measured per-test times gives 6.36h for the
+  # whole suite, which is exactly what happened.
+  #
+  # The partition is `ctest -I <shard>,,5`: test index i goes to shard
+  # (i mod 5) + 1. Deterministic (CTest's index order is the registration
+  # order of the configured build), exhaustive and disjoint by construction,
+  # and audited for real by the sanitizer-coverage job below, which compares
+  # the union of the shards' own `ctest -N` lists against the full list.
+  # No sanitizer flag, option, timeout, tolerance or enabled/disabled-test
+  # change: every test that ran before still runs, in exactly one shard.
+  #
+  # Modelled worst shard: 93 min of tests (+ ~6 min configure/build), a 3.8x
+  # margin under the 360-minute limit; the floor is the heaviest single test
+  # (NaturalConvectionValidation.GridConvergence, 3619s), which no partition
+  # can split. Shard CPU-hours: 5.5 / 5.1 / 4.2 / 4.2 / 4.6.
   sanitizers:
+    name: sanitizers (shard ${{ matrix.shard }}/5)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # one shard's failure must not hide the others' results
+      matrix:
+        shard: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
 
@@ -157,11 +184,83 @@ jobs:
       # failing a genuine hang well inside the job's 6h limit (estimated
       # total job time ~3.5h). Again no sanitizer flag, tolerance, or
       # enabled/disabled-test change -- only the hang guard.
-      - name: Test under ASan+UBSan
+      # Recorded before the run so the coverage audit uses the same configured
+      # build that executes the tests: the full list every shard sees, and
+      # this shard's slice of it.
+      - name: Record the test lists (full and this shard)
+        run: |
+          ctest --preset asan -N > ctest_full_from_shard${{ matrix.shard }}.txt
+          ctest --preset asan -N -I ${{ matrix.shard }},,5 > ctest_shard${{ matrix.shard }}.txt
+          echo "full $(grep -cE '^ *Test +#' ctest_full_from_shard${{ matrix.shard }}.txt), this shard $(grep -cE '^ *Test +#' ctest_shard${{ matrix.shard }}.txt)"
+
+      - name: Test under ASan+UBSan (shard ${{ matrix.shard }}/5)
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=0
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=0
-        run: ctest --preset asan -j$(nproc) --output-on-failure --timeout 7200
+        run: ctest --preset asan -j$(nproc) --output-on-failure --timeout 7200 -I ${{ matrix.shard }},,5
+
+      - name: Upload this shard's test lists
+        if: always() # the audit must also run when a shard fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitizer-lists-shard-${{ matrix.shard }}
+          path: |
+            ctest_full_from_shard${{ matrix.shard }}.txt
+            ctest_shard${{ matrix.shard }}.txt
+          retention-days: 14
+
+  # --- section 36b: sanitizer shard coverage audit -----------------------------
+  # The sanitizer suite is only as strong as the partition: this job proves,
+  # from the shards' own recorded lists, that the five shards together run
+  # every sanitizer test exactly once. It fails on any gap or overlap, and on
+  # any disagreement about what the full list is. It runs even when a shard
+  # fails, so a partition defect can never hide behind a test failure.
+  sanitizer-coverage:
+    needs: sanitizers
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the shards' test lists
+        uses: actions/download-artifact@v4
+        with:
+          pattern: sanitizer-lists-shard-*
+          path: lists
+          merge-multiple: true
+
+      - name: Union of the shards must equal the full test list, without overlap
+        run: |
+          python3 - <<'PY'
+          import glob, re, sys
+          rx = re.compile(r"^\s*Test\s+#\d+:\s+(.*\S)\s*$")
+          def names(path):
+              return [m.group(1) for m in map(rx.match, open(path)) if m]
+          fulls = {p: names(p) for p in sorted(glob.glob("lists/ctest_full_from_shard*.txt"))}
+          shards = {p: names(p) for p in sorted(glob.glob("lists/ctest_shard*.txt"))}
+          ok = True
+          if len(fulls) != 5 or len(shards) != 5:
+              print(f"FAIL: expected 5 full lists and 5 shard lists, got {len(fulls)} and {len(shards)}")
+              sys.exit(1)
+          ref = next(iter(fulls.values()))
+          for p, v in fulls.items():
+              if v != ref:
+                  print(f"FAIL: {p} disagrees about the full test list ({len(v)} vs {len(ref)})")
+                  ok = False
+          union = [n for v in shards.values() for n in v]
+          dupes = sorted({n for n in union if union.count(n) > 1})
+          missing = sorted(set(ref) - set(union))
+          extra = sorted(set(union) - set(ref))
+          for label, items in (("run by more than one shard", dupes),
+                               ("run by no shard", missing),
+                               ("run but not in the full list", extra)):
+              if items:
+                  ok = False
+                  print(f"FAIL: {len(items)} tests {label}: {items[:10]}")
+          for p, v in sorted(shards.items()):
+              print(f"  {p}: {len(v)} tests")
+          print(f"full list {len(ref)} tests; union {len(union)} ({len(set(union))} distinct)")
+          print("sanitizer shard coverage: " + ("COMPLETE, each test in exactly one shard" if ok else "BROKEN"))
+          sys.exit(0 if ok else 1)
+          PY
 
   # --- section 37: python ------------------------------------------------------
   python:

@@ -202,7 +202,12 @@ TEST(MultiBlockCase, ParserErrorsNameTheField) {
        "field \"patches[4].sides\" must satisfy be a non-empty array"},
       {"side reused", [](json& m) { m["patches"][4]["sides"].push_back(side("upper", "left")); },
        "not reuse block 'upper' side 'left' (already used by interfaces[0].second"},
-      {"side unassigned", [](json& m) { m["patches"][4]["sides"] = {side("upper", "right")}; },
+      // json::array(...), not a braced list: `j = {one_json_object}` is an array under GCC but
+      // the object itself under Clang (basic_json::operator=(basic_json) wins over the
+      // initializer_list constructor for a single element), which made this probe hit the
+      // "sides must be a non-empty array" schema rule instead of the reuse rule it targets.
+      {"side unassigned",
+       [](json& m) { m["patches"][4]["sides"] = json::array({side("upper", "right")}); },
        "not reuse block 'upper' side 'right'"},
       {"side missing", [](json& m) { m["patches"].erase(4); },
        "block 'lower' side 'left' is in no interface and no patch"},
