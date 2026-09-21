@@ -1,0 +1,2705 @@
+diff --git a/.gitignore b/.gitignore
+index 30331e4..a1bf51e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -44,6 +44,8 @@ CMakeFiles/
+ !results/cuda-qual-001/**/*.log
+ !results/gpu-pcorr-001/**/*.log
+ !results/ci-perf-001/**/*.log
++!results/gpu-pipe-001/**/*.log
++!results/gpu-disc-001/**/*.log
+ 
+ # Python -----------------------------------------------------------------
+ python/__pycache__/
+diff --git a/TODO.md b/TODO.md
+index 7b78de7..290fbf3 100644
+--- a/TODO.md
++++ b/TODO.md
+@@ -1,6 +1,6 @@
+ # CFDApp — TODO
+ 
+-> `[x]` = implemented + verified.
++> `[x]` = implemented **and verified**.
+ > Evidence: `results/` · Rules: `CLAUDE.md` · Direction: `ROADMAP.md`
+ 
+ ---
+@@ -9,36 +9,34 @@
+ 
+ ```text
+ FINISHED
+-  P0–P11
+-  P12-COMP-001/002
+-  P12-NUM-001–007
+-  P12-MESH-001–007
+-  P12-ASAN-001
+-  P12-DIFF-002
+-  P12-GRAD-002
++  P0–P12
+   CUDA-QUAL-001
+   GPU-PCORR-001
+   AGENT-INFRA-001
+   CI-PERF-001
+ 
+-  KNOWN-GOOD BASELINE
++KNOWN-GOOD
+   548401aef0d3cbab9552b1964ceac7efd7ad6154
+-  run 35385979133 — 17/17, 100.6 min
++  CI 35385979133 — 17/17 PASS — 100.6 min
+ 
+ PROCESSING
+-  None
++  GPU-DISC-001 — CUDA discretization pipeline
+ 
+-NEXT
+-  GPU-PIPE-001
+-  P13
++BLOCKED
++  GPU-PIPE-001 final residency
++    → persistent GPU fields
++    → GPU-resident pressure solve
++    → GPU-resident SIMPLE loop
++    blocked on GPU-DISC-001
+ 
+-AUTHORIZED NEW DEVELOPMENT
+-  None
++NEXT
++  Complete GPU-PIPE-001
++  P13 — Production Maturity
+ ```
+ 
+ ---
+ 
+-# 1. Finished
++# 1. Completed
+ 
+ ## Core
+ 
+@@ -52,112 +50,167 @@ AUTHORIZED NEW DEVELOPMENT
+ 
+ ## P12
+ 
+-* [x] COMP-001 — EOS boundary density
+-* [x] COMP-002 — coupled compressible SIMPLE
++* [x] COMP-001/002 — compressible SIMPLE
+ * [x] NUM-001–007 — numerics
+-* [x] MESH-001 — non-orthogonal meshes
+-* [x] MESH-002 — stretched meshes
+-* [x] MESH-003 — 2D multi-block
+-* [x] MESH-004 — mesh quality
+-* [x] MESH-005 — 3D foundation
+-* [x] MESH-006 — 3D SIMPLE
++* [x] MESH-001–007 — mesh + 3D + ALE
+ * [x] ASAN-001 — sanitizer repair
+ * [x] DIFF-002 — boundary diffusion
+ * [x] GRAD-002 — Green–Gauss treatment
+-* [x] MESH-007 — moving-mesh/ALE foundation
+ 
+-## CUDA
++## CUDA / Infrastructure
+ 
+-* [x] **CUDA-QUAL-001**
++* [x] CUDA-QUAL-001 — RTX 5000 Ada / `sm_89`, 83/83 GPU tests, sanitizer clean
++* [x] GPU-PCORR-001 — GPU BiCGSTAB pressure-correction qualification
++* [x] AGENT-INFRA-001 — repository-local agent workflow/skills
++* [x] CI-PERF-001 — 276.3 → 100.6 min, 2.75× faster
++
++Evidence:
++
++```text
++results/cuda-qual-001/
++results/gpu-pcorr-001/
++results/agent-infra-001/
++results/ci-perf-001/
++```
+ 
+-  * CUDA 12.9.86
+-  * RTX 5000 Ada / CC 8.9
+-  * native `sm_89`
+-  * 83/83 GPU CTest
+-  * compute-sanitizer clean
+-  * CPU/GPU equivalence passed
++> GitHub CI has no GPU. CUDA execution evidence is local.
+ 
+-* [x] **GPU-PCORR-001**
++---
+ 
+-  * fixed GPU BiCGSTAB scale-dependent breakdown
+-  * 160² / 320² / 640² pass
+-  * 320²: 1.33× GPU
+-  * 640²: 3.20× GPU
+-  * negative control passed
++# 2. GPU-PIPE-001 — Persistent GPU Pipeline
+ 
+-## Infrastructure
++## Completed
+ 
+-* [x] **AGENT-INFRA-001** — ten repository-local agent skills under `.claude/skills/`,
+-  `docs/AGENT_WORKFLOW.md`, a `CLAUDE.md` section. Routing dry-run by independent agents on three
+-  tasks; 24 defects found and fixed. No production behaviour changed.
++* [x] Transfer instrumentation / baseline
++* [x] BiCGSTAB reduction fusion — 7 → 5 reductions/Krylov iteration
++* [x] Remove unnecessary synchronization — syncs −66.7%
++* [x] Persistent matrices/workspaces — verified, 0 reallocations
++* [x] CUDA diagnostics
++* [x] 20²–640² benchmarks
++* [x] Full regression — 1998/1998 PASS
+ 
+-* [x] **CI-PERF-001** — CI 276.3 → **100.6 min (2.75×, −63.6 %)**
++Current measured performance:
+ 
+-  * causes: `build-test` ran tests **serially**; sharding balanced count, not runtime
+-  * `build-test` now 7 runtime-balanced shards with `-j$(nproc)`; sanitizers rebalanced
+-  * 1977 listed / 1932 executed / 45 disabled — **unchanged**
+-  * both coverage audits PASS; audit detects 6/6 injected defects
+-  * qualified on run 35385979133, 17/17, exact SHA `548401a`
++```text
++160²   0.702× GPU/CPU
++320²   1.773×
++640²   3.599×
++```
+ 
+ Evidence:
+ 
+ ```text
+-results/cuda-qual-001/    results/agent-infra-001/
+-results/gpu-pcorr-001/    results/ci-perf-001/
++results/gpu-pipe-001/
+ ```
+ 
+-GitHub runners have **no GPU**: CI does not validate `sm_89` execution.
+-GPU evidence is local only — `results/cuda-qual-001/`, `results/gpu-pcorr-001/`.
++## Blocked on GPU-DISC-001
++
++* [ ] Persistent GPU fields
++* [ ] GPU-resident pressure solve
++* [ ] GPU-resident SIMPLE loop
++* [ ] Final CPU/GPU equivalence
++
++Audit result:
++
++```text
++Current production path:
++
++CPU assembly
++→ GPU linear solve
++→ CPU corrections
++→ GPU linear solve
++→ CPU corrections
++```
++
++At 640², CPU assembly/correction is now **75.5%** of end-to-end solve time.
++
++Meaningful field residency therefore requires GPU finite-volume discretization.
+ 
+ ---
+ 
+-# 2. Processing
++# 3. GPU-DISC-001 — CUDA Discretization Pipeline
++
++## Foundation
++
++* [x] Device mesh / geometry
++
++## Operators
++
++* [x] Gradients — CUDA Green–Gauss, **bitwise** identical to CPU, 132/132 cases
++* [x] Diffusion — CUDA finite-volume diffusion, CPU/GPU differential verified
++* [x] Convection schemes — CUDA production scalar/vector convection, CPU/GPU differential verified
++* [x] Boundary conditions — reusable CUDA scalar/vector BC layer, CPU/GPU differential verified
++
++## Momentum Path
++
++* [x] Momentum assembly — CUDA production momentum systems, CPU/GPU differential verified
++* [x] Momentum response coefficients — CUDA production response coefficients, CPU/GPU differential verified
++* [x] Rhie–Chow / predicted face flux — CUDA production face-flux prediction, CPU/GPU differential verified
+ 
+-**None.**
++## Pressure Path
++
++* [x] Pressure-correction assembly — CUDA production pressure-correction system, CPU/GPU differential verified
++* [x] Velocity correction — CUDA production cell-velocity correction, CPU/GPU differential verified
++* [x] Face-flux correction — CUDA production face-flux correction, CPU/GPU differential verified
++
++## Integration
++
++* [x] Single-iteration CPU/GPU differential — production SIMPLE iteration state verified CPU/GPU
++* [x] Integrated GPU SIMPLE discretization — production GPU SIMPLE uses verified CUDA discretization path
++* [x] Full-solve CPU/GPU equivalence — converged production solves verified CPU/GPU
++* [x] CUDA diagnostics — integrated production GPU SIMPLE clean under memcheck/initcheck/synccheck/racecheck
++* [x] Negative controls — GPU-DISC-wide observable mutation suite detected 100%, null controls documented
++* [x] Performance qualification — integrated CUDA discretization benchmarked and production scaling verified
++* [ ] Full regression
++
++Evidence:
++
++```text
++results/gpu-disc-001/
++```
++
++### Gate
++
++Do not integrate an operator until its CPU/GPU differential test passes using existing tolerances.
++
++CPU implementation remains the numerical reference.
+ 
+ ---
+ 
+-# 3. Next
++# 4. GPU-PIPE-001 Final Gate
+ 
+-## GPU-PIPE-001 — Persistent GPU Pipeline
++After GPU-DISC-001 passes:
+ 
+-* [ ] Measure H2D/D2H transfers
+ * [ ] Persistent GPU fields
+-* [ ] Persistent matrices
+-* [ ] Remove unnecessary transfers
+ * [ ] GPU-resident pressure solve
+ * [ ] GPU-resident SIMPLE loop
+-* [ ] CPU/GPU equivalence
++* [ ] Dedicated CPU/GPU equivalence
+ * [ ] CUDA diagnostics
+-* [ ] 20²–640² benchmarks
++* [ ] 20²–640² final benchmark
+ * [ ] Full regression
+ 
+-Motivation:
++Then:
+ 
+ ```text
+-160²:
+-~71,031 downloads
+-~544 uploads
+-
+-resident SpMV:
+-~51× CPU
++GPU-PIPE-001 → FINISHED
++P13          → PROCESSING
+ ```
+ 
+ ---
+ 
+-## P13 — Production Maturity
++# 5. P13 — Production Maturity
+ 
+-* [ ] Restart/checkpointing
++* [ ] Restart / checkpointing
+ * [ ] Robust case validation
+-* [ ] CLI/GUI consistency
+-* [ ] Results/export
+-* [ ] Diagnostics/logging
++* [ ] CLI / GUI consistency
++* [ ] Results / export
++* [ ] Diagnostics / logging
+ * [ ] Packaging
+ * [ ] Production benchmark suite
+ 
+ ---
+ 
+-# 4. Future
++# 6. Future
+ 
+ ## Physics
+ 
+@@ -199,7 +252,7 @@ resident SpMV:
+ ## v1.0
+ 
+ * [ ] V&V benchmark library
+-* [ ] API/case-format stability
++* [ ] API / case-format stability
+ * [ ] Cross-platform qualification
+ * [ ] Documentation
+ * [ ] Packaging
+@@ -207,9 +260,9 @@ resident SpMV:
+ 
+ ---
+ 
+-# 5. Technical Debt
++# 7. Technical Debt
+ 
+-Do not fix without authorization.
++> Do not fix without authorization.
+ 
+ * [ ] CG absolute breakdown threshold
+ * [ ] GPU BiCGSTAB restart asymmetry
+@@ -227,35 +280,56 @@ Do not fix without authorization.
+ * [ ] GUI `-Wconversion` warnings
+ * [ ] Native Windows CUDA qualification
+ 
++### GPU BiCGSTAB restart asymmetry
++
++Known pre-existing reproducer:
++
++```text
++2D cavity 40×40
++outer tolerance: 1e-6
++outer budget:    3000
++
++GPU:
++PressureCorrectionFailure
++BiCGSTAB breakdown after 74 iterations
++
++CPU:
++continues full outer budget
++```
++
++Present at baseline `548401a`; not introduced by GPU-PIPE-001.
++
++Evidence:
++
++```text
++results/gpu-pipe-001/equivalence/
++```
++
+ ---
+ 
+-# 6. Execution Order
++# 8. Execution Order
+ 
+ ```text
+-P0–P11                  ✓
+-   ↓
+-P12                      ✓
+-   ↓
+-CUDA-QUAL-001            ✓
+-   ↓
+-GPU-PCORR-001            ✓
+-   ↓
+-Exact-SHA CI             ✓
+-   ↓
+-Known-good baseline      ✓  c1355ea
+-   ↓
+-AGENT-INFRA-001          ✓
+-   ↓
+-CI-PERF-001              ✓  100.6 min, 2.75×, run 35385979133
+-   ↓
+-Known-good baseline      ✓  548401a
+-   ↓
+-GPU-PIPE-001
+-   ↓
++P0–P12                    ✓
++    ↓
++CUDA-QUAL-001             ✓
++    ↓
++GPU-PCORR-001             ✓
++    ↓
++AGENT-INFRA-001           ✓
++    ↓
++CI-PERF-001               ✓
++    ↓
++GPU-PIPE-001 foundations  ✓
++    ↓
++GPU-DISC-001              ← CURRENT
++    ↓
++GPU-PIPE-001 final residency
++    ↓
+ P13
+-   ↓
++    ↓
+ Advanced CFD / HPC
+-   ↓
++    ↓
+ v1.0
+ ```
+ 
+@@ -266,10 +340,11 @@ v1.0
+ 1. Work top-to-bottom.
+ 2. Stop at a failed gate.
+ 3. Never weaken thresholds to pass.
+-4. `[x]` requires real evidence.
++4. `[x]` requires implementation + real verification evidence.
+ 5. Preserve failures and negative controls.
+ 6. Correctness before performance.
+-7. Do not fix unrelated debt.
+-8. No new phase without authorization.
+-9. No commit/push without authorization.
+-10. Keep detailed evidence in `results/`, not `TODO.md`.
++7. CPU numerics remain the reference implementation.
++8. Do not fix unrelated technical debt.
++9. No new phase without authorization.
++10. No commit/push without authorization.
++11. Keep detailed evidence in `results/`, not `TODO.md`.
+diff --git a/cuda/CMakeLists.txt b/cuda/CMakeLists.txt
+index d76dc72..8fc7f5a 100644
+--- a/cuda/CMakeLists.txt
++++ b/cuda/CMakeLists.txt
+@@ -1,34 +1,94 @@
+-# Included only when CFDAPP_ENABLE_CUDA=ON (root CMakeLists.txt already
+-# called enable_language(CUDA) via cmake/CUDA.cmake by the time this
+-# runs). Builds the cfdcuda library -- currently just the CSR SpMV
+-# kernel (P4 -- Performance, section 32's own narrow "first CUDA target").
+-add_library(cfdcuda STATIC
+-  kernels/CsrSpmvKernel.cu
+-  kernels/GpuResidencyManagerCuda.cpp
+-  kernels/DeviceVectorOpsKernel.cu
+-  kernels/GpuPreconditionerKernel.cu
+-  kernels/GpuLinearSolverCuda.cpp
+-)
+-add_library(cfdapp::cuda ALIAS cfdcuda)
+-
+-target_include_directories(cfdcuda
+-  PUBLIC
+-    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
+-    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated/include>"
+-)
+-
+-# Target architectures. cmake/CUDA.cmake picks them from the toolkit's own
+-# capability before enable_language(CUDA) -- it has to happen there, because
+-# enable_language initialises this variable from nvcc's default (sm_52) and a
+-# "set it if empty" here can never fire (CUDA-QUAL-001, 2026-09-18). CUDA
+-# >= 11.8 gives "80;89": cubin native to both Ampere and the Ada development
+-# GPU, each with its compute_NN PTX for forward compatibility; older toolkits,
+-# which cannot name sm_89, give "80". Override with
+-# -DCMAKE_CUDA_ARCHITECTURES=... or CUDAARCHS for a different target GPU.
+-message(STATUS "cfdcuda: CUDA ${CMAKE_CUDA_COMPILER_VERSION}, architectures ${CMAKE_CUDA_ARCHITECTURES}")
+-set_target_properties(cfdcuda PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
+-
+-target_link_libraries(cfdcuda
+-  PUBLIC
+-    CUDA::cudart
+-)
++# Included only when CFDAPP_ENABLE_CUDA=ON (root CMakeLists.txt already
++# called enable_language(CUDA) via cmake/CUDA.cmake by the time this
++# runs). Builds the cfdcuda library -- currently just the CSR SpMV
++# kernel (P4 -- Performance, section 32's own narrow "first CUDA target").
++add_library(cfdcuda STATIC
++  kernels/CsrSpmvKernel.cu
++  kernels/GpuResidencyManagerCuda.cpp
++  kernels/DeviceVectorOpsKernel.cu
++  kernels/GpuPreconditionerKernel.cu
++  kernels/GpuLinearSolverCuda.cpp
++  # GPU-DISC-001A: the immutable mesh, mirrored once into device memory.
++  kernels/DeviceMeshCuda.cpp
++  # GPU-DISC-001B: the Green-Gauss gradient -- host-built immutable plan plus
++  # the field-dependent kernels.
++  kernels/DeviceGradientPlan.cpp
++  kernels/DeviceGradientKernel.cu
++  # GPU-DISC-001C: the implicit diffusion assembly.
++  kernels/DeviceDiffusionPlan.cpp
++  kernels/DeviceDiffusionKernel.cu
++  # GPU-DISC-001D: the convection schemes.
++  kernels/DeviceConvectionPlan.cpp
++  kernels/DeviceConvectionKernel.cu
++  # GPU-DISC-001D closure: the production momentum convection contribution.
++  kernels/DeviceMomentumConvectionPlan.cpp
++  kernels/DeviceMomentumConvectionKernel.cu
++  # GPU-DISC-001E: the shared boundary-condition layer.
++  kernels/DeviceBoundaryConditions.cpp
++  kernels/DeviceBoundaryConditionsKernel.cu
++  # GPU-DISC-001F: the SIMPLE momentum assembly.
++  kernels/DeviceMomentumAssemblyPlan.cpp
++  kernels/DeviceMomentumAssemblyKernel.cu
++  # GPU-DISC-001G: the momentum response coefficient.
++  kernels/DeviceMomentumResponseKernel.cu
++  # GPU-DISC-001H: the predicted face flux / Rhie-Chow.
++  kernels/DeviceFaceFluxPlan.cpp
++  kernels/DeviceFaceFluxKernel.cu
++  # GPU-DISC-001I: the pressure-correction assembly.
++  kernels/DevicePressureCorrectionPlan.cpp
++  kernels/DevicePressureCorrectionKernel.cu
++  # GPU-DISC-001J: the least-squares gradient and the cell-velocity correction.
++  kernels/DeviceLeastSquaresGradientPlan.cpp
++  kernels/DeviceLeastSquaresGradientKernel.cu
++  kernels/DeviceVelocityCorrectionPlan.cpp
++  kernels/DeviceVelocityCorrectionKernel.cu
++  # GPU-DISC-001K: the face-flux correction.
++  kernels/DeviceFaceFluxCorrectionKernel.cu
++  # GPU-DISC-001M: the production GPU SIMPLE discretization entry point.
++  kernels/GpuSimpleDiscretizationCuda.cpp
++)
++
++# GPU-DISC-001B requires BITWISE equality with the CPU gradient. The CPU library
++# is built for baseline x86-64, which has no FMA instruction, so `a*b + c` is a
++# rounded multiply then a rounded add. nvcc contracts that into a single FMA by
++# default -- more accurate, and therefore a different number. Disable contraction
++# for this translation unit only; every other kernel keeps the default, so no
++# already-qualified kernel changes behaviour.
++set_source_files_properties(
++  kernels/DeviceGradientKernel.cu
++  kernels/DeviceDiffusionKernel.cu
++  kernels/DeviceConvectionKernel.cu
++  kernels/DeviceMomentumConvectionKernel.cu
++  kernels/DeviceBoundaryConditionsKernel.cu
++  kernels/DeviceMomentumAssemblyKernel.cu
++  kernels/DeviceMomentumResponseKernel.cu
++  kernels/DeviceFaceFluxKernel.cu
++  kernels/DevicePressureCorrectionKernel.cu
++  kernels/DeviceLeastSquaresGradientKernel.cu
++  kernels/DeviceVelocityCorrectionKernel.cu
++  kernels/DeviceFaceFluxCorrectionKernel.cu
++  PROPERTIES COMPILE_OPTIONS "-fmad=false"
++)
++add_library(cfdapp::cuda ALIAS cfdcuda)
++
++target_include_directories(cfdcuda
++  PUBLIC
++    "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>"
++    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated/include>"
++)
++
++# Target architectures. cmake/CUDA.cmake picks them from the toolkit's own
++# capability before enable_language(CUDA) -- it has to happen there, because
++# enable_language initialises this variable from nvcc's default (sm_52) and a
++# "set it if empty" here can never fire (CUDA-QUAL-001, 2026-09-18). CUDA
++# >= 11.8 gives "80;89": cubin native to both Ampere and the Ada development
++# GPU, each with its compute_NN PTX for forward compatibility; older toolkits,
++# which cannot name sm_89, give "80". Override with
++# -DCMAKE_CUDA_ARCHITECTURES=... or CUDAARCHS for a different target GPU.
++message(STATUS "cfdcuda: CUDA ${CMAKE_CUDA_COMPILER_VERSION}, architectures ${CMAKE_CUDA_ARCHITECTURES}")
++set_target_properties(cfdcuda PROPERTIES CUDA_ARCHITECTURES "${CMAKE_CUDA_ARCHITECTURES}")
++
++target_link_libraries(cfdcuda
++  PUBLIC
++    CUDA::cudart
++)
+diff --git a/cuda/kernels/CsrSpmvKernel.cu b/cuda/kernels/CsrSpmvKernel.cu
+index d64055d..7cac188 100644
+--- a/cuda/kernels/CsrSpmvKernel.cu
++++ b/cuda/kernels/CsrSpmvKernel.cu
+@@ -81,10 +81,13 @@ void spmv(const DeviceCsrMatrix& matrix, const DeviceVector& x, DeviceVector& y)
+                                               matrix.rowOffsetsDevice(), x.data(), y.data());
+   checkCuda(cudaGetLastError(), "csrSpmvKernel launch");
+   ++gpuExecutionStats().kernelLaunches;
+-  checkCuda(cudaDeviceSynchronize(), "csrSpmvKernel execution");
++  // GPU-PIPE-001 Phase 3: no cudaDeviceSynchronize. y is read by the next
++  // kernel on the default stream, which CUDA orders after this one; nothing on
++  // the host reads y here. The synchronize cost a host-device round trip per
++  // SpMV -- two per Krylov iteration -- for an ordering guarantee the stream
++  // already provides. See results/gpu-pipe-001/phase3-sync/audit.md.
+   auto& stats = gpuExecutionStats();
+   stats.kernelSeconds += kernelTimer.elapsedSeconds();
+-  ++stats.synchronizations;
+ }
+ 
+ cfd::algebra::Vector csrSpmvCuda(const cfd::algebra::SparseMatrix& matrix,
+diff --git a/cuda/kernels/DeviceVectorOpsKernel.cu b/cuda/kernels/DeviceVectorOpsKernel.cu
+index 18a94b5..fe47005 100644
+--- a/cuda/kernels/DeviceVectorOpsKernel.cu
++++ b/cuda/kernels/DeviceVectorOpsKernel.cu
+@@ -81,6 +81,63 @@ __global__ void partialDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Re
+   }
+ }
+ 
++// GPU-PIPE-001 Phase 2B: two independent dot products over the same length in
++// ONE launch. Each product keeps its OWN shared-memory halving tree and its own
++// partial-sum slice (partialSums[0..blocks) and partialSums[blocks..2*blocks)),
++// so every partial is computed from exactly the same terms, in exactly the same
++// block partition, by exactly the same tree as partialDotKernel would produce
++// for that product alone. Fusing changes *when* the arithmetic happens, never
++// *what* it is -- which is why dot2() is bitwise identical to two dot() calls
++// and needs no tolerance of its own.
++//
++// Shared memory is 2 * blockDim * sizeof(Real); the two trees are kept in
++// disjoint halves so neither can perturb the other.
++__global__ void partialDot2Kernel(cfd::Index n, const cfd::Real* a0, const cfd::Real* b0,
++                                  const cfd::Real* a1, const cfd::Real* b1,
++                                  cfd::Real* partialSums) {
++  extern __shared__ cfd::Real shared[];
++  cfd::Real* s0 = shared;
++  cfd::Real* s1 = shared + blockDim.x;
++  const cfd::Index i = static_cast<cfd::Index>(blockIdx.x) * blockDim.x + threadIdx.x;
++  s0[threadIdx.x] = (i < n) ? a0[i] * b0[i] : 0.0;
++  s1[threadIdx.x] = (i < n) ? a1[i] * b1[i] : 0.0;
++  __syncthreads();
++  for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
++    if (threadIdx.x < stride) {
++      s0[threadIdx.x] += s0[threadIdx.x + stride];
++      s1[threadIdx.x] += s1[threadIdx.x + stride];
++    }
++    __syncthreads();
++  }
++  if (threadIdx.x == 0) {
++    partialSums[blockIdx.x] = s0[0];
++    partialSums[static_cast<cfd::Index>(gridDim.x) + blockIdx.x] = s1[0];
++  }
++}
++
++// GPU-PIPE-001 Phase 2A was implemented here as finalizeSumsKernel -- one
++// thread per quantity walking its partial slice in ascending block order, so
++// the summation order (and therefore the bits) matched the host loop exactly --
++// and then REMOVED on its own measurement.
++//
++// Measured, paired, same session (results/gpu-pipe-001/phase2-reductions/
++// 40_isolate_finalizer.log), gpu_solve median:
++//
++//     grid   blocks   device finalise   host finalise
++//     160^2     100        2.0315 s        2.0191 s
++//     640^2    1600        5.0178 s        3.7741 s     <- 25% worse
++//
++// The serial finalise is O(blocks) dependent adds on a single CUDA core, and
++// blocks grows with the problem, so its cost grows while the thing it buys --
++// an 8-byte download instead of a blocks-sized one -- buys nothing: Phase 1
++// measured the round trip at 79-101 us per call REGARDLESS of payload
++// (results/gpu-pipe-001/baseline/summary.md 5). Bytes were never the
++// bottleneck; calls and synchronizations are, and device finalisation reduces
++// neither. It was never faster at any measured size.
++//
++// Host finalisation is therefore kept. The fused partial kernel (Phase 2B) is
++// what actually removes round trips, and it is retained.
++
+ // partialDotKernel over |a[i] * b[i]| -- see absDot()'s header comment. Same
+ // exact halving tree, same out-of-range convention.
+ __global__ void partialAbsDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Real* b,
+@@ -112,12 +169,15 @@ void waxpby(cfd::Real a, const DeviceVector& x, cfd::Real b, const DeviceVector&
+   waxpbyKernel<<<blocks, kThreadsPerBlock>>>(x.size(), a, x.data(), b, y.data(), w.data());
+   checkCuda(cudaGetLastError(), "waxpbyKernel launch");
+   ++gpuExecutionStats().kernelLaunches;
+-  checkCuda(cudaDeviceSynchronize(), "waxpbyKernel execution");
++  // GPU-PIPE-001 Phase 3: no cudaDeviceSynchronize here. w is consumed by
++  // later kernels on the default stream, which are ordered after this one by
++  // CUDA's own stream semantics -- the synchronize bought correctness that
++  // stream ordering already guarantees, and charged a full host-device round
++  // trip for it on every vector operation. See phase3-sync/audit.md.
+   auto& stats = gpuExecutionStats();
+   const double elapsed = timer.elapsedSeconds();
+   stats.kernelSeconds += elapsed;
+   stats.vectorOpSeconds += elapsed;
+-  ++stats.synchronizations;
+ }
+ 
+ void axpy(cfd::Real alpha, const DeviceVector& x, DeviceVector& y) { waxpby(alpha, x, 1.0, y, y); }
+@@ -140,89 +200,136 @@ void fill(DeviceVector& v, cfd::Index count, cfd::Real value) {
+   fillKernel<<<blocks, kThreadsPerBlock>>>(count, value, v.data());
+   checkCuda(cudaGetLastError(), "fillKernel launch");
+   ++gpuExecutionStats().kernelLaunches;
+-  checkCuda(cudaDeviceSynchronize(), "fillKernel execution");
++  // GPU-PIPE-001 Phase 3: stream-ordered, no synchronize. See waxpby above.
+   auto& stats = gpuExecutionStats();
+   const double elapsed = timer.elapsedSeconds();
+   stats.kernelSeconds += elapsed;
+   stats.vectorOpSeconds += elapsed;
+-  ++stats.synchronizations;
+ }
+ 
+-cfd::Real dot(const DeviceVector& a, const DeviceVector& b) {
+-  checkSameSize(a.size(), b.size(), "dot");
+-  const cfd::Index n = a.size();
+-  if (n == 0) return 0.0;
++namespace {
+ 
+-  cfd::Timer totalTimer;
++// GPU-PIPE-001 Phase 2A/2B: the one place a reduction becomes host-visible.
++//
++// Launches the caller's partial-sum kernel for a GROUP of `count` independent
++// quantities, synchronizes once, downloads the partials once, and finalises
++// each quantity on the host in ascending block order -- the same order, and so
++// the same bits, as one dot() per quantity produced before.
++//
++// Before: per QUANTITY -- 1 launch + 1 sync + 1 blocks-sized download.
++// After:  per GROUP     -- 1 launch + 1 sync + 1 (blocks*count)-sized download.
++//
++// Bytes are unchanged; calls and synchronizations fall by the group size. That
++// is the right target: Phase 1 measured the round trip at 79-101 us per call
++// regardless of payload, so the cost is paid per call, not per byte.
++template <typename LaunchPartials>
++void reduceToHost(cfd::Index n, int count, LaunchPartials&& launchPartials, cfd::Real* out) {
+   const int blocks = blockCountFor(n);
+-  // A persistent, high-water-mark reduction buffer -- dot() is called
+-  // many times per GpuCG/GpuBiCGSTAB iteration (P6-GPU-002), so a fresh
+-  // local DeviceBuffer here would cudaMalloc/cudaFree on every single
+-  // call, exactly the anti-pattern this task exists to eliminate.
+-  // `static` (not a member of some object dot() doesn't have) is this
+-  // free function's only way to persist state across calls -- the same
+-  // "one shared process-wide GPU context" precedent gpuExecutionStats()
+-  // itself already establishes. resize() only grows (never shrinks,
+-  // never reallocates once big enough -- DeviceBuffer's own contract),
+-  // so repeated solves against the same (or smaller) grid size reuse
+-  // this buffer with zero further allocation.
++
++  // Persistent high-water-mark buffer, same rationale (and the same
++  // never-shrink DeviceBuffer contract) as the original dot() cache: this is
++  // hit several times per Krylov iteration, so a local buffer would
++  // cudaMalloc/cudaFree on every call -- the anti-pattern this phase exists to
++  // remove. Sized for the widest group any caller uses.
+   static DeviceBuffer<cfd::Real> partialSumsCache;
+-  partialSumsCache.resize(static_cast<cfd::Index>(blocks));
+-  DeviceBuffer<cfd::Real>& partialSums = partialSumsCache;
++  static std::vector<cfd::Real> hostPartials;
++  partialSumsCache.resize(static_cast<cfd::Index>(blocks) * count);
++  hostPartials.resize(static_cast<std::size_t>(blocks) * count);
+ 
+   cfd::Timer kernelTimer;
+-  partialDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
+-      n, a.data(), b.data(), partialSums.data());
+-  checkCuda(cudaGetLastError(), "partialDotKernel launch");
++  launchPartials(blocks, partialSumsCache.data());
+   ++gpuExecutionStats().kernelLaunches;
+-  checkCuda(cudaDeviceSynchronize(), "partialDotKernel execution");
++  checkCuda(cudaDeviceSynchronize(), "reduction execution");
+   auto& stats = gpuExecutionStats();
+   stats.kernelSeconds += kernelTimer.elapsedSeconds();
+   ++stats.synchronizations;
++  ++stats.reductionGroups;
++  stats.reductionQuantities += static_cast<std::uint64_t>(count);
+ 
+-  std::vector<cfd::Real> hostPartials(static_cast<std::size_t>(blocks));
+-  partialSums.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks));
++  partialSumsCache.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks) * count);
+ 
+-  cfd::Real sum = 0.0;
+-  for (cfd::Real partial : hostPartials) sum += partial;
+-
+-  stats.dotSeconds += totalTimer.elapsedSeconds();
+-  return sum;
++  // Per quantity, in ascending block order -- identical to the loop each
++  // separate dot() ran, which is what makes a fused group bitwise identical to
++  // the individual calls it replaces.
++  for (int q = 0; q < count; ++q) {
++    const cfd::Real* slice = hostPartials.data() + static_cast<std::size_t>(q) * blocks;
++    cfd::Real sum = 0.0;
++    for (int i = 0; i < blocks; ++i) sum += slice[i];
++    out[q] = sum;
++  }
+ }
+ 
+-cfd::Real l2Norm(const DeviceVector& v) { return std::sqrt(dot(v, v)); }
++}  // namespace
+ 
+-cfd::Real absDot(const DeviceVector& a, const DeviceVector& b) {
+-  checkSameSize(a.size(), b.size(), "absDot");
++cfd::Real dot(const DeviceVector& a, const DeviceVector& b) {
++  checkSameSize(a.size(), b.size(), "dot");
+   const cfd::Index n = a.size();
+   if (n == 0) return 0.0;
+ 
+   cfd::Timer totalTimer;
+-  const int blocks = blockCountFor(n);
+-  // Same persistent high-water-mark reduction buffer rationale as dot()'s,
+-  // and a separate cache so neither call can disturb the other's contents.
+-  static DeviceBuffer<cfd::Real> partialSumsCache;
+-  partialSumsCache.resize(static_cast<cfd::Index>(blocks));
+-  DeviceBuffer<cfd::Real>& partialSums = partialSumsCache;
++  cfd::Real result = 0.0;
++  reduceToHost(
++      n, 1,
++      [&](int blocks, cfd::Real* partials) {
++        partialDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
++            n, a.data(), b.data(), partials);
++        checkCuda(cudaGetLastError(), "partialDotKernel launch");
++      },
++      &result);
++  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
++  return result;
++}
+ 
+-  cfd::Timer kernelTimer;
+-  partialAbsDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
+-      n, a.data(), b.data(), partialSums.data());
+-  checkCuda(cudaGetLastError(), "partialAbsDotKernel launch");
+-  ++gpuExecutionStats().kernelLaunches;
+-  checkCuda(cudaDeviceSynchronize(), "partialAbsDotKernel execution");
+-  auto& stats = gpuExecutionStats();
+-  stats.kernelSeconds += kernelTimer.elapsedSeconds();
+-  ++stats.synchronizations;
++// GPU-PIPE-001 Phase 2B: two dot products, one launch, one synchronization, one
++// 16-byte download -- instead of two of each. Bitwise identical to calling
++// dot(a0,b0) and dot(a1,b1): same terms, same block partition, same per-product
++// tree, same final summation order. Requires all four vectors to share a length.
++void dot2(const DeviceVector& a0, const DeviceVector& b0, const DeviceVector& a1,
++          const DeviceVector& b1, cfd::Real& out0, cfd::Real& out1) {
++  checkSameSize(a0.size(), b0.size(), "dot2");
++  checkSameSize(a1.size(), b1.size(), "dot2");
++  checkSameSize(a0.size(), a1.size(), "dot2");
++  const cfd::Index n = a0.size();
++  if (n == 0) {
++    out0 = 0.0;
++    out1 = 0.0;
++    return;
++  }
++
++  cfd::Timer totalTimer;
++  cfd::Real results[2] = {0.0, 0.0};
++  reduceToHost(
++      n, 2,
++      [&](int blocks, cfd::Real* partials) {
++        partialDot2Kernel<<<blocks, kThreadsPerBlock, 2 * kThreadsPerBlock * sizeof(cfd::Real)>>>(
++            n, a0.data(), b0.data(), a1.data(), b1.data(), partials);
++        checkCuda(cudaGetLastError(), "partialDot2Kernel launch");
++      },
++      results);
++  out0 = results[0];
++  out1 = results[1];
++  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
++}
+ 
+-  std::vector<cfd::Real> hostPartials(static_cast<std::size_t>(blocks));
+-  partialSums.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks));
++cfd::Real l2Norm(const DeviceVector& v) { return std::sqrt(dot(v, v)); }
+ 
+-  cfd::Real sum = 0.0;
+-  for (cfd::Real partial : hostPartials) sum += partial;
++cfd::Real absDot(const DeviceVector& a, const DeviceVector& b) {
++  checkSameSize(a.size(), b.size(), "absDot");
++  const cfd::Index n = a.size();
++  if (n == 0) return 0.0;
+ 
+-  stats.dotSeconds += totalTimer.elapsedSeconds();
+-  return sum;
++  cfd::Timer totalTimer;
++  cfd::Real result = 0.0;
++  reduceToHost(
++      n, 1,
++      [&](int blocks, cfd::Real* partials) {
++        partialAbsDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
++            n, a.data(), b.data(), partials);
++        checkCuda(cudaGetLastError(), "partialAbsDotKernel launch");
++      },
++      &result);
++  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
++  return result;
+ }
+ 
+ }  // namespace cfd::gpu
+diff --git a/cuda/kernels/GpuLinearSolverCuda.cpp b/cuda/kernels/GpuLinearSolverCuda.cpp
+index 6ba0da5..461c6a9 100644
+--- a/cuda/kernels/GpuLinearSolverCuda.cpp
++++ b/cuda/kernels/GpuLinearSolverCuda.cpp
+@@ -403,7 +403,17 @@ class GpuBiCGSTAB final : public LinearSolver {
+     waxpby(1.0, b_, -1.0, v_, r_);    // r_ := b - A*x0
+     deviceCopy(rHat_, r_);            // rHat_ fixed for the rest of this solve
+ 
+-    const Real b0 = l2Norm(r_);
++    // GPU-PIPE-001 rho-carry: one reduction yields both the initial residual
++    // norm and the first iteration's rho.
++    //
++    // rHat_ is a bitwise copy of r_ at this point (the deviceCopy above), so
++    // dot(rHat_, r_) and dot(r_, r_) multiply the same pairs in the same block
++    // partition through the same tree -- bitwise identical. Taking the raw dot
++    // here rather than deriving it from b0 matters: b0*b0 is NOT bitwise
++    // dot(r_, r_), because b0 is its square root.
++    const Real r0DotR0 = dot(r_, r_);
++    const Real b0 = std::sqrt(r0DotR0);
++    Real rhoNext = r0DotR0;  // == dot(rHat_, r_) for iteration 1
+     result.initialResidual = b0;
+     result.residualHistory.push_back(b0);
+ 
+@@ -454,7 +464,15 @@ class GpuBiCGSTAB final : public LinearSolver {
+     Real rNorm = b0;
+ 
+     for (Index iter = 1; iter <= settings_.maxIterations; ++iter) {
+-      const Real rho = dot(rHat_, r_);
++      // GPU-PIPE-001 rho-carry: rho was already computed -- either at setup
++      // (iteration 1) or fused into the previous iteration's residual-norm
++      // reduction, which read the very same r_. r_ is written in exactly two
++      // places, setup and the end of the loop body, and nothing between that
++      // write and here touches it: the waxpby calls below read r_ and write p_
++      // and s_. rHat_ is fixed for the whole solve. So this is the same value
++      // dot(rHat_, r_) would return here, bit for bit -- the reduction was
++      // moved, not replaced.
++      const Real rho = rhoNext;
+       if (!std::isfinite(rho) || cancelledToRoundingLevel(rho, rHat_, r_, rHatNorm, rNorm)) {
+         return breakdown(iter - 1);
+       }
+@@ -470,9 +488,17 @@ class GpuBiCGSTAB final : public LinearSolver {
+       applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, p_, pHat_);
+       spmv(deviceMatrix_, pHat_, v_);
+ 
+-      const Real rHatDotV = dot(rHat_, v_);
++      // GPU-PIPE-001 Phase 2B: (rHat,v) and (v,v) are independent reductions
++      // over the same length, and the cancellation test below needs BOTH on the
++      // same iteration -- l2Norm(v_) was previously evaluated unconditionally as
++      // an argument, so fusing costs no extra work and saves a whole host round
++      // trip. dot2 is bitwise identical to the two separate dot() calls, so
++      // rHatDotV and the norm are the same values this test saw before.
++      Real rHatDotV = 0.0;
++      Real vDotV = 0.0;
++      dot2(rHat_, v_, v_, v_, rHatDotV, vDotV);
+       if (!std::isfinite(rHatDotV) ||
+-          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, l2Norm(v_))) {
++          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, std::sqrt(vDotV))) {
+         return breakdown(iter - 1);
+       }
+ 
+@@ -506,14 +532,26 @@ class GpuBiCGSTAB final : public LinearSolver {
+       applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, s_, sHat_);
+       spmv(deviceMatrix_, sHat_, t_);
+ 
++      // GPU-PIPE-001 Phase 2B: (t,t) and (t,s) fused into one host round trip.
++      // dot2 is bitwise identical to the two dot() calls it replaces, and the
++      // two breakdown tests below are applied in exactly their original order,
++      // so whichever condition fired first before still fires first now.
++      //
++      // The one behavioural difference is that tDotS is now computed even when
++      // the tDotT test is about to break down. That is deliberate and harmless:
++      // breakdown returns immediately either way, so the extra reduction only
++      // ever happens on a path that is ending the solve, and it touches no
++      // solver state.
++      //
+       // t . t is a sum of squares (no cancellation): "zero" only when t is, or
+       // when it underflows below the normal range -- the CPU's own criterion.
+-      const Real tDotT = dot(t_, t_);
++      Real tDotT = 0.0;
++      Real tDotS = 0.0;
++      dot2(t_, t_, t_, s_, tDotT, tDotS);
+       if (!std::isfinite(tDotT) || tDotT < std::numeric_limits<Real>::min()) {
+         return breakdown(iter - 1);
+       }
+ 
+-      const Real tDotS = dot(t_, s_);
+       if (!std::isfinite(tDotS) ||
+           cancelledToRoundingLevel(tDotS, t_, s_, std::sqrt(tDotT), sNorm)) {
+         return breakdown(iter - 1);
+@@ -527,7 +565,18 @@ class GpuBiCGSTAB final : public LinearSolver {
+       axpy(omega, sHat_, x_);
+       waxpby(1.0, s_, -omega, t_, r_);  // r_ := s_ - omega * t_
+ 
+-      const Real residualNorm = l2Norm(r_);
++      // GPU-PIPE-001 rho-carry: the residual norm for THIS iteration and rho
++      // for the NEXT one are two independent reductions over the same, just-
++      // updated r_ (and the fixed rHat_), so they fuse into one round trip.
++      // 5 reduction groups per iteration become 4.
++      //
++      // On the iteration that exits -- converged, non-finite, or the last one
++      // before MaxIterations -- rhoNext is computed and never used. That costs
++      // nothing: it is one quantity inside a reduction this iteration performs
++      // anyway, and it touches no solver state.
++      Real rDotR = 0.0;
++      dot2(r_, r_, rHat_, r_, rDotR, rhoNext);
++      const Real residualNorm = std::sqrt(rDotR);
+       rNorm = residualNorm;
+       if (!std::isfinite(residualNorm)) {
+         result.status = SolverStatus::NonFiniteResidual;
+diff --git a/cuda/kernels/GpuPreconditionerKernel.cu b/cuda/kernels/GpuPreconditionerKernel.cu
+index a360ff2..963ebe6 100644
+--- a/cuda/kernels/GpuPreconditionerKernel.cu
++++ b/cuda/kernels/GpuPreconditionerKernel.cu
+@@ -70,12 +70,12 @@ void applyJacobiDiagonal(const DeviceVector& inverseDiagonal, const DeviceVector
+                                                   output.data());
+   checkCuda(cudaGetLastError(), "jacobiApplyKernel launch");
+   ++gpuExecutionStats().kernelLaunches;
+-  checkCuda(cudaDeviceSynchronize(), "jacobiApplyKernel execution");
++  // GPU-PIPE-001 Phase 3: stream-ordered, no synchronize -- `output` feeds the
++  // following SpMV on the same stream. See phase3-sync/audit.md.
+   auto& stats = gpuExecutionStats();
+   const double elapsed = timer.elapsedSeconds();
+   stats.kernelSeconds += elapsed;
+   stats.preconditionerApplySeconds += elapsed;
+-  ++stats.synchronizations;
+ }
+ 
+ }  // namespace cfd::gpu
+diff --git a/include/cfd/gpu/DeviceBuffer.hpp b/include/cfd/gpu/DeviceBuffer.hpp
+index 1ca48b5..9631d15 100644
+--- a/include/cfd/gpu/DeviceBuffer.hpp
++++ b/include/cfd/gpu/DeviceBuffer.hpp
+@@ -72,6 +72,12 @@ class DeviceBuffer {
+         auto& stats = gpuExecutionStats();
+         ++stats.allocations;
+         if (hadPriorAllocation) ++stats.reallocations;
++        // GPU-DISC-001Q: device-byte high-water mark. release() above has
++        // already subtracted any prior allocation, so this is the live total.
++        stats.currentDeviceBytes += static_cast<std::uint64_t>(count) * sizeof(T);
++        if (stats.currentDeviceBytes > stats.peakDeviceBytes) {
++          stats.peakDeviceBytes = stats.currentDeviceBytes;
++        }
+       }
+       capacity_ = count;
+     }
+@@ -120,7 +126,17 @@ class DeviceBuffer {
+   void release() noexcept {
+     if (pointer_ != nullptr) {
+       cudaFree(pointer_);
+-      ++gpuExecutionStats().frees;
++      auto& stats = gpuExecutionStats();
++      ++stats.frees;
++      // GPU-DISC-001Q: paired with the addition in resize(). Subtracting
++      // `capacity_` (not size_) is what makes the two symmetric -- capacity_ is
++      // what was actually cudaMalloc'd, while size_ is the logical length and
++      // can be smaller. Guarded so a counter reset mid-lifetime, which
++      // resetGpuExecutionStats() permits, cannot wrap this unsigned counter.
++      const std::uint64_t held = static_cast<std::uint64_t>(capacity_) * sizeof(T);
++      stats.currentDeviceBytes = stats.currentDeviceBytes >= held
++                                     ? stats.currentDeviceBytes - held
++                                     : 0;
+       pointer_ = nullptr;
+     }
+     capacity_ = 0;
+diff --git a/include/cfd/gpu/DeviceVectorOps.hpp b/include/cfd/gpu/DeviceVectorOps.hpp
+index 501f356..d545498 100644
+--- a/include/cfd/gpu/DeviceVectorOps.hpp
++++ b/include/cfd/gpu/DeviceVectorOps.hpp
+@@ -46,6 +46,22 @@ void fill(DeviceVector& v, cfd::Index count, cfd::Real value);
+ // InvalidArgumentError on a size mismatch.
+ [[nodiscard]] cfd::Real dot(const DeviceVector& a, const DeviceVector& b);
+ 
++// GPU-PIPE-001 Phase 2B: dot(a0,b0) and dot(a1,b1) in ONE kernel launch, one
++// synchronization and one 16-byte download, instead of two of each.
++//
++// **Bitwise identical** to calling dot() twice -- not "within tolerance".
++// Each product keeps its own block partition, its own shared-memory halving
++// tree and its own partial-sum slice, and the two slices are finalised by the
++// same in-order serial sum dot() uses, so every floating-point operation and
++// its order is unchanged. Fusion changes only when the work is scheduled.
++//
++// Exists because Phase 1 measured the reduction round trip at 79-101 us
++// regardless of payload: the cost is per *call*, so halving the number of calls
++// is what helps. All four vectors must share a length; throws
++// InvalidArgumentError otherwise.
++void dot2(const DeviceVector& a0, const DeviceVector& b0, const DeviceVector& a1,
++          const DeviceVector& b1, cfd::Real& out0, cfd::Real& out1);
++
+ // sqrt(dot(v, v)).
+ [[nodiscard]] cfd::Real l2Norm(const DeviceVector& v);
+ 
+diff --git a/include/cfd/gpu/GPUExecutionStats.hpp b/include/cfd/gpu/GPUExecutionStats.hpp
+index fe1841c..af81b97 100644
+--- a/include/cfd/gpu/GPUExecutionStats.hpp
++++ b/include/cfd/gpu/GPUExecutionStats.hpp
+@@ -30,6 +30,11 @@ struct GPUExecutionStats {
+   std::uint64_t reallocations{};
+   std::uint64_t frees{};
+   std::uint64_t kernelLaunches{};
++  // Explicit cudaDeviceSynchronize() calls. After GPU-PIPE-001 Phase 3 the only
++  // remaining one in the solver path is the reduction's, which precedes a
++  // blocking D2H copy the host cannot proceed without -- so this counter is now
++  // effectively "how many times the host had to wait for the device", which is
++  // the quantity the persistent-pipeline work is trying to drive down.
+   std::uint64_t synchronizations{};
+   // Wall-clock time (cfd::Timer, std::chrono::steady_clock) spent inside
+   // the cudaMemcpy calls themselves -- host-side timing around a
+@@ -40,12 +45,22 @@ struct GPUExecutionStats {
+   // across every DeviceBuffer::uploadFrom/downloadTo call process-wide.
+   double uploadSeconds{};
+   double downloadSeconds{};
+-  // Wall-clock time spent between a kernel launch and the
+-  // cudaDeviceSynchronize() that follows it -- every GPU kernel this
+-  // codebase launches (SpMV, and P6-GPU-002's vector ops/reductions)
+-  // adds to this one running total; includes launch overhead, not just
+-  // device execution, for the same no-second-timing-mechanism reason as
+-  // upload/downloadSeconds above.
++  // Wall-clock host time spent issuing GPU kernels.
++  //
++  // GPU-PIPE-001 Phase 3 CHANGED WHAT THIS MEASURES. It used to be the time
++  // between a launch and the cudaDeviceSynchronize() that followed it, i.e.
++  // device execution time, because every kernel synchronized. Those
++  // synchronizations were removed for the elementwise ops, SpMV and the
++  // preconditioner apply (stream ordering already guarantees what they were
++  // buying), so for those kernels this now measures LAUNCH time only -- the
++  // device work completes asynchronously afterwards.
++  //
++  // Only the reduction path still synchronizes, so only its contribution here
++  // is still device execution time. Per-kernel device time is no longer
++  // separable without CUDA events; `gpuSolveSeconds` remains the meaningful
++  // aggregate, and the end-to-end benchmark remains the authority on cost.
++  // Stated explicitly because a counter that quietly changes meaning is worse
++  // than one that is removed.
+   double kernelSeconds{};
+ 
+   // P6-GPU-002 -- Performance: finer-grained breakdowns of kernelSeconds
+@@ -92,6 +107,35 @@ struct GPUExecutionStats {
+   // provable in a test without parsing log output (see
+   // LinearSolverFactory.cpp's own header comment).
+   std::uint64_t gpuBackendFallbacks{};
++  // GPU-PIPE-001 Phase 2C: reduction accounting, so "how many host round trips
++  // did the Krylov solver cost" is measured directly instead of inferred from
++  // deviceToHostCalls (which mixes reductions with the solution download) or
++  // from an assumed reductions-per-iteration count.
++  //
++  // reductionGroups is incremented once per reduction ROUND TRIP -- one kernel
++  // group, one synchronization, one download -- so it is exactly the quantity
++  // Phase 1 measured at 79-101 us each. reductionQuantities counts the scalars
++  // those round trips produced. Before Phase 2B the two were equal (one dot per
++  // trip); a fused dot2() advances quantities by 2 and groups by 1, so
++  // quantities/groups is the realised fusion factor.
++  std::uint64_t reductionGroups{};
++  std::uint64_t reductionQuantities{};
++  // GPU-DISC-001Q -- Performance: device bytes currently held by live
++  // DeviceBuffers, and the high-water mark of that quantity. Maintained by
++  // DeviceBuffer's own resize()/release(), so it counts exactly what this
++  // project allocates and nothing the driver or another library holds.
++  //
++  // Two questions needed it and no existing counter could answer either:
++  // "what is peak GPU memory for this case" (peakDeviceBytes across a solve)
++  // and "does VRAM creep per outer iteration" (currentDeviceBytes sampled at
++  // the same point in successive iterations, or peak vs the steady value).
++  //
++  // deviceBytes is NOT the process's total GPU footprint -- the CUDA context,
++  // the module images and any cuBLAS-style workspace live outside it. It is
++  // the part this codebase controls, which is the part a leak or a creep would
++  // appear in. cudaMemGetInfo is used alongside it for the absolute figure.
++  std::uint64_t currentDeviceBytes{};
++  std::uint64_t peakDeviceBytes{};
+ };
+ 
+ // A single process-wide instance: this project has exactly one GPU
+diff --git a/include/cfd/pressure_velocity/SIMPLEResult.hpp b/include/cfd/pressure_velocity/SIMPLEResult.hpp
+index 2c4f94a..d60ed79 100644
+--- a/include/cfd/pressure_velocity/SIMPLEResult.hpp
++++ b/include/cfd/pressure_velocity/SIMPLEResult.hpp
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include <optional>
++#include <string>
+ #include <vector>
+ 
+ #include "cfd/core/Types.hpp"
+@@ -111,6 +112,15 @@ struct SIMPLEResult {
+   // v linear solve) and pressure-correction solves over the whole run --
+   // iterations * max(1, SIMPLESettings::nonOrthogonalCorrections) each on
+   // a completed run, the observable that pins the correction pass count.
++  // GPU-DISC-001M: whether this solve's DISCRETIZATION actually ran on the
++  // device, and why it did not when it did not. Reported rather than logged so
++  // a test can assert the dispatch instead of parsing output -- the same
++  // principle as SolverResult::backendUsed and gpuBackendFallbacks.
++  // `gpuDiscretization` false with an empty reason means it was never asked
++  // for.
++  bool gpuDiscretization{false};
++  std::string gpuDiscretizationFallbackReason;
++
+   Index momentumPredictorPasses{0};
+   Index pressureCorrectionPasses{0};
+ 
+@@ -134,6 +144,57 @@ struct SIMPLEResult {
+   // and the reason for a Stagnated/Diverging/linear-failure status.
+   cfd::solver::OuterIterationDiagnostics robustness;
+ 
++  // GPU-DISC-001Q: wall time per stage of the outer loop, summed over the whole
++  // solve. Added because nothing else could answer the question this project
++  // actually needed answered -- whether moving discretization to the device
++  // REMOVED the CPU assembly bottleneck or merely moved it -- and no existing
++  // counter separates assembly from the linear solve.
++  //
++  // Measured with cfd::Timer (std::chrono::steady_clock): two reads per stage,
++  // ~20-30 ns each, under 0.04% of even the fastest measured outer iteration.
++  //
++  // NO SYNCHRONIZATION IS ADDED. That is deliberate and it changes what these
++  // numbers mean on the GPU path: every discretization stage there launches
++  // asynchronously, so its timer measures HOST ISSUE TIME, a lower bound on
++  // device cost, not device execution. The two solve stages are real wall time
++  // (GpuBiCGSTAB synchronizes on each reduction and ends in a blocking D2H),
++  // and the SUM over an outer iteration is real, because the iteration ends at
++  // a synchronizing point. Device-side attribution of the asynchronous stages
++  // needs a profiler; see results/gpu-disc-001/performance/profiling/.
++  //
++  // Adding a sync here to make the per-stage numbers "honest" would destroy the
++  // very property GPU-PIPE-001 Phase 3 created (syncs -66.7%) and would change
++  // production behaviour to measure it, which this gate is not permitted to do.
++  struct StageSeconds {
++    double setup{};                 // pre-loop: derived fields, device plans, initial mass flux
++    double momentumAssembly{};      // assembleRelaxedMomentumComponent x {U,V,W}
++    double momentumSolve{};         // momentumSolver->solve() x {U,V,W}
++    double responseCoefficients{};  // computeMomentumResponseCoefficient x {U,V,W}
++    double predictedFaceFlux{};     // rhieChowMassFlux / calculateMassFlux
++    double pressureAssembly{};      // assemblePressureCorrection, all passes
++    double pressureSolve{};         // pressureSolver->solve(), all passes
++    double velocityCorrection{};    // correctVelocity
++    double faceFluxCorrection{};    // correctFaceMassFlux
++    double bookkeeping{};           // residuals, continuity, convergence tests, history
++    double total{};                 // the whole solve() call, inclusive of everything above
++
++    // What the ten stages do not account for: monitor/diagnostics work, the
++    // turbulence update, allocation churn, and anything else between stages.
++    [[nodiscard]] double other() const noexcept {
++      return total - (setup + momentumAssembly + momentumSolve + responseCoefficients +
++                      predictedFaceFlux + pressureAssembly + pressureSolve + velocityCorrection +
++                      faceFluxCorrection + bookkeeping);
++    }
++    // The stages that are DISCRETIZATION rather than linear algebra -- the
++    // quantity GPU-DISC-001 exists to reduce.
++    [[nodiscard]] double discretization() const noexcept {
++      return momentumAssembly + responseCoefficients + predictedFaceFlux + pressureAssembly +
++             velocityCorrection + faceFluxCorrection;
++    }
++    [[nodiscard]] double linearSolve() const noexcept { return momentumSolve + pressureSolve; }
++  };
++  StageSeconds stageSeconds;
++
+   [[nodiscard]] bool converged() const noexcept { return status == SIMPLEStatus::Converged; }
+ };
+ 
+diff --git a/include/cfd/pressure_velocity/SIMPLESettings.hpp b/include/cfd/pressure_velocity/SIMPLESettings.hpp
+index 03aea64..43ce9ef 100644
+--- a/include/cfd/pressure_velocity/SIMPLESettings.hpp
++++ b/include/cfd/pressure_velocity/SIMPLESettings.hpp
+@@ -112,6 +112,24 @@ struct SIMPLESettings {
+   // device at runtime -- see GpuResidencyManager::active().
+   bool enableGpuResidency{false};
+ 
++  // GPU-DISC-001M: run SIMPLE's DISCRETIZATION on the device -- the momentum
++  // assembly, response coefficients, predicted face flux, pressure-correction
++  // assembly, velocity correction and face-flux correction -- using the
++  // operators qualified bitwise by GPU-DISC-001B..001K.
++  //
++  // Independent of momentumSolver/pressureSolver.backend, which select where
++  // the LINEAR SOLVES run: before this flag existed a "GPU solve" was two
++  // device linear solves with every operator building them on the host.
++  //
++  // A *request*, with the same semantics as LinearSolverSettings::backend: a
++  // CPU-only binary, no usable device, or any operator that cannot reproduce
++  // the configuration makes the whole solve fall back to the CPU
++  // discretization path. The fallback is recorded in SIMPLEResult, never
++  // silent, and is ALL OR NOTHING -- a partially-GPU iteration is never run,
++  // because every one of those operators was qualified as bitwise equal and a
++  // mixed chain is a path no gate has verified.
++  bool enableGpuDiscretization{false};
++
+   // P12-NUM-004: normalized residuals / convergence criterion, stagnation
+   // and divergence detection, adaptive under-relaxation and the linear-
+   // solver fallback (cfd/solver/SolverRobustness.hpp). Default-constructed:
+diff --git a/results/validation/grid_convergence/natural_convection_ra1e3.json b/results/validation/grid_convergence/natural_convection_ra1e3.json
+index eec2bfd..79c0d11 100644
+--- a/results/validation/grid_convergence/natural_convection_ra1e3.json
++++ b/results/validation/grid_convergence/natural_convection_ra1e3.json
+@@ -20,7 +20,7 @@
+       "ny": 10,
+       "cells": 100,
+       "h": 0.1,
+-      "runtime_seconds": 14.557018978,
++      "runtime_seconds": 4.945329623,
+       "solver_status": "Converged",
+       "solver_iterations": 50,
+       "accepted": true,
+@@ -39,7 +39,7 @@
+       "ny": 15,
+       "cells": 225,
+       "h": 0.06666666666666667,
+-      "runtime_seconds": 60.774696074,
++      "runtime_seconds": 18.18143089,
+       "solver_status": "Converged",
+       "solver_iterations": 50,
+       "accepted": true,
+@@ -58,7 +58,7 @@
+       "ny": 20,
+       "cells": 400,
+       "h": 0.05,
+-      "runtime_seconds": 99.555175539,
++      "runtime_seconds": 40.350909456,
+       "solver_status": "Converged",
+       "solver_iterations": 50,
+       "accepted": true,
+diff --git a/results/validation/grid_convergence/natural_convection_ra1e3.md b/results/validation/grid_convergence/natural_convection_ra1e3.md
+index 9a4eb66..4b75b2d 100644
+--- a/results/validation/grid_convergence/natural_convection_ra1e3.md
++++ b/results/validation/grid_convergence/natural_convection_ra1e3.md
+@@ -4,9 +4,9 @@ Differentially heated square cavity, Ra = 1e3, Pr = 0.71, SIMPLE + ThermalSolver
+ 
+ | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+ |---|---|---|---|---|---|---|
+-| coarse | 10 x 10 | 100 | 0.1 | 14.6 | Converged (50 it) | yes |
+-| medium | 15 x 15 | 225 | 0.0666667 | 60.8 | Converged (50 it) | yes |
+-| fine | 20 x 20 | 400 | 0.05 | 99.6 | Converged (50 it) | yes |
++| coarse | 10 x 10 | 100 | 0.1 | 4.9 | Converged (50 it) | yes |
++| medium | 15 x 15 | 225 | 0.0666667 | 18.2 | Converged (50 it) | yes |
++| fine | 20 x 20 | 400 | 0.05 | 40.4 | Converged (50 it) | yes |
+ 
+ **nu_avg** -- average hot-wall Nusselt number
+ 
+diff --git a/results/validation/grid_convergence/poiseuille_flow.json b/results/validation/grid_convergence/poiseuille_flow.json
+index 30d4ca9..e9bc3ae 100644
+--- a/results/validation/grid_convergence/poiseuille_flow.json
++++ b/results/validation/grid_convergence/poiseuille_flow.json
+@@ -20,7 +20,7 @@
+       "ny": 8,
+       "cells": 512,
+       "h": 0.125,
+-      "runtime_seconds": 13.981537775,
++      "runtime_seconds": 3.703155154,
+       "solver_status": "Converged",
+       "solver_iterations": 1524,
+       "accepted": true,
+@@ -37,7 +37,7 @@
+       "ny": 12,
+       "cells": 1152,
+       "h": 0.08333333333333333,
+-      "runtime_seconds": 25.824948444,
++      "runtime_seconds": 6.560262437,
+       "solver_status": "Converged",
+       "solver_iterations": 1135,
+       "accepted": true,
+@@ -54,7 +54,7 @@
+       "ny": 18,
+       "cells": 2592,
+       "h": 0.05555555555555555,
+-      "runtime_seconds": 57.027093947,
++      "runtime_seconds": 12.964050474,
+       "solver_status": "Converged",
+       "solver_iterations": 856,
+       "accepted": true,
+diff --git a/results/validation/grid_convergence/poiseuille_flow.md b/results/validation/grid_convergence/poiseuille_flow.md
+index f04d66d..5d75167 100644
+--- a/results/validation/grid_convergence/poiseuille_flow.md
++++ b/results/validation/grid_convergence/poiseuille_flow.md
+@@ -4,9 +4,9 @@ Planar Poiseuille channel L = 8H, Re = 10, SIMPLE (upwind convection, central di
+ 
+ | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+ |---|---|---|---|---|---|---|
+-| coarse | 64 x 8 | 512 | 0.125 | 14.0 | Converged (1524 it) | yes |
+-| medium | 96 x 12 | 1152 | 0.0833333 | 25.8 | Converged (1135 it) | yes |
+-| fine | 144 x 18 | 2592 | 0.0555556 | 57.0 | Converged (856 it) | yes |
++| coarse | 64 x 8 | 512 | 0.125 | 3.7 | Converged (1524 it) | yes |
++| medium | 96 x 12 | 1152 | 0.0833333 | 6.6 | Converged (1135 it) | yes |
++| fine | 144 x 18 | 2592 | 0.0555556 | 13.0 | Converged (856 it) | yes |
+ 
+ **centerline_velocity** -- u(0.75 L, H/2), fully developed; exact 1.5 U_mean
+ 
+diff --git a/results/validation/mms/compressible_simple_mms.json b/results/validation/mms/compressible_simple_mms.json
+index 3894015..26ea3c8 100644
+--- a/results/validation/mms/compressible_simple_mms.json
++++ b/results/validation/mms/compressible_simple_mms.json
+@@ -506,15 +506,15 @@
+     "levels": [
+       {
+         "name": "8x8",
+-        "seconds": 0.693850517
++        "seconds": 0.225897431
+       },
+       {
+         "name": "16x16",
+-        "seconds": 7.067461296
++        "seconds": 2.079672024
+       },
+       {
+         "name": "32x32",
+-        "seconds": 38.882412214
++        "seconds": 11.040328124
+       }
+     ]
+   }
+diff --git a/results/validation/mms/compressible_simple_mms.md b/results/validation/mms/compressible_simple_mms.md
+index 0dfd03c..d24a62f 100644
+--- a/results/validation/mms/compressible_simple_mms.md
++++ b/results/validation/mms/compressible_simple_mms.md
+@@ -6,9 +6,9 @@ Manufactured solution: p = cos(pi x) cos(pi y) + x y / 2 (gauge); rho = (P_ref +
+ 
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+-| 8x8 | 64 | 0.125 | Converged | 978 | 6.26e-19 | 0.7 |
+-| 16x16 | 256 | 0.0625 | Converged | 2424 | 1.69e-19 | 7.1 |
+-| 32x32 | 1024 | 0.03125 | Converged | 3507 | 4.45e-20 | 38.9 |
++| 8x8 | 64 | 0.125 | Converged | 978 | 6.26e-19 | 0.2 |
++| 16x16 | 256 | 0.0625 | Converged | 2424 | 1.69e-19 | 2.1 |
++| 32x32 | 1024 | 0.03125 | Converged | 3507 | 4.45e-20 | 11.0 |
+ 
+ **u**
+ 
+diff --git a/results/validation/mms/distorted_mesh_mms.json b/results/validation/mms/distorted_mesh_mms.json
+index 088f06d..948083c 100644
+--- a/results/validation/mms/distorted_mesh_mms.json
++++ b/results/validation/mms/distorted_mesh_mms.json
+@@ -518,19 +518,19 @@
+     "levels": [
+       {
+         "name": "16x16",
+-        "seconds": 0.029089378
++        "seconds": 0.008644039
+       },
+       {
+         "name": "32x32",
+-        "seconds": 0.121647842
++        "seconds": 0.032747205
+       },
+       {
+         "name": "64x64",
+-        "seconds": 0.6223090579999999
++        "seconds": 0.16312834199999998
+       },
+       {
+         "name": "128x128",
+-        "seconds": 3.6816687860000004
++        "seconds": 0.9131103309999999
+       }
+     ]
+   }
+diff --git a/results/validation/mms/distorted_mesh_mms.md b/results/validation/mms/distorted_mesh_mms.md
+index c4bf79e..c63850d 100644
+--- a/results/validation/mms/distorted_mesh_mms.md
++++ b/results/validation/mms/distorted_mesh_mms.md
+@@ -7,9 +7,9 @@ Manufactured solution: mms::scalar (as scalar_advection_diffusion_mms)
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+ | 16x16 | 256 | 0.0625 | Converged | 9 | 2.78e-17 | 0.0 |
+-| 32x32 | 1024 | 0.03125 | Converged | 8 | 6.94e-17 | 0.1 |
+-| 64x64 | 4096 | 0.015625 | Converged | 7 | 3.47e-17 | 0.6 |
+-| 128x128 | 16384 | 0.0078125 | Converged | 6 | 3.82e-17 | 3.7 |
++| 32x32 | 1024 | 0.03125 | Converged | 8 | 6.94e-17 | 0.0 |
++| 64x64 | 4096 | 0.015625 | Converged | 7 | 3.47e-17 | 0.2 |
++| 128x128 | 16384 | 0.0078125 | Converged | 6 | 3.82e-17 | 0.9 |
+ 
+ **phi_cartesian**
+ 
+diff --git a/results/validation/mms/distorted_mesh_momentum_mms.json b/results/validation/mms/distorted_mesh_momentum_mms.json
+index 5ee5592..c50f41f 100644
+--- a/results/validation/mms/distorted_mesh_momentum_mms.json
++++ b/results/validation/mms/distorted_mesh_momentum_mms.json
+@@ -863,19 +863,19 @@
+     "levels": [
+       {
+         "name": "16x16",
+-        "seconds": 0.18655075100000001
++        "seconds": 0.052639754
+       },
+       {
+         "name": "32x32",
+-        "seconds": 0.658774644
++        "seconds": 0.18044788
+       },
+       {
+         "name": "64x64",
+-        "seconds": 3.23248607
++        "seconds": 0.910069877
+       },
+       {
+         "name": "128x128",
+-        "seconds": 17.713002453
++        "seconds": 4.865847167
+       }
+     ]
+   }
+diff --git a/results/validation/mms/distorted_mesh_momentum_mms.md b/results/validation/mms/distorted_mesh_momentum_mms.md
+index fde7b0b..500e645 100644
+--- a/results/validation/mms/distorted_mesh_momentum_mms.md
++++ b/results/validation/mms/distorted_mesh_momentum_mms.md
+@@ -6,10 +6,10 @@ Manufactured solution: mms::velocity / mms::pressure (as momentum_mms)
+ 
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+-| 16x16 | 256 | 0.0625 | Converged | 14 | 1.54e-33 | 0.2 |
+-| 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.7 |
+-| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 3.2 |
+-| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 17.7 |
++| 16x16 | 256 | 0.0625 | Converged | 14 | 1.54e-33 | 0.1 |
++| 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.2 |
++| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.9 |
++| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 4.9 |
+ 
+ **u_cartesian**
+ 
+diff --git a/results/validation/mms/distorted_mesh_simple_mms.json b/results/validation/mms/distorted_mesh_simple_mms.json
+index 2898f34..abb61ee 100644
+--- a/results/validation/mms/distorted_mesh_simple_mms.json
++++ b/results/validation/mms/distorted_mesh_simple_mms.json
+@@ -732,15 +732,15 @@
+     "levels": [
+       {
+         "name": "8x8",
+-        "seconds": 2.323583525
++        "seconds": 0.942008401
+       },
+       {
+         "name": "16x16",
+-        "seconds": 18.468911097
++        "seconds": 5.679175905
+       },
+       {
+         "name": "32x32",
+-        "seconds": 134.579259586
++        "seconds": 43.561607695
+       }
+     ]
+   }
+diff --git a/results/validation/mms/distorted_mesh_simple_mms.md b/results/validation/mms/distorted_mesh_simple_mms.md
+index 373008e..d996ace 100644
+--- a/results/validation/mms/distorted_mesh_simple_mms.md
++++ b/results/validation/mms/distorted_mesh_simple_mms.md
+@@ -6,9 +6,9 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
+ 
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+-| 8x8 | 64 | 0.125 | Converged | 903 | 3.2e-19 | 2.3 |
+-| 16x16 | 256 | 0.0625 | Converged | 1740 | 7.95e-20 | 18.5 |
+-| 32x32 | 1024 | 0.03125 | Converged | 3895 | 1.98e-20 | 134.6 |
++| 8x8 | 64 | 0.125 | Converged | 903 | 3.2e-19 | 0.9 |
++| 16x16 | 256 | 0.0625 | Converged | 1740 | 7.95e-20 | 5.7 |
++| 32x32 | 1024 | 0.03125 | Converged | 3895 | 1.98e-20 | 43.6 |
+ 
+ **u**
+ 
+diff --git a/results/validation/mms/momentum_mms.json b/results/validation/mms/momentum_mms.json
+index 2a3ed70..a4ad479 100644
+--- a/results/validation/mms/momentum_mms.json
++++ b/results/validation/mms/momentum_mms.json
+@@ -670,19 +670,19 @@
+     "levels": [
+       {
+         "name": "16x16",
+-        "seconds": 0.041854928
++        "seconds": 0.011407388
+       },
+       {
+         "name": "32x32",
+-        "seconds": 0.147083619
++        "seconds": 0.043388786
+       },
+       {
+         "name": "64x64",
+-        "seconds": 0.806739972
++        "seconds": 0.254488848
+       },
+       {
+         "name": "128x128",
+-        "seconds": 4.887922292
++        "seconds": 1.460785093
+       }
+     ]
+   }
+diff --git a/results/validation/mms/momentum_mms.md b/results/validation/mms/momentum_mms.md
+index efb197a..503e7bc 100644
+--- a/results/validation/mms/momentum_mms.md
++++ b/results/validation/mms/momentum_mms.md
+@@ -7,9 +7,9 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+ | 16x16 | 256 | 0.0625 | Converged | 15 | 1.54e-33 | 0.0 |
+-| 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.1 |
+-| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.8 |
+-| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 4.9 |
++| 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.0 |
++| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.3 |
++| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 1.5 |
+ 
+ **u**
+ 
+diff --git a/results/validation/mms/momentum_mms_linear_upwind.json b/results/validation/mms/momentum_mms_linear_upwind.json
+index e4b7282..7c2347d 100644
+--- a/results/validation/mms/momentum_mms_linear_upwind.json
++++ b/results/validation/mms/momentum_mms_linear_upwind.json
+@@ -670,19 +670,19 @@
+     "levels": [
+       {
+         "name": "16x16",
+-        "seconds": 0.05407999
++        "seconds": 0.015837412
+       },
+       {
+         "name": "32x32",
+-        "seconds": 0.217025423
++        "seconds": 0.059324645
+       },
+       {
+         "name": "64x64",
+-        "seconds": 0.930194158
++        "seconds": 0.251376913
+       },
+       {
+         "name": "128x128",
+-        "seconds": 5.311898896
++        "seconds": 1.537430591
+       }
+     ]
+   }
+diff --git a/results/validation/mms/momentum_mms_linear_upwind.md b/results/validation/mms/momentum_mms_linear_upwind.md
+index 32cf928..5784be0 100644
+--- a/results/validation/mms/momentum_mms_linear_upwind.md
++++ b/results/validation/mms/momentum_mms_linear_upwind.md
+@@ -6,10 +6,10 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
+ 
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+-| 16x16 | 256 | 0.0625 | Converged | 18 | 1.54e-33 | 0.1 |
+-| 32x32 | 1024 | 0.03125 | Converged | 13 | 7.7e-34 | 0.2 |
+-| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.9 |
+-| 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 5.3 |
++| 16x16 | 256 | 0.0625 | Converged | 18 | 1.54e-33 | 0.0 |
++| 32x32 | 1024 | 0.03125 | Converged | 13 | 7.7e-34 | 0.1 |
++| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 0.3 |
++| 128x128 | 16384 | 0.0078125 | Converged | 8 | 9.63e-34 | 1.5 |
+ 
+ **u**
+ 
+diff --git a/results/validation/mms/momentum_mms_upwind.json b/results/validation/mms/momentum_mms_upwind.json
+index f057a30..ec8aea4 100644
+--- a/results/validation/mms/momentum_mms_upwind.json
++++ b/results/validation/mms/momentum_mms_upwind.json
+@@ -665,19 +665,19 @@
+     "levels": [
+       {
+         "name": "16x16",
+-        "seconds": 0.007841804
++        "seconds": 0.003208302
+       },
+       {
+         "name": "32x32",
+-        "seconds": 0.03512282
++        "seconds": 0.011638511
+       },
+       {
+         "name": "64x64",
+-        "seconds": 0.234949306
++        "seconds": 0.066208599
+       },
+       {
+         "name": "128x128",
+-        "seconds": 1.597846912
++        "seconds": 0.480688417
+       }
+     ]
+   }
+diff --git a/results/validation/mms/momentum_mms_upwind.md b/results/validation/mms/momentum_mms_upwind.md
+index c9ab2c9..4767302 100644
+--- a/results/validation/mms/momentum_mms_upwind.md
++++ b/results/validation/mms/momentum_mms_upwind.md
+@@ -8,8 +8,8 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
+ |---|---|---|---|---|---|---|
+ | 16x16 | 256 | 0.0625 | Converged | 3 | 1.54e-33 | 0.0 |
+ | 32x32 | 1024 | 0.03125 | Converged | 3 | 7.7e-34 | 0.0 |
+-| 64x64 | 4096 | 0.015625 | Converged | 3 | 7.7e-34 | 0.2 |
+-| 128x128 | 16384 | 0.0078125 | Converged | 3 | 9.63e-34 | 1.6 |
++| 64x64 | 4096 | 0.015625 | Converged | 3 | 7.7e-34 | 0.1 |
++| 128x128 | 16384 | 0.0078125 | Converged | 3 | 9.63e-34 | 0.5 |
+ 
+ **u**
+ 
+diff --git a/results/validation/mms/scalar_advection_diffusion_mms.json b/results/validation/mms/scalar_advection_diffusion_mms.json
+index 2626439..c253e84 100644
+--- a/results/validation/mms/scalar_advection_diffusion_mms.json
++++ b/results/validation/mms/scalar_advection_diffusion_mms.json
+@@ -506,23 +506,23 @@
+     "levels": [
+       {
+         "name": "16x16",
+-        "seconds": 0.005731409
++        "seconds": 0.002194103
+       },
+       {
+         "name": "32x32",
+-        "seconds": 0.016664813
++        "seconds": 0.00415254
+       },
+       {
+         "name": "64x64",
+-        "seconds": 0.129232423
++        "seconds": 0.031844652
+       },
+       {
+         "name": "128x128",
+-        "seconds": 0.801219238
++        "seconds": 0.235007287
+       },
+       {
+         "name": "256x256",
+-        "seconds": 6.348127093
++        "seconds": 1.623855869
+       }
+     ]
+   }
+diff --git a/results/validation/mms/scalar_advection_diffusion_mms.md b/results/validation/mms/scalar_advection_diffusion_mms.md
+index 5cb57e4..98305d6 100644
+--- a/results/validation/mms/scalar_advection_diffusion_mms.md
++++ b/results/validation/mms/scalar_advection_diffusion_mms.md
+@@ -8,9 +8,9 @@ Manufactured solution: mms::scalar: phi = sin(pi x) sin(pi y) + x^2 y / 2 + 1/4
+ |---|---|---|---|---|---|---|
+ | 16x16 | 256 | 0.0625 | Converged | 3 | 2.78e-17 | 0.0 |
+ | 32x32 | 1024 | 0.03125 | Converged | 3 | 6.94e-17 | 0.0 |
+-| 64x64 | 4096 | 0.015625 | Converged | 3 | 3.47e-17 | 0.1 |
+-| 128x128 | 16384 | 0.0078125 | Converged | 3 | 3.82e-17 | 0.8 |
+-| 256x256 | 65536 | 0.0039062 | Converged | 3 | 9.19e-17 | 6.3 |
++| 64x64 | 4096 | 0.015625 | Converged | 3 | 3.47e-17 | 0.0 |
++| 128x128 | 16384 | 0.0078125 | Converged | 3 | 3.82e-17 | 0.2 |
++| 256x256 | 65536 | 0.0039062 | Converged | 3 | 9.19e-17 | 1.6 |
+ 
+ **phi**
+ 
+diff --git a/results/validation/mms/simple_mms.json b/results/validation/mms/simple_mms.json
+index 7606b53..34fd3eb 100644
+--- a/results/validation/mms/simple_mms.json
++++ b/results/validation/mms/simple_mms.json
+@@ -732,15 +732,15 @@
+     "levels": [
+       {
+         "name": "8x8",
+-        "seconds": 0.616987838
++        "seconds": 0.175472189
+       },
+       {
+         "name": "16x16",
+-        "seconds": 6.084501722
++        "seconds": 1.611045588
+       },
+       {
+         "name": "32x32",
+-        "seconds": 57.380645255
++        "seconds": 13.678160421
+       }
+     ]
+   }
+diff --git a/results/validation/mms/simple_mms.md b/results/validation/mms/simple_mms.md
+index c05aa7b..8985d3e 100644
+--- a/results/validation/mms/simple_mms.md
++++ b/results/validation/mms/simple_mms.md
+@@ -6,9 +6,9 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
+ 
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+-| 8x8 | 64 | 0.125 | Converged | 745 | 3.2e-19 | 0.6 |
+-| 16x16 | 256 | 0.0625 | Converged | 2003 | 7.95e-20 | 6.1 |
+-| 32x32 | 1024 | 0.03125 | Converged | 4353 | 1.98e-20 | 57.4 |
++| 8x8 | 64 | 0.125 | Converged | 745 | 3.2e-19 | 0.2 |
++| 16x16 | 256 | 0.0625 | Converged | 2003 | 7.95e-20 | 1.6 |
++| 32x32 | 1024 | 0.03125 | Converged | 4353 | 1.98e-20 | 13.7 |
+ 
+ **u**
+ 
+diff --git a/results/validation/mms/simple_mms_upwind.json b/results/validation/mms/simple_mms_upwind.json
+index 8277162..f364c79 100644
+--- a/results/validation/mms/simple_mms_upwind.json
++++ b/results/validation/mms/simple_mms_upwind.json
+@@ -732,15 +732,15 @@
+     "levels": [
+       {
+         "name": "8x8",
+-        "seconds": 0.549430689
++        "seconds": 0.274453431
+       },
+       {
+         "name": "16x16",
+-        "seconds": 5.078667966
++        "seconds": 1.48577892
+       },
+       {
+         "name": "32x32",
+-        "seconds": 35.846905272
++        "seconds": 9.372707686
+       }
+     ]
+   }
+diff --git a/results/validation/mms/simple_mms_upwind.md b/results/validation/mms/simple_mms_upwind.md
+index 869a78f..c329d7c 100644
+--- a/results/validation/mms/simple_mms_upwind.md
++++ b/results/validation/mms/simple_mms_upwind.md
+@@ -6,9 +6,9 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
+ 
+ | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
+ |---|---|---|---|---|---|---|
+-| 8x8 | 64 | 0.125 | Converged | 960 | 3.2e-19 | 0.5 |
+-| 16x16 | 256 | 0.0625 | Converged | 1665 | 7.95e-20 | 5.1 |
+-| 32x32 | 1024 | 0.03125 | Converged | 3084 | 1.98e-20 | 35.8 |
++| 8x8 | 64 | 0.125 | Converged | 960 | 3.2e-19 | 0.3 |
++| 16x16 | 256 | 0.0625 | Converged | 1665 | 7.95e-20 | 1.5 |
++| 32x32 | 1024 | 0.03125 | Converged | 3084 | 1.98e-20 | 9.4 |
+ 
+ **u**
+ 
+diff --git a/results/validation/natural_convection/Ra1e3/10x10/validation.json b/results/validation/natural_convection/Ra1e3/10x10/validation.json
+index 7a74a93..36a06b8 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.50217e-09,
+-    "runtime_seconds": 17.1432
++    "runtime_seconds": 4.93007
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json b/results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
+index ad8afcd..d29ea8a 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.50217e-09,
+-    "runtime_seconds": 16.1643
++    "runtime_seconds": 4.9382
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json b/results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
+index 03309da..2e48bfc 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.50217e-09,
+-    "runtime_seconds": 16.185
++    "runtime_seconds": 4.93413
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/10x10_refinement_pair/validation.json b/results/validation/natural_convection/Ra1e3/10x10_refinement_pair/validation.json
+index 86da737..34664d2 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10_refinement_pair/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10_refinement_pair/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.95324e-09,
+-    "runtime_seconds": 96.3788
++    "runtime_seconds": 40.6483
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json b/results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
+index 81ae943..d17d26f 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.50217e-09,
+-    "runtime_seconds": 16.597
++    "runtime_seconds": 4.92901
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json b/results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
+index 6b6eb68..ea53996 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.50217e-09,
+-    "runtime_seconds": 17.2676
++    "runtime_seconds": 4.98544
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json b/results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
+index a158004..d97c594 100644
+--- a/results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
++++ b/results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 48,
+     "final_outer_temperature_change": 7.07852e-09,
+-    "runtime_seconds": 0.0446965
++    "runtime_seconds": 0.0695318
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/15x15/validation.json b/results/validation/natural_convection/Ra1e3/15x15/validation.json
+index 83681c3..0e37167 100644
+--- a/results/validation/natural_convection/Ra1e3/15x15/validation.json
++++ b/results/validation/natural_convection/Ra1e3/15x15/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.25257e-09,
+-    "runtime_seconds": 60.7165
++    "runtime_seconds": 18.1712
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/20x20/validation.json b/results/validation/natural_convection/Ra1e3/20x20/validation.json
+index 13c2a96..cb8268f 100644
+--- a/results/validation/natural_convection/Ra1e3/20x20/validation.json
++++ b/results/validation/natural_convection/Ra1e3/20x20/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.95324e-09,
+-    "runtime_seconds": 99.518
++    "runtime_seconds": 40.3332
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/natural_convection/Ra1e3/20x20_variable_property_regression/validation.json b/results/validation/natural_convection/Ra1e3/20x20_variable_property_regression/validation.json
+index 7f32f8e..407df61 100644
+--- a/results/validation/natural_convection/Ra1e3/20x20_variable_property_regression/validation.json
++++ b/results/validation/natural_convection/Ra1e3/20x20_variable_property_regression/validation.json
+@@ -10,7 +10,7 @@
+     "thermal_iterations": 2,
+     "outer_iterations": 50,
+     "final_outer_temperature_change": 9.95324e-09,
+-    "runtime_seconds": 97.0749
++    "runtime_seconds": 41.4548
+   },
+   "conservation": {
+     "global_mass_imbalance": 0,
+diff --git a/results/validation/production/cavity_re100/20x20_quick/validation.json b/results/validation/production/cavity_re100/20x20_quick/validation.json
+index ad6cc21..01d8e96 100644
+--- a/results/validation/production/cavity_re100/20x20_quick/validation.json
++++ b/results/validation/production/cavity_re100/20x20_quick/validation.json
+@@ -108,7 +108,7 @@
+     "runs": [
+       {
+         "id": "cavity_re100/20x20/quick",
+-        "seconds": 23.872873618
++        "seconds": 6.36064766
+       }
+     ]
+   }
+diff --git a/results/validation/production/channel_transpiration_graded_grid_convergence.json b/results/validation/production/channel_transpiration_graded_grid_convergence.json
+index 9588a9e..b56f0b0 100644
+--- a/results/validation/production/channel_transpiration_graded_grid_convergence.json
++++ b/results/validation/production/channel_transpiration_graded_grid_convergence.json
+@@ -20,7 +20,7 @@
+       "ny": 16,
+       "cells": 512,
+       "h": 0.08838834764831845,
+-      "runtime_seconds": 15.067315967,
++      "runtime_seconds": 4.588442077,
+       "solver_status": "Converged",
+       "solver_iterations": 1599,
+       "accepted": true,
+@@ -38,7 +38,7 @@
+       "ny": 24,
+       "cells": 1152,
+       "h": 0.05892556509887896,
+-      "runtime_seconds": 38.492205811,
++      "runtime_seconds": 11.415881315,
+       "solver_status": "Converged",
+       "solver_iterations": 1714,
+       "accepted": true,
+@@ -56,7 +56,7 @@
+       "ny": 36,
+       "cells": 2592,
+       "h": 0.039283710065919304,
+-      "runtime_seconds": 97.637665449,
++      "runtime_seconds": 30.902850915,
+       "solver_status": "Converged",
+       "solver_iterations": 1674,
+       "accepted": true,
+diff --git a/results/validation/production/curved_channel_multiblock_grid_convergence.json b/results/validation/production/curved_channel_multiblock_grid_convergence.json
+index 9c7d5ee..18afac8 100644
+--- a/results/validation/production/curved_channel_multiblock_grid_convergence.json
++++ b/results/validation/production/curved_channel_multiblock_grid_convergence.json
+@@ -20,7 +20,7 @@
+       "ny": 60,
+       "cells": 480,
+       "h": 0.1213516195347312,
+-      "runtime_seconds": 0.197021829,
++      "runtime_seconds": 0.277536522,
+       "solver_status": "Converged",
+       "solver_iterations": 44,
+       "accepted": true,
+@@ -38,7 +38,7 @@
+       "ny": 90,
+       "cells": 1080,
+       "h": 0.0809010796898208,
+-      "runtime_seconds": 0.676187027,
++      "runtime_seconds": 0.761001354,
+       "solver_status": "Converged",
+       "solver_iterations": 74,
+       "accepted": true,
+@@ -56,7 +56,7 @@
+       "ny": 135,
+       "cells": 2430,
+       "h": 0.0539340531265472,
+-      "runtime_seconds": 2.881169335,
++      "runtime_seconds": 3.257641888,
+       "solver_status": "Converged",
+       "solver_iterations": 133,
+       "accepted": true,
+diff --git a/results/validation/production/poiseuille.json b/results/validation/production/poiseuille.json
+index afa3b1c..6842169 100644
+--- a/results/validation/production/poiseuille.json
++++ b/results/validation/production/poiseuille.json
+@@ -468,7 +468,7 @@
+           "ny": 8,
+           "cells": 512,
+           "h": 0.125,
+-          "runtime_seconds": 13.394475147,
++          "runtime_seconds": 3.649560428,
+           "solver_status": "Converged",
+           "solver_iterations": 1524,
+           "accepted": true,
+@@ -485,7 +485,7 @@
+           "ny": 12,
+           "cells": 1152,
+           "h": 0.08333333333333333,
+-          "runtime_seconds": 24.468073225,
++          "runtime_seconds": 6.316137293,
+           "solver_status": "Converged",
+           "solver_iterations": 1135,
+           "accepted": true,
+@@ -502,7 +502,7 @@
+           "ny": 18,
+           "cells": 2592,
+           "h": 0.05555555555555555,
+-          "runtime_seconds": 56.042257941,
++          "runtime_seconds": 13.094664709,
+           "solver_status": "Converged",
+           "solver_iterations": 856,
+           "accepted": true,
+@@ -589,7 +589,7 @@
+           "ny": 12,
+           "cells": 1152,
+           "h": 0.08333333333333333,
+-          "runtime_seconds": 24.468073225,
++          "runtime_seconds": 6.316137293,
+           "solver_status": "Converged",
+           "solver_iterations": 1135,
+           "accepted": true,
+@@ -606,7 +606,7 @@
+           "ny": 18,
+           "cells": 2592,
+           "h": 0.05555555555555555,
+-          "runtime_seconds": 56.042257941,
++          "runtime_seconds": 13.094664709,
+           "solver_status": "Converged",
+           "solver_iterations": 856,
+           "accepted": true,
+@@ -623,7 +623,7 @@
+           "ny": 27,
+           "cells": 5832,
+           "h": 0.037037037037037035,
+-          "runtime_seconds": 77.504814698,
++          "runtime_seconds": 30.105625791,
+           "solver_status": "Converged",
+           "solver_iterations": 700,
+           "accepted": true,
+@@ -729,19 +729,19 @@
+     "runs": [
+       {
+         "id": "poiseuille_re10/64x8/upwind",
+-        "seconds": 13.394475147
++        "seconds": 3.649560428
+       },
+       {
+         "id": "poiseuille_re10/96x12/upwind",
+-        "seconds": 24.468073225
++        "seconds": 6.316137293
+       },
+       {
+         "id": "poiseuille_re10/144x18/upwind",
+-        "seconds": 56.042257941
++        "seconds": 13.094664709
+       },
+       {
+         "id": "poiseuille_re10/216x27/upwind",
+-        "seconds": 77.504814698
++        "seconds": 30.105625791
+       }
+     ]
+   }
+diff --git a/results/validation/production/poiseuille.md b/results/validation/production/poiseuille.md
+index 322359d..0497e44 100644
+--- a/results/validation/production/poiseuille.md
++++ b/results/validation/production/poiseuille.md
+@@ -6,10 +6,10 @@ Reference: Continuous planar Poiseuille solution u = 6U(y/H)(1-y/H), dp/dx = -12
+ 
+ | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+ |---|---|---|---|---|---|---|---|---|---|
+-| poiseuille_re10/64x8/upwind | 10 | 64x8 | upwind | Converged | 1524 | 22529 / 104638 | 1.19e-09 | 13.4 | yes |
+-| poiseuille_re10/96x12/upwind | 10 | 96x12 | upwind | Converged | 1135 | 17050 / 106657 | 7.95e-10 | 24.5 | yes |
+-| poiseuille_re10/144x18/upwind | 10 | 144x18 | upwind | Converged | 856 | 14183 / 111574 | 2.12e-09 | 56.0 | yes |
+-| poiseuille_re10/216x27/upwind | 10 | 216x27 | upwind | Converged | 700 | 13408 / 128742 | 5.87e-09 | 77.5 | yes |
++| poiseuille_re10/64x8/upwind | 10 | 64x8 | upwind | Converged | 1524 | 22529 / 104638 | 1.19e-09 | 3.6 | yes |
++| poiseuille_re10/96x12/upwind | 10 | 96x12 | upwind | Converged | 1135 | 17050 / 106657 | 7.95e-10 | 6.3 | yes |
++| poiseuille_re10/144x18/upwind | 10 | 144x18 | upwind | Converged | 856 | 14183 / 111574 | 2.12e-09 | 13.1 | yes |
++| poiseuille_re10/216x27/upwind | 10 | 216x27 | upwind | Converged | 700 | 13408 / 128742 | 5.87e-09 | 30.1 | yes |
+ 
+ **u_profile**
+ 
+@@ -41,9 +41,9 @@ Poiseuille Re = 10, grids 64x8 / 96x12 / 144x18 (ny all even: centreline samplin
+ 
+ | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+ |---|---|---|---|---|---|---|
+-| 64x8 | 64 x 8 | 512 | 0.125 | 13.4 | Converged (1524 it) | yes |
+-| 96x12 | 96 x 12 | 1152 | 0.0833333 | 24.5 | Converged (1135 it) | yes |
+-| 144x18 | 144 x 18 | 2592 | 0.0555556 | 56.0 | Converged (856 it) | yes |
++| 64x8 | 64 x 8 | 512 | 0.125 | 3.6 | Converged (1524 it) | yes |
++| 96x12 | 96 x 12 | 1152 | 0.0833333 | 6.3 | Converged (1135 it) | yes |
++| 144x18 | 144 x 18 | 2592 | 0.0555556 | 13.1 | Converged (856 it) | yes |
+ 
+ **centerline_velocity** -- u(0.75 L, H/2); exact 1.5 U
+ 
+@@ -67,9 +67,9 @@ Poiseuille Re = 10, grids 96x12 / 144x18 / 216x27 (pressure-extraction bias <= 4
+ 
+ | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
+ |---|---|---|---|---|---|---|
+-| 96x12 | 96 x 12 | 1152 | 0.0833333 | 24.5 | Converged (1135 it) | yes |
+-| 144x18 | 144 x 18 | 2592 | 0.0555556 | 56.0 | Converged (856 it) | yes |
+-| 216x27 | 216 x 27 | 5832 | 0.037037 | 77.5 | Converged (700 it) | yes |
++| 96x12 | 96 x 12 | 1152 | 0.0833333 | 6.3 | Converged (1135 it) | yes |
++| 144x18 | 144 x 18 | 2592 | 0.0555556 | 13.1 | Converged (856 it) | yes |
++| 216x27 | 216 x 27 | 5832 | 0.037037 | 30.1 | Converged (700 it) | yes |
+ 
+ **pressure_gradient** -- dp/dx, pair-averaged between 0.40 L and 0.75 L; exact -12 mu U / H^2
+ 
+diff --git a/results/validation/production/poiseuille_distorted_grid_convergence.json b/results/validation/production/poiseuille_distorted_grid_convergence.json
+index d6116f4..f883dc2 100644
+--- a/results/validation/production/poiseuille_distorted_grid_convergence.json
++++ b/results/validation/production/poiseuille_distorted_grid_convergence.json
+@@ -20,7 +20,7 @@
+       "ny": 8,
+       "cells": 512,
+       "h": 0.125,
+-      "runtime_seconds": 0.215418206,
++      "runtime_seconds": 0.232595835,
+       "solver_status": "Converged",
+       "solver_iterations": 39,
+       "accepted": true,
+@@ -37,7 +37,7 @@
+       "ny": 12,
+       "cells": 1152,
+       "h": 0.08333333333333333,
+-      "runtime_seconds": 0.825667976,
++      "runtime_seconds": 0.684858045,
+       "solver_status": "Converged",
+       "solver_iterations": 65,
+       "accepted": true,
+@@ -54,7 +54,7 @@
+       "ny": 18,
+       "cells": 2592,
+       "h": 0.05555555555555555,
+-      "runtime_seconds": 3.141963519,
++      "runtime_seconds": 3.101737744,
+       "solver_status": "Converged",
+       "solver_iterations": 117,
+       "accepted": true,
+diff --git a/results/validation/production/scheme_comparison_20x20.json b/results/validation/production/scheme_comparison_20x20.json
+index b3f5e9e..27dc934 100644
+--- a/results/validation/production/scheme_comparison_20x20.json
++++ b/results/validation/production/scheme_comparison_20x20.json
+@@ -321,19 +321,19 @@
+     "runs": [
+       {
+         "id": "cavity_re100/20x20/upwind",
+-        "seconds": 23.196190078
++        "seconds": 6.098676889
+       },
+       {
+         "id": "cavity_re100/20x20/central",
+-        "seconds": 22.706721567
++        "seconds": 6.046770687
+       },
+       {
+         "id": "cavity_re100/20x20/linear_upwind",
+-        "seconds": 25.293176159
++        "seconds": 6.491610942
+       },
+       {
+         "id": "cavity_re100/20x20/quick",
+-        "seconds": 24.717994693
++        "seconds": 6.144522899
+       }
+     ]
+   }
+diff --git a/results/validation/production/scheme_comparison_20x20.md b/results/validation/production/scheme_comparison_20x20.md
+index c91adff..de9dd58 100644
+--- a/results/validation/production/scheme_comparison_20x20.md
++++ b/results/validation/production/scheme_comparison_20x20.md
+@@ -6,10 +6,10 @@ Reference: Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Tables I/II (
+ 
+ | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+ |---|---|---|---|---|---|---|---|---|---|
+-| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3312 | 40262 / 175647 | 0 | 23.2 | yes |
+-| cavity_re100/20x20/central | 100 | 20x20 | central | Converged | 3208 | 41025 / 169072 | 0 | 22.7 | yes |
+-| cavity_re100/20x20/linear_upwind | 100 | 20x20 | linear_upwind | Converged | 3359 | 42633 / 174236 | 0 | 25.3 | yes |
+-| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3265 | 42117 / 171517 | 0 | 24.7 | yes |
++| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3312 | 40262 / 175647 | 0 | 6.1 | yes |
++| cavity_re100/20x20/central | 100 | 20x20 | central | Converged | 3208 | 41025 / 169072 | 0 | 6.0 | yes |
++| cavity_re100/20x20/linear_upwind | 100 | 20x20 | linear_upwind | Converged | 3359 | 42633 / 174236 | 0 | 6.5 | yes |
++| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3265 | 42117 / 171517 | 0 | 6.1 | yes |
+ 
+ **u_centerline**
+ 
+diff --git a/results/validation/production/turbulent_channel_ci.json b/results/validation/production/turbulent_channel_ci.json
+index 0d40982..af0747e 100644
+--- a/results/validation/production/turbulent_channel_ci.json
++++ b/results/validation/production/turbulent_channel_ci.json
+@@ -135,7 +135,7 @@
+     "runs": [
+       {
+         "id": "turbulent_channel_re_tau_180_SST/medium/upwind",
+-        "seconds": 30.987846151
++        "seconds": 8.554733175
+       }
+     ]
+   }
+diff --git a/results/validation/production/turbulent_channel_ci.md b/results/validation/production/turbulent_channel_ci.md
+index 5fe1ba1..8e9ba94 100644
+--- a/results/validation/production/turbulent_channel_ci.md
++++ b/results/validation/production/turbulent_channel_ci.md
+@@ -6,7 +6,7 @@ Reference: Kim, Moin & Moser (1987) J. Fluid Mech. 177; Moser, Kim & Mansour (19
+ 
+ | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
+ |---|---|---|---|---|---|---|---|---|---|
+-| turbulent_channel_re_tau_180_SST/medium/upwind | 180 | medium | upwind | Converged | 1164 | 19418 / 121241 | 2.58e-08 | 31.0 | yes |
++| turbulent_channel_re_tau_180_SST/medium/upwind | 180 | medium | upwind | Converged | 1164 | 19418 / 121241 | 2.58e-08 | 8.6 | yes |
+ 
+ **u_plus_log_region**
+ 
+diff --git a/results/validation/turbulence/channel_flow/k_epsilon/coarse/validation.json b/results/validation/turbulence/channel_flow/k_epsilon/coarse/validation.json
+index 2a9912d..e41d0e0 100644
+--- a/results/validation/turbulence/channel_flow/k_epsilon/coarse/validation.json
++++ b/results/validation/turbulence/channel_flow/k_epsilon/coarse/validation.json
+@@ -17,7 +17,7 @@
+     "inlet_flux": -2,
+     "outlet_flux": 2,
+     "finite": true,
+-    "runtime_seconds": 5.95568
++    "runtime_seconds": 1.58732
+   },
+   "development": { "relative_diff_between_stations": 0.0125514 },
+   "wall": {
+diff --git a/results/validation/turbulence/channel_flow/k_epsilon/medium/validation.json b/results/validation/turbulence/channel_flow/k_epsilon/medium/validation.json
+index 4128ceb..862641d 100644
+--- a/results/validation/turbulence/channel_flow/k_epsilon/medium/validation.json
++++ b/results/validation/turbulence/channel_flow/k_epsilon/medium/validation.json
+@@ -17,7 +17,7 @@
+     "inlet_flux": -2,
+     "outlet_flux": 2,
+     "finite": true,
+-    "runtime_seconds": 12.3791
++    "runtime_seconds": 2.98827
+   },
+   "development": { "relative_diff_between_stations": 0.0128832 },
+   "wall": {
+diff --git a/results/validation/turbulence/channel_flow/k_omega/coarse/validation.json b/results/validation/turbulence/channel_flow/k_omega/coarse/validation.json
+index cdffa32..230e252 100644
+--- a/results/validation/turbulence/channel_flow/k_omega/coarse/validation.json
++++ b/results/validation/turbulence/channel_flow/k_omega/coarse/validation.json
+@@ -17,7 +17,7 @@
+     "inlet_flux": -2,
+     "outlet_flux": 2,
+     "finite": true,
+-    "runtime_seconds": 11.429
++    "runtime_seconds": 3.03504
+   },
+   "development": { "relative_diff_between_stations": 0.00511047 },
+   "wall": {
+diff --git a/results/validation/turbulence/channel_flow/k_omega/medium/validation.json b/results/validation/turbulence/channel_flow/k_omega/medium/validation.json
+index 562ba11..aa95ad5 100644
+--- a/results/validation/turbulence/channel_flow/k_omega/medium/validation.json
++++ b/results/validation/turbulence/channel_flow/k_omega/medium/validation.json
+@@ -17,7 +17,7 @@
+     "inlet_flux": -2,
+     "outlet_flux": 2,
+     "finite": true,
+-    "runtime_seconds": 21.2735
++    "runtime_seconds": 5.34283
+   },
+   "development": { "relative_diff_between_stations": 0.00659934 },
+   "wall": {
+diff --git a/results/validation/turbulence/channel_flow/sst/coarse/validation.json b/results/validation/turbulence/channel_flow/sst/coarse/validation.json
+index d8cb576..39fa317 100644
+--- a/results/validation/turbulence/channel_flow/sst/coarse/validation.json
++++ b/results/validation/turbulence/channel_flow/sst/coarse/validation.json
+@@ -17,7 +17,7 @@
+     "inlet_flux": -2,
+     "outlet_flux": 2,
+     "finite": true,
+-    "runtime_seconds": 16.6235
++    "runtime_seconds": 4.62033
+   },
+   "development": { "relative_diff_between_stations": 0.00949109 },
+   "wall": {
+diff --git a/results/validation/turbulence/channel_flow/sst/medium/validation.json b/results/validation/turbulence/channel_flow/sst/medium/validation.json
+index 88cc733..ded1ee9 100644
+--- a/results/validation/turbulence/channel_flow/sst/medium/validation.json
++++ b/results/validation/turbulence/channel_flow/sst/medium/validation.json
+@@ -17,7 +17,7 @@
+     "inlet_flux": -2,
+     "outlet_flux": 2,
+     "finite": true,
+-    "runtime_seconds": 34.3612
++    "runtime_seconds": 8.5808
+   },
+   "development": { "relative_diff_between_stations": 0.00851872 },
+   "wall": {
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index fd33a03..664f6e0 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -313,6 +313,7 @@ if(NOT CFDAPP_ENABLE_CUDA)
+     PRIVATE
+       gpu/GPUBackend.cpp
+       gpu/GpuResidencyManager.cpp
++      gpu/GpuSimpleDiscretization.cpp
+       gpu/GpuLinearSolver.cpp
+   )
+ endif()
+diff --git a/src/pressure_velocity/SIMPLE.cpp b/src/pressure_velocity/SIMPLE.cpp
+index 8ac5598..e585b5b 100644
+--- a/src/pressure_velocity/SIMPLE.cpp
++++ b/src/pressure_velocity/SIMPLE.cpp
+@@ -9,7 +9,12 @@
+ #include "cfd/algebra/LinearSolverFallback.hpp"
+ #include "cfd/core/Exception.hpp"
+ #include "cfd/discretization/Gradient.hpp"
++#include "cfd/core/Logger.hpp"
++// GPU-DISC-001Q: per-stage wall time. steady_clock reads only -- no
++// synchronization is added anywhere, so production behaviour is unchanged.
++#include "cfd/core/Timer.hpp"
+ #include "cfd/gpu/GpuResidencyManager.hpp"
++#include "cfd/gpu/GpuSimpleDiscretization.hpp"
+ #include "cfd/physics/ContinuityEquation.hpp"
+ #include "cfd/physics/MassFlux.hpp"
+ #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
+@@ -126,6 +131,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+                            const BoundaryConditionSet& velocityBoundaries,
+                            const BoundaryConditionSet& pressureBoundaries,
+                            VectorField initialVelocity, ScalarField initialPressure) const {
++  // GPU-DISC-001Q: the whole call, so stageSeconds.other() is a residual that
++  // accounts for everything the ten named stages do not.
++  cfd::Timer solveTimer;
+   SIMPLEResult result;
+   // P12-MESH-006: a 3D mesh adds the W momentum equation (same assembly, same
+   // relaxation, same linear solver as U and V) and the W response in the
+@@ -268,6 +276,43 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+   // call issues zero CUDA calls, in either build configuration.
+   cfd::gpu::GpuResidencyManager gpuResidency;
+ 
++  // GPU-DISC-001M: the device DISCRETIZATION path -- the operators themselves,
++  // not just the linear solves. Prepared once per solve() because the plans are
++  // per-mesh, and ALL OR NOTHING: a refusal makes the whole solve run the CPU
++  // operators and records why, so a mixed chain no gate has verified is never
++  // executed.
++  //
++  // The non-orthogonal corrector passes (N > 1) stay on the CPU: their pass
++  // loops call CPU-only helpers, and running pass 1 on the device and the rest
++  // on the host would be exactly such a mixed chain. Declined explicitly, with
++  // a reason, rather than silently half-applied.
++  cfd::gpu::GpuSimpleDiscretization gpuDiscretization;
++  bool useGpuDiscretization = false;
++  if (settings_.enableGpuDiscretization) {
++    std::string reason;
++    if (settings_.nonOrthogonalCorrections > 1) {
++      reason = "nonOrthogonalCorrections > 1 keeps the corrector passes on the CPU";
++    } else if (!gpuDiscretization.prepare(mesh, velocityBoundaries, pressureBoundaries, reason)) {
++      // `reason` was set by prepare().
++    } else {
++      useGpuDiscretization = true;
++    }
++    result.gpuDiscretization = useGpuDiscretization;
++    if (!useGpuDiscretization) {
++      result.gpuDiscretizationFallbackReason = reason;
++      cfd::Logger::instance().warning(
++          "SIMPLE: GPU discretization requested but unavailable (" + reason +
++          "); running the CPU discretization path");
++    }
++  }
++
++  // GPU-DISC-001Q: everything before this point is per-solve setup -- derived
++  // fields, the device plans, the initial mass flux. `stageTimer` is reset at
++  // the start of each stage below and its elapsed time accumulated into the
++  // matching counter; `solveTimer` runs for the whole call.
++  result.stageSeconds.setup = solveTimer.elapsedSeconds();
++  cfd::Timer stageTimer;
++
+   for (Index iteration = 0; iteration < settings_.maxIterations; ++iteration) {
+     // P5-B section 13: checked at the top of the outer loop only, before
+     // this iteration touches velocity/pressure/massFlux at all -- so a
+@@ -306,6 +351,15 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       // below, not left to propagate out of solve() uncaught.
+       activeModel->correct(mesh, velocity, pressure);
+       effectiveViscosity = activeModel->effectiveViscosity(fluid.dynamicViscosity());
++      // GPU-DISC-001Q: momentum assembly starts here. On the device path this
++      // includes beginIteration's per-iteration upload, which is the cost of
++      // feeding that assembly and belongs with it rather than in `other`.
++      stageTimer.reset();
++      // GPU-DISC-001M: this iteration's inputs, uploaded once. Every device
++      // stage below then reads state that is already resident.
++      if (useGpuDiscretization) {
++        gpuDiscretization.beginIteration(velocity, pressure, massFlux, *effectiveViscosity);
++      }
+       // P3-PHYS-001: temperature_/buoyancy_ are passed through unchanged
+       // every iteration (held fixed for the whole solve() call -- see
+       // this class's own header comment on the deliberate one-way-
+@@ -316,26 +370,51 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       // P12-NUM-003: nonOrthogonalCorrections == 0 (default) -> false,
+       // exactly today's assembly; >= 1 -> pass 1 of the correction loop
+       // (explicit correction evaluated from the lagged `velocity`).
+-      uAssembly = assembleRelaxedMomentumComponent(
+-          mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+-          pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
+-          buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+-          settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
+-          momentumSource_);
+-      vAssembly = assembleRelaxedMomentumComponent(
+-          mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+-          pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
+-          buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+-          settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
+-          momentumSource_);
+-      if (threeDimensional) {
+-        wAssembly = assembleRelaxedMomentumComponent(
++      if (useGpuDiscretization) {
++        // GPU-DISC-001M: the verified device assembly (GPU-DISC-001F). The
++        // system comes back on the host because LinearSolver takes a host
++        // LinearSystem; the diagonal stays resident for the response
++        // coefficients, so `diagonal` here is deliberately left empty and the
++        // device path below never reads it.
++        const Index scheme = static_cast<Index>(settings_.convectionScheme);
++        const bool nonOrthogonal = settings_.nonOrthogonalCorrections > 0;
++        uAssembly = MomentumAssembly{
++            gpuDiscretization.assembleMomentum(0, previousU, relaxation.velocity, scheme,
++                                               nonOrthogonal),
++            Vector{}};
++        vAssembly = MomentumAssembly{
++            gpuDiscretization.assembleMomentum(1, previousV, relaxation.velocity, scheme,
++                                               nonOrthogonal),
++            Vector{}};
++        if (threeDimensional) {
++          wAssembly = MomentumAssembly{
++              gpuDiscretization.assembleMomentum(2, *previousW, relaxation.velocity, scheme,
++                                                 nonOrthogonal),
++              Vector{}};
++        }
++      } else {
++        uAssembly = assembleRelaxedMomentumComponent(
+             mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+-            pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity, temperature_,
++            pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
+             buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+             settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
+             momentumSource_);
++        vAssembly = assembleRelaxedMomentumComponent(
++            mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
++            pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
++            buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
++            settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
++            momentumSource_);
++        if (threeDimensional) {
++          wAssembly = assembleRelaxedMomentumComponent(
++              mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
++              pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity,
++              temperature_, buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
++              settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
++              momentumSource_);
++        }
+       }
++      result.stageSeconds.momentumAssembly += stageTimer.elapsedSeconds();
+     } catch (const NumericalError&) {
+       // uAssembly/vAssembly left empty -- fall through to the check below.
+     } catch (const InvalidArgumentError&) {
+@@ -382,6 +461,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+     // convergence after a single iteration (TODO.md section 37: "be
+     // explicit... do not invent a second incompatible residual
+     // definition").
++    stageTimer.reset();
+     const auto uResult = momentumSolver->solve(uAssembly->system, toVector(previousU));
+     if (!uResult.converged()) {
+       failLinearSolve("u-momentum", settings_.momentumSolver, uResult, outerIteration);
+@@ -415,6 +495,14 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+     VectorField velocityStar =
+         threeDimensional ? combineComponents(uResult.solution, vResult.solution, wResult->solution)
+                          : combineComponents(uResult.solution, vResult.solution);
++    // GPU-DISC-001M: the predictor goes back to the device for every stage
++    // below. This H2D is forced by the host LinearSolver interface and is
++    // counted in the transfer audit rather than hidden.
++    if (useGpuDiscretization) {
++      gpuDiscretization.setMomentumSolution(0, uResult.solution);
++      gpuDiscretization.setMomentumSolution(1, vResult.solution);
++      if (threeDimensional) gpuDiscretization.setMomentumSolution(2, wResult->solution);
++    }
+     if (!allFinite(velocityStar)) {
+       finalStatus = SIMPLEStatus::NonFiniteState;
+       break;
+@@ -467,21 +555,47 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       result.momentumLinearIterations += passes.linearIterations;
+     }
+     ++result.momentumPredictorPasses;
++    // GPU-DISC-001Q: includes the non-orthogonal momentum corrector passes
++    // (re-assembly + re-solve, a single boundary rather than two interleaved
++    // ones) and, on the device path, the predictor upload the host
++    // LinearSolver interface forces.
++    result.stageSeconds.momentumSolve += stageTimer.elapsedSeconds();
++    stageTimer.reset();
+ 
+     // Response coefficients d = V/aP of this iteration's (relaxed) momentum
+     // diagonals -- pure functions of them, so computing them before the
+     // predictor flux (which Rhie-Chow needs) changes nothing for Linear.
+-    const ScalarField dU = computeMomentumResponseCoefficient(mesh, uAssembly->diagonal);
+-    const ScalarField dV = computeMomentumResponseCoefficient(mesh, vAssembly->diagonal);
++    // GPU-DISC-001M: on the device path the coefficients are computed from the
++    // resident diagonals (GPU-DISC-001G) and stay resident -- no host copy is
++    // made, because nothing on that path reads one.
++    ScalarField dU;
++    ScalarField dV;
+     std::optional<ScalarField> dW;
+-    if (threeDimensional) dW = computeMomentumResponseCoefficient(mesh, wAssembly->diagonal);
++    if (useGpuDiscretization) {
++      gpuDiscretization.computeResponseCoefficients(threeDimensional);
++    } else {
++      dU = computeMomentumResponseCoefficient(mesh, uAssembly->diagonal);
++      dV = computeMomentumResponseCoefficient(mesh, vAssembly->diagonal);
++      if (threeDimensional) dW = computeMomentumResponseCoefficient(mesh, wAssembly->diagonal);
++    }
+     const ScalarField* dWPointer = dW.has_value() ? &*dW : nullptr;
++    result.stageSeconds.responseCoefficients += stageTimer.elapsedSeconds();
++    stageTimer.reset();
+ 
+     // P12-MESH-006: the predictor face flux -- the linear interpolation of u*
+     // (Linear, exactly as before), or Rhie-Chow (RhieChow.hpp) with the same
+     // cell pressure gradient the momentum equations used this iteration.
+     SurfaceField predictorFlux;
+-    if (faceFlux == FaceFluxScheme::RhieChow) {
++    if (useGpuDiscretization) {
++      // GPU-DISC-001H (Rhie-Chow) or the device linear flux, with the pressure
++      // gradient (GPU-DISC-001B) also computed on the device from the
++      // start-of-iteration pressure. The result stays resident: the pressure
++      // assembly and the flux correction both read it there, so it is never
++      // downloaded.
++      gpuDiscretization.computePredictedFaceFlux(
++          faceFlux == FaceFluxScheme::RhieChow, fluid.density(), relaxation.velocity,
++          static_cast<Index>(settings_.gradientScheme), threeDimensional);
++    } else if (faceFlux == FaceFluxScheme::RhieChow) {
+       std::optional<SurfaceField> rhieChowFlux;
+       try {
+         const VectorField gradP = cfd::discretization::gradient(mesh, pressure, pressureBoundaries,
+@@ -499,7 +613,11 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+     } else {
+       predictorFlux = calculateMassFlux(mesh, velocityStar, fluid, velocityBoundaries);
+     }
+-    if (!allFinite(predictorFlux)) {
++    result.stageSeconds.predictedFaceFlux += stageTimer.elapsedSeconds();
++    // The device path's predictor stays resident, so there is nothing here to
++    // check; its finiteness is covered by the allFinite() on the corrected flux
++    // below, which is the value that is actually committed.
++    if (!useGpuDiscretization && !allFinite(predictorFlux)) {
+       finalStatus = SIMPLEStatus::NonFiniteState;
+       break;
+     }
+@@ -527,13 +645,27 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+     pressureOptions.gradientScheme = settings_.gradientScheme;
+ 
+     std::optional<PressureCorrectionAssembly> pAssembly;
++    stageTimer.reset();
+     try {
+-      pAssembly =
+-          assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
+-                                     pressureBoundaries, pressureOptions, dWPointer);
++      if (useGpuDiscretization) {
++        // GPU-DISC-001I, from the resident predictor flux and response
++        // coefficients. Only the assembled system crosses to the host, for the
++        // solver; faceCoefficient and explicitFaceFlux stay resident for the
++        // flux correction, which is exactly why 001I emits them on device.
++        pAssembly = PressureCorrectionAssembly{
++            gpuDiscretization.assemblePressureCorrection(pressureOptions.nonOrthogonal,
++                                                         referenceCell_, fluid.density(), nullptr,
++                                                         threeDimensional),
++            SurfaceField{}, SurfaceField{}};
++      } else {
++        pAssembly =
++            assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
++                                       pressureBoundaries, pressureOptions, dWPointer);
++      }
+     } catch (const NumericalError&) {
+       // pAssembly left empty -- fall through to the check below.
+     }
++    result.stageSeconds.pressureAssembly += stageTimer.elapsedSeconds();
+     if (!pAssembly.has_value()) {
+       finalStatus = SIMPLEStatus::NonFiniteState;
+       break;
+@@ -547,7 +679,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       gpuResidency.syncField("pressure", pressure);
+     }
+ 
++    stageTimer.reset();
+     const auto pResult = pressureSolver->solve(pAssembly->system);
++    result.stageSeconds.pressureSolve += stageTimer.elapsedSeconds();
+     if (!pResult.converged()) {
+       failLinearSolve("pressure-correction", settings_.pressureSolver, pResult, outerIteration);
+       finalStatus = SIMPLEStatus::PressureCorrectionFailure;
+@@ -557,6 +691,10 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+                                             "pressure-correction", pResult.fallback);
+     result.pressureLinearIterations += pResult.iterations;
+     ScalarField pPrime = toScalarField(pResult.solution);
++    // GPU-DISC-001M: p' goes back to the device for the two corrections. The
++    // host copy is still needed for the pressure update, which is a per-cell
++    // loop here rather than an operator.
++    if (useGpuDiscretization) gpuDiscretization.setPressureCorrection(pResult.solution);
+     if (!allFinite(pPrime)) {
+       finalStatus = SIMPLEStatus::NonFiniteState;
+       break;
+@@ -568,6 +706,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       const ScalarField previousPPrime = pPrime;
+       pressureOptions.previousPressureCorrection = &previousPPrime;
+       std::optional<PressureCorrectionAssembly> passAssembly;
++      stageTimer.reset();
+       try {
+         passAssembly =
+             assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
+@@ -576,6 +715,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+         // passAssembly left empty -- fall through to the check below.
+       }
+       pressureOptions.previousPressureCorrection = nullptr;
++      result.stageSeconds.pressureAssembly += stageTimer.elapsedSeconds();
+       if (!passAssembly.has_value()) {
+         finalStatus = SIMPLEStatus::NonFiniteState;
+         pressurePassFailed = true;
+@@ -588,7 +728,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       // (Breakdown at ~2e-10 from a 5e-8 start on the distorted cavity) --
+       // starting from zero keeps every pass at pass 1's well-tested scale.
+       // Same exact solution either way.
++      stageTimer.reset();
+       const auto passResult = pressureSolver->solve(passAssembly->system);
++      result.stageSeconds.pressureSolve += stageTimer.elapsedSeconds();
+       if (!passResult.converged()) {
+         failLinearSolve("pressure-correction-pass", settings_.pressureSolver, passResult,
+                         outerIteration);
+@@ -612,17 +754,39 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+       break;
+     }
+ 
++    stageTimer.reset();
+     ScalarField pressureNew(mesh.numberOfCells());
+     for (const auto& cell : mesh.cells()) {
+       pressureNew[cell.id()] = pressure[cell.id()] + (relaxation.pressure * pPrime[cell.id()]);
+     }
+-
+-    const VectorField velocityNew =
+-        correctVelocity(mesh, velocityStar, dU, dV, pPrime, pressureBoundaries,
+-                        settings_.gradientScheme, dWPointer);
+-    const SurfaceField fluxNew = correctFaceMassFlux(
+-        mesh, predictorFlux, pAssembly->faceCoefficient, pPrime,
+-        (settings_.nonOrthogonalCorrections > 1) ? &pAssembly->explicitFaceFlux : nullptr);
++    // The relaxed pressure update is a per-cell host loop on BOTH paths -- it is
++    // not an operator and GPU-DISC-001 did not port it. Counted as bookkeeping
++    // so it stays visible rather than disappearing into `other`.
++    result.stageSeconds.bookkeeping += stageTimer.elapsedSeconds();
++
++    VectorField velocityNew;
++    SurfaceField fluxNew;
++    stageTimer.reset();
++    if (useGpuDiscretization) {
++      // GPU-DISC-001J and 001K, from the resident predictor velocity, predictor
++      // flux and face coefficients. Both results come down because SIMPLE
++      // commits them as host fields -- the D2H the transfer audit reports.
++      gpuDiscretization.correctVelocity(static_cast<Index>(settings_.gradientScheme),
++                                        threeDimensional, velocityNew);
++      result.stageSeconds.velocityCorrection += stageTimer.elapsedSeconds();
++      stageTimer.reset();
++      gpuDiscretization.correctFaceMassFlux(settings_.nonOrthogonalCorrections > 1, fluxNew);
++    } else {
++      velocityNew = correctVelocity(mesh, velocityStar, dU, dV, pPrime, pressureBoundaries,
++                                    settings_.gradientScheme, dWPointer);
++      result.stageSeconds.velocityCorrection += stageTimer.elapsedSeconds();
++      stageTimer.reset();
++      fluxNew = correctFaceMassFlux(
++          mesh, predictorFlux, pAssembly->faceCoefficient, pPrime,
++          (settings_.nonOrthogonalCorrections > 1) ? &pAssembly->explicitFaceFlux : nullptr);
++    }
++    result.stageSeconds.faceFluxCorrection += stageTimer.elapsedSeconds();
++    stageTimer.reset();
+ 
+     if (!allFinite(velocityNew) || !allFinite(pressureNew) || !allFinite(fluxNew)) {
+       finalStatus = SIMPLEStatus::NonFiniteState;
+@@ -690,6 +854,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+         monitor.record(cfd::solver::OuterResidualSample{
+             uResidual, vResidual, pResidual, continuityResidual, globalImbalance,
+             turbulenceResidual, threeDimensional ? std::optional<Real>(wResidual) : std::nullopt});
++    // Accumulated BEFORE the verdict branches, so the iteration that converges
++    // or diverges still contributes its bookkeeping rather than dropping it.
++    result.stageSeconds.bookkeeping += stageTimer.elapsedSeconds();
+     if (verdict == cfd::solver::OuterIterationVerdict::Converged) {
+       finalStatus = SIMPLEStatus::Converged;
+       break;
+@@ -709,6 +876,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
+   result.velocity = std::move(velocity);
+   result.pressure = std::move(pressure);
+   result.massFlux = std::move(massFlux);
++  result.stageSeconds.total = solveTimer.elapsedSeconds();
+   return result;
+ }
+ 
+diff --git a/tests/unit/gpu/test_device_buffer.cpp b/tests/unit/gpu/test_device_buffer.cpp
+index edbc0c3..60d5209 100644
+--- a/tests/unit/gpu/test_device_buffer.cpp
++++ b/tests/unit/gpu/test_device_buffer.cpp
+@@ -497,6 +497,16 @@ TEST(SpmvKernelTimingTest, RecordsNonZeroKernelTime) {
+ 
+   const auto& stats = cfd::gpu::gpuExecutionStats();
+   EXPECT_EQ(stats.kernelLaunches, 1u);
+-  EXPECT_EQ(stats.synchronizations, 1u);
++  // GPU-PIPE-001 Phase 3 changed this contract deliberately, and this
++  // assertion now guards the new one rather than the old.
++  //
++  // spmv() used to cudaDeviceSynchronize() after its launch, so this asserted
++  // 1. It no longer does: y is consumed by the next kernel on the default
++  // stream, which CUDA orders after this one, so the synchronize bought an
++  // ordering guarantee the stream already provided and charged a host-device
++  // round trip per SpMV for it. Asserting 0 keeps that a tested property --
++  // reintroducing the synchronize fails here instead of silently costing
++  // two round trips per Krylov iteration again.
++  EXPECT_EQ(stats.synchronizations, 0u);
+   EXPECT_GT(stats.kernelSeconds, 0.0);
+ }

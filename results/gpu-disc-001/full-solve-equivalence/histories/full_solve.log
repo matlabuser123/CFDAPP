@@ -1,0 +1,118 @@
+﻿ninja: no work to do.
+built /tmp/full_solve
+=== GPU-DISC-001N: full production solves, CPU vs GPU discretization ===
+CUDA available: yes
+Configuration and bounds adopted from tests/solver/simple/test_simple_gpu_solver.cpp: 3000 outer, 1e-6 outer tolerances, 1e-10/1e-8 linear, velocity/pressure bound 1e-6
+
+  PASS C  cavity 2d 8            cpu[Converged it=1093] gpu[Converged it=1093 gpuDisc=1] residuals cpu[u=3.45e-08 v=3.45e-08 p=9.98e-07 cont=4.31e-11 mass=0]
+                              gpu residuals   [u=3.45e-08 v=3.45e-08 p=9.98e-07 cont=4.31e-11 mass=0] linear iterations cpu[mom=14772 p=28116] gpu[mom=14772 p=28116]
+  PASS H  cavity 2d 8            1093 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 8            p[Linf=0 L2=0 rel=0 bit=64/64] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=144/144]
+  PASS N  cavity 2d 8            finite[cpu+gpu] pairs=112 |dImbalance|=0 maxCellImbalance=3.36e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=13407/7698672B d2h=17488/21431544B kern=27325 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=25]
+       P                         cpu=0.269s gpu=3.245s outer=1093  cpu/iter=0.0002459s gpu/iter=0.002969s ratio=12.1
+  PASS S  cavity 2d 8            per-iteration FIELD comparison over 40 iterations, max 0, first divergent iteration: none
+  PASS D  cavity 2d 8            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  channel 2d 12          cpu[Converged it=2938] gpu[Converged it=2938 gpuDisc=1] residuals cpu[u=5.52e-09 v=5.27e-08 p=1e-06 cont=6.93e-12 mass=2.9e-10]
+                              gpu residuals   [u=5.52e-09 v=5.27e-08 p=1e-06 cont=6.93e-12 mass=2.9e-10] linear iterations cpu[mom=61377 p=124154] gpu[mom=61377 p=124154]
+  PASS H  channel 2d 12          2938 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  channel 2d 12          p[Linf=0 L2=0 rel=0 bit=144/144] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=312/312]
+  PASS N  channel 2d 12          finite[cpu+gpu] pairs=264 |dImbalance|=0 maxCellImbalance=2.38e-11 globalNet cpu=2.9e-10 gpu=2.9e-10 maxBoundaryFlux=0.148 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=35547/45177328B d2h=47008/132633072B kern=73450 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=25]
+       P                         cpu=1.764s gpu=8.941s outer=2938  cpu/iter=0.0006003s gpu/iter=0.003043s ratio=5.07
+  PASS D  channel 2d 12          each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 3d 4            cpu[Converged it=23] gpu[Converged it=23 gpuDisc=1] residuals cpu[u=1.07e-07 v=5.44e-08 p=8.73e-07 cont=7.49e-11 mass=0]
+                              gpu residuals   [u=1.07e-07 v=5.44e-08 p=8.73e-07 cont=7.49e-11 mass=0] linear iterations cpu[mom=475 p=517] gpu[mom=475 p=517]
+  PASS H  cavity 3d 4            23 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 3d 4            p[Linf=0 L2=0 rel=0 bit=64/64] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=240/240]
+  PASS N  cavity 3d 4            finite[cpu+gpu] pairs=144 |dImbalance|=0 maxCellImbalance=5.93e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=590/646384B d2h=460/692576B kern=897 sync=0 alloc=361] per-iteration[h2d=25 d2h=20 kern=39]
+       P                         cpu=0.016s gpu=0.132s outer=23  cpu/iter=0.0007056s gpu/iter=0.005749s ratio=8.15
+  PASS D  cavity 3d 4            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 2d 20           cpu[MaxIterations it=3000] gpu[MaxIterations it=3000 gpuDisc=1] residuals cpu[u=4.76e-08 v=4.66e-08 p=1.45e-06 cont=5.11e-11 mass=0]
+                              gpu residuals   [u=4.76e-08 v=4.66e-08 p=1.45e-06 cont=5.11e-11 mass=0] linear iterations cpu[mom=38336 p=171354] gpu[mom=38336 p=171354]
+  PASS H  cavity 2d 20           3000 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 20           p[Linf=0 L2=0 rel=0 bit=400/400] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=840/840]   (TRANSIENT comparison -- not an acceptance result)
+  PASS N  cavity 2d 20           finite[cpu+gpu] pairs=760 |dImbalance|=0 maxCellImbalance=1.02e-09 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=36291/127410032B d2h=48000/383112000B kern=147000 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=49]
+       P                         cpu=5.349s gpu=13.243s outer=3000  cpu/iter=0.001783s gpu/iter=0.004414s ratio=2.48
+  PASS D  cavity 2d 20           each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 2d 40           cpu[MaxIterations it=3000] gpu[MaxIterations it=3000 gpuDisc=1] residuals cpu[u=1.8e-07 v=8.01e-08 p=6.58e-06 cont=8.37e-11 mass=0]
+                              gpu residuals   [u=1.8e-07 v=8.01e-08 p=6.58e-06 cont=8.37e-11 mass=0] linear iterations cpu[mom=43534 p=243384] gpu[mom=43534 p=243384]
+  PASS H  cavity 2d 40           3000 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 40           p[Linf=0 L2=0 rel=0 bit=1600/1600] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=3280/3280]   (TRANSIENT comparison -- not an acceptance result)
+  PASS N  cavity 2d 40           finite[cpu+gpu] pairs=3120 |dImbalance|=0 maxCellImbalance=3.35e-09 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=36291/507555952B d2h=48000/1553352000B kern=147000 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=49]
+       P                         cpu=21.615s gpu=26.728s outer=3000  cpu/iter=0.007205s gpu/iter=0.008909s ratio=1.24
+  PASS D  cavity 2d 40           each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 2d 16 quick     cpu[Converged it=2682] gpu[Converged it=2682 gpuDisc=1] residuals cpu[u=3.54e-08 v=3.58e-08 p=9.99e-07 cont=9.11e-11 mass=0]
+                              gpu residuals   [u=3.54e-08 v=3.58e-08 p=9.99e-07 cont=9.11e-11 mass=0] linear iterations cpu[mom=36664 p=114474] gpu[mom=36664 p=114474]
+  PASS H  cavity 2d 16 quick     2682 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 16 quick     p[Linf=0 L2=0 rel=0 bit=256/256] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=544/544]
+  PASS N  cavity 2d 16 quick     finite[cpu+gpu] pairs=480 |dImbalance|=0 maxCellImbalance=1.45e-09 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=32475/73161328B d2h=42912/217714032B kern=67050 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=25]
+       P                         cpu=2.513s gpu=9.555s outer=2682  cpu/iter=0.000937s gpu/iter=0.003563s ratio=3.8
+  PASS D  cavity 2d 16 quick     each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 2d 16 linup     cpu[Converged it=2683] gpu[Converged it=2683 gpuDisc=1] residuals cpu[u=3.65e-08 v=3.7e-08 p=9.99e-07 cont=8.26e-11 mass=0]
+                              gpu residuals   [u=3.65e-08 v=3.7e-08 p=9.99e-07 cont=8.26e-11 mass=0] linear iterations cpu[mom=37546 p=116025] gpu[mom=37546 p=116025]
+  PASS H  cavity 2d 16 linup     2683 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 16 linup     p[Linf=0 L2=0 rel=0 bit=256/256] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=544/544]
+  PASS N  cavity 2d 16 linup     finite[cpu+gpu] pairs=480 |dImbalance|=0 maxCellImbalance=1.32e-09 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=32487/73188208B d2h=42928/217795208B kern=67075 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=25]
+       P                         cpu=2.740s gpu=10.108s outer=2683  cpu/iter=0.001021s gpu/iter=0.003768s ratio=3.69
+  PASS D  cavity 2d 16 linup     each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 2d 16 warped    cpu[Converged it=2630] gpu[Converged it=2630 gpuDisc=1] residuals cpu[u=3.36e-08 v=3.31e-08 p=9.98e-07 cont=7.27e-11 mass=0]
+                              gpu residuals   [u=3.36e-08 v=3.31e-08 p=9.98e-07 cont=7.27e-11 mass=0] linear iterations cpu[mom=34310 p=117191] gpu[mom=34310 p=117191]
+  PASS H  cavity 2d 16 warped    2630 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 16 warped    p[Linf=0 L2=0 rel=0 bit=256/256] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=544/544]
+  PASS N  cavity 2d 16 warped    finite[cpu+gpu] pairs=480 |dImbalance|=0 maxCellImbalance=1.16e-09 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=31909/71893104B d2h=42080/213492880B kern=234070 sync=0 alloc=403] per-iteration[h2d=12 d2h=16 kern=89]
+       P                         cpu=3.741s gpu=10.998s outer=2630  cpu/iter=0.001423s gpu/iter=0.004182s ratio=2.94
+  PASS D  cavity 2d 16 warped    each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  channel 2d 16 central  cpu[MaxIterations it=3000] gpu[MaxIterations it=3000 gpuDisc=1] residuals cpu[u=1.57e-07 v=1.09e-06 p=2.51e-05 cont=5.73e-12 mass=6.83e-10]
+                              gpu residuals   [u=1.57e-07 v=1.09e-06 p=2.51e-05 cont=5.73e-12 mass=6.83e-10] linear iterations cpu[mom=79920 p=186427] gpu[mom=79920 p=186427]
+  PASS H  channel 2d 16 central  3000 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  channel 2d 16 central  p[Linf=0 L2=0 rel=0 bit=256/256] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=544/544]   (TRANSIENT comparison -- not an acceptance result)
+  PASS N  channel 2d 16 central  finite[cpu+gpu] pairs=480 |dImbalance|=0 maxCellImbalance=1.75e-11 globalNet cpu=6.83e-10 gpu=6.83e-10 maxBoundaryFlux=0.123 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=36291/81709168B d2h=48000/243528000B kern=75000 sync=0 alloc=345] per-iteration[h2d=12 d2h=16 kern=25]
+       P                         cpu=3.407s gpu=13.825s outer=3000  cpu/iter=0.001136s gpu/iter=0.004608s ratio=4.06
+  PASS D  channel 2d 16 central  each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 3d 6            cpu[Converged it=25] gpu[Converged it=25 gpuDisc=1] residuals cpu[u=2.21e-07 v=6.01e-08 p=8.27e-07 cont=9.77e-11 mass=0]
+                              gpu residuals   [u=2.21e-07 v=6.01e-08 p=8.27e-07 cont=9.77e-11 mass=0] linear iterations cpu[mom=636 p=934] gpu[mom=636 p=934]
+  PASS H  cavity 3d 6            25 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 3d 6            p[Linf=0 L2=0 rel=0 bit=216/216] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=756/756]
+  PASS N  cavity 3d 6            finite[cpu+gpu] pairs=540 |dImbalance|=0 maxCellImbalance=1.43e-09 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=616/2114320B d2h=500/2700800B kern=975 sync=0 alloc=361] per-iteration[h2d=24 d2h=20 kern=39]
+       P                         cpu=0.050s gpu=0.169s outer=25  cpu/iter=0.002019s gpu/iter=0.006766s ratio=3.35
+  PASS S  cavity 3d 6            per-iteration FIELD comparison over 25 iterations, max 0, first divergent iteration: none
+  PASS D  cavity 3d 6            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  channel 3d 6           cpu[Converged it=26] gpu[Converged it=26 gpuDisc=1] residuals cpu[u=5.14e-07 v=2.05e-07 p=9.52e-07 cont=5.83e-12 mass=1.47e-10]
+                              gpu residuals   [u=5.14e-07 v=2.05e-07 p=9.52e-07 cont=5.83e-12 mass=1.47e-10] linear iterations cpu[mom=701 p=732] gpu[mom=701 p=732]
+  PASS H  channel 3d 6           26 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  channel 3d 6           p[Linf=0 L2=0 rel=0 bit=216/216] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=756/756]
+  PASS N  channel 3d 6           finite[cpu+gpu] pairs=540 |dImbalance|=0 maxCellImbalance=1.04e-11 globalNet cpu=1.47e-10 gpu=1.47e-10 maxBoundaryFlux=0.042 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=629/2141104B d2h=520/2808832B kern=1014 sync=0 alloc=360] per-iteration[h2d=24 d2h=20 kern=39]
+       P                         cpu=0.051s gpu=0.188s outer=26  cpu/iter=0.001948s gpu/iter=0.007213s ratio=3.7
+  PASS D  channel 3d 6           each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+
+--- known GPU BiCGSTAB restart asymmetry (solver axis, not this gate's) ---
+  PASS K  cavity 2d 40 (reproducer) gpu-solver[PressureCorrectionFailure it=1845] cpu-solver[MaxIterations it=3000] -- classification UNCHANGED from baseline (known debt, not fixed here)
+
+=== coverage ===
+  2D / 3D cases                     8 / 3
+  both arms converged / not         8 / 3
+  pinned / open-boundary cases      8 / 3
+  non-Upwind convection cases       3
+  non-orthogonal mesh cases         1
+  residual-history comparisons      11
+  per-iteration field comparisons   2
+  conservation checks               11
+  determinism checks                11
+  long-run cases (>=50 outer)       8
+  longest solve (outer iterations)  3000
+  values compared                   23416
+  bitwise-identical                 23416
+  max discrepancy over ALL histories and fields  0
+
+cases=58 failures=0
+FULL SOLVE EQUIVALENCE: PASS

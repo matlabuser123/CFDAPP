@@ -1,0 +1,12 @@
++// **Bitwise identical** to calling dot() twice -- not "within tolerance".
++    double bookkeeping{};           // residuals, continuity, convergence tests, history
+-          pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
+-          pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
++            gpuDiscretization.assembleMomentum(0, previousU, relaxation.velocity, scheme,
++            gpuDiscretization.assembleMomentum(1, previousV, relaxation.velocity, scheme,
++              gpuDiscretization.assembleMomentum(2, *previousW, relaxation.velocity, scheme,
+-            pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity, temperature_,
++            pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
++            pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
++              pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity,
++          faceFlux == FaceFluxScheme::RhieChow, fluid.density(), relaxation.velocity,

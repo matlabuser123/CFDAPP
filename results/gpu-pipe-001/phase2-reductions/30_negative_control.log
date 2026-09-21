@@ -1,0 +1,17 @@
+=== baseline (Phase 2 code as committed to the working tree) ===
+RESULT edge=160 backend=gpu cells=25600 outer=4 solve_s=5.483427 p_res=0.0018474694761252055 cont=6.1486068107441054e-08 mass=0 p_lin_it=2260 h2d_calls=40 h2d_bytes=19589056 d2h_calls=11696 d2h_bytes=15538400 syncs=30407 launches=30407 krylov_it=2338 solves=12 red_groups=11684 red_quantities=16351 gpu_solve_s=5.026808 status=1 fallbacks=0
+
+=== inject one extra reduction round trip per BiCGSTAB iteration ===
+  injected an extra dot(r_, r_) per iteration
+RESULT edge=160 backend=gpu cells=25600 outer=4 solve_s=3.497258 p_res=0.0018474694761252055 cont=6.1486068107441054e-08 mass=0 p_lin_it=2260 h2d_calls=40 h2d_bytes=19589056 d2h_calls=14034 d2h_bytes=17408800 syncs=32745 launches=32745 krylov_it=2338 solves=12 red_groups=14022 red_quantities=18689 gpu_solve_s=2.444063 status=1 fallbacks=0
+
+=== verdict ===
+  d2h_calls  clean 11696    mutant 14034    delta +2338
+  syncs      clean 30407    mutant 32745    delta +2338
+  krylov_it  clean 2338     mutant 2338     (must match: the injection is redundant)
+  p_res      clean 0.0018474694761252055
+             mutant 0.0018474694761252055
+  expected extra round trips = krylov_it = 2338, observed = 2338
+
+NEGATIVE CONTROL: PASS
+restored cuda/kernels/GpuLinearSolverCuda.cpp

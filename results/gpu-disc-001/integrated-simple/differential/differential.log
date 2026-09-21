@@ -1,0 +1,64 @@
+﻿ninja: no work to do.
+built /tmp/integrated_simple
+=== GPU-DISC-001M: production SIMPLE, GPU discretization on vs off ===
+CUDA available: yes
+
+  PASS D  cavity 2d 16       cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  cavity 2d 16       u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  cavity 2d 16       off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=303/1096048B d2h=16/81176B kern=25 sync=0 alloc=345]
+                          marginal per extra iteration: h2d=12 d2h=16 kern=25 alloc=0
+  PASS R  cavity 2d 16       GPU discretization repeated, identical: yes
+  PASS D  channel 2d 16      cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  channel 2d 16      u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  channel 2d 16      off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=303/1096048B d2h=16/81176B kern=25 sync=0 alloc=345]
+                          marginal per extra iteration: h2d=12 d2h=16 kern=25 alloc=0
+  PASS R  channel 2d 16      GPU discretization repeated, identical: yes
+  PASS D  cavity 3d 4        cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  cavity 3d 4        u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  cavity 3d 4        off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=304/468976B d2h=20/30112B kern=39 sync=0 alloc=360]
+                          marginal per extra iteration: h2d=13 d2h=20 kern=39 alloc=0
+  PASS R  cavity 3d 4        GPU discretization repeated, identical: yes
+  PASS D  cavity 2d 8        cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  cavity 2d 8        u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  cavity 2d 8        off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=303/290544B d2h=16/19608B kern=25 sync=0 alloc=345]
+                          marginal per extra iteration: h2d=12 d2h=16 kern=25 alloc=0
+  PASS R  cavity 2d 8        GPU discretization repeated, identical: yes
+  PASS D  channel 3d 4       cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  channel 3d 4       u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  channel 3d 4       off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=304/468976B d2h=20/30112B kern=39 sync=0 alloc=360]
+                          marginal per extra iteration: h2d=13 d2h=20 kern=39 alloc=0
+  PASS R  channel 3d 4       GPU discretization repeated, identical: yes
+  PASS D  warped 3d 3        cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  warped 3d 3        u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  warped 3d 3        off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=362/234832B d2h=20/11912B kern=143 sync=0 alloc=418]
+                          marginal per extra iteration: h2d=13 d2h=20 kern=143 alloc=0
+  PASS R  warped 3d 3        GPU discretization repeated, identical: yes
+  PASS E  cavity 2d 16 x5    5 outer iterations u[d=0] p[d=0] flux[d=0] iterations=5/5
+wsl : [WARNING] SIMPLE: GPU discretization requested but unavailable (nonOrthogonalCorrections > 1 keeps the corrector 
+passes on the CPU); running the CPU discretization path
+At line:1 char:337
++ ... 'Continue'; wsl -d Ubuntu-22.04 bash /mnt/c/Users/Hasib/Desktop/CFDAP ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WARNING] SIMPL...retization path:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  PASS F  cavity 2d 16       unsupported config -> gpuDisc=0 reason='nonOrthogonalCorrections > 1 keeps the corrector passes on the CPU' matches CPU: yes
+
+=== coverage ===
+  2D / 3D cases                     3 / 3
+  equivalence cases                 6
+  dispatch checks                   6
+  transfer measurements             6
+  determinism checks                6
+  documented-fallback checks        1
+  values compared                   12708
+  bitwise-identical                 12708
+
+cases=26 failures=0
+INTEGRATED SIMPLE EQUIVALENCE: PASS (bitwise)

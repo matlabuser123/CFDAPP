@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "cfd/core/Types.hpp"
@@ -111,6 +112,28 @@ struct SIMPLEResult {
   // v linear solve) and pressure-correction solves over the whole run --
   // iterations * max(1, SIMPLESettings::nonOrthogonalCorrections) each on
   // a completed run, the observable that pins the correction pass count.
+  // GPU-DISC-001M: whether this solve's DISCRETIZATION actually ran on the
+  // device, and why it did not when it did not. Reported rather than logged so
+  // a test can assert the dispatch instead of parsing output -- the same
+  // principle as SolverResult::backendUsed and gpuBackendFallbacks.
+  // `gpuDiscretization` false with an empty reason means it was never asked
+  // for.
+  bool gpuDiscretization{false};
+  std::string gpuDiscretizationFallbackReason;
+  // GPU-PIPE-001: whether the pressure-correction solve ran directly against
+  // the device-resident system instead of round-tripping through a host
+  // LinearSystem. Reported for the same reason as gpuDiscretization above -- a
+  // test asserts the DISPATCH rather than inferring it from a transfer count.
+  // A transfer count proves traffic fell; only this proves which path produced
+  // that, and the negative controls need to tell those two apart.
+  bool residentPressureSolve{false};
+  // GPU-PIPE-001 final residency: whether the whole GPU outer iteration ran
+  // device-resident -- momentum assembled and solved on the device, the
+  // predictor and corrected velocity never downloaded. Separate from
+  // residentPressureSolve because they are separately declinable, and the
+  // controlled comparison asserts BOTH so it can prove which one it varied.
+  bool residentSimpleLoop{false};
+
   Index momentumPredictorPasses{0};
   Index pressureCorrectionPasses{0};
 
@@ -133,6 +156,57 @@ struct SIMPLEResult {
   // relaxation factors used each iteration, linear-solver fallback events,
   // and the reason for a Stagnated/Diverging/linear-failure status.
   cfd::solver::OuterIterationDiagnostics robustness;
+
+  // GPU-DISC-001Q: wall time per stage of the outer loop, summed over the whole
+  // solve. Added because nothing else could answer the question this project
+  // actually needed answered -- whether moving discretization to the device
+  // REMOVED the CPU assembly bottleneck or merely moved it -- and no existing
+  // counter separates assembly from the linear solve.
+  //
+  // Measured with cfd::Timer (std::chrono::steady_clock): two reads per stage,
+  // ~20-30 ns each, under 0.04% of even the fastest measured outer iteration.
+  //
+  // NO SYNCHRONIZATION IS ADDED. That is deliberate and it changes what these
+  // numbers mean on the GPU path: every discretization stage there launches
+  // asynchronously, so its timer measures HOST ISSUE TIME, a lower bound on
+  // device cost, not device execution. The two solve stages are real wall time
+  // (GpuBiCGSTAB synchronizes on each reduction and ends in a blocking D2H),
+  // and the SUM over an outer iteration is real, because the iteration ends at
+  // a synchronizing point. Device-side attribution of the asynchronous stages
+  // needs a profiler; see results/gpu-disc-001/performance/profiling/.
+  //
+  // Adding a sync here to make the per-stage numbers "honest" would destroy the
+  // very property GPU-PIPE-001 Phase 3 created (syncs -66.7%) and would change
+  // production behaviour to measure it, which this gate is not permitted to do.
+  struct StageSeconds {
+    double setup{};                 // pre-loop: derived fields, device plans, initial mass flux
+    double momentumAssembly{};      // assembleRelaxedMomentumComponent x {U,V,W}
+    double momentumSolve{};         // momentumSolver->solve() x {U,V,W}
+    double responseCoefficients{};  // computeMomentumResponseCoefficient x {U,V,W}
+    double predictedFaceFlux{};     // rhieChowMassFlux / calculateMassFlux
+    double pressureAssembly{};      // assemblePressureCorrection, all passes
+    double pressureSolve{};         // pressureSolver->solve(), all passes
+    double velocityCorrection{};    // correctVelocity
+    double faceFluxCorrection{};    // correctFaceMassFlux
+    double bookkeeping{};           // residuals, continuity, convergence tests, history
+    double total{};                 // the whole solve() call, inclusive of everything above
+
+    // What the ten stages do not account for: monitor/diagnostics work, the
+    // turbulence update, allocation churn, and anything else between stages.
+    [[nodiscard]] double other() const noexcept {
+      return total - (setup + momentumAssembly + momentumSolve + responseCoefficients +
+                      predictedFaceFlux + pressureAssembly + pressureSolve + velocityCorrection +
+                      faceFluxCorrection + bookkeeping);
+    }
+    // The stages that are DISCRETIZATION rather than linear algebra -- the
+    // quantity GPU-DISC-001 exists to reduce.
+    [[nodiscard]] double discretization() const noexcept {
+      return momentumAssembly + responseCoefficients + predictedFaceFlux + pressureAssembly +
+             velocityCorrection + faceFluxCorrection;
+    }
+    [[nodiscard]] double linearSolve() const noexcept { return momentumSolve + pressureSolve; }
+  };
+  StageSeconds stageSeconds;
 
   [[nodiscard]] bool converged() const noexcept { return status == SIMPLEStatus::Converged; }
 };

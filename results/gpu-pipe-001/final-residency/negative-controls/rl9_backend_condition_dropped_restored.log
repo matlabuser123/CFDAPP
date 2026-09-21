@@ -1,0 +1,26 @@
+# rl9_backend_condition_dropped -- restored src/pressure_velocity/SIMPLE.cpp
+# sha256 ef5ee3c959ce9bcdeb0eaca73cd386fa683a904d203d3d3aebd1c4c8c5fc3283
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness dispatch -> exit 0 ##########
+=== GPU-PIPE-001 final residency: dispatch probe ===
+  PASS the production configuration ENGAGES the resident SIMPLE loop (non-vacuity)
+  PASS and it also has the resident pressure solve and the device discretization
+
+--- each declined configuration, and what it must still produce ---
+  PASS a CPU momentum backend DECLINES the resident loop (it needs a host LinearSystem)
+  PASS and the resident PRESSURE solve is unaffected -- the two decline independently
+  PASS a CG momentum solver DECLINES the resident loop (GpuCG has no resident entry point)
+  PASS a non-laminar turbulence model DECLINES the resident loop (correct() reads the host velocity)
+  PASS CPU linear solvers with device discretization decline both resident paths
+  PASS without device discretization the resident loop is DECLINED -- there is no device system to solve
+  PASS with the linear-solver fallback enabled the resident loop is DECLINED -- bypassing the wrapper would change failure behaviour
+  PASS with the residency mirror enabled the resident loop is DECLINED -- syncMatrix reads a host matrix the resident path never builds
+
+--- the decline is a DISPATCH change, not a numerical one ---
+  PASS both alternative declines really did decline
+  PASS two unrelated reasons for declining produce bit-identical solves -- declining changes dispatch, not arithmetic
+  PASS the declined configuration is deterministic across repeats
+
+DISPATCH PROBE: PASS

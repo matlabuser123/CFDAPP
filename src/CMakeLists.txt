@@ -313,6 +313,7 @@ if(NOT CFDAPP_ENABLE_CUDA)
     PRIVATE
       gpu/GPUBackend.cpp
       gpu/GpuResidencyManager.cpp
+      gpu/GpuSimpleDiscretization.cpp
       gpu/GpuLinearSolver.cpp
   )
 endif()

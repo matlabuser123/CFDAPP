@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# GPU-DISC-001J Step 4 -- full regression, with build freshness and the exact
+# build identity recorded BEFORE and AFTER ctest so the suite cannot have run
+# against a stale binary.
+set -uo pipefail
+
+ROOT=/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp
+EVID=$ROOT/results/gpu-disc-001/velocity-correction
+cd "$ROOT"
+
+FRESH=$EVID/regression_freshness.log
+: > "$FRESH"
+
+SOURCES="include/cfd/gpu/DeviceVelocityCorrection.hpp
+include/cfd/gpu/DeviceLeastSquaresGradient.hpp
+include/cfd/gpu/ObliqueNeumann.hpp
+cuda/kernels/DeviceVelocityCorrectionPlan.cpp
+cuda/kernels/DeviceVelocityCorrectionKernel.cu
+cuda/kernels/DeviceLeastSquaresGradientPlan.cpp
+cuda/kernels/DeviceLeastSquaresGradientKernel.cu
+cuda/kernels/DeviceGradientPlan.cpp
+cuda/CMakeLists.txt"
+
+{
+  echo "=== test command ==="
+  echo "ctest --test-dir build/cuda --output-on-failure"
+  echo ""
+  echo "=== build identity BEFORE ctest ==="
+  ninja -C build/cuda
+  sha256sum build/cuda/cuda/libcfdcuda.a build/cuda/src/libcfdcore.a
+  echo ""
+  echo "=== 001J source sha256 BEFORE ctest ==="
+  sha256sum $SOURCES
+} >> "$FRESH" 2>&1
+
+ctest --test-dir build/cuda --output-on-failure > "$EVID/regression.log" 2>&1
+RC=$?
+
+{
+  echo ""
+  echo "=== build identity AFTER ctest ==="
+  ninja -C build/cuda
+  sha256sum build/cuda/cuda/libcfdcuda.a build/cuda/src/libcfdcore.a
+  echo ""
+  echo "=== 001J source sha256 AFTER ctest ==="
+  sha256sum $SOURCES
+  echo ""
+  echo "ctest exit=$RC"
+} >> "$FRESH" 2>&1
+
+grep -E "tests passed|tests failed|Total Test time" "$EVID/regression.log"
+echo "--- freshness ---"
+grep -E "no work to do|ctest exit" "$FRESH"
+exit $RC

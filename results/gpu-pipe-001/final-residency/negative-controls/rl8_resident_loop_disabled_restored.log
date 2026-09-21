@@ -1,0 +1,29 @@
+# rl8_resident_loop_disabled -- restored src/pressure_velocity/SIMPLE.cpp
+# sha256 ef5ee3c959ce9bcdeb0eaca73cd386fa683a904d203d3d3aebd1c4c8c5fc3283
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness loop_comparison -> exit 0 ##########
+=== GPU-PIPE-001 final residency: resident SIMPLE loop, controlled comparison ===
+Arms differ ONLY in whether the GPU outer iteration is device-resident.
+Every comparison is BITWISE.
+
+  PASS  cavity 2d 16             MaxIterations it=8  mom=192 p=559  red=3012  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176877 B  D2H   394.00 /       68001 B  sync   376.50  alloc 375
+        transfers/iteration   resident H2D   37.12 /     135468 B  D2H   385.00 /       10665 B  sync   376.50  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  cavity 2d 32             MaxIterations it=6  mom=149 p=836  red=3940  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   61.83 /     870332 B  D2H   674.33 /      292539 B  sync   656.67  alloc 375
+        transfers/iteration   resident H2D   49.50 /     700517 B  D2H   665.33 /       59075 B  sync   656.67  alloc 359
+        non-reduction D2H/iteration   host-arm   17.67   resident    8.67
+  PASS  channel 2d 16            MaxIterations it=8  mom=267 p=475  red=2970  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176879 B  D2H   388.75 /       67926 B  sync   371.25  alloc 373
+        transfers/iteration   resident H2D   37.12 /     135470 B  D2H   379.75 /       10590 B  sync   371.25  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  cavity 3d 6              MaxIterations it=6  mom=151 p=224  red=1496  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   67.83 /     302272 B  D2H   272.00 /       93641 B  sync   249.33  alloc 389
+        transfers/iteration   resident H2D   49.50 /     243231 B  D2H   259.00 /       10705 B  sync   249.33  alloc 374
+        non-reduction D2H/iteration   host-arm   22.67   resident    9.67
+
+cases=4 failures=0  values compared=11082  bitwise=11082
+RESIDENT SIMPLE LOOP COMPARISON: PASS (bitwise)

@@ -48,6 +48,7 @@ yet tagged. **Uncommitted** means verified in the working tree but not yet commi
 | 3D | Cartesian hexahedral mesh and operators; steady laminar 3D SIMPLE with Rhie–Chow | Uncommitted | Uniform boxes; single-threaded; no 3D physics beyond laminar flow; no GUI 3D view |
 | Moving mesh | ALE/GCL library API: 2D `AlePISO`; 3D geometry, GCL and ALE operators | Uncommitted, complete | C++ API only (not in case format, CLI or GUI); no 3D ALE flow solver; no moving-mesh MMS |
 | Performance | GPU-resident CG/BiCGSTAB with CPU fallback; OpenMP SpMV | Released | GPU break-even ≈ 80×80; no GPU 3D |
+| CUDA SIMPLE | The whole SIMPLE outer iteration on the device — operators, both linear solves, corrections — with nothing uploaded in steady state | Uncommitted, complete | Reachable only through the C++ `SIMPLESettings` API: the case format has no `enableGpuDiscretization` key. Declined for non-laminar turbulence, CG, CPU solver backends, solver fallback and the residency mirror. WSL2 CUDA only |
 | Application | CLI and Qt6/QML GUI on one `ProjectRunner`; case authoring; VTK/CSV/JSON export | Released | Native Windows CUDA not validated |
 
 ---

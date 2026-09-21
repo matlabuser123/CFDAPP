@@ -1,0 +1,27 @@
+# known GPU BiCGSTAB restart asymmetry -- RE-RUN
+#
+# The original run of this probe (2026-09-21, within the resident-pressure-solve
+# finalise script) completed and its exit code was recorded. Its LOG was then
+# truncated to zero bytes by a duplicate launch of the same script from a second
+# session. This is a re-run against the same binaries, recorded rather than
+# presented as the original.
+#
+# date: 2026-09-20T15:39:17Z
+# libcfdcuda.a: f97216022ff70766114dceba6880eb49fcdd079684f6096f1d97d5af5e60a746
+# libcfdcore.a: 29d060eeef8425e0615c81e67da2953822a6b1072b92963bc13260aba0a1c585
+
+=== GPU-DISC-001R: known GPU BiCGSTAB restart asymmetry ===
+TODO.md reproducer: 2D cavity 40x40, outer tolerance 1e-6, budget 3000
+recorded at baseline 548401a -- NOT introduced here, NOT fixed here.
+
+  cpu (CPU solver, CPU disc)   status=MaxIterations              iterations=3000
+  gpu-pipe (GPU solver, CPU disc) status=PressureCorrectionFailure  iterations=1845
+  gpu-disc (GPU solver, GPU disc) status=PressureCorrectionFailure  iterations=1845
+
+=== has the debt BROADENED? ===
+  gpu-disc status matches gpu-pipe:     yes
+  gpu-disc iterations match gpu-pipe:   yes (1845 vs 1845)
+  reproducer actually triggered on gpu-pipe:  yes
+
+KNOWN DEBT: UNCHANGED -- GPU-DISC behaves exactly as the pre-existing GPU path
+# exit code: 0

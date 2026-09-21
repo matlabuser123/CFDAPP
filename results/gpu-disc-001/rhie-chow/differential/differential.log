@@ -1,0 +1,64 @@
+=== GPU-DISC-001H: CUDA predicted face flux / Rhie-Chow vs CPU (bitwise) ===
+CPU refs: physics::calculateMassFlux, pressure_velocity::rhieChow{FaceCorrection,MassFlux}
+
+       [cartesian2d 8 faces=144 axisAligned=112 general=0 resident=52888 B]
+  PASS L3 cartesian2d 8  invariants: onePerFace=yes interiorFaces=112 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 1.91e-14 of |.|=208.1]
+  PASS L4 cartesian2d 8  checkerboard: differing=0  |RhieChow term|max=45.71 vs |linear flux|max=0.225 (term dominates: yes)
+  PASS L2 cartesian2d 8  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+  PASS L2 cartesian2d 8  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+  PASS L2 cartesian2d 8  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+  PASS L2 cartesian2d 8  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+       [cartesian2d 16 faces=544 axisAligned=480 general=0 resident=202008 B]
+  PASS L3 cartesian2d 16 invariants: onePerFace=yes interiorFaces=480 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -7.12e-15 of |.|=344.5]
+  PASS L4 cartesian2d 16 checkerboard: differing=0  |RhieChow term|max=160 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 cartesian2d 16 scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+  PASS L2 cartesian2d 16 scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+  PASS L2 cartesian2d 16 scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+  PASS L2 cartesian2d 16 scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+       [graded2d 10 faces=220 axisAligned=180 general=0 resident=81144 B]
+  PASS L3 graded2d 10    invariants: onePerFace=yes interiorFaces=180 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 5.83e-15 of |.|=275.7]
+  PASS L4 graded2d 10    checkerboard: differing=0  |RhieChow term|max=358.1 vs |linear flux|max=0.2087 (term dominates: yes)
+  PASS L2 graded2d 10    scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=107.2
+  PASS L2 graded2d 10    scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=107.2
+  PASS L2 graded2d 10    scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=107.2
+  PASS L2 graded2d 10    scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=107.2
+       [distorted q16 faces=544 axisAligned=0 general=480 resident=221208 B]
+  PASS L3 distorted q16  invariants: onePerFace=yes interiorFaces=480 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 1.86e-14 of |.|=349.8]
+  PASS L4 distorted q16  checkerboard: differing=0  |RhieChow term|max=169.5 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 distorted q16  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+       [cartesian3d 4 faces=240 axisAligned=144 general=0 resident=84376 B]
+  PASS L3 cartesian3d 4  invariants: onePerFace=yes interiorFaces=144 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -4.11e-15 of |.|=216.4]
+  PASS L4 cartesian3d 4  checkerboard: differing=0  |RhieChow term|max=11.43 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 cartesian3d 4  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+  PASS L2 cartesian3d 4  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+  PASS L2 cartesian3d 4  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+  PASS L2 cartesian3d 4  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+       [warped 3d 3 faces=108 axisAligned=0 general=54 resident=39768 B]
+  PASS L3 warped 3d 3    invariants: onePerFace=yes interiorFaces=54 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -5.91e-15 of |.|=185.5]
+  PASS L4 warped 3d 3    checkerboard: differing=0  |RhieChow term|max=59.17 vs |linear flux|max=0.2 (term dominates: yes)
+  PASS L2 warped 3d 3    scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=270
+
+=== coverage ===
+  Linear-path cases                 2592
+  Rhie-Chow-path cases              2592
+  correction-only cases             2592
+  2D / 3D direct cases              1728 / 864
+  integrated chain cases            24
+  meshes with axis-aligned coupling 4
+  meshes with general coupling      2
+  densities / relaxation factors    3 / 3
+  orientation / conservation checks 6 / 6
+  checkerboard-sensitive cases      6
+  values compared                   2341800
+  bitwise-identical values          2341800
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=2628 failures=0
+FACE FLUX EQUIVALENCE: PASS (bitwise)

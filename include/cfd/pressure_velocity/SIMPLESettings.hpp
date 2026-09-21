@@ -112,6 +112,24 @@ struct SIMPLESettings {
   // device at runtime -- see GpuResidencyManager::active().
   bool enableGpuResidency{false};
 
+  // GPU-DISC-001M: run SIMPLE's DISCRETIZATION on the device -- the momentum
+  // assembly, response coefficients, predicted face flux, pressure-correction
+  // assembly, velocity correction and face-flux correction -- using the
+  // operators qualified bitwise by GPU-DISC-001B..001K.
+  //
+  // Independent of momentumSolver/pressureSolver.backend, which select where
+  // the LINEAR SOLVES run: before this flag existed a "GPU solve" was two
+  // device linear solves with every operator building them on the host.
+  //
+  // A *request*, with the same semantics as LinearSolverSettings::backend: a
+  // CPU-only binary, no usable device, or any operator that cannot reproduce
+  // the configuration makes the whole solve fall back to the CPU
+  // discretization path. The fallback is recorded in SIMPLEResult, never
+  // silent, and is ALL OR NOTHING -- a partially-GPU iteration is never run,
+  // because every one of those operators was qualified as bitwise equal and a
+  // mixed chain is a path no gate has verified.
+  bool enableGpuDiscretization{false};
+
   // P12-NUM-004: normalized residuals / convergence criterion, stagnation
   // and divergence detection, adaptive under-relaxation and the linear-
   // solver fallback (cfd/solver/SolverRobustness.hpp). Default-constructed:

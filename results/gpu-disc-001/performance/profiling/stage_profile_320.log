@@ -1,0 +1,22 @@
+=== GPU-DISC-001Q: device time per production discretization stage ===
+case: 320x320 cavity, 20 timed repeats of each stage
+NOTE stages are synchronized and therefore SERIALISED here; production
+     overlaps them, so these are isolated per-stage device costs and their
+     sum exceeds a real iteration.
+
+stage                              ms/iteration  % of sum    kernels
+momentum assembly U+V                   40.9310     64.0%         30
+pressure-correction assembly            19.0795     29.9%          2
+velocity correction                      1.2930      2.0%         13
+beginIteration (upload)                  1.2591      2.0%          0
+face-flux correction                     0.4896      0.8%          1
+setMomentumSolution x2                   0.4765      0.7%          0
+setPressureCorrection                    0.2131      0.3%          0
+response coefficients                    0.1448      0.2%          2
+predicted face flux                      0.0298      0.0%          1
+SUM (serialised)                        63.9164    100.0%
+
+top production GPU time consumers, in order:
+  1. momentum assembly U+V          40.9310 ms/iteration (64.0%)
+  2. pressure-correction assembly   19.0795 ms/iteration (29.9%)
+  3. velocity correction            1.2930 ms/iteration (2.0%)

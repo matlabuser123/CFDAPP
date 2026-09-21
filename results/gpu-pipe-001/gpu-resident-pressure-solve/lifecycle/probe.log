@@ -1,0 +1,29 @@
+ninja: no work to do.
+=== GPU-PIPE-001 resident pressure solve: lifecycle ===
+
+-- repeated solves on one facade --
+  PASS three consecutive resident solves all converge
+  PASS solves after the first allocate nothing
+  PASS repeating an identical solve reproduces it exactly (no state leaks between solves)
+  PASS no host solution is produced
+       allocations after solve 1: 0, after solve 2: 0
+
+-- re-prepare for a LARGER mesh --
+  PASS the larger mesh converges after re-prepare
+  PASS the workspace grew to the larger mesh
+       workspace 563208 bytes for 6400 cells
+
+-- re-prepare for a SMALLER mesh (buffers do not shrink) --
+  PASS both meshes converge
+  PASS the reused facade solves the SAME problem as a fresh one (iterations)
+  PASS ... and from the same initial residual (bitwise)
+  PASS ... reaching the same final residual (bitwise)
+       reused 196 iters / fresh 196 iters
+
+-- restart on the same facade --
+  PASS a restarted solve converges
+  PASS a restart reproduces the FIRST solve exactly (bitwise initial residual)
+  PASS ... and the same iteration count
+       before 0.013001442766365209 / after 0.013001442766365209
+
+LIFECYCLE PROBE: PASS

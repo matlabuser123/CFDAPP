@@ -1,0 +1,91 @@
+##################### 1. build freshness, before anything runs #####################
+[52/52] Linking CXX executable tests/unit/io/CFDIoTests
+[52/52] Linking CXX executable tests/unit/io/CFDIoTests
+# binaries under test
+0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/cuda/libcfdcuda.a
+829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/src/libcfdcore.a
+
+# newest production source vs oldest test binary
+newest source: 1789929844.1099362000 cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+oldest test binary: 1789932326.2077327000 /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/tests/integration/species/CFDSpeciesDiffusionValidationTests
+
+##################### 2. complete CTest on the production build #####################
+  100% tests passed, 0 tests failed out of 1998
+  Total Test time (real) = 1319.68 sec
+  Total Tests: 2043
+  rc=0
+  freshness: ninja: no work to do.
+
+##################### 3. the 15 GPU-DISC differential gates #####################
+  
+  15/15 GPU-DISC differential gates green on the FINAL binaries
+  rc=0
+
+##################### 4. determinism #####################
+    PASS CPU solver + CPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+    PASS GPU solver + CPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+    PASS GPU solver + GPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+    PASS CPU solver + GPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+  DETERMINISM: PASS -- every repeated solve is bitwise identical
+  rc=0
+
+##################### 5. production GPU CLI smoke #####################
+    exit code: 0
+    output files produced: 4
+    cavity2d         rc=0  kernelLaunches=1120  DIAGNOSTIC WORKLOAD: PRODUCTION GPU PATH EXERCISED
+    inletoutlet2d    rc=0  kernelLaunches=1120  DIAGNOSTIC WORKLOAD: PRODUCTION GPU PATH EXERCISED
+    case3d           rc=0  kernelLaunches=3059  DIAGNOSTIC WORKLOAD: PRODUCTION GPU PATH EXERCISED
+  PRODUCTION SMOKE: PASS
+  rc=0
+
+##################### 6. CPU-only build and full test suite #####################
+    rc=0
+    nvcc invocations in build.ninja: 0  (must be 0)
+    rc=0
+    cfdapp does not link libcudart -- correct
+    100% tests passed, 0 tests failed out of 1932
+    ctest rc=0
+  rc=0
+
+##################### 7. sanitizer freshness #####################
+  racecheck   case3d          0    non-vacuous   3059      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+  racecheck   nonorthogonal   0    non-vacuous   5550      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+  racecheck   gpusolver       0    non-vacuous   38882     ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+  
+  SANITIZER FRESHNESS: PASS -- 16/16 clean and non-vacuous on the FINAL build
+  rc=0
+
+##################### 8. no negative-control mutation remains #####################
+  
+  # any surviving mutation marker (must be empty)
+    none
+  rc=0
+
+##################### 9. working-tree audit #####################
+  tracked modified: 66
+  untracked entries: 50
+
+##################### 10. clang-format #####################
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:56:26: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:57:37: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:107:28: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:107:52: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:111:15: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:111:26: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:209:39: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:209:82: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:210:62: error: code should be clang-formatted [-Wclang-format-violations]
+  include/cfd/gpu/DeviceBoundaryConditions.hpp:211:82: error: code should be clang-formatted [-Wclang-format-violations]
+  rc=1
+
+############################## PART 9 SUMMARY ##############################
+  ctest         rc=0  PASS
+  gates         rc=0  PASS
+  determinism   rc=0  PASS
+  smoke         rc=0  PASS
+  cpuonly       rc=0  PASS
+  sanitizer     rc=0  PASS
+  mutations     rc=0  PASS
+  worktree      rc=0  PASS
+  format        rc=1  FAIL
+FINAL REGRESSION: FAILURES PRESENT

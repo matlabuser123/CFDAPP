@@ -1,0 +1,127 @@
+# g2_sign_reversal
+# layer:       momentum-response
+# origin:      001G R2
+# expectation: detect
+# SIGN REVERSAL: the response coefficient is negated
+# mutation applied to cuda/kernels/DeviceMomentumResponseKernel.cu
+# --- anchor ---
+  response[c] = cellVolumes[c] / momentumDiagonal[c];
+# --- became ---
+  response[c] = -(cellVolumes[c] / momentumDiagonal[c]);
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness momentum_response --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001G: CUDA momentum response coefficient vs CPU (bitwise) ===
+CPU reference: pressure_velocity::computeMomentumResponseCoefficient, d = V/aP
+L1 synthetic diagonals | L2 CPU assembly->response vs CUDA assembly->response
+
+  FAIL L1 distorted q16    uniform 1.0            cells=256    differing=256  maxAbs=0.00894    maxRel=2          scale=0.00447
+  FAIL L1 distorted q16    uniform 3.7            cells=256    differing=256  maxAbs=0.00242    maxRel=2          scale=0.001208
+  FAIL L1 distorted q16    nonuniform             cells=256    differing=256  maxAbs=0.0162     maxRel=2          scale=0.008092
+  FAIL L1 distorted q16    small 1e-300           cells=256    differing=256  maxAbs=8.93e+297  maxRel=2          scale=4.464e+297
+  FAIL L1 distorted q16    large 1e300            cells=256    differing=256  maxAbs=8.94e-303  maxRel=2          scale=4.47e-303
+  FAIL L1 distorted q16    denormal-adjacent      cells=256    differing=256  maxAbs=4.02e+305  maxRel=2          scale=2.009e+305
+  FAIL L2 distorted q16    U  upwind        a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    U  upwind        a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    U  upwind        a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    U  upwind        a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    U  central       a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    U  central       a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    U  central       a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    U  central       a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    U  linear_upwind a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    U  linear_upwind a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    U  linear_upwind a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    U  linear_upwind a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    U  quick         a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    U  quick         a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    U  quick         a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    U  quick         a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    V  upwind        a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    V  upwind        a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    V  upwind        a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    V  upwind        a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    V  central       a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    V  central       a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    V  central       a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    V  central       a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    V  linear_upwind a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    V  linear_upwind a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    V  linear_upwind a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    V  linear_upwind a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L2 distorted q16    V  quick         a=1     cells=256    differing=256  maxAbs=0.473      maxRel=2          scale=0.2363
+  FAIL L2 distorted q16    V  quick         a=0.7   cells=256    differing=256  maxAbs=0.331      maxRel=2          scale=0.1654
+  FAIL L2 distorted q16    V  quick         a=0.3   cells=256    differing=256  maxAbs=0.142      maxRel=2          scale=0.0709
+  FAIL L2 distorted q16    V  quick         a=0.05  cells=256    differing=256  maxAbs=0.0236     maxRel=2          scale=0.01182
+  FAIL L1 warped 3d 3      uniform 1.0            cells=27     differing=27   maxAbs=0.0813     maxRel=2          scale=0.04065
+  FAIL L1 warped 3d 3      uniform 3.7            cells=27     differing=27   maxAbs=0.022      maxRel=2          scale=0.01099
+  FAIL L1 warped 3d 3      nonuniform             cells=27     differing=27   maxAbs=0.151      maxRel=2          scale=0.07543
+  FAIL L1 warped 3d 3      small 1e-300           cells=27     differing=27   maxAbs=7.77e+298  maxRel=2          scale=3.884e+298
+  FAIL L1 warped 3d 3      large 1e300            cells=27     differing=27   maxAbs=8.13e-302  maxRel=2          scale=4.065e-302
+  FAIL L1 warped 3d 3      denormal-adjacent      cells=27     differing=27   maxAbs=3.65e+306  maxRel=2          scale=1.827e+306
+  FAIL L2 warped 3d 3      U  upwind        a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      U  upwind        a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      U  upwind        a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      U  upwind        a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      U  central       a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      U  central       a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      U  central       a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      U  central       a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      U  linear_upwind a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      U  linear_upwind a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      U  linear_upwind a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      U  linear_upwind a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      U  quick         a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      U  quick         a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      U  quick         a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      U  quick         a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      V  upwind        a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      V  upwind        a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      V  upwind        a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      V  upwind        a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      V  central       a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      V  central       a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      V  central       a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      V  central       a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      V  linear_upwind a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      V  linear_upwind a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      V  linear_upwind a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      V  linear_upwind a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      V  quick         a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      V  quick         a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      V  quick         a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      V  quick         a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      W  upwind        a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      W  upwind        a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      W  upwind        a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      W  upwind        a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      W  central       a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      W  central       a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      W  central       a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      W  central       a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      W  linear_upwind a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      W  linear_upwind a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      W  linear_upwind a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      W  linear_upwind a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+  FAIL L2 warped 3d 3      W  quick         a=1     cells=27     differing=27   maxAbs=4.8        maxRel=2          scale=2.398
+  FAIL L2 warped 3d 3      W  quick         a=0.7   cells=27     differing=27   maxAbs=3.36       maxRel=2          scale=1.678
+  FAIL L2 warped 3d 3      W  quick         a=0.3   cells=27     differing=27   maxAbs=1.44       maxRel=2          scale=0.7193
+  FAIL L2 warped 3d 3      W  quick         a=0.05  cells=27     differing=27   maxAbs=0.24       maxRel=2          scale=0.1199
+
+=== coverage ===
+  component U/V/W integrated cases  32 / 32 / 16
+  2D / 3D integrated cases          32 / 48
+  relaxation factors                4 (alpha = 1.0, 0.7, 0.3, 0.05)
+  uniform / nonuniform diagonals    4 / 2
+  small / large diagonal cases      4 / 2
+  synthetic cases                   12
+  integrated chain cases            80
+  values compared                   11186
+  bitwise-identical values          0
+  max absolute discrepancy          3.65e+306
+  max relative discrepancy          2
+  NOTE 11186 of 11186 values were not bitwise identical
+
+cases=92 failures=92
+MOMENTUM RESPONSE EQUIVALENCE: FAIL

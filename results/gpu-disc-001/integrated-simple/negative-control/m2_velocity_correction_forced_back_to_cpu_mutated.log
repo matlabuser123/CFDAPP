@@ -1,0 +1,14 @@
+# m2_velocity_correction_forced_back_to_cpu  (expectation: detect)
+# the velocity and face-flux corrections are routed back to the CPU
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+    if (useGpuDiscretization) {
+      // GPU-DISC-001J and 001K, from the resident predictor velocity,
+# --- became ---
+    if (false) {
+      // GPU-DISC-001J and 001K, from the resident predictor velocity,
+# verdict: DETECTED (exit -6)
+# first divergence: n/a
+
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  correctVelocity: field size does not match mesh cell count

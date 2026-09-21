@@ -1,6 +1,6 @@
 # CFDApp — TODO
 
-> `[x]` = implemented + verified.
+> `[x]` = implemented **and verified**
 > Evidence: `results/` · Rules: `CLAUDE.md` · Direction: `ROADMAP.md`
 
 ---
@@ -9,36 +9,34 @@
 
 ```text
 FINISHED
-  P0–P11
-  P12-COMP-001/002
-  P12-NUM-001–007
-  P12-MESH-001–007
-  P12-ASAN-001
-  P12-DIFF-002
-  P12-GRAD-002
+  P0–P12
   CUDA-QUAL-001
   GPU-PCORR-001
   AGENT-INFRA-001
   CI-PERF-001
+  GPU-DISC-001 — CUDA discretization pipeline
+  GPU-PIPE-001 — final GPU residency
 
-  KNOWN-GOOD BASELINE
+KNOWN-GOOD
   548401aef0d3cbab9552b1964ceac7efd7ad6154
-  run 35385979133 — 17/17, 100.6 min
+  CI 35385979133 — 17/17 PASS — 100.6 min
 
-PROCESSING
-  None
+CURRENT
+  nothing in flight
 
 NEXT
-  GPU-PIPE-001
-  P13
+  P13 — Production Maturity (not started, NOT AUTHORIZED)
 
-AUTHORIZED NEW DEVELOPMENT
-  None
+PUSH BLOCKER
+  none outstanding. The GPU-DISC-001 + GPU-PIPE-001 lineage is uncommitted
+  (16 tracked files modified, 50 untracked) and has never been through CI.
+  results/validation/** carries timing-only churn from the ctest runs and
+  must be restored before any commit — 0 non-timing changes, verified.
 ```
 
 ---
 
-# 1. Finished
+# 1. Completed Milestones
 
 ## Core
 
@@ -46,118 +44,218 @@ AUTHORIZED NEW DEVELOPMENT
 * [x] P6 — GPU foundation
 * [x] P7 — performance validation
 * [x] P8 — production hardening
-* [x] P9 — v0.2.0
+* [x] P9 — v0.2.0 release
 * [x] P10 — production physics
 * [x] P11 — GUI case authoring
+* [x] P12 — advanced numerics / mesh / compressible foundations
 
-## P12
+## P12 Closeout
 
-* [x] COMP-001 — EOS boundary density
-* [x] COMP-002 — coupled compressible SIMPLE
+* [x] COMP-001/002 — compressible SIMPLE
 * [x] NUM-001–007 — numerics
-* [x] MESH-001 — non-orthogonal meshes
-* [x] MESH-002 — stretched meshes
-* [x] MESH-003 — 2D multi-block
-* [x] MESH-004 — mesh quality
-* [x] MESH-005 — 3D foundation
-* [x] MESH-006 — 3D SIMPLE
+* [x] MESH-001–007 — mesh + 3D + ALE
 * [x] ASAN-001 — sanitizer repair
 * [x] DIFF-002 — boundary diffusion
 * [x] GRAD-002 — Green–Gauss treatment
-* [x] MESH-007 — moving-mesh/ALE foundation
 
-## CUDA
+## CUDA / Infrastructure
 
-* [x] **CUDA-QUAL-001**
-
-  * CUDA 12.9.86
-  * RTX 5000 Ada / CC 8.9
-  * native `sm_89`
-  * 83/83 GPU CTest
-  * compute-sanitizer clean
-  * CPU/GPU equivalence passed
-
-* [x] **GPU-PCORR-001**
-
-  * fixed GPU BiCGSTAB scale-dependent breakdown
-  * 160² / 320² / 640² pass
-  * 320²: 1.33× GPU
-  * 640²: 3.20× GPU
-  * negative control passed
-
-## Infrastructure
-
-* [x] **AGENT-INFRA-001** — ten repository-local agent skills under `.claude/skills/`,
-  `docs/AGENT_WORKFLOW.md`, a `CLAUDE.md` section. Routing dry-run by independent agents on three
-  tasks; 24 defects found and fixed. No production behaviour changed.
-
-* [x] **CI-PERF-001** — CI 276.3 → **100.6 min (2.75×, −63.6 %)**
-
-  * causes: `build-test` ran tests **serially**; sharding balanced count, not runtime
-  * `build-test` now 7 runtime-balanced shards with `-j$(nproc)`; sanitizers rebalanced
-  * 1977 listed / 1932 executed / 45 disabled — **unchanged**
-  * both coverage audits PASS; audit detects 6/6 injected defects
-  * qualified on run 35385979133, 17/17, exact SHA `548401a`
+* [x] CUDA-QUAL-001 — RTX 5000 Ada / `sm_89`
+* [x] GPU-PCORR-001 — GPU BiCGSTAB pressure-correction qualification
+* [x] AGENT-INFRA-001 — repository-local agent workflow
+* [x] CI-PERF-001 — CI critical path 276.3 → 100.6 min
 
 Evidence:
 
 ```text
-results/cuda-qual-001/    results/agent-infra-001/
-results/gpu-pcorr-001/    results/ci-perf-001/
+results/cuda-qual-001/
+results/gpu-pcorr-001/
+results/agent-infra-001/
+results/ci-perf-001/
 ```
 
-GitHub runners have **no GPU**: CI does not validate `sm_89` execution.
-GPU evidence is local only — `results/cuda-qual-001/`, `results/gpu-pcorr-001/`.
+> GitHub CI has no GPU. CUDA execution evidence is local.
 
 ---
 
-# 2. Processing
+# 2. GPU-DISC-001 — CUDA Discretization Pipeline
 
-**None.**
+## Foundation
 
----
+* [x] Device mesh / geometry
 
-# 3. Next
+## Operators
 
-## GPU-PIPE-001 — Persistent GPU Pipeline
+* [x] Gradients — CUDA Green–Gauss; bitwise CPU/GPU match
+* [x] Diffusion — CUDA finite-volume diffusion
+* [x] Convection — production scalar/vector schemes
+* [x] Boundary conditions — reusable CUDA scalar/vector BC layer
 
-* [ ] Measure H2D/D2H transfers
-* [ ] Persistent GPU fields
-* [ ] Persistent matrices
-* [ ] Remove unnecessary transfers
-* [ ] GPU-resident pressure solve
-* [ ] GPU-resident SIMPLE loop
-* [ ] CPU/GPU equivalence
-* [ ] CUDA diagnostics
-* [ ] 20²–640² benchmarks
-* [ ] Full regression
+## Momentum Path
 
-Motivation:
+* [x] Momentum assembly
+* [x] Momentum response coefficients
+* [x] Rhie–Chow / predicted face flux
+
+## Pressure Path
+
+* [x] Pressure-correction assembly
+* [x] Velocity correction
+* [x] Face-flux correction
+
+## Integration
+
+* [x] Single-iteration CPU/GPU differential
+* [x] Integrated GPU SIMPLE discretization
+* [x] Full-solve CPU/GPU equivalence
+* [x] CUDA diagnostics
+* [x] Negative controls
+* [x] Performance qualification
+* [x] Full regression
+
+Evidence:
 
 ```text
-160²:
-~71,031 downloads
-~544 uploads
+results/gpu-disc-001/
+```
 
-resident SpMV:
-~51× CPU
+**Status: FINISHED**
+
+---
+
+# 3. GPU-PIPE-001 — Persistent GPU Pipeline
+
+## Foundations
+
+* [x] Transfer instrumentation / baseline
+* [x] BiCGSTAB reduction fusion
+
+  * 7 → 5 reductions / Krylov iteration
+* [x] Synchronization reduction
+
+  * sync count −66.7%
+* [x] Persistent matrices / workspaces
+
+  * 0 steady-state reallocations
+* [x] CUDA diagnostics
+* [x] 20²–640² benchmark ladder
+* [x] Full regression
+
+Historical performance:
+
+```text
+160²   0.702× GPU/CPU
+320²   1.773×
+640²   3.599×
+```
+
+Evidence:
+
+```text
+results/gpu-pipe-001/
+```
+
+## Final Residency Implementation
+
+* [x] Persistent GPU fields
+
+  * production SIMPLE state persists on device across iterations
+
+* [x] GPU-resident pressure solve
+
+  * pressure matrix remains on device — solved in place, adopted not copied
+  * RHS remains on device
+  * `p'` remains on device
+  * persistent Krylov workspace reused — 0 steady-state allocations
+  * per solve: 0 H2D, 0 assemble bytes, 2 non-reduction D2H (12 bytes of
+    host *decisions*); the host matrix rebuild is gone
+  * bitwise equivalent, including a 60-iteration long run
+  * 640² 9.282 s → 8.189 s; GPU speedup 9.72× → 11.40×
+
+* [x] GPU-resident SIMPLE loop
+
+  * momentum assembled and solved on the device; predictor never leaves it
+  * steady-state H2D: 0 calls, 0 bytes — 2D and 3D, every grid
+  * non-reduction D2H: 8/iteration (2D), 9 (3D); besides the face flux, 40 bytes
+  * 0 steady-state allocations, 0 reallocations
+  * bitwise vs the pre-residency path: 12 cases, 217,755 values, 2 long runs
+  * transfer gate failed once on a mis-derived criterion — amendment A1
+
+* [x] Final CPU/GPU equivalence
+
+  * 15 converged/classified cases + a 160²/320²/640² fixed-budget ladder
+  * every discrepancy ≤ 9.6e-10 against the adopted 1e-6 bound
+  * equal outer-iteration counts on every acceptance case
+  * determinism bitwise on both arms
+  * known BiCGSTAB reproducer UNCHANGED at exactly 1845 iterations
+
+Evidence:
+
+```text
+results/gpu-pipe-001/final-residency/
+  audit.md · summary.md · acceptance_gate_A1.md
+  transfers/FAILURE.md — the transfer gate's failure, preserved
+```
+
+**Status: FINISHED**
+
+---
+
+# 4. GPU-PIPE-001 — Final Qualification
+
+> Run only after all three residency implementation items above are complete.
+
+* [x] Persistent GPU fields — final-gate re-verification
+* [x] GPU-resident pressure solve — final-gate re-verification
+* [x] GPU-resident SIMPLE loop — final-gate re-verification
+* [x] Dedicated CPU/GPU equivalence
+* [x] CUDA diagnostics — 16/16, 0 errors / 0 hazards
+* [x] Final 20²–640² benchmark — 640² 3.593× → 17.362×; crossover 320² → 160²
+* [x] Full regression
+
+  * Release+CUDA 1998/1998 · Debug+GUI 1984/1984 · ASan/UBSan 1932/1932 (0 reports)
+  * CPU-only 1932/1932 · 15/15 GPU-DISC gates · production CLI smoke · determinism
+  * generated outputs vs HEAD: 3014 files, **0 non-timing changes**
+  * clang-format: 0 violations in 590 files. 105 pre-existing violations in 12
+    GPU-DISC files were cleared; libcfdcore.a is byte-identical afterwards, and
+    CTest, the 15 gates and the bitwise comparison were re-run on the result.
+
+## Final Gate
+
+GPU-PIPE-001 closes only when:
+
+```text
+Correctness           PASS
+CPU/GPU equivalence   PASS
+CUDA diagnostics      PASS
+Transfer audit        PASS
+Residency audit       PASS
+Performance           PASS
+Full regression       PASS
+```
+
+Then:
+
+```text
+GPU-PIPE-001 → FINISHED
+P13          → PROCESSING
 ```
 
 ---
 
-## P13 — Production Maturity
+# 5. P13 — Production Maturity
 
-* [ ] Restart/checkpointing
+* [ ] Restart / checkpointing
 * [ ] Robust case validation
-* [ ] CLI/GUI consistency
-* [ ] Results/export
-* [ ] Diagnostics/logging
+* [ ] CLI / GUI consistency
+* [ ] Results / export
+* [ ] Diagnostics / logging
 * [ ] Packaging
 * [ ] Production benchmark suite
 
 ---
 
-# 4. Future
+# 6. Future CFD Roadmap
 
 ## Physics
 
@@ -199,7 +297,7 @@ resident SpMV:
 ## v1.0
 
 * [ ] V&V benchmark library
-* [ ] API/case-format stability
+* [ ] API / case-format stability
 * [ ] Cross-platform qualification
 * [ ] Documentation
 * [ ] Packaging
@@ -207,9 +305,9 @@ resident SpMV:
 
 ---
 
-# 5. Technical Debt
+# 7. Technical Debt
 
-Do not fix without authorization.
+> Do not fix without explicit authorization.
 
 * [ ] CG absolute breakdown threshold
 * [ ] GPU BiCGSTAB restart asymmetry
@@ -223,36 +321,74 @@ Do not fix without authorization.
 * [ ] Sheared-mesh asymmetry
 * [ ] Species boundary lag
 * [ ] 3D BC lookup performance
-* [ ] GPU transfer overhead
+* [ ] GPU transfer overhead — now the Krylov reductions only; they are the
+      dominant cost of the resident path (69–85% of the solve)
+* [ ] Benchmark raw-CSV path is hardcoded, so each phase overwrites the last
+* [ ] `enableGpuDiscretization` has no case-file key (GPU-DISC-001R finding)
 * [ ] GUI `-Wconversion` warnings
 * [ ] Native Windows CUDA qualification
 
----
+## Known GPU BiCGSTAB Asymmetry
 
-# 6. Execution Order
+Reproducer:
 
 ```text
-P0–P11                  ✓
+2D cavity:       40×40
+outer tolerance: 1e-6
+outer budget:    3000
+
+GPU:
+PressureCorrectionFailure
+BiCGSTAB breakdown after 74 iterations
+
+CPU:
+continues full outer budget
+```
+
+Present at baseline:
+
+```text
+548401aef0d3cbab9552b1964ceac7efd7ad6154
+```
+
+Evidence:
+
+```text
+results/gpu-pipe-001/equivalence/
+```
+
+Do not fix during unrelated milestones.
+
+---
+
+# 8. Execution Order
+
+```text
+P0–P12                         ✓
    ↓
-P12                      ✓
+CUDA-QUAL-001                  ✓
    ↓
-CUDA-QUAL-001            ✓
+GPU-PCORR-001                  ✓
    ↓
-GPU-PCORR-001            ✓
+AGENT-INFRA-001                ✓
    ↓
-Exact-SHA CI             ✓
+CI-PERF-001                    ✓
    ↓
-Known-good baseline      ✓  c1355ea
+GPU-PIPE-001 foundations       ✓
    ↓
-AGENT-INFRA-001          ✓
+GPU-DISC-001                   ✓
    ↓
-CI-PERF-001              ✓  100.6 min, 2.75×, run 35385979133
+Persistent GPU fields          ✓
    ↓
-Known-good baseline      ✓  548401a
+GPU-resident pressure solve    ✓
    ↓
-GPU-PIPE-001
+GPU-resident SIMPLE loop       ✓
    ↓
-P13
+Final CPU/GPU equivalence      ✓
+   ↓
+GPU-PIPE-001 final qualification  ✓
+   ↓
+P13 — Production Maturity      ← NEXT (not authorized)
    ↓
 Advanced CFD / HPC
    ↓
@@ -266,10 +402,15 @@ v1.0
 1. Work top-to-bottom.
 2. Stop at a failed gate.
 3. Never weaken thresholds to pass.
-4. `[x]` requires real evidence.
+4. `[x]` requires implementation **and real verification evidence**.
 5. Preserve failures and negative controls.
 6. Correctness before performance.
-7. Do not fix unrelated debt.
-8. No new phase without authorization.
-9. No commit/push without authorization.
-10. Keep detailed evidence in `results/`, not `TODO.md`.
+7. CPU numerics remain the reference implementation.
+8. Do not fix unrelated technical debt.
+9. No new phase without authorization.
+10. No commit/push without authorization.
+11. Keep detailed evidence in `results/`, not `TODO.md`.
+12. Implementation completion and final-gate re-verification are separate.
+13. Do not claim GPU residency unless transfer evidence proves it.
+14. Do not claim performance improvements without equivalent numerical solves.
+15. Every final GPU milestone must preserve the CPU backend.

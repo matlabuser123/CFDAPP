@@ -1,0 +1,408 @@
+# c1_face_gradient_divide
+# layer:       diffusion
+# origin:      001C NC1
+# expectation: detect
+# the interpolated face gradient DIVIDES by (dPf+dNf) instead of multiplying by its reciprocal -- the scalar/vector interpolateInternalFace overload confusion, algebraically identical and not bitwise identical
+# mutation applied to include/cfd/gpu/DeviceDiffusionTerms.hpp
+# --- anchor ---
+    const cfd::Real fx = ((gx[o] * dN) + (gx[n] * dP)) * inverse;
+# --- became ---
+    const cfd::Real fx = ((gx[o] * dN) + (gx[n] * dP)) / (dP + dN);
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness diffusion --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001C: CUDA implicit diffusion vs CPU reference (bitwise) ===
+CPU reference: turbulence::assembleScalarDiffusionContribution
+
+       [distorted q16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=262424 B]
+  PASS distorted q16      dirichlet constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.667] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.359]
+  PASS distorted q16      neumann   constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.242] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.329]
+  PASS distorted q16      mixed     constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.537] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.89]
+  FAIL distorted q16      dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=40,abs=6.51e-19,scale=7.24]
+       worst entry (94,94): cpu=-0.0018525297532999087 gpu=-0.0018525297532999093  maxRel=1.4e-15
+  FAIL distorted q16      neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=41,abs=3.39e-21,scale=9.328]
+       worst entry (129,129): cpu=1.316090633716356e-05 gpu=1.3160906337163563e-05  maxRel=2.45e-15
+  FAIL distorted q16      mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=43,abs=8.67e-19,scale=8.89]
+       worst entry (225,225): cpu=0.0021917620212839632 gpu=0.0021917620212839623  maxRel=2.45e-15
+  PASS distorted q16      dirichlet linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.667] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.253]
+  PASS distorted q16      neumann   linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.242] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.872]
+  PASS distorted q16      mixed     linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.537] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.259]
+  FAIL distorted q16      dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=44,abs=2.22e-16,scale=7.351]
+       worst entry (96,96): cpu=1.7910033966784107 gpu=1.7910033966784105  maxRel=2.24e-14
+  FAIL distorted q16      neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=50,abs=6.94e-18,scale=6.869]
+       worst entry (72,72): cpu=0.010299301267969954 gpu=0.010299301267969961  maxRel=4.27e-14
+  FAIL distorted q16      mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=63,abs=2.22e-16,scale=7.273]
+       worst entry (96,96): cpu=1.7910033966784107 gpu=1.7910033966784105  maxRel=2.24e-14
+  PASS distorted q16      dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.667] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.317]
+  PASS distorted q16      neumann   quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.242] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.409]
+  PASS distorted q16      mixed     quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.537] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.409]
+  FAIL distorted q16      dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=47,abs=2.22e-16,scale=7.295]
+       worst entry (48,48): cpu=1.7165539453294805 gpu=1.7165539453294807  maxRel=1.9e-14
+  FAIL distorted q16      neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=48,abs=3.47e-18,scale=6.413]
+       worst entry (170,170): cpu=-0.0088638329201583942 gpu=-0.0088638329201583977  maxRel=6.33e-15
+  FAIL distorted q16      mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=52,abs=2.22e-16,scale=6.413]
+       worst entry (48,48): cpu=1.7165539453294805 gpu=1.7165539453294807  maxRel=1.9e-14
+  PASS distorted q16      dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.667] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.203]
+  PASS distorted q16      neumann   manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.242] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.389]
+  PASS distorted q16      mixed     manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.537] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.41]
+  FAIL distorted q16      dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=58,abs=4.44e-16,scale=7.41]
+       worst entry (47,47): cpu=3.0053204006898104 gpu=3.00532040068981  maxRel=6.44e-15
+  FAIL distorted q16      neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=49,abs=3.47e-18,scale=1.392]
+       worst entry (166,166): cpu=-0.0092275461990860182 gpu=-0.0092275461990860216  maxRel=6.03e-15
+  FAIL distorted q16      mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=48,abs=3.47e-18,scale=5.536]
+       worst entry (166,166): cpu=-0.0092275461990860182 gpu=-0.0092275461990860216  maxRel=1.2e-14
+  PASS distorted q16      dirichlet constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.085] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.78]
+  PASS distorted q16      neumann   constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.02]
+  PASS distorted q16      mixed     constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.02]
+  FAIL distorted q16      dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=43,abs=2.22e-16,scale=10.61]
+       worst entry (160,160): cpu=1.1713033899944063 gpu=1.1713033899944065  maxRel=1.58e-15
+  FAIL distorted q16      neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=34,abs=1.69e-21,scale=13.02]
+       worst entry (110,110): cpu=7.7204532598782969e-06 gpu=7.7204532598782952e-06  maxRel=2.76e-15
+  FAIL distorted q16      mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=39,abs=2.22e-16,scale=13.02]
+       worst entry (160,160): cpu=1.1713033899944063 gpu=1.1713033899944065  maxRel=2.76e-15
+  PASS distorted q16      dirichlet linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.085] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.62]
+  PASS distorted q16      neumann   linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.31]
+  PASS distorted q16      mixed     linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.722]
+  FAIL distorted q16      dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=39,abs=6.94e-18,scale=10.76]
+       worst entry (86,86): cpu=0.0029923140337095068 gpu=0.0029923140337094999  maxRel=9.27e-14
+  FAIL distorted q16      neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=58,abs=6.94e-18,scale=7.307]
+       worst entry (86,86): cpu=0.0029923140337095068 gpu=0.0029923140337094999  maxRel=9.27e-14
+  FAIL distorted q16      mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=55,abs=6.94e-18,scale=7.736]
+       worst entry (86,86): cpu=0.0029923140337095068 gpu=0.0029923140337094999  maxRel=9.27e-14
+  PASS distorted q16      dirichlet quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.085] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.72]
+  PASS distorted q16      neumann   quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.386]
+  PASS distorted q16      mixed     quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.386]
+  FAIL distorted q16      dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=38,abs=3.47e-18,scale=10.68]
+       worst entry (105,105): cpu=-0.0022007539120880246 gpu=-0.0022007539120880212  maxRel=1.96e-15
+  FAIL distorted q16      neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=49,abs=3.47e-18,scale=9.391]
+       worst entry (105,105): cpu=-0.0022007539120880246 gpu=-0.0022007539120880212  maxRel=5.47e-14
+  FAIL distorted q16      mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=50,abs=3.47e-18,scale=9.391]
+       worst entry (27,27): cpu=0.0033252128544074199 gpu=0.0033252128544074234  maxRel=5.47e-14
+  PASS distorted q16      dirichlet manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.085] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.55]
+  PASS distorted q16      neumann   manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.716]
+  PASS distorted q16      mixed     manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.068] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.214]
+  FAIL distorted q16      dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=62,abs=3.47e-18,scale=10.85]
+       worst entry (166,166): cpu=-0.010096760951809745 gpu=-0.010096760951809749  maxRel=1.53e-13
+  FAIL distorted q16      neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=45,abs=3.47e-18,scale=1.715]
+       worst entry (30,30): cpu=0.00037497297834691162 gpu=0.00037497297834691509  maxRel=9.25e-15
+  FAIL distorted q16      mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=57,abs=3.47e-18,scale=4.152]
+       worst entry (174,174): cpu=-0.0040393196893722828 gpu=-0.0040393196893722793  maxRel=4.92e-15
+       [warped 3d 6 cells=216 higherOrderBoundaryFaces=216 correctableInternal=540 resident=360312 B]
+  PASS warped 3d 6        dirichlet constant      uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.332]
+  PASS warped 3d 6        neumann   constant      uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.301]
+  PASS warped 3d 6        mixed     constant      uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.48]
+  FAIL warped 3d 6        dirichlet constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=12,abs=1.11e-16,scale=2.335]
+       worst entry (65,65): cpu=0.51240363363691932 gpu=0.51240363363691921  maxRel=8.88e-16
+  FAIL warped 3d 6        neumann   constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=10,abs=8.47e-22,scale=2.301]
+       worst entry (58,58): cpu=-1.0654124670337071e-06 gpu=-1.0654124670337062e-06  maxRel=7.95e-16
+  FAIL warped 3d 6        mixed     constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=11,abs=5.55e-17,scale=2.481]
+       worst entry (162,162): cpu=0.28242392582394421 gpu=0.28242392582394427  maxRel=8.02e-16
+  PASS warped 3d 6        dirichlet linear        uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.338]
+  PASS warped 3d 6        neumann   linear        uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.024]
+  PASS warped 3d 6        mixed     linear        uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.103]
+  FAIL warped 3d 6        dirichlet linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=27,abs=1.11e-16,scale=2.331]
+       worst entry (167,167): cpu=0.51001936372109402 gpu=0.51001936372109413  maxRel=5.58e-15
+  FAIL warped 3d 6        neumann   linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=31,abs=1.3e-18,scale=2.024]
+       worst entry (134,134): cpu=0.00074942629009401964 gpu=0.00074942629009402094  maxRel=1.82e-14
+  FAIL warped 3d 6        mixed     linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=28,abs=2.22e-16,scale=2.1]
+       worst entry (12,12): cpu=1.2749835765040929 gpu=1.2749835765040927  maxRel=5.38e-15
+  PASS warped 3d 6        dirichlet quadratic     uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.336]
+  PASS warped 3d 6        neumann   quadratic     uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.623]
+  PASS warped 3d 6        mixed     quadratic     uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.94]
+  FAIL warped 3d 6        dirichlet quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=10,abs=2.6e-18,scale=2.332]
+       worst entry (52,52): cpu=0.0015642572948992121 gpu=0.0015642572948992095  maxRel=3.54e-15
+  FAIL warped 3d 6        neumann   quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=13,abs=5.55e-17,scale=1.622]
+       worst entry (68,68): cpu=0.41240217173891897 gpu=0.41240217173891891  maxRel=1.54e-15
+  FAIL warped 3d 6        mixed     quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=10,abs=1.73e-18,scale=1.932]
+       worst entry (63,63): cpu=6.2956198618743277e-05 gpu=6.2956198618745011e-05  maxRel=2.76e-14
+  PASS warped 3d 6        dirichlet manufactured  uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.347]
+  PASS warped 3d 6        neumann   manufactured  uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.5584]
+  PASS warped 3d 6        mixed     manufactured  uniform  corr=off nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.86]
+  FAIL warped 3d 6        dirichlet manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=12,abs=5.55e-17,scale=2.325]
+       worst entry (84,84): cpu=0.27490012474103687 gpu=0.27490012474103681  maxRel=8.71e-16
+  FAIL warped 3d 6        neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=17,abs=6.94e-18,scale=0.5581]
+       worst entry (168,168): cpu=-0.048133934637230882 gpu=-0.048133934637230889  maxRel=1.15e-15
+  FAIL warped 3d 6        mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=15,abs=1.73e-18,scale=1.873]
+       worst entry (133,133): cpu=-0.0064225929420479409 gpu=-0.0064225929420479427  maxRel=2.78e-14
+  PASS warped 3d 6        dirichlet constant      varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.897]
+  PASS warped 3d 6        neumann   constant      varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.812]
+  PASS warped 3d 6        mixed     constant      varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.812]
+  FAIL warped 3d 6        dirichlet constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=11,abs=2.17e-19,scale=3.903]
+       worst entry (52,52): cpu=0.00093664876872667975 gpu=0.00093664876872667953  maxRel=7.68e-16
+  FAIL warped 3d 6        neumann   constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=10,abs=8.47e-22,scale=3.813]
+       worst entry (58,58): cpu=-1.5616192964035662e-06 gpu=-1.5616192964035654e-06  maxRel=1.9e-15
+  FAIL warped 3d 6        mixed     constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=11,abs=2.78e-17,scale=3.813]
+       worst entry (150,150): cpu=0.19766419143064279 gpu=0.19766419143064276  maxRel=6.25e-16
+  PASS warped 3d 6        dirichlet linear        varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.908]
+  PASS warped 3d 6        neumann   linear        varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.658]
+  PASS warped 3d 6        mixed     linear        varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.587]
+  FAIL warped 3d 6        dirichlet linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=24,abs=1.73e-18,scale=3.896]
+       worst entry (52,52): cpu=-0.00048271851367380318 gpu=-0.00048271851367380492  maxRel=2.99e-14
+  FAIL warped 3d 6        neumann   linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=29,abs=1.73e-18,scale=2.659]
+       worst entry (94,94): cpu=0.0012034306334993568 gpu=0.0012034306334993551  maxRel=1.22e-14
+  FAIL warped 3d 6        mixed     linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=27,abs=2.6e-18,scale=2.587]
+       worst entry (134,134): cpu=0.0010178513966595873 gpu=0.0010178513966595899  maxRel=3.47e-13
+  PASS warped 3d 6        dirichlet quadratic     varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.904]
+  PASS warped 3d 6        neumann   quadratic     varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.712]
+  PASS warped 3d 6        mixed     quadratic     varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.781]
+  FAIL warped 3d 6        dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=11,abs=1.73e-18,scale=3.897]
+       worst entry (100,100): cpu=0.0005794783880545178 gpu=0.00057947838805451606  maxRel=2.99e-15
+  FAIL warped 3d 6        neumann   quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=12,abs=2.6e-18,scale=2.711]
+       worst entry (52,52): cpu=0.0027124968638782871 gpu=0.0027124968638782844  maxRel=4.01e-15
+  FAIL warped 3d 6        mixed     quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=13,abs=5.55e-17,scale=2.77]
+       worst entry (192,192): cpu=0.33413483300098423 gpu=0.33413483300098429  maxRel=4.2e-15
+  PASS warped 3d 6        dirichlet manufactured  varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.922]
+  PASS warped 3d 6        neumann   manufactured  varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.855]
+  PASS warped 3d 6        mixed     manufactured  varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.753]
+  FAIL warped 3d 6        dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=11,abs=2.78e-17,scale=3.888]
+       worst entry (114,114): cpu=0.18888141426829466 gpu=0.18888141426829469  maxRel=3.06e-15
+  FAIL warped 3d 6        neumann   manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=18,abs=1.73e-18,scale=0.8571]
+       worst entry (46,46): cpu=-0.0043141441917226315 gpu=-0.0043141441917226298  maxRel=1.89e-15
+  FAIL warped 3d 6        mixed     manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=9,abs=1.3e-18,scale=1.736]
+       worst entry (64,64): cpu=0.0028551517757421456 gpu=0.002855151775742147  maxRel=2.7e-15
+
+quick mode: cases=96 failures=48
+DIFFUSION EQUIVALENCE (quick): FAIL
+
+########## harness momentum_assembly --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001F: CUDA SIMPLE momentum assembly vs CPU (bitwise) ===
+CPU reference: pressure_velocity::assembleRelaxedMomentumComponent
+
+       [distorted q16/wall cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=1.27e-21   scaleA=0.06069    scaleR=1.176e-06 
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=1.27e-21   scaleA=4.2        scaleR=1.176e-06 
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=38] dvec[d=0] maxAbs=3.47e-18   scaleA=0.4616     scaleR=0.003267  
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=38] dvec[d=0] maxAbs=3.47e-18   scaleA=4.494      scaleR=0.003267  
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=31] dvec[d=0] maxAbs=4.34e-19   scaleA=0.1137     scaleR=0.0004193 
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=0.1624     scaleR=0.06679   
+  FAIL distorted q16  wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=31] dvec[d=0] maxAbs=4.34e-19   scaleA=4.234      scaleR=0.0004193 
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=1.06e-22   scaleA=4.2        scaleR=0.1103    
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=52] dvec[d=0] maxAbs=6.94e-18   scaleA=0.4616     scaleR=0.006965  
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.39e-17   scaleA=0.6594     scaleR=0.4023    
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=9] dvec[d=0] maxAbs=6.94e-18   scaleA=4.494      scaleR=0.1132    
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=6.42       scaleR=3.477     
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=14] dvec[d=0] maxAbs=6.51e-19   scaleA=0.1137     scaleR=0.00217   
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=0.1624     scaleR=0.0873    
+  FAIL distorted q16  wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.71e-20   scaleA=4.234      scaleR=0.1105    
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.12e-22   scaleA=4.2        scaleR=0.1208    
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=32] dvec[d=0] maxAbs=2.6e-18    scaleA=0.4616     scaleR=0.00485   
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-17   scaleA=0.6594     scaleR=0.2732    
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.67e-19   scaleA=1.539      scaleR=1.494     
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=3.47e-18   scaleA=4.494      scaleR=0.1226    
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=11] dvec[d=0] maxAbs=3.25e-19   scaleA=0.1137     scaleR=0.00306   
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=1.08e-19   scaleA=4.234      scaleR=0.1208    
+  FAIL distorted q16  wall      U  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=6.049      scaleR=3.24      
+  FAIL distorted q16  wall      U  quick         nonuniform  gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=3.47e-18   scaleA=0.4616     scaleR=5.472     
+  FAIL distorted q16  wall      U  quick         nonuniform  gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=4.234      scaleR=5.481     
+  FAIL distorted q16  wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=34] dvec[d=0] maxAbs=4.24e-22   scaleA=0.06069    scaleR=7.056e-07 
+  FAIL distorted q16  wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=34] dvec[d=0] maxAbs=4.24e-22   scaleA=4.2        scaleR=7.056e-07 
+  FAIL distorted q16  wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=1.73e-18   scaleA=0.4616     scaleR=0.00196   
+  FAIL distorted q16  wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=1.73e-18   scaleA=4.494      scaleR=0.00196   
+  FAIL distorted q16  wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=36] dvec[d=0] maxAbs=1.08e-19   scaleA=0.1137     scaleR=0.0002516 
+  FAIL distorted q16  wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=36] dvec[d=0] maxAbs=1.08e-19   scaleA=4.234      scaleR=0.0002516 
+  FAIL distorted q16  wall      V  quick         uniform     nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=0.4616     scaleR=40.85     
+  FAIL distorted q16  wall      V  quick         uniform     nonuniform a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=0.6594     scaleR=40.71     
+  FAIL distorted q16  wall      V  quick         uniform     nonuniform a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=1.539      scaleR=40.11     
+  FAIL distorted q16  wall      V  quick         uniform     nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=4.494      scaleR=40.85     
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.29e-23   scaleA=4.2        scaleR=0.06847   
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=8] dvec[d=0] maxAbs=8.67e-19   scaleA=0.4616     scaleR=0.002771  
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=0.6594     scaleR=0.3949    
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=0.05  nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.34e-19   scaleA=9.231      scaleR=17.53     
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=3.47e-18   scaleA=4.494      scaleR=0.06833   
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=6.42       scaleR=3.486     
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.17e-19   scaleA=0.1137     scaleR=0.001486  
+  FAIL distorted q16  wall      V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.78e-21   scaleA=4.234      scaleR=0.06846   
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=4.24e-22   scaleA=4.2        scaleR=0.1241    
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.69e-21   scaleA=6          scaleR=3.25      
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=48] dvec[d=0] maxAbs=1.73e-18   scaleA=0.4616     scaleR=0.004223  
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=1.39e-17   scaleA=0.6594     scaleR=0.2739    
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=11] dvec[d=0] maxAbs=2.78e-17   scaleA=4.494      scaleR=0.1229    
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=6.42       scaleR=3.403     
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=20] dvec[d=0] maxAbs=2.17e-19   scaleA=0.1137     scaleR=0.003057  
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=6.94e-18   scaleA=4.234      scaleR=0.1239    
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=6.049      scaleR=3.261     
+  FAIL distorted q16  wall      V  quick         nonuniform  uniform    a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=14.11      scaleR=17.58     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=4.494      scaleR=19.75     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=6.42       scaleR=20.14     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=14.98      scaleR=25.14     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=4.234      scaleR=19.75     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=6.049      scaleR=20.07     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=14.11      scaleR=24.21     
+  FAIL distorted q16  wall      V  quick         nonuniform  gradient   a=0.05  nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=84.69      scaleR=142.5     
+       [distorted q16/all-five cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+  FAIL distorted q16  all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=1.36e-20   scaleA=0.06069    scaleR=0.04402   
+  FAIL distorted q16  all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=1.36e-20   scaleA=4.2        scaleR=1.2       
+  FAIL distorted q16  all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=12] dvec[d=0] maxAbs=2.71e-20   scaleA=0.4616     scaleR=0.3507    
+  FAIL distorted q16  all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=12] dvec[d=0] maxAbs=2.71e-20   scaleA=4.494      scaleR=1.419     
+  FAIL distorted q16  all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=10] dvec[d=0] maxAbs=3.39e-21   scaleA=0.107      scaleR=0.07084   
+  FAIL distorted q16  all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=10] dvec[d=0] maxAbs=3.39e-21   scaleA=4.234      scaleR=1.222     
+  FAIL distorted q16  all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=22] dvec[d=0] maxAbs=1.27e-21   scaleA=0.06069    scaleR=0.04406   
+  FAIL distorted q16  all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=22] dvec[d=0] maxAbs=1.27e-21   scaleA=4.2        scaleR=1.2       
+  FAIL distorted q16  all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=22] dvec[d=0] maxAbs=1.73e-18   scaleA=0.4616     scaleR=0.3622    
+  FAIL distorted q16  all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=22] dvec[d=0] maxAbs=1.73e-18   scaleA=4.494      scaleR=1.42      
+  FAIL distorted q16  all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=20] dvec[d=0] maxAbs=1.08e-19   scaleA=0.107      scaleR=0.08688   
+  FAIL distorted q16  all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=20] dvec[d=0] maxAbs=1.08e-19   scaleA=4.234      scaleR=1.222     
+  FAIL distorted q16  all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=1.06e-22   scaleA=4.2        scaleR=1.236     
+  FAIL distorted q16  all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=52] dvec[d=0] maxAbs=8.67e-19   scaleA=0.4616     scaleR=0.4054    
+  FAIL distorted q16  all-five  U  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.6594     scaleR=0.753     
+  FAIL distorted q16  all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=3.47e-18   scaleA=4.494      scaleR=1.426     
+  FAIL distorted q16  all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=10] dvec[d=0] maxAbs=1.08e-19   scaleA=0.107      scaleR=0.09283   
+  FAIL distorted q16  all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.71e-20   scaleA=4.234      scaleR=1.257     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.12e-22   scaleA=4.2        scaleR=1.213     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=3.39e-21   scaleA=6          scaleR=3.23      
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=33] dvec[d=0] maxAbs=2.78e-17   scaleA=0.4616     scaleR=0.3502    
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.17e-19   scaleA=0.6594     scaleR=0.4334    
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.34e-19   scaleA=1.539      scaleR=1.608     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=6.94e-18   scaleA=4.494      scaleR=1.419     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=6.42       scaleR=3.382     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=14.98      scaleR=18.34     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=8] dvec[d=0] maxAbs=2.17e-19   scaleA=0.107      scaleR=0.076     
+  FAIL distorted q16  all-five  U  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.71e-20   scaleA=4.234      scaleR=1.234     
+  FAIL distorted q16  all-five  U  quick         nonuniform  gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.73e-18   scaleA=4.494      scaleR=5.438     
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=8.27e-25   scaleA=0.06069    scaleR=0.01173   
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=8.27e-25   scaleA=4.2        scaleR=0.32      
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=3.39e-21   scaleA=0.4616     scaleR=0.066     
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=3.39e-21   scaleA=4.494      scaleR=0.3784    
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=18] dvec[d=0] maxAbs=4.34e-19   scaleA=0.107      scaleR=0.01534   
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.73e-18   scaleA=0.1529     scaleR=0.02784   
+  FAIL distorted q16  all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=17] dvec[d=0] maxAbs=4.34e-19   scaleA=4.234      scaleR=0.3246    
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=29] dvec[d=0] maxAbs=1.69e-21   scaleA=0.06069    scaleR=0.022     
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=29] dvec[d=0] maxAbs=1.69e-21   scaleA=4.2        scaleR=0.6       
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=1.39e-17   scaleA=0.4616     scaleR=0.1119    
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.6594     scaleR=0.3246    
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=1.39e-17   scaleA=4.494      scaleR=0.6818    
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=8.13e-20   scaleA=0.107      scaleR=0.0267    
+  FAIL distorted q16  all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=8.13e-20   scaleA=4.234      scaleR=0.6075    
+  FAIL distorted q16  all-five  V  quick         uniform     gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=0.4616     scaleR=19.78     
+  FAIL distorted q16  all-five  V  quick         uniform     gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=0.6594     scaleR=19.99     
+  FAIL distorted q16  all-five  V  quick         uniform     gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=4.494      scaleR=19.77     
+  FAIL distorted q16  all-five  V  quick         uniform     gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=6.42       scaleR=20.76     
+  FAIL distorted q16  all-five  V  quick         uniform     nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.4616     scaleR=40.79     
+  FAIL distorted q16  all-five  V  quick         uniform     nonuniform a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=0.6594     scaleR=40.66     
+  FAIL distorted q16  all-five  V  quick         uniform     nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.494      scaleR=40.79     
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.69e-21   scaleA=4.2        scaleR=0.9437    
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=6.94e-18   scaleA=0.4616     scaleR=0.1549    
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=5.55e-17   scaleA=0.6594     scaleR=0.429     
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-17   scaleA=4.494      scaleR=1.066     
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=6.42       scaleR=3.486     
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=8.67e-19   scaleA=0.107      scaleR=0.04106   
+  FAIL distorted q16  all-five  V  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=8.67e-19   scaleA=4.234      scaleR=0.9537    
+  FAIL distorted q16  all-five  V  quick         linear      gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=0.4616     scaleR=19.78     
+  FAIL distorted q16  all-five  V  quick         linear      gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=0.6594     scaleR=20.18     
+  FAIL distorted q16  all-five  V  quick         linear      gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=4.494      scaleR=19.77     
+  FAIL distorted q16  all-five  V  quick         linear      gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=6.42       scaleR=21.62     
+  FAIL distorted q16  all-five  V  quick         linear      gradient   a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=14.98      scaleR=30.63     
+  FAIL distorted q16  all-five  V  quick         linear      nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=0.4616     scaleR=40.79     
+  FAIL distorted q16  all-five  V  quick         linear      nonuniform a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.6594     scaleR=40.67     
+  FAIL distorted q16  all-five  V  quick         linear      nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=4.494      scaleR=40.79     
+  FAIL distorted q16  all-five  V  quick         linear      nonuniform a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=6.42       scaleR=40.43     
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=4.24e-22   scaleA=4.2        scaleR=0.323     
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=48] dvec[d=0] maxAbs=6.94e-18   scaleA=0.4616     scaleR=0.07059   
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=1.39e-17   scaleA=0.6594     scaleR=0.3247    
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=8] dvec[d=0] maxAbs=1.39e-17   scaleA=4.494      scaleR=0.3814    
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=6.42       scaleR=3.403     
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=14] dvec[d=0] maxAbs=2.17e-19   scaleA=0.107      scaleR=0.01527   
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=6.94e-18   scaleA=4.234      scaleR=0.3275    
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=6.049      scaleR=3.261     
+  FAIL distorted q16  all-five  V  quick         nonuniform  uniform    a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=14.11      scaleR=17.58     
+  FAIL distorted q16  all-five  V  quick         nonuniform  gradient   a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=4.234      scaleR=19.75     
+  FAIL distorted q16  all-five  V  quick         nonuniform  gradient   a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=6.049      scaleR=20.08     
+  FAIL distorted q16  all-five  V  quick         nonuniform  gradient   a=0.3   nonorth src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=14.11      scaleR=24.21     
+  FAIL distorted q16  all-five  V  quick         nonuniform  gradient   a=0.05  nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=84.69      scaleR=142.5     
+       [warped 3d 3/wall cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+  FAIL warped 3d 3    wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.12e-22   scaleA=0.08809    scaleR=7.844e-07 
+  FAIL warped 3d 3    wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.12e-22   scaleA=4.7        scaleR=7.844e-07 
+  FAIL warped 3d 3    wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=4.34e-19   scaleA=0.2885     scaleR=0.002179  
+  FAIL warped 3d 3    wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=4.34e-19   scaleA=4.866      scaleR=0.002179  
+  FAIL warped 3d 3    wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=8.13e-20   scaleA=0.1104     scaleR=0.0002049 
+  FAIL warped 3d 3    wall      U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=8.13e-20   scaleA=4.721      scaleR=0.0002049 
+  FAIL warped 3d 3    wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.12e-22   scaleA=4.7        scaleR=0.4439    
+  FAIL warped 3d 3    wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.73e-18   scaleA=0.2885     scaleR=0.01321   
+  FAIL warped 3d 3    wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.34e-19   scaleA=4.866      scaleR=0.4437    
+  FAIL warped 3d 3    wall      U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.71e-20   scaleA=4.721      scaleR=0.4439    
+  FAIL warped 3d 3    wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=1.06e-22   scaleA=0.08809    scaleR=4.707e-07 
+  FAIL warped 3d 3    wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=1.06e-22   scaleA=4.7        scaleR=4.707e-07 
+  FAIL warped 3d 3    wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.17e-19   scaleA=0.2885     scaleR=0.001307  
+  FAIL warped 3d 3    wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.17e-19   scaleA=4.866      scaleR=0.001307  
+  FAIL warped 3d 3    wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.36e-20   scaleA=0.1104     scaleR=0.0001229 
+  FAIL warped 3d 3    wall      V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.36e-20   scaleA=4.721      scaleR=0.0001229 
+  FAIL warped 3d 3    wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.29e-23   scaleA=4.7        scaleR=0.2931    
+  FAIL warped 3d 3    wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.73e-18   scaleA=0.2885     scaleR=0.009068  
+  FAIL warped 3d 3    wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.08e-19   scaleA=4.866      scaleR=0.2934    
+  FAIL warped 3d 3    wall      V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.36e-20   scaleA=4.721      scaleR=0.2931    
+  FAIL warped 3d 3    wall      W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=5.29e-23   scaleA=0.08809    scaleR=2.51e-07  
+  FAIL warped 3d 3    wall      W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=5.29e-23   scaleA=4.7        scaleR=2.51e-07  
+  FAIL warped 3d 3    wall      W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.17e-19   scaleA=0.2885     scaleR=0.0006973 
+  FAIL warped 3d 3    wall      W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.17e-19   scaleA=4.866      scaleR=0.0006973 
+  FAIL warped 3d 3    wall      W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.71e-20   scaleA=0.1104     scaleR=6.557e-05 
+  FAIL warped 3d 3    wall      W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.71e-20   scaleA=4.721      scaleR=6.557e-05 
+  FAIL warped 3d 3    wall      W  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.62e-24   scaleA=4.7        scaleR=0.1779    
+  FAIL warped 3d 3    wall      W  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.42e-20   scaleA=0.2885     scaleR=0.002696  
+  FAIL warped 3d 3    wall      W  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.71e-20   scaleA=4.866      scaleR=0.1778    
+  FAIL warped 3d 3    wall      W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.29e-23   scaleA=0.08809    scaleR=0.001289  
+  FAIL warped 3d 3    wall      W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.65e-23   scaleA=4.7        scaleR=0.08781   
+  FAIL warped 3d 3    wall      W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=0.2885     scaleR=0.00146   
+  FAIL warped 3d 3    wall      W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=3.47e-18   scaleA=4.866      scaleR=0.08723   
+  FAIL warped 3d 3    wall      W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=6.78e-21   scaleA=0.1104     scaleR=0.00131   
+  FAIL warped 3d 3    wall      W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.78e-21   scaleA=4.721      scaleR=0.08778   
+       [warped 3d 3/all-five cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+  FAIL warped 3d 3    all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=6.62e-24   scaleA=0.08809    scaleR=0.05558   
+  FAIL warped 3d 3    all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=6.62e-24   scaleA=4.7        scaleR=1.2       
+  FAIL warped 3d 3    all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.71e-20   scaleA=0.2885     scaleR=0.1434    
+  FAIL warped 3d 3    all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.71e-20   scaleA=4.849      scaleR=1.276     
+  FAIL warped 3d 3    all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.69e-21   scaleA=0.1082     scaleR=0.06456   
+  FAIL warped 3d 3    all-five  U  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.69e-21   scaleA=4.718      scaleR=1.208     
+  FAIL warped 3d 3    all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.14e-25   scaleA=0.08809    scaleR=0.05561   
+  FAIL warped 3d 3    all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.14e-25   scaleA=4.7        scaleR=1.72      
+  FAIL warped 3d 3    all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=0.2885     scaleR=0.2096    
+  FAIL warped 3d 3    all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=4.849      scaleR=1.803     
+  FAIL warped 3d 3    all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.06e-22   scaleA=0.1082     scaleR=0.0738    
+  FAIL warped 3d 3    all-five  U  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.06e-22   scaleA=4.718      scaleR=1.725     
+  FAIL warped 3d 3    all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=0.2885     scaleR=0.2246    
+  FAIL warped 3d 3    all-five  U  quick         linear      uniform    a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=0.4122     scaleR=0.4356    
+  FAIL warped 3d 3    all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.42e-20   scaleA=0.1082     scaleR=0.07314   
+  FAIL warped 3d 3    all-five  U  quick         linear      uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.34e-19   scaleA=4.718      scaleR=1.365     
+  FAIL warped 3d 3    all-five  U  quick         linear      nonuniform a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=0.2885     scaleR=45.3      
+  FAIL warped 3d 3    all-five  U  quick         linear      nonuniform a=0.7   nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.94e-18   scaleA=0.4122     scaleR=45.21     
+  FAIL warped 3d 3    all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.65e-24   scaleA=0.08809    scaleR=0.01482   
+  FAIL warped 3d 3    all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.65e-24   scaleA=4.7        scaleR=0.32      
+  FAIL warped 3d 3    all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=6.78e-21   scaleA=0.2885     scaleR=0.02079   
+  FAIL warped 3d 3    all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=6.78e-21   scaleA=4.849      scaleR=0.3372    
+  FAIL warped 3d 3    all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=8.47e-22   scaleA=0.1082     scaleR=0.01543   
+  FAIL warped 3d 3    all-five  V  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=8.47e-22   scaleA=4.718      scaleR=0.3212    
+  FAIL warped 3d 3    all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.08e-19   scaleA=0.2885     scaleR=0.0788    
+  FAIL warped 3d 3    all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.08e-19   scaleA=4.849      scaleR=0.6521    
+  FAIL warped 3d 3    all-five  V  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.17e-19   scaleA=4.718      scaleR=0.6048    
+  FAIL warped 3d 3    all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.29e-23   scaleA=4.7        scaleR=0.4498    
+  FAIL warped 3d 3    all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.34e-19   scaleA=0.2885     scaleR=0.06764   
+  FAIL warped 3d 3    all-five  V  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.08e-19   scaleA=4.849      scaleR=0.4667    
+  FAIL warped 3d 3    all-five  W  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.17e-26   scaleA=0.08809    scaleR=0.007409  
+  FAIL warped 3d 3    all-five  W  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.17e-26   scaleA=4.7        scaleR=0.16      
+  FAIL warped 3d 3    all-five  W  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.12e-22   scaleA=0.2885     scaleR=0.01152   
+  FAIL warped 3d 3    all-five  W  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.12e-22   scaleA=4.849      scaleR=0.1686    
+  FAIL warped 3d 3    all-five  W  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.32e-23   scaleA=0.1082     scaleR=0.007838  
+  FAIL warped 3d 3    all-five  W  quick         zero        uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.32e-23   scaleA=4.718      scaleR=0.1606    
+  FAIL warped 3d 3    all-five  W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.24e-22   scaleA=0.08809    scaleR=0.01482   
+  FAIL warped 3d 3    all-five  W  quick         uniform     uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.24e-22   scaleA=4.7        scaleR=0.32      
+  FAIL warped 3d 3    all-five  W  quick         nonuniform  uniform    a=1     nonorth diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=6.78e-21   scaleA=0.1082     scaleR=0.01198   
+
+=== coverage ===
+  component U   4624 cases
+  component V   4624 cases
+  component W   2312 cases
+  scheme upwind         2890 cases
+  scheme central        2890 cases
+  scheme linear_upwind  2890 cases
+  scheme quick          2890 cases
+  relaxation factors exercised     4 (alpha = 1.0, 0.7, 0.3, 0.05)
+  relaxed (alpha != 1) cases       8680
+  momentum-source cases            2880
+  non-orthogonal-correction cases  2880
+  sparsity pattern mismatches      0
+  bitwise-identical cases          11347 of 11560
+  max absolute discrepancy         4.44e-16
+  max relative discrepancy         3.88e-13
+
+cases=11560 failures=213
+MOMENTUM ASSEMBLY EQUIVALENCE: FAIL

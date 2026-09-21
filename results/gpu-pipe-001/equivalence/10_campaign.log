@@ -1,0 +1,86 @@
+CPU/GPU equivalence campaign -- GPU backend applies to the momentum and
+pressure LINEAR SOLVES only; no other physics exposes a backend setting.
+
+=== 2D cavity 6x6 (the repo equivalence test's own case)  (36 cells, 3000 outer budget) ===
+    CPU: outer=737 linear=13979 status=0  p_res=9.9803589901745153e-07 cont=8.341e-11 mass=0.000e+00
+    GPU: outer=737 linear=13979 status=0  p_res=9.9803589940025389e-07 cont=8.341e-11 mass=0.000e+00
+    GPU actually executed: kernels=291419 fallbacks=0 (CPU arm kernels=0)
+    pressure   max|d|=1.561e-15  maxrel=4.320e-12  bound=1e-06  PASS
+    u          max|d|=6.800e-16  maxrel=3.964e-14  bound=1e-06  PASS
+    v          max|d|=7.043e-16  maxrel=1.029e-12  bound=1e-06  PASS
+    outer CPU=737 GPU=737   linear CPU=13979 GPU=13979
+
+=== 2D cavity 20x20  (400 cells, 3000 outer budget) ===
+    CPU: outer=3000 linear=171354 status=1  p_res=1.4469528949573745e-06 cont=5.112e-11 mass=0.000e+00
+    GPU: outer=3000 linear=171433 status=1  p_res=1.4469514765749391e-06 cont=6.273e-11 mass=0.000e+00
+    GPU actually executed: kernels=2539883 fallbacks=0 (CPU arm kernels=0)
+    NOT CONVERGED (CPU status=1 GPU status=1) -- field bound NOT applied.
+    Comparing an exhausted iteration budget would compare transients, not
+    solutions. Residual agreement and validity are checked instead.
+    (informational) pressure max|d|=5.796e-09  u max|d|=2.070e-09
+    outer CPU=3000 GPU=3000   linear CPU=171354 GPU=171433
+
+=== 2D cavity 40x40  (1600 cells, 3000 outer budget) ===
+    CPU: outer=3000 linear=243384 status=1  p_res=6.5751888576822637e-06 cont=8.369e-11 mass=0.000e+00
+    GPU: outer=1845 linear=160367 status=3  p_res=1.4513381583017726e-05 cont=5.543e-11 mass=0.000e+00
+    GPU actually executed: kernels=2301249 fallbacks=0 (CPU arm kernels=0)
+    NOT CONVERGED (CPU status=1 GPU status=3) -- field bound NOT applied.
+    Comparing an exhausted iteration budget would compare transients, not
+    solutions. Residual agreement and validity are checked instead.
+    (informational) pressure max|d|=5.118e-03  u max|d|=1.899e-04
+      FAIL convergence state differs: CPU=1 GPU=3
+    outer CPU=3000 GPU=1845   linear CPU=243384 GPU=160367
+
+=== 2D cavity 80x80  (6400 cells, 3000 outer budget) ===
+    CPU: outer=3000 linear=358094 status=1  p_res=4.7651103325862748e-06 cont=4.559e-11 mass=0.000e+00
+    GPU: outer=3000 linear=357636 status=1  p_res=4.7651103642324684e-06 cont=4.926e-11 mass=0.000e+00
+    GPU actually executed: kernels=4847891 fallbacks=0 (CPU arm kernels=0)
+    NOT CONVERGED (CPU status=1 GPU status=1) -- field bound NOT applied.
+    Comparing an exhausted iteration budget would compare transients, not
+    solutions. Residual agreement and validity are checked instead.
+    (informational) pressure max|d|=1.485e-07  u max|d|=1.309e-08
+    outer CPU=3000 GPU=3000   linear CPU=358094 GPU=357636
+
+=== 3D cavity 10x10x10  (1000 cells, 3000 outer budget) ===
+    CPU: outer=36 linear=2365 status=0  p_res=7.5262553343997144e-07 cont=7.003e-11 mass=0.000e+00
+    GPU: outer=36 linear=2376 status=0  p_res=7.5263122571134905e-07 cont=1.186e-11 mass=0.000e+00
+    GPU actually executed: kernels=42987 fallbacks=0 (CPU arm kernels=0)
+    pressure   max|d|=7.160e-08  maxrel=8.241e-01  bound=1e-06  PASS
+    u          max|d|=6.115e-08  maxrel=1.676e-04  bound=1e-06  PASS
+    v          max|d|=6.077e-08  maxrel=4.981e-05  bound=1e-06  PASS
+    w          max|d|=6.111e-08  maxrel=5.979e-05  bound=1e-06  PASS
+    outer CPU=36 GPU=36   linear CPU=2365 GPU=2376
+
+=== 3D cavity 16x16x16  (4096 cells, 3000 outer budget) ===
+    CPU: outer=73 linear=7339 status=0  p_res=1.8736938202630061e-07 cont=5.107e-12 mass=0.000e+00
+    GPU: outer=73 linear=7364 status=0  p_res=1.8736502484487261e-07 cont=6.684e-11 mass=0.000e+00
+    GPU actually executed: kernels=117897 fallbacks=0 (CPU arm kernels=0)
+    pressure   max|d|=4.708e-07  maxrel=6.418e-01  bound=1e-06  PASS
+    u          max|d|=2.437e-07  maxrel=4.238e-02  bound=1e-06  PASS
+    v          max|d|=2.436e-07  maxrel=9.041e-03  bound=1e-06  PASS
+    w          max|d|=2.438e-07  maxrel=1.643e-03  bound=1e-06  PASS
+    outer CPU=73 GPU=73   linear CPU=7339 GPU=7364
+
+=== 2D GPU-PCORR-001 size 320x320 (bounded budget)  (102400 cells, 3 outer budget) ===
+    CPU: outer=3 linear=4822 status=1  p_res=0.0011155798520548091 cont=8.788e-11 mass=0.000e+00
+    GPU: outer=3 linear=4722 status=1  p_res=0.001115579851979196 cont=8.566e-11 mass=0.000e+00
+    GPU actually executed: kernels=57543 fallbacks=0 (CPU arm kernels=0)
+    NOT CONVERGED (CPU status=1 GPU status=1) -- field bound NOT applied.
+    Comparing an exhausted iteration budget would compare transients, not
+    solutions. Residual agreement and validity are checked instead.
+    (informational) pressure max|d|=8.446e-05  u max|d|=5.795e-07
+    outer CPU=3 GPU=3   linear CPU=4822 GPU=4722
+
+=== 2D GPU-PCORR-001 size 640x640 (bounded budget)  (409600 cells, 2 outer budget) ===
+    CPU: outer=2 linear=7225 status=1  p_res=0.00067284030941691436 cont=7.809e-11 mass=0.000e+00
+    GPU: outer=2 linear=6915 status=1  p_res=0.00067284030945608225 cont=2.786e-11 mass=0.000e+00
+    GPU actually executed: kernels=83469 fallbacks=0 (CPU arm kernels=0)
+    NOT CONVERGED (CPU status=1 GPU status=1) -- field bound NOT applied.
+    Comparing an exhausted iteration budget would compare transients, not
+    solutions. Residual agreement and validity are checked instead.
+    (informational) pressure max|d|=4.135e-03  u max|d|=1.452e-05
+    outer CPU=2 GPU=2   linear CPU=7225 GPU=6915
+
+==========================================
+failures: 1
+EQUIVALENCE CAMPAIGN: FAIL

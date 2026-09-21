@@ -1,0 +1,40 @@
+=== D2H attribution: reductions predict 7 downloads per Krylov iteration ===
+BiCGSTAB per iteration: dot(rHat,r), dot(rHat,v), l2Norm(v), l2Norm(s),
+                        dot(t,t), dot(t,s), l2Norm(r)  = 7 reductions
+
+     grid       D2H   krylov  7*krylov  residual  % explained
+    20x20     73840    10516     73612       228       99.69%
+    40x40    133476    19047    133329       147       99.89%
+    80x80    159930    22818    159726       204       99.87%
+  160x160     82869    11838     82866         3      100.00%
+  320x320     53446     7639     53473       -27      100.05%
+  640x640     40492     5785     40495        -3      100.01%
+
+=== H2D attribution: uploads per linear solve ===
+     grid       H2D   solves  H2D/solve
+    20x20      1804      600       3.01
+    40x40      1804      600       3.01
+    80x80      1804      600       3.01
+  160x160       544      180       3.02
+  320x320       184       60       3.07
+  640x640        76       24       3.17
+
+=== payload size per D2H call (the partial-sums buffer) ===
+     grid     cells  bytes/call   doubles  ~cells/512
+    20x20       400          42         5         0.8
+    40x40      1600         113        14         3.1
+    80x80      6400         391        49        12.5
+  160x160     25600        1243       155        50.0
+  320x320    102400        4116       515       200.0
+  640x640    409600       14735      1842       800.0
+
+=== purpose breakdown, as the measurements support it ===
+purpose                direction     share  basis
+convergence/Krylov     D2H           ~100%  7.00 per Krylov iteration at every grid
+matrix + RHS + x0      H2D           ~100%  ~3 per linear solve at every grid
+field                  -          unmeasured  no per-purpose counter exists in this build
+boundary               -          unmeasured  no per-purpose counter exists in this build
+diagnostics            -          unmeasured  no per-purpose counter exists in this build
+residual (separate)    -          unmeasured  no per-purpose counter exists in this build
+
+total D2H calls across the ladder: 544,053   total H2D: 6,216

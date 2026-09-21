@@ -1,0 +1,29 @@
+# rp7_redundant_round_trip -- restored cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# sha256 7052a87475168323530944aee4be824dc3eb61d8725066563173832345abbf25
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness solve_transfers -> exit 0 ##########
+=== GPU-PIPE-001 resident pressure solve: transfer guard ===
+
+=== 40x40  cells=1600 ===
+  per pressure solve, steady state
+    window        H2D    D2H    D2H bytes note
+    assemble        0      0            0   budget 0 / 0
+    solve           0    784        76672   of which 783 are Krylov reductions
+    carry           0      1            4   budget 0 / 1
+    non-reduction D2H calls  2   (budget 2)
+    allocations              0   (budget 0)
+    Krylov iterations 196, converged
+
+=== 160x160  cells=25600 ===
+  per pressure solve, steady state
+    window        H2D    D2H    D2H bytes note
+    assemble        0      0            0   budget 0 / 0
+    solve           0   3368      4712808   of which 3367 are Krylov reductions
+    carry           0      1            4   budget 0 / 1
+    non-reduction D2H calls  2   (budget 2)
+    allocations              0   (budget 0)
+    Krylov iterations 842, converged
+
+SOLVE TRANSFER GUARD: PASS

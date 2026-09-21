@@ -1,0 +1,26 @@
+========= COMPUTE-SANITIZER
+=== GPU-DISC-001E: shared CUDA boundary-condition layer vs CPU (bitwise) ===
+isolated -- device evaluators driven directly, no equation or operator
+
+
+=== coverage ===
+  type FixedValue         covered
+  type FixedGradient      covered
+  type Wall               covered
+  type MovingWall         covered
+  type Inlet              covered
+  type Outlet             covered
+  type Symmetry           covered
+  type FixedTemperature   covered
+  type HeatFlux           covered
+  type Adiabatic          covered
+  type WallOmega          covered
+  scalar forms const/shift/affine   10 / 10 / 0 (sets reaching each)
+  vector forms const/identity/symm  10 / 6 / 5
+  ghost inflow/outflow/zero-flux    384 / 360 / 536
+  faces with an alternative distance 2400
+  total scalar comparisons          9600
+
+cases=30 failures=0
+BOUNDARY CONDITION EQUIVALENCE: PASS (bitwise)
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)

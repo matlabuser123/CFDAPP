@@ -1,0 +1,48 @@
+# k4_wrong_face_coefficient -- restored cuda/kernels/DeviceFaceFluxCorrectionKernel.cu
+# sha256 a05aa39cc91645fef0128f0e29118dc93791d7113b5479e7212998684c13efbe
+# matches baseline: True
+
+=== GPU-DISC-001K: CUDA face-flux correction vs CPU (bitwise) ===
+CPU reference: pressure_velocity::correctFaceMassFlux
+
+       [distorted q16/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 distorted q16  all-Neumann    swirl     all[4.427e-18->4.427e-18] solved[4.436e-18->4.436e-18 x1] pin=yes solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  all-Neumann    mixed     all[1.534->0.8219] solved[1.533->1.245e-13 x8.12e-14] pin=yes solve[it=122 r=1.56e-13] pairs=480 errors=0
+       [distorted q16/mixed pin=no fixedValueFaces=32]
+  PASS L3 distorted q16  mixed          swirl     all[4.427e-18->4.427e-18] solved[4.427e-18->4.427e-18 x1] pin=no solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  mixed          mixed     all[1.534->1.513e-14] solved[1.534->1.513e-14 x9.87e-15] pin=no solve[it=89 r=2.4e-13] pairs=480 errors=0
+       [distorted q16/all-FixedValue pin=no fixedValueFaces=64]
+  PASS L3 distorted q16  all-FixedValue swirl     all[4.427e-18->4.427e-18] solved[4.427e-18->4.427e-18 x1] pin=no solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  all-FixedValue mixed     all[1.534->3.692e-15] solved[1.534->3.692e-15 x2.41e-15] pin=no solve[it=79 r=5.66e-14] pairs=480 errors=0
+  PASS L4a distorted q16  controlled p' differing=0 maxAbs=0          scale=6.141
+       [warped 3d 3/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 warped 3d 3    all-Neumann    swirl     all[0.003709->0.01925] solved[0.003707->1.615e-15 x4.36e-13] pin=yes solve[it=20 r=8.26e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    all-Neumann    mixed     all[1.564->2.165] solved[1.584->1.388e-14 x8.76e-15] pin=yes solve[it=24 r=1.81e-14] pairs=54 errors=0
+       [warped 3d 3/mixed pin=no fixedValueFaces=27]
+  PASS L3 warped 3d 3    mixed          swirl     all[0.003709->4.586e-16] solved[0.003709->4.586e-16 x1.24e-13] pin=no solve[it=16 r=2.38e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    mixed          mixed     all[1.564->7.973e-15] solved[1.564->7.973e-15 x5.1e-15] pin=no solve[it=17 r=4.13e-14] pairs=54 errors=0
+       [warped 3d 3/all-FixedValue pin=no fixedValueFaces=54]
+  PASS L3 warped 3d 3    all-FixedValue swirl     all[0.003709->7.45e-16] solved[0.003709->7.45e-16 x2.01e-13] pin=no solve[it=16 r=3.87e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    all-FixedValue mixed     all[1.564->4.805e-15] solved[1.564->4.805e-15 x3.07e-15] pin=no solve[it=17 r=2.43e-14] pairs=54 errors=0
+  PASS L4a warped 3d 3    controlled p' differing=0 maxAbs=0          scale=133.4
+
+=== coverage ===
+  2D / 3D direct cases              300 / 300
+  without / with explicit term      300 / 300
+  interior faces compared           160200
+  corrected (FixedValue) boundary faces 17700
+  untouched Neumann boundary faces  8850
+  continuity cases                  12
+  imbalance reduced                 9
+  already-conservative predictors   3
+  owner/neighbour cancellations     3204
+  signed-zero flips (recorded, not errors) 996
+  controlled p' cases               2
+  full chain cases (GPU solve)      0
+  values compared                   587452
+  bitwise-identical                 587452
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=614 failures=0
+FACE FLUX CORRECTION EQUIVALENCE: PASS (bitwise)

@@ -1,0 +1,29 @@
+=== GPU-DISC-001Q: device-memory behaviour ===
+case: 160x160 cavity, gpu-disc path (GPU discretization + GPU solver)
+
+--- 1. does anything allocate INSIDE the outer loop? ---
+  budget    iters  allocations  reallocations     peak bytes        frees
+       2        2          371              0      127206520          371
+       5        5          371              0      127206520          371
+      20       20          371              0      127206520          371
+      60       60          371              0      127206520          371
+  PASS allocation count and peak bytes are INDEPENDENT of the outer budget
+       (2 iterations and 60 iterations allocate identically -- so nothing
+        allocates inside the loop, and there is no per-iteration VRAM creep)
+  PASS no buffer ever GREW after its first allocation (reallocations == 0)
+
+--- 2. is device memory released when the solve ends? ---
+  currentDeviceBytes after the solve returned: 0
+  allocations 371, frees 371
+  PASS every DeviceBuffer this solve allocated was released
+
+--- 3. does repeating the SAME solve grow the footprint? ---
+  repeat  allocations  reallocations     peak bytes
+       0          371              0      127206520
+       1          371              0      127206520
+       2          371              0      127206520
+       3          371              0      127206520
+       4          371              0      127206520
+  PASS repeated solves are identical in allocations and peak -- no creep, no leak
+
+MEMORY PROBE: PASS

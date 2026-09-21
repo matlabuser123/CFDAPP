@@ -1,0 +1,353 @@
+# k8_explicit_term_dropped  (expectation: detect)
+# the explicit non-orthogonal term dropped, so the corrected flux no longer matches what the pressure-correction RHS assumed
+# mutation applied to cuda/kernels/DeviceFaceFluxCorrectionKernel.cu
+# --- anchor ---
+  if (explicitFaceFlux != nullptr) value = value + explicitFaceFlux[f];
+# --- became ---
+  // MUTATED: the explicit term is gone.
+# verdict: DETECTED (exit 1)
+
+=== GPU-DISC-001K: CUDA face-flux correction vs CPU (bitwise) ===
+CPU reference: pressure_velocity::correctFaceMassFlux
+
+       [distorted q16/all-Neumann pin=yes fixedValueFaces=0]
+  FAIL distorted q16  all-Neumann    zero        positive  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=1.69
+  FAIL distorted q16  all-Neumann    zero        positive  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=1.413
+  FAIL distorted q16  all-Neumann    zero        negative  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.816
+  FAIL distorted q16  all-Neumann    zero        negative  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=2.567
+  FAIL distorted q16  all-Neumann    zero        mixed     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.535
+  FAIL distorted q16  all-Neumann    zero        mixed     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=2.497
+  FAIL distorted q16  all-Neumann    zero        swirl     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.122
+  FAIL distorted q16  all-Neumann    zero        swirl     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=1.87
+  FAIL distorted q16  all-Neumann    zero        reversed  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.11
+  FAIL distorted q16  all-Neumann    zero        reversed  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=1.864
+  FAIL distorted q16  all-Neumann    uniform     positive  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=1.69
+  FAIL distorted q16  all-Neumann    uniform     positive  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=1.413
+  FAIL distorted q16  all-Neumann    uniform     negative  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.816
+  FAIL distorted q16  all-Neumann    uniform     negative  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=2.567
+  FAIL distorted q16  all-Neumann    uniform     mixed     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.535
+  FAIL distorted q16  all-Neumann    uniform     mixed     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=2.497
+  FAIL distorted q16  all-Neumann    uniform     swirl     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.122
+  FAIL distorted q16  all-Neumann    uniform     swirl     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=1.87
+  FAIL distorted q16  all-Neumann    uniform     reversed  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=2.11
+  FAIL distorted q16  all-Neumann    uniform     reversed  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=1.864
+  FAIL distorted q16  all-Neumann    linear      positive  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=5.454
+  FAIL distorted q16  all-Neumann    linear      positive  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=9.03
+  FAIL distorted q16  all-Neumann    linear      negative  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=5.705
+  FAIL distorted q16  all-Neumann    linear      negative  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=10.43
+  FAIL distorted q16  all-Neumann    linear      mixed     uniform     +explicit jump[d=0] inc[d=480] flux[d=485] bnd[e=0] maxAbs=2.12       scaleF=6.054
+  FAIL distorted q16  all-Neumann    linear      mixed     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=485] bnd[e=0] maxAbs=1.87       scaleF=10.23
+  FAIL distorted q16  all-Neumann    linear      swirl     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=5.034
+  FAIL distorted q16  all-Neumann    linear      swirl     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=9.762
+  FAIL distorted q16  all-Neumann    linear      reversed  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=4.977
+  FAIL distorted q16  all-Neumann    linear      reversed  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=9.699
+  FAIL distorted q16  all-Neumann    nonuniform  positive  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=49.23
+  FAIL distorted q16  all-Neumann    nonuniform  positive  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=100.7
+  FAIL distorted q16  all-Neumann    nonuniform  negative  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=48.19
+  FAIL distorted q16  all-Neumann    nonuniform  negative  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=102.1
+  FAIL distorted q16  all-Neumann    nonuniform  mixed     uniform     +explicit jump[d=0] inc[d=480] flux[d=487] bnd[e=0] maxAbs=2.12       scaleF=49.44
+  FAIL distorted q16  all-Neumann    nonuniform  mixed     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=487] bnd[e=0] maxAbs=1.87       scaleF=101.4
+  FAIL distorted q16  all-Neumann    nonuniform  swirl     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=48.54
+  FAIL distorted q16  all-Neumann    nonuniform  swirl     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=101.5
+  FAIL distorted q16  all-Neumann    nonuniform  reversed  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=48.53
+  FAIL distorted q16  all-Neumann    nonuniform  reversed  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=101.4
+  FAIL distorted q16  all-Neumann    negative    positive  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=51.55
+  FAIL distorted q16  all-Neumann    negative    positive  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=102.1
+  FAIL distorted q16  all-Neumann    negative    negative  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=52.95
+  FAIL distorted q16  all-Neumann    negative    negative  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=100.7
+  FAIL distorted q16  all-Neumann    negative    mixed     uniform     +explicit jump[d=0] inc[d=480] flux[d=486] bnd[e=0] maxAbs=2.12       scaleF=52.1
+  FAIL distorted q16  all-Neumann    negative    mixed     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=486] bnd[e=0] maxAbs=1.87       scaleF=101.4
+  FAIL distorted q16  all-Neumann    negative    swirl     uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=52.26
+  FAIL distorted q16  all-Neumann    negative    swirl     nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=101.3
+  FAIL distorted q16  all-Neumann    negative    reversed  uniform     +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=2.12       scaleF=52.25
+  FAIL distorted q16  all-Neumann    negative    reversed  nonuniform  +explicit jump[d=0] inc[d=480] flux[d=480] bnd[e=0] maxAbs=1.87       scaleF=101.4
+  PASS L3 distorted q16  all-Neumann    swirl     all[4.427e-18->4.427e-18] solved[4.436e-18->4.436e-18 x1] pin=yes solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  all-Neumann    mixed     all[1.534->0.8219] solved[1.533->1.245e-13 x8.12e-14] pin=yes solve[it=122 r=1.56e-13] pairs=480 errors=0
+       [distorted q16/mixed pin=no fixedValueFaces=32]
+  FAIL distorted q16  mixed          zero        positive  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=15.36
+  FAIL distorted q16  mixed          zero        positive  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=11.67
+  FAIL distorted q16  mixed          zero        negative  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=13.96
+  FAIL distorted q16  mixed          zero        negative  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=10.27
+  FAIL distorted q16  mixed          zero        mixed     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=14.66
+  FAIL distorted q16  mixed          zero        mixed     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=11.42
+  FAIL distorted q16  mixed          zero        swirl     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=14.69
+  FAIL distorted q16  mixed          zero        swirl     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=10.99
+  FAIL distorted q16  mixed          zero        reversed  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=14.64
+  FAIL distorted q16  mixed          zero        reversed  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=10.94
+  FAIL distorted q16  mixed          uniform     positive  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=320.6
+  FAIL distorted q16  mixed          uniform     positive  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=309.9
+  FAIL distorted q16  mixed          uniform     negative  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=319.2
+  FAIL distorted q16  mixed          uniform     negative  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=308.5
+  FAIL distorted q16  mixed          uniform     mixed     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=321
+  FAIL distorted q16  mixed          uniform     mixed     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=310.5
+  FAIL distorted q16  mixed          uniform     swirl     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=319.9
+  FAIL distorted q16  mixed          uniform     swirl     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=309.2
+  FAIL distorted q16  mixed          uniform     reversed  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=319.9
+  FAIL distorted q16  mixed          uniform     reversed  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=309.2
+  FAIL distorted q16  mixed          linear      positive  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=136.1
+  FAIL distorted q16  mixed          linear      positive  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=141.8
+  FAIL distorted q16  mixed          linear      negative  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=134.7
+  FAIL distorted q16  mixed          linear      negative  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=140.4
+  FAIL distorted q16  mixed          linear      mixed     uniform     +explicit jump[d=0] inc[d=512] flux[d=514] bnd[e=0] maxAbs=14.7       scaleF=136.7
+  FAIL distorted q16  mixed          linear      mixed     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=514] bnd[e=0] maxAbs=11         scaleF=142.4
+  FAIL distorted q16  mixed          linear      swirl     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=135.4
+  FAIL distorted q16  mixed          linear      swirl     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=141.1
+  FAIL distorted q16  mixed          linear      reversed  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=135.4
+  FAIL distorted q16  mixed          linear      reversed  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=141.2
+  FAIL distorted q16  mixed          nonuniform  positive  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=481.6
+  FAIL distorted q16  mixed          nonuniform  positive  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=340.2
+  FAIL distorted q16  mixed          nonuniform  negative  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=480.2
+  FAIL distorted q16  mixed          nonuniform  negative  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=338.8
+  FAIL distorted q16  mixed          nonuniform  mixed     uniform     +explicit jump[d=0] inc[d=512] flux[d=517] bnd[e=0] maxAbs=14.7       scaleF=480.9
+  FAIL distorted q16  mixed          nonuniform  mixed     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=517] bnd[e=0] maxAbs=11         scaleF=339.9
+  FAIL distorted q16  mixed          nonuniform  swirl     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=480.9
+  FAIL distorted q16  mixed          nonuniform  swirl     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=339.5
+  FAIL distorted q16  mixed          nonuniform  reversed  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=480.9
+  FAIL distorted q16  mixed          nonuniform  reversed  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=339.5
+  FAIL distorted q16  mixed          negative    positive  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=481.9
+  FAIL distorted q16  mixed          negative    positive  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=339.4
+  FAIL distorted q16  mixed          negative    negative  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=483.3
+  FAIL distorted q16  mixed          negative    negative  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=340.8
+  FAIL distorted q16  mixed          negative    mixed     uniform     +explicit jump[d=0] inc[d=512] flux[d=514] bnd[e=0] maxAbs=14.7       scaleF=482.6
+  FAIL distorted q16  mixed          negative    mixed     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=514] bnd[e=0] maxAbs=11         scaleF=339.7
+  FAIL distorted q16  mixed          negative    swirl     uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=482.6
+  FAIL distorted q16  mixed          negative    swirl     nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=340.2
+  FAIL distorted q16  mixed          negative    reversed  uniform     +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=14.7       scaleF=482.6
+  FAIL distorted q16  mixed          negative    reversed  nonuniform  +explicit jump[d=0] inc[d=512] flux[d=512] bnd[e=0] maxAbs=11         scaleF=340.1
+  PASS L3 distorted q16  mixed          swirl     all[4.427e-18->4.427e-18] solved[4.427e-18->4.427e-18 x1] pin=no solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  mixed          mixed     all[1.534->1.513e-14] solved[1.534->1.513e-14 x9.87e-15] pin=no solve[it=89 r=2.4e-13] pairs=480 errors=0
+       [distorted q16/all-FixedValue pin=no fixedValueFaces=64]
+  FAIL distorted q16  all-FixedValue zero        positive  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=15.36
+  FAIL distorted q16  all-FixedValue zero        positive  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=22.1
+  FAIL distorted q16  all-FixedValue zero        negative  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=13.96
+  FAIL distorted q16  all-FixedValue zero        negative  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=23.5
+  FAIL distorted q16  all-FixedValue zero        mixed     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=14.66
+  FAIL distorted q16  all-FixedValue zero        mixed     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=22.43
+  FAIL distorted q16  all-FixedValue zero        swirl     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=14.69
+  FAIL distorted q16  all-FixedValue zero        swirl     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=22.77
+  FAIL distorted q16  all-FixedValue zero        reversed  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=14.64
+  FAIL distorted q16  all-FixedValue zero        reversed  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=22.83
+  FAIL distorted q16  all-FixedValue uniform     positive  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=321.4
+  FAIL distorted q16  all-FixedValue uniform     positive  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=624
+  FAIL distorted q16  all-FixedValue uniform     negative  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=320
+  FAIL distorted q16  all-FixedValue uniform     negative  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=622.6
+  FAIL distorted q16  all-FixedValue uniform     mixed     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=321
+  FAIL distorted q16  all-FixedValue uniform     mixed     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=623.3
+  FAIL distorted q16  all-FixedValue uniform     swirl     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=320.7
+  FAIL distorted q16  all-FixedValue uniform     swirl     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=623.2
+  FAIL distorted q16  all-FixedValue uniform     reversed  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=320.7
+  FAIL distorted q16  all-FixedValue uniform     reversed  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=623.3
+  FAIL distorted q16  all-FixedValue linear      positive  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=138.3
+  FAIL distorted q16  all-FixedValue linear      positive  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=228.3
+  FAIL distorted q16  all-FixedValue linear      negative  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=136.9
+  FAIL distorted q16  all-FixedValue linear      negative  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=226.9
+  FAIL distorted q16  all-FixedValue linear      mixed     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=138.9
+  FAIL distorted q16  all-FixedValue linear      mixed     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=227.6
+  FAIL distorted q16  all-FixedValue linear      swirl     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=137.6
+  FAIL distorted q16  all-FixedValue linear      swirl     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=227.7
+  FAIL distorted q16  all-FixedValue linear      reversed  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=137.6
+  FAIL distorted q16  all-FixedValue linear      reversed  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=227.6
+  FAIL distorted q16  all-FixedValue nonuniform  positive  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=489.6
+  FAIL distorted q16  all-FixedValue nonuniform  positive  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=463.7
+  FAIL distorted q16  all-FixedValue nonuniform  negative  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=491
+  FAIL distorted q16  all-FixedValue nonuniform  negative  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=465.1
+  FAIL distorted q16  all-FixedValue nonuniform  mixed     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=490.3
+  FAIL distorted q16  all-FixedValue nonuniform  mixed     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=464.4
+  FAIL distorted q16  all-FixedValue nonuniform  swirl     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=490.3
+  FAIL distorted q16  all-FixedValue nonuniform  swirl     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=464.4
+  FAIL distorted q16  all-FixedValue nonuniform  reversed  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=490.3
+  FAIL distorted q16  all-FixedValue nonuniform  reversed  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=464.4
+  FAIL distorted q16  all-FixedValue negative    positive  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=492.8
+  FAIL distorted q16  all-FixedValue negative    positive  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=466.4
+  FAIL distorted q16  all-FixedValue negative    negative  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=491.4
+  FAIL distorted q16  all-FixedValue negative    negative  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=465
+  FAIL distorted q16  all-FixedValue negative    mixed     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=492.1
+  FAIL distorted q16  all-FixedValue negative    mixed     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=465.7
+  FAIL distorted q16  all-FixedValue negative    swirl     uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=492.1
+  FAIL distorted q16  all-FixedValue negative    swirl     nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=465.7
+  FAIL distorted q16  all-FixedValue negative    reversed  uniform     +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=14.7       scaleF=492.1
+  FAIL distorted q16  all-FixedValue negative    reversed  nonuniform  +explicit jump[d=0] inc[d=544] flux[d=544] bnd[e=0] maxAbs=22.8       scaleF=465.7
+  PASS L3 distorted q16  all-FixedValue swirl     all[4.427e-18->4.427e-18] solved[4.427e-18->4.427e-18 x1] pin=no solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  all-FixedValue mixed     all[1.534->3.692e-15] solved[1.534->3.692e-15 x2.41e-15] pin=no solve[it=79 r=5.66e-14] pairs=480 errors=0
+  PASS L4a distorted q16  controlled p' differing=0 maxAbs=0          scale=6.141
+       [warped 3d 3/all-Neumann pin=yes fixedValueFaces=0]
+  FAIL warped 3d 3    all-Neumann    zero        positive  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=1.017
+  FAIL warped 3d 3    all-Neumann    zero        positive  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=1.236
+  FAIL warped 3d 3    all-Neumann    zero        negative  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=1.032
+  FAIL warped 3d 3    all-Neumann    zero        negative  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=1.252
+  FAIL warped 3d 3    all-Neumann    zero        mixed     uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=1.379
+  FAIL warped 3d 3    all-Neumann    zero        mixed     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=1.406
+  FAIL warped 3d 3    all-Neumann    zero        swirl     uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=0.3283
+  FAIL warped 3d 3    all-Neumann    zero        swirl     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=0.5447
+  FAIL warped 3d 3    all-Neumann    zero        reversed  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=0.3388
+  FAIL warped 3d 3    all-Neumann    zero        reversed  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=0.559
+  FAIL warped 3d 3    all-Neumann    uniform     positive  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=1.017
+  FAIL warped 3d 3    all-Neumann    uniform     positive  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=1.236
+  FAIL warped 3d 3    all-Neumann    uniform     negative  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=1.032
+  FAIL warped 3d 3    all-Neumann    uniform     negative  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=1.252
+  FAIL warped 3d 3    all-Neumann    uniform     mixed     uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=1.379
+  FAIL warped 3d 3    all-Neumann    uniform     mixed     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=1.406
+  FAIL warped 3d 3    all-Neumann    uniform     swirl     uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=0.3283
+  FAIL warped 3d 3    all-Neumann    uniform     swirl     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=0.5447
+  FAIL warped 3d 3    all-Neumann    uniform     reversed  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=0.3388
+  FAIL warped 3d 3    all-Neumann    uniform     reversed  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=0.559
+  FAIL warped 3d 3    all-Neumann    linear      positive  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=7.844
+  FAIL warped 3d 3    all-Neumann    linear      positive  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=14.83
+  FAIL warped 3d 3    all-Neumann    linear      negative  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=9.244
+  FAIL warped 3d 3    all-Neumann    linear      negative  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=16.23
+  FAIL warped 3d 3    all-Neumann    linear      mixed     uniform     +explicit jump[d=0] inc[d=54] flux[d=55] bnd[e=0] maxAbs=0.332      scaleF=8.975
+  FAIL warped 3d 3    all-Neumann    linear      mixed     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=55] bnd[e=0] maxAbs=0.552      scaleF=16.33
+  FAIL warped 3d 3    all-Neumann    linear      swirl     uniform     +explicit jump[d=0] inc[d=54] flux[d=56] bnd[e=0] maxAbs=0.332      scaleF=8.544
+  FAIL warped 3d 3    all-Neumann    linear      swirl     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=56] bnd[e=0] maxAbs=0.552      scaleF=15.56
+  FAIL warped 3d 3    all-Neumann    linear      reversed  uniform     +explicit jump[d=0] inc[d=54] flux[d=57] bnd[e=0] maxAbs=0.332      scaleF=8.544
+  FAIL warped 3d 3    all-Neumann    linear      reversed  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=57] bnd[e=0] maxAbs=0.552      scaleF=15.49
+  FAIL warped 3d 3    all-Neumann    nonuniform  positive  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=76.99
+  FAIL warped 3d 3    all-Neumann    nonuniform  positive  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=74.9
+  FAIL warped 3d 3    all-Neumann    nonuniform  negative  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=75.59
+  FAIL warped 3d 3    all-Neumann    nonuniform  negative  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=73.5
+  FAIL warped 3d 3    all-Neumann    nonuniform  mixed     uniform     +explicit jump[d=0] inc[d=54] flux[d=59] bnd[e=0] maxAbs=0.332      scaleF=75.49
+  FAIL warped 3d 3    all-Neumann    nonuniform  mixed     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=59] bnd[e=0] maxAbs=0.552      scaleF=73.4
+  FAIL warped 3d 3    all-Neumann    nonuniform  swirl     uniform     +explicit jump[d=0] inc[d=54] flux[d=56] bnd[e=0] maxAbs=0.332      scaleF=76.29
+  FAIL warped 3d 3    all-Neumann    nonuniform  swirl     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=56] bnd[e=0] maxAbs=0.552      scaleF=74.2
+  FAIL warped 3d 3    all-Neumann    nonuniform  reversed  uniform     +explicit jump[d=0] inc[d=54] flux[d=62] bnd[e=0] maxAbs=0.332      scaleF=76.29
+  FAIL warped 3d 3    all-Neumann    nonuniform  reversed  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=62] bnd[e=0] maxAbs=0.552      scaleF=74.2
+  FAIL warped 3d 3    all-Neumann    negative    positive  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=75.25
+  FAIL warped 3d 3    all-Neumann    negative    positive  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=73.98
+  FAIL warped 3d 3    all-Neumann    negative    negative  uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=76.65
+  FAIL warped 3d 3    all-Neumann    negative    negative  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=75.38
+  FAIL warped 3d 3    all-Neumann    negative    mixed     uniform     +explicit jump[d=0] inc[d=54] flux[d=59] bnd[e=0] maxAbs=0.332      scaleF=76.75
+  FAIL warped 3d 3    all-Neumann    negative    mixed     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=59] bnd[e=0] maxAbs=0.552      scaleF=75.48
+  FAIL warped 3d 3    all-Neumann    negative    swirl     uniform     +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.332      scaleF=75.95
+  FAIL warped 3d 3    all-Neumann    negative    swirl     nonuniform  +explicit jump[d=0] inc[d=54] flux[d=54] bnd[e=0] maxAbs=0.552      scaleF=74.68
+  FAIL warped 3d 3    all-Neumann    negative    reversed  uniform     +explicit jump[d=0] inc[d=54] flux[d=61] bnd[e=0] maxAbs=0.332      scaleF=75.95
+  FAIL warped 3d 3    all-Neumann    negative    reversed  nonuniform  +explicit jump[d=0] inc[d=54] flux[d=61] bnd[e=0] maxAbs=0.552      scaleF=74.69
+  PASS L3 warped 3d 3    all-Neumann    swirl     all[0.003709->0.01925] solved[0.003707->1.615e-15 x4.36e-13] pin=yes solve[it=20 r=8.26e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    all-Neumann    mixed     all[1.564->2.165] solved[1.584->1.388e-14 x8.76e-15] pin=yes solve[it=24 r=1.81e-14] pairs=54 errors=0
+       [warped 3d 3/mixed pin=no fixedValueFaces=27]
+  FAIL warped 3d 3    mixed          zero        positive  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=3.543
+  FAIL warped 3d 3    mixed          zero        positive  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=6.352
+  FAIL warped 3d 3    mixed          zero        negative  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=2.819
+  FAIL warped 3d 3    mixed          zero        negative  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=4.952
+  FAIL warped 3d 3    mixed          zero        mixed     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=3.889
+  FAIL warped 3d 3    mixed          zero        mixed     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=5.652
+  FAIL warped 3d 3    mixed          zero        swirl     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=2.842
+  FAIL warped 3d 3    mixed          zero        swirl     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=5.651
+  FAIL warped 3d 3    mixed          zero        reversed  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=2.844
+  FAIL warped 3d 3    mixed          zero        reversed  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=5.653
+  FAIL warped 3d 3    mixed          uniform     positive  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=104.1
+  FAIL warped 3d 3    mixed          uniform     positive  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=273.4
+  FAIL warped 3d 3    mixed          uniform     negative  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=102.7
+  FAIL warped 3d 3    mixed          uniform     negative  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=272
+  FAIL warped 3d 3    mixed          uniform     mixed     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=103.4
+  FAIL warped 3d 3    mixed          uniform     mixed     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=272.7
+  FAIL warped 3d 3    mixed          uniform     swirl     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=103.4
+  FAIL warped 3d 3    mixed          uniform     swirl     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=272.7
+  FAIL warped 3d 3    mixed          uniform     reversed  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=103.4
+  FAIL warped 3d 3    mixed          uniform     reversed  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=272.7
+  FAIL warped 3d 3    mixed          linear      positive  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=53.66
+  FAIL warped 3d 3    mixed          linear      positive  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=82.87
+  FAIL warped 3d 3    mixed          linear      negative  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=52.26
+  FAIL warped 3d 3    mixed          linear      negative  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=81.47
+  FAIL warped 3d 3    mixed          linear      mixed     uniform     +explicit jump[d=0] inc[d=81] flux[d=82] bnd[e=0] maxAbs=2.84       scaleF=54.26
+  FAIL warped 3d 3    mixed          linear      mixed     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=82] bnd[e=0] maxAbs=5.65       scaleF=83.47
+  FAIL warped 3d 3    mixed          linear      swirl     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=52.92
+  FAIL warped 3d 3    mixed          linear      swirl     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=82.17
+  FAIL warped 3d 3    mixed          linear      reversed  uniform     +explicit jump[d=0] inc[d=81] flux[d=82] bnd[e=0] maxAbs=2.84       scaleF=52.99
+  FAIL warped 3d 3    mixed          linear      reversed  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=82] bnd[e=0] maxAbs=5.65       scaleF=82.17
+  FAIL warped 3d 3    mixed          nonuniform  positive  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=166.7
+  FAIL warped 3d 3    mixed          nonuniform  positive  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=301.9
+  FAIL warped 3d 3    mixed          nonuniform  negative  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=165.3
+  FAIL warped 3d 3    mixed          nonuniform  negative  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=303.3
+  FAIL warped 3d 3    mixed          nonuniform  mixed     uniform     +explicit jump[d=0] inc[d=81] flux[d=85] bnd[e=0] maxAbs=2.84       scaleF=166
+  FAIL warped 3d 3    mixed          nonuniform  mixed     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=85] bnd[e=0] maxAbs=5.65       scaleF=303.4
+  FAIL warped 3d 3    mixed          nonuniform  swirl     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=166
+  FAIL warped 3d 3    mixed          nonuniform  swirl     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=302.6
+  FAIL warped 3d 3    mixed          nonuniform  reversed  uniform     +explicit jump[d=0] inc[d=81] flux[d=84] bnd[e=0] maxAbs=2.84       scaleF=166
+  FAIL warped 3d 3    mixed          nonuniform  reversed  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=84] bnd[e=0] maxAbs=5.65       scaleF=302.6
+  FAIL warped 3d 3    mixed          negative    positive  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=166.1
+  FAIL warped 3d 3    mixed          negative    positive  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=301.9
+  FAIL warped 3d 3    mixed          negative    negative  uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=167.5
+  FAIL warped 3d 3    mixed          negative    negative  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=300.5
+  FAIL warped 3d 3    mixed          negative    mixed     uniform     +explicit jump[d=0] inc[d=81] flux[d=83] bnd[e=0] maxAbs=2.84       scaleF=166.8
+  FAIL warped 3d 3    mixed          negative    mixed     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=83] bnd[e=0] maxAbs=5.65       scaleF=300.4
+  FAIL warped 3d 3    mixed          negative    swirl     uniform     +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=2.84       scaleF=166.8
+  FAIL warped 3d 3    mixed          negative    swirl     nonuniform  +explicit jump[d=0] inc[d=81] flux[d=81] bnd[e=0] maxAbs=5.65       scaleF=301.2
+  FAIL warped 3d 3    mixed          negative    reversed  uniform     +explicit jump[d=0] inc[d=81] flux[d=82] bnd[e=0] maxAbs=2.84       scaleF=166.8
+  FAIL warped 3d 3    mixed          negative    reversed  nonuniform  +explicit jump[d=0] inc[d=81] flux[d=82] bnd[e=0] maxAbs=5.65       scaleF=301.2
+  PASS L3 warped 3d 3    mixed          swirl     all[0.003709->4.586e-16] solved[0.003709->4.586e-16 x1.24e-13] pin=no solve[it=16 r=2.38e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    mixed          mixed     all[1.564->7.973e-15] solved[1.564->7.973e-15 x5.1e-15] pin=no solve[it=17 r=4.13e-14] pairs=54 errors=0
+       [warped 3d 3/all-FixedValue pin=no fixedValueFaces=54]
+  FAIL warped 3d 3    all-FixedValue zero        positive  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=3.413
+  FAIL warped 3d 3    all-FixedValue zero        positive  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=5.96
+  FAIL warped 3d 3    all-FixedValue zero        negative  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=3.2
+  FAIL warped 3d 3    all-FixedValue zero        negative  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=5.491
+  FAIL warped 3d 3    all-FixedValue zero        mixed     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=3.831
+  FAIL warped 3d 3    all-FixedValue zero        mixed     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=5.661
+  FAIL warped 3d 3    all-FixedValue zero        swirl     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=2.712
+  FAIL warped 3d 3    all-FixedValue zero        swirl     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=5.259
+  FAIL warped 3d 3    all-FixedValue zero        reversed  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=2.714
+  FAIL warped 3d 3    all-FixedValue zero        reversed  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=5.261
+  FAIL warped 3d 3    all-FixedValue uniform     positive  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=107.8
+  FAIL warped 3d 3    all-FixedValue uniform     positive  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=302.1
+  FAIL warped 3d 3    all-FixedValue uniform     negative  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=106.4
+  FAIL warped 3d 3    all-FixedValue uniform     negative  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=300.7
+  FAIL warped 3d 3    all-FixedValue uniform     mixed     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=106.3
+  FAIL warped 3d 3    all-FixedValue uniform     mixed     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=302.7
+  FAIL warped 3d 3    all-FixedValue uniform     swirl     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=107.1
+  FAIL warped 3d 3    all-FixedValue uniform     swirl     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=301.5
+  FAIL warped 3d 3    all-FixedValue uniform     reversed  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=107.1
+  FAIL warped 3d 3    all-FixedValue uniform     reversed  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=301.4
+  FAIL warped 3d 3    all-FixedValue linear      positive  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=54.21
+  FAIL warped 3d 3    all-FixedValue linear      positive  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=135.1
+  FAIL warped 3d 3    all-FixedValue linear      negative  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=52.81
+  FAIL warped 3d 3    all-FixedValue linear      negative  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=133.7
+  FAIL warped 3d 3    all-FixedValue linear      mixed     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=54.26
+  FAIL warped 3d 3    all-FixedValue linear      mixed     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=134.4
+  FAIL warped 3d 3    all-FixedValue linear      swirl     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=53.55
+  FAIL warped 3d 3    all-FixedValue linear      swirl     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=134.4
+  FAIL warped 3d 3    all-FixedValue linear      reversed  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=53.48
+  FAIL warped 3d 3    all-FixedValue linear      reversed  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=134.4
+  FAIL warped 3d 3    all-FixedValue nonuniform  positive  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=165.6
+  FAIL warped 3d 3    all-FixedValue nonuniform  positive  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=303.4
+  FAIL warped 3d 3    all-FixedValue nonuniform  negative  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=164.2
+  FAIL warped 3d 3    all-FixedValue nonuniform  negative  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=302
+  FAIL warped 3d 3    all-FixedValue nonuniform  mixed     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=164.9
+  FAIL warped 3d 3    all-FixedValue nonuniform  mixed     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=302.7
+  FAIL warped 3d 3    all-FixedValue nonuniform  swirl     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=164.9
+  FAIL warped 3d 3    all-FixedValue nonuniform  swirl     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=302.7
+  FAIL warped 3d 3    all-FixedValue nonuniform  reversed  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=164.9
+  FAIL warped 3d 3    all-FixedValue nonuniform  reversed  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=302.7
+  FAIL warped 3d 3    all-FixedValue negative    positive  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=167.2
+  FAIL warped 3d 3    all-FixedValue negative    positive  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=306.6
+  FAIL warped 3d 3    all-FixedValue negative    negative  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=168.6
+  FAIL warped 3d 3    all-FixedValue negative    negative  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=308
+  FAIL warped 3d 3    all-FixedValue negative    mixed     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=167.9
+  FAIL warped 3d 3    all-FixedValue negative    mixed     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=307.3
+  FAIL warped 3d 3    all-FixedValue negative    swirl     uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=167.9
+  FAIL warped 3d 3    all-FixedValue negative    swirl     nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=307.3
+  FAIL warped 3d 3    all-FixedValue negative    reversed  uniform     +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=2.71       scaleF=167.9
+  FAIL warped 3d 3    all-FixedValue negative    reversed  nonuniform  +explicit jump[d=0] inc[d=108] flux[d=108] bnd[e=0] maxAbs=5.26       scaleF=307.3
+  PASS L3 warped 3d 3    all-FixedValue swirl     all[0.003709->7.45e-16] solved[0.003709->7.45e-16 x2.01e-13] pin=no solve[it=16 r=3.87e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    all-FixedValue mixed     all[1.564->4.805e-15] solved[1.564->4.805e-15 x3.07e-15] pin=no solve[it=17 r=2.43e-14] pairs=54 errors=0
+  PASS L4a warped 3d 3    controlled p' differing=0 maxAbs=0          scale=133.4
+
+=== coverage ===
+  2D / 3D direct cases              300 / 300
+  without / with explicit term      300 / 300
+  interior faces compared           160200
+  corrected (FixedValue) boundary faces 17700
+  untouched Neumann boundary faces  8850
+  continuity cases                  12
+  imbalance reduced                 9
+  already-conservative predictors   3
+  owner/neighbour cancellations     3204
+  signed-zero flips (recorded, not errors) 852
+  controlled p' cases               2
+  full chain cases (GPU solve)      0
+  values compared                   587452
+  bitwise-identical                 409408
+  max absolute discrepancy          22.8
+  max relative discrepancy          3.77e+03
+
+cases=614 failures=300
+FACE FLUX CORRECTION EQUIVALENCE: FAIL

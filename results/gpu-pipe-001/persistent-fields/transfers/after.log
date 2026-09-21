@@ -1,0 +1,39 @@
+ninja: no work to do.
+=== GPU-PIPE-001 persistent fields: transfer profile ===
+case: 160x160 lid-driven cavity
+
+--- gpu-disc (GPU solver + GPU discretization)  (cells=25600 faces=51520) ---
+   iters  H2D calls    H2D bytes  D2H calls    D2H bytes   allocs  reallocs
+       4        361    126947888       9430     49825072      373         0
+       8        421    149004784      15744     94474144      373         0
+      16        541    193118576      23316    176696288      373         0
+  H2D calls   setup=         301  per-iteration=      15.0   linear=yes
+  H2D bytes   setup=   104890992  per-iteration= 5514224.0   linear=yes
+  D2H calls   setup=        4801  per-iteration=    1157.2   linear=NO -- iteration-dependent!
+  D2H bytes   setup=     7534667  per-iteration=10572601.3   linear=NO -- iteration-dependent!
+  allocations setup=         373  per-iteration=       0.0   linear=yes
+  one cell-field = 204800 bytes, one face-field = 412160 bytes
+
+--- disc-only (CPU solver + GPU discretization)  (cells=25600 faces=51520) ---
+   iters  H2D calls    H2D bytes  D2H calls    D2H bytes   allocs  reallocs
+       4        321    107358832         72     34293872      347         0
+       8        345    112274032        140     67768544      347         0
+      16        393    122104432        276    134717888      347         0
+  H2D calls   setup=         297  per-iteration=       6.0   linear=yes
+  H2D bytes   setup=   102443632  per-iteration= 1228800.0   linear=yes
+  D2H calls   setup=           4  per-iteration=      17.0   linear=yes
+  D2H bytes   setup=      819200  per-iteration= 8368668.0   linear=yes
+  allocations setup=         347  per-iteration=       0.0   linear=yes
+  one cell-field = 204800 bytes, one face-field = 412160 bytes
+
+--- gpu-pipe (GPU solver + CPU discretization)  (cells=25600 faces=51520) ---
+   iters  H2D calls    H2D bytes  D2H calls    D2H bytes   allocs  reallocs
+       4         40     19589056       9358     15531200       26         0
+       8         76     36730752      15604     26705600       26         0
+      16        148     71014144      23040     41978400       26         0
+  H2D calls   setup=           4  per-iteration=       9.0   linear=yes
+  H2D bytes   setup=     2447360  per-iteration= 4285424.0   linear=yes
+  D2H calls   setup=        4797  per-iteration=    1140.2   linear=NO -- iteration-dependent!
+  D2H bytes   setup=     6715467  per-iteration= 2203933.3   linear=NO -- iteration-dependent!
+  allocations setup=          26  per-iteration=       0.0   linear=yes
+  one cell-field = 204800 bytes, one face-field = 412160 bytes

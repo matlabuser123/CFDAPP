@@ -1,0 +1,86 @@
+# rp8_resident_path_disabled
+# layer:       resident-solve
+# origin:      GPU-PIPE-001 resident pressure solve
+# expectation: detect
+# the dispatch condition is forced false, so every solve silently takes the host round trip. Numerically identical again -- the comparison catches it ONLY through its non-vacuity assertion, which is what that assertion is for.
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+  const bool useResidentPressureSolve =
+      useGpuDiscretization && !settings_.enableGpuResidency &&
+# --- became ---
+  const bool useResidentPressureSolve =
+      false && useGpuDiscretization && !settings_.enableGpuResidency &&
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness residency  -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 resident pressure solve: controlled comparison ===
+
+=== cavity 2d 40x40, 8 outer iterations ===
+    FAIL  resident arm did NOT take the resident path -- comparison would be vacuous
+  status            1 / 1
+  outer iterations  8
+  pressure Krylov   1522 (resident) / 1522 (host)
+  path taken        resident=NO  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   55.6         55.6       +0.0%
+    H2D bytes                1214796      1214796       +0.0%
+    D2H calls                  909.8        909.8       +0.0%
+    D2H bytes                 649524       649524       +0.0%
+    allocations (total)          377          375
+    syncs (total)               7114         7114
+    reduction groups            7114         7114   identical => same Krylov work
+    FAIL  the resident path allocates MORE than the host path
+
+=== cavity 2d 80x80, 6 outer iterations ===
+    FAIL  resident arm did NOT take the resident path -- comparison would be vacuous
+  status            1 / 1
+  outer iterations  6
+  pressure Krylov   2183 (resident) / 2183 (host)
+  path taken        resident=NO  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   68.2         68.2       +0.0%
+    H2D bytes                5925760      5925760       +0.0%
+    D2H calls                 1596.0       1596.0       +0.0%
+    D2H bytes                2823549      2823549       +0.0%
+    allocations (total)          377          375
+    syncs (total)               9452         9452
+    reduction groups            9452         9452   identical => same Krylov work
+    FAIL  the resident path allocates MORE than the host path
+
+=== cavity 2d 160x160, 4 outer iterations ===
+    FAIL  resident arm did NOT take the resident path -- comparison would be vacuous
+  status            1 / 1
+  outer iterations  4
+  pressure Krylov   3010 (resident) / 3010 (host)
+  path taken        resident=NO  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   93.2         93.2       +0.0%
+    H2D bytes               32351368     32351368       +0.0%
+    D2H calls                 3143.0       3143.0       +0.0%
+    D2H bytes               13556036     13556036       +0.0%
+    allocations (total)          377          375
+    syncs (total)              12488        12488
+    reduction groups           12488        12488   identical => same Krylov work
+    FAIL  the resident path allocates MORE than the host path
+
+=== cavity 2d 40x40 LONG RUN, 60 outer iterations ===
+    FAIL  resident arm did NOT take the resident path -- comparison would be vacuous
+  status            1 / 1
+  outer iterations  60
+  pressure Krylov   11115 (resident) / 11115 (host)
+  path taken        resident=NO  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   23.0         23.0       +0.0%
+    H2D bytes                 491431       491431       +0.0%
+    D2H calls                  880.0        880.0       +0.0%
+    D2H bytes                 641106       641106       +0.0%
+    allocations (total)          375          375
+    syncs (total)              51596        51596
+    reduction groups           51596        51596   identical => same Krylov work
+
+RESIDENCY COMPARISON: FAIL

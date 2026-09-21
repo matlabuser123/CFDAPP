@@ -1,0 +1,61 @@
+# resident_loop_comparison.cpp 
+# date: 2026-09-21T05:21:11Z
+# libcfdcuda.a: cfacb5225b2f25c8b032645b1d3945180cf17d3292c9f598f09ce3db5e0eafea
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: resident SIMPLE loop, controlled comparison ===
+Arms differ ONLY in whether the GPU outer iteration is device-resident.
+Every comparison is BITWISE.
+
+  PASS  cavity 2d 16             MaxIterations it=8  mom=192 p=559  red=3012  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176877 B  D2H   394.00 /       68001 B  sync   376.50  alloc 375
+        transfers/iteration   resident H2D   37.12 /     135468 B  D2H   385.00 /       10665 B  sync   376.50  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  cavity 2d 32             MaxIterations it=6  mom=149 p=836  red=3940  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   61.83 /     870332 B  D2H   674.33 /      292539 B  sync   656.67  alloc 375
+        transfers/iteration   resident H2D   49.50 /     700517 B  D2H   665.33 /       59075 B  sync   656.67  alloc 359
+        non-reduction D2H/iteration   host-arm   17.67   resident    8.67
+  PASS  channel 2d 16            MaxIterations it=8  mom=267 p=475  red=2970  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176879 B  D2H   388.75 /       67926 B  sync   371.25  alloc 373
+        transfers/iteration   resident H2D   37.12 /     135470 B  D2H   379.75 /       10590 B  sync   371.25  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  cavity 3d 6              MaxIterations it=6  mom=151 p=224  red=1496  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   67.83 /     302272 B  D2H   272.00 /       93641 B  sync   249.33  alloc 389
+        transfers/iteration   resident H2D   49.50 /     243231 B  D2H   259.00 /       10705 B  sync   249.33  alloc 374
+        non-reduction D2H/iteration   host-arm   22.67   resident    9.67
+  PASS  cavity 2d 80             MaxIterations it=6  mom=145 p=1999  red=8564  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   61.83 /    5365564 B  D2H  1445.00 /     2111272 B  sync  1427.33  alloc 375
+        transfers/iteration   resident H2D   49.50 /    4295909 B  D2H  1436.00 /      636720 B  sync  1427.33  alloc 359
+        non-reduction D2H/iteration   host-arm   17.67   resident    8.67
+  PASS  cavity 2d 160            MaxIterations it=4  mom=90 p=2762  red=11404  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   86.75 /   30002586 B  D2H  2869.00 /    10524512 B  sync  2851.00  alloc 375
+        transfers/iteration   resident H2D   74.25 /   25610904 B  D2H  2860.00 /     4605800 B  sync  2851.00  alloc 359
+        non-reduction D2H/iteration   host-arm   18.00   resident    9.00
+  PASS  cavity 2d 16 quick       MaxIterations it=8  mom=199 p=574  red=3090  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176877 B  D2H   403.75 /       68135 B  sync   386.25  alloc 373
+        transfers/iteration   resident H2D   37.12 /     135468 B  D2H   394.75 /       10799 B  sync   386.25  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  cavity 2d 16 linup       MaxIterations it=8  mom=194 p=578  red=3084  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176877 B  D2H   403.00 /       68124 B  sync   385.50  alloc 373
+        transfers/iteration   resident H2D   37.12 /     135468 B  D2H   394.00 /       10788 B  sync   385.50  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  channel 2d 16 central    MaxIterations it=8  mom=258 p=466  red=2892  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   49.38 /     176879 B  D2H   379.00 /       67788 B  sync   361.50  alloc 373
+        transfers/iteration   resident H2D   37.12 /     135470 B  D2H   370.00 /       10452 B  sync   361.50  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  PASS  cavity 3d 8              MaxIterations it=5  mom=134 p=254  red=1554  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   77.80 /     809696 B  D2H   333.60 /      228533 B  sync   310.80  alloc 389
+        transfers/iteration   resident H2D   59.40 /     665515 B  D2H   320.60 /       25789 B  sync   310.80  alloc 374
+        non-reduction D2H/iteration   host-arm   22.80   resident    9.80
+  PASS  cavity 2d 16 long        MaxIterations it=60  mom=1318 p=3733  red=20210  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   16.98 /      58195 B  D2H   353.90 /       66556 B  sync   336.83  alloc 373
+        transfers/iteration   resident H2D    4.95 /      18062 B  D2H   344.90 /        9220 B  sync   336.83  alloc 359
+        non-reduction D2H/iteration   host-arm   17.07   resident    8.07
+  PASS  channel 2d 24 long       MaxIterations it=60  mom=1682 p=5118  red=27194  fields=bitwise  first divergence: none
+        transfers/iteration   host-arm H2D   16.98 /     130888 B  D2H   470.30 /      159462 B  sync   453.23  alloc 373
+        transfers/iteration   resident H2D    4.95 /      39816 B  D2H   461.30 /       28910 B  sync   453.23  alloc 359
+        non-reduction D2H/iteration   host-arm   17.07   resident    8.07
+
+cases=12 failures=0  values compared=217755  bitwise=217755
+RESIDENT SIMPLE LOOP COMPARISON: PASS (bitwise)
+# exit code: 0

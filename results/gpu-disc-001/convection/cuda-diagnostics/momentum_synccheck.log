@@ -1,0 +1,63 @@
+========= COMPUTE-SANITIZER
+=== GPU-DISC-001D closure: CUDA momentum convection vs CPU (bitwise) ===
+CPU reference: physics::assembleConvectionContribution
+plus discretization::computeVelocityGradient (LinearUpwind's dependency)
+
+       [distorted q16/wall cells=256 bcFaces(const=64 identity=0 symmetry=0) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    wall           velocityGradient constant      differing=0     maxAbs=0          scale=22.3
+  PASS distorted q16    wall           velocityGradient linear        differing=0     maxAbs=0          scale=36.27
+  PASS distorted q16    wall           velocityGradient nonuniform    differing=0     maxAbs=0          scale=24.27
+  PASS distorted q16    wall           velocityGradient step          differing=0     maxAbs=0          scale=35.68
+       [distorted q16/movingwall+inlet cells=256 bcFaces(const=64 identity=0 symmetry=0) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    movingwall+inlet velocityGradient constant      differing=0     maxAbs=0          scale=18.73
+  PASS distorted q16    movingwall+inlet velocityGradient linear        differing=0     maxAbs=0          scale=22.49
+  PASS distorted q16    movingwall+inlet velocityGradient nonuniform    differing=0     maxAbs=0          scale=25.12
+  PASS distorted q16    movingwall+inlet velocityGradient step          differing=0     maxAbs=0          scale=21.41
+       [distorted q16/outlet+symmetry cells=256 bcFaces(const=0 identity=32 symmetry=32) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    outlet+symmetry velocityGradient constant      differing=0     maxAbs=0          scale=22.3
+  PASS distorted q16    outlet+symmetry velocityGradient linear        differing=0     maxAbs=0          scale=36.27
+  PASS distorted q16    outlet+symmetry velocityGradient nonuniform    differing=0     maxAbs=0          scale=11.57
+  PASS distorted q16    outlet+symmetry velocityGradient step          differing=0     maxAbs=0          scale=35.68
+       [distorted q16/all-five cells=256 bcFaces(const=48 identity=16 symmetry=0) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    all-five       velocityGradient constant      differing=0     maxAbs=0          scale=22.3
+  PASS distorted q16    all-five       velocityGradient linear        differing=0     maxAbs=0          scale=21.67
+  PASS distorted q16    all-five       velocityGradient nonuniform    differing=0     maxAbs=0          scale=18.54
+  PASS distorted q16    all-five       velocityGradient step          differing=0     maxAbs=0          scale=19.62
+       [warped 3d 4/wall cells=64 bcFaces(const=96 identity=0 symmetry=0) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      wall           velocityGradient constant      differing=0     maxAbs=0          scale=5.711
+  PASS warped 3d 4      wall           velocityGradient linear        differing=0     maxAbs=0          scale=7.937
+  PASS warped 3d 4      wall           velocityGradient nonuniform    differing=0     maxAbs=0          scale=5.565
+  PASS warped 3d 4      wall           velocityGradient step          differing=0     maxAbs=0          scale=9.137
+       [warped 3d 4/movingwall+inlet cells=64 bcFaces(const=96 identity=0 symmetry=0) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      movingwall+inlet velocityGradient constant      differing=0     maxAbs=0          scale=4.797
+  PASS warped 3d 4      movingwall+inlet velocityGradient linear        differing=0     maxAbs=0          scale=7.292
+  PASS warped 3d 4      movingwall+inlet velocityGradient nonuniform    differing=0     maxAbs=0          scale=7.437
+  PASS warped 3d 4      movingwall+inlet velocityGradient step          differing=0     maxAbs=0          scale=5.482
+       [warped 3d 4/outlet+symmetry cells=64 bcFaces(const=0 identity=48 symmetry=48) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      outlet+symmetry velocityGradient constant      differing=0     maxAbs=0          scale=5.711
+  PASS warped 3d 4      outlet+symmetry velocityGradient linear        differing=0     maxAbs=0          scale=7.239
+  PASS warped 3d 4      outlet+symmetry velocityGradient nonuniform    differing=0     maxAbs=0          scale=4.496
+  PASS warped 3d 4      outlet+symmetry velocityGradient step          differing=0     maxAbs=0          scale=9.137
+       [warped 3d 4/all-five cells=64 bcFaces(const=64 identity=16 symmetry=16) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      all-five       velocityGradient constant      differing=0     maxAbs=0          scale=5.085
+  PASS warped 3d 4      all-five       velocityGradient linear        differing=0     maxAbs=0          scale=7.803
+  PASS warped 3d 4      all-five       velocityGradient nonuniform    differing=0     maxAbs=0          scale=6.758
+  PASS warped 3d 4      all-five       velocityGradient step          differing=0     maxAbs=0          scale=8.1
+
+=== coverage ===
+  component U   1280 cases
+  component V   1280 cases
+  component W   640 cases
+  scheme upwind         800 cases
+  scheme central        800 cases
+  scheme linear_upwind  800 cases
+  scheme quick          800 cases
+  vector BC constant/identity/symmetry plans   6 / 4 / 3
+  velocityGradient cases                       32
+  reversed-flux pairs                          1600
+  reversal actually changed the result         1350
+  sparsity pattern mismatches                  0
+
+cases=3232 failures=0
+MOMENTUM CONVECTION EQUIVALENCE: PASS (bitwise)
+========= ERROR SUMMARY: 0 errors

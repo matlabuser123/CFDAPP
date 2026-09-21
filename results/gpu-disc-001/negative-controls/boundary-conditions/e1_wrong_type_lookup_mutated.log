@@ -1,0 +1,68 @@
+# e1_wrong_type_lookup
+# layer:       boundary-conditions
+# origin:      001E B1
+# expectation: detect
+# WRONG BC TYPE LOOKUP: the recorded boundary type id is shifted by one, so every per-face dispatch selects the neighbouring condition
+# mutation applied to cuda/kernels/DeviceBoundaryConditions.cpp
+# --- anchor ---
+    hostType_[f] = static_cast<Index>(bc.type());
+# --- became ---
+    hostType_[f] = static_cast<Index>(bc.type()) + 1;
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness boundary --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001E: shared CUDA boundary-condition layer vs CPU (bitwise) ===
+isolated -- device evaluators driven directly, no equation or operator
+
+  FAIL distorted q16    all FixedValue           scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=2.5
+  FAIL distorted q16    all FixedGradient        scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=309.2
+  FAIL distorted q16    all FixedTemperature     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=322.5
+  FAIL distorted q16    all HeatFlux             scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=246.2
+  FAIL distorted q16    all Adiabatic            scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=309.2
+  FAIL distorted q16    all WallOmega            scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=14.74
+  FAIL distorted q16    scalar mix (6 types)     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=315
+  FAIL distorted q16    all Wall                 scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=0
+  FAIL distorted q16    all MovingWall           scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=1.3
+  FAIL distorted q16    all Inlet                scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=0.8
+  FAIL distorted q16    all Outlet               scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=2.174
+  FAIL distorted q16    all Symmetry             scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=2.174
+  FAIL distorted q16    vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=1.702
+  FAIL distorted q16    Dirichlet+Neumann mix    scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=309.2
+  FAIL distorted q16    wall+outlet+symmetry     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=64] prescribes[d=0] maxAbs=0          scale=2.174
+  FAIL warped 3d 4      all FixedValue           scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=3.5
+  FAIL warped 3d 4      all FixedGradient        scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=309.4
+  FAIL warped 3d 4      all FixedTemperature     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=337.5
+  FAIL warped 3d 4      all HeatFlux             scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=120
+  FAIL warped 3d 4      all Adiabatic            scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=309.4
+  FAIL warped 3d 4      all WallOmega            scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=0.9576
+  FAIL warped 3d 4      scalar mix (6 types)     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=315
+  FAIL warped 3d 4      all Wall                 scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=0
+  FAIL warped 3d 4      all MovingWall           scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=1.5
+  FAIL warped 3d 4      all Inlet                scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=0.8
+  FAIL warped 3d 4      all Outlet               scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=1.946
+  FAIL warped 3d 4      all Symmetry             scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=1.946
+  FAIL warped 3d 4      vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=1.942
+  FAIL warped 3d 4      Dirichlet+Neumann mix    scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=309.4
+  FAIL warped 3d 4      wall+outlet+symmetry     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=96] prescribes[d=0] maxAbs=0          scale=1.946
+
+=== coverage ===
+  type FixedValue         covered
+  type FixedGradient      covered
+  type Wall               covered
+  type MovingWall         covered
+  type Inlet              covered
+  type Outlet             covered
+  type Symmetry           covered
+  type FixedTemperature   covered
+  type HeatFlux           covered
+  type Adiabatic          covered
+  type WallOmega          covered
+  scalar forms const/shift/affine   10 / 10 / 0 (sets reaching each)
+  vector forms const/identity/symm  10 / 6 / 5
+  ghost inflow/outflow/zero-flux    384 / 360 / 536
+  faces with an alternative distance 2400
+  total scalar comparisons          9600
+
+cases=30 failures=30
+BOUNDARY CONDITION EQUIVALENCE: FAIL

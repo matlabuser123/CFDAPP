@@ -1,0 +1,29 @@
+# rp1_structure_not_compacted
+# layer:       resident-solve
+# origin:      GPU-PIPE-001 resident pressure solve
+# expectation: detect
+# the pinned row keeps the explicit zeros toHostSystem() drops, so the device matrix stops being the matrix the host solver receives. Expected NULL for the residency comparison -- adding 0.0 to a sum does not change it -- which is the whole argument for asserting the STRUCTURE rather than trusting a number.
+# mutation applied to cuda/kernels/DevicePressureCorrectionPlan.cpp
+# --- anchor ---
+        if (c == referenceCell && fullColumnIndices_[k] != c) continue;
+# --- became ---
+        // MUTATED: the pinned row keeps its explicit zeros.
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness sparsity 40 -> exit 1 (DETECTED) ##########
+
+=== 40x40  cells=1600 ===
+  sparsity   full 7840   device nnz 7840   host nnz 7838   dropped 2  (COMPACTED BY toHostSystem)
+  window                    H2D    H2D bytes    D2H    D2H bytes
+  assemble (D2H out)          2        75528      4       151048
+  solve (up + down)           6       176616    784        89464
+  setPressureCorrection       1        12800      0            0
+  FIRST SOLVE TOTAL           9       264944    788       240512
+  STEADY STATE / solve        5       113904    788       240512
+  host rebuild (toHostSystem+sort)      1.13 ms   solve   107.44 ms  (1.0% of the pair)
+  steady allocations/solve          0
+  pressure iterations 196 / 196
+    FAIL device nnz 7840 != host nnz 7838 -- the solver would not see the matrix the host path sees
+
+ROUND-TRIP PROBE: FAIL

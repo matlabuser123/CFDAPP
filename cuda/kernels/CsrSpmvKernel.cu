@@ -81,10 +81,13 @@ void spmv(const DeviceCsrMatrix& matrix, const DeviceVector& x, DeviceVector& y)
                                               matrix.rowOffsetsDevice(), x.data(), y.data());
   checkCuda(cudaGetLastError(), "csrSpmvKernel launch");
   ++gpuExecutionStats().kernelLaunches;
-  checkCuda(cudaDeviceSynchronize(), "csrSpmvKernel execution");
+  // GPU-PIPE-001 Phase 3: no cudaDeviceSynchronize. y is read by the next
+  // kernel on the default stream, which CUDA orders after this one; nothing on
+  // the host reads y here. The synchronize cost a host-device round trip per
+  // SpMV -- two per Krylov iteration -- for an ordering guarantee the stream
+  // already provides. See results/gpu-pipe-001/phase3-sync/audit.md.
   auto& stats = gpuExecutionStats();
   stats.kernelSeconds += kernelTimer.elapsedSeconds();
-  ++stats.synchronizations;
 }
 
 cfd::algebra::Vector csrSpmvCuda(const cfd::algebra::SparseMatrix& matrix,

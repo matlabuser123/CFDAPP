@@ -1,0 +1,30 @@
+# rp6_diagonal_rejection_removed
+# layer:       resident-solve
+# origin:      GPU-PIPE-001 resident pressure solve
+# expectation: detect
+# the device Jacobi build stops rejecting a zero, near-zero, missing or non-finite diagonal, so the resident path accepts systems the host path refuses -- a behavioural difference hidden inside a performance change
+# mutation applied to cuda/kernels/GpuResidentSolveKernel.cu
+# --- anchor ---
+  if (!found || !isfinite(diag) || diag == 0.0 || fabs(diag) < cfd::constants::small) {
+# --- became ---
+  if (false) {
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness rejection  -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 resident pressure solve: rejection behaviour ===
+
+-- healthy systems (non-vacuity: the probe must ACCEPT these) --
+  healthy, Jacobi                            host Converged          resident Converged          match
+  healthy, no preconditioner                 host Converged          resident Converged          match
+
+-- diagonals a Jacobi preconditioner cannot use --
+  zero diagonal                              host InvalidSystem      resident Breakdown          *** MISMATCH ***
+  near-zero diagonal                         host InvalidSystem      resident Converged          *** MISMATCH ***
+
+-- non-finite inputs (a host LinearSystem cannot even hold these) --
+  NaN diagonal                               host refuses to build   resident NonFiniteInput     both reject
+  infinite off-diagonal                      host refuses to build   resident NonFiniteInput     both reject
+  NaN right-hand side                        host NonFiniteInput     resident NonFiniteInput     match
+
+REJECTION PROBE: FAIL

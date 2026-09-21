@@ -1,0 +1,17 @@
+ninja: no work to do.
+built /tmp/gpu_disc_perf_omp
+OMP_NUM_THREADS=8
+=== GPU-DISC-001Q: production performance qualification ===
+cuda available: yes
+mode: cpuscale
+
+cold start (CUDA context, module load, first kernel) -- untimed for every point below, reported here
+  cold_start_seconds=0.2212  second_identical_run_seconds=0.1599  one-off cost=0.0614
+
+########## CPU thread scaling (cpu arm only) ##########
+
+cavity2d         320x320   cells=102400   budget=20   repeats=3
+  cpu        median   28.614 s   min   28.363   max   29.176   spread   2.8%   disc  7.467  solve 20.770
+
+wrote results/gpu-disc-001/performance/raw/runs-cpuscale.csv
+PERFORMANCE BENCHMARK: all integrity checks passed

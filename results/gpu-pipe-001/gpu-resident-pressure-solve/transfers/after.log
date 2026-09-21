@@ -1,0 +1,37 @@
+ninja: no work to do.
+
+=== 40x40  cells=1600 ===
+  sparsity   full 7840   device nnz 7838   host nnz 7838   dropped 0  (IDENTICAL -- device matrix == host matrix)
+  window                    H2D    H2D bytes    D2H    D2H bytes
+  assemble (D2H out)          2        75512      4       151016
+  solve (up + down)           6       176616    784        89464
+  setPressureCorrection       1        12800      0            0
+  FIRST SOLVE TOTAL           9       264928    788       240480
+  STEADY STATE / solve        5       113904    788       240480
+  host rebuild (toHostSystem+sort)      1.12 ms   solve    99.25 ms  (1.1% of the pair)
+  steady allocations/solve          0
+  pressure iterations 196 / 196
+
+=== 160x160  cells=25600 ===
+  sparsity   full 127360   device nnz 127358   host nnz 127358   dropped 0  (IDENTICAL -- device matrix == host matrix)
+  window                    H2D    H2D bytes    D2H    D2H bytes
+  assemble (D2H out)          2      1223672      4      2447336
+  solve (up + down)           6      2856936   3368      4917600
+  setPressureCorrection       1       204800      0            0
+  FIRST SOLVE TOTAL           9      4285408   3372      7364936
+  STEADY STATE / solve        5      1838064   3372      7364936
+  host rebuild (toHostSystem+sort)      7.48 ms   solve   392.19 ms  (1.9% of the pair)
+  steady allocations/solve          0
+  pressure iterations 842 / 842
+
+=== 320x320  cells=102400 ===
+  sparsity   full 510720   device nnz 510718   host nnz 510718   dropped 0  (IDENTICAL -- device matrix == host matrix)
+  window                    H2D    H2D bytes    D2H    D2H bytes
+  assemble (D2H out)          2      4904952      4      9809896
+  solve (up + down)           6     11448296   4002     23222400
+  setPressureCorrection       1       819200      0            0
+  FIRST SOLVE TOTAL           9     17172448   4006     33032296
+  STEADY STATE / solve        5      7362544   4006     33032296
+  host rebuild (toHostSystem+sort)     27.10 ms   solve   540.25 ms  (4.8% of the pair)
+  steady allocations/solve          0
+  pressure iterations 1000 / 1000

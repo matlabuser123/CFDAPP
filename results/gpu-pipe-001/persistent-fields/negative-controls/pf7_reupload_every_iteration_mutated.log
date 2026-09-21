@@ -1,0 +1,19 @@
+# pf7_reupload_every_iteration
+# layer:       residency
+# origin:      GPU-PIPE-001 persistent fields
+# expectation: detect
+# the initial upload is repeated EVERY iteration -- numerically identical, and invisible to every equivalence gate. Only a transfer count detects it, which is the whole reason this gate needs a transfer detector.
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+          gpuDiscretization.beginIterationResident();
+# --- became ---
+          gpuDiscretization.uploadInitialState(velocity, pressure, massFlux, *effectiveViscosity);
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness transfers  -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001: transfer guard (residency regressions that change no number) ===
+  measured  H2D calls/iteration   12.00   (budget 8.0)
+  measured  allocations/iteration 0.00   (budget 0.0)
+  FAIL per-iteration H2D exceeds the qualified residency budget -- fields are being re-uploaded
+TRANSFER GUARD: FAIL

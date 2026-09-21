@@ -1,0 +1,65 @@
+################ 1. CUDA diagnostics on the restored tree ################
+built /tmp/gpu_diag_workload_post
+
+tool        mode            rc   vacuity       kernels   summary
+memcheck    cavity2d        0    non-vacuous   1000      ========= ERROR SUMMARY: 0 errors
+memcheck    case3d          0    non-vacuous   2911      ========= ERROR SUMMARY: 0 errors
+memcheck    schemes         0    non-vacuous   4925      ========= ERROR SUMMARY: 0 errors
+memcheck    nonorthogonal   0    non-vacuous   5370      ========= ERROR SUMMARY: 0 errors
+memcheck    gpusolver       0    non-vacuous   37932     ========= ERROR SUMMARY: 0 errors
+initcheck   cavity2d        0    non-vacuous   1000      ========= ERROR SUMMARY: 0 errors
+initcheck   case3d          0    non-vacuous   2911      ========= ERROR SUMMARY: 0 errors
+initcheck   schemes         0    non-vacuous   4925      ========= ERROR SUMMARY: 0 errors
+initcheck   nonorthogonal   0    non-vacuous   5370      ========= ERROR SUMMARY: 0 errors
+initcheck   gpusolver       0    non-vacuous   37932     ========= ERROR SUMMARY: 0 errors
+synccheck   cavity2d        0    non-vacuous   1000      ========= ERROR SUMMARY: 0 errors
+synccheck   case3d          0    non-vacuous   2911      ========= ERROR SUMMARY: 0 errors
+synccheck   schemes         0    non-vacuous   4925      ========= ERROR SUMMARY: 0 errors
+synccheck   nonorthogonal   0    non-vacuous   5370      ========= ERROR SUMMARY: 0 errors
+synccheck   gpusolver       0    non-vacuous   37932     ========= ERROR SUMMARY: 0 errors
+racecheck   cavity2d        0    non-vacuous   1000      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   case3d          0    non-vacuous   2911      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   schemes         0    non-vacuous   4925      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   nonorthogonal   0    non-vacuous   5370      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   gpusolver       0    non-vacuous   37932     ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+
+POST-RESTORATION CUDA DIAGNOSTICS: PASS -- 20/20 runs clean and non-vacuous
+  -> rc=0
+
+################ 2. all 15 GPU-DISC differential gates ################
+202779c8c2a812b1cf10ce52d021b6081c4f540c9b4e17ef10cc46a088c3940e  build/cuda/cuda/libcfdcuda.a
+79b3162c3cfc810773e8c2ce0e3cdd07c5d58a425966a0aee460d4d5cd8c0a7e  build/cuda/src/libcfdcore.a
+
+PASS  mesh_equivalence  |  checks: 96   failures: 0  |  DEVICE MESH: PASS
+PASS  gradient_equivalence  |  cases=132 failures=0  |  GRADIENT EQUIVALENCE: PASS (bitwise)
+PASS  diffusion_equivalence  |  cases=528 failures=0  |  DIFFUSION EQUIVALENCE: PASS (bitwise)
+PASS  convection_equivalence  |  cases=1684 failures=0  |  CONVECTION EQUIVALENCE: PASS (bitwise)
+PASS  momentum_convection_equivalence  |  cases=10352 failures=0  |  MOMENTUM CONVECTION EQUIVALENCE: PASS (bitwise)
+PASS  boundary_condition_equivalence  |  cases=75 failures=0  |  BOUNDARY CONDITION EQUIVALENCE: PASS (bitwise)
+PASS  momentum_assembly_equivalence  |  cases=27744 failures=0  |  MOMENTUM ASSEMBLY EQUIVALENCE: PASS (bitwise)
+PASS  momentum_response_equivalence  |  cases=260 failures=0  |  MOMENTUM RESPONSE EQUIVALENCE: PASS (bitwise)
+PASS  face_flux_equivalence  |  cases=2628 failures=0  |  FACE FLUX EQUIVALENCE: PASS (bitwise)
+PASS  pressure_correction_equivalence  |  cases=4950 failures=0  |  PRESSURE CORRECTION EQUIVALENCE: PASS (bitwise)
+PASS  velocity_correction_equivalence  |  cases=894 failures=0  |  VELOCITY CORRECTION EQUIVALENCE: PASS (bitwise)
+PASS  face_flux_correction_equivalence  |  cases=1848 failures=0  |  FACE FLUX CORRECTION EQUIVALENCE: PASS (bitwise)
+PASS  single_iteration_equivalence  |  cases=42 failures=0  |  SINGLE ITERATION EQUIVALENCE: PASS
+PASS  integrated_simple_equivalence  |  cases=26 failures=0  |  INTEGRATED SIMPLE EQUIVALENCE: PASS (bitwise)
+PASS  full_solve_equivalence  |  cases=17 failures=0  |  FULL SOLVE EQUIVALENCE: PASS
+
+15/15 GPU-DISC differential gates green
+  -> rc=0
+
+################ 3. baseline integrity + full regression ################
+=== no mutation artifact remains? ===
+  IDENTICAL to baseline-sha256.txt -- every production source restored byte for byte
+
+=== full regression ===
+100% tests passed, 0 tests failed out of 1998
+Total Test time (real) = 1310.19 sec
+--- freshness ---
+ninja: no work to do.
+ninja: no work to do.
+ctest exit=0
+  -> rc=0
+
+GPU-DISC-001P FINALISATION: PASS

@@ -81,6 +81,63 @@ __global__ void partialDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Re
   }
 }
 
+// GPU-PIPE-001 Phase 2B: two independent dot products over the same length in
+// ONE launch. Each product keeps its OWN shared-memory halving tree and its own
+// partial-sum slice (partialSums[0..blocks) and partialSums[blocks..2*blocks)),
+// so every partial is computed from exactly the same terms, in exactly the same
+// block partition, by exactly the same tree as partialDotKernel would produce
+// for that product alone. Fusing changes *when* the arithmetic happens, never
+// *what* it is -- which is why dot2() is bitwise identical to two dot() calls
+// and needs no tolerance of its own.
+//
+// Shared memory is 2 * blockDim * sizeof(Real); the two trees are kept in
+// disjoint halves so neither can perturb the other.
+__global__ void partialDot2Kernel(cfd::Index n, const cfd::Real* a0, const cfd::Real* b0,
+                                  const cfd::Real* a1, const cfd::Real* b1,
+                                  cfd::Real* partialSums) {
+  extern __shared__ cfd::Real shared[];
+  cfd::Real* s0 = shared;
+  cfd::Real* s1 = shared + blockDim.x;
+  const cfd::Index i = static_cast<cfd::Index>(blockIdx.x) * blockDim.x + threadIdx.x;
+  s0[threadIdx.x] = (i < n) ? a0[i] * b0[i] : 0.0;
+  s1[threadIdx.x] = (i < n) ? a1[i] * b1[i] : 0.0;
+  __syncthreads();
+  for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride) {
+      s0[threadIdx.x] += s0[threadIdx.x + stride];
+      s1[threadIdx.x] += s1[threadIdx.x + stride];
+    }
+    __syncthreads();
+  }
+  if (threadIdx.x == 0) {
+    partialSums[blockIdx.x] = s0[0];
+    partialSums[static_cast<cfd::Index>(gridDim.x) + blockIdx.x] = s1[0];
+  }
+}
+
+// GPU-PIPE-001 Phase 2A was implemented here as finalizeSumsKernel -- one
+// thread per quantity walking its partial slice in ascending block order, so
+// the summation order (and therefore the bits) matched the host loop exactly --
+// and then REMOVED on its own measurement.
+//
+// Measured, paired, same session (results/gpu-pipe-001/phase2-reductions/
+// 40_isolate_finalizer.log), gpu_solve median:
+//
+//     grid   blocks   device finalise   host finalise
+//     160^2     100        2.0315 s        2.0191 s
+//     640^2    1600        5.0178 s        3.7741 s     <- 25% worse
+//
+// The serial finalise is O(blocks) dependent adds on a single CUDA core, and
+// blocks grows with the problem, so its cost grows while the thing it buys --
+// an 8-byte download instead of a blocks-sized one -- buys nothing: Phase 1
+// measured the round trip at 79-101 us per call REGARDLESS of payload
+// (results/gpu-pipe-001/baseline/summary.md 5). Bytes were never the
+// bottleneck; calls and synchronizations are, and device finalisation reduces
+// neither. It was never faster at any measured size.
+//
+// Host finalisation is therefore kept. The fused partial kernel (Phase 2B) is
+// what actually removes round trips, and it is retained.
+
 // partialDotKernel over |a[i] * b[i]| -- see absDot()'s header comment. Same
 // exact halving tree, same out-of-range convention.
 __global__ void partialAbsDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Real* b,
@@ -112,12 +169,15 @@ void waxpby(cfd::Real a, const DeviceVector& x, cfd::Real b, const DeviceVector&
   waxpbyKernel<<<blocks, kThreadsPerBlock>>>(x.size(), a, x.data(), b, y.data(), w.data());
   checkCuda(cudaGetLastError(), "waxpbyKernel launch");
   ++gpuExecutionStats().kernelLaunches;
-  checkCuda(cudaDeviceSynchronize(), "waxpbyKernel execution");
+  // GPU-PIPE-001 Phase 3: no cudaDeviceSynchronize here. w is consumed by
+  // later kernels on the default stream, which are ordered after this one by
+  // CUDA's own stream semantics -- the synchronize bought correctness that
+  // stream ordering already guarantees, and charged a full host-device round
+  // trip for it on every vector operation. See phase3-sync/audit.md.
   auto& stats = gpuExecutionStats();
   const double elapsed = timer.elapsedSeconds();
   stats.kernelSeconds += elapsed;
   stats.vectorOpSeconds += elapsed;
-  ++stats.synchronizations;
 }
 
 void axpy(cfd::Real alpha, const DeviceVector& x, DeviceVector& y) { waxpby(alpha, x, 1.0, y, y); }
@@ -140,13 +200,66 @@ void fill(DeviceVector& v, cfd::Index count, cfd::Real value) {
   fillKernel<<<blocks, kThreadsPerBlock>>>(count, value, v.data());
   checkCuda(cudaGetLastError(), "fillKernel launch");
   ++gpuExecutionStats().kernelLaunches;
-  checkCuda(cudaDeviceSynchronize(), "fillKernel execution");
+  // GPU-PIPE-001 Phase 3: stream-ordered, no synchronize. See waxpby above.
   auto& stats = gpuExecutionStats();
   const double elapsed = timer.elapsedSeconds();
   stats.kernelSeconds += elapsed;
   stats.vectorOpSeconds += elapsed;
-  ++stats.synchronizations;
 }
+
+namespace {
+
+// GPU-PIPE-001 Phase 2A/2B: the one place a reduction becomes host-visible.
+//
+// Launches the caller's partial-sum kernel for a GROUP of `count` independent
+// quantities, synchronizes once, downloads the partials once, and finalises
+// each quantity on the host in ascending block order -- the same order, and so
+// the same bits, as one dot() per quantity produced before.
+//
+// Before: per QUANTITY -- 1 launch + 1 sync + 1 blocks-sized download.
+// After:  per GROUP     -- 1 launch + 1 sync + 1 (blocks*count)-sized download.
+//
+// Bytes are unchanged; calls and synchronizations fall by the group size. That
+// is the right target: Phase 1 measured the round trip at 79-101 us per call
+// regardless of payload, so the cost is paid per call, not per byte.
+template <typename LaunchPartials>
+void reduceToHost(cfd::Index n, int count, LaunchPartials&& launchPartials, cfd::Real* out) {
+  const int blocks = blockCountFor(n);
+
+  // Persistent high-water-mark buffer, same rationale (and the same
+  // never-shrink DeviceBuffer contract) as the original dot() cache: this is
+  // hit several times per Krylov iteration, so a local buffer would
+  // cudaMalloc/cudaFree on every call -- the anti-pattern this phase exists to
+  // remove. Sized for the widest group any caller uses.
+  static DeviceBuffer<cfd::Real> partialSumsCache;
+  static std::vector<cfd::Real> hostPartials;
+  partialSumsCache.resize(static_cast<cfd::Index>(blocks) * count);
+  hostPartials.resize(static_cast<std::size_t>(blocks) * count);
+
+  cfd::Timer kernelTimer;
+  launchPartials(blocks, partialSumsCache.data());
+  ++gpuExecutionStats().kernelLaunches;
+  checkCuda(cudaDeviceSynchronize(), "reduction execution");
+  auto& stats = gpuExecutionStats();
+  stats.kernelSeconds += kernelTimer.elapsedSeconds();
+  ++stats.synchronizations;
+  ++stats.reductionGroups;
+  stats.reductionQuantities += static_cast<std::uint64_t>(count);
+
+  partialSumsCache.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks) * count);
+
+  // Per quantity, in ascending block order -- identical to the loop each
+  // separate dot() ran, which is what makes a fused group bitwise identical to
+  // the individual calls it replaces.
+  for (int q = 0; q < count; ++q) {
+    const cfd::Real* slice = hostPartials.data() + static_cast<std::size_t>(q) * blocks;
+    cfd::Real sum = 0.0;
+    for (int i = 0; i < blocks; ++i) sum += slice[i];
+    out[q] = sum;
+  }
+}
+
+}  // namespace
 
 cfd::Real dot(const DeviceVector& a, const DeviceVector& b) {
   checkSameSize(a.size(), b.size(), "dot");
@@ -154,40 +267,48 @@ cfd::Real dot(const DeviceVector& a, const DeviceVector& b) {
   if (n == 0) return 0.0;
 
   cfd::Timer totalTimer;
-  const int blocks = blockCountFor(n);
-  // A persistent, high-water-mark reduction buffer -- dot() is called
-  // many times per GpuCG/GpuBiCGSTAB iteration (P6-GPU-002), so a fresh
-  // local DeviceBuffer here would cudaMalloc/cudaFree on every single
-  // call, exactly the anti-pattern this task exists to eliminate.
-  // `static` (not a member of some object dot() doesn't have) is this
-  // free function's only way to persist state across calls -- the same
-  // "one shared process-wide GPU context" precedent gpuExecutionStats()
-  // itself already establishes. resize() only grows (never shrinks,
-  // never reallocates once big enough -- DeviceBuffer's own contract),
-  // so repeated solves against the same (or smaller) grid size reuse
-  // this buffer with zero further allocation.
-  static DeviceBuffer<cfd::Real> partialSumsCache;
-  partialSumsCache.resize(static_cast<cfd::Index>(blocks));
-  DeviceBuffer<cfd::Real>& partialSums = partialSumsCache;
+  cfd::Real result = 0.0;
+  reduceToHost(
+      n, 1,
+      [&](int blocks, cfd::Real* partials) {
+        partialDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
+            n, a.data(), b.data(), partials);
+        checkCuda(cudaGetLastError(), "partialDotKernel launch");
+      },
+      &result);
+  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
+  return result;
+}
 
-  cfd::Timer kernelTimer;
-  partialDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
-      n, a.data(), b.data(), partialSums.data());
-  checkCuda(cudaGetLastError(), "partialDotKernel launch");
-  ++gpuExecutionStats().kernelLaunches;
-  checkCuda(cudaDeviceSynchronize(), "partialDotKernel execution");
-  auto& stats = gpuExecutionStats();
-  stats.kernelSeconds += kernelTimer.elapsedSeconds();
-  ++stats.synchronizations;
+// GPU-PIPE-001 Phase 2B: two dot products, one launch, one synchronization, one
+// 16-byte download -- instead of two of each. Bitwise identical to calling
+// dot(a0,b0) and dot(a1,b1): same terms, same block partition, same per-product
+// tree, same final summation order. Requires all four vectors to share a length.
+void dot2(const DeviceVector& a0, const DeviceVector& b0, const DeviceVector& a1,
+          const DeviceVector& b1, cfd::Real& out0, cfd::Real& out1) {
+  checkSameSize(a0.size(), b0.size(), "dot2");
+  checkSameSize(a1.size(), b1.size(), "dot2");
+  checkSameSize(a0.size(), a1.size(), "dot2");
+  const cfd::Index n = a0.size();
+  if (n == 0) {
+    out0 = 0.0;
+    out1 = 0.0;
+    return;
+  }
 
-  std::vector<cfd::Real> hostPartials(static_cast<std::size_t>(blocks));
-  partialSums.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks));
-
-  cfd::Real sum = 0.0;
-  for (cfd::Real partial : hostPartials) sum += partial;
-
-  stats.dotSeconds += totalTimer.elapsedSeconds();
-  return sum;
+  cfd::Timer totalTimer;
+  cfd::Real results[2] = {0.0, 0.0};
+  reduceToHost(
+      n, 2,
+      [&](int blocks, cfd::Real* partials) {
+        partialDot2Kernel<<<blocks, kThreadsPerBlock, 2 * kThreadsPerBlock * sizeof(cfd::Real)>>>(
+            n, a0.data(), b0.data(), a1.data(), b1.data(), partials);
+        checkCuda(cudaGetLastError(), "partialDot2Kernel launch");
+      },
+      results);
+  out0 = results[0];
+  out1 = results[1];
+  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
 }
 
 cfd::Real l2Norm(const DeviceVector& v) { return std::sqrt(dot(v, v)); }
@@ -198,31 +319,17 @@ cfd::Real absDot(const DeviceVector& a, const DeviceVector& b) {
   if (n == 0) return 0.0;
 
   cfd::Timer totalTimer;
-  const int blocks = blockCountFor(n);
-  // Same persistent high-water-mark reduction buffer rationale as dot()'s,
-  // and a separate cache so neither call can disturb the other's contents.
-  static DeviceBuffer<cfd::Real> partialSumsCache;
-  partialSumsCache.resize(static_cast<cfd::Index>(blocks));
-  DeviceBuffer<cfd::Real>& partialSums = partialSumsCache;
-
-  cfd::Timer kernelTimer;
-  partialAbsDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
-      n, a.data(), b.data(), partialSums.data());
-  checkCuda(cudaGetLastError(), "partialAbsDotKernel launch");
-  ++gpuExecutionStats().kernelLaunches;
-  checkCuda(cudaDeviceSynchronize(), "partialAbsDotKernel execution");
-  auto& stats = gpuExecutionStats();
-  stats.kernelSeconds += kernelTimer.elapsedSeconds();
-  ++stats.synchronizations;
-
-  std::vector<cfd::Real> hostPartials(static_cast<std::size_t>(blocks));
-  partialSums.downloadTo(hostPartials.data(), static_cast<cfd::Index>(blocks));
-
-  cfd::Real sum = 0.0;
-  for (cfd::Real partial : hostPartials) sum += partial;
-
-  stats.dotSeconds += totalTimer.elapsedSeconds();
-  return sum;
+  cfd::Real result = 0.0;
+  reduceToHost(
+      n, 1,
+      [&](int blocks, cfd::Real* partials) {
+        partialAbsDotKernel<<<blocks, kThreadsPerBlock, kThreadsPerBlock * sizeof(cfd::Real)>>>(
+            n, a.data(), b.data(), partials);
+        checkCuda(cudaGetLastError(), "partialAbsDotKernel launch");
+      },
+      &result);
+  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
+  return result;
 }
 
 }  // namespace cfd::gpu

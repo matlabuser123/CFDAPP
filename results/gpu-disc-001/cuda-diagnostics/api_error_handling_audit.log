@@ -1,0 +1,48 @@
+﻿=== 1. every kernel launch is followed by a launch-error check ===
+kernel launches (<<<...>>>) per file, vs recordLaunch/checkCuda(cudaGetLastError) calls:
+  CsrSpmvKernel.cu                           launches=1   checks=1   ok
+  DeviceBoundaryConditionsKernel.cu          launches=1   checks=1   ok
+  DeviceConvectionKernel.cu                  launches=3   checks=5   ok
+  DeviceDiffusionKernel.cu                   launches=1   checks=1   ok
+  DeviceFaceFluxCorrectionKernel.cu          launches=1   checks=3   ok
+  DeviceFaceFluxKernel.cu                    launches=3   checks=5   ok
+  DeviceGradientKernel.cu                    launches=6   checks=8   ok
+  DeviceLeastSquaresGradientKernel.cu        launches=1   checks=3   ok
+  DeviceMomentumAssemblyKernel.cu            launches=1   checks=3   ok
+  DeviceMomentumConvectionKernel.cu          launches=4   checks=6   ok
+  DeviceMomentumResponseKernel.cu            launches=1   checks=1   ok
+  DevicePressureCorrectionKernel.cu          launches=2   checks=4   ok
+  DeviceVectorOpsKernel.cu                   launches=5   checks=5   ok
+  DeviceVelocityCorrectionKernel.cu          launches=1   checks=3   ok
+  GpuPreconditionerKernel.cu                 launches=1   checks=1   ok
+
+=== 2. every recordLaunch checks cudaGetLastError ===
+  recordLaunch definitions that check cudaGetLastError: 9
+  recordLaunch definitions total:                    9
+
+=== 3. allocation and both copy directions are checked ===
+  70:        checkCuda(cudaMalloc(reinterpret_cast<void**>(&pointer_), count * sizeof(T)),
+  88:    checkCuda(cudaMemcpy(pointer_, hostData, count * sizeof(T), cudaMemcpyHostToDevice),
+  105:    checkCuda(cudaMemcpy(hostData, pointer_, count * sizeof(T), cudaMemcpyDeviceToHost),
+
+=== 4. the one error-checking helper, and what it does on failure ===
+  inline void checkCuda(cudaError_t status, const char* what) {
+    if (status != cudaSuccess) {
+      throw cfd::NumericalError(std::string(what) + " failed: " + cudaGetErrorString(status));
+    }
+  }
+
+=== 5. synchronization failures propagate ===
+  cuda/kernels/CsrSpmvKernel.cu:84:  // GPU-PIPE-001 Phase 3: no cudaDeviceSynchronize. y is read by the next
+  cuda/kernels/DeviceVectorOpsKernel.cu:172:  // GPU-PIPE-001 Phase 3: no cudaDeviceSynchronize here. w is consumed by
+  cuda/kernels/DeviceVectorOpsKernel.cu:242:  checkCuda(cudaDeviceSynchronize(), "reduction execution");
+
+=== 6. backend fallbacks are documented policy, not silent ===
+  28:    // can check gpuExecutionStats().gpuBackendFallbacks or the log.
+  29:    ++cfd::gpu::gpuExecutionStats().gpuBackendFallbacks;
+  30:    cfd::Logger::instance().warning(
+  296:      result.gpuDiscretizationFallbackReason = reason;
+  297:      cfd::Logger::instance().warning(
+
+=== 7. required device state is validated before a stage consumes it ===
+  requireResident guards in the production facade: 10

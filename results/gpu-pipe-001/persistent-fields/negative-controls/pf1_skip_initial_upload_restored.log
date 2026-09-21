@@ -1,0 +1,50 @@
+# pf1_skip_initial_upload -- restored src/pressure_velocity/SIMPLE.cpp
+# sha256 42959ff2989d60d2aba8c1b9e8b8993acdd4eeb7e1a34fd23c7d1b8596148e0c
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness full_solve -> exit 0 ##########
+          p[Linf=0 L2=0 rel=0 bit=64/64] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=144/144]
+  PASS N  cavity 2d 8            finite[cpu+gpu] pairs=112 |dImbalance|=0 maxCellImbalance=3.36e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=6855/3645168B d2h=18585/21437964B kern=29511 sync=0 alloc=347] per-iteration[h2d=6 d2h=17 kern=27]
+       P                         cpu=0.260s gpu=2.666s outer=1093  cpu/iter=0.0002383s gpu/iter=0.002439s ratio=10.2
+  PASS S  cavity 2d 8            per-iteration FIELD comparison over 40 iterations, max 0, first divergent iteration: none
+  PASS D  cavity 2d 8            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  channel 2d 12          cpu[Converged it=2938] gpu[Converged it=2938 gpuDisc=1] residuals cpu[u=5.52e-09 v=5.27e-08 p=1e-06 cont=6.93e-12 mass=2.9e-10]
+                              gpu residuals   [u=5.52e-09 v=5.27e-08 p=1e-06 cont=6.93e-12 mass=2.9e-10] linear iterations cpu[mom=61377 p=124154] gpu[mom=61377 p=124154]
+  PASS H  channel 2d 12          2938 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  channel 2d 12          p[Linf=0 L2=0 rel=0 bit=144/144] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=312/312]
+  PASS N  channel 2d 12          finite[cpu+gpu] pairs=264 |dImbalance|=0 maxCellImbalance=2.38e-11 globalNet cpu=2.9e-10 gpu=2.9e-10 maxBoundaryFlux=0.148 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=17925/20929456B d2h=49950/132649432B kern=79326 sync=0 alloc=347] per-iteration[h2d=6 d2h=17 kern=27]
+       P                         cpu=1.727s gpu=8.522s outer=2938  cpu/iter=0.0005879s gpu/iter=0.002901s ratio=4.93
+  PASS D  channel 2d 12          each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 3d 4            cpu[Converged it=23] gpu[Converged it=23 gpuDisc=1] residuals cpu[u=1.07e-07 v=5.44e-08 p=8.73e-07 cont=7.49e-11 mass=0]
+                              gpu residuals   [u=1.07e-07 v=5.44e-08 p=8.73e-07 cont=7.49e-11 mass=0] linear iterations cpu[mom=475 p=517] gpu[mom=475 p=517]
+  PASS H  cavity 3d 4            23 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 3d 4            p[Linf=0 L2=0 rel=0 bit=64/64] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=240/240]
+  PASS N  cavity 3d 4            finite[cpu+gpu] pairs=144 |dImbalance|=0 maxCellImbalance=5.93e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=458/547824B d2h=487/694716B kern=943 sync=0 alloc=363] per-iteration[h2d=19 d2h=21 kern=41]
+       P                         cpu=0.015s gpu=0.151s outer=23  cpu/iter=0.0006504s gpu/iter=0.006551s ratio=10.1
+  PASS D  cavity 3d 4            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+
+--- known GPU BiCGSTAB restart asymmetry (solver axis, not this gate's) ---
+  PASS K  cavity 2d 40 (reproducer) gpu-solver[PressureCorrectionFailure it=1845] cpu-solver[MaxIterations it=3000] -- classification UNCHANGED from baseline (known debt, not fixed here)
+
+=== coverage ===
+  2D / 3D cases                     2 / 1
+  both arms converged / not         3 / 0
+  pinned / open-boundary cases      2 / 1
+  non-Upwind convection cases       0
+  non-orthogonal mesh cases         0
+  residual-history comparisons      3
+  per-iteration field comparisons   1
+  conservation checks               3
+  determinism checks                3
+  long-run cases (>=50 outer)       2
+  longest solve (outer iterations)  2938
+  values compared                   1784
+  bitwise-identical                 1784
+  max discrepancy over ALL histories and fields  0
+
+cases=17 failures=0
+FULL SOLVE EQUIVALENCE: PASS

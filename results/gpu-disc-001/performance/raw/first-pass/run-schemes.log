@@ -1,0 +1,50 @@
+ninja: no work to do.
+built /tmp/gpu_disc_perf
+OMP_NUM_THREADS=<unset, defaults to nproc>
+=== GPU-DISC-001Q: production performance qualification ===
+cuda available: yes
+mode: schemes
+
+cold start (CUDA context, module load, first kernel) -- untimed for every point below, reported here
+  cold_start_seconds=0.2140  second_identical_run_seconds=0.1507  one-off cost=0.0633
+
+########## higher-order convection -- QUICK and LinearUpwind ##########
+
+cavity2d-quick   160x160   cells=25600    budget=60   repeats=3
+  cpu        median   11.383 s   min   11.308   max   11.595   spread   2.5%   disc  5.191  solve  6.141
+  gpu-pipe   median   14.659 s   min   14.309   max   15.189   spread   6.0%   disc  5.609  solve  9.524
+  gpu-disc   median   11.208 s   min   11.069   max   11.384   spread   2.8%   disc  1.694  solve  9.490
+  disc-only  median    8.593 s   min    8.474   max    8.707   spread   2.7%   disc  1.950  solve  6.304
+  FAIL equivalence cpu vs gpu-pipe   differing=127679 maxAbs=0.00222
+  FAIL equivalence cpu vs gpu-disc   differing=127679 maxAbs=0.00222
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+cavity2d-linup   160x160   cells=25600    budget=60   repeats=3
+  cpu        median   11.787 s   min   11.745   max   11.946   spread   1.7%   disc  5.466  solve  6.229
+  gpu-pipe   median   14.590 s   min   14.386   max   15.135   spread   5.1%   disc  5.805  solve  9.218
+  gpu-disc   median   10.537 s   min   10.164   max   10.663   spread   4.7%   disc  1.519  solve  8.453
+  disc-only  median    8.626 s   min    8.414   max    8.684   spread   3.1%   disc  1.843  solve  6.353
+  FAIL equivalence cpu vs gpu-pipe   differing=127679 maxAbs=0.00188
+  FAIL equivalence cpu vs gpu-disc   differing=127679 maxAbs=0.00188
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+cavity2d-quick   320x320   cells=102400   budget=20   repeats=3
+  cpu        median   27.444 s   min   27.419   max   27.613   spread   0.7%   disc  7.921  solve 19.388
+  gpu-pipe   median   14.851 s   min   14.636   max   15.197   spread   3.8%   disc  8.233  solve  6.476
+  gpu-disc   median    8.422 s   min    8.305   max    8.579   spread   3.3%   disc  2.085  solve  5.746
+  disc-only  median   22.501 s   min   22.496   max   22.978   spread   2.1%   disc  2.324  solve 19.557
+  FAIL equivalence cpu vs gpu-pipe   differing=511359 maxAbs=0.0439
+  FAIL equivalence cpu vs gpu-disc   differing=511359 maxAbs=0.0439
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+cavity2d-linup   320x320   cells=102400   budget=20   repeats=3
+  cpu        median   28.776 s   min   28.503   max   28.842   spread   1.2%   disc  7.929  solve 20.762
+  gpu-pipe   median   14.757 s   min   14.146   max   14.883   spread   5.0%   disc  8.259  solve  5.798
+  gpu-disc   median    7.997 s   min    7.827   max    8.115   spread   3.6%   disc  1.718  solve  5.933
+  disc-only  median   23.785 s   min   23.646   max   24.284   spread   2.7%   disc  2.275  solve 20.772
+  FAIL equivalence cpu vs gpu-pipe   differing=511359 maxAbs=0.0601
+  FAIL equivalence cpu vs gpu-disc   differing=511359 maxAbs=0.0601
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+wrote results/gpu-disc-001/performance/raw/runs-schemes.csv
+PERFORMANCE BENCHMARK: INTEGRITY FAILURES

@@ -1,0 +1,425 @@
+# x1_fmad_contraction_enabled
+# layer:       build-flags
+# origin:      001B NC2 / 001C NC4 / 001D NC6
+# expectation: detect
+# -fmad=false is removed from every discretization kernel, so nvcc is free to contract a*b+c into a single fused multiply-add. The CPU builds for baseline x86-64 and rounds twice, so the bitwise gate MUST depend on this flag.
+# mutation applied to cuda/CMakeLists.txt
+# --- anchor ---
+  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+# --- became ---
+  PROPERTIES COMPILE_OPTIONS "-fmad=true"
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness gradient --quick -> exit 1 (DETECTED) ##########
+       [distorted q16/dirichlet sweeps=yes skewedFaces=480   obliqueFaces=0     claims=64    boundaryTransfer=yes resident=112392 B]
+       [distorted q16/neumann   sweeps=yes skewedFaces=480   obliqueFaces=64    claims=64    boundaryTransfer=yes resident=115976 B]
+       [distorted q16/mixed     sweeps=yes skewedFaces=480   obliqueFaces=32    claims=64    boundaryTransfer=yes resident=114184 B]
+  FAIL distorted q16          dirichlet constant      cells=256    |grad|max=53.27       diff=393    maxAbs=2.13e-14   maxRel=1.5        L2=7.64e-14   bcells=60
+       worst cell 208 component x: cpu=52.569089064834955 gpu=52.569089064834976
+  FAIL distorted q16          neumann   constant      cells=256    |grad|max=0.1677      diff=386    maxAbs=1.44e-14   maxRel=1.5        L2=6.99e-14   bcells=60
+       worst cell 48 component x: cpu=-0.16594199871175022 gpu=-0.16594199871176463
+  FAIL distorted q16          mixed     constant      cells=256    |grad|max=53.27       diff=385    maxAbs=1.13e-14   maxRel=1.5        L2=6.76e-14   bcells=60
+       worst cell 149 component y: cpu=-7.5545418588812023e-15 gpu=3.7772709294406012e-15
+  FAIL distorted q16          dirichlet linear        cells=256    |grad|max=74.6        diff=342    maxAbs=1.42e-14   maxRel=3.58e-14   L2=3.88e-14   bcells=60
+       worst cell 240 component y: cpu=74.599372886370489 gpu=74.599372886370475
+  FAIL distorted q16          neumann   linear        cells=256    |grad|max=2.009       diff=384    maxAbs=9.1e-15    maxRel=7.25e-15   L2=2.88e-14   bcells=60
+       worst cell 47 component y: cpu=-1.4945668622476067 gpu=-1.4945668622476158
+  FAIL distorted q16          mixed     linear        cells=256    |grad|max=40.93       diff=359    maxAbs=1.42e-14   maxRel=3.59e-14   L2=3.53e-14   bcells=60
+       worst cell 192 component x: cpu=-37.581843324179523 gpu=-37.581843324179538
+  FAIL distorted q16          dirichlet quadratic     cells=256    |grad|max=41.09       diff=412    maxAbs=1.07e-14   maxRel=2.67e-13   L2=3.45e-14   bcells=60
+       worst cell 240 component x: cpu=18.708230192046123 gpu=18.708230192046134
+  FAIL distorted q16          neumann   quadratic     cells=256    |grad|max=3.617       diff=430    maxAbs=9.33e-15   maxRel=1.88e-13   L2=3.06e-14   bcells=60
+       worst cell 196 component y: cpu=3.0673873320092113 gpu=3.067387332009202
+  FAIL distorted q16          mixed     quadratic     cells=256    |grad|max=41.09       diff=411    maxAbs=9.33e-15   maxRel=2.67e-13   L2=3.28e-14   bcells=60
+       worst cell 196 component y: cpu=3.0673873320092113 gpu=3.067387332009202
+  FAIL distorted q16          dirichlet manufactured  cells=256    |grad|max=78.15       diff=341    maxAbs=3.55e-15   maxRel=3.47e-14   L2=1.48e-14   bcells=60
+       worst cell 0 component x: cpu=-17.157980669069921 gpu=-17.157980669069925
+  FAIL distorted q16          neumann   manufactured  cells=256    |grad|max=3.1         diff=351    maxAbs=2.89e-15   maxRel=3.6e-14    L2=1.29e-14   bcells=60
+       worst cell 197 component y: cpu=-1.5707635364842074 gpu=-1.5707635364842045
+  FAIL distorted q16          mixed     manufactured  cells=256    |grad|max=41.85       diff=334    maxAbs=3.55e-15   maxRel=3.6e-14    L2=1.45e-14   bcells=60
+       worst cell 0 component x: cpu=-17.157980669069921 gpu=-17.157980669069925
+       [warped 3d 6/dirichlet sweeps=yes skewedFaces=540   obliqueFaces=0     claims=216   boundaryTransfer=yes resident=154664 B]
+       [warped 3d 6/neumann   sweeps=yes skewedFaces=540   obliqueFaces=216   claims=216   boundaryTransfer=yes resident=166760 B]
+       [warped 3d 6/mixed     sweeps=yes skewedFaces=540   obliqueFaces=108   claims=216   boundaryTransfer=yes resident=160712 B]
+  FAIL warped 3d 6            dirichlet constant      cells=216    |grad|max=17.96       diff=553    maxAbs=7.11e-15   maxRel=2.03e-06   L2=4.33e-14   bcells=152
+       worst cell 102 component x: cpu=17.570791744809405 gpu=17.570791744809398
+  FAIL warped 3d 6            neumann   constant      cells=216    |grad|max=0.1689      diff=646    maxAbs=6.63e-15   maxRel=4.67e-05   L2=3.73e-14   bcells=152
+       worst cell 181 component z: cpu=-0.1654837576717299 gpu=-0.16548375767172327
+  FAIL warped 3d 6            mixed     constant      cells=216    |grad|max=17.96       diff=595    maxAbs=4.84e-15   maxRel=8.09e-06   L2=3.72e-14   bcells=152
+       worst cell 52 component z: cpu=-0.00011868214051490409 gpu=-0.00011868214051005952
+  FAIL warped 3d 6            dirichlet linear        cells=216    |grad|max=29.1        diff=423    maxAbs=7.11e-15   maxRel=6.27e-15   L2=2.76e-14   bcells=152
+       worst cell 14 component z: cpu=-19.451898441712956 gpu=-19.451898441712963
+  FAIL warped 3d 6            neumann   linear        cells=216    |grad|max=2.008       diff=527    maxAbs=4.25e-15   maxRel=5.12e-14   L2=2.02e-14   bcells=152
+       worst cell 184 component z: cpu=0.082932436998605752 gpu=0.082932436998609999
+  FAIL warped 3d 6            mixed     linear        cells=216    |grad|max=29.01       diff=464    maxAbs=4e-15      maxRel=3.49e-14   L2=2.22e-14   bcells=152
+       worst cell 155 component y: cpu=-1.4899973284775956 gpu=-1.4899973284775996
+  FAIL warped 3d 6            dirichlet quadratic     cells=216    |grad|max=25.83       diff=450    maxAbs=5.33e-15   maxRel=8.26e-14   L2=2.27e-14   bcells=152
+       worst cell 110 component y: cpu=-12.77227158893308 gpu=-12.772271588933085
+  FAIL warped 3d 6            neumann   quadratic     cells=216    |grad|max=2.965       diff=561    maxAbs=3.55e-15   maxRel=5.24e-14   L2=1.49e-14   bcells=152
+       worst cell 161 component x: cpu=0.59752644017239664 gpu=0.5975264401724002
+  FAIL warped 3d 6            mixed     quadratic     cells=216    |grad|max=23.76       diff=480    maxAbs=6.33e-15   maxRel=9.52e-14   L2=1.89e-14   bcells=152
+       worst cell 107 component x: cpu=0.50704158049330783 gpu=0.50704158049331416
+  FAIL warped 3d 6            dirichlet manufactured  cells=216    |grad|max=36.93       diff=351    maxAbs=7.11e-15   maxRel=1.85e-14   L2=3.21e-14   bcells=152
+       worst cell 14 component z: cpu=-24.179907713366287 gpu=-24.179907713366294
+  FAIL warped 3d 6            neumann   manufactured  cells=216    |grad|max=3.608       diff=492    maxAbs=1.55e-15   maxRel=1.86e-14   L2=8.36e-15   bcells=152
+       worst cell 147 component z: cpu=0.27450503272603011 gpu=0.27450503272603166
+  FAIL warped 3d 6            mixed     manufactured  cells=216    |grad|max=33.05       diff=417    maxAbs=7.11e-15   maxRel=6.59e-14   L2=1.7e-14    bcells=152
+       worst cell 31 component z: cpu=-30.387077698677057 gpu=-30.387077698677064
+
+quick mode: cases=24 failures=24
+GRADIENT EQUIVALENCE (quick): FAIL
+
+########## harness diffusion --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001C: CUDA implicit diffusion vs CPU reference (bitwise) ===
+CPU reference: turbulence::assembleScalarDiffusionContribution
+
+       [distorted q16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=262424 B]
+  FAIL distorted q16      dirichlet constant      uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=9,abs=8.88e-16,scale=7.359]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   constant      uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=0,abs=0,scale=9.329]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     constant      uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=4,abs=8.88e-16,scale=8.89]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet constant      uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=208,abs=8.88e-16,scale=7.24]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   constant      uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=204,abs=1.78e-15,scale=9.328]
+       worst entry (15,15): cpu=9.328384757766214 gpu=9.3283847577662158  maxRel=17.8
+  FAIL distorted q16      mixed     constant      uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=206,abs=8.88e-16,scale=8.89]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet linear        uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=7,abs=8.88e-16,scale=7.253]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   linear        uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=1,abs=4.44e-16,scale=6.872]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     linear        uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=3,abs=4.44e-16,scale=7.259]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet linear        uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=175,abs=8.88e-16,scale=7.351]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   linear        uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=188,abs=4.44e-16,scale=6.869]
+       worst entry (21,21): cpu=2.8211695239491439 gpu=2.821169523949143  maxRel=3.16e-16
+  FAIL distorted q16      mixed     linear        uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=178,abs=8.88e-16,scale=7.273]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=8,abs=8.88e-16,scale=7.317]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   quadratic     uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=3,abs=8.88e-16,scale=6.409]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     quadratic     uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=2,abs=8.88e-16,scale=6.409]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=193,abs=8.88e-16,scale=7.295]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=192,abs=4.44e-16,scale=6.413]
+       worst entry (21,21): cpu=2.8211695239491439 gpu=2.821169523949143  maxRel=3.16e-16
+  FAIL distorted q16      mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=200,abs=8.88e-16,scale=6.413]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=8,abs=8.88e-16,scale=7.203]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   manufactured  uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=1,abs=5.55e-17,scale=1.389]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     manufactured  uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=1,abs=8.88e-16,scale=5.41]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=171,abs=8.88e-16,scale=7.41]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=173,abs=2.22e-16,scale=1.392]
+       worst entry (21,21): cpu=2.8211695239491439 gpu=2.821169523949143  maxRel=3.16e-16
+  FAIL distorted q16      mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=164,abs=4.44e-16,scale=5.536]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet constant      varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=9,abs=8.88e-16,scale=10.78]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   constant      varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=3,abs=1.78e-15,scale=13.02]
+       worst entry (15,15): cpu=9.9229966321474912 gpu=9.9229966321474929  maxRel=1.79e-16
+  FAIL distorted q16      mixed     constant      varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=1,abs=1.78e-15,scale=13.02]
+       worst entry (255,255): cpu=13.018806043917383 gpu=13.018806043917385  maxRel=1.36e-16
+  FAIL distorted q16      dirichlet constant      varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=205,abs=8.88e-16,scale=10.61]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   constant      varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=209,abs=8.88e-16,scale=13.02]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     constant      varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=207,abs=8.88e-16,scale=13.02]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      dirichlet linear        varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=9,abs=8.88e-16,scale=10.62]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   linear        varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=0,abs=0,scale=7.31]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      mixed     linear        varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=2,abs=8.88e-16,scale=7.722]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      dirichlet linear        varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=183,abs=8.88e-16,scale=10.76]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   linear        varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=182,abs=4.44e-16,scale=7.307]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     linear        varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=184,abs=8.88e-16,scale=7.736]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      dirichlet quadratic     varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=7,abs=8.88e-16,scale=10.72]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   quadratic     varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=1,abs=1.78e-15,scale=9.386]
+       worst entry (255,255): cpu=9.3856504302495338 gpu=9.3856504302495356  maxRel=1.89e-16
+  FAIL distorted q16      mixed     quadratic     varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=1,abs=1.78e-15,scale=9.386]
+       worst entry (255,255): cpu=9.3856504302495338 gpu=9.3856504302495356  maxRel=1.89e-16
+  FAIL distorted q16      dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=189,abs=1.78e-15,scale=10.68]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   quadratic     varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=184,abs=4.44e-16,scale=9.391]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     quadratic     varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=183,abs=8.88e-16,scale=9.391]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      dirichlet manufactured  varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=11,abs=8.88e-16,scale=10.55]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   manufactured  varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=2,abs=5.55e-17,scale=1.716]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      mixed     manufactured  varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=0,abs=0,scale=4.214]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=177,abs=8.88e-16,scale=10.85]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   manufactured  varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=174,abs=2.22e-16,scale=1.715]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     manufactured  varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=176,abs=2.22e-16,scale=4.152]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+       [warped 3d 6 cells=216 higherOrderBoundaryFaces=216 correctableInternal=540 resident=360312 B]
+  FAIL warped 3d 6        dirichlet constant      uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=27,abs=2.22e-16,scale=2.332]
+       worst entry (34,34): cpu=1.1672117458247713 gpu=1.1672117458247715  maxRel=2.36e-16
+  FAIL warped 3d 6        neumann   constant      uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=13,abs=4.44e-16,scale=2.301]
+       worst entry (30,30): cpu=2.2789337760906001 gpu=2.2789337760906005  maxRel=1.95e-16
+  FAIL warped 3d 6        mixed     constant      uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=14,abs=4.44e-16,scale=2.48]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet constant      uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=86,abs=2.22e-16,scale=2.335]
+       worst entry (73,73): cpu=0.94375081911894942 gpu=0.9437508191189492  maxRel=2.38e-16
+  FAIL warped 3d 6        neumann   constant      uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=103,abs=4.44e-16,scale=2.301]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     constant      uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=100,abs=4.44e-16,scale=2.481]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet linear        uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=24,abs=4.44e-16,scale=2.338]
+       worst entry (5,5): cpu=2.0335519970993197 gpu=2.0335519970993201  maxRel=2.21e-16
+  FAIL warped 3d 6        neumann   linear        uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=16,abs=2.22e-16,scale=2.024]
+       worst entry (65,65): cpu=0.80334640780196431 gpu=0.80334640780196453  maxRel=2.77e-16
+  FAIL warped 3d 6        mixed     linear        uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=11,abs=4.44e-16,scale=2.103]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet linear        uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=84,abs=4.44e-16,scale=2.331]
+       worst entry (185,185): cpu=2.1677787563961637 gpu=2.1677787563961641  maxRel=2.79e-14
+  FAIL warped 3d 6        neumann   linear        uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=97,abs=2.22e-16,scale=2.024]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     linear        uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=81,abs=2.22e-16,scale=2.1]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet quadratic     uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=22,abs=2.22e-16,scale=2.336]
+       worst entry (34,34): cpu=1.1672117458247713 gpu=1.1672117458247715  maxRel=2.36e-16
+  FAIL warped 3d 6        neumann   quadratic     uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=16,abs=2.22e-16,scale=1.623]
+       worst entry (65,65): cpu=0.80334640780196431 gpu=0.80334640780196453  maxRel=2.77e-16
+  FAIL warped 3d 6        mixed     quadratic     uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=13,abs=2.22e-16,scale=1.94]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet quadratic     uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=83,abs=4.44e-16,scale=2.332]
+       worst entry (35,35): cpu=2.1944054179057093 gpu=2.1944054179057089  maxRel=3.48e-14
+  FAIL warped 3d 6        neumann   quadratic     uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=84,abs=2.22e-16,scale=1.622]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     quadratic     uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=76,abs=2.22e-16,scale=1.932]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet manufactured  uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=31,abs=4.44e-16,scale=2.347]
+       worst entry (5,5): cpu=2.0472237261901762 gpu=2.0472237261901767  maxRel=2.19e-16
+  FAIL warped 3d 6        neumann   manufactured  uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=11,abs=1.11e-16,scale=0.5584]
+       worst entry (65,65): cpu=0.80334640780196431 gpu=0.80334640780196453  maxRel=2.77e-16
+  FAIL warped 3d 6        mixed     manufactured  uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=11,abs=2.22e-16,scale=1.86]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet manufactured  uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=84,abs=4.44e-16,scale=2.325]
+       worst entry (215,215): cpu=2.3254187837231717 gpu=2.3254187837231721  maxRel=1.89e-14
+  FAIL warped 3d 6        neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=85,abs=5.55e-17,scale=0.5581]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=80,abs=2.22e-16,scale=1.873]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet constant      varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=23,abs=4.44e-16,scale=3.897]
+       worst entry (197,197): cpu=2.1400224243121588 gpu=2.1400224243121584  maxRel=2.15e-16
+  FAIL warped 3d 6        neumann   constant      varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=20,abs=4.44e-16,scale=3.812]
+       worst entry (29,29): cpu=2.0564884060894562 gpu=2.0564884060894557  maxRel=2.2e-16
+  FAIL warped 3d 6        mixed     constant      varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=16,abs=4.44e-16,scale=3.812]
+       worst entry (33,33): cpu=2.2603664356556141 gpu=2.2603664356556146  maxRel=2.18e-16
+  FAIL warped 3d 6        dirichlet constant      varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=90,abs=4.44e-16,scale=3.903]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   constant      varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=99,abs=4.44e-16,scale=3.813]
+       worst entry (29,29): cpu=2.0565050805872986 gpu=2.0565050805872982  maxRel=1.86e-07
+  FAIL warped 3d 6        mixed     constant      varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=98,abs=4.44e-16,scale=3.813]
+       worst entry (5,5): cpu=2.5148524494267135 gpu=2.514852449426713  maxRel=3.21e-08
+  FAIL warped 3d 6        dirichlet linear        varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=30,abs=4.44e-16,scale=3.908]
+       worst entry (5,5): cpu=2.187474655061501 gpu=2.1874746550615005  maxRel=2.15e-16
+  FAIL warped 3d 6        neumann   linear        varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=14,abs=4.44e-16,scale=2.658]
+       worst entry (185,185): cpu=2.6584752986596625 gpu=2.658475298659662  maxRel=1.98e-16
+  FAIL warped 3d 6        mixed     linear        varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=18,abs=4.44e-16,scale=2.587]
+       worst entry (5,5): cpu=2.2617387813520198 gpu=2.2617387813520193  maxRel=2.11e-16
+  FAIL warped 3d 6        dirichlet linear        varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=88,abs=4.44e-16,scale=3.896]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   linear        varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=104,abs=2.22e-16,scale=2.659]
+       worst entry (28,28): cpu=1.0207374173205135 gpu=1.0207374173205133  maxRel=3.59e-16
+  FAIL warped 3d 6        mixed     linear        varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=99,abs=2.22e-16,scale=2.587]
+       worst entry (21,21): cpu=1.0228260337181825 gpu=1.0228260337181823  maxRel=3.59e-16
+  FAIL warped 3d 6        dirichlet quadratic     varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=29,abs=4.44e-16,scale=3.904]
+       worst entry (33,33): cpu=2.3019808049767643 gpu=2.3019808049767647  maxRel=2.22e-16
+  FAIL warped 3d 6        neumann   quadratic     varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=15,abs=4.44e-16,scale=2.712]
+       worst entry (215,215): cpu=2.7119955309478172 gpu=2.7119955309478176  maxRel=2.12e-16
+  FAIL warped 3d 6        mixed     quadratic     varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=20,abs=4.44e-16,scale=2.781]
+       worst entry (215,215): cpu=2.7119955309478172 gpu=2.7119955309478176  maxRel=2.1e-16
+  FAIL warped 3d 6        dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=81,abs=4.44e-16,scale=3.897]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   quadratic     varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=107,abs=4.44e-16,scale=2.711]
+       worst entry (215,215): cpu=2.711468530364411 gpu=2.7114685303644115  maxRel=5.27e-15
+  FAIL warped 3d 6        mixed     quadratic     varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=83,abs=4.44e-16,scale=2.77]
+       worst entry (35,35): cpu=2.7696616466446158 gpu=2.7696616466446153  maxRel=8.4e-15
+  FAIL warped 3d 6        dirichlet manufactured  varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=33,abs=4.44e-16,scale=3.922]
+       worst entry (5,5): cpu=2.202181218217877 gpu=2.2021812182178766  maxRel=2.2e-16
+  FAIL warped 3d 6        neumann   manufactured  varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=9,abs=1.11e-16,scale=0.855]
+       worst entry (32,32): cpu=1.0930005703068644 gpu=1.0930005703068646  maxRel=3.41e-16
+  FAIL warped 3d 6        mixed     manufactured  varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=11,abs=2.22e-16,scale=1.753]
+       worst entry (21,21): cpu=1.0178111718105791 gpu=1.0178111718105789  maxRel=3.41e-16
+  FAIL warped 3d 6        dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=83,abs=4.44e-16,scale=3.888]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   manufactured  varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=91,abs=1.11e-16,scale=0.8571]
+       worst entry (28,28): cpu=1.0207374173205135 gpu=1.0207374173205133  maxRel=3.59e-16
+  FAIL warped 3d 6        mixed     manufactured  varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=81,abs=2.22e-16,scale=1.736]
+       worst entry (21,21): cpu=1.0228260337181825 gpu=1.0228260337181823  maxRel=3.59e-16
+
+quick mode: cases=96 failures=96
+DIFFUSION EQUIVALENCE (quick): FAIL
+
+########## harness convection --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001D: CUDA convection vs CPU reference (bitwise) ===
+L1 primitives | L2 four schemes vs discretization::convection()
+L3 scalar implicit assembly vs thermal::assembleThermalConvectionContribution
+
+=== L1: scheme primitives vs the production CPU functions ===
+  FAIL quickFaceValue        n=10000  differing=1317 maxAbs=1.16e-10
+  FAIL linearUpwindFaceValue n=10000  differing=55 maxAbs=2.84e-14
+  PASS smoothnessRatio       n=1000   differing=0 nullopt cases=100
+  PASS vanLeerLimiter        n=23     differing=0 (includes NaN/nullopt, +0, -0)
+  L1 total scalar comparisons: 21023
+
+=== L2/L3: operators and assembly ===
+       [distorted q16 cells=256 farUpstream(ownerUpwind=478, neighbourUpwind=478) resident=212760 B]
+  PASS distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  PASS distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  PASS distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  FAIL distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=1] maxAbs=9.09e-13   scaleA=1577      scaleR=5127     
+  PASS distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=2010     
+  PASS distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=2872      scaleR=3608     
+  PASS distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4685      scaleR=2933     
+  PASS distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2412      scaleR=2261     
+  PASS distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=0] rhs[d=0] maxAbs=0          scaleA=2610      scaleR=1665     
+  PASS distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2545      scaleR=3293     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=47] rhs[d=0] maxAbs=7.11e-15   scaleA=60.85     scaleR=73.61    
+  PASS distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=82.5     
+  PASS distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=107.4    
+  PASS distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  PASS distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  PASS distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  FAIL distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=1] maxAbs=1.42e-14   scaleA=1577      scaleR=3209     
+  PASS distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=2010     
+  PASS distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=2872      scaleR=3608     
+  PASS distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4685      scaleR=2000     
+  PASS distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2412      scaleR=2261     
+  PASS distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=0] rhs[d=0] maxAbs=0          scaleA=2610      scaleR=1665     
+  PASS distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2545      scaleR=2167     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=47] rhs[d=0] maxAbs=7.11e-15   scaleA=60.85     scaleR=73.61    
+  PASS distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=82.5     
+  PASS distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=61.08    
+  PASS distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  PASS distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  PASS distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  FAIL distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=2] maxAbs=4.55e-13   scaleA=1577      scaleR=3156     
+  PASS distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=2010     
+  PASS distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=2872      scaleR=3608     
+  PASS distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4685      scaleR=1806     
+  PASS distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2412      scaleR=2261     
+  PASS distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=0] rhs[d=0] maxAbs=0          scaleA=2610      scaleR=1665     
+  PASS distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2545      scaleR=2026     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=47] rhs[d=0] maxAbs=7.11e-15   scaleA=60.85     scaleR=73.61    
+  PASS distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=82.5     
+  PASS distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=66.15    
+  PASS distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  PASS distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  PASS distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=2263      scaleR=0        
+  PASS distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=1697     
+  PASS distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=2010     
+  PASS distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=2872      scaleR=3608     
+  PASS distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=0] rhs[d=0] maxAbs=0          scaleA=4685      scaleR=1643     
+  PASS distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2412      scaleR=2261     
+  PASS distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=0] rhs[d=0] maxAbs=0          scaleA=2610      scaleR=1665     
+  PASS distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=0] rhs[d=0] maxAbs=0          scaleA=2545      scaleR=1876     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=47] rhs[d=0] maxAbs=7.11e-15   scaleA=60.85     scaleR=73.61    
+  PASS distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=82.5     
+  PASS distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=0] rhs[d=0] maxAbs=0          scaleA=68.2      scaleR=61.08    
+       [warped 3d 5 cells=125 farUpstream(ownerUpwind=297, neighbourUpwind=294) resident=171224 B]
+  PASS warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=0        
+  FAIL warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=7] maxAbs=4.55e-13   scaleA=2382      scaleR=5955     
+  PASS warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  PASS warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  FAIL warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=7] maxAbs=9.09e-13   scaleA=2382      scaleR=7729     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=2] maxAbs=9.09e-13   scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=5615     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=1] maxAbs=4.55e-13   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=2] maxAbs=9.09e-13   scaleA=4882      scaleR=9938     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=30] rhs[d=0] maxAbs=7.11e-15   scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=2] maxAbs=7.11e-15   scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=59.25    
+  PASS warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=0        
+  FAIL warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=7] maxAbs=4.55e-13   scaleA=2382      scaleR=5955     
+  PASS warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  PASS warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  FAIL warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=15] maxAbs=9.09e-13   scaleA=2382      scaleR=5680     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=2] maxAbs=9.09e-13   scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=1] maxAbs=4.55e-13   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=3] maxAbs=9.09e-13   scaleA=4882      scaleR=4964     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=30] rhs[d=0] maxAbs=7.11e-15   scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=2] maxAbs=7.11e-15   scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=33.99    
+  PASS warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=0        
+  FAIL warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=7] maxAbs=4.55e-13   scaleA=2382      scaleR=5955     
+  PASS warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  PASS warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  FAIL warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=6] maxAbs=4.55e-13   scaleA=2382      scaleR=5410     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=2] maxAbs=9.09e-13   scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=1] maxAbs=4.55e-13   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=2] maxAbs=9.09e-13   scaleA=4882      scaleR=6110     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=30] rhs[d=0] maxAbs=7.11e-15   scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=2] maxAbs=7.11e-15   scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=36.57    
+  PASS warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=0        
+  FAIL warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=7] maxAbs=4.55e-13   scaleA=2382      scaleR=5955     
+  PASS warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  PASS warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  FAIL warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=13] maxAbs=4.55e-13   scaleA=2382      scaleR=3832     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=2] maxAbs=9.09e-13   scaleA=5016      scaleR=1.106e+04
+  FAIL warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=1] maxAbs=1.14e-13   scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=1] maxAbs=4.55e-13   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=4] maxAbs=1.14e-13   scaleA=4882      scaleR=4413     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=30] rhs[d=0] maxAbs=7.11e-15   scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=2] maxAbs=7.11e-15   scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=33.99    
+
+=== non-vacuity control ===
+  PASS identical bits compare equal; a one-ULP perturbation does not (abs=1.78e-15)
+
+=== coverage ===
+  scheme upwind         80 operator cases
+  scheme central        80 operator cases
+  scheme linear_upwind  80 operator cases
+  scheme quick          120 operator cases
+  reversed-flux pairs                160
+  reversal actually changed result   160
+  zero/negative-zero flux cases      32
+  assembly pattern mismatches        0
+
+cases=484 failures=364
+CONVECTION EQUIVALENCE: FAIL

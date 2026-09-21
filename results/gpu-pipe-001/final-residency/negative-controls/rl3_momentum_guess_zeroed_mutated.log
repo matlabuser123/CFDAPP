@@ -1,0 +1,38 @@
+# rl3_momentum_guess_zeroed
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the momentum solves start from an all-zero vector instead of the start-of-iteration component the host path warm-starts from. The CONVERGED answer is barely affected -- which is the point: SolverResult::initialResidual is measured from the guess and IS SIMPLE's outer convergence measure, so the residual history and the iteration count change even when the final field does not.
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+  copyToWorkspaceGuess(guess, impl_->krylov);
+# --- became ---
+  fill(impl_->krylov.x, nc, 0.0);  // MUTATED
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness loop_comparison --quick -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 final residency: resident SIMPLE loop, controlled comparison ===
+Arms differ ONLY in whether the GPU outer iteration is device-resident.
+Every comparison is BITWISE.
+
+  FAIL  cavity 2d 16             MaxIterations it=8  mom=189 p=568  red=3024  fields=DIFFER  first divergence: 2 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D   49.38 /     176877 B  D2H   394.00 /       68001 B  sync   376.50  alloc 375
+        transfers/iteration   resident H2D   37.12 /     135468 B  D2H   386.50 /       10683 B  sync   378.00  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  FAIL  cavity 2d 32             MaxIterations it=6  mom=147 p=835  red=3922  fields=DIFFER  first divergence: 2 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D   61.83 /     870332 B  D2H   674.33 /      292539 B  sync   656.67  alloc 375
+        transfers/iteration   resident H2D   49.50 /     700517 B  D2H   662.33 /       58899 B  sync   653.67  alloc 359
+        non-reduction D2H/iteration   host-arm   17.67   resident    8.67
+  FAIL  channel 2d 16            MaxIterations it=8  mom=272 p=471  red=2974  fields=DIFFER  first divergence: 1 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D   49.38 /     176879 B  D2H   388.75 /       67926 B  sync   371.25  alloc 373
+        transfers/iteration   resident H2D   37.12 /     135470 B  D2H   380.25 /       10597 B  sync   371.75  alloc 359
+        non-reduction D2H/iteration   host-arm   17.50   resident    8.50
+  FAIL  cavity 3d 6              MaxIterations it=6  mom=156 p=224  red=1520  fields=DIFFER  first divergence: 2 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D   67.83 /     302272 B  D2H   272.00 /       93641 B  sync   249.33  alloc 389
+        transfers/iteration   resident H2D   49.50 /     243231 B  D2H   263.00 /       10763 B  sync   253.33  alloc 374
+        non-reduction D2H/iteration   host-arm   22.67   resident    9.67
+
+cases=4 failures=4  values compared=10995  bitwise=2009
+NOT every compared value was bitwise identical
+RESIDENT SIMPLE LOOP COMPARISON: FAIL

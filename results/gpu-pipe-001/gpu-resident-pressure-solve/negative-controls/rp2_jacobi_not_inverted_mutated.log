@@ -1,0 +1,101 @@
+# rp2_jacobi_not_inverted
+# layer:       resident-solve
+# origin:      GPU-PIPE-001 resident pressure solve
+# expectation: detect
+# the device Jacobi preconditioner stores the diagonal instead of its reciprocal, so M is applied as diag(A) rather than diag(A)^-1
+# mutation applied to cuda/kernels/GpuResidentSolveKernel.cu
+# --- anchor ---
+  inverseDiagonal[row] = 1.0 / diag;
+# --- became ---
+  inverseDiagonal[row] = diag;
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness residency  -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 resident pressure solve: controlled comparison ===
+
+=== cavity 2d 40x40, 8 outer iterations ===
+    FAIL  pressure linear iteration count differs
+    FAIL  pressure residual history differs (bitwise)
+    FAIL  u residual history differs (bitwise)
+    FAIL  v residual history differs (bitwise)
+  status            1 / 1
+  outer iterations  8
+  pressure Krylov   1732 (resident) / 1522 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   50.4         55.6       -9.4%
+    H2D bytes                1091453      1214796      -10.2%
+    D2H calls                 1012.0        909.8      +11.2%
+    D2H bytes                 496038       649524      -23.6%
+    allocations (total)          375          375
+    syncs (total)               7956         7114
+    reduction groups            7956         7114   identical => same Krylov work
+    FAIL  the resident path synchronizes MORE than the host path
+    FAIL  reduction count differs -- the two paths did different Krylov work
+
+=== cavity 2d 80x80, 6 outer iterations ===
+    FAIL  pressure linear iteration count differs
+    FAIL  pressure residual history differs (bitwise)
+    FAIL  u residual history differs (bitwise)
+    FAIL  v residual history differs (bitwise)
+  status            1 / 1
+  outer iterations  6
+  pressure Krylov   2378 (resident) / 2183 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   62.8         68.2       -7.8%
+    H2D bytes                5416764      5925760       -8.6%
+    D2H calls                 1722.7       1596.0       +7.9%
+    D2H bytes                2208472      2823549      -21.8%
+    allocations (total)          375          375
+    syncs (total)              10230         9452
+    reduction groups           10230         9452   identical => same Krylov work
+    FAIL  the resident path synchronizes MORE than the host path
+    FAIL  reduction count differs -- the two paths did different Krylov work
+
+=== cavity 2d 160x160, 4 outer iterations ===
+    FAIL  pressure linear iteration count differs
+    FAIL  pressure residual history differs (bitwise)
+    FAIL  u residual history differs (bitwise)
+    FAIL  v residual history differs (bitwise)
+  status            1 / 1
+  outer iterations  4
+  pressure Krylov   3197 (resident) / 3010 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   87.8         93.2       -5.9%
+    H2D bytes               30207386     32351368       -6.6%
+    D2H calls                 3326.0       3143.0       +5.8%
+    D2H bytes               11164112     13556036      -17.6%
+    allocations (total)          375          375
+    syncs (total)              13232        12488
+    reduction groups           13232        12488   identical => same Krylov work
+    FAIL  the resident path synchronizes MORE than the host path
+    FAIL  reduction count differs -- the two paths did different Krylov work
+
+=== cavity 2d 40x40 LONG RUN, 60 outer iterations ===
+    FAIL  pressure linear iteration count differs
+    FAIL  pressure residual history differs (bitwise)
+    FAIL  u residual history differs (bitwise)
+    FAIL  v residual history differs (bitwise)
+  status            1 / 1
+  outer iterations  60
+  pressure Krylov   13337 (resident) / 11115 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   18.0         23.0      -21.9%
+    H2D bytes                 376268       491431      -23.4%
+    D2H calls                 1025.0        880.0      +16.5%
+    D2H bytes                 491808       641106      -23.3%
+    allocations (total)          373          375
+    syncs (total)              60478        51596
+    reduction groups           60478        51596   identical => same Krylov work
+    FAIL  the resident path synchronizes MORE than the host path
+    FAIL  reduction count differs -- the two paths did different Krylov work
+
+RESIDENCY COMPARISON: FAIL

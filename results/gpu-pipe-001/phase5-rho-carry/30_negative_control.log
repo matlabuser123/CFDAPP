@@ -1,0 +1,25 @@
+=== A: rho-carry as implemented (expect 4.00 groups/iteration) ===
+  RESULT edge=160 backend=gpu cells=25600 outer=4 solve_s=3.344955 p_res=0.0018474694761252055 cont=6.1486068107441054e-08 mass=0 p_lin_it=2260 h2d_calls=40 h2d_bytes=19589056 d2h_calls=9358 d2h_bytes=15531200 syncs=9346 launches=28069 krylov_it=2338 solves=12 red_groups=9346 red_quantities=16342 gpu_solve_s=1.031597 status=1 fallbacks=0 allocs=28 reallocs=0 frees=26
+  groups/iteration = 4.00
+
+=== B: inject the removed reduction back (expect 5.00) ===
+  injected: rho recomputed at the top of the loop
+  RESULT edge=160 backend=gpu cells=25600 outer=4 solve_s=2.325766 p_res=0.0018474694761252055 cont=6.1486068107441054e-08 mass=0 p_lin_it=2260 h2d_calls=40 h2d_bytes=19589056 d2h_calls=11696 d2h_bytes=17401600 syncs=11684 launches=30407 krylov_it=2338 solves=12 red_groups=11684 red_quantities=18680 gpu_solve_s=1.341496 status=1 fallbacks=0 allocs=28 reallocs=0 frees=26
+  groups/iteration = 5.00
+
+=== verdict ===
+  groups/iteration   clean 4.00   mutant 5.00  
+  red_groups         clean 9346     mutant 11684    delta +2338
+  d2h_calls          clean 9358     mutant 11696    delta +2338
+  krylov_it          clean 2338     mutant 2338     (must match)
+  p_res              clean 0.0018474694761252055
+                     mutant 0.0018474694761252055
+  expected extra groups = krylov_it = 2338, observed = 2338
+
+=== C: restore and PROVE the production binary is back ===
+  source restored AND library rebuilt
+  source clean: no injection markers
+  build/cuda up to date with the restored source (ninja)
+  restored groups/iteration = 4.00 (must equal the clean 4.00)
+
+NEGATIVE CONTROL (rho-carry): PASS

@@ -1,0 +1,153 @@
+
+=== cavity2d-quick: end-to-end wall time (median of N repeats) ===
+       grid    cells  N    CPU(s)  gpu-pipe  gpu-disc disc-only   pipe x  disc x disc/pipe    old x
+    160x160    25600  3    11.456    15.227    10.339     8.715   0.752x  1.108x     1.47x     nanx
+    320x320   102400  3    28.136    14.150     8.297    22.857   1.988x  3.391x     1.71x     nanx
+
+       grid  spread (min..max as % of median)
+    160x160  cpu  5.5%   gpu-pipe  4.3%   gpu-disc  7.8%   disc-only  2.5%
+    320x320  cpu  1.7%   gpu-pipe  4.5%   gpu-disc  0.1%   disc-only  1.0%
+  crossover, old GPU path        : 320x320 (first grid where it beats the CPU)
+  crossover, new GPU-DISC path   : 160x160 (first grid where it beats the CPU)
+
+=== cavity2d-quick: transfers, synchronization, allocations (median, GPU arms) ===
+       grid        arm  iters       H2D    H2D MB       D2H    D2H MB   H2D/it   D2H/it    MB/it     sync  sync/it   alloc  realloc   kernels
+    160x160   gpu-pipe     60       544     259.6     50006     106.5      9.1    833.4     6.10    49826    830.4      26        0    149961
+    160x160   gpu-disc     60      1555     520.5     50966     608.6     25.9    849.4    18.82    49826    830.4     371        0    152901
+    160x160  disc-only     60      1011     260.9       960     502.1     16.9     16.0    12.72        0      0.0     345        0      2940
+    320x320   gpu-pipe     20       184     353.3     30450     219.1      9.2   1522.5    28.62    30390   1519.5      26        0     91339
+    320x320   gpu-disc     20       715     969.1     30770     889.7     35.8   1538.5    92.94    30390   1519.5     371        0     92319
+    320x320  disc-only     20       531     615.8       320     670.6     26.6     16.0    64.32        0      0.0     345        0       980
+
+=== cavity2d-quick: throughput ===
+  cell-iterations/s = cells x outer iterations / wall seconds
+  face-iterations/s = faces x outer iterations / wall seconds
+       grid    cells       cpu Mcell-it/s gpu-pipe Mcell-it/s gpu-disc Mcell-it/sdisc-only Mcell-it/s
+    160x160    25600                0.134               0.101               0.149               0.176
+    320x320   102400                0.073               0.145               0.247               0.090
+
+=== cavity2d-quick: GPU memory ===
+       grid    cells        arm   peak DeviceBuffer MB   bytes/cell   driver used MB after
+    160x160    25600   gpu-pipe                   8.58        335.2                1351.82
+    160x160    25600   gpu-disc                 127.21       4969.0                1351.82
+    160x160    25600  disc-only                 118.63       4633.8                1351.82
+    320x320   102400   gpu-pipe                  34.37        335.6                1351.82
+    320x320   102400   gpu-disc                 507.55       4956.5                1351.82
+    320x320   102400  disc-only                 473.18       4620.9                1351.82
+
+=== cavity2d-quick 160x160: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0012   0.0%       0.0011   0.0%       0.1274   1.2%       0.1328   1.5%
+             momentum assembly        4.1480  36.2%       4.4891  29.5%       1.0476  10.1%       1.2984  14.9%
+               momentum solves        0.6261   5.5%       1.2940   8.5%       1.0609  10.3%       0.7170   8.2%
+         response coefficients        0.0108   0.1%       0.0112   0.1%       0.0089   0.1%       0.0173   0.2%
+           predicted face flux        0.0648   0.6%       0.0606   0.4%       0.0003   0.0%       0.0003   0.0%
+  pressure-correction assembly        0.6036   5.3%       0.6589   4.3%       0.3675   3.6%       0.4365   5.0%
+                pressure solve        5.6231  49.1%       8.4109  55.2%       7.5034  72.6%       5.7445  65.9%
+           velocity correction        0.4135   3.6%       0.4310   2.8%       0.0968   0.9%       0.1859   2.1%
+          face-flux correction        0.0110   0.1%       0.0121   0.1%       0.0553   0.5%       0.0764   0.9%
+        residual / bookkeeping        0.0396   0.3%       0.0448   0.3%       0.0462   0.4%       0.0505   0.6%
+                         other        0.0096   0.1%       0.0095   0.1%       0.0127   0.1%       0.0323   0.4%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        5.2710  46.0%       5.6582  37.2%       1.5756  15.2%       2.0059  23.0%
+            LINEAR SOLVE total        6.2491  54.5%       9.7113  63.8%       8.5642  82.8%       6.4615  74.1%
+                          wall       11.4560 100.0%      15.2275 100.0%      10.3386 100.0%       8.7151 100.0%
+
+=== cavity2d-quick 320x320: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0048   0.0%       0.0048   0.0%       0.3761   4.5%       0.4768   2.1%
+             momentum assembly        6.6331  23.6%       6.7028  47.4%       1.3874  16.7%       1.7293   7.6%
+               momentum solves        0.9537   3.4%       0.5433   3.8%       0.5162   6.2%       0.9755   4.3%
+         response coefficients        0.0217   0.1%       0.0194   0.1%       0.0062   0.1%       0.0129   0.1%
+           predicted face flux        0.0875   0.3%       0.0839   0.6%       0.0003   0.0%       0.0005   0.0%
+  pressure-correction assembly        0.8363   3.0%       0.8608   6.1%       0.5177   6.2%       0.5998   2.6%
+                pressure solve       18.8276  66.9%       5.2446  37.1%       5.1964  62.6%      18.6815  81.7%
+           velocity correction        0.5714   2.0%       0.5924   4.2%       0.0836   1.0%       0.1412   0.6%
+          face-flux correction        0.0227   0.1%       0.0226   0.2%       0.0353   0.4%       0.0717   0.3%
+        residual / bookkeeping        0.0634   0.2%       0.0629   0.4%       0.0628   0.8%       0.0653   0.3%
+                         other        0.0780   0.3%       0.0787   0.6%       0.0628   0.8%       0.0669   0.3%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        8.1783  29.1%       8.2953  58.6%       2.0309  24.5%       2.5532  11.2%
+            LINEAR SOLVE total       19.7978  70.4%       5.7879  40.9%       5.7125  68.8%      19.6571  86.0%
+                          wall       28.1364 100.0%      14.1502 100.0%       8.2973 100.0%      22.8568 100.0%
+
+=== cavity2d-linup: end-to-end wall time (median of N repeats) ===
+       grid    cells  N    CPU(s)  gpu-pipe  gpu-disc disc-only   pipe x  disc x disc/pipe    old x
+    160x160    25600  3    11.894    15.504    10.602     8.636   0.767x  1.122x     1.46x     nanx
+    320x320   102400  3    29.781    15.273     8.456    24.488   1.950x  3.522x     1.81x     nanx
+
+       grid  spread (min..max as % of median)
+    160x160  cpu  1.7%   gpu-pipe  0.8%   gpu-disc  3.0%   disc-only  1.4%
+    320x320  cpu  0.9%   gpu-pipe  2.2%   gpu-disc  2.6%   disc-only  0.5%
+  crossover, old GPU path        : 320x320 (first grid where it beats the CPU)
+  crossover, new GPU-DISC path   : 160x160 (first grid where it beats the CPU)
+
+=== cavity2d-linup: transfers, synchronization, allocations (median, GPU arms) ===
+       grid        arm  iters       H2D    H2D MB       D2H    D2H MB   H2D/it   D2H/it    MB/it     sync  sync/it   alloc  realloc   kernels
+    160x160   gpu-pipe     60       544     259.6     49496     105.8      9.1    824.9     6.09    49316    821.9      26        0    148424
+    160x160   gpu-disc     60      1555     520.5     50456     607.9     25.9    840.9    18.81    49316    821.9     371        0    151364
+    160x160  disc-only     60      1011     260.9       960     502.1     16.9     16.0    12.72        0      0.0     345        0      2940
+    320x320   gpu-pipe     20       184     353.3     31322     224.0      9.2   1566.1    28.86    31262   1563.1      26        0     93951
+    320x320   gpu-disc     20       715     969.1     31642     894.6     35.8   1582.1    93.18    31262   1563.1     371        0     94931
+    320x320  disc-only     20       531     615.8       320     670.6     26.6     16.0    64.32        0      0.0     345        0       980
+
+=== cavity2d-linup: throughput ===
+  cell-iterations/s = cells x outer iterations / wall seconds
+  face-iterations/s = faces x outer iterations / wall seconds
+       grid    cells       cpu Mcell-it/s gpu-pipe Mcell-it/s gpu-disc Mcell-it/sdisc-only Mcell-it/s
+    160x160    25600                0.129               0.099               0.145               0.178
+    320x320   102400                0.069               0.134               0.242               0.084
+
+=== cavity2d-linup: GPU memory ===
+       grid    cells        arm   peak DeviceBuffer MB   bytes/cell   driver used MB after
+    160x160    25600   gpu-pipe                   8.58        335.2                1351.82
+    160x160    25600   gpu-disc                 127.21       4969.0                1351.82
+    160x160    25600  disc-only                 118.63       4633.8                1351.82
+    320x320   102400   gpu-pipe                  34.37        335.6                1351.82
+    320x320   102400   gpu-disc                 507.55       4956.5                1351.82
+    320x320   102400  disc-only                 473.18       4620.9                1351.82
+
+=== cavity2d-linup 160x160: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0011   0.0%       0.0012   0.0%       0.1273   1.2%       0.1234   1.4%
+             momentum assembly        4.3840  36.9%       4.8801  31.5%       1.0433   9.8%       1.2511  14.5%
+               momentum solves        0.6183   5.2%       1.2675   8.2%       1.1027  10.4%       0.6927   8.0%
+         response coefficients        0.0113   0.1%       0.0112   0.1%       0.0092   0.1%       0.0178   0.2%
+           predicted face flux        0.0654   0.5%       0.0596   0.4%       0.0003   0.0%       0.0003   0.0%
+  pressure-correction assembly        0.4767   4.0%       0.4857   3.1%       0.3694   3.5%       0.4401   5.1%
+                pressure solve        5.6971  47.9%       8.2548  53.2%       7.7106  72.7%       5.7562  66.7%
+           velocity correction        0.4101   3.4%       0.4338   2.8%       0.0971   0.9%       0.1821   2.1%
+          face-flux correction        0.0119   0.1%       0.0118   0.1%       0.0514   0.5%       0.0760   0.9%
+        residual / bookkeeping        0.0405   0.3%       0.0433   0.3%       0.0454   0.4%       0.0473   0.5%
+                         other        0.0650   0.5%       0.0631   0.4%       0.0123   0.1%       0.0309   0.4%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        5.3592  45.1%       5.8921  38.0%       1.5781  14.9%       1.9691  22.8%
+            LINEAR SOLVE total        6.3077  53.0%       9.5223  61.4%       8.8133  83.1%       6.4489  74.7%
+                          wall       11.8940 100.0%      15.5042 100.0%      10.6023 100.0%       8.6362 100.0%
+
+=== cavity2d-linup 320x320: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0046   0.0%       0.0046   0.0%       0.4138   4.9%       0.4815   2.0%
+             momentum assembly        6.8064  22.9%       6.9711  45.6%       1.4398  17.0%       1.5465   6.3%
+               momentum solves        0.9614   3.2%       0.6123   4.0%       0.5205   6.2%       0.9942   4.1%
+         response coefficients        0.0194   0.1%       0.0203   0.1%       0.0057   0.1%       0.0119   0.0%
+           predicted face flux        0.0847   0.3%       0.0845   0.6%       0.0003   0.0%       0.0005   0.0%
+  pressure-correction assembly        0.8439   2.8%       0.8770   5.7%       0.5243   6.2%       0.5713   2.3%
+                pressure solve       20.3975  68.5%       5.9859  39.2%       5.3040  62.7%      20.5550  83.9%
+           velocity correction        0.5688   1.9%       0.5997   3.9%       0.0830   1.0%       0.1344   0.5%
+          face-flux correction        0.0238   0.1%       0.0240   0.2%       0.0357   0.4%       0.0625   0.3%
+        residual / bookkeeping        0.0630   0.2%       0.0629   0.4%       0.0626   0.7%       0.0700   0.3%
+                         other        0.0646   0.2%       0.0679   0.4%       0.0661   0.8%       0.0327   0.1%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        8.3364  28.0%       8.5797  56.2%       2.0933  24.8%       2.3303   9.5%
+            LINEAR SOLVE total       21.3573  71.7%       6.5982  43.2%       5.8009  68.6%      21.5492  88.0%
+                          wall       29.7809 100.0%      15.2734 100.0%       8.4562 100.0%      24.4877 100.0%
+
+=== numerical integrity of every timed run ===
+  runs                      48
+  distinct statuses         ['MaxIterations']
+  all_finite values         ['1']
+  runs failing integrity    0
+  worst |global mass imbalance| over all runs   0.000e+00
+
+wrote /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/analysis-schemes.json

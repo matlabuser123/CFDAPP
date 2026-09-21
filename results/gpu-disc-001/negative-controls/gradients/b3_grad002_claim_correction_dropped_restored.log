@@ -1,0 +1,34 @@
+# b3_grad002_claim_correction_dropped -- restored cuda/kernels/DeviceGradientKernel.cu
+# sha256 662b72d49e90557283a4f6c4699d99e0112bc8b75a3b7f1adb4b53099fd7e74a
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness gradient -> exit 0 ##########
+     mixed     constant      cells=256    |grad|max=53.27       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          dirichlet linear        cells=256    |grad|max=74.6        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   linear        cells=256    |grad|max=2.009       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     linear        cells=256    |grad|max=40.93       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          dirichlet quadratic     cells=256    |grad|max=41.09       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   quadratic     cells=256    |grad|max=3.617       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     quadratic     cells=256    |grad|max=41.09       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          dirichlet manufactured  cells=256    |grad|max=78.15       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   manufactured  cells=256    |grad|max=3.1         diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     manufactured  cells=256    |grad|max=41.85       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+       [warped 3d 6/dirichlet sweeps=yes skewedFaces=540   obliqueFaces=0     claims=216   boundaryTransfer=yes resident=154664 B]
+       [warped 3d 6/neumann   sweeps=yes skewedFaces=540   obliqueFaces=216   claims=216   boundaryTransfer=yes resident=166760 B]
+       [warped 3d 6/mixed     sweeps=yes skewedFaces=540   obliqueFaces=108   claims=216   boundaryTransfer=yes resident=160712 B]
+  PASS warped 3d 6            dirichlet constant      cells=216    |grad|max=17.96       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   constant      cells=216    |grad|max=0.1689      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     constant      cells=216    |grad|max=17.96       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            dirichlet linear        cells=216    |grad|max=29.1        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   linear        cells=216    |grad|max=2.008       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     linear        cells=216    |grad|max=29.01       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            dirichlet quadratic     cells=216    |grad|max=25.83       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   quadratic     cells=216    |grad|max=2.965       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     quadratic     cells=216    |grad|max=23.76       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            dirichlet manufactured  cells=216    |grad|max=36.93       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   manufactured  cells=216    |grad|max=3.608       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     manufactured  cells=216    |grad|max=33.05       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+
+quick mode: cases=24 failures=0
+GRADIENT EQUIVALENCE (quick): PASS (bitwise)

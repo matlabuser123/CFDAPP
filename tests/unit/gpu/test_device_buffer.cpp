@@ -497,6 +497,16 @@ TEST(SpmvKernelTimingTest, RecordsNonZeroKernelTime) {
 
   const auto& stats = cfd::gpu::gpuExecutionStats();
   EXPECT_EQ(stats.kernelLaunches, 1u);
-  EXPECT_EQ(stats.synchronizations, 1u);
+  // GPU-PIPE-001 Phase 3 changed this contract deliberately, and this
+  // assertion now guards the new one rather than the old.
+  //
+  // spmv() used to cudaDeviceSynchronize() after its launch, so this asserted
+  // 1. It no longer does: y is consumed by the next kernel on the default
+  // stream, which CUDA orders after this one, so the synchronize bought an
+  // ordering guarantee the stream already provided and charged a host-device
+  // round trip per SpMV for it. Asserting 0 keeps that a tested property --
+  // reintroducing the synchronize fails here instead of silently costing
+  // two round trips per Krylov iteration again.
+  EXPECT_EQ(stats.synchronizations, 0u);
   EXPECT_GT(stats.kernelSeconds, 0.0);
 }

@@ -1,0 +1,65 @@
+=== snapshot the historical verdict records before anything is re-run ===
+  saved pressure-correction/historical-driver.log
+  saved velocity-correction/historical-driver.log
+  saved face-flux-correction/historical-driver.log
+  saved single-iteration/historical-driver.log
+  saved integrated-simple/historical-driver.log
+  saved full-solve/historical-driver.log
+
+########## pressure-correction-assembly ##########
+  g7_reversed_continuity_order       detect  DETECTED    sha=True repass=True  ok
+  g7n_continuity_face_id_order       null    UNDETECTED  sha=True repass=True  ok
+  g8_wellposedness_guard_removed     detect  DETECTED    sha=True repass=True  ok
+
+8/8 observable controls detected; 2 provably-null controls confirmed unobservable
+  rc=0  616s  -> pressure-correction/driver.log
+
+########## velocity-correction ##########
+  h11_oblique_uses_face_centroid       detect  DETECTED    sha=True repass=True  ok
+  h12_zero_distance_skip_removed       null    UNDETECTED  sha=True repass=True  ok
+  h13_3d_weight_in_2d                  null    UNDETECTED  sha=True repass=True  ok
+
+11/11 observable controls detected; 4 claimed provably null
+  rc=0  870s  -> velocity-correction/driver.log
+
+########## face-flux-correction ##########
+  k11_boundary_branch_instead_of_arithmetic  detect  DETECTED    sha=True repass=True  ok
+
+observable controls: 11
+detected observable controls: 11/11
+documented null controls: 0
+  rc=0  631s  -> face-flux-correction/driver.log
+
+########## single-iteration ##########
+
+observable controls: 9
+detected observable controls: 9/9
+detected AT THE EXPECTED STAGE: 9/9
+documented null controls: 1
+  rc=0  90s  -> single-iteration/driver.log
+
+########## integrated-simple ##########
+  m11_fallback_claims_gpu                  detect  DETECTED    sha=True repass=True  ok               
+
+observable controls: 10
+detected observable controls: 10/10
+documented null controls: 1
+  rc=0  674s  -> integrated-simple/driver.log
+
+########## full-solve-equivalence ##########
+
+observable controls: 8
+detected: 8/8
+detected AT THE EXPECTED ITERATION: 8/8
+documented null controls: 0
+  rc=0  516s  -> full-solve/driver.log
+
+=== did any verdict change since the historical run? ===
+  pressure-correction: verdicts IDENTICAL to the historical run
+  velocity-correction: verdicts IDENTICAL to the historical run
+  face-flux-correction: verdicts IDENTICAL to the historical run
+  single-iteration: verdicts IDENTICAL to the historical run
+  integrated-simple: verdicts IDENTICAL to the historical run
+  full-solve: verdicts IDENTICAL to the historical run
+
+INTEGRATION CAMPAIGN: PASS

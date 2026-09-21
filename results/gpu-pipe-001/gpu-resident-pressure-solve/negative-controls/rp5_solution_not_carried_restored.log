@@ -1,0 +1,69 @@
+# rp5_solution_not_carried -- restored cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# sha256 7052a87475168323530944aee4be824dc3eb61d8725066563173832345abbf25
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness residency -> exit 0 ##########
+=== GPU-PIPE-001 resident pressure solve: controlled comparison ===
+
+=== cavity 2d 40x40, 8 outer iterations ===
+  status            1 / 1
+  outer iterations  8
+  pressure Krylov   1522 (resident) / 1522 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   50.4         55.6       -9.4%
+    H2D bytes                1091453      1214796      -10.2%
+    D2H calls                  906.8        909.8       -0.3%
+    D2H bytes                 485720       649524      -25.2%
+    allocations (total)          375          375
+    syncs (total)               7114         7114
+    reduction groups            7114         7114   identical => same Krylov work
+
+=== cavity 2d 80x80, 6 outer iterations ===
+  status            1 / 1
+  outer iterations  6
+  pressure Krylov   2183 (resident) / 2183 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   62.8         68.2       -7.8%
+    H2D bytes                5416764      5925760       -8.6%
+    D2H calls                 1593.0       1596.0       -0.2%
+    D2H bytes                2163105      2823549      -23.4%
+    allocations (total)          375          375
+    syncs (total)               9452         9452
+    reduction groups            9452         9452   identical => same Krylov work
+
+=== cavity 2d 160x160, 4 outer iterations ===
+  status            1 / 1
+  outer iterations  4
+  pressure Krylov   3010 (resident) / 3010 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   87.8         93.2       -5.9%
+    H2D bytes               30207386     32351368       -6.6%
+    D2H calls                 3140.0       3143.0       -0.1%
+    D2H bytes               10903912     13556036      -19.6%
+    allocations (total)          375          375
+    syncs (total)              12488        12488
+    reduction groups           12488        12488   identical => same Krylov work
+
+=== cavity 2d 40x40 LONG RUN, 60 outer iterations ===
+  status            1 / 1
+  outer iterations  60
+  pressure Krylov   11115 (resident) / 11115 (host)
+  path taken        resident=yes  host=no
+
+  transfers/iteration       resident        host        change
+    H2D calls                   18.0         23.0      -21.9%
+    H2D bytes                 376268       491431      -23.4%
+    D2H calls                  877.0        880.0       -0.3%
+    D2H bytes                 477302       641106      -25.6%
+    allocations (total)          373          375
+    syncs (total)              51596        51596
+    reduction groups           51596        51596   identical => same Krylov work
+
+RESIDENCY COMPARISON: PASS (bitwise)

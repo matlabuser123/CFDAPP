@@ -1,0 +1,620 @@
+# g3_additive_pin  (expectation: detect)
+# additive pin: the reference row accumulates its face terms and then has 1.0 added, instead of never being written
+# mutation applied to cuda/kernels/DevicePressureCorrectionKernel.cu
+# --- anchor ---
+    if (isReference) {
+      // The face loop never writes this row, so the diagonal is EXACTLY the
+      // 1.0 added afterwards and every off-diagonal is exactly 0.0.
+      values[k] = (column == c) ? 1.0 : 0.0;
+      continue;
+    }
+    Real value = 0.0;
+# --- became ---
+    Real value = (isReference && column == c) ? 1.0 : 0.0;
+# verdict: DETECTED (exit 1)
+
+=== GPU-DISC-001I: CUDA pressure-correction assembly vs CPU (bitwise) ===
+CPU reference: pressure_velocity::assemblePressureCorrection (assembly only)
+
+       [distorted q16/all-Neumann pin=yes fixedValueFaces=0 axisAligned=0 general=544 resident=239648 B]
+  PASS L5 distorted q16  all-Neumann    ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  all-Neumann    ref=128   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  all-Neumann    ref=255   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  FAIL L6 distorted q16  all-Neumann    threshold sweep 25 decades differing=25 decomposingFaces=480 faces[wellposed=9888 fallback=2112]
+  FAIL L7 distorted q16  all-Neumann    band sweep root=1788.28 differing=17 facesInBand=15/8160
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0.0009689 
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.06       scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=0.0009689 
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0.0009689 
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=0.9671    
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=59.9       scaleD=80.1       scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=0.9671    
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      uniform    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=0.9671    
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=0.001116  
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0274     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=0.001116  
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0869     scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=0.001116  
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=160.6      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=1.114     
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.4       scaleD=160.6      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=1.114     
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.7       scaleD=160.6      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      varying    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=1.114     
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=136        scaleD=236.3      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=1.36e+05   scaleD=2.358e+05  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=0         
+  FAIL distorted q16  all-Neumann  zero      anisotropic rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.401     
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.06       scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=2.272     
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=59.9       scaleD=80.1       scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=2.934     
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  uniform    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=2.934     
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.401     
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0274     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0869     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=160.6      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=2.048     
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.4       scaleD=160.6      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=2.84      
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.7       scaleD=160.6      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  varying    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=2.84      
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=136        scaleD=236.3      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=1.4       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=1.36e+05   scaleD=2.358e+05  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  positive  anisotropic rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.06       scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=1.66      
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=59.9       scaleD=80.1       scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=2.666     
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  uniform    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=2.666     
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0274     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0869     scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=160.6      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=1.65      
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.4       scaleD=160.6      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=2.76      
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.7       scaleD=160.6      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  varying    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=2.76      
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=136        scaleD=236.3      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=1.4       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=1.36e+05   scaleD=2.358e+05  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=2.8       
+  FAIL distorted q16  all-Neumann  negative  anisotropic rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.06       scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=4.399     
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=59.9       scaleD=80.1       scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=4.399     
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     uniform    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=4.399     
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0274     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0869     scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=160.6      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=4.573     
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.4       scaleD=160.6      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=4.573     
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.7       scaleD=160.6      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     varying    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=4.573     
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3811      
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=136        scaleD=236.3      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=3811      
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3811      
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=1.36e+05   scaleD=2.358e+05  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=4.2       
+  FAIL distorted q16  all-Neumann  mixed     anisotropic rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0.0009689 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.06       scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0608     scaleD=1          scaleR=0.0009689 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0408     scaleD=1          scaleR=0.0009689 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=0.9671    
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=59.9       scaleD=80.1       scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=60.6       scaleD=85.22      scaleR=0.9671    
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=80.1       scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     uniform    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=40.7       scaleD=85.22      scaleR=0.9671    
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0132     scaleD=1          scaleR=0.001116  
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0274     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0278     scaleD=1          scaleR=0.001116  
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.0869     scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=0.087      scaleD=1          scaleR=0.001116  
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=160.6      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=13.2       scaleD=161.2      scaleR=1.114     
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.4       scaleD=160.6      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=27.7       scaleD=161.2      scaleR=1.114     
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.7       scaleD=160.6      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     varying    rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=86.8       scaleD=161.2      scaleR=1.114     
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=136        scaleD=236.3      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+03   scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=236.3      scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=1       ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=105        scaleD=4.677e+04  scaleR=3810      
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=128   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=1.36e+05   scaleD=2.358e+05  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=128   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=128   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=2.14e+06   scaleD=4.669e+07  scaleR=3.803e+06 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=255   orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=2.358e+05  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=255   nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=1.561e-17 
+  FAIL distorted q16  all-Neumann  swirl     anisotropic rho=998.2   ref=255   nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=3] maxAbs=1.05e+05   scaleD=4.669e+07  scaleR=3.803e+06 
+       [distorted q16/one-FixedValue pin=no fixedValueFaces=16 axisAligned=0 general=544 resident=238752 B]
+  PASS L5 distorted q16  one-FixedValue ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  one-FixedValue ref=128   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  one-FixedValue ref=255   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L6 distorted q16  one-FixedValue threshold sweep 25 decades differing=0 decomposingFaces=480 faces[wellposed=9888 fallback=2112]
+  PASS L7 distorted q16  one-FixedValue band sweep root=1788.28 differing=0 facesInBand=15/8160
+       [distorted q16/mixed pin=no fixedValueFaces=32 axisAligned=0 general=544 resident=237856 B]
+  PASS L5 distorted q16  mixed          ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  mixed          ref=128   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  mixed          ref=255   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L6 distorted q16  mixed          threshold sweep 25 decades differing=0 decomposingFaces=480 faces[wellposed=9888 fallback=2112]
+  PASS L7 distorted q16  mixed          band sweep root=1788.28 differing=0 facesInBand=15/8160
+  PASS L2 distorted q16  scheme=0 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=0.8176
+  PASS L2 distorted q16  scheme=3 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=0.8176
+       [warped 3d 3/all-Neumann pin=yes fixedValueFaces=0 axisAligned=0 general=108 resident=47768 B]
+  PASS L5 warped 3d 3    all-Neumann    ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    all-Neumann    ref=13    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    all-Neumann    ref=26    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  FAIL L6 warped 3d 3    all-Neumann    threshold sweep 25 decades differing=25 decomposingFaces=54 faces[wellposed=1207 fallback=143]
+  FAIL L7 warped 3d 3    all-Neumann    band sweep root=3775.99 differing=17 facesInBand=8/918
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=0.0009525 
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=0.0004105 
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=0.0009525 
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.2       scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=0.9508    
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.2       scaleD=34.37      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=0.4097    
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.7       scaleD=38.2       scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      uniform    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=0.9508    
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=0.001128  
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0454     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=0.0005637 
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=0.001128  
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.2       scaleD=47.12      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=1.126     
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.3       scaleD=47.12      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=0.5627    
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.4       scaleD=47.12      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      varying    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=1.126     
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.2       scaleD=131.3      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=47.97     
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=131.3      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=47.97     
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=131.3      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=47.97     
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=1.311e+05  scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=1.311e+05  scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=1.311e+05  scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=0         
+  FAIL warped 3d 3    all-Neumann  zero      anisotropic rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.2       scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=3.208     
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.2       scaleD=34.37      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=4.257     
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.7       scaleD=38.2       scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  uniform    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=4.257     
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0454     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.2       scaleD=47.12      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=3.225     
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.3       scaleD=47.12      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=4.233     
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.4       scaleD=47.12      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  varying    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=4.233     
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.2       scaleD=131.3      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=48.01     
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=131.3      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=48.01     
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=131.3      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=48.01     
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=1.311e+05  scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=1.311e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=1.311e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  positive  anisotropic rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.2       scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=3.057     
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.2       scaleD=34.37      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=4.143     
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.7       scaleD=38.2       scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  uniform    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=4.143     
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0454     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.2       scaleD=47.12      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=2.947     
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.3       scaleD=47.12      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=4.167     
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.4       scaleD=47.12      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  varying    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=4.167     
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.2       scaleD=131.3      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=49.38     
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=131.3      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=49.38     
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=131.3      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=49.38     
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=1.311e+05  scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=2.8       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=1.311e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=1.311e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.2       
+  FAIL warped 3d 3    all-Neumann  negative  anisotropic rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.2       scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=3.299     
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.2       scaleD=34.37      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=3.299     
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.7       scaleD=38.2       scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     uniform    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=3.299     
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0454     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.2       scaleD=47.12      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=3.24      
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.3       scaleD=47.12      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=3.24      
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.4       scaleD=47.12      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     varying    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=3.24      
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.2       scaleD=131.3      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=49.79     
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=131.3      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=49.79     
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=131.3      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=49.79     
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=1.311e+05  scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=1.311e+05  scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=1.311e+05  scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=3.4       
+  FAIL warped 3d 3    all-Neumann  mixed     anisotropic rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0196     scaleD=1          scaleR=0.0042    
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0383     scaleD=1          scaleR=0.0042    
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0188     scaleD=1          scaleR=0.0042    
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.2       scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=19.5       scaleD=38.25      scaleR=0.9471    
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.2       scaleD=34.37      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=38.3       scaleD=34.43      scaleR=0.4135    
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.7       scaleD=38.2       scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     uniform    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=18.8       scaleD=38.25      scaleR=0.9471    
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0123     scaleD=1          scaleR=0.004313  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0454     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=0.0455     scaleD=1          scaleR=0.004313  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=0.0325     scaleD=1          scaleR=0.004313  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.2       scaleD=47.12      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=12.3       scaleD=47.24      scaleR=1.123     
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.3       scaleD=47.12      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=45.4       scaleD=47.24      scaleR=0.5665    
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.4       scaleD=47.12      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     varying    rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=32.5       scaleD=47.24      scaleR=1.123     
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.2       scaleD=131.3      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=65.3       scaleD=232.8      scaleR=47.96     
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=131.3      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=125        scaleD=232.8      scaleR=47.96     
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=131.3      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=1       ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=61.8       scaleD=232.8      scaleR=47.96     
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=0     orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=1.311e+05  scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=0     nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=0     nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.51e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=13    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=1.311e+05  scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=13    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=13    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=7] maxAbs=1.25e+05   scaleD=2.324e+05  scaleR=4.788e+04 
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=26    orth         diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=1.311e+05  scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=26    nonorth      diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=0.004065  
+  FAIL warped 3d 3    all-Neumann  swirl     anisotropic rho=998.2   ref=26    nonorth+prev diag[d=1] off[d=0] rhs[d=0] coef[d=0] expl[d=0] conv[e=0] pin[e=4] maxAbs=6.17e+04   scaleD=2.324e+05  scaleR=4.788e+04 
+       [warped 3d 3/one-FixedValue pin=no fixedValueFaces=9 axisAligned=0 general=108 resident=47264 B]
+  PASS L5 warped 3d 3    one-FixedValue ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    one-FixedValue ref=13    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    one-FixedValue ref=26    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L6 warped 3d 3    one-FixedValue threshold sweep 25 decades differing=0 decomposingFaces=54 faces[wellposed=1207 fallback=143]
+  PASS L7 warped 3d 3    one-FixedValue band sweep root=3775.99 differing=0 facesInBand=8/918
+       [warped 3d 3/mixed pin=no fixedValueFaces=27 axisAligned=0 general=108 resident=46256 B]
+  PASS L5 warped 3d 3    mixed          ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    mixed          ref=13    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    mixed          ref=26    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L6 warped 3d 3    mixed          threshold sweep 25 decades differing=0 decomposingFaces=54 faces[wellposed=1207 fallback=143]
+  PASS L7 warped 3d 3    mixed          band sweep root=3775.99 differing=0 facesInBand=8/918
+  PASS L2 warped 3d 3    scheme=0 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=3.992
+  PASS L2 warped 3d 3    scheme=3 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=3.992
+
+=== coverage ===
+  2D / 3D cases                     810 / 810
+  pinned / unpinned cases           540 / 1080
+  faces with owner==ref / neighbour==ref / neither  10 / 9 / 4787
+  decomposition fallbacks observed  6765
+  faces inside the 1e-6 guard band  69
+  coupled (FixedValue) boundary faces 22680
+  faces carrying an explicit term   141660
+  nonOrthogonal off / on            540 / 1080
+  meshes with axis-aligned coupling 0
+  meshes with general coupling      6
+  continuity/RHS convention checks  1620
+  integrated chain cases            4
+  sparsity pattern mismatches       540
+  coefficients compared             2605663
+  bitwise-identical                 2605039
+  max absolute discrepancy          2.14e+06
+  max relative discrepancy          2.14e+06
+
+cases=1654 failures=544
+PRESSURE CORRECTION EQUIVALENCE: FAIL

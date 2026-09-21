@@ -1,0 +1,114 @@
+========= COMPUTE-SANITIZER
+=== GPU-DISC-001G: CUDA momentum response coefficient vs CPU (bitwise) ===
+CPU reference: pressure_velocity::computeMomentumResponseCoefficient, d = V/aP
+L1 synthetic diagonals | L2 CPU assembly->response vs CUDA assembly->response
+
+  PASS L1 distorted q16    uniform 1.0            cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.00447
+  PASS L1 distorted q16    uniform 3.7            cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.001208
+  PASS L1 distorted q16    nonuniform             cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.008092
+  PASS L1 distorted q16    small 1e-300           cells=256    differing=0    maxAbs=0          maxRel=0          scale=4.464e+297
+  PASS L1 distorted q16    large 1e300            cells=256    differing=0    maxAbs=0          maxRel=0          scale=4.47e-303
+  PASS L1 distorted q16    denormal-adjacent      cells=256    differing=0    maxAbs=0          maxRel=0          scale=2.009e+305
+  PASS L2 distorted q16    U  upwind        a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    U  upwind        a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    U  upwind        a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    U  upwind        a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    U  central       a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    U  central       a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    U  central       a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    U  central       a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    U  linear_upwind a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    U  linear_upwind a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    U  linear_upwind a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    U  linear_upwind a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    U  quick         a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    U  quick         a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    U  quick         a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    U  quick         a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    V  upwind        a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    V  upwind        a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    V  upwind        a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    V  upwind        a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    V  central       a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    V  central       a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    V  central       a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    V  central       a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    V  linear_upwind a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    V  linear_upwind a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    V  linear_upwind a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    V  linear_upwind a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L2 distorted q16    V  quick         a=1     cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.2363
+  PASS L2 distorted q16    V  quick         a=0.7   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.1654
+  PASS L2 distorted q16    V  quick         a=0.3   cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.0709
+  PASS L2 distorted q16    V  quick         a=0.05  cells=256    differing=0    maxAbs=0          maxRel=0          scale=0.01182
+  PASS L1 warped 3d 3      uniform 1.0            cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.04065
+  PASS L1 warped 3d 3      uniform 3.7            cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.01099
+  PASS L1 warped 3d 3      nonuniform             cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.07543
+  PASS L1 warped 3d 3      small 1e-300           cells=27     differing=0    maxAbs=0          maxRel=0          scale=3.884e+298
+  PASS L1 warped 3d 3      large 1e300            cells=27     differing=0    maxAbs=0          maxRel=0          scale=4.065e-302
+  PASS L1 warped 3d 3      denormal-adjacent      cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.827e+306
+  PASS L2 warped 3d 3      U  upwind        a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      U  upwind        a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      U  upwind        a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      U  upwind        a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      U  central       a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      U  central       a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      U  central       a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      U  central       a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      U  linear_upwind a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      U  linear_upwind a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      U  linear_upwind a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      U  linear_upwind a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      U  quick         a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      U  quick         a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      U  quick         a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      U  quick         a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      V  upwind        a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      V  upwind        a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      V  upwind        a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      V  upwind        a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      V  central       a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      V  central       a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      V  central       a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      V  central       a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      V  linear_upwind a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      V  linear_upwind a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      V  linear_upwind a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      V  linear_upwind a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      V  quick         a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      V  quick         a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      V  quick         a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      V  quick         a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      W  upwind        a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      W  upwind        a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      W  upwind        a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      W  upwind        a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      W  central       a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      W  central       a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      W  central       a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      W  central       a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      W  linear_upwind a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      W  linear_upwind a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      W  linear_upwind a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      W  linear_upwind a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+  PASS L2 warped 3d 3      W  quick         a=1     cells=27     differing=0    maxAbs=0          maxRel=0          scale=2.398
+  PASS L2 warped 3d 3      W  quick         a=0.7   cells=27     differing=0    maxAbs=0          maxRel=0          scale=1.678
+  PASS L2 warped 3d 3      W  quick         a=0.3   cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.7193
+  PASS L2 warped 3d 3      W  quick         a=0.05  cells=27     differing=0    maxAbs=0          maxRel=0          scale=0.1199
+
+=== coverage ===
+  component U/V/W integrated cases  32 / 32 / 16
+  2D / 3D integrated cases          32 / 48
+  relaxation factors                4 (alpha = 1.0, 0.7, 0.3, 0.05)
+  uniform / nonuniform diagonals    4 / 2
+  small / large diagonal cases      4 / 2
+  synthetic cases                   12
+  integrated chain cases            80
+  values compared                   11186
+  bitwise-identical values          11186
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=92 failures=0
+MOMENTUM RESPONSE EQUIVALENCE: PASS (bitwise)
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)

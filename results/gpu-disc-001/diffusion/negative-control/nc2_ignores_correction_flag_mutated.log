@@ -1,0 +1,675 @@
+=== GPU-DISC-001C: CUDA implicit diffusion vs CPU reference (bitwise) ===
+CPU reference: turbulence::assembleScalarDiffusionContribution
+
+       [cartesian2d 16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=241432 B]
+  PASS cartesian2d 16     dirichlet constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.113]
+  PASS cartesian2d 16     mixed     constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.104]
+  PASS cartesian2d 16     dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.113]
+  PASS cartesian2d 16     mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.104]
+  PASS cartesian2d 16     dirichlet linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.702]
+  PASS cartesian2d 16     mixed     linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.087]
+  PASS cartesian2d 16     dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.702]
+  PASS cartesian2d 16     mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.087]
+  PASS cartesian2d 16     dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.574]
+  PASS cartesian2d 16     mixed     quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.574]
+  PASS cartesian2d 16     dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.574]
+  PASS cartesian2d 16     mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.574]
+  PASS cartesian2d 16     dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.389]
+  PASS cartesian2d 16     mixed     manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.6]
+  PASS cartesian2d 16     dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.389]
+  PASS cartesian2d 16     mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.6]
+  PASS cartesian2d 16     dirichlet constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  PASS cartesian2d 16     mixed     constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  PASS cartesian2d 16     dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  PASS cartesian2d 16     mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  PASS cartesian2d 16     dirichlet linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.128]
+  PASS cartesian2d 16     mixed     linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.537]
+  PASS cartesian2d 16     dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.128]
+  PASS cartesian2d 16     mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.537]
+  PASS cartesian2d 16     dirichlet quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.633]
+  PASS cartesian2d 16     mixed     quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.633]
+  PASS cartesian2d 16     dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.633]
+  PASS cartesian2d 16     mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.633]
+  PASS cartesian2d 16     dirichlet manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.779]
+  PASS cartesian2d 16     mixed     manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.123]
+  PASS cartesian2d 16     dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.94]
+  PASS cartesian2d 16     neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.779]
+  PASS cartesian2d 16     mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.123]
+       [cartesian2d 40 cells=1600 higherOrderBoundaryFaces=160 correctableInternal=3120 resident=1448344 B]
+  PASS cartesian2d 40     dirichlet constant      uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   constant      uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.105]
+  PASS cartesian2d 40     mixed     constant      uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.102]
+  PASS cartesian2d 40     dirichlet constant      uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   constant      uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.105]
+  PASS cartesian2d 40     mixed     constant      uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.102]
+  PASS cartesian2d 40     dirichlet linear        uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   linear        uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.881]
+  PASS cartesian2d 40     mixed     linear        uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.175]
+  PASS cartesian2d 40     dirichlet linear        uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   linear        uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.881]
+  PASS cartesian2d 40     mixed     linear        uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.175]
+  PASS cartesian2d 40     dirichlet quadratic     uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   quadratic     uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.828]
+  PASS cartesian2d 40     mixed     quadratic     uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.828]
+  PASS cartesian2d 40     dirichlet quadratic     uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   quadratic     uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.828]
+  PASS cartesian2d 40     mixed     quadratic     uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.828]
+  PASS cartesian2d 40     dirichlet manufactured  uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   manufactured  uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.399]
+  PASS cartesian2d 40     mixed     manufactured  uniform  corr=off nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.6]
+  PASS cartesian2d 40     dirichlet manufactured  uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 40     neumann   manufactured  uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.399]
+  PASS cartesian2d 40     mixed     manufactured  uniform  corr=on  nnz=7840    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.6]
+  PASS cartesian2d 40     dirichlet constant      varying  corr=off nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   constant      varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.53]
+  PASS cartesian2d 40     mixed     constant      varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.53]
+  PASS cartesian2d 40     dirichlet constant      varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   constant      varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.53]
+  PASS cartesian2d 40     mixed     constant      varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.53]
+  PASS cartesian2d 40     dirichlet linear        varying  corr=off nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   linear        varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.35]
+  PASS cartesian2d 40     mixed     linear        varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.664]
+  PASS cartesian2d 40     dirichlet linear        varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   linear        varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.35]
+  PASS cartesian2d 40     mixed     linear        varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.664]
+  PASS cartesian2d 40     dirichlet quadratic     varying  corr=off nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   quadratic     varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.15]
+  PASS cartesian2d 40     mixed     quadratic     varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.15]
+  PASS cartesian2d 40     dirichlet quadratic     varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   quadratic     varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.15]
+  PASS cartesian2d 40     mixed     quadratic     varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.15]
+  PASS cartesian2d 40     dirichlet manufactured  varying  corr=off nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   manufactured  varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.808]
+  PASS cartesian2d 40     mixed     manufactured  varying  corr=off nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.049]
+  PASS cartesian2d 40     dirichlet manufactured  varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=8.312] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.1]
+  PASS cartesian2d 40     neumann   manufactured  varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.808]
+  PASS cartesian2d 40     mixed     manufactured  varying  corr=on  nnz=7840    diag[d=0,abs=0,scale=6.232] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.049]
+       [graded2d 16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=241712 B]
+  PASS graded2d 16        dirichlet constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=20.44]
+  PASS graded2d 16        mixed     constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.6]
+  PASS graded2d 16        dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=20.44]
+  PASS graded2d 16        mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.6]
+  PASS graded2d 16        dirichlet linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.14]
+  PASS graded2d 16        mixed     linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=12.57]
+  PASS graded2d 16        dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.14]
+  PASS graded2d 16        mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=12.57]
+  PASS graded2d 16        dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.11]
+  PASS graded2d 16        mixed     quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.91]
+  PASS graded2d 16        dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.11]
+  PASS graded2d 16        mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.91]
+  PASS graded2d 16        dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.818]
+  PASS graded2d 16        mixed     manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.63]
+  PASS graded2d 16        dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.32]
+  PASS graded2d 16        neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=9.525] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.818]
+  PASS graded2d 16        mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=12.45] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.63]
+  PASS graded2d 16        dirichlet constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.78]
+  PASS graded2d 16        mixed     constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.78]
+  PASS graded2d 16        dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.78]
+  PASS graded2d 16        mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.78]
+  PASS graded2d 16        dirichlet linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.72]
+  PASS graded2d 16        mixed     linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.23]
+  PASS graded2d 16        dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.72]
+  PASS graded2d 16        mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.23]
+  PASS graded2d 16        dirichlet quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.22]
+  PASS graded2d 16        mixed     quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.22]
+  PASS graded2d 16        dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.22]
+  PASS graded2d 16        mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.22]
+  PASS graded2d 16        dirichlet manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.855]
+  PASS graded2d 16        mixed     manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=12.24]
+  PASS graded2d 16        dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=13.78] off[d=0,abs=0] rhs[d=0,abs=0,scale=22.37]
+  PASS graded2d 16        neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.855]
+  PASS graded2d 16        mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=10.37] off[d=0,abs=0] rhs[d=0,abs=0,scale=12.24]
+       [distorted q16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=262424 B]
+  FAIL distorted q16      dirichlet constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.359]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      neumann   constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=9.329]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      mixed     constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=8.89]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  PASS distorted q16      dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.24]
+  PASS distorted q16      neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.328]
+  PASS distorted q16      mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.89]
+  FAIL distorted q16      dirichlet linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.253]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      neumann   linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=6.872]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      mixed     linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.259]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  PASS distorted q16      dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.351]
+  PASS distorted q16      neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.869]
+  PASS distorted q16      mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.273]
+  FAIL distorted q16      dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.317]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      neumann   quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=6.409]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      mixed     quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=6.409]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  PASS distorted q16      dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.295]
+  PASS distorted q16      neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.413]
+  PASS distorted q16      mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.413]
+  FAIL distorted q16      dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.203]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      neumann   manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=1.389]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  FAIL distorted q16      mixed     manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=5.41]
+       worst entry (120,120): cpu=2.8035122703446067 gpu=2.9880882989439979  maxRel=0.0658
+  PASS distorted q16      dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.41]
+  PASS distorted q16      neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.392]
+  PASS distorted q16      mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.536]
+  FAIL distorted q16      dirichlet constant      varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=8.085] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=10.78]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      neumann   constant      varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=13.02]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      mixed     constant      varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=13.02]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  PASS distorted q16      dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.61]
+  PASS distorted q16      neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.02]
+  PASS distorted q16      mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.02]
+  FAIL distorted q16      dirichlet linear        varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=8.085] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=10.62]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      neumann   linear        varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=7.31]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      mixed     linear        varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=7.722]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  PASS distorted q16      dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.76]
+  PASS distorted q16      neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.307]
+  PASS distorted q16      mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.736]
+  FAIL distorted q16      dirichlet quadratic     varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=8.085] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=10.72]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      neumann   quadratic     varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=9.386]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      mixed     quadratic     varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=9.386]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  PASS distorted q16      dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.68]
+  PASS distorted q16      neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.391]
+  PASS distorted q16      mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.391]
+  FAIL distorted q16      dirichlet manufactured  varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=8.085] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=10.55]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      neumann   manufactured  varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=1.716]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  FAIL distorted q16      mixed     manufactured  varying  corr=off nnz=1216    diag[d=256,abs=0.182,scale=6.068] off[d=960,abs=0.0475] rhs[d=0,abs=0,scale=4.214]
+       worst entry (136,136): cpu=2.7846787091700711 gpu=2.9666141330556122  maxRel=0.0659
+  PASS distorted q16      dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.088] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.85]
+  PASS distorted q16      neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.715]
+  PASS distorted q16      mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.071] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.152]
+       [q16 translated cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=262424 B]
+  FAIL q16 translated     dirichlet constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.359]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     neumann   constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=9.329]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     mixed     constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=8.89]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  PASS q16 translated     dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.24]
+  PASS q16 translated     neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.329]
+  PASS q16 translated     mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.89]
+  FAIL q16 translated     dirichlet linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=117.5]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     neumann   linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=6817]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     mixed     linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=6496]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  PASS q16 translated     dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=121.5]
+  PASS q16 translated     neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=6817]
+  PASS q16 translated     mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=6496]
+  FAIL q16 translated     dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=6.536e+04]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     neumann   quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=3.59e+06]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     mixed     quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=3.419e+06]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  PASS q16 translated     dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.079e+04]
+  PASS q16 translated     neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.59e+06]
+  PASS q16 translated     mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.419e+06]
+  FAIL q16 translated     dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.667] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=7.203]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     neumann   manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=4.242] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=1.389]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  FAIL q16 translated     mixed     manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.185,scale=5.537] off[d=960,abs=0.0483] rhs[d=0,abs=0,scale=5.41]
+       worst entry (135,135): cpu=2.8035283049309063 gpu=2.9881045815403304  maxRel=0.0658
+  PASS q16 translated     dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.669] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.41]
+  PASS q16 translated     neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.244] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.392]
+  PASS q16 translated     mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.539] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.536]
+  FAIL q16 translated     dirichlet constant      varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.558e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=2.008e+05]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     neumann   constant      varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.166e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=2.565e+05]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     mixed     constant      varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.522e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=2.426e+05]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  PASS q16 translated     dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.559e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.976e+05]
+  PASS q16 translated     neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.167e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.565e+05]
+  PASS q16 translated     mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.523e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.426e+05]
+  FAIL q16 translated     dirichlet linear        varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.558e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=3.226e+06]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     neumann   linear        varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.166e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=1.874e+08]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     mixed     linear        varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.522e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=1.773e+08]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  PASS q16 translated     dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.559e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.339e+06]
+  PASS q16 translated     neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.167e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.874e+08]
+  PASS q16 translated     mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.523e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.773e+08]
+  FAIL q16 translated     dirichlet quadratic     varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.558e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=1.797e+09]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     neumann   quadratic     varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.166e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=9.871e+10]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     mixed     quadratic     varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.522e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=9.332e+10]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  PASS q16 translated     dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.559e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.667e+09]
+  PASS q16 translated     neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.167e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.871e+10]
+  PASS q16 translated     mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.523e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.332e+10]
+  FAIL q16 translated     dirichlet manufactured  varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.558e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=1.966e+05]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     neumann   manufactured  varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.166e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=3.818e+04]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  FAIL q16 translated     mixed     manufactured  varying  corr=off nnz=1216    diag[d=256,abs=5.06e+03,scale=1.522e+05] off[d=960,abs=1.32e+03] rhs[d=0,abs=0,scale=1.487e+05]
+       worst entry (120,120): cpu=76822.179308457155 gpu=81879.618949088966  maxRel=0.0658
+  PASS q16 translated     dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.559e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.022e+05]
+  PASS q16 translated     neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.167e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.826e+04]
+  PASS q16 translated     mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=1.523e+05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.522e+05]
+       [sheared 0.35 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=257904 B]
+  FAIL sheared 0.35       dirichlet constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=7.346]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       neumann   constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=4.382] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=10.25]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       mixed     constant      uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=8.115]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  PASS sheared 0.35       dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.208]
+  PASS sheared 0.35       neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.421] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.25]
+  PASS sheared 0.35       mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.114]
+  FAIL sheared 0.35       dirichlet linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=8.146]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       neumann   linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=4.382] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=5.94]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       mixed     linear        uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=6.471]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  PASS sheared 0.35       dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.346]
+  PASS sheared 0.35       neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.421] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.951]
+  PASS sheared 0.35       mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.365]
+  FAIL sheared 0.35       dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=7.105]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       neumann   quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=4.382] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=5.91]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       mixed     quadratic     uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=6.702]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  PASS sheared 0.35       dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.212]
+  PASS sheared 0.35       neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.421] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.898]
+  PASS sheared 0.35       mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.21]
+  FAIL sheared 0.35       dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=7.804]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       neumann   manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=4.382] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=1.315]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  FAIL sheared 0.35       mixed     manufactured  uniform  corr=off nnz=1216    diag[d=256,abs=0.388,scale=5.823] off[d=564,abs=0.189] rhs[d=0,abs=0,scale=6.654]
+       worst entry (232,232): cpu=3.0984391132117035 gpu=3.4860000000000384  maxRel=0.125
+  PASS sheared 0.35       dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.188]
+  PASS sheared 0.35       neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.421] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.32]
+  PASS sheared 0.35       mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.862] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.193]
+  FAIL sheared 0.35       dirichlet constant      varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=8.216] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=10.74]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       neumann   constant      varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=11.87]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       mixed     constant      varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=11.87]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  PASS sheared 0.35       dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.272] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.54]
+  PASS sheared 0.35       neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.87]
+  PASS sheared 0.35       mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.87]
+  FAIL sheared 0.35       dirichlet linear        varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=8.216] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=9.887]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       neumann   linear        varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=6.309]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       mixed     linear        varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=6.845]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  PASS sheared 0.35       dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.272] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.51]
+  PASS sheared 0.35       neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.32]
+  PASS sheared 0.35       mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.761]
+  FAIL sheared 0.35       dirichlet quadratic     varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=8.216] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=10.39]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       neumann   quadratic     varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=8.52]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       mixed     quadratic     varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=8.52]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  PASS sheared 0.35       dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.272] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.55]
+  PASS sheared 0.35       neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.545]
+  PASS sheared 0.35       mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.545]
+  FAIL sheared 0.35       dirichlet manufactured  varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=8.216] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=9.473]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       neumann   manufactured  varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=1.674]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  FAIL sheared 0.35       mixed     manufactured  varying  corr=off nnz=1216    diag[d=256,abs=0.535,scale=6.124] off[d=564,abs=0.262] rhs[d=0,abs=0,scale=4.024]
+       worst entry (237,237): cpu=4.2729225573574618 gpu=4.8074431594218714  maxRel=0.125
+  PASS sheared 0.35       dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.272] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.51]
+  PASS sheared 0.35       neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.685]
+  PASS sheared 0.35       mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.179] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.56]
+       [multiblock L cells=48 higherOrderBoundaryFaces=32 correctableInternal=80 resident=50328 B]
+  PASS multiblock L       dirichlet constant      uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   constant      uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.135]
+  PASS multiblock L       mixed     constant      uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.296]
+  PASS multiblock L       dirichlet constant      uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   constant      uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.135]
+  PASS multiblock L       mixed     constant      uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.296]
+  PASS multiblock L       dirichlet linear        uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   linear        uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.405]
+  PASS multiblock L       mixed     linear        uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.94]
+  PASS multiblock L       dirichlet linear        uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   linear        uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.405]
+  PASS multiblock L       mixed     linear        uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.94]
+  PASS multiblock L       dirichlet quadratic     uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   quadratic     uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.884]
+  PASS multiblock L       mixed     quadratic     uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.171]
+  PASS multiblock L       dirichlet quadratic     uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   quadratic     uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.884]
+  PASS multiblock L       mixed     quadratic     uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.171]
+  PASS multiblock L       dirichlet manufactured  uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   manufactured  uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.693]
+  PASS multiblock L       mixed     manufactured  uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.014]
+  PASS multiblock L       dirichlet manufactured  uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.4]
+  PASS multiblock L       neumann   manufactured  uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.693]
+  PASS multiblock L       mixed     manufactured  uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.014]
+  PASS multiblock L       dirichlet constant      varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   constant      varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.8]
+  PASS multiblock L       mixed     constant      varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.822]
+  PASS multiblock L       dirichlet constant      varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   constant      varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=10.8]
+  PASS multiblock L       mixed     constant      varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.822]
+  PASS multiblock L       dirichlet linear        varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   linear        varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.766]
+  PASS multiblock L       mixed     linear        varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.331]
+  PASS multiblock L       dirichlet linear        varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   linear        varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.766]
+  PASS multiblock L       mixed     linear        varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.331]
+  PASS multiblock L       dirichlet quadratic     varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   quadratic     varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.794]
+  PASS multiblock L       mixed     quadratic     varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.321]
+  PASS multiblock L       dirichlet quadratic     varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   quadratic     varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.794]
+  PASS multiblock L       mixed     quadratic     varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.321]
+  PASS multiblock L       dirichlet manufactured  varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   manufactured  varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.196]
+  PASS multiblock L       mixed     manufactured  varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.299]
+  PASS multiblock L       dirichlet manufactured  varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  PASS multiblock L       neumann   manufactured  varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.196]
+  PASS multiblock L       mixed     manufactured  varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.299]
+       [two-cell 2x8 cells=16 higherOrderBoundaryFaces=20 correctableInternal=22 resident=19144 B]
+  PASS two-cell 2x8       dirichlet constant      uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   constant      uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.38]
+  PASS two-cell 2x8       mixed     constant      uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.33]
+  PASS two-cell 2x8       dirichlet constant      uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   constant      uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.38]
+  PASS two-cell 2x8       mixed     constant      uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.33]
+  PASS two-cell 2x8       dirichlet linear        uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   linear        uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.37]
+  PASS two-cell 2x8       mixed     linear        uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.61]
+  PASS two-cell 2x8       dirichlet linear        uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   linear        uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.37]
+  PASS two-cell 2x8       mixed     linear        uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.61]
+  PASS two-cell 2x8       dirichlet quadratic     uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   quadratic     uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.71]
+  PASS two-cell 2x8       mixed     quadratic     uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.4]
+  PASS two-cell 2x8       dirichlet quadratic     uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   quadratic     uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.71]
+  PASS two-cell 2x8       mixed     quadratic     uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.4]
+  PASS two-cell 2x8       dirichlet manufactured  uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   manufactured  uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.166]
+  PASS two-cell 2x8       mixed     manufactured  uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.4]
+  PASS two-cell 2x8       dirichlet manufactured  uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=19.37]
+  PASS two-cell 2x8       neumann   manufactured  uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.166]
+  PASS two-cell 2x8       mixed     manufactured  uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.4]
+  PASS two-cell 2x8       dirichlet constant      varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   constant      varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       mixed     constant      varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       dirichlet constant      varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   constant      varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       mixed     constant      varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       dirichlet linear        varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   linear        varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.32]
+  PASS two-cell 2x8       mixed     linear        varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.54]
+  PASS two-cell 2x8       dirichlet linear        varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   linear        varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=11.32]
+  PASS two-cell 2x8       mixed     linear        varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.54]
+  PASS two-cell 2x8       dirichlet quadratic     varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   quadratic     varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.05]
+  PASS two-cell 2x8       mixed     quadratic     varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.05]
+  PASS two-cell 2x8       dirichlet quadratic     varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   quadratic     varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.05]
+  PASS two-cell 2x8       mixed     quadratic     varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=16.05]
+  PASS two-cell 2x8       dirichlet manufactured  varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   manufactured  varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.661]
+  PASS two-cell 2x8       mixed     manufactured  varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.12]
+  PASS two-cell 2x8       dirichlet manufactured  varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   manufactured  varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.661]
+  PASS two-cell 2x8       mixed     manufactured  varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.12]
+       [cartesian3d 8 cells=512 higherOrderBoundaryFaces=384 correctableInternal=1344 resident=756248 B]
+  PASS cartesian3d 8      dirichlet constant      uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   constant      uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.708]
+  PASS cartesian3d 8      mixed     constant      uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.839]
+  PASS cartesian3d 8      dirichlet constant      uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   constant      uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.708]
+  PASS cartesian3d 8      mixed     constant      uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.839]
+  PASS cartesian3d 8      dirichlet linear        uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   linear        uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.566]
+  PASS cartesian3d 8      mixed     linear        uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.576]
+  PASS cartesian3d 8      dirichlet linear        uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   linear        uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.566]
+  PASS cartesian3d 8      mixed     linear        uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.576]
+  PASS cartesian3d 8      dirichlet quadratic     uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   quadratic     uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.267]
+  PASS cartesian3d 8      mixed     quadratic     uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.47]
+  PASS cartesian3d 8      dirichlet quadratic     uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   quadratic     uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.267]
+  PASS cartesian3d 8      mixed     quadratic     uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.47]
+  PASS cartesian3d 8      dirichlet manufactured  uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   manufactured  uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.4347]
+  PASS cartesian3d 8      mixed     manufactured  uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.4]
+  PASS cartesian3d 8      dirichlet manufactured  uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.75]
+  PASS cartesian3d 8      neumann   manufactured  uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.4347]
+  PASS cartesian3d 8      mixed     manufactured  uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.4]
+  PASS cartesian3d 8      dirichlet constant      varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   constant      varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.896]
+  PASS cartesian3d 8      mixed     constant      varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.896]
+  PASS cartesian3d 8      dirichlet constant      varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   constant      varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.896]
+  PASS cartesian3d 8      mixed     constant      varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.896]
+  PASS cartesian3d 8      dirichlet linear        varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   linear        varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.074]
+  PASS cartesian3d 8      mixed     linear        varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2]
+  PASS cartesian3d 8      dirichlet linear        varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   linear        varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.074]
+  PASS cartesian3d 8      mixed     linear        varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2]
+  PASS cartesian3d 8      dirichlet quadratic     varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   quadratic     varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.153]
+  PASS cartesian3d 8      mixed     quadratic     varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.153]
+  PASS cartesian3d 8      dirichlet quadratic     varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   quadratic     varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.153]
+  PASS cartesian3d 8      mixed     quadratic     varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.153]
+  PASS cartesian3d 8      dirichlet manufactured  varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   manufactured  varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.6709]
+  PASS cartesian3d 8      mixed     manufactured  varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.292]
+  PASS cartesian3d 8      dirichlet manufactured  varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.974]
+  PASS cartesian3d 8      neumann   manufactured  varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.6709]
+  PASS cartesian3d 8      mixed     manufactured  varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.292]
+       [planar skew 3d 6 cells=216 higherOrderBoundaryFaces=216 correctableInternal=540 resident=359592 B]
+  FAIL planar skew 3d 6   dirichlet constant      uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.391]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   neumann   constant      uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.141] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.45]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   mixed     constant      uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.488]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  PASS planar skew 3d 6   dirichlet constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.415]
+  PASS planar skew 3d 6   neumann   constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.154] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.45]
+  PASS planar skew 3d 6   mixed     constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.438]
+  FAIL planar skew 3d 6   dirichlet linear        uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.575]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   neumann   linear        uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.141] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.074]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   mixed     linear        uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.131]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  PASS planar skew 3d 6   dirichlet linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.401]
+  PASS planar skew 3d 6   neumann   linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.154] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.071]
+  PASS planar skew 3d 6   mixed     linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.217]
+  FAIL planar skew 3d 6   dirichlet quadratic     uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.67]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   neumann   quadratic     uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.141] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=1.607]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   mixed     quadratic     uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=1.935]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  PASS planar skew 3d 6   dirichlet quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.427]
+  PASS planar skew 3d 6   neumann   quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.154] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.617]
+  PASS planar skew 3d 6   mixed     quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.204]
+  FAIL planar skew 3d 6   dirichlet manufactured  uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=2.658]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   neumann   manufactured  uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.141] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=0.6234]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  FAIL planar skew 3d 6   mixed     manufactured  uniform  corr=off nnz=1296    diag[d=216,abs=0.0256,scale=1.558] off[d=1080,abs=0.00671] rhs[d=0,abs=0,scale=1.968]
+       worst entry (50,50): cpu=0.71608357251395049 gpu=0.74170199861009667  maxRel=0.0358
+  PASS planar skew 3d 6   dirichlet manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.415]
+  PASS planar skew 3d 6   neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.154] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.633]
+  PASS planar skew 3d 6   mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.57] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.215]
+  FAIL planar skew 3d 6   dirichlet constant      varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=2.331] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=3.934]
+       worst entry (173,173): cpu=1.4274754203969575 gpu=1.4597746932399764  maxRel=0.0359
+  FAIL planar skew 3d 6   neumann   constant      varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=3.694]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  FAIL planar skew 3d 6   mixed     constant      varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=3.694]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  PASS planar skew 3d 6   dirichlet constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.349] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.864]
+  PASS planar skew 3d 6   neumann   constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.692]
+  PASS planar skew 3d 6   mixed     constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.692]
+  FAIL planar skew 3d 6   dirichlet linear        varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=2.331] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=3.702]
+       worst entry (173,173): cpu=1.4274754203969575 gpu=1.4597746932399764  maxRel=0.0359
+  FAIL planar skew 3d 6   neumann   linear        varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=2.748]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  FAIL planar skew 3d 6   mixed     linear        varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=2.725]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  PASS planar skew 3d 6   dirichlet linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.349] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.874]
+  PASS planar skew 3d 6   neumann   linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.745]
+  PASS planar skew 3d 6   mixed     linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.772]
+  FAIL planar skew 3d 6   dirichlet quadratic     varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=2.331] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=3.818]
+       worst entry (173,173): cpu=1.4274754203969575 gpu=1.4597746932399764  maxRel=0.0359
+  FAIL planar skew 3d 6   neumann   quadratic     varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=2.824]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  FAIL planar skew 3d 6   mixed     quadratic     varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=2.824]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  PASS planar skew 3d 6   dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.349] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.922]
+  PASS planar skew 3d 6   neumann   quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.84]
+  PASS planar skew 3d 6   mixed     quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.84]
+  FAIL planar skew 3d 6   dirichlet manufactured  varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=2.331] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=3.47]
+       worst entry (173,173): cpu=1.4274754203969575 gpu=1.4597746932399764  maxRel=0.0359
+  FAIL planar skew 3d 6   neumann   manufactured  varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=0.9468]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  FAIL planar skew 3d 6   mixed     manufactured  varying  corr=off nnz=1296    diag[d=216,abs=0.0323,scale=1.714] off[d=1080,abs=0.00944] rhs[d=0,abs=0,scale=1.454]
+       worst entry (173,173): cpu=1.2525276934370571 gpu=1.284826966280076  maxRel=0.0359
+  PASS planar skew 3d 6   dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.349] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.9]
+  PASS planar skew 3d 6   neumann   manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.9606]
+  PASS planar skew 3d 6   mixed     manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.731] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.648]
+       [warped 3d 6 cells=216 higherOrderBoundaryFaces=216 correctableInternal=540 resident=360312 B]
+  FAIL warped 3d 6        dirichlet constant      uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.402] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.332]
+       worst entry (105,105): cpu=0.93133795339805681 gpu=0.93648714152366586  maxRel=0.00755
+  FAIL warped 3d 6        neumann   constant      uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.05] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.301]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  FAIL warped 3d 6        mixed     constant      uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.399] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.48]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  PASS warped 3d 6        dirichlet constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.335]
+  PASS warped 3d 6        neumann   constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.301]
+  PASS warped 3d 6        mixed     constant      uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.481]
+  FAIL warped 3d 6        dirichlet linear        uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.402] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.338]
+       worst entry (105,105): cpu=0.93133795339805681 gpu=0.93648714152366586  maxRel=0.00755
+  FAIL warped 3d 6        neumann   linear        uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.05] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.024]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  FAIL warped 3d 6        mixed     linear        uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.399] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.103]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  PASS warped 3d 6        dirichlet linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.331]
+  PASS warped 3d 6        neumann   linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.024]
+  PASS warped 3d 6        mixed     linear        uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.1]
+  FAIL warped 3d 6        dirichlet quadratic     uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.402] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.336]
+       worst entry (105,105): cpu=0.93133795339805681 gpu=0.93648714152366586  maxRel=0.00755
+  FAIL warped 3d 6        neumann   quadratic     uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.05] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=1.623]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  FAIL warped 3d 6        mixed     quadratic     uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.399] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=1.94]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  PASS warped 3d 6        dirichlet quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.332]
+  PASS warped 3d 6        neumann   quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.622]
+  PASS warped 3d 6        mixed     quadratic     uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.932]
+  FAIL warped 3d 6        dirichlet manufactured  uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.402] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=2.347]
+       worst entry (105,105): cpu=0.93133795339805681 gpu=0.93648714152366586  maxRel=0.00755
+  FAIL warped 3d 6        neumann   manufactured  uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.05] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=0.5584]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  FAIL warped 3d 6        mixed     manufactured  uniform  corr=off nnz=1296    diag[d=216,abs=0.00515,scale=1.399] off[d=1080,abs=0.00157] rhs[d=0,abs=0,scale=1.86]
+       worst entry (105,105): cpu=0.80390811589530342 gpu=0.80905730402091247  maxRel=0.00755
+  PASS warped 3d 6        dirichlet manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.402] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.325]
+  PASS warped 3d 6        neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.5581]
+  PASS warped 3d 6        mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.873]
+  FAIL warped 3d 6        dirichlet constant      varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=2.329] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=3.897]
+       worst entry (105,105): cpu=1.2951923283545697 gpu=1.3022879638938936  maxRel=0.0076
+  FAIL warped 3d 6        neumann   constant      varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=3.812]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  FAIL warped 3d 6        mixed     constant      varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=3.812]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  PASS warped 3d 6        dirichlet constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.903]
+  PASS warped 3d 6        neumann   constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.813]
+  PASS warped 3d 6        mixed     constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.813]
+  FAIL warped 3d 6        dirichlet linear        varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=2.329] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=3.908]
+       worst entry (105,105): cpu=1.2951923283545697 gpu=1.3022879638938936  maxRel=0.0076
+  FAIL warped 3d 6        neumann   linear        varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=2.658]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  FAIL warped 3d 6        mixed     linear        varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=2.587]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  PASS warped 3d 6        dirichlet linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.896]
+  PASS warped 3d 6        neumann   linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.659]
+  PASS warped 3d 6        mixed     linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.587]
+  FAIL warped 3d 6        dirichlet quadratic     varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=2.329] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=3.904]
+       worst entry (105,105): cpu=1.2951923283545697 gpu=1.3022879638938936  maxRel=0.0076
+  FAIL warped 3d 6        neumann   quadratic     varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=2.712]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  FAIL warped 3d 6        mixed     quadratic     varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=2.781]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  PASS warped 3d 6        dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.897]
+  PASS warped 3d 6        neumann   quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.711]
+  PASS warped 3d 6        mixed     quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.77]
+  FAIL warped 3d 6        dirichlet manufactured  varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=2.329] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=3.922]
+       worst entry (105,105): cpu=1.2951923283545697 gpu=1.3022879638938936  maxRel=0.0076
+  FAIL warped 3d 6        neumann   manufactured  varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=0.855]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  FAIL warped 3d 6        mixed     manufactured  varying  corr=off nnz=1296    diag[d=216,abs=0.0071,scale=1.743] off[d=1080,abs=0.00212] rhs[d=0,abs=0,scale=1.753]
+       worst entry (105,105): cpu=1.1168242972519005 gpu=1.1239199327912244  maxRel=0.0076
+  PASS warped 3d 6        dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.888]
+  PASS warped 3d 6        neumann   manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.8571]
+  PASS warped 3d 6        mixed     manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.736]
+
+=== non-vacuity control ===
+  PASS identical -> 0 differing; one-ULP perturbation -> 1 differing (abs=1.78e-15)
+
+=== path coverage (cases reaching each branch) ===
+  P12-DIFF-002 boundary reconstruction  528
+  correctable internal faces            528
+  non-orthogonal correction enabled     264
+  spatially varying diffusivity         264
+  CPU/GPU sparsity pattern mismatches   0
+
+cases=528 failures=120
+DIFFUSION EQUIVALENCE: FAIL

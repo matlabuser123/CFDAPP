@@ -1,0 +1,39 @@
+feat(gpu): complete resident CUDA SIMPLE pipeline
+
+GPU-DISC-001 ports the finite-volume discretization to CUDA; GPU-PIPE-001 makes
+the SIMPLE outer iteration device-resident end to end. In steady state the loop
+uploads nothing, and besides the one face-flux download the convergence
+definition requires, it brings back 40 bytes in 2D and 48 in 3D.
+
+- CUDA discretization: device mesh, gradients, diffusion, convection, boundary
+  conditions, momentum assembly and response coefficients, Rhie-Chow predicted
+  face flux, pressure-correction assembly, velocity and face-flux correction
+- persistent GPU fields: velocity, pressure, face flux and effective viscosity
+  carried across outer iterations instead of re-uploaded every iteration
+- the pressure system, p' and the Krylov workspace stay device-resident
+- momentum is assembled and solved on the device through the same bicgstabCore
+  the host entry point uses: one algorithm, three entry points, no new solver
+- device-side finiteness guards replace the host full-field checks
+
+Verification, all on WSL2 + CUDA 12.9 + RTX 5000 Ada (sm_89):
+
+- every discretization operator bitwise CPU/GPU equal (15 differential gates)
+- the resident loop bitwise against the pre-residency path: 12 cases,
+  217,755 values, including two 60-iteration runs
+- CPU vs GPU production solves on 15 cases plus a 160/320/640 fixed-budget
+  ladder; worst discrepancy 9.6e-10 against the repository's adopted 1e-6 bound
+- 12 negative controls detected, compute-sanitizer clean (memcheck, initcheck,
+  synccheck, racecheck), lifecycle and 20^2-640^2 performance evidence
+
+640^2 GPU/CPU speed-up 3.593x -> 17.362x; crossover moves from 320^2 to 160^2.
+The dominant remaining cost is the BiCGSTAB reduction round trips.
+
+The CPU backend is untouched and remains the numerical reference. The known GPU
+BiCGSTAB restart asymmetry is unchanged (PressureCorrectionFailure at 1845
+iterations) and stays recorded as open technical debt. The device path is
+reachable only through the C++ SIMPLESettings API; the case format has no
+enableGpuDiscretization key.
+
+Evidence: results/gpu-disc-001/, results/gpu-pipe-001/, results/gpu-closeout/
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>

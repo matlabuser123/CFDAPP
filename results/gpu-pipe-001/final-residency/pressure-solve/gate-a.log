@@ -1,0 +1,46 @@
+=== Gate A -- GPU-resident pressure solve ===
+
+--- A1..A4  residency: matrix, RHS, p', reused Krylov workspace ---
+  PASS  transfers/guard.log                         non-reduction D2H calls 2 (budget 2); allocations 0 (budget 0);
+  PASS  lifecycle/probe.log                        14 properties hold, 0 FAIL
+
+--- A5  avoidable full pressure-system transfers removed ---
+        assemble        0      0            0   budget 0 / 0
+        solve           0   3368      4712808   of which 3367 are Krylov reductions
+        carry           0      1            4   budget 0 / 1
+        non-reduction D2H calls  2   (budget 2)
+        allocations              0   (budget 0)
+        Krylov iterations 842, converged
+
+--- A6  numerical equivalence ---
+  PASS  comparison/comparison.log                  4 cases compared bitwise, 4 with both arms asserted
+  PASS  comparison/rejection.log                   failure behaviour matches the host path
+  PASS  gpu-gates/gates.log                        15/15 GPU-DISC differential gates green on the FINAL binaries
+  PASS  negative-controls/driver.log               detected observable controls: 8/8
+
+--- A7  CUDA diagnostics ---
+    memcheck    cavity2d   non-vacuous  -         ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    memcheck    case3d     non-vacuous  -         ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    memcheck    gpusolver  non-vacuous  resident  ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    initcheck   cavity2d   non-vacuous  -         ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    initcheck   case3d     non-vacuous  -         ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    initcheck   gpusolver  non-vacuous  resident  ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    synccheck   cavity2d   non-vacuous  -         ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    synccheck   case3d     non-vacuous  -         ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    synccheck   gpusolver  non-vacuous  resident  ok   ========= ERROR SUMMARY: 0 errors  exit code: 0
+    racecheck   cavity2d   non-vacuous  -         ok   ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)  exit code: 0
+    racecheck   case3d     non-vacuous  -         ok   ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)  exit code: 0
+    racecheck   gpusolver  non-vacuous  resident  ok   ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)  exit code: 0
+  PASS  cuda-diagnostics/*.log                     12 runs, all non-vacuous
+
+--- supporting: CPU backend, performance, known debt, regression ---
+  PASS  cpu-backend/run.log                         nvcc invocations in build.ninja: 0 (must be 0); cfdapp does not link libcudart -- correct; 100% tests passed, 0 tests failed out of 1932;
+  PASS  performance/cavity.log                     12 bitwise equivalence checks
+  PASS  regression/known-debt.log                  KNOWN DEBT: UNCHANGED -- GPU-DISC behaves exactly as the pre-existing GPU path
+  PASS  regression/ctest.log                       100% tests passed, 0 tests failed out of 1998;Total Test time (real) = 1321.40 sec;
+
+--- self-check: this script's aggregation can actually fail ---
+  FAIL  deliberate failing check (must read FAIL)  proves the aggregator propagates
+    aggregation works: fail flag was raised
+
+GATE A: PASS

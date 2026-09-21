@@ -1,0 +1,635 @@
+=== GPU-DISC-001D: CUDA convection vs CPU reference (bitwise) ===
+L1 primitives | L2 four schemes vs discretization::convection()
+L3 scalar implicit assembly vs thermal::assembleThermalConvectionContribution
+
+=== L1: scheme primitives vs the production CPU functions ===
+  PASS quickFaceValue        n=10000  differing=0 maxAbs=0
+  PASS linearUpwindFaceValue n=10000  differing=0 maxAbs=0
+  PASS smoothnessRatio       n=1000   differing=0 nullopt cases=100
+  PASS vanLeerLimiter        n=23     differing=0 (includes NaN/nullopt, +0, -0)
+  L1 total scalar comparisons: 21023
+
+=== L2/L3: operators and assembly ===
+       [cartesian2d 16 cells=256 farUpstream(ownerUpwind=448, neighbourUpwind=448) resident=193560 B]
+  PASS cartesian2d 16   dirichlet upwind        positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet upwind        positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet central       positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet central       positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet linear_upwind positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet linear_upwind positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet quick         positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   mixed     quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet upwind        negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet upwind        negative  rev  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet central       negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet central       negative  rev  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet linear_upwind negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet linear_upwind negative  rev  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   dirichlet quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet quick         negative  rev  differing=0     maxAbs=0          maxRel=0          scale=2330
+  PASS cartesian2d 16   mixed     quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet upwind        mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet upwind        mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet central       mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet central       mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet quick         mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   mixed     quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=3494
+  PASS cartesian2d 16   dirichlet upwind        zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet upwind        zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet central       zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet central       zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   dirichlet quick         zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1997
+  PASS cartesian2d 16   mixed     quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1999
+  PASS cartesian2d 16   dirichlet upwind        swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet upwind        swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet central       swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet central       swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   dirichlet quick         swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  PASS cartesian2d 16   mixed     quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=33.75
+  FAIL cartesian2d 16   dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3155     
+  FAIL cartesian2d 16   mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 16   dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=5129     
+  FAIL cartesian2d 16   dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL cartesian2d 16   dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2873      scaleR=3611     
+  FAIL cartesian2d 16   mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4688      scaleR=2934     
+  FAIL cartesian2d 16   dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 16   dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2613      scaleR=1667     
+  FAIL cartesian2d 16   mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=3294     
+  FAIL cartesian2d 16   dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=58.9       scaleA=58.89     scaleR=73.61    
+  FAIL cartesian2d 16   dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=65.1       scaleA=66.01     scaleR=82.52    
+  FAIL cartesian2d 16   mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=65.4       scaleA=66.01     scaleR=107.4    
+  PASS cartesian2d 16   dirichlet upwind        positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=879.2
+  PASS cartesian2d 16   dirichlet upwind        positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1596
+  PASS cartesian2d 16   dirichlet central       positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   dirichlet central       positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1585
+  PASS cartesian2d 16   dirichlet linear_upwind positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   dirichlet linear_upwind positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1585
+  PASS cartesian2d 16   dirichlet quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   dirichlet quick         positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1585
+  PASS cartesian2d 16   mixed     quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   dirichlet upwind        negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1596
+  PASS cartesian2d 16   dirichlet upwind        negative  rev  differing=0     maxAbs=0          maxRel=0          scale=879.2
+  PASS cartesian2d 16   dirichlet central       negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1585
+  PASS cartesian2d 16   dirichlet central       negative  rev  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   dirichlet linear_upwind negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1585
+  PASS cartesian2d 16   dirichlet linear_upwind negative  rev  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   dirichlet quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1585
+  PASS cartesian2d 16   dirichlet quick         negative  rev  differing=0     maxAbs=0          maxRel=0          scale=868
+  PASS cartesian2d 16   mixed     quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1078
+  PASS cartesian2d 16   dirichlet upwind        mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2369
+  PASS cartesian2d 16   dirichlet upwind        mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=1970
+  PASS cartesian2d 16   dirichlet central       mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2363
+  PASS cartesian2d 16   dirichlet central       mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=1968
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2363
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=1968
+  PASS cartesian2d 16   dirichlet quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2363
+  PASS cartesian2d 16   dirichlet quick         mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=1968
+  PASS cartesian2d 16   mixed     quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2363
+  PASS cartesian2d 16   dirichlet upwind        zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1357
+  PASS cartesian2d 16   dirichlet upwind        zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1102
+  PASS cartesian2d 16   dirichlet central       zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1343
+  PASS cartesian2d 16   dirichlet central       zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1102
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1343
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1102
+  PASS cartesian2d 16   dirichlet quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1343
+  PASS cartesian2d 16   dirichlet quick         zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1102
+  PASS cartesian2d 16   mixed     quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1026
+  PASS cartesian2d 16   dirichlet upwind        swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=51.8
+  PASS cartesian2d 16   dirichlet upwind        swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=29.06
+  PASS cartesian2d 16   dirichlet central       swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=51.33
+  PASS cartesian2d 16   dirichlet central       swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=28.71
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=51.33
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=28.71
+  PASS cartesian2d 16   dirichlet quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=51.33
+  PASS cartesian2d 16   dirichlet quick         swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=28.71
+  PASS cartesian2d 16   mixed     quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=6.914
+  FAIL cartesian2d 16   dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3155     
+  FAIL cartesian2d 16   mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 16   dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3207     
+  FAIL cartesian2d 16   dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL cartesian2d 16   dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2873      scaleR=3611     
+  FAIL cartesian2d 16   mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4688      scaleR=1997     
+  FAIL cartesian2d 16   dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 16   dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2613      scaleR=1667     
+  FAIL cartesian2d 16   mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=2160     
+  FAIL cartesian2d 16   dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=58.9       scaleA=58.89     scaleR=73.61    
+  FAIL cartesian2d 16   dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=65.1       scaleA=66.01     scaleR=82.52    
+  FAIL cartesian2d 16   mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=65.4       scaleA=66.01     scaleR=61.07    
+  PASS cartesian2d 16   dirichlet upwind        positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet upwind        positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet central       positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet central       positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet linear_upwind positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet linear_upwind positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet quick         positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   mixed     quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet upwind        negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet upwind        negative  rev  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet central       negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet central       negative  rev  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet linear_upwind negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet linear_upwind negative  rev  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   dirichlet quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet quick         negative  rev  differing=0     maxAbs=0          maxRel=0          scale=896
+  PASS cartesian2d 16   mixed     quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1075
+  PASS cartesian2d 16   dirichlet upwind        mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet upwind        mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet central       mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet central       mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet quick         mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   mixed     quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=2150
+  PASS cartesian2d 16   dirichlet upwind        zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet upwind        zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet central       zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet central       zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   dirichlet quick         zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1229
+  PASS cartesian2d 16   mixed     quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1231
+  PASS cartesian2d 16   dirichlet upwind        swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=22.5
+  PASS cartesian2d 16   dirichlet upwind        swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=15
+  PASS cartesian2d 16   dirichlet central       swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=22.5
+  PASS cartesian2d 16   dirichlet central       swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=15
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=22.5
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=15
+  PASS cartesian2d 16   dirichlet quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=22.5
+  PASS cartesian2d 16   dirichlet quick         swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=15
+  PASS cartesian2d 16   mixed     quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=7.5
+  FAIL cartesian2d 16   dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3155     
+  FAIL cartesian2d 16   mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 16   dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3157     
+  FAIL cartesian2d 16   dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL cartesian2d 16   dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2873      scaleR=3611     
+  FAIL cartesian2d 16   mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4688      scaleR=1807     
+  FAIL cartesian2d 16   dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 16   dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2613      scaleR=1667     
+  FAIL cartesian2d 16   mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=2026     
+  FAIL cartesian2d 16   dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=58.9       scaleA=58.89     scaleR=73.61    
+  FAIL cartesian2d 16   dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=65.1       scaleA=66.01     scaleR=82.52    
+  FAIL cartesian2d 16   mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=65.4       scaleA=66.01     scaleR=66.17    
+  PASS cartesian2d 16   dirichlet upwind        positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=361.8
+  PASS cartesian2d 16   dirichlet upwind        positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet central       positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=357.3
+  PASS cartesian2d 16   dirichlet central       positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet linear_upwind positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=355.1
+  PASS cartesian2d 16   dirichlet linear_upwind positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=356.2
+  PASS cartesian2d 16   dirichlet quick         positive  rev  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   mixed     quick         positive  fwd  differing=0     maxAbs=0          maxRel=0          scale=356.2
+  PASS cartesian2d 16   dirichlet upwind        negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet upwind        negative  rev  differing=0     maxAbs=0          maxRel=0          scale=361.8
+  PASS cartesian2d 16   dirichlet central       negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet central       negative  rev  differing=0     maxAbs=0          maxRel=0          scale=357.3
+  PASS cartesian2d 16   dirichlet linear_upwind negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet linear_upwind negative  rev  differing=0     maxAbs=0          maxRel=0          scale=355.1
+  PASS cartesian2d 16   dirichlet quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1504
+  PASS cartesian2d 16   dirichlet quick         negative  rev  differing=0     maxAbs=0          maxRel=0          scale=356.2
+  PASS cartesian2d 16   mixed     quick         negative  fwd  differing=0     maxAbs=0          maxRel=0          scale=1093
+  PASS cartesian2d 16   dirichlet upwind        mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=1650
+  PASS cartesian2d 16   dirichlet upwind        mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2018
+  PASS cartesian2d 16   dirichlet central       mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=1647
+  PASS cartesian2d 16   dirichlet central       mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2010
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=1645
+  PASS cartesian2d 16   dirichlet linear_upwind mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2007
+  PASS cartesian2d 16   dirichlet quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=1646
+  PASS cartesian2d 16   dirichlet quick         mixed     rev  differing=0     maxAbs=0          maxRel=0          scale=2008
+  PASS cartesian2d 16   mixed     quick         mixed     fwd  differing=0     maxAbs=0          maxRel=0          scale=995.9
+  PASS cartesian2d 16   dirichlet upwind        zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1556
+  PASS cartesian2d 16   dirichlet upwind        zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1038
+  PASS cartesian2d 16   dirichlet central       zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1556
+  PASS cartesian2d 16   dirichlet central       zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1038
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1556
+  PASS cartesian2d 16   dirichlet linear_upwind zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1038
+  PASS cartesian2d 16   dirichlet quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=1556
+  PASS cartesian2d 16   dirichlet quick         zeros     rev  differing=0     maxAbs=0          maxRel=0          scale=1038
+  PASS cartesian2d 16   mixed     quick         zeros     fwd  differing=0     maxAbs=0          maxRel=0          scale=921.4
+  PASS cartesian2d 16   dirichlet upwind        swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=37.53
+  PASS cartesian2d 16   dirichlet upwind        swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=37.53
+  PASS cartesian2d 16   dirichlet central       swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=38.22
+  PASS cartesian2d 16   dirichlet central       swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=38.22
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=38.2
+  PASS cartesian2d 16   dirichlet linear_upwind swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=38.2
+  PASS cartesian2d 16   dirichlet quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=38.21
+  PASS cartesian2d 16   dirichlet quick         swirl     rev  differing=0     maxAbs=0          maxRel=0          scale=38.21
+  PASS cartesian2d 16   mixed     quick         swirl     fwd  differing=0     maxAbs=0          maxRel=0          scale=29.29
+  FAIL cartesian2d 16   dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3155     
+  FAIL cartesian2d 16   mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 16   dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2262      scaleR=0        
+  PASS cartesian2d 16   mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=1697     
+  FAIL cartesian2d 16   dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL cartesian2d 16   dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2873      scaleR=3611     
+  FAIL cartesian2d 16   mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4688      scaleR=1643     
+  FAIL cartesian2d 16   dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 16   dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2613      scaleR=1667     
+  FAIL cartesian2d 16   mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=1876     
+  FAIL cartesian2d 16   dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=58.9       scaleA=58.89     scaleR=73.61    
+  FAIL cartesian2d 16   dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=65.1       scaleA=66.01     scaleR=82.52    
+  FAIL cartesian2d 16   mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=65.4       scaleA=66.01     scaleR=61.07    
+       [cartesian2d 32 cells=1024 farUpstream(ownerUpwind=1920, neighbourUpwind=1920) resident=747544 B]
+  FAIL cartesian2d 32   dirichlet cp=scalar   positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=field    positive  rev  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=3173     
+  FAIL cartesian2d 32   mixed     cp=field    positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=scalar   negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 32   dirichlet cp=field    negative  rev  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   mixed     cp=field    negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=5158     
+  FAIL cartesian2d 32   dirichlet cp=scalar   mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.61e+03   scaleA=3417      scaleR=2010     
+  FAIL cartesian2d 32   dirichlet cp=field    mixed     rev  nnz=2898    A[d=682] rhs[d=0] maxAbs=1.8e+03    scaleA=3782      scaleR=5893     
+  FAIL cartesian2d 32   mixed     cp=field    mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.91e+03   scaleA=3853      scaleR=2926     
+  FAIL cartesian2d 32   dirichlet cp=scalar   zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 32   dirichlet cp=field    zeros     rev  nnz=1971    A[d=595] rhs[d=0] maxAbs=2.03e+03   scaleA=2694      scaleR=1665     
+  FAIL cartesian2d 32   mixed     cp=field    zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.35e+03   scaleA=2632      scaleR=3286     
+  FAIL cartesian2d 32   dirichlet cp=scalar   swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=30.4       scaleA=30.42     scaleR=38.03    
+  FAIL cartesian2d 32   dirichlet cp=field    swirl     rev  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=42.89    
+  FAIL cartesian2d 32   mixed     cp=field    swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=55.79    
+  FAIL cartesian2d 32   dirichlet cp=scalar   positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=field    positive  rev  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=3173     
+  FAIL cartesian2d 32   mixed     cp=field    positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=scalar   negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 32   dirichlet cp=field    negative  rev  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   mixed     cp=field    negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=3257     
+  FAIL cartesian2d 32   dirichlet cp=scalar   mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.61e+03   scaleA=3417      scaleR=2010     
+  FAIL cartesian2d 32   dirichlet cp=field    mixed     rev  nnz=2898    A[d=682] rhs[d=0] maxAbs=1.8e+03    scaleA=3782      scaleR=5893     
+  FAIL cartesian2d 32   mixed     cp=field    mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.91e+03   scaleA=3853      scaleR=1674     
+  FAIL cartesian2d 32   dirichlet cp=scalar   zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 32   dirichlet cp=field    zeros     rev  nnz=1971    A[d=595] rhs[d=0] maxAbs=2.03e+03   scaleA=2694      scaleR=1665     
+  FAIL cartesian2d 32   mixed     cp=field    zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.35e+03   scaleA=2632      scaleR=2089     
+  FAIL cartesian2d 32   dirichlet cp=scalar   swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=30.4       scaleA=30.42     scaleR=38.03    
+  FAIL cartesian2d 32   dirichlet cp=field    swirl     rev  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=42.89    
+  FAIL cartesian2d 32   mixed     cp=field    swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=31.67    
+  FAIL cartesian2d 32   dirichlet cp=scalar   positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=field    positive  rev  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=3173     
+  FAIL cartesian2d 32   mixed     cp=field    positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=scalar   negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 32   dirichlet cp=field    negative  rev  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   mixed     cp=field    negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=3174     
+  FAIL cartesian2d 32   dirichlet cp=scalar   mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.61e+03   scaleA=3417      scaleR=2010     
+  FAIL cartesian2d 32   dirichlet cp=field    mixed     rev  nnz=2898    A[d=682] rhs[d=0] maxAbs=1.8e+03    scaleA=3782      scaleR=5893     
+  FAIL cartesian2d 32   mixed     cp=field    mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.91e+03   scaleA=3853      scaleR=1800     
+  FAIL cartesian2d 32   dirichlet cp=scalar   zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 32   dirichlet cp=field    zeros     rev  nnz=1971    A[d=595] rhs[d=0] maxAbs=2.03e+03   scaleA=2694      scaleR=1665     
+  FAIL cartesian2d 32   mixed     cp=field    zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.35e+03   scaleA=2632      scaleR=2023     
+  FAIL cartesian2d 32   dirichlet cp=scalar   swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=30.4       scaleA=30.42     scaleR=38.03    
+  FAIL cartesian2d 32   dirichlet cp=field    swirl     rev  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=42.89    
+  FAIL cartesian2d 32   mixed     cp=field    swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=34.35    
+  FAIL cartesian2d 32   dirichlet cp=scalar   positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=field    positive  rev  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=3173     
+  FAIL cartesian2d 32   mixed     cp=field    positive  fwd  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   dirichlet cp=scalar   negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL cartesian2d 32   dirichlet cp=field    negative  rev  nnz=3008    A[d=1984] rhs[d=0] maxAbs=1.58e+03   scaleA=2251      scaleR=0        
+  PASS cartesian2d 32   mixed     cp=field    negative  fwd  nnz=3007    A[d=0] rhs[d=0] maxAbs=0          scaleA=1587      scaleR=1688     
+  FAIL cartesian2d 32   dirichlet cp=scalar   mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.61e+03   scaleA=3417      scaleR=2010     
+  FAIL cartesian2d 32   dirichlet cp=field    mixed     rev  nnz=2898    A[d=682] rhs[d=0] maxAbs=1.8e+03    scaleA=3782      scaleR=5893     
+  FAIL cartesian2d 32   mixed     cp=field    mixed     fwd  nnz=2898    A[d=1302] rhs[d=0] maxAbs=2.91e+03   scaleA=3853      scaleR=1674     
+  FAIL cartesian2d 32   dirichlet cp=scalar   zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL cartesian2d 32   dirichlet cp=field    zeros     rev  nnz=1971    A[d=595] rhs[d=0] maxAbs=2.03e+03   scaleA=2694      scaleR=1665     
+  FAIL cartesian2d 32   mixed     cp=field    zeros     fwd  nnz=1984    A[d=596] rhs[d=0] maxAbs=1.35e+03   scaleA=2632      scaleR=1883     
+  FAIL cartesian2d 32   dirichlet cp=scalar   swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=30.4       scaleA=30.42     scaleR=38.03    
+  FAIL cartesian2d 32   dirichlet cp=field    swirl     rev  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=42.89    
+  FAIL cartesian2d 32   mixed     cp=field    swirl     fwd  nnz=3008    A[d=992] rhs[d=0] maxAbs=34.1       scaleA=34.31     scaleR=31.67    
+       [graded2d 16 cells=256 farUpstream(ownerUpwind=448, neighbourUpwind=448) resident=193560 B]
+  FAIL graded2d 16      dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS graded2d 16      dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=3129     
+  FAIL graded2d 16      mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL graded2d 16      dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=5093     
+  FAIL graded2d 16      dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL graded2d 16      dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.76e+03   scaleA=2850      scaleR=3521     
+  FAIL graded2d 16      mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.88e+03   scaleA=4659      scaleR=2915     
+  FAIL graded2d 16      dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL graded2d 16      dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2e+03      scaleA=2600      scaleR=1625     
+  FAIL graded2d 16      mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.27e+03   scaleA=2508      scaleR=3268     
+  FAIL graded2d 16      dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=125        scaleA=85.18     scaleR=125.3    
+  FAIL graded2d 16      dirichlet cp=field    swirl     rev  nnz=736     A[d=300] rhs[d=0] maxAbs=48.5       scaleA=94.72     scaleR=174.2    
+  FAIL graded2d 16      mixed     cp=field    swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=138        scaleA=94.72     scaleR=128.7    
+  FAIL graded2d 16      dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS graded2d 16      dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=3129     
+  FAIL graded2d 16      mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL graded2d 16      dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=3127     
+  FAIL graded2d 16      dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL graded2d 16      dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.76e+03   scaleA=2850      scaleR=3521     
+  FAIL graded2d 16      mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.88e+03   scaleA=4659      scaleR=1923     
+  FAIL graded2d 16      dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL graded2d 16      dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2e+03      scaleA=2600      scaleR=1625     
+  FAIL graded2d 16      mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.27e+03   scaleA=2508      scaleR=2096     
+  FAIL graded2d 16      dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=125        scaleA=85.18     scaleR=125.3    
+  FAIL graded2d 16      dirichlet cp=field    swirl     rev  nnz=736     A[d=300] rhs[d=0] maxAbs=48.5       scaleA=94.72     scaleR=174.2    
+  FAIL graded2d 16      mixed     cp=field    swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=138        scaleA=94.72     scaleR=128.7    
+  FAIL graded2d 16      dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS graded2d 16      dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=3129     
+  FAIL graded2d 16      mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL graded2d 16      dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=3137     
+  FAIL graded2d 16      dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL graded2d 16      dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.76e+03   scaleA=2850      scaleR=3521     
+  FAIL graded2d 16      mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.88e+03   scaleA=4659      scaleR=1798     
+  FAIL graded2d 16      dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL graded2d 16      dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2e+03      scaleA=2600      scaleR=1625     
+  FAIL graded2d 16      mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.27e+03   scaleA=2508      scaleR=2010     
+  FAIL graded2d 16      dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=125        scaleA=85.18     scaleR=125.3    
+  FAIL graded2d 16      dirichlet cp=field    swirl     rev  nnz=736     A[d=300] rhs[d=0] maxAbs=48.5       scaleA=94.72     scaleR=174.2    
+  FAIL graded2d 16      mixed     cp=field    swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=138        scaleA=94.72     scaleR=128.7    
+  FAIL graded2d 16      dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS graded2d 16      dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=3129     
+  FAIL graded2d 16      mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL graded2d 16      dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.55e+03   scaleA=2246      scaleR=0        
+  PASS graded2d 16      mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1565      scaleR=1685     
+  FAIL graded2d 16      dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL graded2d 16      dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.76e+03   scaleA=2850      scaleR=3521     
+  FAIL graded2d 16      mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.88e+03   scaleA=4659      scaleR=1596     
+  FAIL graded2d 16      dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL graded2d 16      dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2e+03      scaleA=2600      scaleR=1625     
+  FAIL graded2d 16      mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.27e+03   scaleA=2508      scaleR=1857     
+  FAIL graded2d 16      dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=125        scaleA=85.18     scaleR=125.3    
+  FAIL graded2d 16      dirichlet cp=field    swirl     rev  nnz=736     A[d=300] rhs[d=0] maxAbs=48.5       scaleA=94.72     scaleR=174.2    
+  FAIL graded2d 16      mixed     cp=field    swirl     fwd  nnz=736     A[d=180] rhs[d=0] maxAbs=138        scaleA=94.72     scaleR=128.7    
+       [distorted q16 cells=256 farUpstream(ownerUpwind=478, neighbourUpwind=478) resident=212760 B]
+  FAIL distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  FAIL distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=5127     
+  FAIL distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2872      scaleR=3608     
+  FAIL distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4685      scaleR=2933     
+  FAIL distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2610      scaleR=1665     
+  FAIL distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2545      scaleR=3293     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=68         scaleA=60.85     scaleR=73.61    
+  FAIL distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=72.5       scaleA=68.2      scaleR=82.5     
+  FAIL distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=73.7       scaleA=68.2      scaleR=107.4    
+  FAIL distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  FAIL distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3209     
+  FAIL distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2872      scaleR=3608     
+  FAIL distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4685      scaleR=2000     
+  FAIL distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2610      scaleR=1665     
+  FAIL distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2545      scaleR=2167     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=68         scaleA=60.85     scaleR=73.61    
+  FAIL distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=72.5       scaleA=68.2      scaleR=82.5     
+  FAIL distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=73.7       scaleA=68.2      scaleR=61.08    
+  FAIL distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  FAIL distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3156     
+  FAIL distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2872      scaleR=3608     
+  FAIL distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4685      scaleR=1806     
+  FAIL distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2610      scaleR=1665     
+  FAIL distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2545      scaleR=2026     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=68         scaleA=60.85     scaleR=73.61    
+  FAIL distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=72.5       scaleA=68.2      scaleR=82.5     
+  FAIL distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=73.7       scaleA=68.2      scaleR=66.15    
+  FAIL distorted q16    dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS distorted q16    dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=3154     
+  FAIL distorted q16    mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL distorted q16    dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2263      scaleR=0        
+  PASS distorted q16    mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1577      scaleR=1697     
+  FAIL distorted q16    dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL distorted q16    dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2872      scaleR=3608     
+  FAIL distorted q16    mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4685      scaleR=1643     
+  FAIL distorted q16    dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL distorted q16    dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2610      scaleR=1665     
+  FAIL distorted q16    mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2545      scaleR=1876     
+  FAIL distorted q16    dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=68         scaleA=60.85     scaleR=73.61    
+  FAIL distorted q16    dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=72.5       scaleA=68.2      scaleR=82.5     
+  FAIL distorted q16    mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=73.7       scaleA=68.2      scaleR=61.08    
+       [sheared 0.35 cells=256 farUpstream(ownerUpwind=477, neighbourUpwind=479) resident=208240 B]
+  FAIL sheared 0.35     dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=3150     
+  FAIL sheared 0.35     mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL sheared 0.35     dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=5122     
+  FAIL sheared 0.35     dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL sheared 0.35     dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2869      scaleR=3602     
+  FAIL sheared 0.35     mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4689      scaleR=2930     
+  FAIL sheared 0.35     dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL sheared 0.35     dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2611      scaleR=1662     
+  FAIL sheared 0.35     mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=3289     
+  FAIL sheared 0.35     dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=89.5       scaleA=68.9      scaleR=73.61    
+  FAIL sheared 0.35     dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=88.6       scaleA=76.41     scaleR=82.39    
+  FAIL sheared 0.35     mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=86.2       scaleA=76.41     scaleR=107.3    
+  FAIL sheared 0.35     dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=3150     
+  FAIL sheared 0.35     mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL sheared 0.35     dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=3193     
+  FAIL sheared 0.35     dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL sheared 0.35     dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2869      scaleR=3602     
+  FAIL sheared 0.35     mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4689      scaleR=1984     
+  FAIL sheared 0.35     dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL sheared 0.35     dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2611      scaleR=1662     
+  FAIL sheared 0.35     mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=2163     
+  FAIL sheared 0.35     dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=89.5       scaleA=68.9      scaleR=73.61    
+  FAIL sheared 0.35     dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=88.6       scaleA=76.41     scaleR=82.39    
+  FAIL sheared 0.35     mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=86.2       scaleA=76.41     scaleR=60.99    
+  FAIL sheared 0.35     dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=3150     
+  FAIL sheared 0.35     mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL sheared 0.35     dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=3153     
+  FAIL sheared 0.35     dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL sheared 0.35     dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2869      scaleR=3602     
+  FAIL sheared 0.35     mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4689      scaleR=1805     
+  FAIL sheared 0.35     dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL sheared 0.35     dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2611      scaleR=1662     
+  FAIL sheared 0.35     mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=2023     
+  FAIL sheared 0.35     dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=89.5       scaleA=68.9      scaleR=73.61    
+  FAIL sheared 0.35     dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=88.6       scaleA=76.41     scaleR=82.39    
+  FAIL sheared 0.35     mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=86.2       scaleA=76.41     scaleR=66.1     
+  FAIL sheared 0.35     dirichlet cp=scalar   positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.41e+03   scaleA=2814      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=field    positive  rev  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=3150     
+  FAIL sheared 0.35     mixed     cp=field    positive  fwd  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     dirichlet cp=scalar   negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1407      scaleR=2814     
+  FAIL sheared 0.35     dirichlet cp=field    negative  rev  nnz=736     A[d=480] rhs[d=0] maxAbs=1.56e+03   scaleA=2259      scaleR=0        
+  PASS sheared 0.35     mixed     cp=field    negative  fwd  nnz=735     A[d=0] rhs[d=0] maxAbs=0          scaleA=1575      scaleR=1694     
+  FAIL sheared 0.35     dirichlet cp=scalar   mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.61e+03   scaleA=4221      scaleR=2010     
+  FAIL sheared 0.35     dirichlet cp=field    mixed     rev  nnz=711     A[d=160] rhs[d=0] maxAbs=1.77e+03   scaleA=2869      scaleR=3602     
+  FAIL sheared 0.35     mixed     cp=field    mixed     fwd  nnz=711     A[d=320] rhs[d=0] maxAbs=2.9e+03    scaleA=4689      scaleR=1638     
+  FAIL sheared 0.35     dirichlet cp=scalar   zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.21e+03   scaleA=2412      scaleR=2261     
+  FAIL sheared 0.35     dirichlet cp=field    zeros     rev  nnz=486     A[d=144] rhs[d=0] maxAbs=2.01e+03   scaleA=2611      scaleR=1662     
+  FAIL sheared 0.35     mixed     cp=field    zeros     fwd  nnz=483     A[d=144] rhs[d=0] maxAbs=1.3e+03    scaleA=2558      scaleR=1874     
+  FAIL sheared 0.35     dirichlet cp=scalar   swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=89.5       scaleA=68.9      scaleR=73.61    
+  FAIL sheared 0.35     dirichlet cp=field    swirl     rev  nnz=736     A[d=240] rhs[d=0] maxAbs=88.6       scaleA=76.41     scaleR=82.39    
+  FAIL sheared 0.35     mixed     cp=field    swirl     fwd  nnz=736     A[d=240] rhs[d=0] maxAbs=86.2       scaleA=76.41     scaleR=60.99    
+       [cartesian3d 6 cells=216 farUpstream(ownerUpwind=432, neighbourUpwind=432) resident=266136 B]
+  FAIL cartesian3d 6    dirichlet cp=scalar   positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=field    positive  rev  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=5993     
+  FAIL cartesian3d 6    mixed     cp=field    positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=scalar   negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL cartesian3d 6    dirichlet cp=field    negative  rev  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    mixed     cp=field    negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=7780     
+  FAIL cartesian3d 6    dirichlet cp=scalar   mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.61e+03   scaleA=6030      scaleR=4824     
+  FAIL cartesian3d 6    dirichlet cp=field    mixed     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=1.76e+03   scaleA=4298      scaleR=1.113e+04
+  FAIL cartesian3d 6    mixed     cp=field    mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.95e+03   scaleA=6649      scaleR=5697     
+  FAIL cartesian3d 6    dirichlet cp=scalar   zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.21e+03   scaleA=3316      scaleR=4975     
+  FAIL cartesian3d 6    dirichlet cp=field    zeros     rev  nnz=520     A[d=162] rhs[d=0] maxAbs=2.04e+03   scaleA=3765      scaleR=3959     
+  FAIL cartesian3d 6    mixed     cp=field    zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.31e+03   scaleA=3503      scaleR=6608     
+  FAIL cartesian3d 6    dirichlet cp=scalar   swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=23.3       scaleA=26.06     scaleR=29.08    
+  FAIL cartesian3d 6    dirichlet cp=field    swirl     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=25.5       scaleA=29.06     scaleR=44.13    
+  FAIL cartesian3d 6    mixed     cp=field    swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=25.8       scaleA=29.59     scaleR=43.1     
+  FAIL cartesian3d 6    dirichlet cp=scalar   positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=field    positive  rev  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=5993     
+  FAIL cartesian3d 6    mixed     cp=field    positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=scalar   negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL cartesian3d 6    dirichlet cp=field    negative  rev  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    mixed     cp=field    negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=5810     
+  FAIL cartesian3d 6    dirichlet cp=scalar   mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.61e+03   scaleA=6030      scaleR=4824     
+  FAIL cartesian3d 6    dirichlet cp=field    mixed     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=1.76e+03   scaleA=4298      scaleR=1.113e+04
+  FAIL cartesian3d 6    mixed     cp=field    mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.95e+03   scaleA=6649      scaleR=3966     
+  FAIL cartesian3d 6    dirichlet cp=scalar   zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.21e+03   scaleA=3316      scaleR=4975     
+  FAIL cartesian3d 6    dirichlet cp=field    zeros     rev  nnz=520     A[d=162] rhs[d=0] maxAbs=2.04e+03   scaleA=3765      scaleR=3959     
+  FAIL cartesian3d 6    mixed     cp=field    zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.31e+03   scaleA=3503      scaleR=4649     
+  FAIL cartesian3d 6    dirichlet cp=scalar   swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=23.3       scaleA=26.06     scaleR=29.08    
+  FAIL cartesian3d 6    dirichlet cp=field    swirl     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=25.5       scaleA=29.06     scaleR=44.13    
+  FAIL cartesian3d 6    mixed     cp=field    swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=25.8       scaleA=29.59     scaleR=24.69    
+  FAIL cartesian3d 6    dirichlet cp=scalar   positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=field    positive  rev  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=5993     
+  FAIL cartesian3d 6    mixed     cp=field    positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=scalar   negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL cartesian3d 6    dirichlet cp=field    negative  rev  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    mixed     cp=field    negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=5436     
+  FAIL cartesian3d 6    dirichlet cp=scalar   mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.61e+03   scaleA=6030      scaleR=4824     
+  FAIL cartesian3d 6    dirichlet cp=field    mixed     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=1.76e+03   scaleA=4298      scaleR=1.113e+04
+  FAIL cartesian3d 6    mixed     cp=field    mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.95e+03   scaleA=6649      scaleR=4262     
+  FAIL cartesian3d 6    dirichlet cp=scalar   zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.21e+03   scaleA=3316      scaleR=4975     
+  FAIL cartesian3d 6    dirichlet cp=field    zeros     rev  nnz=520     A[d=162] rhs[d=0] maxAbs=2.04e+03   scaleA=3765      scaleR=3959     
+  FAIL cartesian3d 6    mixed     cp=field    zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.31e+03   scaleA=3503      scaleR=4982     
+  FAIL cartesian3d 6    dirichlet cp=scalar   swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=23.3       scaleA=26.06     scaleR=29.08    
+  FAIL cartesian3d 6    dirichlet cp=field    swirl     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=25.5       scaleA=29.06     scaleR=44.13    
+  FAIL cartesian3d 6    mixed     cp=field    swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=25.8       scaleA=29.59     scaleR=26.59    
+  FAIL cartesian3d 6    dirichlet cp=scalar   positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=field    positive  rev  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=5993     
+  FAIL cartesian3d 6    mixed     cp=field    positive  fwd  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    dirichlet cp=scalar   negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL cartesian3d 6    dirichlet cp=field    negative  rev  nnz=756     A[d=540] rhs[d=0] maxAbs=1.59e+03   scaleA=3616      scaleR=0        
+  PASS cartesian3d 6    mixed     cp=field    negative  fwd  nnz=755     A[d=0] rhs[d=0] maxAbs=0          scaleA=2397      scaleR=3810     
+  FAIL cartesian3d 6    dirichlet cp=scalar   mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.61e+03   scaleA=6030      scaleR=4824     
+  FAIL cartesian3d 6    dirichlet cp=field    mixed     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=1.76e+03   scaleA=4298      scaleR=1.113e+04
+  FAIL cartesian3d 6    mixed     cp=field    mixed     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=2.95e+03   scaleA=6649      scaleR=3966     
+  FAIL cartesian3d 6    dirichlet cp=scalar   zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.21e+03   scaleA=3316      scaleR=4975     
+  FAIL cartesian3d 6    dirichlet cp=field    zeros     rev  nnz=520     A[d=162] rhs[d=0] maxAbs=2.04e+03   scaleA=3765      scaleR=3959     
+  FAIL cartesian3d 6    mixed     cp=field    zeros     fwd  nnz=519     A[d=162] rhs[d=0] maxAbs=1.31e+03   scaleA=3503      scaleR=4649     
+  FAIL cartesian3d 6    dirichlet cp=scalar   swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=23.3       scaleA=26.06     scaleR=29.08    
+  FAIL cartesian3d 6    dirichlet cp=field    swirl     rev  nnz=756     A[d=180] rhs[d=0] maxAbs=25.5       scaleA=29.06     scaleR=44.13    
+  FAIL cartesian3d 6    mixed     cp=field    swirl     fwd  nnz=756     A[d=360] rhs[d=0] maxAbs=25.8       scaleA=29.59     scaleR=24.69    
+       [warped 3d 5 cells=125 farUpstream(ownerUpwind=297, neighbourUpwind=294) resident=171224 B]
+  FAIL warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5955     
+  FAIL warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=7729     
+  FAIL warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.61e+03   scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=114] rhs[d=0] maxAbs=1.8e+03    scaleA=5016      scaleR=1.106e+04
+  FAIL warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.89e+03   scaleA=6239      scaleR=5615     
+  FAIL warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.21e+03   scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=90] rhs[d=0] maxAbs=2.02e+03   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.35e+03   scaleA=4882      scaleR=9938     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=96] rhs[d=0] maxAbs=34.1       scaleA=39.63     scaleR=61.25    
+  FAIL warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=40.53     scaleR=59.25    
+  FAIL warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5955     
+  FAIL warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5680     
+  FAIL warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.61e+03   scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=114] rhs[d=0] maxAbs=1.8e+03    scaleA=5016      scaleR=1.106e+04
+  FAIL warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.89e+03   scaleA=6239      scaleR=4121     
+  FAIL warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.21e+03   scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=90] rhs[d=0] maxAbs=2.02e+03   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.35e+03   scaleA=4882      scaleR=4964     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=96] rhs[d=0] maxAbs=34.1       scaleA=39.63     scaleR=61.25    
+  FAIL warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=40.53     scaleR=33.99    
+  FAIL warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5955     
+  FAIL warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5410     
+  FAIL warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.61e+03   scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=114] rhs[d=0] maxAbs=1.8e+03    scaleA=5016      scaleR=1.106e+04
+  FAIL warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.89e+03   scaleA=6239      scaleR=4121     
+  FAIL warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.21e+03   scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=90] rhs[d=0] maxAbs=2.02e+03   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.35e+03   scaleA=4882      scaleR=6110     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=96] rhs[d=0] maxAbs=34.1       scaleA=39.63     scaleR=61.25    
+  FAIL warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=40.53     scaleR=36.57    
+  FAIL warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.41e+03   scaleA=4221      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5955     
+  FAIL warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  FAIL warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=300] rhs[d=0] maxAbs=1.58e+03   scaleA=3606      scaleR=0        
+  PASS warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=3832     
+  FAIL warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.61e+03   scaleA=5528      scaleR=4824     
+  FAIL warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=114] rhs[d=0] maxAbs=1.8e+03    scaleA=5016      scaleR=1.106e+04
+  FAIL warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=186] rhs[d=0] maxAbs=2.89e+03   scaleA=6239      scaleR=4121     
+  FAIL warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.21e+03   scaleA=4522      scaleR=6784     
+  FAIL warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=90] rhs[d=0] maxAbs=2.02e+03   scaleA=5104      scaleR=3905     
+  FAIL warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=90] rhs[d=0] maxAbs=1.35e+03   scaleA=4882      scaleR=4413     
+  FAIL warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=37.01     scaleR=40.2     
+  FAIL warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=96] rhs[d=0] maxAbs=34.1       scaleA=39.63     scaleR=61.25    
+  FAIL warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=204] rhs[d=0] maxAbs=35.1       scaleA=40.53     scaleR=33.99    
+
+=== non-vacuity control ===
+  PASS identical bits compare equal; a one-ULP perturbation does not (abs=1.78e-15)
+
+=== coverage ===
+  scheme upwind         280 operator cases
+  scheme central        280 operator cases
+  scheme linear_upwind  280 operator cases
+  scheme quick          420 operator cases
+  reversed-flux pairs                560
+  reversal actually changed result   560
+  zero/negative-zero flux cases      112
+  assembly pattern mismatches        0
+
+cases=1684 failures=336
+CONVECTION EQUIVALENCE: FAIL

@@ -1,0 +1,20 @@
+# n7_mixed_path_one_iteration -- restored src/pressure_velocity/SIMPLE.cpp
+# sha256 f5c69deff2fe8857172b32813687d9e9cdd0831dca75feecf3da9acf8944d5fe
+# matches baseline: True
+
+=== GPU-DISC-001N: full production solves, CPU vs GPU discretization ===
+CUDA available: yes
+Configuration and bounds adopted from tests/solver/simple/test_simple_gpu_solver.cpp: 3000 outer, 1e-6 outer tolerances, 1e-10/1e-8 linear, velocity/pressure bound 1e-6
+
+  PASS C  cavity 2d 8 (controls) cpu[MaxIterations it=30] gpu[MaxIterations it=30 gpuDisc=1] residuals cpu[u=0.000281 v=0.000321 p=0.00496 cont=5.94e-11 mass=0]
+                              gpu residuals   [u=0.000281 v=0.000321 p=0.00496 cont=5.94e-11 mass=0] linear iterations cpu[mom=759 p=1113] gpu[mom=759 p=1113]
+  PASS H  cavity 2d 8 (controls) 30 outer iterations compared, max history discrepancy 0, first divergent iteration: none
+  PASS F  cavity 2d 8 (controls) p[Linf=0 L2=0 rel=0 bit=64/64] u[Linf=0 L2=0] v[Linf=0] w[Linf=0] flux[Linf=0 L2=0 bit=144/144]   (TRANSIENT comparison -- not an acceptance result)
+  PASS N  cavity 2d 8 (controls) finite[cpu+gpu] pairs=112 |dImbalance|=0 maxCellImbalance=4.7e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=651/487280B d2h=480/588240B kern=750 sync=0 alloc=345] per-iteration[h2d=21 d2h=16 kern=25]
+       P                         cpu=0.008s gpu=0.154s outer=30  cpu/iter=0.0002577s gpu/iter=0.005128s ratio=19.9
+  PASS S  cavity 2d 8 (controls) per-iteration FIELD comparison over 30 iterations, max 0, first divergent iteration: none
+  PASS D  cavity 2d 8 (controls) each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+
+cases=6 failures=0
+FULL SOLVE EQUIVALENCE: PASS

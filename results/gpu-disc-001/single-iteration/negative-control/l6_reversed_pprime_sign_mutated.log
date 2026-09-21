@@ -1,0 +1,147 @@
+# l6_reversed_pprime_sign
+# p' is negated before the corrections consume it
+# --- anchor ---
+  dPPrime.uploadFrom(L.pPrime.data(), nc);
+# --- became ---
+  { std::vector<Real> flipped = L.pPrime;
+    for (Real& v : flipped) v = -v;
+    dPPrime.uploadFrom(flipped.data(), nc); }
+# verdict: DETECTED (exit 1)
+# first divergence: 8 corrected U/V/W
+# expected:         8 corrected U/V/W
+
+=== GPU-DISC-001L: one production SIMPLE iteration, CPU vs CUDA ===
+CPU reference: SIMPLE::solve outer loop (SIMPLE.cpp:271)
+
+       [cavity 2d 16 cells=256 faces=544 linear pin=yes]
+  PASS R  cavity 2d 16           response coefficients component-independent (dU == dV) separated=0
+  PASS F  cavity 2d 16           ladder == SIMPLE::solve(maxIterations=1)  fields[d=0] residuals[d=0] iterations=1 status=1
+  FAIL C  cavity 2d 16           bitwise  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=2944     differing=0        maxAbs=0           maxRel=0           scale=0.01143     
+       2 momentum solutions       n=768      differing=0        maxAbs=0           maxRel=0           scale=0.4314      
+       3 response coefficients    n=512      differing=0        maxAbs=0           maxRel=0           scale=0.6836      
+       4 predicted flux           n=544      differing=0        maxAbs=0           maxRel=0           scale=0.03235     
+       5 pressure system          n=1470     differing=0        maxAbs=0           maxRel=0           scale=3.281       
+       6 pressure correction p'   n=256      differing=0        maxAbs=0           maxRel=0           scale=0.1063      
+       7 updated pressure         n=256      differing=0        maxAbs=0           maxRel=0           scale=0.03188     
+       8 corrected U/V/W          n=768      differing=512      maxAbs=0.344       maxRel=30.4        scale=0.3771        <-- DIVERGES
+       9 corrected face flux      n=544      differing=480      maxAbs=0.0267      maxRel=183         scale=0.02833       <-- DIVERGES
+       10 continuity              n=256      differing=256      maxAbs=0.0524      maxRel=2.15e+12    scale=5.486e-12     <-- DIVERGES
+       11 residuals               n=6        differing=1        maxAbs=0.00488     maxRel=1.42e+10    scale=0.039         <-- DIVERGES
+  PASS V  cavity 2d 16           invariants errors=0 pairs=480 untouchedBoundaryFaces=64
+  FAIL I  cavity 2d 16           tolerance  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=2944     differing=0        maxAbs=0           maxRel=0           scale=0.01143     
+       2 momentum solutions       n=768      differing=212      maxAbs=5.55e-17    maxRel=9.66e-16    scale=0.4314      
+       3 response coefficients    n=512      differing=0        maxAbs=0           maxRel=0           scale=0.6836      
+       4 predicted flux           n=544      differing=191      maxAbs=6.94e-18    maxRel=6.49e-16    scale=0.03235     
+       5 pressure system          n=1470     differing=197      maxAbs=6.94e-18    maxRel=5.11e-11    scale=3.281       
+       6 pressure correction p'   n=256      differing=255      maxAbs=1.75e-11    maxRel=1.11e-06    scale=0.1063      
+       7 updated pressure         n=256      differing=255      maxAbs=5.25e-12    maxRel=1.11e-06    scale=0.03188     
+       8 corrected U/V/W          n=768      differing=512      maxAbs=0.344       maxRel=30.4        scale=0.3771        <-- DIVERGES
+       9 corrected face flux      n=544      differing=480      maxAbs=0.0267      maxRel=183         scale=0.02833       <-- DIVERGES
+       10 continuity              n=256      differing=256      maxAbs=0.0524      maxRel=2.15e+12    scale=5.486e-12     <-- DIVERGES
+       11 residuals               n=6        differing=1        maxAbs=0.00488     maxRel=1.42e+10    scale=0.039         <-- DIVERGES
+       pre-solve stages (1,3) bitwise: yes   gpu solves converged: yes pressure restarts: cpu=0 gpu=0
+       [channel 2d 16 cells=256 faces=544 linear pin=no]
+  PASS R  channel 2d 16          response coefficients component-independent (dU == dV) separated=0
+  PASS F  channel 2d 16          ladder == SIMPLE::solve(maxIterations=1)  fields[d=0] residuals[d=0] iterations=1 status=1
+  FAIL C  channel 2d 16          bitwise  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=2944     differing=0        maxAbs=0           maxRel=0           scale=0.8076      
+       2 momentum solutions       n=768      differing=0        maxAbs=0           maxRel=0           scale=29.51       
+       3 response coefficients    n=512      differing=0        maxAbs=0           maxRel=0           scale=0.406       
+       4 predicted flux           n=544      differing=0        maxAbs=0           maxRel=0           scale=2.213       
+       5 pressure system          n=1472     differing=0        maxAbs=0           maxRel=0           scale=1.54        
+       6 pressure correction p'   n=256      differing=0        maxAbs=0           maxRel=0           scale=25.53       
+       7 updated pressure         n=256      differing=0        maxAbs=0           maxRel=0           scale=6.787       
+       8 corrected U/V/W          n=768      differing=512      maxAbs=26.6        maxRel=95.1        scale=19.16         <-- DIVERGES
+       9 corrected face flux      n=544      differing=496      maxAbs=2.49        maxRel=66.5        scale=0.97          <-- DIVERGES
+       10 continuity              n=256      differing=256      maxAbs=2.28        maxRel=7.29e+14    scale=1.155e-12     <-- DIVERGES
+       11 residuals               n=6        differing=2        maxAbs=26.7        maxRel=2.29e+12    scale=5.789         <-- DIVERGES
+  PASS V  channel 2d 16          invariants errors=0 pairs=480 untouchedBoundaryFaces=48
+  FAIL I  channel 2d 16          tolerance  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=2944     differing=0        maxAbs=0           maxRel=0           scale=0.8076      
+       2 momentum solutions       n=768      differing=490      maxAbs=5.9e-11     maxRel=2.05e-10    scale=29.51       
+       3 response coefficients    n=512      differing=0        maxAbs=0           maxRel=0           scale=0.406       
+       4 predicted flux           n=544      differing=449      maxAbs=2.72e-12    maxRel=4.48e-11    scale=2.213       
+       5 pressure system          n=1472     differing=251      maxAbs=3.21e-12    maxRel=1.73e-11    scale=1.54        
+       6 pressure correction p'   n=256      differing=256      maxAbs=1.92e-10    maxRel=2.03e-09    scale=25.53       
+       7 updated pressure         n=256      differing=256      maxAbs=5.75e-11    maxRel=9.53e-09    scale=6.787       
+       8 corrected U/V/W          n=768      differing=512      maxAbs=26.6        maxRel=95.1        scale=19.16         <-- DIVERGES
+       9 corrected face flux      n=544      differing=496      maxAbs=2.49        maxRel=66.5        scale=0.97          <-- DIVERGES
+       10 continuity              n=256      differing=256      maxAbs=2.28        maxRel=7.29e+14    scale=1.155e-12     <-- DIVERGES
+       11 residuals               n=6        differing=5        maxAbs=26.7        maxRel=2.29e+12    scale=5.789         <-- DIVERGES
+       pre-solve stages (1,3) bitwise: yes   gpu solves converged: yes pressure restarts: cpu=0 gpu=0
+       [duct 2d 16 cells=256 faces=544 linear pin=no]
+  PASS R  duct 2d 16             response coefficients component-independent (dU == dV) separated=0
+  PASS F  duct 2d 16             ladder == SIMPLE::solve(maxIterations=1)  fields[d=0] residuals[d=0] iterations=1 status=1
+  FAIL C  duct 2d 16             bitwise  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=2944     differing=0        maxAbs=0           maxRel=0           scale=0.4273      
+       2 momentum solutions       n=768      differing=0        maxAbs=0           maxRel=0           scale=44.05       
+       3 response coefficients    n=512      differing=0        maxAbs=0           maxRel=0           scale=0.4557      
+       4 predicted flux           n=544      differing=0        maxAbs=0           maxRel=0           scale=1.741       
+       5 pressure system          n=1472     differing=0        maxAbs=0           maxRel=0           scale=1.946       
+       6 pressure correction p'   n=256      differing=0        maxAbs=0           maxRel=0           scale=20.6        
+       7 updated pressure         n=256      differing=0        maxAbs=0           maxRel=0           scale=6.335       
+       8 corrected U/V/W          n=768      differing=512      maxAbs=28.1        maxRel=329         scale=30            <-- DIVERGES
+       9 corrected face flux      n=544      differing=496      maxAbs=3.42        maxRel=2.99e+03    scale=0.5471        <-- DIVERGES
+       10 continuity              n=256      differing=256      maxAbs=3.89        maxRel=7.88e+13    scale=2.248e-13     <-- DIVERGES
+       11 residuals               n=6        differing=2        maxAbs=8.66        maxRel=3.15e+12    scale=3.488         <-- DIVERGES
+  PASS V  duct 2d 16             invariants errors=0 pairs=480 untouchedBoundaryFaces=48
+  FAIL I  duct 2d 16             tolerance  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=2944     differing=0        maxAbs=0           maxRel=0           scale=0.4273      
+       2 momentum solutions       n=768      differing=453      maxAbs=1.09e-11    maxRel=8.8e-13     scale=44.05       
+       3 response coefficients    n=512      differing=0        maxAbs=0           maxRel=0           scale=0.4557      
+       4 predicted flux           n=544      differing=408      maxAbs=4.13e-13    maxRel=7.89e-13    scale=1.741       
+       5 pressure system          n=1472     differing=250      maxAbs=4.13e-13    maxRel=8.79e-11    scale=1.946       
+       6 pressure correction p'   n=256      differing=256      maxAbs=4.7e-11     maxRel=4.22e-10    scale=20.6        
+       7 updated pressure         n=256      differing=256      maxAbs=1.41e-11    maxRel=6.6e-11     scale=6.335       
+       8 corrected U/V/W          n=768      differing=512      maxAbs=28.1        maxRel=329         scale=30            <-- DIVERGES
+       9 corrected face flux      n=544      differing=496      maxAbs=3.42        maxRel=2.99e+03    scale=0.5471        <-- DIVERGES
+       10 continuity              n=256      differing=256      maxAbs=3.89        maxRel=7.88e+13    scale=2.248e-13     <-- DIVERGES
+       11 residuals               n=6        differing=4        maxAbs=8.66        maxRel=3.15e+12    scale=3.488         <-- DIVERGES
+       pre-solve stages (1,3) bitwise: yes   gpu solves converged: yes pressure restarts: cpu=0 gpu=0
+       [cavity 3d 3 cells=27 faces=108 rhie-chow pin=yes]
+  PASS R  cavity 3d 3            response coefficients component-independent (dU == dV == dW) separated=0
+  PASS F  cavity 3d 3            ladder == SIMPLE::solve(maxIterations=1)  fields[d=0] residuals[d=0] iterations=1 status=1
+  FAIL C  cavity 3d 3            bitwise  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=486      differing=0        maxAbs=0           maxRel=0           scale=0.005714    
+       2 momentum solutions       n=81       differing=0        maxAbs=0           maxRel=0           scale=0.3262      
+       3 response coefficients    n=81       differing=0        maxAbs=0           maxRel=0           scale=12.96       
+       4 predicted flux           n=108      differing=0        maxAbs=0           maxRel=0           scale=0.03824     
+       5 pressure system          n=159      differing=0        maxAbs=0           maxRel=0           scale=27.22       
+       6 pressure correction p'   n=27       differing=0        maxAbs=0           maxRel=0           scale=0.008436    
+       7 updated pressure         n=27       differing=0        maxAbs=0           maxRel=0           scale=0.002531    
+       8 corrected U/V/W          n=81       differing=81       maxAbs=0.401       maxRel=25.5        scale=0.1941        <-- DIVERGES
+       9 corrected face flux      n=108      differing=54       maxAbs=0.0481      maxRel=3.71        scale=0.01421       <-- DIVERGES
+       10 continuity              n=27       differing=27       maxAbs=0.0765      maxRel=2.33e+13    scale=1.743e-12     <-- DIVERGES
+       11 residuals               n=6        differing=1        maxAbs=0.0311      maxRel=8.21e+10    scale=0.0808        <-- DIVERGES
+  PASS V  cavity 3d 3            invariants errors=0 pairs=54 untouchedBoundaryFaces=54
+  FAIL I  cavity 3d 3            tolerance  FIRST DIVERGENCE: 8 corrected U/V/W
+       1 momentum systems         n=486      differing=0        maxAbs=0           maxRel=0           scale=0.005714    
+       2 momentum solutions       n=81       differing=21       maxAbs=5.55e-17    maxRel=6.54e-16    scale=0.3262      
+       3 response coefficients    n=81       differing=0        maxAbs=0           maxRel=0           scale=12.96       
+       4 predicted flux           n=108      differing=12       maxAbs=6.94e-18    maxRel=5.3e-16     scale=0.03824     
+       5 pressure system          n=159      differing=17       maxAbs=6.94e-18    maxRel=1           scale=27.22       
+       6 pressure correction p'   n=27       differing=26       maxAbs=2.88e-13    maxRel=0.941       scale=0.008436    
+       7 updated pressure         n=27       differing=26       maxAbs=8.63e-14    maxRel=0.941       scale=0.002531    
+       8 corrected U/V/W          n=81       differing=81       maxAbs=0.401       maxRel=25.5        scale=0.1941        <-- DIVERGES
+       9 corrected face flux      n=108      differing=54       maxAbs=0.0481      maxRel=3.71        scale=0.01421       <-- DIVERGES
+       10 continuity              n=27       differing=27       maxAbs=0.0765      maxRel=2.33e+13    scale=1.743e-12     <-- DIVERGES
+       11 residuals               n=6        differing=2        maxAbs=0.0311      maxRel=8.21e+10    scale=0.0808        <-- DIVERGES
+       pre-solve stages (1,3) bitwise: yes   gpu solves converged: yes pressure restarts: cpu=0 gpu=0
+
+=== coverage ===
+  2D / 3D cases                     3 / 1
+  linear / rhie-chow predictor      3 / 1
+  pinned / open pressure cases      2 / 2
+  fidelity checks                   4
+  controlled ladders (bitwise)      4
+  independent ladders (tolerance)   4
+  invariant cases                   4
+  determinism checks                0
+  cases with dU == dV (== dW)       4
+  values compared                   52334
+  bitwise-identical                 39903
+
+cases=20 failures=8
+SINGLE ITERATION EQUIVALENCE: FAIL

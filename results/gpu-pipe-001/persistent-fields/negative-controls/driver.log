@@ -1,0 +1,45 @@
+baseline 87839c3ca60bd0b3f8d7047848117a5c02531e753088d344aba4ea25202a6b8a  cuda/CMakeLists.txt
+baseline 8e81620822d97cefb6f426daee96d521fc6abf883296dbacc6e027f1ea86464b  cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+baseline 42959ff2989d60d2aba8c1b9e8b8993acdd4eeb7e1a34fd23c7d1b8596148e0c  src/pressure_velocity/SIMPLE.cpp
+
+compiled 3 harness objects
+
+=== pf1_skip_initial_upload (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [263s]
+=== pf2_pressure_carry_omitted (detect) ===
+  mutated: DETECTED  first divergence: 2
+  restored: sha-match=True repass=True  ok  [464s]
+=== pf3_velocity_carry_omitted (detect) ===
+  mutated: DETECTED  first divergence: 2
+  restored: sha-match=True repass=True  ok  [464s]
+=== pf4_flux_carry_omitted (detect) ===
+  mutated: DETECTED  first divergence: 1
+  restored: sha-match=True repass=True  ok  [450s]
+=== pf5_fmad_on_pressure_update (detect) ===
+  mutated: DETECTED  first divergence: 3
+  restored: sha-match=True repass=True  ok  [460s]
+=== pf6_authority_lies_after_device_write (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [49s]
+=== pf7_reupload_every_iteration (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [57s]
+=== pf8_stale_viscosity_never_refreshed (null) ===
+  mutated: UNDETECTED
+  restored: sha-match=True repass=True  ok  [447s]
+
+=== GPU-PIPE-001 persistent-field negative controls ===
+  pf1_skip_initial_upload                              detect  DETECTED      sha=True repass=True  ok
+  pf2_pressure_carry_omitted                           detect  DETECTED      sha=True repass=True  ok  first=2
+  pf3_velocity_carry_omitted                           detect  DETECTED      sha=True repass=True  ok  first=2
+  pf4_flux_carry_omitted                               detect  DETECTED      sha=True repass=True  ok  first=1
+  pf5_fmad_on_pressure_update                          detect  DETECTED      sha=True repass=True  ok  first=3
+  pf6_authority_lies_after_device_write                detect  DETECTED      sha=True repass=True  ok
+  pf7_reupload_every_iteration                         detect  DETECTED      sha=True repass=True  ok
+  pf8_stale_viscosity_never_refreshed                  null    UNDETECTED    sha=True repass=True  ok
+
+observable controls:          7
+detected observable controls: 7/7
+documented null controls:     1
+RESULT: PASS

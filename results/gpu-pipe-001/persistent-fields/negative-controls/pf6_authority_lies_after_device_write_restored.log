@@ -1,0 +1,49 @@
+# pf6_authority_lies_after_device_write -- restored cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# sha256 8e81620822d97cefb6f426daee96d521fc6abf883296dbacc6e027f1ea86464b
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness dirty_state -> exit 0 ##########
+=== GPU-PIPE-001: field authority, dirty state and lifecycle ===
+
+--- 1. host initialized -> upload -> GPU authoritative ---
+  PASS before upload, velocity is HostOnly
+  PASS before upload, pressure is HostOnly
+  PASS after uploadInitialState, velocity is Synchronized
+  PASS after uploadInitialState, pressure is Synchronized
+  PASS after uploadInitialState, massFlux is Synchronized
+  PASS after uploadInitialState, viscosity is Synchronized
+
+--- 2. GPU modifies a field -> host is stale until requested ---
+  PASS after updatePressure, pressure is DeviceOwned (host copy stale)
+       authority now: pressure=DeviceOwned
+
+--- 3. a host read triggers exactly the required copy ---
+  PASS downloading a DeviceOwned field costs exactly ONE D2H
+  PASS after download, pressure is Synchronized
+  PASS the device pressure update is bitwise 0 + 0.3*1.0 == 0.3 in every cell
+
+--- 4. a repeated read with no device write costs NOTHING ---
+       D2H for a Synchronized re-read: 1 (the caller asked for the data)
+  PASS re-reading leaves pressure Synchronized
+
+--- 5/6. an outer iteration performs NO field upload ---
+  PASS beginIterationResident transfers nothing at all
+  PASS setViscosity costs exactly ONE H2D when the model changed it
+
+--- 7. host mutation during a solve is UNSUPPORTED, and says so ---
+  PASS no API exposes host-side field mutation mid-solve (enforced by absence, see ownership.md)
+
+--- lifecycle: a second prepare() on a DIFFERENT mesh ---
+  PASS prepare() succeeds on a larger mesh
+  PASS a freshly prepared object starts HostOnly -- no stale state carried in
+  PASS the larger mesh's fields are sized to the LARGER mesh, not the previous one
+
+--- lifecycle: beginIterationResident before any upload is REFUSED ---
+  PASS beginIterationResident throws when there is no resident state to continue from
+
+--- lifecycle: re-uploading initial state resets authority ---
+  PASS a restart via uploadInitialState returns every field to Synchronized
+  PASS the restarted pressure is the HOST value, not the previous solve's 0.3
+
+DIRTY STATE / LIFECYCLE: PASS

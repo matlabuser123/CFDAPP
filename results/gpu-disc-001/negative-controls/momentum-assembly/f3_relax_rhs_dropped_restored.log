@@ -1,0 +1,33 @@
+# f3_relax_rhs_dropped -- restored cuda/kernels/DeviceMomentumAssemblyKernel.cu
+# sha256 c8a5afeedbec2b1527374568a194fa94c37ec7528675100d15f42fe16d4c1f46
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness momentum_assembly -> exit 0 ##########
+=== GPU-DISC-001F: CUDA SIMPLE momentum assembly vs CPU (bitwise) ===
+CPU reference: pressure_velocity::assembleRelaxedMomentumComponent
+
+       [distorted q16/wall cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+       [distorted q16/all-five cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+       [warped 3d 3/wall cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+       [warped 3d 3/all-five cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+
+=== coverage ===
+  component U   4624 cases
+  component V   4624 cases
+  component W   2312 cases
+  scheme upwind         2890 cases
+  scheme central        2890 cases
+  scheme linear_upwind  2890 cases
+  scheme quick          2890 cases
+  relaxation factors exercised     4 (alpha = 1.0, 0.7, 0.3, 0.05)
+  relaxed (alpha != 1) cases       8680
+  momentum-source cases            2880
+  non-orthogonal-correction cases  2880
+  sparsity pattern mismatches      0
+  bitwise-identical cases          11560 of 11560
+  max absolute discrepancy         0
+  max relative discrepancy         0
+
+cases=11560 failures=0
+MOMENTUM ASSEMBLY EQUIVALENCE: PASS (bitwise)

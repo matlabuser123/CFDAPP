@@ -1,0 +1,72 @@
+# h12_zero_distance_skip_removed -- restored cuda/kernels/DeviceLeastSquaresGradientPlan.cpp
+# sha256 df97eba1eaed37d3963cab65c7ba2485465edbeb446639b699cca0822ad4dab1
+# matches baseline: True
+
+=== GPU-DISC-001J: CUDA cell-velocity correction vs CPU (bitwise) ===
+CPU references: pressure_velocity::correctVelocity, discretization::leastSquaresGradient
+
+       [distorted q16/all-Neumann fixedValuePatches=0 lsFallbackCells=0 lsOblique=64 resident=202000 B]
+  PASS L1b distorted q16  green_gauss  reused buffers, 4 successive p' differing=0 maxAbs=0          scale=1.934
+  PASS L1b distorted q16  least_squares reused buffers, 4 successive p' differing=0 maxAbs=0          scale=1.936
+  PASS L2 distorted q16  all-Neumann    least-squares gradient differing=0 fallbackCells=0 obliqueEntries=64 3dCells=0 skipped=0 maxAbs=0          scale=2.034e+305
+  PASS L3 distorted q16  green_gauss  I1[0] I2[0,sweeps/closure] I3[0] I4[0] I5[0] I6[0]
+  PASS L3 distorted q16  least_squares I1[0] I2[0,exact] I3[0] I4[0] I5[0] I6[0]
+       [distorted q16/mixed fixedValuePatches=2 lsFallbackCells=0 lsOblique=32 resident=200208 B]
+  PASS L1b distorted q16  green_gauss  reused buffers, 4 successive p' differing=0 maxAbs=0          scale=3.93
+  PASS L1b distorted q16  least_squares reused buffers, 4 successive p' differing=0 maxAbs=0          scale=2.982
+  PASS L2 distorted q16  mixed          least-squares gradient differing=0 fallbackCells=0 obliqueEntries=32 3dCells=0 skipped=0 maxAbs=0          scale=4.917e+306
+  PASS L3 distorted q16  green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+  PASS L3 distorted q16  least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+       [distorted q16/all-FixedValue fixedValuePatches=4 lsFallbackCells=0 lsOblique=0 resident=198416 B]
+  PASS L1b distorted q16  green_gauss  reused buffers, 4 successive p' differing=0 maxAbs=0          scale=5.155
+  PASS L1b distorted q16  least_squares reused buffers, 4 successive p' differing=0 maxAbs=0          scale=3.887
+  PASS L2 distorted q16  all-FixedValue least-squares gradient differing=0 fallbackCells=0 obliqueEntries=0 3dCells=0 skipped=0 maxAbs=0          scale=5.953e+306
+  PASS L3 distorted q16  green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+  PASS L3 distorted q16  least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+  PASS L4a distorted q16  scheme=0 green_gauss  controlled p' differing=0 maxAbs=0          scale=190.4
+  PASS L4a distorted q16  scheme=0 least_squares controlled p' differing=0 maxAbs=0          scale=188.7
+       [warped 3d 3/all-Neumann fixedValuePatches=0 lsFallbackCells=0 lsOblique=54 resident=38248 B]
+  PASS L1b warped 3d 3    green_gauss  reused buffers, 4 successive p' differing=0 maxAbs=0          scale=1.51
+  PASS L1b warped 3d 3    least_squares reused buffers, 4 successive p' differing=0 maxAbs=0          scale=1.511
+  PASS L2 warped 3d 3    all-Neumann    least-squares gradient differing=0 fallbackCells=0 obliqueEntries=54 3dCells=27 skipped=0 maxAbs=0          scale=3.013e+305
+  PASS L3 warped 3d 3    green_gauss  I1[0] I2[0,sweeps/closure] I3[0] I4[0] I5[0] I6[0]
+  PASS L3 warped 3d 3    least_squares I1[0] I2[0,exact] I3[0] I4[0] I5[0] I6[0]
+       [warped 3d 3/mixed fixedValuePatches=3 lsFallbackCells=0 lsOblique=27 resident=36736 B]
+  PASS L1b warped 3d 3    green_gauss  reused buffers, 4 successive p' differing=0 maxAbs=0          scale=2.323
+  PASS L1b warped 3d 3    least_squares reused buffers, 4 successive p' differing=0 maxAbs=0          scale=1.827
+  PASS L2 warped 3d 3    mixed          least-squares gradient differing=0 fallbackCells=0 obliqueEntries=27 3dCells=27 skipped=0 maxAbs=0          scale=1.606e+306
+  PASS L3 warped 3d 3    green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+  PASS L3 warped 3d 3    least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+       [warped 3d 3/all-FixedValue fixedValuePatches=6 lsFallbackCells=0 lsOblique=0 resident=35224 B]
+  PASS L1b warped 3d 3    green_gauss  reused buffers, 4 successive p' differing=0 maxAbs=0          scale=2.352
+  PASS L1b warped 3d 3    least_squares reused buffers, 4 successive p' differing=0 maxAbs=0          scale=2.046
+  PASS L2 warped 3d 3    all-FixedValue least-squares gradient differing=0 fallbackCells=0 obliqueEntries=0 3dCells=27 skipped=0 maxAbs=0          scale=1.767e+306
+  PASS L3 warped 3d 3    green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+  PASS L3 warped 3d 3    least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[0] I6[0]
+  PASS L4a warped 3d 3    scheme=0 green_gauss  controlled p' differing=0 maxAbs=0          scale=1285
+  PASS L4a warped 3d 3    scheme=0 least_squares controlled p' differing=0 maxAbs=0          scale=1310
+
+=== coverage ===
+  2D / 3D direct cases              132 / 126
+  green_gauss / least_squares cases 129 / 129
+  isolated LS gradient cases        48
+  LS cells taking the GG fallback   0
+  LS oblique-Neumann entries        177
+  LS three-dimensional cells        81
+  invariant cases                   12
+  closure-exact cells (I2 support)  526
+  cells where I2 is exactly claimed  283
+  cells where I3 is exactly claimed  0
+  correction-direction sign checks  1698
+  reused-buffer successive calls    48
+  2D cases with a non-zero predictor z  132
+  2D cases taking the 3D branch     6
+  controlled p' chain cases         4
+  full chain cases (GPU solve)      0
+  values compared                   377196
+  bitwise-identical                 377196
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=292 failures=0
+VELOCITY CORRECTION EQUIVALENCE: PASS (bitwise)

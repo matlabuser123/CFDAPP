@@ -1,0 +1,53 @@
+baseline 08cd0b08e1ee911771f3fe40775a72aed32bc606ccab52f0551b9b71952117c9  cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+baseline f5c69deff2fe8857172b32813687d9e9cdd0831dca75feecf3da9acf8944d5fe  src/pressure_velocity/SIMPLE.cpp
+
+=== m1_momentum_forced_back_to_cpu (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m2_velocity_correction_forced_back_to_cpu (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m3_skipped_iteration_upload (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m4_missing_momentum_solution_upload (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m5_missing_pressure_correction_upload (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m6_incorrect_backend_dispatch (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m7_stage_order_swapped (null) ===
+  mutated: UNDETECTED
+  restored: sha-match=True exit=0
+=== m8_predictor_flux_from_old_velocity (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m9_rhie_chow_from_old_velocity (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m10_flux_correction_uses_carried_flux (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+=== m11_fallback_claims_gpu (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True exit=0
+
+=== summary ===
+  m1_momentum_forced_back_to_cpu           detect  DETECTED    sha=True repass=True  ok
+  m2_velocity_correction_forced_back_to_cpu detect  DETECTED    sha=True repass=True  ok
+  m3_skipped_iteration_upload              detect  DETECTED    sha=True repass=True  ok
+  m4_missing_momentum_solution_upload      detect  DETECTED    sha=True repass=True  ok
+  m5_missing_pressure_correction_upload    detect  DETECTED    sha=True repass=True  ok
+  m6_incorrect_backend_dispatch            detect  DETECTED    sha=True repass=True  ok
+  m7_stage_order_swapped                   null    UNDETECTED  sha=True repass=True  ok
+  m8_predictor_flux_from_old_velocity      detect  DETECTED    sha=True repass=True  ok
+  m9_rhie_chow_from_old_velocity           detect  DETECTED    sha=True repass=True  ok
+  m10_flux_correction_uses_carried_flux    detect  DETECTED    sha=True repass=True  ok
+  m11_fallback_claims_gpu                  detect  DETECTED    sha=True repass=True  ok
+
+observable controls: 10
+detected observable controls: 10/10
+documented null controls: 1

@@ -1,0 +1,34 @@
+# rl10_laminar_condition_dropped
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the resident loop stops requiring the laminar turbulence model, so a transport model's correct() is handed a host velocity the resident loop deliberately leaves stale -- a silent behaviour change in a configuration this milestone never qualified.
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+      useResidentPressureSolve && activeModel->name() == "laminar" &&
+# --- became ---
+      useResidentPressureSolve &&  // MUTATED
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness dispatch  -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 final residency: dispatch probe ===
+  PASS the production configuration ENGAGES the resident SIMPLE loop (non-vacuity)
+  PASS and it also has the resident pressure solve and the device discretization
+
+--- each declined configuration, and what it must still produce ---
+  PASS a CPU momentum backend DECLINES the resident loop (it needs a host LinearSystem)
+  PASS and the resident PRESSURE solve is unaffected -- the two decline independently
+  PASS a CG momentum solver DECLINES the resident loop (GpuCG has no resident entry point)
+  FAIL a non-laminar turbulence model DECLINES the resident loop (correct() reads the host velocity)
+  PASS CPU linear solvers with device discretization decline both resident paths
+  PASS without device discretization the resident loop is DECLINED -- there is no device system to solve
+  PASS with the linear-solver fallback enabled the resident loop is DECLINED -- bypassing the wrapper would change failure behaviour
+  PASS with the residency mirror enabled the resident loop is DECLINED -- syncMatrix reads a host matrix the resident path never builds
+
+--- the decline is a DISPATCH change, not a numerical one ---
+  FAIL both alternative declines really did decline
+  PASS two unrelated reasons for declining produce bit-identical solves -- declining changes dispatch, not arithmetic
+  PASS the declined configuration is deterministic across repeats
+
+DISPATCH PROBE: FAIL

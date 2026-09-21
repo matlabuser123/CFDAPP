@@ -1,0 +1,16 @@
+# m3_skipped_iteration_upload  (expectation: detect)
+# beginIteration is skipped, so the device runs on the PREVIOUS iteration's fields -- a stale device state
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+      if (useGpuDiscretization) {
+        gpuDiscretization.beginIteration(velocity, pressure, massFlux, *effectiveViscosity);
+      }
+# --- became ---
+      if (false) {
+        gpuDiscretization.beginIteration(velocity, pressure, massFlux, *effectiveViscosity);
+      }
+# verdict: DETECTED (exit -6)
+# first divergence: n/a
+
+terminate called after throwing an instance of 'cfd::NumericalError'
+  what():  cudaMalloc(DeviceBuffer) failed: an illegal memory access was encountered

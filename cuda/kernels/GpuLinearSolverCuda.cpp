@@ -49,6 +49,7 @@
 #include "cfd/gpu/GPUExecutionStats.hpp"
 #include "cfd/gpu/GpuLinearSolver.hpp"
 #include "cfd/gpu/GpuPreconditioner.hpp"
+#include "cfd/gpu/GpuResidentSolve.hpp"
 
 namespace cfd::gpu {
 
@@ -341,6 +342,23 @@ class GpuCG final : public LinearSolver {
 // t_ are the algorithm's own x/r/p/v/s/t; rHat_ is the fixed shadow
 // residual (uploaded once, never mutated for the rest of the solve());
 // pHat_/sHat_ hold the current preconditioned p/s (CPU's `pHat`/`sHat`).
+// GPU-PIPE-001: the BiCGSTAB iteration itself, shared by the host entry point
+// (GpuBiCGSTAB::solveImpl, below) and the device-resident one
+// (solveBiCGSTABResident). Defined after the class so the class body reads as
+// it always did.
+//
+// The parameter names carry the trailing underscores of the members they
+// replaced -- deliberately, so the lifted algorithm body is the ORIGINAL text,
+// not a retyping of it. Reviewing this change means checking that the body was
+// moved, and identical names make that check mechanical.
+[[nodiscard]] SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_,
+                                        const LinearSolverSettings& settings_,
+                                        Preconditioner* preconditionerRaw, bool useGpuJacobi,
+                                        GpuKrylovWorkspace& ws, Index n);
+
+// ---------------------------------------------------------------------
+// GpuBiCGSTAB
+// ---------------------------------------------------------------------
 class GpuBiCGSTAB final : public LinearSolver {
  public:
   explicit GpuBiCGSTAB(LinearSolverSettings settings, std::shared_ptr<Preconditioner> preconditioner)
@@ -376,8 +394,8 @@ class GpuBiCGSTAB final : public LinearSolver {
 
     syncMatrix(deviceMatrix_, A);
     bool useGpuJacobi = false;
-    if (buildPreconditionerFailed(preconditioner_.get(), settings_, A, jacobiInverseDiagonal_,
-                                  useGpuJacobi)) {
+    if (buildPreconditionerFailed(preconditioner_.get(), settings_, A,
+                                  workspace_.jacobiInverseDiagonal, useGpuJacobi)) {
       result.status = SolverStatus::InvalidSystem;
       return result;
     }
@@ -385,25 +403,67 @@ class GpuBiCGSTAB final : public LinearSolver {
     // See GpuCG::solveImpl's identical comment -- every persistent
     // buffer must be correctly sized before its first use as an spmv()
     // output target, and this resize is a no-op on repeated calls.
-    x_.resize(n);
-    b_.resize(n);
-    r_.resize(n);
-    rHat_.resize(n);
-    p_.resize(n);
-    v_.resize(n);
-    s_.resize(n);
-    t_.resize(n);
-    pHat_.resize(n);
-    sHat_.resize(n);
+    workspace_.resize(n);
 
-    b_.uploadFrom(b);
-    x_.uploadFrom(initialGuess);
+    workspace_.b.uploadFrom(b);
+    workspace_.x.uploadFrom(initialGuess);
 
+    // GPU-PIPE-001: the algorithm itself lives in bicgstabCore, shared with the
+    // device-resident entry point. It never touches the host, so this is the
+    // ONLY place the solution is downloaded -- previously every one of the
+    // eleven exit paths did its own identical download.
+    result = bicgstabCore(deviceMatrix_, settings_, preconditioner_.get(), useGpuJacobi,
+                          workspace_, n);
+    result.solution = workspace_.x.downloadToVector();
+    result.backendUsed = LinearSolverBackend::GPU;
+    return result;
+  }
+
+  std::shared_ptr<Preconditioner> preconditioner_;
+  mutable DeviceCsrMatrix deviceMatrix_;
+  mutable GpuKrylovWorkspace workspace_;
+};
+
+// ---------------------------------------------------------------------
+// The BiCGSTAB iteration, device-only.
+// ---------------------------------------------------------------------
+//
+// Lifted verbatim out of GpuBiCGSTAB::solveImpl: same operations in the same
+// order, same fused reductions, same breakdown tests, same convergence test.
+// The single change is that it no longer downloads the solution -- `x` is left
+// resident and each entry point decides what to do with it.
+SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_, const LinearSolverSettings& settings_,
+                          Preconditioner* preconditionerRaw, bool useGpuJacobi,
+                          GpuKrylovWorkspace& ws, Index n) {
+  DeviceVector& x_ = ws.x;
+  DeviceVector& b_ = ws.b;
+  DeviceVector& r_ = ws.r;
+  DeviceVector& rHat_ = ws.rHat;
+  DeviceVector& p_ = ws.p;
+  DeviceVector& v_ = ws.v;
+  DeviceVector& s_ = ws.s;
+  DeviceVector& t_ = ws.t;
+  DeviceVector& pHat_ = ws.pHat;
+  DeviceVector& sHat_ = ws.sHat;
+  DeviceVector& jacobiInverseDiagonal_ = ws.jacobiInverseDiagonal;
+
+  SolverResult result;
+  result.backendUsed = LinearSolverBackend::GPU;
     spmv(deviceMatrix_, x_, v_);      // v_ temporarily holds A*x0
     waxpby(1.0, b_, -1.0, v_, r_);    // r_ := b - A*x0
     deviceCopy(rHat_, r_);            // rHat_ fixed for the rest of this solve
 
-    const Real b0 = l2Norm(r_);
+    // GPU-PIPE-001 rho-carry: one reduction yields both the initial residual
+    // norm and the first iteration's rho.
+    //
+    // rHat_ is a bitwise copy of r_ at this point (the deviceCopy above), so
+    // dot(rHat_, r_) and dot(r_, r_) multiply the same pairs in the same block
+    // partition through the same tree -- bitwise identical. Taking the raw dot
+    // here rather than deriving it from b0 matters: b0*b0 is NOT bitwise
+    // dot(r_, r_), because b0 is its square root.
+    const Real r0DotR0 = dot(r_, r_);
+    const Real b0 = std::sqrt(r0DotR0);
+    Real rhoNext = r0DotR0;  // == dot(rHat_, r_) for iteration 1
     result.initialResidual = b0;
     result.residualHistory.push_back(b0);
 
@@ -417,7 +477,6 @@ class GpuBiCGSTAB final : public LinearSolver {
       result.status = SolverStatus::Converged;
       result.iterations = 0;
       result.finalResidual = b0;
-      result.solution = x_.downloadToVector();
       return result;
     }
 
@@ -429,7 +488,6 @@ class GpuBiCGSTAB final : public LinearSolver {
 
     const auto breakdown = [&](Index completedIterations) {
       result.status = SolverStatus::Breakdown;
-      result.solution = x_.downloadToVector();
       result.finalResidual = l2Norm(r_);
       result.iterations = completedIterations;
       return result;
@@ -454,7 +512,15 @@ class GpuBiCGSTAB final : public LinearSolver {
     Real rNorm = b0;
 
     for (Index iter = 1; iter <= settings_.maxIterations; ++iter) {
-      const Real rho = dot(rHat_, r_);
+      // GPU-PIPE-001 rho-carry: rho was already computed -- either at setup
+      // (iteration 1) or fused into the previous iteration's residual-norm
+      // reduction, which read the very same r_. r_ is written in exactly two
+      // places, setup and the end of the loop body, and nothing between that
+      // write and here touches it: the waxpby calls below read r_ and write p_
+      // and s_. rHat_ is fixed for the whole solve. So this is the same value
+      // dot(rHat_, r_) would return here, bit for bit -- the reduction was
+      // moved, not replaced.
+      const Real rho = rhoNext;
       if (!std::isfinite(rho) || cancelledToRoundingLevel(rho, rHat_, r_, rHatNorm, rNorm)) {
         return breakdown(iter - 1);
       }
@@ -467,12 +533,20 @@ class GpuBiCGSTAB final : public LinearSolver {
       waxpby(1.0, p_, -omega, v_, p_);  // p_ := p_ - omega * v_
       waxpby(1.0, r_, beta, p_, p_);    // p_ := r_ + beta * p_
 
-      applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, p_, pHat_);
+      applyPreconditioner(preconditionerRaw, useGpuJacobi, jacobiInverseDiagonal_, p_, pHat_);
       spmv(deviceMatrix_, pHat_, v_);
 
-      const Real rHatDotV = dot(rHat_, v_);
+      // GPU-PIPE-001 Phase 2B: (rHat,v) and (v,v) are independent reductions
+      // over the same length, and the cancellation test below needs BOTH on the
+      // same iteration -- l2Norm(v_) was previously evaluated unconditionally as
+      // an argument, so fusing costs no extra work and saves a whole host round
+      // trip. dot2 is bitwise identical to the two separate dot() calls, so
+      // rHatDotV and the norm are the same values this test saw before.
+      Real rHatDotV = 0.0;
+      Real vDotV = 0.0;
+      dot2(rHat_, v_, v_, v_, rHatDotV, vDotV);
       if (!std::isfinite(rHatDotV) ||
-          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, l2Norm(v_))) {
+          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, std::sqrt(vDotV))) {
         return breakdown(iter - 1);
       }
 
@@ -486,7 +560,6 @@ class GpuBiCGSTAB final : public LinearSolver {
 
       if (!std::isfinite(sNorm)) {
         result.status = SolverStatus::NonFiniteResidual;
-        result.solution = x_.downloadToVector();
         result.finalResidual = sNorm;
         result.iterations = iter;
         result.residualHistory.push_back(sNorm);
@@ -496,24 +569,35 @@ class GpuBiCGSTAB final : public LinearSolver {
       if (converged(sNorm)) {
         axpy(alpha, pHat_, x_);
         result.status = SolverStatus::Converged;
-        result.solution = x_.downloadToVector();
         result.finalResidual = sNorm;
         result.iterations = iter;
         result.residualHistory.push_back(sNorm);
         return result;
       }
 
-      applyPreconditioner(preconditioner_.get(), useGpuJacobi, jacobiInverseDiagonal_, s_, sHat_);
+      applyPreconditioner(preconditionerRaw, useGpuJacobi, jacobiInverseDiagonal_, s_, sHat_);
       spmv(deviceMatrix_, sHat_, t_);
 
+      // GPU-PIPE-001 Phase 2B: (t,t) and (t,s) fused into one host round trip.
+      // dot2 is bitwise identical to the two dot() calls it replaces, and the
+      // two breakdown tests below are applied in exactly their original order,
+      // so whichever condition fired first before still fires first now.
+      //
+      // The one behavioural difference is that tDotS is now computed even when
+      // the tDotT test is about to break down. That is deliberate and harmless:
+      // breakdown returns immediately either way, so the extra reduction only
+      // ever happens on a path that is ending the solve, and it touches no
+      // solver state.
+      //
       // t . t is a sum of squares (no cancellation): "zero" only when t is, or
       // when it underflows below the normal range -- the CPU's own criterion.
-      const Real tDotT = dot(t_, t_);
+      Real tDotT = 0.0;
+      Real tDotS = 0.0;
+      dot2(t_, t_, t_, s_, tDotT, tDotS);
       if (!std::isfinite(tDotT) || tDotT < std::numeric_limits<Real>::min()) {
         return breakdown(iter - 1);
       }
 
-      const Real tDotS = dot(t_, s_);
       if (!std::isfinite(tDotS) ||
           cancelledToRoundingLevel(tDotS, t_, s_, std::sqrt(tDotT), sNorm)) {
         return breakdown(iter - 1);
@@ -527,11 +611,21 @@ class GpuBiCGSTAB final : public LinearSolver {
       axpy(omega, sHat_, x_);
       waxpby(1.0, s_, -omega, t_, r_);  // r_ := s_ - omega * t_
 
-      const Real residualNorm = l2Norm(r_);
+      // GPU-PIPE-001 rho-carry: the residual norm for THIS iteration and rho
+      // for the NEXT one are two independent reductions over the same, just-
+      // updated r_ (and the fixed rHat_), so they fuse into one round trip.
+      // 5 reduction groups per iteration become 4.
+      //
+      // On the iteration that exits -- converged, non-finite, or the last one
+      // before MaxIterations -- rhoNext is computed and never used. That costs
+      // nothing: it is one quantity inside a reduction this iteration performs
+      // anyway, and it touches no solver state.
+      Real rDotR = 0.0;
+      dot2(r_, r_, rHat_, r_, rDotR, rhoNext);
+      const Real residualNorm = std::sqrt(rDotR);
       rNorm = residualNorm;
       if (!std::isfinite(residualNorm)) {
         result.status = SolverStatus::NonFiniteResidual;
-        result.solution = x_.downloadToVector();
         result.finalResidual = residualNorm;
         result.iterations = iter;
         result.residualHistory.push_back(residualNorm);
@@ -542,7 +636,6 @@ class GpuBiCGSTAB final : public LinearSolver {
 
       if (converged(residualNorm)) {
         result.status = SolverStatus::Converged;
-        result.solution = x_.downloadToVector();
         result.finalResidual = residualNorm;
         return result;
       }
@@ -551,19 +644,53 @@ class GpuBiCGSTAB final : public LinearSolver {
     }
 
     result.status = SolverStatus::MaxIterations;
-    result.solution = x_.downloadToVector();
     result.finalResidual = result.residualHistory.back();
     return result;
   }
 
-  std::shared_ptr<Preconditioner> preconditioner_;
-  mutable DeviceCsrMatrix deviceMatrix_;
-  mutable DeviceVector x_, b_, r_, rHat_, p_, v_, s_, t_, pHat_, sHat_;
-  // P6-GPU-003: see GpuCG's identical member comment.
-  mutable DeviceVector jacobiInverseDiagonal_;
-};
 
 }  // namespace
+
+SolverResult solveBiCGSTABResident(const LinearSolverSettings& settings,
+                                   const DeviceCsrMatrix& matrix, GpuKrylovWorkspace& workspace) {
+  cfd::Timer solveTimer;
+  const Index n = matrix.rows();
+
+  SolverResult result;
+  result.backendUsed = LinearSolverBackend::GPU;
+
+  if (workspace.x.size() != n || workspace.b.size() != n) {
+    result.status = SolverStatus::NonFiniteInput;
+    return result;
+  }
+
+  // Everything the host entry point learns from Vector::allFinite(),
+  // SparseMatrix::allFinite() and computeInverseDiagonal() throwing -- in one
+  // 8-byte read. Checked in the host path's order, so a non-finite matrix is
+  // still NonFiniteInput and only a bad diagonal is InvalidSystem.
+  const bool wantJacobi = settings.preconditioner == PreconditionerType::Jacobi;
+  const ResidentSystemCheck check = checkSystemAndBuildJacobi(matrix, workspace, wantJacobi);
+  if (!check.inputsFinite) {
+    result.status = SolverStatus::NonFiniteInput;
+    return result;
+  }
+  if (wantJacobi && !check.diagonalUsable) {
+    result.status = SolverStatus::InvalidSystem;
+    return result;
+  }
+  const bool useGpuJacobi = wantJacobi;
+
+  workspace.resize(n);
+  result = bicgstabCore(matrix, settings, nullptr, useGpuJacobi, workspace, n);
+  // NO download: workspace.x holds the solution and stays resident. That single
+  // omission is the whole point of this entry point.
+
+  auto& stats = gpuExecutionStats();
+  stats.gpuSolveSeconds += solveTimer.elapsedSeconds();
+  ++stats.gpuLinearSolves;
+  stats.gpuLinearSolverIterations += static_cast<std::uint64_t>(result.iterations);
+  return result;
+}
 
 std::unique_ptr<LinearSolver> makeGpuCG(LinearSolverSettings settings,
                                         std::shared_ptr<Preconditioner> preconditioner) {

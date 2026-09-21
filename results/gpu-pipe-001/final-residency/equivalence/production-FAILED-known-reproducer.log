@@ -1,0 +1,62 @@
+# production_equivalence.cpp --quick
+# date: 2026-09-20T16:33:50Z
+# libcfdcuda.a: 0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: CPU production vs GPU production ===
+Bounds adopted from tests/solver/simple/test_simple_gpu_solver.cpp: velocity 1e-06, pressure 1e-06, boundary flux 1e-08. Nothing is loosened.
+
+  cavity 2d 8                cpu[Converged it=1093 mom=10461 p=23720]  gpu[Converged it=1093 mom=10461 p=23720 disc=1 resident=1]
+  PASS  cavity 2d 8              p[Linf=1.67e-16 L2=9.86e-17] u[Linf=2.22e-16 L2=4.45e-17] v[Linf=1.54e-16 L2=4.03e-17] w[Linf=0] flux[Linf=2.44e-17 L2=4.83e-18]
+        mass imbalance cpu 0 gpu 0 | continuity rms cpu 5.23e-11 gpu 5.23e-11 | boundary flux cpu 0 gpu 0 (bound 1e-08)
+        outer iterations cpu 1093 gpu 1093   bounds velocity 1e-06 pressure 1e-06
+        history u residual         compared 1093   max |cpu-gpu|  6.76e-14   first differing iteration 2
+        history v residual         compared 1093   max |cpu-gpu|  8.98e-14   first differing iteration 2
+        history pressure residual  compared 1093   max |cpu-gpu|  4.82e-13   first differing iteration 1
+        history continuity         compared 1093   max |cpu-gpu|  1.96e-12   first differing iteration 1
+  PASS  cavity 2d 8              determinism: each arm repeated -- status, iteration count, residual histories and final fields bitwise identical (errors=0)
+  cavity 2d 16               cpu[Converged it=2611 mom=21216 p=91021]  gpu[Converged it=2611 mom=21219 p=91150 disc=1 resident=1]
+  PASS  cavity 2d 16             p[Linf=9.6e-10 L2=5.04e-10] u[Linf=4.62e-10 L2=7.89e-11] v[Linf=4.33e-10 L2=8.08e-11] w[Linf=0] flux[Linf=3.05e-11 L2=4.63e-12]
+        mass imbalance cpu 0 gpu 0 | continuity rms cpu 9.08e-11 gpu 8.7e-11 | boundary flux cpu 0 gpu 0 (bound 1e-08)
+        outer iterations cpu 2611 gpu 2611   bounds velocity 1e-06 pressure 1e-06
+        history u residual         compared 2611   max |cpu-gpu|  3.78e-11   first differing iteration 1
+        history v residual         compared 2611   max |cpu-gpu|  8.33e-11   first differing iteration 2
+        history pressure residual  compared 2611   max |cpu-gpu|  1.32e-11   first differing iteration 1
+        history continuity         compared 2611   max |cpu-gpu|  9.29e-11   first differing iteration 1
+  PASS  cavity 2d 16             determinism: each arm repeated -- status, iteration count, residual histories and final fields bitwise identical (errors=0)
+  channel 2d 12              cpu[Converged it=2938 mom=42447 p=96349]  gpu[Converged it=2938 mom=42447 p=96348 disc=1 resident=1]
+  PASS  channel 2d 12            p[Linf=1.33e-15 L2=4.73e-16] u[Linf=4.44e-16 L2=1.73e-16] v[Linf=6.66e-16 L2=1.71e-16] w[Linf=0] flux[Linf=5.55e-17 L2=1.26e-17]
+        mass imbalance cpu 2.86e-10 gpu 2.86e-10 | continuity rms cpu 3.95e-12 gpu 3.95e-12 | boundary flux cpu 0.148 gpu 0.148 (bound 1e-08)
+        outer iterations cpu 2938 gpu 2938   bounds velocity 1e-06 pressure 1e-06
+        history u residual         compared 2938   max |cpu-gpu|   4.3e-11   first differing iteration 1
+        history v residual         compared 2938   max |cpu-gpu|  5.74e-11   first differing iteration 2
+        history pressure residual  compared 2938   max |cpu-gpu|  3.33e-12   first differing iteration 1
+        history continuity         compared 2938   max |cpu-gpu|  3.85e-12   first differing iteration 1
+  PASS  channel 2d 12            determinism: each arm repeated -- status, iteration count, residual histories and final fields bitwise identical (errors=0)
+  cavity 3d 4                cpu[Converged it=23 mom=394 p=411]  gpu[Converged it=23 mom=394 p=411 disc=1 resident=1]
+  PASS  cavity 3d 4              p[Linf=2.08e-17 L2=1.39e-17] u[Linf=5.55e-17 L2=1.93e-17] v[Linf=3.51e-17 L2=7.39e-18] w[Linf=5.55e-17] flux[Linf=3.47e-18 L2=6.84e-19]
+        mass imbalance cpu 0 gpu 0 | continuity rms cpu 2.05e-11 gpu 2.05e-11 | boundary flux cpu 0 gpu 0 (bound 1e-08)
+        outer iterations cpu 23 gpu 23   bounds velocity 1e-06 pressure 1e-06
+        history u residual         compared  23   max |cpu-gpu|  2.17e-17   first differing iteration 1
+        history v residual         compared  23   max |cpu-gpu|  2.44e-18   first differing iteration 2
+        history w residual         compared  23   max |cpu-gpu|  9.97e-18   first differing iteration 2
+        history pressure residual  compared  23   max |cpu-gpu|  5.55e-17   first differing iteration 2
+        history continuity         compared  23   max |cpu-gpu|  5.06e-16   first differing iteration 1
+  PASS  cavity 3d 4              determinism: each arm repeated -- status, iteration count, residual histories and final fields bitwise identical (errors=0)
+
+--- known GPU BiCGSTAB restart asymmetry (technical debt, not fixed here) ---
+  FAIL  cavity 2d 40 (reproducer) gpu-resident[MaxIterations it=3000]  gpu-pre-residency[MaxIterations it=3000]  cpu[MaxIterations it=3000]
+        recorded baseline: gpu PressureCorrectionFailure, cpu runs its budget. shape CHANGED; residency changed it: NO
+
+=== coverage ===
+  2D / 3D                        3 / 1
+  pinned / open boundary         3 / 1
+  non-Upwind convection schemes  0
+  long-running cases (>=50)      3
+  acceptance cases (both arms converged)   4
+  determinism checks             4
+  non-converging cases classified against the pre-residency path  0
+
+cases=9 failures=1
+PRODUCTION EQUIVALENCE: FAIL
+# exit code: 1

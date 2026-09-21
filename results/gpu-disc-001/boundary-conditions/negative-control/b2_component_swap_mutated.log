@@ -1,0 +1,51 @@
+=== GPU-DISC-001E: shared CUDA boundary-condition layer vs CPU (bitwise) ===
+isolated -- device evaluators driven directly, no equation or operator
+
+  PASS cartesian2d 8    all FixedValue           scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=2.5
+  PASS cartesian2d 8    all FixedGradient        scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=308.3
+  PASS cartesian2d 8    all FixedTemperature     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=322.5
+  PASS cartesian2d 8    all HeatFlux             scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=183
+  PASS cartesian2d 8    all Adiabatic            scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=308.3
+  PASS cartesian2d 8    all WallOmega            scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=3.072
+  PASS cartesian2d 8    scalar mix (6 types)     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=315
+  PASS cartesian2d 8    all Wall                 scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=0
+  FAIL cartesian2d 8    all MovingWall           scalar[d=0] alt[d=0] vector[d=64] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.5        scale=1.3
+  FAIL cartesian2d 8    all Inlet                scalar[d=0] alt[d=0] vector[d=64] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.5        scale=0.8
+  PASS cartesian2d 8    all Outlet               scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=2.094
+  PASS cartesian2d 8    all Symmetry             scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=2.094
+  FAIL cartesian2d 8    vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=32] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.3        scale=1.656
+  PASS cartesian2d 8    Dirichlet+Neumann mix    scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=308.3
+  PASS cartesian2d 8    wall+outlet+symmetry     scalar[d=0] alt[d=0] vector[d=0] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0          scale=2.094
+  FAIL cartesian2d 20   all MovingWall           scalar[d=0] alt[d=0] vector[d=160] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.5        scale=1.3
+  FAIL cartesian2d 20   all Inlet                scalar[d=0] alt[d=0] vector[d=160] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.5        scale=0.8
+  FAIL cartesian2d 20   vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=80] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.3        scale=1.713
+  FAIL distorted q16    all MovingWall           scalar[d=0] alt[d=0] vector[d=128] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.5        scale=1.3
+  FAIL distorted q16    all Inlet                scalar[d=0] alt[d=0] vector[d=128] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.5        scale=0.8
+  FAIL distorted q16    vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=64] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.3        scale=1.702
+  FAIL cartesian3d 5    all MovingWall           scalar[d=0] alt[d=0] vector[d=300] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.7        scale=1.5
+  FAIL cartesian3d 5    all Inlet                scalar[d=0] alt[d=0] vector[d=300] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.5        scale=0.8
+  FAIL cartesian3d 5    vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=100] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.3        scale=2
+  FAIL warped 3d 4      all MovingWall           scalar[d=0] alt[d=0] vector[d=192] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.7        scale=1.5
+  FAIL warped 3d 4      all Inlet                scalar[d=0] alt[d=0] vector[d=192] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.5        scale=0.8
+  FAIL warped 3d 4      vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=64] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.3        scale=1.942
+
+=== coverage ===
+  type FixedValue         covered
+  type FixedGradient      covered
+  type Wall               covered
+  type MovingWall         covered
+  type Inlet              covered
+  type Outlet             covered
+  type Symmetry           covered
+  type FixedTemperature   covered
+  type HeatFlux           covered
+  type Adiabatic          covered
+  type WallOmega          covered
+  scalar forms const/shift/affine   25 / 25 / 0 (sets reaching each)
+  vector forms const/identity/symm  25 / 15 / 12
+  ghost inflow/outflow/zero-flux    1024 / 992 / 1360
+  faces with an alternative distance 6330
+  total scalar comparisons          25320
+
+cases=75 failures=15
+BOUNDARY CONDITION EQUIVALENCE: FAIL

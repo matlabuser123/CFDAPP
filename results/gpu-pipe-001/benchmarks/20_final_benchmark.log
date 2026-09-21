@@ -1,0 +1,32 @@
+cfd_benchmark_cuda_end_to_end -- CFDApp version 0.2.0-dev
+cuda_available_at_runtime: yes
+
+Cold GPU warm-up (CUDA context init, first kernel load) -- untimed for the per-grid results below, reported separately.
+cold_gpu_first_use_seconds: 0.331831
+
+grid | cells | backend | outer_iters | total_min_s | total_median_s | total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged
+20x20 | 400 | CPU | 200 | 0.282626 | 0.284468 | 0.287889 | 0.00618608 | 1.42234 | n/a | yes
+20x20 | 400 | GPU | 200 | 5.2163 | 5.78013 | 6.25843 | 1.09947 | 28.9007 | 55.3472 | yes
+40x40 | 1600 | CPU | 200 | 1.35276 | 1.38219 | 1.3949 | 0.0406078 | 6.91093 | n/a | yes
+40x40 | 1600 | GPU | 200 | 15.5412 | 15.6955 | 15.7973 | 0.260881 | 78.4773 | 47.0694 | yes
+80x80 | 6400 | CPU | 200 | 6.28237 | 6.3352 | 6.37136 | 0.0910857 | 31.676 | n/a | yes
+80x80 | 6400 | GPU | 200 | 21.538 | 22.9085 | 22.5265 | 0.704911 | 114.543 | 44.5297 | yes
+160x160 | 25600 | CPU | 60 | 10.8191 | 10.8911 | 10.8904 | 0.057861 | 181.518 | n/a | yes
+160x160 | 25600 | GPU | 60 | 15.3356 | 15.5029 | 15.4582 | 0.0877471 | 258.382 | 34.8082 | yes
+320x320 | 102400 | CPU | 20 | 26.6441 | 26.9658 | 27.1241 | 0.470037 | 1348.29 | n/a | yes
+320x320 | 102400 | GPU | 20 | 15.2099 | 15.2126 | 15.2246 | 0.0188934 | 760.628 | 25.1336 | yes
+640x640 | 409600 | CPU | 8 | 89.3785 | 89.3785 | 89.3785 | 0 | 11172.3 | n/a | yes
+640x640 | 409600 | GPU | 8 | 24.8774 | 24.8774 | 24.8774 | 0 | 3109.68 | 10.1555 | yes
+
+=== Summary ===
+Grid | Cells | CPU Median | GPU Median | Speedup | Transfer % | Converged
+20x20 | 400 | 0.284468s | 5.78013s | 0.0492149x | 55.3472% | yes
+40x40 | 1600 | 1.38219s | 15.6955s | 0.0880628x | 47.0694% | yes
+80x80 | 6400 | 6.3352s | 22.9085s | 0.276544x | 44.5297% | yes
+160x160 | 25600 | 10.8911s | 15.5029s | 0.70252x | 34.8082% | yes
+320x320 | 102400 | 26.9658s | 15.2126s | 1.7726x | 25.1336% | yes
+640x640 | 409600 | 89.3785s | 24.8774s | 3.59276x | 10.1555% | yes
+
+cold_gpu_first_use_seconds: 0.331831
+gpu_break_even_grid: 320x320
+max_measured_speedup: 3.59276x at 640x640

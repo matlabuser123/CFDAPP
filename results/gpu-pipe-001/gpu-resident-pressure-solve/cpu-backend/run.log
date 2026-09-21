@@ -1,0 +1,22 @@
+=== configure with CUDA DISABLED, from scratch ===
+  rc=0
+
+=== confirm CUDA really is off ===
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  nvcc invocations in build.ninja: 0  (must be 0)
+
+=== build ===
+[433/433] Linking CXX executable tests/integration/case/CFDCaseIntegrationTests
+  rc=0
+
+=== does the CPU-only library link against libcudart? (it must NOT) ===
+  cfdapp does not link libcudart -- correct
+
+=== full CPU-only test suite ===
+  100% tests passed, 0 tests failed out of 1932
+  Total Test time (real) = 1290.38 sec
+  ctest rc=0
+
+=== the CPU-only fallback reports itself honestly ===
+  41:      " was called in a build without CUDA support. prepare() returns false in this build, so "
+  61:  reason = "this binary was built without CUDA support";

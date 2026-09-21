@@ -1,0 +1,61 @@
+# rl7_velocity_redownloaded_every_iteration
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the per-iteration full-field velocity download is restored. NUMERICALLY IDENTICAL -- the device keeps its own copy and every downstream stage still reads that -- so every equivalence gate in this project passes it. Only a transfer count can tell, which is why the residency claim needs a transfer detector to be falsifiable at all. The same lesson pf7 taught for fields and rp7 for the pressure system.
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+      if (!useResidentSimpleLoop) gpuDiscretization.downloadVelocity(velocityNew);
+# --- became ---
+      gpuDiscretization.downloadVelocity(velocityNew);  // MUTATED
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness loop_transfers --quick -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 final residency: resident SIMPLE loop transfer guard (AMENDMENT A1) ===
+The RESIDENT arm. Every criterion must PASS here.
+
+  --- cavity 2d 16  cells=256 faces=544 blocks=1  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        381.50 calls          15700.0 bytes/iteration
+      D2H reductions   370.50 groups          5164.0 bytes/iteration  (645.5 quantities x 1 blocks x 8 B)
+      D2H remaining     11.00 calls          10536.0 bytes/iteration
+      of which the justified face-flux download is         4352.0 bytes; everything else     6184.0 bytes
+      sync   370.50/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 2048.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      11.000000 == 8.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  10536.000000 < 6400.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      FAIL
+  --- channel 2d 16  cells=256 faces=544 blocks=1  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        399.50 calls          15950.7 bytes/iteration
+      D2H reductions   388.50 groups          5414.7 bytes/iteration  (676.8 quantities x 1 blocks x 8 B)
+      D2H remaining     11.00 calls          10536.0 bytes/iteration
+      of which the justified face-flux download is         4352.0 bytes; everything else     6184.0 bytes
+      sync   388.50/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 2048.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      11.000000 == 8.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  10536.000000 < 6400.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      FAIL
+  --- cavity 3d 6  cells=216 faces=756 blocks=1  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        232.33 calls          14334.0 bytes/iteration
+      D2H reductions   220.33 groups          3054.0 bytes/iteration  (381.8 quantities x 1 blocks x 8 B)
+      D2H remaining     12.00 calls          11280.0 bytes/iteration
+      of which the justified face-flux download is         6048.0 bytes; everything else     5232.0 bytes
+      sync   220.33/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 1728.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      12.000000 == 9.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  11280.000000 < 7776.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      FAIL
+
+LOOP TRANSFER GUARD: FAIL

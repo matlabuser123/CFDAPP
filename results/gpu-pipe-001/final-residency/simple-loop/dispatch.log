@@ -1,0 +1,26 @@
+# dispatch_probe.cpp 
+# date: 2026-09-21T05:21:42Z
+# libcfdcuda.a: cfacb5225b2f25c8b032645b1d3945180cf17d3292c9f598f09ce3db5e0eafea
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: dispatch probe ===
+  PASS the production configuration ENGAGES the resident SIMPLE loop (non-vacuity)
+  PASS and it also has the resident pressure solve and the device discretization
+
+--- each declined configuration, and what it must still produce ---
+  PASS a CPU momentum backend DECLINES the resident loop (it needs a host LinearSystem)
+  PASS and the resident PRESSURE solve is unaffected -- the two decline independently
+  PASS a CG momentum solver DECLINES the resident loop (GpuCG has no resident entry point)
+  PASS a non-laminar turbulence model DECLINES the resident loop (correct() reads the host velocity)
+  PASS CPU linear solvers with device discretization decline both resident paths
+  PASS without device discretization the resident loop is DECLINED -- there is no device system to solve
+  PASS with the linear-solver fallback enabled the resident loop is DECLINED -- bypassing the wrapper would change failure behaviour
+  PASS with the residency mirror enabled the resident loop is DECLINED -- syncMatrix reads a host matrix the resident path never builds
+
+--- the decline is a DISPATCH change, not a numerical one ---
+  PASS both alternative declines really did decline
+  PASS two unrelated reasons for declining produce bit-identical solves -- declining changes dispatch, not arithmetic
+  PASS the declined configuration is deterministic across repeats
+
+DISPATCH PROBE: PASS
+# exit code: 0

@@ -1,0 +1,41 @@
+# e5_symmetry_ignores_z
+# layer:       boundary-conditions
+# origin:      001E B5
+# expectation: detect
+# the symmetry projection ignores the z term -- a 3D-ONLY defect, invisible on every 2D mesh where n.z is exactly zero anyway
+# mutation applied to include/cfd/gpu/DeviceBoundaryConditions.hpp
+# --- anchor ---
+  const cfd::Real normalComponent = zTerm == 0.0 ? inPlane : inPlane + zTerm;
+# --- became ---
+  const cfd::Real normalComponent = zTerm == 0.0 ? inPlane : inPlane;
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness boundary --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001E: shared CUDA boundary-condition layer vs CPU (bitwise) ===
+isolated -- device evaluators driven directly, no equation or operator
+
+  FAIL warped 3d 4      all Symmetry             scalar[d=0] alt[d=0] vector[d=32] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.598      scale=1.946
+  FAIL warped 3d 4      vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=16] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.149      scale=1.942
+  FAIL warped 3d 4      wall+outlet+symmetry     scalar[d=0] alt[d=0] vector[d=16] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.598      scale=1.946
+
+=== coverage ===
+  type FixedValue         covered
+  type FixedGradient      covered
+  type Wall               covered
+  type MovingWall         covered
+  type Inlet              covered
+  type Outlet             covered
+  type Symmetry           covered
+  type FixedTemperature   covered
+  type HeatFlux           covered
+  type Adiabatic          covered
+  type WallOmega          covered
+  scalar forms const/shift/affine   10 / 10 / 0 (sets reaching each)
+  vector forms const/identity/symm  10 / 6 / 5
+  ghost inflow/outflow/zero-flux    384 / 360 / 536
+  faces with an alternative distance 2400
+  total scalar comparisons          9600
+
+cases=30 failures=3
+BOUNDARY CONDITION EQUIVALENCE: FAIL

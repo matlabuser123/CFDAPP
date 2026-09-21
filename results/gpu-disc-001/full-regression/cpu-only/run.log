@@ -1,0 +1,41 @@
+=== configure with CUDA DISABLED, from scratch ===
+  rc=0
+
+=== confirm CUDA really is off ===
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  nvcc invocations in build.ninja: 0  (must be 0)
+
+=== build ===
+ninja: build stopped: subcommand failed.
+  rc=1
+  CPU-ONLY BUILD FAILED -- a CUDA dependency leaked into CPU production code
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/gpu/GpuSimpleDiscretization.hpp:39,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/gpu/GpuSimpleDiscretization.cpp:12:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:21:3: note: candidate: ‘cfd::algebra::SparseMatrix::SparseMatrix(cfd::Index, cfd::Index, std::vector<double>, std::vector<long unsigned int>, std::vector<long unsigned int>)’
+   21 |   SparseMatrix(Index rows, Index columns, std::vector<Real> values,
+      |   ^~~~~~~~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:21:3: note:   candidate expects 5 arguments, 0 provided
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note: candidate: ‘cfd::algebra::SparseMatrix::SparseMatrix(const cfd::algebra::SparseMatrix&)’
+   19 | class SparseMatrix {
+      |       ^~~~~~~~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note:   candidate expects 1 argument, 0 provided
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note: candidate: ‘cfd::algebra::SparseMatrix::SparseMatrix(cfd::algebra::SparseMatrix&&)’
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note:   candidate expects 1 argument, 0 provided
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/gpu/GpuSimpleDiscretization.cpp: In member function ‘cfd::algebra::LinearSystem cfd::gpu::GpuSimpleDiscretization::assemblePressureCorrection(bool, cfd::Index, cfd::Real, const cfd::fields::ScalarField*, bool)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/gpu/GpuSimpleDiscretization.cpp:53:64: error: no matching function for call to ‘cfd::algebra::SparseMatrix::SparseMatrix(<brace-enclosed initializer list>)’
+   53 |   return cfd::algebra::LinearSystem(cfd::algebra::SparseMatrix{}, cfd::algebra::Vector{});
+      |                                                                ^
+In file included from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/LinearSystem.hpp:3,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/gpu/GpuSimpleDiscretization.hpp:39,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/gpu/GpuSimpleDiscretization.cpp:12:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:21:3: note: candidate: ‘cfd::algebra::SparseMatrix::SparseMatrix(cfd::Index, cfd::Index, std::vector<double>, std::vector<long unsigned int>, std::vector<long unsigned int>)’
+   21 |   SparseMatrix(Index rows, Index columns, std::vector<Real> values,
+      |   ^~~~~~~~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:21:3: note:   candidate expects 5 arguments, 0 provided
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note: candidate: ‘cfd::algebra::SparseMatrix::SparseMatrix(const cfd::algebra::SparseMatrix&)’
+   19 | class SparseMatrix {
+      |       ^~~~~~~~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note:   candidate expects 1 argument, 0 provided
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note: candidate: ‘cfd::algebra::SparseMatrix::SparseMatrix(cfd::algebra::SparseMatrix&&)’
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/algebra/SparseMatrix.hpp:19:7: note:   candidate expects 1 argument, 0 provided
+ninja: build stopped: subcommand failed.

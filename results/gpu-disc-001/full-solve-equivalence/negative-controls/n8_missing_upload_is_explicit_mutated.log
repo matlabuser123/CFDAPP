@@ -1,0 +1,15 @@
+# n8_missing_upload_is_explicit
+# the V predictor is never uploaded at all. This is the control that found the missing residency guard: it used to fail as a CUDA illegal memory access from inside a kernel, and now fails explicitly. Detected by the error, not by an iteration number, so its expectation is None.
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+      gpuDiscretization.setMomentumSolution(1, vResult.solution);
+# --- became ---
+      // MUTATED: V is never uploaded.
+# verdict: DETECTED (exit -6)
+# first divergent iteration observed: None
+# expected:                          None
+# first divergent stage:              n/a
+# first divergent metric:             n/a
+
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  GpuSimpleDiscretization: the V momentum predictor is not resident -- the stage that supplies it was skipped

@@ -1,0 +1,12 @@
+# m5_missing_pressure_correction_upload  (expectation: detect)
+# p' is never uploaded, so both corrections use a stale pressure correction
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+    if (useGpuDiscretization) gpuDiscretization.setPressureCorrection(pResult.solution);
+# --- became ---
+    if (false) gpuDiscretization.setPressureCorrection(pResult.solution);
+# verdict: DETECTED (exit -6)
+# first divergence: n/a
+
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  correctVelocityDevice: field size does not match mesh cell count

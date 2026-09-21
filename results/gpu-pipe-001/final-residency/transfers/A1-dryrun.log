@@ -1,0 +1,96 @@
+# loop_transfer_guard --dryrun
+# date: 2026-09-20T16:04:14Z
+# harness sha256: a8e0708a887cc67ecd94f9723a2ebc6e5151e7fed10b921188b616093fb0e07f
+# libcfdcuda.a:   0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd
+# libcfdcore.a:   829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: resident SIMPLE loop transfer guard (AMENDMENT A1) ===
+DRY-RUN: the PRE-RESIDENCY arm. Every criterion must FAIL here.
+
+  --- cavity 2d 16  cells=256 faces=544 blocks=1  arm=pre-residency  (budgets n=4,8,16) ---
+      resident loop engaged: NO    resident pressure solve: yes
+      H2D               12.00 calls          39936.0 bytes/iteration
+      D2H total        387.50 calls          66892.0 bytes/iteration
+      D2H reductions   370.50 groups          5164.0 bytes/iteration  (645.5 quantities x 1 blocks x 8 B)
+      D2H remaining     17.00 calls          61728.0 bytes/iteration
+      of which the justified face-flux download is         4352.0 bytes; everything else    57376.0 bytes
+      sync   370.50/iteration   allocations 0.00   reallocations 0.00
+      FAIL   [detection]  C1 H2D bytes/iteration < one cell field        39936.000000 < 2048.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      17.000000 == 8.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  61728.000000 < 6400.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      non-vacuous: every detection criterion fails on the baseline, every preservation criterion holds on it
+  --- channel 2d 16  cells=256 faces=544 blocks=1  arm=pre-residency  (budgets n=4,8,16) ---
+      resident loop engaged: NO    resident pressure solve: yes
+      H2D               12.00 calls          39936.0 bytes/iteration
+      D2H total        405.50 calls          67142.7 bytes/iteration
+      D2H reductions   388.50 groups          5414.7 bytes/iteration  (676.8 quantities x 1 blocks x 8 B)
+      D2H remaining     17.00 calls          61728.0 bytes/iteration
+      of which the justified face-flux download is         4352.0 bytes; everything else    57376.0 bytes
+      sync   388.50/iteration   allocations 0.00   reallocations 0.00
+      FAIL   [detection]  C1 H2D bytes/iteration < one cell field        39936.000000 < 2048.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      17.000000 == 8.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  61728.000000 < 6400.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      non-vacuous: every detection criterion fails on the baseline, every preservation criterion holds on it
+  --- cavity 3d 6  cells=216 faces=756 blocks=1  arm=pre-residency  (budgets n=4,8,16) ---
+      resident loop engaged: NO    resident pressure solve: yes
+      H2D               18.00 calls          57024.0 bytes/iteration
+      D2H total        242.33 calls          92086.0 bytes/iteration
+      D2H reductions   220.33 groups          3054.0 bytes/iteration  (381.8 quantities x 1 blocks x 8 B)
+      D2H remaining     22.00 calls          89032.0 bytes/iteration
+      of which the justified face-flux download is         6048.0 bytes; everything else    82984.0 bytes
+      sync   220.33/iteration   allocations 0.00   reallocations 0.00
+      FAIL   [detection]  C1 H2D bytes/iteration < one cell field        57024.000000 < 1728.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      22.000000 == 9.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  89032.000000 < 7776.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      non-vacuous: every detection criterion fails on the baseline, every preservation criterion holds on it
+  --- cavity 2d 80  cells=6400 faces=12960 blocks=25  arm=pre-residency  (budgets n=4,8,16) ---
+      resident loop engaged: NO    resident pressure solve: yes
+      H2D               12.00 calls        1018880.0 bytes/iteration
+      D2H total       1381.33 calls        2055105.3 bytes/iteration
+      D2H reductions  1364.33 groups        476833.3 bytes/iteration  (2384.2 quantities x 25 blocks x 8 B)
+      D2H remaining     17.00 calls        1578272.0 bytes/iteration
+      of which the justified face-flux download is       103680.0 bytes; everything else  1474592.0 bytes
+      sync  1364.33/iteration   allocations 0.00   reallocations 0.00
+      FAIL   [detection]  C1 H2D bytes/iteration < one cell field        1018880.000000 < 51200.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      17.000000 == 8.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  1578272.000000 < 154880.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      non-vacuous: every detection criterion fails on the baseline, every preservation criterion holds on it
+  --- cavity 2d 160  cells=25600 faces=51520 blocks=100  arm=pre-residency  (budgets n=4,8,16) ---
+      resident loop engaged: NO    resident pressure solve: yes
+      H2D               12.00 calls        4085760.0 bytes/iteration
+      D2H total       2662.33 calls       10031645.3 bytes/iteration
+      D2H reductions  2645.33 groups       3700733.3 bytes/iteration  (4625.9 quantities x 100 blocks x 8 B)
+      D2H remaining     17.00 calls        6330912.0 bytes/iteration
+      of which the justified face-flux download is       412160.0 bytes; everything else  5918752.0 bytes
+      sync  2645.33/iteration   allocations 0.00   reallocations 0.00
+      FAIL   [detection]  C1 H2D bytes/iteration < one cell field        4085760.000000 < 204800.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      17.000000 == 8.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  6330912.000000 < 616960.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      non-vacuous: every detection criterion fails on the baseline, every preservation criterion holds on it
+  --- cavity 3d 12  cells=1728 faces=5616 blocks=7  arm=pre-residency  (budgets n=4,8,16) ---
+      resident loop engaged: NO    resident pressure solve: yes
+      H2D               18.00 calls         476928.0 bytes/iteration
+      D2H total        441.17 calls         790848.7 bytes/iteration
+      D2H reductions   419.17 groups         40856.7 bytes/iteration  (729.6 quantities x 7 blocks x 8 B)
+      D2H remaining     22.00 calls         749992.0 bytes/iteration
+      of which the justified face-flux download is        44928.0 bytes; everything else   705064.0 bytes
+      sync   419.17/iteration   allocations 0.00   reallocations 0.00
+      FAIL   [detection]  C1 H2D bytes/iteration < one cell field        476928.000000 < 13824.000000
+      FAIL   [detection]  C2 non-reduction D2H calls == enumeration      22.000000 == 9.000000
+      FAIL   [detection]  C3 non-reduction D2H bytes < face + one field  749992.000000 < 58752.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      non-vacuous: every detection criterion fails on the baseline, every preservation criterion holds on it
+
+LOOP TRANSFER GUARD DRY-RUN: PASS (every criterion is falsifiable)
+# exit code: 0

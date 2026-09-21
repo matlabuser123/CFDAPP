@@ -1,0 +1,68 @@
+# loop_transfer_guard.cpp 
+# date: 2026-09-20T15:56:31Z
+# libcfdcuda.a: 0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: resident SIMPLE loop transfer guard ===
+  --- cavity 2d 16  cells=256 faces=544  (budgets n=4,8,16) ---
+      resident SIMPLE loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls            0.0 bytes/iteration   (bound < 2048.0 = one cell field)
+      D2H total        378.50 calls         9556.0 bytes/iteration
+      D2H reductions   370.50 calls         2964.0 bytes/iteration   (the BiCGSTAB algorithm's own, out of scope)
+      D2H remaining      8.00 calls         6592.0 bytes/iteration   (bound < 6400.0 = the justified face field + one more)
+      of which the justified face-flux download is       4352.0 bytes; everything else is   2240.0 bytes
+      sync   370.50/iteration   allocations 0.00   reallocations 0.00
+      FAIL more than the justified face field comes back every iteration
+      FAIL
+  --- channel 2d 16  cells=256 faces=544  (budgets n=4,8,16) ---
+      resident SIMPLE loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls            0.0 bytes/iteration   (bound < 2048.0 = one cell field)
+      D2H total        396.50 calls         9806.7 bytes/iteration
+      D2H reductions   388.50 calls         3108.0 bytes/iteration   (the BiCGSTAB algorithm's own, out of scope)
+      D2H remaining      8.00 calls         6698.7 bytes/iteration   (bound < 6400.0 = the justified face field + one more)
+      of which the justified face-flux download is       4352.0 bytes; everything else is   2346.7 bytes
+      sync   388.50/iteration   allocations 0.00   reallocations 0.00
+      FAIL more than the justified face field comes back every iteration
+      FAIL
+  --- cavity 3d 6  cells=216 faces=756  (budgets n=4,8,16) ---
+      resident SIMPLE loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls            0.0 bytes/iteration   (bound < 1728.0 = one cell field)
+      D2H total        229.33 calls         9150.0 bytes/iteration
+      D2H reductions   220.33 calls         1762.7 bytes/iteration   (the BiCGSTAB algorithm's own, out of scope)
+      D2H remaining      9.00 calls         7387.3 bytes/iteration   (bound < 7776.0 = the justified face field + one more)
+      of which the justified face-flux download is       6048.0 bytes; everything else is   1339.3 bytes
+      sync   220.33/iteration   allocations 0.00   reallocations 0.00
+      PASS
+  --- cavity 2d 80  cells=6400 faces=12960  (budgets n=4,8,16) ---
+      resident SIMPLE loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls            0.0 bytes/iteration   (bound < 51200.0 = one cell field)
+      D2H total       1372.33 calls       580553.3 bytes/iteration
+      D2H reductions  1364.33 calls        10914.7 bytes/iteration   (the BiCGSTAB algorithm's own, out of scope)
+      D2H remaining      8.00 calls       569638.7 bytes/iteration   (bound < 154880.0 = the justified face field + one more)
+      of which the justified face-flux download is     103680.0 bytes; everything else is 465958.7 bytes
+      sync  1364.33/iteration   allocations 0.00   reallocations 0.00
+      FAIL more than the justified face field comes back every iteration
+      FAIL
+  --- cavity 2d 160  cells=25600 faces=51520  (budgets n=4,8,16) ---
+      resident SIMPLE loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls            0.0 bytes/iteration   (bound < 204800.0 = one cell field)
+      D2H total       2653.33 calls      4112933.3 bytes/iteration
+      D2H reductions  2645.33 calls        21162.7 bytes/iteration   (the BiCGSTAB algorithm's own, out of scope)
+      D2H remaining      8.00 calls      4091770.7 bytes/iteration   (bound < 616960.0 = the justified face field + one more)
+      of which the justified face-flux download is     412160.0 bytes; everything else is 3679610.7 bytes
+      sync  2645.33/iteration   allocations 0.00   reallocations 0.00
+      FAIL more than the justified face field comes back every iteration
+      FAIL
+  --- cavity 3d 12  cells=1728 faces=5616  (budgets n=4,8,16) ---
+      resident SIMPLE loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls            0.0 bytes/iteration   (bound < 13824.0 = one cell field)
+      D2H total        428.17 calls        85832.7 bytes/iteration
+      D2H reductions   419.17 calls         3353.3 bytes/iteration   (the BiCGSTAB algorithm's own, out of scope)
+      D2H remaining      9.00 calls        82479.3 bytes/iteration   (bound < 58752.0 = the justified face field + one more)
+      of which the justified face-flux download is      44928.0 bytes; everything else is  37551.3 bytes
+      sync   419.17/iteration   allocations 0.00   reallocations 0.00
+      FAIL more than the justified face field comes back every iteration
+      FAIL
+
+LOOP TRANSFER GUARD: FAIL
+# exit code: 1

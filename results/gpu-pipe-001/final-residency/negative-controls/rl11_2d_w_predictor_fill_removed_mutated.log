@@ -1,0 +1,16 @@
+# rl11_2d_w_predictor_fill_removed
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the device fill that zeroes the W predictor on a 2D mesh is removed. Nothing else writes it on a 2D solve, so the stage that reads it either reads a value no stage produced or refuses. The requireResident guards exist for precisely this, and this control proves they are load-bearing rather than decorative.
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+    fillFieldDevice(impl_->cellCount, 0.0, impl_->velocityStar.z);
+# --- became ---
+    // MUTATED: the 2D W predictor is never zeroed.
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness loop_comparison --quick -> exit -6 (DETECTED) ##########
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  GpuSimpleDiscretization: the W momentum predictor is not resident -- the stage that supplies it was skipped

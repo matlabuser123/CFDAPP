@@ -1,0 +1,28 @@
+=== test command ===
+ctest --test-dir build/cuda --output-on-failure
+
+=== build identity BEFORE ctest ===
+ninja: Entering directory `build/cuda'
+ninja: no work to do.
+c41197220e695649120f8332007a5a0ccdea459db46fe4302d92221aacf3547d  build/cuda/cuda/libcfdcuda.a
+bd1f5ad5fa7aef27faa719d7f20718e87b6cc38161468d4b2c53642a7b505fa6  build/cuda/src/libcfdcore.a
+
+=== the four files this gate changed, BEFORE ctest ===
+ec955ebc75ece51111091d8e09db6b70dc4cc80b263bed78f56b964e1d398f7e  src/pressure_velocity/SIMPLE.cpp
+a02bd90f468e55b2ca054cc7d9f482bd035616ff685718e02afe0b6b860859ba  include/cfd/pressure_velocity/SIMPLEResult.hpp
+a5ef3c9b94e52a55624c64851260d48e8e2bda8d9ebf4475f82eb63499f859be  include/cfd/gpu/GPUExecutionStats.hpp
+b72997ad45c852f17548928409757fa0e8c529b594b9bc0a78108557ddb8e5a3  include/cfd/gpu/DeviceBuffer.hpp
+
+=== build identity AFTER ctest ===
+ninja: Entering directory `build/cuda'
+ninja: no work to do.
+c41197220e695649120f8332007a5a0ccdea459db46fe4302d92221aacf3547d  build/cuda/cuda/libcfdcuda.a
+bd1f5ad5fa7aef27faa719d7f20718e87b6cc38161468d4b2c53642a7b505fa6  build/cuda/src/libcfdcore.a
+
+=== the four files this gate changed, AFTER ctest ===
+ec955ebc75ece51111091d8e09db6b70dc4cc80b263bed78f56b964e1d398f7e  src/pressure_velocity/SIMPLE.cpp
+a02bd90f468e55b2ca054cc7d9f482bd035616ff685718e02afe0b6b860859ba  include/cfd/pressure_velocity/SIMPLEResult.hpp
+a5ef3c9b94e52a55624c64851260d48e8e2bda8d9ebf4475f82eb63499f859be  include/cfd/gpu/GPUExecutionStats.hpp
+b72997ad45c852f17548928409757fa0e8c529b594b9bc0a78108557ddb8e5a3  include/cfd/gpu/DeviceBuffer.hpp
+
+ctest exit=0

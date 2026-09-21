@@ -1,0 +1,108 @@
+
+=== inletoutlet2d: end-to-end wall time (median of N repeats) ===
+       grid    cells  N    CPU(s)  gpu-pipe  gpu-disc disc-only   pipe x  disc x disc/pipe    old x
+      40x40     1600  5     1.783    20.168    20.216     2.551   0.088x  0.088x     1.00x     nanx
+    160x160    25600  3    15.408    19.836    15.906    12.319   0.777x  0.969x     1.25x     nanx
+    320x320   102400  3    33.532    17.027    10.020    29.015   1.969x  3.347x     1.70x     nanx
+
+       grid  spread (min..max as % of median)
+      40x40  cpu  4.3%   gpu-pipe  7.4%   gpu-disc  8.0%   disc-only 12.1%
+    160x160  cpu  7.5%   gpu-pipe  8.6%   gpu-disc  3.5%   disc-only  2.9%
+    320x320  cpu  1.9%   gpu-pipe  7.9%   gpu-disc  5.5%   disc-only  1.8%
+  crossover, old GPU path        : 320x320 (first grid where it beats the CPU)
+  crossover, new GPU-DISC path   : 320x320 (first grid where it beats the CPU)
+
+=== inletoutlet2d: transfers, synchronization, allocations (median, GPU arms) ===
+       grid        arm  iters       H2D    H2D MB       D2H    D2H MB   H2D/it   D2H/it    MB/it     sync  sync/it   alloc  realloc   kernels
+      40x40   gpu-pipe    200      1804      53.1    116410      19.0      9.0    582.0     0.36   115810    579.0      26        0    348927
+      40x40   gpu-disc    200      4495      93.0    119610     122.6     22.5    598.0     1.08   115810    579.0     371        0    358727
+      40x40  disc-only    200      2691      39.8      3200     103.6     13.5     16.0     0.72        0      0.0     345        0      9800
+    160x160   gpu-pipe     60       544     259.6     77112     144.4      9.1   1285.2     6.73    76932   1282.2      26        0    231270
+    160x160   gpu-disc     60      1555     520.5     78072     646.5     25.9   1301.2    19.45    76932   1282.2     371        0    234210
+    160x160  disc-only     60      1011     260.9       960     502.1     16.9     16.0    12.72        0      0.0     345        0      2940
+    320x320   gpu-pipe     20       184     353.3     46192     307.3      9.2   2309.6    33.03    46132   2306.6      26        0    138552
+    320x320   gpu-disc     20       715     969.1     46512     977.9     35.8   2325.6    97.35    46132   2306.6     371        0    139532
+    320x320  disc-only     20       531     615.8       320     670.6     26.6     16.0    64.32        0      0.0     345        0       980
+
+=== inletoutlet2d: throughput ===
+  cell-iterations/s = cells x outer iterations / wall seconds
+  face-iterations/s = faces x outer iterations / wall seconds
+       grid    cells       cpu Mcell-it/s gpu-pipe Mcell-it/s gpu-disc Mcell-it/sdisc-only Mcell-it/s
+      40x40     1600                0.179               0.016               0.016               0.125
+    160x160    25600                0.100               0.077               0.097               0.125
+    320x320   102400                0.061               0.120               0.204               0.071
+
+=== inletoutlet2d: GPU memory ===
+       grid    cells        arm   peak DeviceBuffer MB   bytes/cell   driver used MB after
+      40x40     1600   gpu-pipe                   0.53        332.8                1351.82
+      40x40     1600   gpu-disc                   8.07       5044.1                1351.82
+      40x40     1600  disc-only                   7.54       4711.3                1351.82
+    160x160    25600   gpu-pipe                   8.58        335.2                1351.82
+    160x160    25600   gpu-disc                 127.21       4969.0                1351.82
+    160x160    25600  disc-only                 118.63       4633.8                1351.82
+    320x320   102400   gpu-pipe                  34.37        335.6                1351.82
+    320x320   102400   gpu-disc                 507.55       4956.5                1351.82
+    320x320   102400  disc-only                 473.18       4620.9                1351.82
+
+=== inletoutlet2d 40x40: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0001   0.0%       0.0001   0.0%       0.0149   0.1%       0.0153   0.6%
+             momentum assembly        0.6126  34.4%       0.5536   2.7%       0.7839   3.9%       0.8682  34.0%
+               momentum solves        0.1655   9.3%       3.5006  17.4%       3.3294  16.5%       0.3164  12.4%
+         response coefficients        0.0017   0.1%       0.0021   0.0%       0.0088   0.0%       0.0153   0.6%
+           predicted face flux        0.0170   1.0%       0.0158   0.1%       0.0012   0.0%       0.0015   0.1%
+  pressure-correction assembly        0.0784   4.4%       0.0753   0.4%       0.1589   0.8%       0.1692   6.6%
+                pressure solve        0.7949  44.6%      15.9271  79.0%      15.7356  77.8%       0.7431  29.1%
+           velocity correction        0.0996   5.6%       0.0875   0.4%       0.1699   0.8%       0.3782  14.8%
+          face-flux correction        0.0023   0.1%       0.0019   0.0%       0.0312   0.2%       0.0399   1.6%
+        residual / bookkeeping        0.0082   0.5%       0.0081   0.0%       0.0100   0.0%       0.0092   0.4%
+                         other        0.0020   0.1%       0.0025   0.0%       0.0105   0.1%       0.0295   1.2%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        0.8106  45.5%       0.7353   3.6%       1.1510   5.7%       1.4669  57.5%
+            LINEAR SOLVE total        0.9624  54.0%      19.4183  96.3%      19.0600  94.3%       1.0403  40.8%
+                          wall        1.7828 100.0%      20.1681 100.0%      20.2164 100.0%       2.5513 100.0%
+
+=== inletoutlet2d 160x160: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0012   0.0%       0.0012   0.0%       0.1357   0.9%       0.1241   1.0%
+             momentum assembly        3.7943  24.6%       4.2284  21.3%       1.0817   6.8%       1.2271  10.0%
+               momentum solves        0.8207   5.3%       1.4898   7.5%       1.3702   8.6%       0.8709   7.1%
+         response coefficients        0.0135   0.1%       0.0117   0.1%       0.0095   0.1%       0.0162   0.1%
+           predicted face flux        0.0706   0.5%       0.0629   0.3%       0.0006   0.0%       0.0003   0.0%
+  pressure-correction assembly        0.5303   3.4%       0.5232   2.6%       0.3765   2.4%       0.4353   3.5%
+                pressure solve        9.6637  62.7%      12.9705  65.4%      12.6957  79.8%       9.2925  75.4%
+           velocity correction        0.4027   2.6%       0.4141   2.1%       0.1058   0.7%       0.1821   1.5%
+          face-flux correction        0.0116   0.1%       0.0126   0.1%       0.0531   0.3%       0.0761   0.6%
+        residual / bookkeeping        0.0431   0.3%       0.0465   0.2%       0.0477   0.3%       0.0527   0.4%
+                         other        0.0539   0.3%       0.0716   0.4%       0.0139   0.1%       0.0337   0.3%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        4.8248  31.3%       5.2510  26.5%       1.6226  10.2%       1.9378  15.7%
+            LINEAR SOLVE total       10.4844  68.0%      14.4604  72.9%      14.0659  88.4%      10.1627  82.5%
+                          wall       15.4076 100.0%      19.8356 100.0%      15.9060 100.0%      12.3194 100.0%
+
+=== inletoutlet2d 320x320: stage breakdown (median seconds, % of that arm's wall) ===
+                         stage                   cpu             gpu-pipe             gpu-disc            disc-only
+                setup / upload        0.0043   0.0%       0.0046   0.0%       0.3634   3.6%       0.4712   1.6%
+             momentum assembly        5.9722  17.8%       6.3487  37.3%       1.3347  13.3%       1.7007   5.9%
+               momentum solves        1.1061   3.3%       0.6485   3.8%       0.5287   5.3%       1.1433   3.9%
+         response coefficients        0.0200   0.1%       0.0201   0.1%       0.0050   0.0%       0.0120   0.0%
+           predicted face flux        0.0902   0.3%       0.0926   0.5%       0.0003   0.0%       0.0006   0.0%
+  pressure-correction assembly        0.8034   2.4%       0.8649   5.1%       0.5073   5.1%       0.6014   2.1%
+                pressure solve       24.8529  74.1%       8.3126  48.8%       7.0037  69.9%      24.6729  85.0%
+           velocity correction        0.5344   1.6%       0.5865   3.4%       0.0774   0.8%       0.1371   0.5%
+          face-flux correction        0.0234   0.1%       0.0234   0.1%       0.0310   0.3%       0.0603   0.2%
+        residual / bookkeeping        0.0658   0.2%       0.0670   0.4%       0.0635   0.6%       0.0678   0.2%
+                         other        0.0646   0.2%       0.0731   0.4%       0.0658   0.7%       0.0702   0.2%
+------------------------------ ------------------------------------------------------------------------------------
+          DISCRETIZATION total        7.4371  22.2%       7.9352  46.6%       1.9598  19.6%       2.5097   8.6%
+            LINEAR SOLVE total       25.9634  77.4%       8.9611  52.6%       7.5324  75.2%      25.8162  89.0%
+                          wall       33.5321 100.0%      17.0269 100.0%      10.0199 100.0%      29.0155 100.0%
+
+=== numerical integrity of every timed run ===
+  runs                      44
+  distinct statuses         ['MaxIterations']
+  all_finite values         ['1']
+  runs failing integrity    0
+  worst |global mass imbalance| over all runs   1.273e-05
+
+wrote /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/analysis-inletoutlet.json

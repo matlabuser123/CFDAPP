@@ -1,0 +1,81 @@
+ninja: no work to do.
+=== GPU-PIPE-001 final residency, Part 1: persistent fields + transfer baseline ===
+
+--- A. stage-level residency, 2D ---
+       momentum assembly D2H: +8 (host LinearSystem round trip)
+       responseCoefficients: D2H +0  H2D +1  alloc +3
+  PASS momentum response coefficients: computed and kept on the device, zero D2H
+  PASS 2D: the velocityStar.z zero-fill is exactly one host upload per iteration (recorded as a Part 3 elimination candidate, not a defect of this gate)
+  PASS predicted face flux stays resident, zero D2H
+  PASS resident pressure assembly: matrix and RHS stay on the device, zero D2H
+  PASS resident solve leaves p' on the device (empty host solution)
+  PASS the resident Krylov workspace is allocated and attributable
+  PASS repeating assembly + resident solve allocates and reallocates NOTHING
+  PASS the Krylov workspace is the same memory, reused
+  PASS the repeated resident solve reproduces the first exactly
+  PASS velocity is DeviceOwned after the resident correction
+  PASS face flux is DeviceOwned after the resident correction
+  PASS pressure is DeviceOwned after the device update
+  PASS viscosity stays Synchronized -- never written by the device
+  PASS downloaded velocity has numberOfCells entries
+  PASS 2D contract: the W component of the resident velocity is exactly zero
+  PASS downloaded face flux has numberOfFaces entries
+
+--- A. stage-level residency, 3D ---
+       momentum assembly D2H: +12 (host LinearSystem round trip)
+       responseCoefficients: D2H +0  H2D +0  alloc +3
+  PASS momentum response coefficients: computed and kept on the device, zero D2H
+  PASS 3D: the response-coefficient stage uploads nothing
+  PASS predicted face flux stays resident, zero D2H
+  PASS resident pressure assembly: matrix and RHS stay on the device, zero D2H
+  PASS resident solve leaves p' on the device (empty host solution)
+  PASS the resident Krylov workspace is allocated and attributable
+  PASS repeating assembly + resident solve allocates and reallocates NOTHING
+  PASS the Krylov workspace is the same memory, reused
+  PASS the repeated resident solve reproduces the first exactly
+  PASS velocity is DeviceOwned after the resident correction
+  PASS face flux is DeviceOwned after the resident correction
+  PASS pressure is DeviceOwned after the device update
+  PASS viscosity stays Synchronized -- never written by the device
+  PASS downloaded velocity has numberOfCells entries
+  PASS 3D contract: W is carried as a live component
+  PASS downloaded face flux has numberOfFaces entries
+
+--- B. transfer baseline per SIMPLE iteration (BEFORE the SIMPLE-loop work) ---
+  cavity 2d 16 disc-only      H2D    6.00 calls      12288.0 B | D2H    17.00 calls      81148.0 B | sync   0.00 | alloc 0.00 | realloc 0.00 | kern   27.00 | red    0.00
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS cavity 2d 16 disc-only: steady-state allocations per iteration are exactly 0
+  PASS cavity 2d 16 disc-only: steady-state reallocations per iteration are exactly 0
+  PASS cavity 2d 16 disc-only: field traffic is linear in the iteration count
+  cavity 2d 16 production     H2D   13.00 calls      41984.0 B | D2H   387.50 calls      66892.0 B | sync 370.50 | alloc 0.00 | realloc 0.00 | kern 1335.50 | red  370.50
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS cavity 2d 16 production: the resident pressure solve is ENGAGED (non-vacuity)
+  PASS cavity 2d 16 production: steady-state allocations per iteration are exactly 0
+  PASS cavity 2d 16 production: steady-state reallocations per iteration are exactly 0
+  cavity 3d 6  disc-only      H2D    7.00 calls      12096.0 B | D2H    21.00 calls     107988.0 B | sync   0.00 | alloc 0.00 | realloc 0.00 | kern   41.00 | red    0.00
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS cavity 3d 6  disc-only: steady-state allocations per iteration are exactly 0
+  PASS cavity 3d 6  disc-only: steady-state reallocations per iteration are exactly 0
+  PASS cavity 3d 6  disc-only: field traffic is linear in the iteration count
+  cavity 3d 6  production     H2D   18.00 calls      57024.0 B | D2H   242.33 calls      92086.0 B | sync 220.33 | alloc 0.00 | realloc 0.00 | kern  825.83 | red  220.33
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS cavity 3d 6  production: the resident pressure solve is ENGAGED (non-vacuity)
+  PASS cavity 3d 6  production: steady-state allocations per iteration are exactly 0
+  PASS cavity 3d 6  production: steady-state reallocations per iteration are exactly 0
+  channel 2d 16 production    H2D   13.00 calls      41984.0 B | D2H   405.50 calls      67142.7 B | sync 388.50 | alloc 0.00 | realloc 0.00 | kern 1398.83 | red  388.50
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS channel 2d 16 production: the resident pressure solve is ENGAGED (non-vacuity)
+  PASS channel 2d 16 production: steady-state allocations per iteration are exactly 0
+  PASS channel 2d 16 production: steady-state reallocations per iteration are exactly 0
+  cavity 2d 160 disc-only     H2D    6.00 calls    1228800.0 B | D2H    17.00 calls    8368636.0 B | sync   0.00 | alloc 0.00 | realloc 0.00 | kern   51.00 | red    0.00
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS cavity 2d 160 disc-only: steady-state allocations per iteration are exactly 0
+  PASS cavity 2d 160 disc-only: steady-state reallocations per iteration are exactly 0
+  PASS cavity 2d 160 disc-only: field traffic is linear in the iteration count
+  cavity 2d 160 production    H2D   13.00 calls    4290560.0 B | D2H  2662.33 calls   10031645.3 B | sync 2645.33 | alloc 0.00 | realloc 0.00 | kern 9322.50 | red 2645.33
+                              budgets n=4,8,16  per-iteration linearity: LINEAR (field traffic constant per iteration)
+  PASS cavity 2d 160 production: the resident pressure solve is ENGAGED (non-vacuity)
+  PASS cavity 2d 160 production: steady-state allocations per iteration are exactly 0
+  PASS cavity 2d 160 production: steady-state reallocations per iteration are exactly 0
+
+RESIDENCY BASELINE: PASS

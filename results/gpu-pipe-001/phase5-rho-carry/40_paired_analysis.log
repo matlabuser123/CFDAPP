@@ -1,0 +1,44 @@
+=== CORRECTNESS: before vs after must be identical ===
+  160^2  p_res=0.0010531773410759504  krylov_it=3898  -> IDENTICAL
+  320^2  p_res=0.00068343695924319469  krylov_it=3681  -> IDENTICAL
+  640^2  p_res=0.00046812560910251881  krylov_it=3677  -> IDENTICAL
+
+  all correctness fields identical: True
+
+=== TRANSFERS AND SYNCHRONIZATION (medians) ===
+  grid       metric         before          after     change
+   160    D2H calls         19,502         15,604     -20.0%
+   160    D2H bytes     26,720,000     26,705,600      -0.1%
+   160        syncs         19,478         15,580     -20.0%
+   160     launches         50,702         46,804      -7.7%
+   160    H2D calls             76             76      +0.0%
+
+   320    D2H calls         18,407         14,726     -20.0%
+   320    D2H bytes     97,094,400     97,040,000      -0.1%
+   320        syncs         18,389         14,708     -20.0%
+   320     launches         47,856         44,175      -7.7%
+   320    H2D calls             58             58      +0.0%
+
+   640    D2H calls         18,393         14,716     -20.0%
+   640    D2H bytes    368,627,200    368,524,800      -0.0%
+   640        syncs         18,381         14,704     -20.0%
+   640     launches         47,819         44,142      -7.7%
+   640    H2D calls             40             40      +0.0%
+
+=== REDUCTIONS PER KRYLOV ITERATION ===
+  grid    krylov   D2H before   per it   D2H after   per it  red_groups  fusion
+   160     3,898       19,502     5.00      15,604     4.00      15,580    1.75x
+   320     3,681       18,407     5.00      14,726     4.00      14,708    1.75x
+   640     3,677       18,393     5.00      14,716     4.00      14,704    1.75x
+
+=== RUNTIME (paired, same session, median of repeats) ===
+  grid  solve before  solve after    change  gpu_solve before  gpu_solve after    change
+   160         3.198        2.661    -16.8%             2.459            1.948    -20.8%
+   320         5.355        4.942     -7.7%             2.929            2.540    -13.3%
+   640        12.956       12.233     -5.6%             3.626            2.997    -17.3%
+
+  spread across repeats (max-min), to judge whether the change exceeds noise
+  grid  before spread  after spread  difference
+   160          0.094         0.133       0.537
+   320          0.742         0.190       0.413
+   640          0.482         0.353       0.723

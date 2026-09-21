@@ -1,0 +1,41 @@
+ninja: no work to do.
+built /tmp/gpu_disc_perf
+OMP_NUM_THREADS=<unset, defaults to nproc>
+=== GPU-DISC-001Q: production performance qualification ===
+cuda available: yes
+mode: inletoutlet
+
+cold start (CUDA context, module load, first kernel) -- untimed for every point below, reported here
+  cold_start_seconds=0.2542  second_identical_run_seconds=0.1435  one-off cost=0.1107
+
+########## 2D inlet/outlet -- open boundaries, real through-flow ##########
+
+inletoutlet2d    40x40     cells=1600     budget=200  repeats=5
+  cpu        median    1.684 s   min    1.656   max    1.767   spread   6.6%   disc  0.745  solve  0.902
+  gpu-pipe   median   20.662 s   min   18.047   max   21.763   spread  18.0%   disc  0.781  solve 20.970
+  gpu-disc   median   21.668 s   min   20.922   max   22.251   spread   6.1%   disc  1.204  solve 19.765
+  disc-only  median    2.734 s   min    2.582   max    2.807   spread   8.2%   disc  1.692  solve  1.054
+  FAIL equivalence cpu vs gpu-pipe   differing=7960 maxAbs=4.36e-06
+  FAIL equivalence cpu vs gpu-disc   differing=7960 maxAbs=4.36e-06
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+inletoutlet2d    160x160   cells=25600    budget=60   repeats=3
+  cpu        median   15.246 s   min   14.856   max   15.665   spread   5.3%   disc  4.601  solve 10.137
+  gpu-pipe   median   19.720 s   min   19.530   max   19.929   spread   2.0%   disc  5.298  solve 14.533
+  gpu-disc   median   15.289 s   min   14.980   max   15.341   spread   2.4%   disc  1.562  solve 13.217
+  disc-only  median   12.443 s   min   12.262   max   12.867   spread   4.9%   disc  1.921  solve 10.128
+  FAIL equivalence cpu vs gpu-pipe   differing=127840 maxAbs=4.51e-05
+  FAIL equivalence cpu vs gpu-disc   differing=127840 maxAbs=4.51e-05
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+inletoutlet2d    320x320   cells=102400   budget=20   repeats=3
+  cpu        median   33.210 s   min   33.154   max   33.221   spread   0.2%   disc  7.548  solve 25.513
+  gpu-pipe   median   17.577 s   min   17.228   max   17.604   spread   2.1%   disc  7.864  solve  9.207
+  gpu-disc   median   11.079 s   min   10.861   max   11.500   spread   5.8%   disc  2.049  solve  8.224
+  disc-only  median   29.042 s   min   28.828   max   29.475   spread   2.2%   disc  2.553  solve 25.624
+  FAIL equivalence cpu vs gpu-pipe   differing=511680 maxAbs=0.00644
+  FAIL equivalence cpu vs gpu-disc   differing=511680 maxAbs=0.00644
+  PASS equivalence cpu vs disc-only  differing=0 maxAbs=0
+
+wrote results/gpu-disc-001/performance/raw/runs-inletoutlet.csv
+PERFORMANCE BENCHMARK: INTEGRITY FAILURES

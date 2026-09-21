@@ -1,0 +1,42 @@
+# h5_area_vector_sign -- restored cuda/kernels/DeviceFaceFluxKernel.cu
+# sha256 4fc735828155a9c2e6dfe7e79a0c994567a9c22277861b8657ef039c19206de3
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness face_flux -> exit 0 ##########
+=== GPU-DISC-001H: CUDA predicted face flux / Rhie-Chow vs CPU (bitwise) ===
+CPU refs: physics::calculateMassFlux, pressure_velocity::rhieChow{FaceCorrection,MassFlux}
+
+       [distorted q16 faces=544 axisAligned=0 general=480 resident=221208 B]
+  PASS L3 distorted q16  invariants: onePerFace=yes interiorFaces=480 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 1.86e-14 of |.|=349.8]
+  PASS L4 distorted q16  checkerboard: differing=0  |RhieChow term|max=169.5 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 distorted q16  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+       [warped 3d 3 faces=108 axisAligned=0 general=54 resident=39768 B]
+  PASS L3 warped 3d 3    invariants: onePerFace=yes interiorFaces=54 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -5.91e-15 of |.|=185.5]
+  PASS L4 warped 3d 3    checkerboard: differing=0  |RhieChow term|max=59.17 vs |linear flux|max=0.2 (term dominates: yes)
+  PASS L2 warped 3d 3    scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=270
+
+=== coverage ===
+  Linear-path cases                 864
+  Rhie-Chow-path cases              864
+  correction-only cases             864
+  2D / 3D direct cases              432 / 432
+  integrated chain cases            8
+  meshes with axis-aligned coupling 0
+  meshes with general coupling      2
+  densities / relaxation factors    3 / 3
+  orientation / conservation checks 2 / 2
+  checkerboard-sensitive cases      2
+  values compared                   848252
+  bitwise-identical values          848252
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=876 failures=0
+FACE FLUX EQUIVALENCE: PASS (bitwise)

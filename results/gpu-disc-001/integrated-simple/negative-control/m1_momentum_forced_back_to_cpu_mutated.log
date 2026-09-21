@@ -1,0 +1,14 @@
+# m1_momentum_forced_back_to_cpu  (expectation: detect)
+# the momentum assembly is routed back to the CPU while every other stage stays on the device -- the mixed path the all-or-nothing rule forbids
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+      if (useGpuDiscretization) {
+        // GPU-DISC-001M: the verified device assembly (GPU-DISC-001F). The
+# --- became ---
+      if (false) {
+        // GPU-DISC-001M: the verified device assembly (GPU-DISC-001F). The
+# verdict: DETECTED (exit -6)
+# first divergence: n/a
+
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  GpuSimpleDiscretization: the U momentum diagonal is not resident -- the stage that supplies it was skipped

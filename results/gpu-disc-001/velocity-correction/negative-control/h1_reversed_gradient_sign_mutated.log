@@ -1,0 +1,211 @@
+# h1_reversed_gradient_sign  (expectation: detect)
+# the pressure-gradient term added instead of subtracted
+# mutation applied to cuda/kernels/DeviceVelocityCorrectionKernel.cu
+# --- anchor ---
+  outX[c] = ux[c] - (dU[c] * gradX[c]);
+# --- became ---
+  outX[c] = ux[c] + (dU[c] * gradX[c]);
+# verdict: DETECTED (exit 1)
+
+=== GPU-DISC-001J: CUDA cell-velocity correction vs CPU (bitwise) ===
+CPU references: pressure_velocity::correctVelocity, discretization::leastSquaresGradient
+
+       [distorted q16/all-Neumann fixedValuePatches=0 lsFallbackCells=0 lsOblique=64 resident=202000 B]
+  FAIL distorted q16  all-Neumann    uniform     uniform     green_gauss  grad[d=0] inc[d=166] u[d=166] v[d=0] w[d=0] maxAbs=6.66e-16   scaleG=1.639e-14  scaleU=1.492     
+  FAIL distorted q16  all-Neumann    uniform     nonuniform  green_gauss  grad[d=0] inc[d=146] u[d=146] v[d=0] w[d=0] maxAbs=9.99e-16   scaleG=1.639e-14  scaleU=1.492     
+  FAIL distorted q16  all-Neumann    linear x    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.14       scaleG=3.5        scaleU=1.422     
+  FAIL distorted q16  all-Neumann    linear x    uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.14       scaleG=3.5        scaleU=1.422     
+  FAIL distorted q16  all-Neumann    linear x    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.296      scaleG=3.5        scaleU=1.428     
+  FAIL distorted q16  all-Neumann    linear x    nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.296      scaleG=3.5        scaleU=1.428     
+  FAIL distorted q16  all-Neumann    linear y    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.000653   scaleG=2.75       scaleU=1.491     
+  FAIL distorted q16  all-Neumann    linear y    uniform     least_squares grad[d=0] inc[d=80] u[d=80] v[d=0] w[d=0] maxAbs=0.00376    scaleG=2.75       scaleU=1.493     
+  FAIL distorted q16  all-Neumann    linear y    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.00106    scaleG=2.75       scaleU=1.491     
+  FAIL distorted q16  all-Neumann    linear y    nonuniform  least_squares grad[d=0] inc[d=84] u[d=84] v[d=0] w[d=0] maxAbs=0.0056     scaleG=2.75       scaleU=1.493     
+  FAIL distorted q16  all-Neumann    nonuniform  uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.45       scaleG=37.47      scaleU=1.743     
+  FAIL distorted q16  all-Neumann    nonuniform  uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.45       scaleG=37.46      scaleU=1.747     
+  FAIL distorted q16  all-Neumann    nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=37.47      scaleU=1.934     
+  FAIL distorted q16  all-Neumann    nonuniform  nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=37.46      scaleU=1.936     
+  FAIL distorted q16  all-Neumann    negative    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.45       scaleG=37.47      scaleU=1.742     
+  FAIL distorted q16  all-Neumann    negative    uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.45       scaleG=37.46      scaleU=1.738     
+  FAIL distorted q16  all-Neumann    negative    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=37.47      scaleU=1.692     
+  FAIL distorted q16  all-Neumann    negative    nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=37.46      scaleU=1.691     
+  FAIL distorted q16  all-Neumann    nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=37.47      scaleU=1.934     
+  FAIL distorted q16  all-Neumann    nonuniform  nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=37.46      scaleU=1.936     
+  FAIL L1b distorted q16  green_gauss  reused buffers, 4 successive p' differing=768 maxAbs=2.97       scale=1.934
+  FAIL L1b distorted q16  least_squares reused buffers, 4 successive p' differing=768 maxAbs=2.97       scale=1.936
+  PASS L2 distorted q16  all-Neumann    least-squares gradient differing=0 fallbackCells=0 obliqueEntries=64 3dCells=0 skipped=0 maxAbs=0          scale=2.034e+305
+  FAIL L3 distorted q16  green_gauss  I1[0] I2[0,sweeps/closure] I3[0] I4[0] I5[256] I6[0]
+  FAIL L3 distorted q16  least_squares I1[0] I2[0,exact] I3[0] I4[0] I5[256] I6[0]
+       [distorted q16/mixed fixedValuePatches=2 lsFallbackCells=0 lsOblique=32 resident=200208 B]
+  FAIL distorted q16  mixed          uniform     uniform     green_gauss  grad[d=0] inc[d=212] u[d=212] v[d=0] w[d=0] maxAbs=6.87       scaleG=171.6      scaleU=3.752     
+  FAIL distorted q16  mixed          uniform     uniform     least_squares grad[d=0] inc[d=31] u[d=31] v[d=0] w[d=0] maxAbs=5.12       scaleG=127.9      scaleU=2.877     
+  FAIL distorted q16  mixed          uniform     nonuniform  green_gauss  grad[d=0] inc[d=210] u[d=210] v[d=0] w[d=0] maxAbs=5.16       scaleG=171.6      scaleU=3.667     
+  FAIL distorted q16  mixed          uniform     nonuniform  least_squares grad[d=0] inc[d=31] u[d=31] v[d=0] w[d=0] maxAbs=3.85       scaleG=127.9      scaleU=2.823     
+  FAIL distorted q16  mixed          linear x    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.154      scaleG=74.54      scaleU=1.836     
+  FAIL distorted q16  mixed          linear x    uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.167      scaleG=55.62      scaleU=1.458     
+  FAIL distorted q16  mixed          linear x    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.296      scaleG=74.54      scaleU=1.899     
+  FAIL distorted q16  mixed          linear x    nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=0.296      scaleG=55.62      scaleU=1.505     
+  FAIL distorted q16  mixed          linear y    uniform     green_gauss  grad[d=0] inc[d=255] u[d=255] v[d=0] w[d=0] maxAbs=2.34       scaleG=58.57      scaleU=1.576     
+  FAIL distorted q16  mixed          linear y    uniform     least_squares grad[d=0] inc[d=78] u[d=78] v[d=0] w[d=0] maxAbs=1.75       scaleG=43.7       scaleU=1.492     
+  FAIL distorted q16  mixed          linear y    nonuniform  green_gauss  grad[d=0] inc[d=255] u[d=255] v[d=0] w[d=0] maxAbs=1.9        scaleG=58.57      scaleU=1.492     
+  FAIL distorted q16  mixed          linear y    nonuniform  least_squares grad[d=0] inc[d=83] u[d=83] v[d=0] w[d=0] maxAbs=1.42       scaleG=43.7       scaleU=1.492     
+  FAIL distorted q16  mixed          nonuniform  uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.51       scaleG=254.9      scaleU=5.37      
+  FAIL distorted q16  mixed          nonuniform  uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.5        scaleG=188.7      scaleU=4.046     
+  FAIL distorted q16  mixed          nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=254.9      scaleU=3.93      
+  FAIL distorted q16  mixed          nonuniform  nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=188.7      scaleU=2.982     
+  FAIL distorted q16  mixed          negative    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.51       scaleG=254.9      scaleU=4.836     
+  FAIL distorted q16  mixed          negative    uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.5        scaleG=188.7      scaleU=3.513     
+  FAIL distorted q16  mixed          negative    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=254.9      scaleU=3.342     
+  FAIL distorted q16  mixed          negative    nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=188.7      scaleU=2.394     
+  FAIL distorted q16  mixed          nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=254.9      scaleU=3.93      
+  FAIL distorted q16  mixed          nonuniform  nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.97       scaleG=188.7      scaleU=2.982     
+  FAIL L1b distorted q16  green_gauss  reused buffers, 4 successive p' differing=768 maxAbs=2.97       scale=3.93
+  FAIL L1b distorted q16  least_squares reused buffers, 4 successive p' differing=768 maxAbs=2.97       scale=2.982
+  PASS L2 distorted q16  mixed          least-squares gradient differing=0 fallbackCells=0 obliqueEntries=32 3dCells=0 skipped=0 maxAbs=0          scale=4.917e+306
+  FAIL L3 distorted q16  green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[256] I6[0]
+  FAIL L3 distorted q16  least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[256] I6[0]
+       [distorted q16/all-FixedValue fixedValuePatches=4 lsFallbackCells=0 lsOblique=0 resident=198416 B]
+  FAIL distorted q16  all-FixedValue uniform     uniform     green_gauss  grad[d=0] inc[d=241] u[d=241] v[d=0] w[d=0] maxAbs=6.87       scaleG=171.6      scaleU=4.002     
+  FAIL distorted q16  all-FixedValue uniform     uniform     least_squares grad[d=0] inc[d=60] u[d=60] v[d=0] w[d=0] maxAbs=5.12       scaleG=127.9      scaleU=3.127     
+  FAIL distorted q16  all-FixedValue uniform     nonuniform  green_gauss  grad[d=0] inc[d=239] u[d=239] v[d=0] w[d=0] maxAbs=13.2       scaleG=171.6      scaleU=6.976     
+  FAIL distorted q16  all-FixedValue uniform     nonuniform  least_squares grad[d=0] inc[d=60] u[d=60] v[d=0] w[d=0] maxAbs=9.87       scaleG=127.9      scaleU=5.337     
+  FAIL distorted q16  all-FixedValue linear x    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=3.17       scaleG=79.36      scaleU=2.157     
+  FAIL distorted q16  all-FixedValue linear x    uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.33       scaleG=58.24      scaleU=1.734     
+  FAIL distorted q16  all-FixedValue linear x    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=6.04       scaleG=79.36      scaleU=3.421     
+  FAIL distorted q16  all-FixedValue linear x    nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=4.46       scaleG=58.24      scaleU=2.63      
+  FAIL distorted q16  all-FixedValue linear y    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=2.37       scaleG=62.36      scaleU=1.591     
+  FAIL distorted q16  all-FixedValue linear y    uniform     least_squares grad[d=0] inc[d=92] u[d=92] v[d=0] w[d=0] maxAbs=1.78       scaleG=45.76      scaleU=1.492     
+  FAIL distorted q16  all-FixedValue linear y    nonuniform  green_gauss  grad[d=0] inc[d=255] u[d=255] v[d=0] w[d=0] maxAbs=4.83       scaleG=62.36      scaleU=2.015     
+  FAIL distorted q16  all-FixedValue linear y    nonuniform  least_squares grad[d=0] inc[d=96] u[d=96] v[d=0] w[d=0] maxAbs=3.63       scaleG=45.76      scaleU=1.492     
+  FAIL distorted q16  all-FixedValue nonuniform  uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.85       scaleG=260        scaleU=5.439     
+  FAIL distorted q16  all-FixedValue nonuniform  uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.75       scaleG=192.5      scaleU=4.089     
+  FAIL distorted q16  all-FixedValue nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=4.1        scaleG=260        scaleU=5.155     
+  FAIL distorted q16  all-FixedValue nonuniform  nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=3.87       scaleG=192.5      scaleU=3.887     
+  FAIL distorted q16  all-FixedValue negative    uniform     green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.85       scaleG=260        scaleU=4.964     
+  FAIL distorted q16  all-FixedValue negative    uniform     least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=1.75       scaleG=192.5      scaleU=3.616     
+  FAIL distorted q16  all-FixedValue negative    nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=4.1        scaleG=260        scaleU=4.639     
+  FAIL distorted q16  all-FixedValue negative    nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=3.87       scaleG=192.5      scaleU=3.37      
+  FAIL distorted q16  all-FixedValue nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=4.1        scaleG=260        scaleU=5.155     
+  FAIL distorted q16  all-FixedValue nonuniform  nonuniform  least_squares grad[d=0] inc[d=256] u[d=256] v[d=0] w[d=0] maxAbs=3.87       scaleG=192.5      scaleU=3.887     
+  FAIL L1b distorted q16  green_gauss  reused buffers, 4 successive p' differing=768 maxAbs=6.04       scale=5.155
+  FAIL L1b distorted q16  least_squares reused buffers, 4 successive p' differing=768 maxAbs=4.46       scale=3.887
+  PASS L2 distorted q16  all-FixedValue least-squares gradient differing=0 fallbackCells=0 obliqueEntries=0 3dCells=0 skipped=0 maxAbs=0          scale=5.953e+306
+  FAIL L3 distorted q16  green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[256] I6[0]
+  FAIL L3 distorted q16  least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[256] I6[0]
+  FAIL L4a distorted q16  scheme=0 green_gauss  controlled p' differing=256 maxAbs=101        scale=190.4
+  FAIL L4a distorted q16  scheme=0 least_squares controlled p' differing=256 maxAbs=98.9       scale=188.7
+       [warped 3d 3/all-Neumann fixedValuePatches=0 lsFallbackCells=0 lsOblique=54 resident=38248 B]
+  FAIL warped 3d 3    all-Neumann    uniform     uniform     green_gauss  grad[d=0] inc[d=6] u[d=6] v[d=0] w[d=0] maxAbs=5.55e-17   scaleG=3.277e-15  scaleU=1.363     
+  FAIL warped 3d 3    all-Neumann    uniform     nonuniform  green_gauss  grad[d=0] inc[d=6] u[d=6] v[d=0] w[d=0] maxAbs=1.11e-16   scaleG=3.277e-15  scaleU=1.363     
+  FAIL warped 3d 3    all-Neumann    linear x    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.14       scaleG=3.5        scaleU=1.293     
+  FAIL warped 3d 3    all-Neumann    linear x    uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.14       scaleG=3.5        scaleU=1.293     
+  FAIL warped 3d 3    all-Neumann    linear x    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.24       scaleG=3.5        scaleU=1.29      
+  FAIL warped 3d 3    all-Neumann    linear x    nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.24       scaleG=3.5        scaleU=1.29      
+  FAIL warped 3d 3    all-Neumann    linear y    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.000888   scaleG=2.751      scaleU=1.362     
+  FAIL warped 3d 3    all-Neumann    linear y    uniform     least_squares grad[d=0] inc[d=18] u[d=18] v[d=0] w[d=0] maxAbs=0.000923   scaleG=2.75       scaleU=1.363     
+  FAIL warped 3d 3    all-Neumann    linear y    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.00185    scaleG=2.751      scaleU=1.362     
+  FAIL warped 3d 3    all-Neumann    linear y    nonuniform  least_squares grad[d=0] inc[d=18] u[d=18] v[d=0] w[d=0] maxAbs=0.00147    scaleG=2.75       scaleU=1.363     
+  FAIL warped 3d 3    all-Neumann    linear z    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.000833   scaleG=1.875      scaleU=1.363     
+  FAIL warped 3d 3    all-Neumann    linear z    uniform     least_squares grad[d=0] inc[d=18] u[d=18] v[d=0] w[d=0] maxAbs=0.000642   scaleG=1.875      scaleU=1.362     
+  FAIL warped 3d 3    all-Neumann    linear z    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.0014     scaleG=1.875      scaleU=1.363     
+  FAIL warped 3d 3    all-Neumann    linear z    nonuniform  least_squares grad[d=0] inc[d=18] u[d=18] v[d=0] w[d=0] maxAbs=0.000895   scaleG=1.875      scaleU=1.362     
+  FAIL warped 3d 3    all-Neumann    nonuniform  uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.222      scaleG=31.46      scaleU=1.375     
+  FAIL warped 3d 3    all-Neumann    nonuniform  uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.333      scaleG=31.51      scaleU=1.384     
+  FAIL warped 3d 3    all-Neumann    nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.451      scaleG=31.46      scaleU=1.378     
+  FAIL warped 3d 3    all-Neumann    nonuniform  nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.698      scaleG=31.51      scaleU=1.39      
+  FAIL warped 3d 3    all-Neumann    negative    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.222      scaleG=31.46      scaleU=1.444     
+  FAIL warped 3d 3    all-Neumann    negative    uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.333      scaleG=31.51      scaleU=1.446     
+  FAIL warped 3d 3    all-Neumann    negative    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.451      scaleG=31.46      scaleU=1.51      
+  FAIL warped 3d 3    all-Neumann    negative    nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.698      scaleG=31.51      scaleU=1.511     
+  FAIL L1b warped 3d 3    green_gauss  reused buffers, 4 successive p' differing=81 maxAbs=0.451      scale=1.51
+  FAIL L1b warped 3d 3    least_squares reused buffers, 4 successive p' differing=81 maxAbs=0.698      scale=1.511
+  PASS L2 warped 3d 3    all-Neumann    least-squares gradient differing=0 fallbackCells=0 obliqueEntries=54 3dCells=27 skipped=0 maxAbs=0          scale=3.013e+305
+  FAIL L3 warped 3d 3    green_gauss  I1[0] I2[0,sweeps/closure] I3[0] I4[0] I5[27] I6[0]
+  FAIL L3 warped 3d 3    least_squares I1[0] I2[0,exact] I3[0] I4[0] I5[27] I6[0]
+       [warped 3d 3/mixed fixedValuePatches=3 lsFallbackCells=0 lsOblique=27 resident=36736 B]
+  FAIL warped 3d 3    mixed          uniform     uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.15       scaleG=31.66      scaleU=1.358     
+  FAIL warped 3d 3    mixed          uniform     uniform     least_squares grad[d=0] inc[d=19] u[d=19] v[d=0] w[d=0] maxAbs=0.871      scaleG=23.25      scaleU=1.349     
+  FAIL warped 3d 3    mixed          uniform     nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.35       scaleG=31.66      scaleU=1.358     
+  FAIL warped 3d 3    mixed          uniform     nonuniform  least_squares grad[d=0] inc[d=19] u[d=19] v[d=0] w[d=0] maxAbs=1.02       scaleG=23.25      scaleU=1.348     
+  FAIL warped 3d 3    mixed          linear x    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.144      scaleG=12.67      scaleU=1.292     
+  FAIL warped 3d 3    mixed          linear x    uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.148      scaleG=9.292      scaleU=1.289     
+  FAIL warped 3d 3    mixed          linear x    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.24       scaleG=12.67      scaleU=1.288     
+  FAIL warped 3d 3    mixed          linear x    nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.24       scaleG=9.292      scaleU=1.286     
+  FAIL warped 3d 3    mixed          linear y    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.365      scaleG=9.762      scaleU=1.363     
+  FAIL warped 3d 3    mixed          linear y    uniform     least_squares grad[d=0] inc[d=19] u[d=19] v[d=0] w[d=0] maxAbs=0.276      scaleG=7.216      scaleU=1.363     
+  FAIL warped 3d 3    mixed          linear y    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.427      scaleG=9.762      scaleU=1.363     
+  FAIL warped 3d 3    mixed          linear y    nonuniform  least_squares grad[d=0] inc[d=19] u[d=19] v[d=0] w[d=0] maxAbs=0.322      scaleG=7.216      scaleU=1.363     
+  FAIL warped 3d 3    mixed          linear z    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.242      scaleG=6.192      scaleU=1.362     
+  FAIL warped 3d 3    mixed          linear z    uniform     least_squares grad[d=0] inc[d=19] u[d=19] v[d=0] w[d=0] maxAbs=0.182      scaleG=4.631      scaleU=1.362     
+  FAIL warped 3d 3    mixed          linear z    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.291      scaleG=6.192      scaleU=1.362     
+  FAIL warped 3d 3    mixed          linear z    nonuniform  least_squares grad[d=0] inc[d=19] u[d=19] v[d=0] w[d=0] maxAbs=0.219      scaleG=4.631      scaleU=1.362     
+  FAIL warped 3d 3    mixed          nonuniform  uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.43       scaleG=43.88      scaleU=1.411     
+  FAIL warped 3d 3    mixed          nonuniform  uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.23       scaleG=32.71      scaleU=1.354     
+  FAIL warped 3d 3    mixed          nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.15       scaleG=43.88      scaleU=2.323     
+  FAIL warped 3d 3    mixed          nonuniform  nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.993      scaleG=32.71      scaleU=1.827     
+  FAIL warped 3d 3    mixed          negative    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.43       scaleG=43.88      scaleU=1.657     
+  FAIL warped 3d 3    mixed          negative    uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.23       scaleG=32.71      scaleU=1.558     
+  FAIL warped 3d 3    mixed          negative    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.15       scaleG=43.88      scaleU=1.898     
+  FAIL warped 3d 3    mixed          negative    nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.993      scaleG=32.71      scaleU=1.569     
+  FAIL L1b warped 3d 3    green_gauss  reused buffers, 4 successive p' differing=81 maxAbs=1.15       scale=2.323
+  FAIL L1b warped 3d 3    least_squares reused buffers, 4 successive p' differing=81 maxAbs=0.993      scale=1.827
+  PASS L2 warped 3d 3    mixed          least-squares gradient differing=0 fallbackCells=0 obliqueEntries=27 3dCells=27 skipped=0 maxAbs=0          scale=1.606e+306
+  FAIL L3 warped 3d 3    green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[27] I6[0]
+  FAIL L3 warped 3d 3    least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[27] I6[0]
+       [warped 3d 3/all-FixedValue fixedValuePatches=6 lsFallbackCells=0 lsOblique=0 resident=35224 B]
+  FAIL warped 3d 3    all-FixedValue uniform     uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.31       scaleG=32.67      scaleU=1.529     
+  FAIL warped 3d 3    all-FixedValue uniform     uniform     least_squares grad[d=0] inc[d=26] u[d=26] v[d=0] w[d=0] maxAbs=0.957      scaleG=23.93      scaleU=1.368     
+  FAIL warped 3d 3    all-FixedValue uniform     nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=2.65       scaleG=32.67      scaleU=2.43      
+  FAIL warped 3d 3    all-FixedValue uniform     nonuniform  least_squares grad[d=0] inc[d=26] u[d=26] v[d=0] w[d=0] maxAbs=1.94       scaleG=23.93      scaleU=1.996     
+  FAIL warped 3d 3    all-FixedValue linear x    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.491      scaleG=12.99      scaleU=1.292     
+  FAIL warped 3d 3    all-FixedValue linear x    uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.322      scaleG=9.406      scaleU=1.289     
+  FAIL warped 3d 3    all-FixedValue linear x    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.986      scaleG=12.99      scaleU=1.343     
+  FAIL warped 3d 3    all-FixedValue linear x    nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.637      scaleG=9.406      scaleU=1.286     
+  FAIL warped 3d 3    all-FixedValue linear y    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.404      scaleG=10.09      scaleU=1.363     
+  FAIL warped 3d 3    all-FixedValue linear y    uniform     least_squares grad[d=0] inc[d=25] u[d=25] v[d=0] w[d=0] maxAbs=0.292      scaleG=7.301      scaleU=1.363     
+  FAIL warped 3d 3    all-FixedValue linear y    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.842      scaleG=10.09      scaleU=1.363     
+  FAIL warped 3d 3    all-FixedValue linear y    nonuniform  least_squares grad[d=0] inc[d=25] u[d=25] v[d=0] w[d=0] maxAbs=0.613      scaleG=7.301      scaleU=1.363     
+  FAIL warped 3d 3    all-FixedValue linear z    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.258      scaleG=6.459      scaleU=1.362     
+  FAIL warped 3d 3    all-FixedValue linear z    uniform     least_squares grad[d=0] inc[d=25] u[d=25] v[d=0] w[d=0] maxAbs=0.189      scaleG=4.747      scaleU=1.362     
+  FAIL warped 3d 3    all-FixedValue linear z    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=0.57       scaleG=6.459      scaleU=1.362     
+  FAIL warped 3d 3    all-FixedValue linear z    nonuniform  least_squares grad[d=0] inc[d=25] u[d=25] v[d=0] w[d=0] maxAbs=0.417      scaleG=4.747      scaleU=1.362     
+  FAIL warped 3d 3    all-FixedValue nonuniform  uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.48       scaleG=46.96      scaleU=1.667     
+  FAIL warped 3d 3    all-FixedValue nonuniform  uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.24       scaleG=34.91      scaleU=1.547     
+  FAIL warped 3d 3    all-FixedValue nonuniform  nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=2.67       scaleG=46.96      scaleU=2.352     
+  FAIL warped 3d 3    all-FixedValue nonuniform  nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=2.24       scaleG=34.91      scaleU=2.046     
+  FAIL warped 3d 3    all-FixedValue negative    uniform     green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.48       scaleG=46.96      scaleU=1.653     
+  FAIL warped 3d 3    all-FixedValue negative    uniform     least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=1.24       scaleG=34.91      scaleU=1.556     
+  FAIL warped 3d 3    all-FixedValue negative    nonuniform  green_gauss  grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=2.67       scaleG=46.96      scaleU=2.104     
+  FAIL warped 3d 3    all-FixedValue negative    nonuniform  least_squares grad[d=0] inc[d=27] u[d=27] v[d=0] w[d=0] maxAbs=2.24       scaleG=34.91      scaleU=1.809     
+  FAIL L1b warped 3d 3    green_gauss  reused buffers, 4 successive p' differing=81 maxAbs=2.67       scale=2.352
+  FAIL L1b warped 3d 3    least_squares reused buffers, 4 successive p' differing=81 maxAbs=2.24       scale=2.046
+  PASS L2 warped 3d 3    all-FixedValue least-squares gradient differing=0 fallbackCells=0 obliqueEntries=0 3dCells=27 skipped=0 maxAbs=0          scale=1.767e+306
+  FAIL L3 warped 3d 3    green_gauss  I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[27] I6[0]
+  FAIL L3 warped 3d 3    least_squares I1[0] I2[0,fixedvalue p'] I3[0] I4[0] I5[27] I6[0]
+  FAIL L4a warped 3d 3    scheme=0 green_gauss  controlled p' differing=27 maxAbs=433        scale=1285
+  FAIL L4a warped 3d 3    scheme=0 least_squares controlled p' differing=27 maxAbs=390        scale=1310
+
+=== coverage ===
+  2D / 3D direct cases              132 / 126
+  green_gauss / least_squares cases 129 / 129
+  isolated LS gradient cases        48
+  LS cells taking the GG fallback   0
+  LS oblique-Neumann entries        177
+  LS three-dimensional cells        81
+  invariant cases                   12
+  closure-exact cells (I2 support)  526
+  cells where I2 is exactly claimed  283
+  cells where I3 is exactly claimed  0
+  correction-direction sign checks  1698
+  reused-buffer successive calls    48
+  2D cases with a non-zero predictor z  132
+  2D cases taking the 3D branch     6
+  controlled p' chain cases         4
+  full chain cases (GPU solve)      0
+  values compared                   377196
+  bitwise-identical                 339640
+  max absolute discrepancy          433
+  max relative discrepancy          3.12e+03
+
+cases=292 failures=162
+VELOCITY CORRECTION EQUIVALENCE: FAIL

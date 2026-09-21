@@ -1,0 +1,59 @@
+# rl6_velocity_authority_not_marked
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the resident velocity correction stops marking velocity DeviceOwned, so the authority model reports a Synchronized field whose host copy is in fact stale. No number changes; only the authority contract does, which is what the dirty-state suite exists to assert.
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+  carryFieldDevice(nc, impl_->correctedVelocity.z, impl_->velocity.z);
+  impl_->velocityAuthority = FieldAuthority::DeviceOwned;
+# --- became ---
+  carryFieldDevice(nc, impl_->correctedVelocity.z, impl_->velocity.z);
+  // MUTATED: the authority transition is missing.
+# verdict: UNDETECTED
+# first divergence: n/a
+
+########## harness dirty_state  -> exit 0 (UNDETECTED) ##########
+=== GPU-PIPE-001: field authority, dirty state and lifecycle ===
+
+--- 1. host initialized -> upload -> GPU authoritative ---
+  PASS before upload, velocity is HostOnly
+  PASS before upload, pressure is HostOnly
+  PASS after uploadInitialState, velocity is Synchronized
+  PASS after uploadInitialState, pressure is Synchronized
+  PASS after uploadInitialState, massFlux is Synchronized
+  PASS after uploadInitialState, viscosity is Synchronized
+
+--- 2. GPU modifies a field -> host is stale until requested ---
+  PASS after updatePressure, pressure is DeviceOwned (host copy stale)
+       authority now: pressure=DeviceOwned
+
+--- 3. a host read triggers exactly the required copy ---
+  PASS downloading a DeviceOwned field costs exactly ONE D2H
+  PASS after download, pressure is Synchronized
+  PASS the device pressure update is bitwise 0 + 0.3*1.0 == 0.3 in every cell
+
+--- 4. a repeated read with no device write costs NOTHING ---
+       D2H for a Synchronized re-read: 1 (the caller asked for the data)
+  PASS re-reading leaves pressure Synchronized
+
+--- 5/6. an outer iteration performs NO field upload ---
+  PASS beginIterationResident transfers nothing at all
+  PASS setViscosity costs exactly ONE H2D when the model changed it
+
+--- 7. host mutation during a solve is UNSUPPORTED, and says so ---
+  PASS no API exposes host-side field mutation mid-solve (enforced by absence, see ownership.md)
+
+--- lifecycle: a second prepare() on a DIFFERENT mesh ---
+  PASS prepare() succeeds on a larger mesh
+  PASS a freshly prepared object starts HostOnly -- no stale state carried in
+  PASS the larger mesh's fields are sized to the LARGER mesh, not the previous one
+
+--- lifecycle: beginIterationResident before any upload is REFUSED ---
+  PASS beginIterationResident throws when there is no resident state to continue from
+
+--- lifecycle: re-uploading initial state resets authority ---
+  PASS a restart via uploadInitialState returns every field to Synchronized
+  PASS the restarted pressure is the HOST value, not the previous solve's 0.3
+
+DIRTY STATE / LIFECYCLE: PASS

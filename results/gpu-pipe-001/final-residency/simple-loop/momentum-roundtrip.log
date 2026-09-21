@@ -1,0 +1,73 @@
+# momentum_roundtrip.cpp 
+# date: 2026-09-20T15:55:10Z
+# libcfdcuda.a: 0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: momentum host round trip, measured ===
+  --- cavity 2d 40  [Upwind]  cells=1600  components=2 ---
+    PASS component 0  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      2       25600      8      302096
+    solve (up + down)       8      202240    106       35680
+    setMomentumSolution     2       25600      0           0
+    TOTAL per iteration    12      253440    114      337776
+    assemble+rebuild 2.174 ms   solve 14.472 ms
+  --- cavity 2d 40  [QUICK]  cells=1600  components=2 ---
+    PASS component 0  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      2       25600      8      302096
+    solve (up + down)       8      202240    106       35680
+    setMomentumSolution     2       25600      0           0
+    TOTAL per iteration    12      253440    114      337776
+    assemble+rebuild 1.547 ms   solve 12.393 ms
+  --- cavity 2d 40  [LinearUpwind]  cells=1600  components=2 ---
+    PASS component 0  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      2       25600      8      302096
+    solve (up + down)       8      202240    106       35680
+    setMomentumSolution     2       25600      0           0
+    TOTAL per iteration    12      253440    114      337776
+    assemble+rebuild 1.644 ms   solve 12.176 ms
+  --- cavity 2d 40  [Central]  cells=1600  components=2 ---
+    PASS component 0  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      2       25600      8      302096
+    solve (up + down)       8      202240    106       35680
+    setMomentumSolution     2       25600      0           0
+    TOTAL per iteration    12      253440    114      337776
+    assemble+rebuild 1.415 ms   solve 11.434 ms
+  --- channel 2d 40  [Upwind]  cells=1600  components=2 ---
+    PASS component 0  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 7840  device nnz 7840  host nnz 7840  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      2       25600      8      302096
+    solve (up + down)       8      202240     56       30808
+    setMomentumSolution     2       25600      0           0
+    TOTAL per iteration    12      253440     64      332904
+    assemble+rebuild 1.858 ms   solve 6.144 ms
+  --- cavity 3d 8  [Upwind]  cells=512  components=3 ---
+    PASS component 0  full 3200  device nnz 3200  host nnz 3200  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 3200  device nnz 3200  host nnz 3200  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 2  full 3200  device nnz 3200  host nnz 3200  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      3       12288     12      178200
+    solve (up + down)      12      113664    178       17136
+    setMomentumSolution     3       12288      0           0
+    TOTAL per iteration    18      138240    190      195336
+    assemble+rebuild 2.436 ms   solve 27.025 ms
+  --- cavity 2d 160  [Upwind]  cells=25600  components=2 ---
+    PASS component 0  full 127360  device nnz 127360  host nnz 127360  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    PASS component 1  full 127360  device nnz 127360  host nnz 127360  dropped 0  column order matches the mesh pattern  (device matrix == host matrix)
+    window                H2D   H2D bytes      D2H   D2H bytes
+    assemble (D2H out)      2      409600      8     4894736
+    solve (up + down)       8     3266560    104      551200
+    setMomentumSolution     2      409600      0           0
+    TOTAL per iteration    12     4085760    112     5445936
+    assemble+rebuild 12.360 ms   solve 14.156 ms
+
+MOMENTUM ROUND TRIP: PASS (device structure == host structure everywhere measured)
+# exit code: 0

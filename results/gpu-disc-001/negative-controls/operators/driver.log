@@ -1,0 +1,226 @@
+baseline 5d805de853b491829dc41688761c906053cf7f409a12a5813052d2e1296de523  cuda/CMakeLists.txt
+baseline 4e2a1771b812cc64118fb4fc324d3923ca37c10119894c4ebe45408804ce9e8f  cuda/kernels/DeviceBoundaryConditions.cpp
+baseline 6ddb990c6933cc799066f6963dfb0e839d18e305ec4f7a32517e8ea001581100  cuda/kernels/DeviceConvectionKernel.cu
+baseline ab99f2ddd2d29aadd458f27be4c88045572e9ac6c9c2c0ad207d2400e466808b  cuda/kernels/DeviceDiffusionKernel.cu
+baseline 4fc735828155a9c2e6dfe7e79a0c994567a9c22277861b8657ef039c19206de3  cuda/kernels/DeviceFaceFluxKernel.cu
+baseline 662b72d49e90557283a4f6c4699d99e0112bc8b75a3b7f1adb4b53099fd7e74a  cuda/kernels/DeviceGradientKernel.cu
+baseline c8a5afeedbec2b1527374568a194fa94c37ec7528675100d15f42fe16d4c1f46  cuda/kernels/DeviceMomentumAssemblyKernel.cu
+baseline e3fcabdf09dc1213e49ee13ff2f246351ca44b6ede1c98af217cfb519238e505  cuda/kernels/DeviceMomentumConvectionKernel.cu
+baseline b607713a298db48ba10563e19147b65159d6433cdb71e1fb303e94bd0c680e99  cuda/kernels/DeviceMomentumResponseKernel.cu
+baseline 7781818d4c984e1d71351517630749def344946da9ba03cd0968ea2c24434dae  include/cfd/gpu/DeviceBoundaryConditions.hpp
+baseline dcacc587faf627a789eb0abedc0c91b825937003d063e810f79b157be9f0c546  include/cfd/gpu/DeviceConvectionTerms.hpp
+baseline 29dd753b0aa132fbe7bf4103e2cc5705076befd3b8559b8cba8136e7f70385f1  include/cfd/gpu/DeviceDiffusionTerms.hpp
+
+compiled 8 harness objects
+
+=== b1_interior_weights_swapped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [54s]
+=== b2_boundary_value_ignores_bc (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [55s]
+=== b3_grad002_claim_correction_dropped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [56s]
+=== b4_oblique_neumann_tangential_dropped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [56s]
+=== b5_owner_neighbour_area_orientation (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [59s]
+=== c1_face_gradient_divide (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [106s]
+=== c2_ignores_correction_flag (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [107s]
+=== c3_rhs_neighbour_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== c4_diagonal_sign_reversed (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [59s]
+=== c5_offdiagonal_omitted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [60s]
+=== d1_zero_flux_picks_neighbour (null) ===
+  mutated: UNDETECTED
+  restored: sha-match=True repass=True  ok  [58s]
+=== d2_reversed_flux_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [57s]
+=== d3_central_weights_swapped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [57s]
+=== d4_offdiagonal_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [57s]
+=== d5_rhs_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [56s]
+=== d6_upwind_downwind_swapped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [57s]
+=== d7_central_divides (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [111s]
+=== d8_symmetry_keeps_normal_x (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [112s]
+=== d9_outlet_returns_constant_x (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [107s]
+=== d10_deferred_rhs_same_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== d11_velocity_gradient_divide (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== d12_2d_skew_z_carried (null) ===
+  mutated: UNDETECTED
+  restored: sha-match=True repass=True  ok  [62s]
+=== d13_3d_skew_wrong_gradient (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== e1_wrong_type_lookup (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [52s]
+=== e2_component_swap (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== e3_ghost_formula (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== e4_wall_inlet_value_corrupted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== e5_symmetry_ignores_z (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [60s]
+=== e6_prescribes_inverted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== f1_boundary_diffusion_diagonal_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [91s]
+=== f2_pressure_source_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [92s]
+=== f3_relax_rhs_dropped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [95s]
+=== f4_relax_factor_rewritten (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [94s]
+=== f5_component_lookup_always_u (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [91s]
+=== f6_internal_diffusion_offdiag_dropped (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [91s]
+=== f7_boundary_rhs_wrong_coefficient (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [90s]
+=== g1_one_over_ap (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [56s]
+=== g2_sign_reversal (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [56s]
+=== g3_inverted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [56s]
+=== g4_indexing_off_by_one (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [57s]
+=== g5_stale_unrelaxed_diagonal (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [97s]
+=== g6_row_first_entry (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [95s]
+=== h1_rhie_chow_removed (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [58s]
+=== h2_gradient_term_added (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [59s]
+=== h3_owner_response_only (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [58s]
+=== h4_swapped_weights (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [58s]
+=== h5_area_vector_sign (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [59s]
+=== h6_density_omitted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [59s]
+=== h7_boundary_raw_owner_velocity (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [59s]
+=== h8_axis_aligned_vector_form (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [60s]
+=== x1_fmad_contraction_enabled (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [85s]
+
+=== GPU-DISC-001 operator-layer negative controls ===
+  b1_interior_weights_swapped                          detect  DETECTED      sha=True repass=True  ok
+  b2_boundary_value_ignores_bc                         detect  DETECTED      sha=True repass=True  ok
+  b3_grad002_claim_correction_dropped                  detect  DETECTED      sha=True repass=True  ok
+  b4_oblique_neumann_tangential_dropped                detect  DETECTED      sha=True repass=True  ok
+  b5_owner_neighbour_area_orientation                  detect  DETECTED      sha=True repass=True  ok
+  c1_face_gradient_divide                              detect  DETECTED      sha=True repass=True  ok
+  c2_ignores_correction_flag                           detect  DETECTED      sha=True repass=True  ok
+  c3_rhs_neighbour_sign                                detect  DETECTED      sha=True repass=True  ok
+  c4_diagonal_sign_reversed                            detect  DETECTED      sha=True repass=True  ok
+  c5_offdiagonal_omitted                               detect  DETECTED      sha=True repass=True  ok
+  d1_zero_flux_picks_neighbour                         null    UNDETECTED    sha=True repass=True  ok
+  d2_reversed_flux_sign                                detect  DETECTED      sha=True repass=True  ok
+  d3_central_weights_swapped                           detect  DETECTED      sha=True repass=True  ok
+  d4_offdiagonal_sign                                  detect  DETECTED      sha=True repass=True  ok
+  d5_rhs_sign                                          detect  DETECTED      sha=True repass=True  ok
+  d6_upwind_downwind_swapped                           detect  DETECTED      sha=True repass=True  ok
+  d7_central_divides                                   detect  DETECTED      sha=True repass=True  ok
+  d8_symmetry_keeps_normal_x                           detect  DETECTED      sha=True repass=True  ok
+  d9_outlet_returns_constant_x                         detect  DETECTED      sha=True repass=True  ok
+  d10_deferred_rhs_same_sign                           detect  DETECTED      sha=True repass=True  ok
+  d11_velocity_gradient_divide                         detect  DETECTED      sha=True repass=True  ok
+  d12_2d_skew_z_carried                                null    UNDETECTED    sha=True repass=True  ok
+  d13_3d_skew_wrong_gradient                           detect  DETECTED      sha=True repass=True  ok
+  e1_wrong_type_lookup                                 detect  DETECTED      sha=True repass=True  ok
+  e2_component_swap                                    detect  DETECTED      sha=True repass=True  ok
+  e3_ghost_formula                                     detect  DETECTED      sha=True repass=True  ok
+  e4_wall_inlet_value_corrupted                        detect  DETECTED      sha=True repass=True  ok
+  e5_symmetry_ignores_z                                detect  DETECTED      sha=True repass=True  ok
+  e6_prescribes_inverted                               detect  DETECTED      sha=True repass=True  ok
+  f1_boundary_diffusion_diagonal_sign                  detect  DETECTED      sha=True repass=True  ok
+  f2_pressure_source_sign                              detect  DETECTED      sha=True repass=True  ok
+  f3_relax_rhs_dropped                                 detect  DETECTED      sha=True repass=True  ok
+  f4_relax_factor_rewritten                            detect  DETECTED      sha=True repass=True  ok
+  f5_component_lookup_always_u                         detect  DETECTED      sha=True repass=True  ok
+  f6_internal_diffusion_offdiag_dropped                detect  DETECTED      sha=True repass=True  ok
+  f7_boundary_rhs_wrong_coefficient                    detect  DETECTED      sha=True repass=True  ok
+  g1_one_over_ap                                       detect  DETECTED      sha=True repass=True  ok
+  g2_sign_reversal                                     detect  DETECTED      sha=True repass=True  ok
+  g3_inverted                                          detect  DETECTED      sha=True repass=True  ok
+  g4_indexing_off_by_one                               detect  DETECTED      sha=True repass=True  ok
+  g5_stale_unrelaxed_diagonal                          detect  DETECTED      sha=True repass=True  ok
+  g6_row_first_entry                                   detect  DETECTED      sha=True repass=True  ok
+  h1_rhie_chow_removed                                 detect  DETECTED      sha=True repass=True  ok
+  h2_gradient_term_added                               detect  DETECTED      sha=True repass=True  ok
+  h3_owner_response_only                               detect  DETECTED      sha=True repass=True  ok
+  h4_swapped_weights                                   detect  DETECTED      sha=True repass=True  ok
+  h5_area_vector_sign                                  detect  DETECTED      sha=True repass=True  ok
+  h6_density_omitted                                   detect  DETECTED      sha=True repass=True  ok
+  h7_boundary_raw_owner_velocity                       detect  DETECTED      sha=True repass=True  ok
+  h8_axis_aligned_vector_form                          detect  DETECTED      sha=True repass=True  ok
+  x1_fmad_contraction_enabled                          detect  DETECTED      sha=True repass=True  ok
+
+observable controls:          49
+detected observable controls: 49/49
+documented null controls:     2
+RESULT: PASS

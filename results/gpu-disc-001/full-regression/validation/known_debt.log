@@ -1,0 +1,14 @@
+=== GPU-DISC-001R: known GPU BiCGSTAB restart asymmetry ===
+TODO.md reproducer: 2D cavity 40x40, outer tolerance 1e-6, budget 3000
+recorded at baseline 548401a -- NOT introduced here, NOT fixed here.
+
+  cpu (CPU solver, CPU disc)   status=MaxIterations              iterations=3000
+  gpu-pipe (GPU solver, CPU disc) status=PressureCorrectionFailure  iterations=1845
+  gpu-disc (GPU solver, GPU disc) status=PressureCorrectionFailure  iterations=1845
+
+=== has the debt BROADENED? ===
+  gpu-disc status matches gpu-pipe:     yes
+  gpu-disc iterations match gpu-pipe:   yes (1845 vs 1845)
+  reproducer actually triggered on gpu-pipe:  yes
+
+KNOWN DEBT: UNCHANGED -- GPU-DISC behaves exactly as the pre-existing GPU path

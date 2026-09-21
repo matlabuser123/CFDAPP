@@ -1,0 +1,626 @@
+# h6_density_omitted
+# layer:       rhie-chow
+# origin:      001H F6
+# expectation: detect
+# the density factor is omitted from the general coupling branch, so the coupling and the mass flux no longer share one density
+# mutation applied to cuda/kernels/DeviceFaceFluxKernel.cu
+# --- anchor ---
+  return density * magnitudeOf(rx, ry, rz) / distance;
+# --- became ---
+  return magnitudeOf(rx, ry, rz) / distance;
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness face_flux --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001H: CUDA predicted face flux / Rhie-Chow vs CPU (bitwise) ===
+CPU refs: physics::calculateMassFlux, pressure_velocity::rhieChow{FaceCorrection,MassFlux}
+
+       [distorted q16 faces=544 axisAligned=0 general=480 resident=221208 B]
+  FAIL L1 distorted q16  wall      zero        uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=4.02e-14   scaleL=0          scaleC=2.412e-13 
+  FAIL L1 distorted q16  all-five  zero        uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=4.02e-14   scaleL=0.1125     scaleC=2.412e-13 
+  FAIL L1 distorted q16  wall      zero        uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.74e-14   scaleL=0          scaleC=3.446e-13 
+  FAIL L1 distorted q16  all-five  zero        uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.74e-14   scaleL=0.1125     scaleC=3.446e-13 
+  FAIL L1 distorted q16  wall      zero        uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.34e-13   scaleL=0          scaleC=8.04e-13  
+  FAIL L1 distorted q16  all-five  zero        uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.34e-13   scaleL=0.1125     scaleC=8.04e-13  
+  FAIL L1 distorted q16  wall      zero        uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=2e-10      scaleL=0          scaleC=2.006e-10 
+  FAIL L1 distorted q16  all-five  zero        uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=2e-10      scaleL=93.58      scaleC=2.006e-10 
+  FAIL L1 distorted q16  wall      zero        uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.86e-10   scaleL=0          scaleC=2.866e-10 
+  FAIL L1 distorted q16  all-five  zero        uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.86e-10   scaleL=93.58      scaleC=2.866e-10 
+  FAIL L1 distorted q16  wall      zero        uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=6.68e-10   scaleL=0          scaleC=6.688e-10 
+  FAIL L1 distorted q16  all-five  zero        uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=6.68e-10   scaleL=93.58      scaleC=6.688e-10 
+  FAIL L1 distorted q16  wall      zero        uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.53e-14   scaleL=0          scaleC=3.92e-13  
+  FAIL L1 distorted q16  all-five  zero        uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.53e-14   scaleL=0.1125     scaleC=3.92e-13  
+  FAIL L1 distorted q16  wall      zero        uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=9.33e-14   scaleL=0          scaleC=5.599e-13 
+  FAIL L1 distorted q16  all-five  zero        uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=9.33e-14   scaleL=0.1125     scaleC=5.599e-13 
+  FAIL L1 distorted q16  wall      zero        uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.18e-13   scaleL=0          scaleC=1.307e-12 
+  FAIL L1 distorted q16  all-five  zero        uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.18e-13   scaleL=0.1125     scaleC=1.307e-12 
+  FAIL L1 distorted q16  wall      zero        uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.26e-10   scaleL=0          scaleC=3.26e-10  
+  FAIL L1 distorted q16  all-five  zero        uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.26e-10   scaleL=93.58      scaleC=3.26e-10  
+  FAIL L1 distorted q16  wall      zero        uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.65e-10   scaleL=0          scaleC=4.658e-10 
+  FAIL L1 distorted q16  all-five  zero        uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.65e-10   scaleL=93.58      scaleC=4.658e-10 
+  FAIL L1 distorted q16  wall      zero        uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.09e-09   scaleL=0          scaleC=1.087e-09 
+  FAIL L1 distorted q16  all-five  zero        uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.09e-09   scaleL=93.58      scaleC=1.087e-09 
+  FAIL L1 distorted q16  wall      zero        linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0          scaleC=4.327     
+  FAIL L1 distorted q16  all-five  zero        linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1125     scaleC=4.327     
+  FAIL L1 distorted q16  wall      zero        linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0          scaleC=6.181     
+  FAIL L1 distorted q16  all-five  zero        linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1125     scaleC=6.181     
+  FAIL L1 distorted q16  wall      zero        linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0          scaleC=14.42     
+  FAIL L1 distorted q16  all-five  zero        linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1125     scaleC=14.42     
+  FAIL L1 distorted q16  wall      zero        linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=0          scaleC=3599      
+  FAIL L1 distorted q16  all-five  zero        linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=93.58      scaleC=3599      
+  FAIL L1 distorted q16  wall      zero        linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=0          scaleC=5142      
+  FAIL L1 distorted q16  all-five  zero        linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=93.58      scaleC=5142      
+  FAIL L1 distorted q16  wall      zero        linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=0          scaleC=1.2e+04   
+  FAIL L1 distorted q16  all-five  zero        linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=93.58      scaleC=1.2e+04   
+  FAIL L1 distorted q16  wall      zero        linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0          scaleC=7.388     
+  FAIL L1 distorted q16  all-five  zero        linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1125     scaleC=7.388     
+  FAIL L1 distorted q16  wall      zero        linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0          scaleC=10.55     
+  FAIL L1 distorted q16  all-five  zero        linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1125     scaleC=10.55     
+  FAIL L1 distorted q16  wall      zero        linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0          scaleC=24.63     
+  FAIL L1 distorted q16  all-five  zero        linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1125     scaleC=24.63     
+  FAIL L1 distorted q16  wall      zero        linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=0          scaleC=6145      
+  FAIL L1 distorted q16  all-five  zero        linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=93.58      scaleC=6145      
+  FAIL L1 distorted q16  wall      zero        linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=0          scaleC=8779      
+  FAIL L1 distorted q16  all-five  zero        linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=93.58      scaleC=8779      
+  FAIL L1 distorted q16  wall      zero        linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=0          scaleC=2.048e+04 
+  FAIL L1 distorted q16  all-five  zero        linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=93.58      scaleC=2.048e+04 
+  FAIL L1 distorted q16  wall      zero        nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0          scaleC=8.978     
+  FAIL L1 distorted q16  all-five  zero        nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1125     scaleC=8.978     
+  FAIL L1 distorted q16  wall      zero        nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0          scaleC=12.83     
+  FAIL L1 distorted q16  all-five  zero        nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1125     scaleC=12.83     
+  FAIL L1 distorted q16  wall      zero        nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0          scaleC=29.93     
+  FAIL L1 distorted q16  all-five  zero        nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1125     scaleC=29.93     
+  FAIL L1 distorted q16  wall      zero        nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=0          scaleC=7468      
+  FAIL L1 distorted q16  all-five  zero        nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=93.58      scaleC=7468      
+  FAIL L1 distorted q16  wall      zero        nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=0          scaleC=1.067e+04 
+  FAIL L1 distorted q16  all-five  zero        nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=93.58      scaleC=1.067e+04 
+  FAIL L1 distorted q16  wall      zero        nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=0          scaleC=2.489e+04 
+  FAIL L1 distorted q16  all-five  zero        nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=93.58      scaleC=2.489e+04 
+  FAIL L1 distorted q16  wall      zero        nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0          scaleC=10.5      
+  FAIL L1 distorted q16  all-five  zero        nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1125     scaleC=10.5      
+  FAIL L1 distorted q16  wall      zero        nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0          scaleC=15        
+  FAIL L1 distorted q16  all-five  zero        nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1125     scaleC=15        
+  FAIL L1 distorted q16  wall      zero        nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0          scaleC=35.01     
+  FAIL L1 distorted q16  all-five  zero        nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1125     scaleC=35.01     
+  FAIL L1 distorted q16  wall      zero        nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=0          scaleC=8736      
+  FAIL L1 distorted q16  all-five  zero        nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=93.58      scaleC=8736      
+  FAIL L1 distorted q16  wall      zero        nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=0          scaleC=1.248e+04 
+  FAIL L1 distorted q16  all-five  zero        nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=93.58      scaleC=1.248e+04 
+  FAIL L1 distorted q16  wall      zero        nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=0          scaleC=2.912e+04 
+  FAIL L1 distorted q16  all-five  zero        nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=93.58      scaleC=2.912e+04 
+  FAIL L1 distorted q16  wall      uniform     uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=468] maxAbs=4.02e-14   scaleL=0.1105     scaleC=2.412e-13 
+  FAIL L1 distorted q16  all-five  uniform     uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=468] maxAbs=4.02e-14   scaleL=0.1125     scaleC=2.412e-13 
+  FAIL L1 distorted q16  wall      uniform     uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=471] maxAbs=5.74e-14   scaleL=0.1105     scaleC=3.446e-13 
+  FAIL L1 distorted q16  all-five  uniform     uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=471] maxAbs=5.74e-14   scaleL=0.1125     scaleC=3.446e-13 
+  FAIL L1 distorted q16  wall      uniform     uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=471] maxAbs=1.34e-13   scaleL=0.1105     scaleC=8.04e-13  
+  FAIL L1 distorted q16  all-five  uniform     uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=471] maxAbs=1.34e-13   scaleL=0.1125     scaleC=8.04e-13  
+  FAIL L1 distorted q16  wall      uniform     uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=476] maxAbs=2e-10      scaleL=91.88      scaleC=2.006e-10 
+  FAIL L1 distorted q16  all-five  uniform     uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=476] maxAbs=2e-10      scaleL=93.58      scaleC=2.006e-10 
+  FAIL L1 distorted q16  wall      uniform     uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=476] maxAbs=2.86e-10   scaleL=91.88      scaleC=2.866e-10 
+  FAIL L1 distorted q16  all-five  uniform     uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=476] maxAbs=2.86e-10   scaleL=93.58      scaleC=2.866e-10 
+  FAIL L1 distorted q16  wall      uniform     uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=6.68e-10   scaleL=91.88      scaleC=6.688e-10 
+  FAIL L1 distorted q16  all-five  uniform     uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=6.68e-10   scaleL=93.58      scaleC=6.688e-10 
+  FAIL L1 distorted q16  wall      uniform     uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=6.53e-14   scaleL=0.1105     scaleC=3.92e-13  
+  FAIL L1 distorted q16  all-five  uniform     uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=6.53e-14   scaleL=0.1125     scaleC=3.92e-13  
+  FAIL L1 distorted q16  wall      uniform     uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=470] maxAbs=9.33e-14   scaleL=0.1105     scaleC=5.599e-13 
+  FAIL L1 distorted q16  all-five  uniform     uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=470] maxAbs=9.33e-14   scaleL=0.1125     scaleC=5.599e-13 
+  FAIL L1 distorted q16  wall      uniform     uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=472] maxAbs=2.18e-13   scaleL=0.1105     scaleC=1.307e-12 
+  FAIL L1 distorted q16  all-five  uniform     uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=472] maxAbs=2.18e-13   scaleL=0.1125     scaleC=1.307e-12 
+  FAIL L1 distorted q16  wall      uniform     uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=475] maxAbs=3.26e-10   scaleL=91.88      scaleC=3.26e-10  
+  FAIL L1 distorted q16  all-five  uniform     uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=475] maxAbs=3.26e-10   scaleL=93.58      scaleC=3.26e-10  
+  FAIL L1 distorted q16  wall      uniform     uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=476] maxAbs=4.65e-10   scaleL=91.88      scaleC=4.658e-10 
+  FAIL L1 distorted q16  all-five  uniform     uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=476] maxAbs=4.65e-10   scaleL=93.58      scaleC=4.658e-10 
+  FAIL L1 distorted q16  wall      uniform     uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=1.09e-09   scaleL=91.88      scaleC=1.087e-09 
+  FAIL L1 distorted q16  all-five  uniform     uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=1.09e-09   scaleL=93.58      scaleC=1.087e-09 
+  FAIL L1 distorted q16  wall      uniform     linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1105     scaleC=4.327     
+  FAIL L1 distorted q16  all-five  uniform     linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1125     scaleC=4.327     
+  FAIL L1 distorted q16  wall      uniform     linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1105     scaleC=6.181     
+  FAIL L1 distorted q16  all-five  uniform     linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1125     scaleC=6.181     
+  FAIL L1 distorted q16  wall      uniform     linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1105     scaleC=14.42     
+  FAIL L1 distorted q16  all-five  uniform     linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1125     scaleC=14.42     
+  FAIL L1 distorted q16  wall      uniform     linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=91.88      scaleC=3599      
+  FAIL L1 distorted q16  all-five  uniform     linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=93.58      scaleC=3599      
+  FAIL L1 distorted q16  wall      uniform     linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=91.88      scaleC=5142      
+  FAIL L1 distorted q16  all-five  uniform     linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=93.58      scaleC=5142      
+  FAIL L1 distorted q16  wall      uniform     linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=91.88      scaleC=1.2e+04   
+  FAIL L1 distorted q16  all-five  uniform     linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=93.58      scaleC=1.2e+04   
+  FAIL L1 distorted q16  wall      uniform     linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1105     scaleC=7.388     
+  FAIL L1 distorted q16  all-five  uniform     linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1125     scaleC=7.388     
+  FAIL L1 distorted q16  wall      uniform     linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1105     scaleC=10.55     
+  FAIL L1 distorted q16  all-five  uniform     linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1125     scaleC=10.55     
+  FAIL L1 distorted q16  wall      uniform     linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1105     scaleC=24.63     
+  FAIL L1 distorted q16  all-five  uniform     linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1125     scaleC=24.63     
+  FAIL L1 distorted q16  wall      uniform     linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=91.88      scaleC=6145      
+  FAIL L1 distorted q16  all-five  uniform     linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=93.58      scaleC=6145      
+  FAIL L1 distorted q16  wall      uniform     linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=91.88      scaleC=8779      
+  FAIL L1 distorted q16  all-five  uniform     linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=93.58      scaleC=8779      
+  FAIL L1 distorted q16  wall      uniform     linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=91.88      scaleC=2.048e+04 
+  FAIL L1 distorted q16  all-five  uniform     linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=93.58      scaleC=2.048e+04 
+  FAIL L1 distorted q16  wall      uniform     nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1105     scaleC=8.978     
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1125     scaleC=8.978     
+  FAIL L1 distorted q16  wall      uniform     nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1105     scaleC=12.83     
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1125     scaleC=12.83     
+  FAIL L1 distorted q16  wall      uniform     nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1105     scaleC=29.93     
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1125     scaleC=29.93     
+  FAIL L1 distorted q16  wall      uniform     nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=91.88      scaleC=7468      
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=93.58      scaleC=7468      
+  FAIL L1 distorted q16  wall      uniform     nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=91.88      scaleC=1.067e+04 
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=93.58      scaleC=1.067e+04 
+  FAIL L1 distorted q16  wall      uniform     nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=91.88      scaleC=2.489e+04 
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=93.58      scaleC=2.489e+04 
+  FAIL L1 distorted q16  wall      uniform     nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1105     scaleC=10.5      
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1125     scaleC=10.5      
+  FAIL L1 distorted q16  wall      uniform     nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1105     scaleC=15        
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1125     scaleC=15        
+  FAIL L1 distorted q16  wall      uniform     nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1105     scaleC=35.01     
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1125     scaleC=35.01     
+  FAIL L1 distorted q16  wall      uniform     nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=91.88      scaleC=8736      
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=93.58      scaleC=8736      
+  FAIL L1 distorted q16  wall      uniform     nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=91.88      scaleC=1.248e+04 
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=93.58      scaleC=1.248e+04 
+  FAIL L1 distorted q16  wall      uniform     nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=91.88      scaleC=2.912e+04 
+  FAIL L1 distorted q16  all-five  uniform     nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=93.58      scaleC=2.912e+04 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=4.02e-14   scaleL=0.1177     scaleC=2.412e-13 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=4.02e-14   scaleL=0.1177     scaleC=2.412e-13 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=474] maxAbs=5.74e-14   scaleL=0.1177     scaleC=3.446e-13 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=474] maxAbs=5.74e-14   scaleL=0.1177     scaleC=3.446e-13 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=475] maxAbs=1.34e-13   scaleL=0.1177     scaleC=8.04e-13  
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=475] maxAbs=1.34e-13   scaleL=0.1177     scaleC=8.04e-13  
+  FAIL L1 distorted q16  wall      nonuniform  uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=477] maxAbs=2e-10      scaleL=97.88      scaleC=2.006e-10 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=477] maxAbs=2e-10      scaleL=97.88      scaleC=2.006e-10 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=2.86e-10   scaleL=97.88      scaleC=2.866e-10 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=2.86e-10   scaleL=97.88      scaleC=2.866e-10 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=6.68e-10   scaleL=97.88      scaleC=6.688e-10 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=6.68e-10   scaleL=97.88      scaleC=6.688e-10 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=6.53e-14   scaleL=0.1177     scaleC=3.92e-13  
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=6.53e-14   scaleL=0.1177     scaleC=3.92e-13  
+  FAIL L1 distorted q16  wall      nonuniform  uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=472] maxAbs=9.33e-14   scaleL=0.1177     scaleC=5.599e-13 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=472] maxAbs=9.33e-14   scaleL=0.1177     scaleC=5.599e-13 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=2.18e-13   scaleL=0.1177     scaleC=1.307e-12 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=2.18e-13   scaleL=0.1177     scaleC=1.307e-12 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=476] maxAbs=3.26e-10   scaleL=97.88      scaleC=3.26e-10  
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=476] maxAbs=3.26e-10   scaleL=97.88      scaleC=3.26e-10  
+  FAIL L1 distorted q16  wall      nonuniform  uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=4.65e-10   scaleL=97.88      scaleC=4.658e-10 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=4.65e-10   scaleL=97.88      scaleC=4.658e-10 
+  FAIL L1 distorted q16  wall      nonuniform  uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=1.09e-09   scaleL=97.88      scaleC=1.087e-09 
+  FAIL L1 distorted q16  all-five  nonuniform  uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=1.09e-09   scaleL=97.88      scaleC=1.087e-09 
+  FAIL L1 distorted q16  wall      nonuniform  linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1177     scaleC=4.327     
+  FAIL L1 distorted q16  all-five  nonuniform  linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1177     scaleC=4.327     
+  FAIL L1 distorted q16  wall      nonuniform  linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1177     scaleC=6.181     
+  FAIL L1 distorted q16  all-five  nonuniform  linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1177     scaleC=6.181     
+  FAIL L1 distorted q16  wall      nonuniform  linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1177     scaleC=14.42     
+  FAIL L1 distorted q16  all-five  nonuniform  linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1177     scaleC=14.42     
+  FAIL L1 distorted q16  wall      nonuniform  linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=97.88      scaleC=3599      
+  FAIL L1 distorted q16  all-five  nonuniform  linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=97.88      scaleC=3599      
+  FAIL L1 distorted q16  wall      nonuniform  linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=97.88      scaleC=5142      
+  FAIL L1 distorted q16  all-five  nonuniform  linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=97.88      scaleC=5142      
+  FAIL L1 distorted q16  wall      nonuniform  linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=97.88      scaleC=1.2e+04   
+  FAIL L1 distorted q16  all-five  nonuniform  linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=97.88      scaleC=1.2e+04   
+  FAIL L1 distorted q16  wall      nonuniform  linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1177     scaleC=7.388     
+  FAIL L1 distorted q16  all-five  nonuniform  linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1177     scaleC=7.388     
+  FAIL L1 distorted q16  wall      nonuniform  linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1177     scaleC=10.55     
+  FAIL L1 distorted q16  all-five  nonuniform  linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1177     scaleC=10.55     
+  FAIL L1 distorted q16  wall      nonuniform  linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1177     scaleC=24.63     
+  FAIL L1 distorted q16  all-five  nonuniform  linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1177     scaleC=24.63     
+  FAIL L1 distorted q16  wall      nonuniform  linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=97.88      scaleC=6145      
+  FAIL L1 distorted q16  all-five  nonuniform  linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=97.88      scaleC=6145      
+  FAIL L1 distorted q16  wall      nonuniform  linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=97.88      scaleC=8779      
+  FAIL L1 distorted q16  all-five  nonuniform  linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=97.88      scaleC=8779      
+  FAIL L1 distorted q16  wall      nonuniform  linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=97.88      scaleC=2.048e+04 
+  FAIL L1 distorted q16  all-five  nonuniform  linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=97.88      scaleC=2.048e+04 
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1177     scaleC=8.978     
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1177     scaleC=8.978     
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1177     scaleC=12.83     
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1177     scaleC=12.83     
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1177     scaleC=29.93     
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1177     scaleC=29.93     
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=97.88      scaleC=7468      
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=97.88      scaleC=7468      
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=97.88      scaleC=1.067e+04 
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=97.88      scaleC=1.067e+04 
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=97.88      scaleC=2.489e+04 
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=97.88      scaleC=2.489e+04 
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1177     scaleC=10.5      
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1177     scaleC=10.5      
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1177     scaleC=15        
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1177     scaleC=15        
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1177     scaleC=35.01     
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1177     scaleC=35.01     
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=97.88      scaleC=8736      
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=97.88      scaleC=8736      
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=97.88      scaleC=1.248e+04 
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=97.88      scaleC=1.248e+04 
+  FAIL L1 distorted q16  wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=97.88      scaleC=2.912e+04 
+  FAIL L1 distorted q16  all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=97.88      scaleC=2.912e+04 
+  FAIL L1 distorted q16  wall      reversed    uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=4.02e-14   scaleL=0.1177     scaleC=2.412e-13 
+  FAIL L1 distorted q16  all-five  reversed    uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=4.02e-14   scaleL=0.1177     scaleC=2.412e-13 
+  FAIL L1 distorted q16  wall      reversed    uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=474] maxAbs=5.74e-14   scaleL=0.1177     scaleC=3.446e-13 
+  FAIL L1 distorted q16  all-five  reversed    uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=474] maxAbs=5.74e-14   scaleL=0.1177     scaleC=3.446e-13 
+  FAIL L1 distorted q16  wall      reversed    uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=475] maxAbs=1.34e-13   scaleL=0.1177     scaleC=8.04e-13  
+  FAIL L1 distorted q16  all-five  reversed    uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=475] maxAbs=1.34e-13   scaleL=0.1177     scaleC=8.04e-13  
+  FAIL L1 distorted q16  wall      reversed    uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=477] maxAbs=2e-10      scaleL=97.88      scaleC=2.006e-10 
+  FAIL L1 distorted q16  all-five  reversed    uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=477] maxAbs=2e-10      scaleL=97.88      scaleC=2.006e-10 
+  FAIL L1 distorted q16  wall      reversed    uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=2.86e-10   scaleL=97.88      scaleC=2.866e-10 
+  FAIL L1 distorted q16  all-five  reversed    uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=2.86e-10   scaleL=97.88      scaleC=2.866e-10 
+  FAIL L1 distorted q16  wall      reversed    uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=6.68e-10   scaleL=97.88      scaleC=6.688e-10 
+  FAIL L1 distorted q16  all-five  reversed    uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=6.68e-10   scaleL=97.88      scaleC=6.688e-10 
+  FAIL L1 distorted q16  wall      reversed    uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=6.53e-14   scaleL=0.1177     scaleC=3.92e-13  
+  FAIL L1 distorted q16  all-five  reversed    uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=471] maxAbs=6.53e-14   scaleL=0.1177     scaleC=3.92e-13  
+  FAIL L1 distorted q16  wall      reversed    uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=472] maxAbs=9.33e-14   scaleL=0.1177     scaleC=5.599e-13 
+  FAIL L1 distorted q16  all-five  reversed    uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=472] maxAbs=9.33e-14   scaleL=0.1177     scaleC=5.599e-13 
+  FAIL L1 distorted q16  wall      reversed    uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=2.18e-13   scaleL=0.1177     scaleC=1.307e-12 
+  FAIL L1 distorted q16  all-five  reversed    uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=476] maxAbs=2.18e-13   scaleL=0.1177     scaleC=1.307e-12 
+  FAIL L1 distorted q16  wall      reversed    uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=476] maxAbs=3.26e-10   scaleL=97.88      scaleC=3.26e-10  
+  FAIL L1 distorted q16  all-five  reversed    uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=476] maxAbs=3.26e-10   scaleL=97.88      scaleC=3.26e-10  
+  FAIL L1 distorted q16  wall      reversed    uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=4.65e-10   scaleL=97.88      scaleC=4.658e-10 
+  FAIL L1 distorted q16  all-five  reversed    uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=477] maxAbs=4.65e-10   scaleL=97.88      scaleC=4.658e-10 
+  FAIL L1 distorted q16  wall      reversed    uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=1.09e-09   scaleL=97.88      scaleC=1.087e-09 
+  FAIL L1 distorted q16  all-five  reversed    uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=477] maxAbs=1.09e-09   scaleL=97.88      scaleC=1.087e-09 
+  FAIL L1 distorted q16  wall      reversed    linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1177     scaleC=4.327     
+  FAIL L1 distorted q16  all-five  reversed    linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=0.721      scaleL=0.1177     scaleC=4.327     
+  FAIL L1 distorted q16  wall      reversed    linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1177     scaleC=6.181     
+  FAIL L1 distorted q16  all-five  reversed    linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.03       scaleL=0.1177     scaleC=6.181     
+  FAIL L1 distorted q16  wall      reversed    linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1177     scaleC=14.42     
+  FAIL L1 distorted q16  all-five  reversed    linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.4        scaleL=0.1177     scaleC=14.42     
+  FAIL L1 distorted q16  wall      reversed    linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=97.88      scaleC=3599      
+  FAIL L1 distorted q16  all-five  reversed    linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=3.6e+03    scaleL=97.88      scaleC=3599      
+  FAIL L1 distorted q16  wall      reversed    linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=97.88      scaleC=5142      
+  FAIL L1 distorted q16  all-five  reversed    linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.14e+03   scaleL=97.88      scaleC=5142      
+  FAIL L1 distorted q16  wall      reversed    linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=97.88      scaleC=1.2e+04   
+  FAIL L1 distorted q16  all-five  reversed    linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.2e+04    scaleL=97.88      scaleC=1.2e+04   
+  FAIL L1 distorted q16  wall      reversed    linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1177     scaleC=7.388     
+  FAIL L1 distorted q16  all-five  reversed    linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.23       scaleL=0.1177     scaleC=7.388     
+  FAIL L1 distorted q16  wall      reversed    linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1177     scaleC=10.55     
+  FAIL L1 distorted q16  all-five  reversed    linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.76       scaleL=0.1177     scaleC=10.55     
+  FAIL L1 distorted q16  wall      reversed    linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1177     scaleC=24.63     
+  FAIL L1 distorted q16  all-five  reversed    linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.1        scaleL=0.1177     scaleC=24.63     
+  FAIL L1 distorted q16  wall      reversed    linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=97.88      scaleC=6145      
+  FAIL L1 distorted q16  all-five  reversed    linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=6.14e+03   scaleL=97.88      scaleC=6145      
+  FAIL L1 distorted q16  wall      reversed    linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=97.88      scaleC=8779      
+  FAIL L1 distorted q16  all-five  reversed    linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=8.77e+03   scaleL=97.88      scaleC=8779      
+  FAIL L1 distorted q16  wall      reversed    linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=97.88      scaleC=2.048e+04 
+  FAIL L1 distorted q16  all-five  reversed    linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.05e+04   scaleL=97.88      scaleC=2.048e+04 
+  FAIL L1 distorted q16  wall      reversed    nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1177     scaleC=8.978     
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.5        scaleL=0.1177     scaleC=8.978     
+  FAIL L1 distorted q16  wall      reversed    nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1177     scaleC=12.83     
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.14       scaleL=0.1177     scaleC=12.83     
+  FAIL L1 distorted q16  wall      reversed    nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1177     scaleC=29.93     
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=4.99       scaleL=0.1177     scaleC=29.93     
+  FAIL L1 distorted q16  wall      reversed    nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=97.88      scaleC=7468      
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=7.46e+03   scaleL=97.88      scaleC=7468      
+  FAIL L1 distorted q16  wall      reversed    nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=97.88      scaleC=1.067e+04 
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.07e+04   scaleL=97.88      scaleC=1.067e+04 
+  FAIL L1 distorted q16  wall      reversed    nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=97.88      scaleC=2.489e+04 
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.49e+04   scaleL=97.88      scaleC=2.489e+04 
+  FAIL L1 distorted q16  wall      reversed    nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1177     scaleC=10.5      
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=1.75       scaleL=0.1177     scaleC=10.5      
+  FAIL L1 distorted q16  wall      reversed    nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1177     scaleC=15        
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.5        scaleL=0.1177     scaleC=15        
+  FAIL L1 distorted q16  wall      reversed    nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1177     scaleC=35.01     
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=5.83       scaleL=0.1177     scaleC=35.01     
+  FAIL L1 distorted q16  wall      reversed    nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=97.88      scaleC=8736      
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=480] rc[d=480] maxAbs=8.73e+03   scaleL=97.88      scaleC=8736      
+  FAIL L1 distorted q16  wall      reversed    nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=97.88      scaleC=1.248e+04 
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=480] rc[d=480] maxAbs=1.25e+04   scaleL=97.88      scaleC=1.248e+04 
+  FAIL L1 distorted q16  wall      reversed    nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=97.88      scaleC=2.912e+04 
+  FAIL L1 distorted q16  all-five  reversed    nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=480] rc[d=480] maxAbs=2.91e+04   scaleL=97.88      scaleC=2.912e+04 
+  PASS L3 distorted q16  invariants: onePerFace=yes interiorFaces=480 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 4.72e-14 of |.|=296.4]
+  FAIL L4 distorted q16  checkerboard: differing=480  |RhieChow term|max=169.5 vs |linear flux|max=0.1125 (term dominates: yes)
+  FAIL L2 distorted q16  scheme=0 a=1     chain differing=480  maxAbs=6.03       maxRel=37.4       scale=36.17
+  FAIL L2 distorted q16  scheme=0 a=0.7   chain differing=480  maxAbs=6.03       maxRel=37.4       scale=36.17
+  FAIL L2 distorted q16  scheme=3 a=1     chain differing=480  maxAbs=6.03       maxRel=37.4       scale=36.17
+  FAIL L2 distorted q16  scheme=3 a=0.7   chain differing=480  maxAbs=6.03       maxRel=37.4       scale=36.17
+       [warped 3d 3 faces=108 axisAligned=0 general=54 resident=39768 B]
+  FAIL L1 warped 3d 3    wall      zero        uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=1.38e-14   scaleL=0          scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=1.38e-14   scaleL=0.2        scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    wall      zero        uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.98e-14   scaleL=0          scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.98e-14   scaleL=0.2        scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    wall      zero        uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=4.61e-14   scaleL=0          scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=4.61e-14   scaleL=0.2        scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    wall      zero        uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=0          scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=166.4      scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    wall      zero        uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=0          scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=166.4      scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    wall      zero        uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=0          scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=166.4      scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    wall      zero        uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=1.97e-14   scaleL=0          scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=1.97e-14   scaleL=0.2        scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    wall      zero        uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.81e-14   scaleL=0          scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.81e-14   scaleL=0.2        scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    wall      zero        uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0          scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    all-five  zero        uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.2        scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    wall      zero        uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=0          scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=166.4      scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    wall      zero        uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=0          scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=166.4      scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    wall      zero        uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=0          scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    all-five  zero        uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=166.4      scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    wall      zero        linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0          scaleC=1.361     
+  FAIL L1 warped 3d 3    all-five  zero        linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.2        scaleC=1.361     
+  FAIL L1 warped 3d 3    wall      zero        linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0          scaleC=1.945     
+  FAIL L1 warped 3d 3    all-five  zero        linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.2        scaleC=1.945     
+  FAIL L1 warped 3d 3    wall      zero        linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0          scaleC=4.537     
+  FAIL L1 warped 3d 3    all-five  zero        linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.2        scaleC=4.537     
+  FAIL L1 warped 3d 3    wall      zero        linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=0          scaleC=1132      
+  FAIL L1 warped 3d 3    all-five  zero        linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=166.4      scaleC=1132      
+  FAIL L1 warped 3d 3    wall      zero        linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=0          scaleC=1618      
+  FAIL L1 warped 3d 3    all-five  zero        linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=166.4      scaleC=1618      
+  FAIL L1 warped 3d 3    wall      zero        linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=0          scaleC=3774      
+  FAIL L1 warped 3d 3    all-five  zero        linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=166.4      scaleC=3774      
+  FAIL L1 warped 3d 3    wall      zero        linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0          scaleC=2.373     
+  FAIL L1 warped 3d 3    all-five  zero        linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.2        scaleC=2.373     
+  FAIL L1 warped 3d 3    wall      zero        linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0          scaleC=3.39      
+  FAIL L1 warped 3d 3    all-five  zero        linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.2        scaleC=3.39      
+  FAIL L1 warped 3d 3    wall      zero        linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0          scaleC=7.91      
+  FAIL L1 warped 3d 3    all-five  zero        linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.2        scaleC=7.91      
+  FAIL L1 warped 3d 3    wall      zero        linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=0          scaleC=1974      
+  FAIL L1 warped 3d 3    all-five  zero        linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=166.4      scaleC=1974      
+  FAIL L1 warped 3d 3    wall      zero        linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=0          scaleC=2820      
+  FAIL L1 warped 3d 3    all-five  zero        linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=166.4      scaleC=2820      
+  FAIL L1 warped 3d 3    wall      zero        linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=0          scaleC=6580      
+  FAIL L1 warped 3d 3    all-five  zero        linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=166.4      scaleC=6580      
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0          scaleC=4.189     
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.2        scaleC=4.189     
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0          scaleC=5.985     
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.2        scaleC=5.985     
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0          scaleC=13.96     
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.2        scaleC=13.96     
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=0          scaleC=3485      
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=166.4      scaleC=3485      
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=0          scaleC=4978      
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=166.4      scaleC=4978      
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=0          scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=166.4      scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0          scaleC=5.26      
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.2        scaleC=5.26      
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0          scaleC=7.514     
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.2        scaleC=7.514     
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0          scaleC=17.53     
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.2        scaleC=17.53     
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=0          scaleC=4375      
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=166.4      scaleC=4375      
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=0          scaleC=6250      
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=166.4      scaleC=6250      
+  FAIL L1 warped 3d 3    wall      zero        nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=0          scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    all-five  zero        nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=166.4      scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=28] maxAbs=1.38e-14   scaleL=0.1845     scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=28] maxAbs=1.38e-14   scaleL=0.2        scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=31] maxAbs=1.98e-14   scaleL=0.1845     scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=31] maxAbs=1.98e-14   scaleL=0.2        scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=31] maxAbs=4.61e-14   scaleL=0.1845     scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=31] maxAbs=4.61e-14   scaleL=0.2        scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=153.5      scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=166.4      scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=153.5      scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=166.4      scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=153.5      scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=166.4      scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=30] maxAbs=1.97e-14   scaleL=0.1845     scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=30] maxAbs=1.97e-14   scaleL=0.2        scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=31] maxAbs=2.81e-14   scaleL=0.1845     scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=31] maxAbs=2.81e-14   scaleL=0.2        scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.1845     scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.2        scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    wall      uniform     uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=153.5      scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=166.4      scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=153.5      scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=166.4      scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    wall      uniform     uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=153.5      scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    all-five  uniform     uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=166.4      scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    wall      uniform     linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.1845     scaleC=1.361     
+  FAIL L1 warped 3d 3    all-five  uniform     linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.2        scaleC=1.361     
+  FAIL L1 warped 3d 3    wall      uniform     linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.1845     scaleC=1.945     
+  FAIL L1 warped 3d 3    all-five  uniform     linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.2        scaleC=1.945     
+  FAIL L1 warped 3d 3    wall      uniform     linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.1845     scaleC=4.537     
+  FAIL L1 warped 3d 3    all-five  uniform     linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.2        scaleC=4.537     
+  FAIL L1 warped 3d 3    wall      uniform     linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=153.5      scaleC=1132      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=166.4      scaleC=1132      
+  FAIL L1 warped 3d 3    wall      uniform     linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=153.5      scaleC=1618      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=166.4      scaleC=1618      
+  FAIL L1 warped 3d 3    wall      uniform     linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=153.5      scaleC=3774      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=166.4      scaleC=3774      
+  FAIL L1 warped 3d 3    wall      uniform     linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.1845     scaleC=2.373     
+  FAIL L1 warped 3d 3    all-five  uniform     linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.2        scaleC=2.373     
+  FAIL L1 warped 3d 3    wall      uniform     linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.1845     scaleC=3.39      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.2        scaleC=3.39      
+  FAIL L1 warped 3d 3    wall      uniform     linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.1845     scaleC=7.91      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.2        scaleC=7.91      
+  FAIL L1 warped 3d 3    wall      uniform     linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=153.5      scaleC=1974      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=166.4      scaleC=1974      
+  FAIL L1 warped 3d 3    wall      uniform     linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=153.5      scaleC=2820      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=166.4      scaleC=2820      
+  FAIL L1 warped 3d 3    wall      uniform     linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=153.5      scaleC=6580      
+  FAIL L1 warped 3d 3    all-five  uniform     linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=166.4      scaleC=6580      
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.1845     scaleC=4.189     
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.2        scaleC=4.189     
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.1845     scaleC=5.985     
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.2        scaleC=5.985     
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.1845     scaleC=13.96     
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.2        scaleC=13.96     
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=153.5      scaleC=3485      
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=166.4      scaleC=3485      
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=153.5      scaleC=4978      
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=166.4      scaleC=4978      
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=153.5      scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=166.4      scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.1845     scaleC=5.26      
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.2        scaleC=5.26      
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.1845     scaleC=7.514     
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.2        scaleC=7.514     
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.1845     scaleC=17.53     
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.2        scaleC=17.53     
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=153.5      scaleC=4375      
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=166.4      scaleC=4375      
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=153.5      scaleC=6250      
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=166.4      scaleC=6250      
+  FAIL L1 warped 3d 3    wall      uniform     nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=153.5      scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    all-five  uniform     nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=166.4      scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=28] maxAbs=1.38e-14   scaleL=0.1659     scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=28] maxAbs=1.38e-14   scaleL=0.2        scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=1.98e-14   scaleL=0.1659     scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=1.98e-14   scaleL=0.2        scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=31] maxAbs=4.61e-14   scaleL=0.1659     scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=31] maxAbs=4.61e-14   scaleL=0.2        scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=138        scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=166.4      scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=138        scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=166.4      scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=138        scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=166.4      scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=30] maxAbs=1.97e-14   scaleL=0.1659     scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=30] maxAbs=1.97e-14   scaleL=0.2        scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=2.81e-14   scaleL=0.1659     scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=2.81e-14   scaleL=0.2        scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.1659     scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.2        scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=138        scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=166.4      scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=138        scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=166.4      scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    wall      nonuniform  uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=138        scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    all-five  nonuniform  uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=166.4      scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.1659     scaleC=1.361     
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.2        scaleC=1.361     
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.1659     scaleC=1.945     
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.2        scaleC=1.945     
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.1659     scaleC=4.537     
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.2        scaleC=4.537     
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=138        scaleC=1132      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=166.4      scaleC=1132      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=138        scaleC=1618      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=166.4      scaleC=1618      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=138        scaleC=3774      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=166.4      scaleC=3774      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.1659     scaleC=2.373     
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.2        scaleC=2.373     
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.1659     scaleC=3.39      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.2        scaleC=3.39      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.1659     scaleC=7.91      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.2        scaleC=7.91      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=138        scaleC=1974      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=166.4      scaleC=1974      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=138        scaleC=2820      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=166.4      scaleC=2820      
+  FAIL L1 warped 3d 3    wall      nonuniform  linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=138        scaleC=6580      
+  FAIL L1 warped 3d 3    all-five  nonuniform  linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=166.4      scaleC=6580      
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.1659     scaleC=4.189     
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.2        scaleC=4.189     
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.1659     scaleC=5.985     
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.2        scaleC=5.985     
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.1659     scaleC=13.96     
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.2        scaleC=13.96     
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=138        scaleC=3485      
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=166.4      scaleC=3485      
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=138        scaleC=4978      
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=166.4      scaleC=4978      
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=138        scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=166.4      scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.1659     scaleC=5.26      
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.2        scaleC=5.26      
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.1659     scaleC=7.514     
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.2        scaleC=7.514     
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.1659     scaleC=17.53     
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.2        scaleC=17.53     
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=138        scaleC=4375      
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=166.4      scaleC=4375      
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=138        scaleC=6250      
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=166.4      scaleC=6250      
+  FAIL L1 warped 3d 3    wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=138        scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=166.4      scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=28] maxAbs=1.38e-14   scaleL=0.1659     scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=28] maxAbs=1.38e-14   scaleL=0.2        scaleC=8.299e-14 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=1.98e-14   scaleL=0.1659     scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=1.98e-14   scaleL=0.2        scaleC=1.186e-13 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=31] maxAbs=4.61e-14   scaleL=0.1659     scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=31] maxAbs=4.61e-14   scaleL=0.2        scaleC=2.766e-13 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=138        scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=6.9e-11    scaleL=166.4      scaleC=6.904e-11 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=138        scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=9.85e-11   scaleL=166.4      scaleC=9.862e-11 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=138        scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=2.3e-10    scaleL=166.4      scaleC=2.301e-10 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=30] maxAbs=1.97e-14   scaleL=0.1659     scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=32] rc[d=30] maxAbs=1.97e-14   scaleL=0.2        scaleC=1.182e-13 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=2.81e-14   scaleL=0.1659     scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=32] rc[d=30] maxAbs=2.81e-14   scaleL=0.2        scaleC=1.688e-13 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.1659     scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=6.57e-14   scaleL=0.2        scaleC=3.94e-13  
+  FAIL L1 warped 3d 3    wall      reversed    uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=138        scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=32] rc[d=32] maxAbs=9.82e-11   scaleL=166.4      scaleC=9.832e-11 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=138        scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=32] rc[d=32] maxAbs=1.4e-10    scaleL=166.4      scaleC=1.405e-10 
+  FAIL L1 warped 3d 3    wall      reversed    uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=138        scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    all-five  reversed    uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=32] rc[d=32] maxAbs=3.27e-10   scaleL=166.4      scaleC=3.277e-10 
+  FAIL L1 warped 3d 3    wall      reversed    linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.1659     scaleC=1.361     
+  FAIL L1 warped 3d 3    all-five  reversed    linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.227      scaleL=0.2        scaleC=1.361     
+  FAIL L1 warped 3d 3    wall      reversed    linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.1659     scaleC=1.945     
+  FAIL L1 warped 3d 3    all-five  reversed    linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.324      scaleL=0.2        scaleC=1.945     
+  FAIL L1 warped 3d 3    wall      reversed    linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.1659     scaleC=4.537     
+  FAIL L1 warped 3d 3    all-five  reversed    linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.756      scaleL=0.2        scaleC=4.537     
+  FAIL L1 warped 3d 3    wall      reversed    linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=138        scaleC=1132      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.13e+03   scaleL=166.4      scaleC=1132      
+  FAIL L1 warped 3d 3    wall      reversed    linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=138        scaleC=1618      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.62e+03   scaleL=166.4      scaleC=1618      
+  FAIL L1 warped 3d 3    wall      reversed    linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=138        scaleC=3774      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=3.77e+03   scaleL=166.4      scaleC=3774      
+  FAIL L1 warped 3d 3    wall      reversed    linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.1659     scaleC=2.373     
+  FAIL L1 warped 3d 3    all-five  reversed    linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.396      scaleL=0.2        scaleC=2.373     
+  FAIL L1 warped 3d 3    wall      reversed    linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.1659     scaleC=3.39      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.565      scaleL=0.2        scaleC=3.39      
+  FAIL L1 warped 3d 3    wall      reversed    linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.1659     scaleC=7.91      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.32       scaleL=0.2        scaleC=7.91      
+  FAIL L1 warped 3d 3    wall      reversed    linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=138        scaleC=1974      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=1.97e+03   scaleL=166.4      scaleC=1974      
+  FAIL L1 warped 3d 3    wall      reversed    linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=138        scaleC=2820      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.82e+03   scaleL=166.4      scaleC=2820      
+  FAIL L1 warped 3d 3    wall      reversed    linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=138        scaleC=6580      
+  FAIL L1 warped 3d 3    all-five  reversed    linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.57e+03   scaleL=166.4      scaleC=6580      
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.1659     scaleC=4.189     
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.698      scaleL=0.2        scaleC=4.189     
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.1659     scaleC=5.985     
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=0.997      scaleL=0.2        scaleC=5.985     
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.1659     scaleC=13.96     
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.33       scaleL=0.2        scaleC=13.96     
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=138        scaleC=3485      
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=3.48e+03   scaleL=166.4      scaleC=3485      
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=138        scaleC=4978      
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.97e+03   scaleL=166.4      scaleC=4978      
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=138        scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.16e+04   scaleL=166.4      scaleC=1.162e+04 
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.1659     scaleC=5.26      
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=0.877      scaleL=0.2        scaleC=5.26      
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.1659     scaleC=7.514     
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.25       scaleL=0.2        scaleC=7.514     
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.1659     scaleC=17.53     
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=2.92       scaleL=0.2        scaleC=17.53     
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=138        scaleC=4375      
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=54] rc[d=54] maxAbs=4.37e+03   scaleL=166.4      scaleC=4375      
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=138        scaleC=6250      
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=54] rc[d=54] maxAbs=6.24e+03   scaleL=166.4      scaleC=6250      
+  FAIL L1 warped 3d 3    wall      reversed    nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=138        scaleC=1.458e+04 
+  FAIL L1 warped 3d 3    all-five  reversed    nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=1.46e+04   scaleL=166.4      scaleC=1.458e+04 
+  PASS L3 warped 3d 3    invariants: onePerFace=yes interiorFaces=54 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -2.58e-15 of |.|=154.4]
+  FAIL L4 warped 3d 3    checkerboard: differing=54  |RhieChow term|max=59.17 vs |linear flux|max=0.2 (term dominates: yes)
+  FAIL L2 warped 3d 3    scheme=0 a=1     chain differing=54   maxAbs=45         maxRel=4.18       scale=270
+  FAIL L2 warped 3d 3    scheme=0 a=0.7   chain differing=54   maxAbs=45         maxRel=4.18       scale=270
+  FAIL L2 warped 3d 3    scheme=3 a=1     chain differing=54   maxAbs=45         maxRel=4.18       scale=270
+  FAIL L2 warped 3d 3    scheme=3 a=0.7   chain differing=54   maxAbs=45         maxRel=4.18       scale=270
+
+=== coverage ===
+  Linear-path cases                 864
+  Rhie-Chow-path cases              864
+  correction-only cases             864
+  2D / 3D direct cases              432 / 432
+  integrated chain cases            8
+  meshes with axis-aligned coupling 0
+  meshes with general coupling      2
+  densities / relaxation factors    3 / 3
+  orientation / conservation checks 2 / 2
+  checkerboard-sensitive cases      2
+  values compared                   848252
+  bitwise-identical values          542688
+  max absolute discrepancy          2.91e+04
+  max relative discrepancy          7.24e+03
+
+cases=876 failures=586
+FACE FLUX EQUIVALENCE: FAIL

@@ -1,0 +1,71 @@
+# b5_owner_neighbour_area_orientation
+# layer:       gradients
+# origin:      NEW
+# expectation: detect
+# WRONG OWNER/NEIGHBOUR CONTRIBUTION: the Green-Gauss sum negates the area vector for the faces it OWNS instead of the faces it neighbours
+# mutation applied to cuda/kernels/DeviceGradientKernel.cu
+# --- anchor ---
+    if (faceOwner[f] != c) {
+# --- became ---
+    if (faceOwner[f] == c) {
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness gradient --quick -> exit 1 (DETECTED) ##########
+       [distorted q16/dirichlet sweeps=yes skewedFaces=480   obliqueFaces=0     claims=64    boundaryTransfer=yes resident=112392 B]
+       [distorted q16/neumann   sweeps=yes skewedFaces=480   obliqueFaces=64    claims=64    boundaryTransfer=yes resident=115976 B]
+       [distorted q16/mixed     sweeps=yes skewedFaces=480   obliqueFaces=32    claims=64    boundaryTransfer=yes resident=114184 B]
+  FAIL distorted q16          dirichlet constant      cells=256    |grad|max=53.27       diff=441    maxAbs=107        maxRel=12.7       L2=550        bcells=60
+       worst cell 192 component x: cpu=53.269184720645391 gpu=-53.274466393537658
+  FAIL distorted q16          neumann   constant      cells=256    |grad|max=0.1677      diff=401    maxAbs=0.335      maxRel=13.9       L2=1.6        bcells=60
+       worst cell 224 component x: cpu=-0.16762393931474995 gpu=0.1677203598597205
+  FAIL distorted q16          mixed     constant      cells=256    |grad|max=53.27       diff=419    maxAbs=107        maxRel=13.8       L2=442        bcells=60
+       worst cell 192 component x: cpu=53.269184720645377 gpu=-53.274466393537686
+  FAIL distorted q16          dirichlet linear        cells=256    |grad|max=74.6        diff=512    maxAbs=149        maxRel=2.44       L2=522        bcells=60
+       worst cell 240 component y: cpu=74.599372886370489 gpu=-74.292417403316108
+  FAIL distorted q16          neumann   linear        cells=256    |grad|max=2.009       diff=512    maxAbs=4.02       maxRel=2.96       L2=75.7       bcells=60
+       worst cell 126 component x: cpu=1.9998336595690358 gpu=-2.0190731734252321
+  FAIL distorted q16          mixed     linear        cells=256    |grad|max=40.93       diff=512    maxAbs=81.9       maxRel=2.96       L2=267        bcells=60
+       worst cell 240 component x: cpu=-40.933954142097903 gpu=40.940864944972539
+  FAIL distorted q16          dirichlet quadratic     cells=256    |grad|max=41.09       diff=512    maxAbs=82.3       maxRel=3.51       L2=343        bcells=60
+       worst cell 0 component y: cpu=-41.085676003914109 gpu=41.216573849473285
+  FAIL distorted q16          neumann   quadratic     cells=256    |grad|max=3.617       diff=512    maxAbs=7.24       maxRel=46.5       L2=67.6       bcells=60
+       worst cell 224 component y: cpu=3.617308725742995 gpu=-3.61983907946186
+  FAIL distorted q16          mixed     quadratic     cells=256    |grad|max=41.09       diff=512    maxAbs=82.3       maxRel=3.51       L2=314        bcells=60
+       worst cell 0 component y: cpu=-41.085676003914109 gpu=41.216573849473285
+  FAIL distorted q16          dirichlet manufactured  cells=256    |grad|max=78.15       diff=512    maxAbs=156        maxRel=2.96       L2=671        bcells=60
+       worst cell 245 component y: cpu=78.15171593599662 gpu=-78.192615403019857
+  FAIL distorted q16          neumann   manufactured  cells=256    |grad|max=3.1         diff=512    maxAbs=6.2        maxRel=4.14       L2=66.8       bcells=60
+       worst cell 119 component y: cpu=-3.1003448033491057 gpu=3.1003110632502837
+  FAIL distorted q16          mixed     manufactured  cells=256    |grad|max=41.85       diff=512    maxAbs=83.7       maxRel=4.14       L2=305        bcells=60
+       worst cell 15 component y: cpu=-41.854182011341173 gpu=41.863944344413142
+       [warped 3d 6/dirichlet sweeps=yes skewedFaces=540   obliqueFaces=0     claims=216   boundaryTransfer=yes resident=154664 B]
+       [warped 3d 6/neumann   sweeps=yes skewedFaces=540   obliqueFaces=216   claims=216   boundaryTransfer=yes resident=166760 B]
+       [warped 3d 6/mixed     sweeps=yes skewedFaces=540   obliqueFaces=108   claims=216   boundaryTransfer=yes resident=160712 B]
+  FAIL warped 3d 6            dirichlet constant      cells=216    |grad|max=17.96       diff=648    maxAbs=36         maxRel=1e+03      L2=307        bcells=152
+       worst cell 30 component x: cpu=17.95840829044856 gpu=-17.992707570951492
+  FAIL warped 3d 6            neumann   constant      cells=216    |grad|max=0.1689      diff=648    maxAbs=0.336      maxRel=4.75e+03   L2=3.35       bcells=152
+       worst cell 198 component z: cpu=-0.16383713550114759 gpu=0.17185178383590866
+  FAIL warped 3d 6            mixed     constant      cells=216    |grad|max=17.96       diff=648    maxAbs=35.9       maxRel=4.52e+03   L2=236        bcells=152
+       worst cell 30 component x: cpu=17.957437806008702 gpu=-17.965623165057714
+  FAIL warped 3d 6            dirichlet linear        cells=216    |grad|max=29.1        diff=648    maxAbs=58.1       maxRel=2.52       L2=388        bcells=152
+       worst cell 30 component z: cpu=-29.103732499624488 gpu=28.985165986203654
+  FAIL warped 3d 6            neumann   linear        cells=216    |grad|max=2.008       diff=648    maxAbs=4.02       maxRel=4.52       L2=64.3       bcells=152
+       worst cell 121 component x: cpu=1.9998530233413456 gpu=-2.0175768783473247
+  FAIL warped 3d 6            mixed     linear        cells=216    |grad|max=29.01       diff=648    maxAbs=58         maxRel=4.52       L2=255        bcells=152
+       worst cell 30 component z: cpu=-29.008627872291541 gpu=28.962248058085923
+  FAIL warped 3d 6            dirichlet quadratic     cells=216    |grad|max=25.83       diff=648    maxAbs=51.7       maxRel=3.99       L2=371        bcells=152
+       worst cell 180 component z: cpu=25.830003469334113 gpu=-25.86782381337494
+  FAIL warped 3d 6            neumann   quadratic     cells=216    |grad|max=2.965       diff=648    maxAbs=5.93       maxRel=7.54       L2=53.2       bcells=152
+       worst cell 96 component y: cpu=2.9649863411638444 gpu=-2.9615197696155975
+  FAIL warped 3d 6            mixed     quadratic     cells=216    |grad|max=23.76       diff=648    maxAbs=47.4       maxRel=43.6       L2=278        bcells=152
+       worst cell 0 component z: cpu=-23.755840370238484 gpu=23.66572851217812
+  FAIL warped 3d 6            dirichlet manufactured  cells=216    |grad|max=36.93       diff=648    maxAbs=74.2       maxRel=7.39       L2=597        bcells=152
+       worst cell 213 component z: cpu=36.930768160072532 gpu=-37.27492269648473
+  FAIL warped 3d 6            neumann   manufactured  cells=216    |grad|max=3.608       diff=648    maxAbs=7.21       maxRel=8.63       L2=60.5       bcells=152
+       worst cell 194 component y: cpu=-3.6076755620007614 gpu=3.6058590271350273
+  FAIL warped 3d 6            mixed     manufactured  cells=216    |grad|max=33.05       diff=648    maxAbs=66.1       maxRel=8.24       L2=352        bcells=152
+       worst cell 33 component z: cpu=-33.046617412931958 gpu=33.065456028261295
+
+quick mode: cases=24 failures=24
+GRADIENT EQUIVALENCE (quick): FAIL

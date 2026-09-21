@@ -1,0 +1,57 @@
+=== nsys ===
+NVIDIA Nsight Systems version 2025.1.3.140-251335620677v0
+
+=== profile: 320x320 cavity, gpu-disc arm, 10 outer iterations ===
+  cold_start_seconds=0.2287  second_identical_run_seconds=0.1647  one-off cost=0.0639
+
+########## profiling workload: 320x320 cavity, gpu-disc, 10 outer iterations ##########
+  wall=4.313 s  kernels=62570  iterations=10  status=MaxIterations
+
+wrote results/gpu-disc-001/performance/raw/runs-profile.csv
+PERFORMANCE BENCHMARK: all integrity checks passed
+Collecting data...
+Generating '/tmp/nsys-report-a9cf.qdstrm'
+[1/1] [0%                          ] gpu-disc-320.nsys-rep[1/1] [0%                          ] gpu-disc-320.nsys-rep[1/1] [14%                         ] gpu-disc-320.nsys-rep[1/1] [11%                         ] gpu-disc-320.nsys-rep[1/1] [9%                          ] gpu-disc-320.nsys-rep[1/1] [==18%                       ] gpu-disc-320.nsys-rep[1/1] [=15%                        ] gpu-disc-320.nsys-rep[1/1] [13%                         ] gpu-disc-320.nsys-rep[1/1] [==19%                       ] gpu-disc-320.nsys-rep[1/1] [====26%                     ] gpu-disc-320.nsys-rep[1/1] [=====32%                    ] gpu-disc-320.nsys-rep[1/1] [=======39%                  ] gpu-disc-320.nsys-rep[1/1] [=========45%                ] gpu-disc-320.nsys-rep[1/1] [===========52%              ] gpu-disc-320.nsys-rep[1/1] [============54%             ] gpu-disc-320.nsys-rep[1/1] [========================100%] gpu-disc-320.nsys-rep[1/1] [========================100%] gpu-disc-320.nsys-rep
+Generated:
+	/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.nsys-rep
+nsys exit=0
+
+=== kernel time summary (top production GPU time consumers) ===
+Generating SQLite file /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.nsys-rep
+Processing [/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite] with [/mnt/c/Program Files/NVIDIA Corporation/Nsight Systems 2025.1.3/target-linux-x64/reports/cuda_gpu_kern_sum.py]... 
+SKIPPED: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite does not contain CUDA kernel data.
+
+
+=== memory-operation summary (H2D / D2H on the device timeline) ===
+
+NOTICE: Existing SQLite export found: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite
+        It is assumed file was previously exported from: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.nsys-rep
+        Consider using --force-export=true if needed.
+
+Processing [/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite] with [/mnt/c/Program Files/NVIDIA Corporation/Nsight Systems 2025.1.3/target-linux-x64/reports/cuda_gpu_mem_time_sum.py]... 
+SKIPPED: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite does not contain GPU memory data.
+
+
+=== API summary ===
+
+NOTICE: Existing SQLite export found: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite
+        It is assumed file was previously exported from: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.nsys-rep
+        Consider using --force-export=true if needed.
+
+Processing [/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling/gpu-disc-320.sqlite] with [/mnt/c/Program Files/NVIDIA Corporation/Nsight Systems 2025.1.3/target-linux-x64/reports/cuda_api_sum.py]... 
+
+ ** CUDA API Summary (cuda_api_sum):
+
++----------+-----------------+-----------+----------+----------+----------+----------+-------------+------------------------+
+| Time (%) | Total Time (ns) | Num Calls | Avg (ns) | Med (ns) | Min (ns) | Max (ns) | StdDev (ns) |          Name          |
++----------+-----------------+-----------+----------+----------+----------+----------+-------------+------------------------+
+|     62.4 |      2318109230 |     35797 |  64757.1 |  74092.0 |     4331 |  4237841 |     67968.3 | cudaMemcpy             |
+|     17.1 |       634797449 |     22768 |  27881.1 |  22193.5 |      836 |  4784408 |     53194.9 | cudaDeviceSynchronize  |
+|     14.8 |       548257070 |     69064 |   7938.4 |   5589.0 |     2450 |   866204 |      9818.6 | cudaLaunchKernel       |
+|      4.8 |       178412737 |      1117 | 159724.9 |   2010.0 |      797 | 90231950 |   2701409.4 | cudaMalloc             |
+|      0.9 |        33292125 |      1117 |  29804.9 |   1293.0 |      619 |   974353 |     58579.1 | cudaFree               |
+|      0.0 |         1243521 |       144 |   8635.6 |   5957.5 |     1846 |    69372 |      9512.9 | cudaMemset             |
+|      0.0 |          236087 |         3 |  78695.7 |  67789.0 |    43414 |   124884 |     41815.7 | cudaMemGetInfo         |
+|      0.0 |            5958 |         1 |   5958.0 |   5958.0 |     5958 |     5958 |         0.0 | cuModuleGetLoadingMode |
+
+PROFILING: complete -- see /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-disc-001/performance/profiling

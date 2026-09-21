@@ -46,6 +46,22 @@ void fill(DeviceVector& v, cfd::Index count, cfd::Real value);
 // InvalidArgumentError on a size mismatch.
 [[nodiscard]] cfd::Real dot(const DeviceVector& a, const DeviceVector& b);
 
+// GPU-PIPE-001 Phase 2B: dot(a0,b0) and dot(a1,b1) in ONE kernel launch, one
+// synchronization and one 16-byte download, instead of two of each.
+//
+// **Bitwise identical** to calling dot() twice -- not "within tolerance".
+// Each product keeps its own block partition, its own shared-memory halving
+// tree and its own partial-sum slice, and the two slices are finalised by the
+// same in-order serial sum dot() uses, so every floating-point operation and
+// its order is unchanged. Fusion changes only when the work is scheduled.
+//
+// Exists because Phase 1 measured the reduction round trip at 79-101 us
+// regardless of payload: the cost is per *call*, so halving the number of calls
+// is what helps. All four vectors must share a length; throws
+// InvalidArgumentError otherwise.
+void dot2(const DeviceVector& a0, const DeviceVector& b0, const DeviceVector& a1,
+          const DeviceVector& b1, cfd::Real& out0, cfd::Real& out1);
+
 // sqrt(dot(v, v)).
 [[nodiscard]] cfd::Real l2Norm(const DeviceVector& v);
 

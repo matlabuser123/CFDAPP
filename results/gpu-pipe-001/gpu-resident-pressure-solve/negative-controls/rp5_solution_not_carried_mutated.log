@@ -1,0 +1,16 @@
+# rp5_solution_not_carried
+# layer:       resident-solve
+# origin:      GPU-PIPE-001 resident pressure solve
+# expectation: detect
+# p' is left in the Krylov workspace and never carried into the buffer the velocity and face-flux corrections read, so both corrections use a stale p'
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+  copyWorkspaceSolution(impl_->krylov, nc, impl_->pPrime);
+# --- became ---
+  // MUTATED: p' never reaches the corrections.
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness residency  -> exit -6 (DETECTED) ##########
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  countNonFiniteDevice: buffer is not resident

@@ -1,0 +1,219 @@
+=== GPU-DISC-001B: CUDA gradient vs CPU reference (bitwise) ===
+
+       [cartesian2d 16/dirichlet sweeps=no  skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=no  resident=93192 B]
+       [cartesian2d 16/neumann   sweeps=no  skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=no  resident=93192 B]
+       [cartesian2d 16/mixed     sweeps=no  skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=no  resident=93192 B]
+  PASS cartesian2d 16         dirichlet constant      cells=256    |grad|max=48          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         neumann   constant      cells=256    |grad|max=0.1667      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         mixed     constant      cells=256    |grad|max=48          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         dirichlet linear        cells=256    |grad|max=71.83       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         neumann   linear        cells=256    |grad|max=2           diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         mixed     linear        cells=256    |grad|max=39.67       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         dirichlet quadratic     cells=256    |grad|max=42.54       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         neumann   quadratic     cells=256    |grad|max=3.609       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         mixed     quadratic     cells=256    |grad|max=42.54       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         dirichlet manufactured  cells=256    |grad|max=74.26       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         neumann   manufactured  cells=256    |grad|max=3.091       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS cartesian2d 16         mixed     manufactured  cells=256    |grad|max=40.61       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+       [cartesian2d 40/dirichlet sweeps=yes skewedFaces=0     obliqueFaces=0     claims=160   boundaryTransfer=yes resident=547848 B]
+       [cartesian2d 40/neumann   sweeps=yes skewedFaces=0     obliqueFaces=0     claims=160   boundaryTransfer=yes resident=547848 B]
+       [cartesian2d 40/mixed     sweeps=yes skewedFaces=0     obliqueFaces=0     claims=160   boundaryTransfer=yes resident=547848 B]
+  PASS cartesian2d 40         dirichlet constant      cells=1600   |grad|max=120         diff=0      maxAbs=0          maxRel=0          L2=0          bcells=156
+  PASS cartesian2d 40         neumann   constant      cells=1600   |grad|max=0.1667      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=156
+  PASS cartesian2d 40         mixed     constant      cells=1600   |grad|max=120         diff=0      maxAbs=0          maxRel=0          L2=0          bcells=156
+  FAIL cartesian2d 40         dirichlet linear        cells=1600   |grad|max=183.8       diff=1828   maxAbs=6.64e-14   maxRel=3.33e-14   L2=4.68e-13   bcells=156
+       worst cell 184 component x: cpu=1.9999999999999682 gpu=2.0000000000000346
+  FAIL cartesian2d 40         neumann   linear        cells=1600   |grad|max=2           diff=1859   maxAbs=6.64e-14   maxRel=4.34e-14   L2=4.61e-13   bcells=156
+       worst cell 184 component x: cpu=1.9999999999999682 gpu=2.0000000000000346
+  FAIL cartesian2d 40         mixed     linear        cells=1600   |grad|max=103.7       diff=1856   maxAbs=6.64e-14   maxRel=4.34e-14   L2=4.62e-13   bcells=156
+       worst cell 184 component x: cpu=1.9999999999999682 gpu=2.0000000000000346
+  FAIL cartesian2d 40         dirichlet quadratic     cells=1600   |grad|max=106.6       diff=1734   maxAbs=6.66e-14   maxRel=1.78e-12   L2=5.39e-13   bcells=156
+       worst cell 1376 component y: cpu=3.2437499999999782 gpu=3.2437500000000448
+  FAIL cartesian2d 40         neumann   quadratic     cells=1600   |grad|max=3.844       diff=1746   maxAbs=6.66e-14   maxRel=1.78e-12   L2=5.39e-13   bcells=156
+       worst cell 1376 component y: cpu=3.2437499999999782 gpu=3.2437500000000448
+  FAIL cartesian2d 40         mixed     quadratic     cells=1600   |grad|max=106.6       diff=1736   maxAbs=6.66e-14   maxRel=1.78e-12   L2=5.39e-13   bcells=156
+       worst cell 1376 component y: cpu=3.2437499999999782 gpu=3.2437500000000448
+  FAIL cartesian2d 40         dirichlet manufactured  cells=1600   |grad|max=186.5       diff=1872   maxAbs=3.06e-14   maxRel=4.1e-14    L2=3.38e-13   bcells=156
+       worst cell 984 component y: cpu=-2.7623972034976321 gpu=-2.7623972034976627
+  FAIL cartesian2d 40         neumann   manufactured  cells=1600   |grad|max=3.134       diff=1919   maxAbs=3.06e-14   maxRel=1.19e-13   L2=3.35e-13   bcells=156
+       worst cell 984 component y: cpu=-2.7623972034976321 gpu=-2.7623972034976627
+  FAIL cartesian2d 40         mixed     manufactured  cells=1600   |grad|max=104.6       diff=1898   maxAbs=3.06e-14   maxRel=1.19e-13   L2=3.36e-13   bcells=156
+       worst cell 984 component y: cpu=-2.7623972034976321 gpu=-2.7623972034976627
+       [quad translated/dirichlet sweeps=no  skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=no  resident=93192 B]
+       [quad translated/neumann   sweeps=no  skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=no  resident=93192 B]
+       [quad translated/mixed     sweeps=no  skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=no  resident=93192 B]
+  PASS quad translated        dirichlet constant      cells=256    |grad|max=48          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        neumann   constant      cells=256    |grad|max=0.1667      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        mixed     constant      cells=256    |grad|max=48          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        dirichlet linear        cells=256    |grad|max=5.068e+04   diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        neumann   linear        cells=256    |grad|max=2           diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        mixed     linear        cells=256    |grad|max=5.067e+04   diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        dirichlet quadratic     cells=256    |grad|max=2.671e+07   diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        neumann   quadratic     cells=256    |grad|max=2127        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        mixed     quadratic     cells=256    |grad|max=2.671e+07   diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        dirichlet manufactured  cells=256    |grad|max=74.26       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        neumann   manufactured  cells=256    |grad|max=3.091       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS quad translated        mixed     manufactured  cells=256    |grad|max=40.61       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+       [graded2d 16/dirichlet sweeps=yes skewedFaces=0     obliqueFaces=0     claims=64    boundaryTransfer=yes resident=93192 B]
+       [graded2d 16/neumann   sweeps=yes skewedFaces=0     obliqueFaces=10    claims=64    boundaryTransfer=yes resident=93752 B]
+       [graded2d 16/mixed     sweeps=yes skewedFaces=0     obliqueFaces=5     claims=64    boundaryTransfer=yes resident=93472 B]
+  PASS graded2d 16            dirichlet constant      cells=256    |grad|max=171.1       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS graded2d 16            neumann   constant      cells=256    |grad|max=0.1706      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS graded2d 16            mixed     constant      cells=256    |grad|max=171.1       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  FAIL graded2d 16            dirichlet linear        cells=256    |grad|max=147.4       diff=512    maxAbs=0.15       maxRel=0.423      L2=0.967      bcells=60
+       worst cell 192 component x: cpu=-129.32923949722937 gpu=-129.17923949722933
+  FAIL graded2d 16            neumann   linear        cells=256    |grad|max=2           diff=512    maxAbs=0.15       maxRel=0.323      L2=0.967      bcells=60
+       worst cell 192 component x: cpu=0.46428571428570947 gpu=0.61428571428571788
+  FAIL graded2d 16            mixed     linear        cells=256    |grad|max=147.4       diff=512    maxAbs=0.15       maxRel=0.164      L2=0.967      bcells=60
+       worst cell 192 component x: cpu=-129.32923949722937 gpu=-129.17923949722933
+  FAIL graded2d 16            dirichlet quadratic     cells=256    |grad|max=75.97       diff=512    maxAbs=0.152      maxRel=2.95       L2=0.846      bcells=60
+       worst cell 240 component y: cpu=18.394460119434964 gpu=18.546609038056996
+  FAIL graded2d 16            neumann   quadratic     cells=256    |grad|max=3.702       diff=512    maxAbs=0.152      maxRel=11.1       L2=0.846      bcells=60
+       worst cell 240 component y: cpu=1.2012087550490165 gpu=1.3533576736710382
+  FAIL graded2d 16            mixed     quadratic     cells=256    |grad|max=75.97       diff=512    maxAbs=0.152      maxRel=2.95       L2=0.846      bcells=60
+       worst cell 240 component y: cpu=1.2012087550490165 gpu=1.3533576736710382
+  FAIL graded2d 16            dirichlet manufactured  cells=256    |grad|max=100.3       diff=512    maxAbs=0.235      maxRel=0.313      L2=1.11       bcells=60
+       worst cell 0 component x: cpu=-72.92787632048605 gpu=-72.693336753357869
+  FAIL graded2d 16            neumann   manufactured  cells=256    |grad|max=3.118       diff=512    maxAbs=0.235      maxRel=0.888      L2=1.11       bcells=60
+       worst cell 0 component x: cpu=0.82212515186528579 gpu=1.0566647189934602
+  FAIL graded2d 16            mixed     manufactured  cells=256    |grad|max=79.19       diff=512    maxAbs=0.235      maxRel=0.888      L2=1.11       bcells=60
+       worst cell 0 component x: cpu=-72.92787632048605 gpu=-72.693336753357869
+       [distorted q16/dirichlet sweeps=yes skewedFaces=480   obliqueFaces=0     claims=64    boundaryTransfer=yes resident=112392 B]
+       [distorted q16/neumann   sweeps=yes skewedFaces=480   obliqueFaces=64    claims=64    boundaryTransfer=yes resident=115976 B]
+       [distorted q16/mixed     sweeps=yes skewedFaces=480   obliqueFaces=32    claims=64    boundaryTransfer=yes resident=114184 B]
+  PASS distorted q16          dirichlet constant      cells=256    |grad|max=53.27       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   constant      cells=256    |grad|max=0.1677      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     constant      cells=256    |grad|max=53.27       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  FAIL distorted q16          dirichlet linear        cells=256    |grad|max=74.6        diff=512    maxAbs=4.03e-11   maxRel=2.17e-11   L2=1.83e-10   bcells=60
+       worst cell 132 component x: cpu=2.0000000000191558 gpu=1.9999999999788549
+  FAIL distorted q16          neumann   linear        cells=256    |grad|max=2.009       diff=512    maxAbs=3.85e-10   maxRel=7.77e-10   L2=9.34e-10   bcells=60
+       worst cell 240 component x: cpu=0.49527998265847029 gpu=0.49527998227340153
+  FAIL distorted q16          mixed     linear        cells=256    |grad|max=40.93       diff=512    maxAbs=3.08e-10   maxRel=4.36e-10   L2=4.49e-10   bcells=60
+       worst cell 255 component x: cpu=0.77588111037151952 gpu=0.77588111067918708
+  FAIL distorted q16          dirichlet quadratic     cells=256    |grad|max=41.09       diff=511    maxAbs=4.32e-11   maxRel=7.78e-10   L2=1.53e-10   bcells=60
+       worst cell 183 component y: cpu=2.6717917013067907 gpu=2.6717917012635835
+  FAIL distorted q16          neumann   quadratic     cells=256    |grad|max=3.617       diff=512    maxAbs=7.09e-10   maxRel=8.83e-10   L2=1.01e-09   bcells=60
+       worst cell 240 component y: cpu=1.1993002613374488 gpu=1.1993002606282614
+  FAIL distorted q16          mixed     quadratic     cells=256    |grad|max=41.09       diff=509    maxAbs=4.84e-10   maxRel=7.78e-10   L2=5.67e-10   bcells=60
+       worst cell 255 component y: cpu=1.0623644821716378 gpu=1.062364482655398
+  FAIL distorted q16          dirichlet manufactured  cells=256    |grad|max=78.15       diff=511    maxAbs=4.76e-11   maxRel=2.53e-10   L2=2.34e-10   bcells=60
+       worst cell 72 component y: cpu=-2.3458168697975852 gpu=-2.3458168697499602
+  FAIL distorted q16          neumann   manufactured  cells=256    |grad|max=3.1         diff=512    maxAbs=5.78e-10   maxRel=6.35e-10   L2=1.11e-09   bcells=60
+       worst cell 15 component x: cpu=-0.90974457424419464 gpu=-0.90974457366631101
+  FAIL distorted q16          mixed     manufactured  cells=256    |grad|max=41.85       diff=511    maxAbs=4.62e-10   maxRel=4.35e-10   L2=5.41e-10   bcells=60
+       worst cell 255 component x: cpu=1.128866342118531 gpu=1.1288663425801537
+       [sheared 0.35/dirichlet sweeps=yes skewedFaces=367   obliqueFaces=0     claims=64    boundaryTransfer=yes resident=107872 B]
+       [sheared 0.35/neumann   sweeps=yes skewedFaces=367   obliqueFaces=64    claims=64    boundaryTransfer=yes resident=111456 B]
+       [sheared 0.35/mixed     sweeps=yes skewedFaces=367   obliqueFaces=32    claims=64    boundaryTransfer=yes resident=109664 B]
+  PASS sheared 0.35           dirichlet constant      cells=256    |grad|max=60.86       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS sheared 0.35           neumann   constant      cells=256    |grad|max=0.1736      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS sheared 0.35           mixed     constant      cells=256    |grad|max=60.86       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  FAIL sheared 0.35           dirichlet linear        cells=256    |grad|max=86.13       diff=313    maxAbs=9.85e-06   maxRel=4.57e-05   L2=4.24e-05   bcells=60
+       worst cell 208 component y: cpu=-8.135344300050706 gpu=-8.1353541510910663
+  FAIL sheared 0.35           neumann   linear        cells=256    |grad|max=2.012       diff=316    maxAbs=1.45e-05   maxRel=3.04e-05   L2=6.52e-05   bcells=60
+       worst cell 16 component x: cpu=0.47663555081925679 gpu=0.47665004516622922
+  FAIL sheared 0.35           mixed     linear        cells=256    |grad|max=49.44       diff=316    maxAbs=1.11e-05   maxRel=1.45e-05   L2=5.36e-05   bcells=60
+       worst cell 224 component y: cpu=4.5163371682296178 gpu=4.5163482253659186
+  FAIL sheared 0.35           dirichlet quadratic     cells=256    |grad|max=50.7        diff=268    maxAbs=7.85e-06   maxRel=3.73e-05   L2=2.7e-05    bcells=60
+       worst cell 224 component y: cpu=1.6836019943613338 gpu=1.6835941396024532
+  FAIL sheared 0.35           neumann   quadratic     cells=256    |grad|max=3.591       diff=270    maxAbs=1.45e-05   maxRel=2.78e-05   L2=4.27e-05   bcells=60
+       worst cell 225 component y: cpu=3.5905475493742047 gpu=3.5905330038369323
+  FAIL sheared 0.35           mixed     quadratic     cells=256    |grad|max=50.7        diff=269    maxAbs=1.09e-05   maxRel=2.9e-05    L2=3.96e-05   bcells=60
+       worst cell 239 component y: cpu=3.2870240268746045 gpu=3.2870349257539431
+  FAIL sheared 0.35           dirichlet manufactured  cells=256    |grad|max=74.28       diff=295    maxAbs=9.75e-06   maxRel=3.92e-05   L2=3.93e-05   bcells=60
+       worst cell 32 component y: cpu=3.5567223247125312 gpu=3.5567320763652863
+  FAIL sheared 0.35           neumann   manufactured  cells=256    |grad|max=3.092       diff=299    maxAbs=2.06e-05   maxRel=0.000263   L2=6.3e-05    bcells=60
+       worst cell 224 component x: cpu=-1.1227752654299101 gpu=-1.1227958265962155
+  FAIL sheared 0.35           mixed     manufactured  cells=256    |grad|max=48.37       diff=297    maxAbs=1.29e-05   maxRel=0.000154   L2=4.88e-05   bcells=60
+       worst cell 207 component x: cpu=0.86310836672623048 gpu=0.86312121741429104
+       [multiblock L/dirichlet sweeps=no  skewedFaces=0     obliqueFaces=0     claims=32    boundaryTransfer=no  resident=20360 B]
+       [multiblock L/neumann   sweeps=no  skewedFaces=0     obliqueFaces=0     claims=32    boundaryTransfer=no  resident=20360 B]
+       [multiblock L/mixed     sweeps=no  skewedFaces=0     obliqueFaces=0     claims=32    boundaryTransfer=no  resident=20360 B]
+  PASS multiblock L           dirichlet constant      cells=48     |grad|max=24          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           neumann   constant      cells=48     |grad|max=0.1667      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           mixed     constant      cells=48     |grad|max=24          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           dirichlet linear        cells=48     |grad|max=34.5        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           neumann   linear        cells=48     |grad|max=2           diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           mixed     linear        cells=48     |grad|max=22.33       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           dirichlet quadratic     cells=48     |grad|max=20.93       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           neumann   quadratic     cells=48     |grad|max=3.219       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           mixed     quadratic     cells=48     |grad|max=14.01       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           dirichlet manufactured  cells=48     |grad|max=36.54       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           neumann   manufactured  cells=48     |grad|max=2.945       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+  PASS multiblock L           mixed     manufactured  cells=48     |grad|max=31.2        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=27
+       [cartesian3d 8/dirichlet sweeps=no  skewedFaces=0     obliqueFaces=0     claims=384   boundaryTransfer=no  resident=296968 B]
+       [cartesian3d 8/neumann   sweeps=no  skewedFaces=0     obliqueFaces=0     claims=384   boundaryTransfer=no  resident=296968 B]
+       [cartesian3d 8/mixed     sweeps=no  skewedFaces=0     obliqueFaces=0     claims=384   boundaryTransfer=no  resident=296968 B]
+  PASS cartesian3d 8          dirichlet constant      cells=512    |grad|max=24          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          neumann   constant      cells=512    |grad|max=0.1667      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          mixed     constant      cells=512    |grad|max=24          diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          dirichlet linear        cells=512    |grad|max=39.58       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          neumann   linear        cells=512    |grad|max=2           diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          mixed     linear        cells=512    |grad|max=39.58       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          dirichlet quadratic     cells=512    |grad|max=35.03       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          neumann   quadratic     cells=512    |grad|max=3.219       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          mixed     quadratic     cells=512    |grad|max=31.86       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          dirichlet manufactured  cells=512    |grad|max=50.38       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          neumann   manufactured  cells=512    |grad|max=3.773       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+  PASS cartesian3d 8          mixed     manufactured  cells=512    |grad|max=42.55       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=296
+       [planar skew 3d 6/dirichlet sweeps=yes skewedFaces=522   obliqueFaces=0     claims=216   boundaryTransfer=yes resident=153944 B]
+       [planar skew 3d 6/neumann   sweeps=yes skewedFaces=522   obliqueFaces=216   claims=216   boundaryTransfer=yes resident=166040 B]
+       [planar skew 3d 6/mixed     sweeps=yes skewedFaces=522   obliqueFaces=108   claims=216   boundaryTransfer=yes resident=159992 B]
+  PASS planar skew 3d 6       dirichlet constant      cells=216    |grad|max=17.71       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS planar skew 3d 6       neumann   constant      cells=216    |grad|max=0.1727      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS planar skew 3d 6       mixed     constant      cells=216    |grad|max=17.71       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  FAIL planar skew 3d 6       dirichlet linear        cells=216    |grad|max=34.57       diff=440    maxAbs=1.87e-10   maxRel=1.7e-10    L2=9.05e-10   bcells=152
+       worst cell 124 component x: cpu=1.9976671716055974 gpu=1.9976671714185659
+  FAIL planar skew 3d 6       neumann   linear        cells=216    |grad|max=2.003       diff=511    maxAbs=4.29e-05   maxRel=0.00458    L2=0.000115   bcells=152
+       worst cell 215 component y: cpu=-0.48372461916802617 gpu=-0.48376755721528447
+  FAIL planar skew 3d 6       mixed     linear        cells=216    |grad|max=27.26       diff=475    maxAbs=4.29e-05   maxRel=0.00276    L2=6.01e-05   bcells=152
+       worst cell 215 component y: cpu=-0.48372461916802617 gpu=-0.48376755721528447
+  FAIL planar skew 3d 6       dirichlet quadratic     cells=216    |grad|max=26.19       diff=440    maxAbs=1.21e-10   maxRel=2.43e-10   L2=7.8e-10    bcells=152
+       worst cell 194 component y: cpu=-4.8907843191059959 gpu=-4.8907843192269542
+  FAIL planar skew 3d 6       neumann   quadratic     cells=216    |grad|max=3.035       diff=509    maxAbs=9.69e-05   maxRel=0.0182     L2=0.000192   bcells=152
+       worst cell 215 component y: cpu=0.99271269907445703 gpu=0.99280961732673823
+  FAIL planar skew 3d 6       mixed     quadratic     cells=216    |grad|max=23.77       diff=474    maxAbs=9.69e-05   maxRel=9.76e-05   L2=0.000135   bcells=152
+       worst cell 215 component y: cpu=0.99271269907445703 gpu=0.99280961732673823
+  FAIL planar skew 3d 6       dirichlet manufactured  cells=216    |grad|max=40.93       diff=436    maxAbs=1.38e-10   maxRel=2.71e-10   L2=8.46e-10   bcells=152
+       worst cell 190 component y: cpu=-8.9424223082500571 gpu=-8.9424223081115723
+  FAIL planar skew 3d 6       neumann   manufactured  cells=216    |grad|max=3.668       diff=508    maxAbs=4.18e-05   maxRel=0.00039    L2=0.000127   bcells=152
+       worst cell 182 component z: cpu=-0.20529608430598864 gpu=-0.20525427032211907
+  FAIL planar skew 3d 6       mixed     manufactured  cells=216    |grad|max=32.56       diff=472    maxAbs=3.2e-05    maxRel=9.61e-05   L2=6.04e-05   bcells=152
+       worst cell 214 component y: cpu=-0.46115910262538085 gpu=-0.4611911462125825
+       [warped 3d 6/dirichlet sweeps=yes skewedFaces=540   obliqueFaces=0     claims=216   boundaryTransfer=yes resident=154664 B]
+       [warped 3d 6/neumann   sweeps=yes skewedFaces=540   obliqueFaces=216   claims=216   boundaryTransfer=yes resident=166760 B]
+       [warped 3d 6/mixed     sweeps=yes skewedFaces=540   obliqueFaces=108   claims=216   boundaryTransfer=yes resident=160712 B]
+  PASS warped 3d 6            dirichlet constant      cells=216    |grad|max=17.96       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   constant      cells=216    |grad|max=0.1689      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     constant      cells=216    |grad|max=17.96       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  FAIL warped 3d 6            dirichlet linear        cells=216    |grad|max=29.1        diff=648    maxAbs=2.42e-10   maxRel=7.55e-10   L2=8.91e-10   bcells=152
+       worst cell 93 component x: cpu=2.0000904799673052 gpu=2.0000904802091819
+  FAIL warped 3d 6            neumann   linear        cells=216    |grad|max=2.008       diff=648    maxAbs=5.03e-09   maxRel=1.22e-08   L2=1.79e-08   bcells=152
+       worst cell 95 component x: cpu=0.75385467034312548 gpu=0.75385467537469797
+  FAIL warped 3d 6            mixed     linear        cells=216    |grad|max=29.01       diff=648    maxAbs=5.03e-09   maxRel=1.22e-08   L2=1.25e-08   bcells=152
+       worst cell 95 component x: cpu=0.75385466687746783 gpu=0.75385467190905386
+  FAIL warped 3d 6            dirichlet quadratic     cells=216    |grad|max=25.83       diff=648    maxAbs=4.57e-10   maxRel=2.18e-09   L2=1.72e-09   bcells=152
+       worst cell 93 component y: cpu=2.0994458776438676 gpu=2.0994458781008358
+  FAIL warped 3d 6            neumann   quadratic     cells=216    |grad|max=2.965       diff=648    maxAbs=5.78e-09   maxRel=7.09e-08   L2=1.57e-08   bcells=152
+       worst cell 104 component y: cpu=1.0123880314926494 gpu=1.0123880372714087
+  FAIL warped 3d 6            mixed     quadratic     cells=216    |grad|max=23.76       diff=648    maxAbs=5.78e-09   maxRel=2.81e-08   L2=1.39e-08   bcells=152
+       worst cell 104 component y: cpu=1.0123880518386354 gpu=1.0123880576170332
+  FAIL warped 3d 6            dirichlet manufactured  cells=216    |grad|max=36.93       diff=647    maxAbs=1.05e-09   maxRel=1.57e-08   L2=4.09e-09   bcells=152
+       worst cell 129 component y: cpu=-3.0864759911486415 gpu=-3.0864759922008891
+  FAIL warped 3d 6            neumann   manufactured  cells=216    |grad|max=3.608       diff=648    maxAbs=4.68e-09   maxRel=4.21e-08   L2=1.56e-08   bcells=152
+       worst cell 105 component y: cpu=-0.55113540276675033 gpu=-0.5511354074462681
+  FAIL warped 3d 6            mixed     manufactured  cells=216    |grad|max=33.05       diff=648    maxAbs=4.68e-09   maxRel=2.99e-08   L2=1.15e-08   bcells=152
+       worst cell 105 component y: cpu=-0.55113540345928747 gpu=-0.55113540813879658
+
+=== non-vacuity control ===
+  PASS identical copy -> 0 differing, one-ULP perturbation -> 1 differing (maxAbs=2.22e-16)
+
+=== path coverage (mesh/BC pairs reaching each branch) ===
+  sweep loop entered     18
+  skew-corrected faces   12
+  oblique Neumann faces  10
+  GRAD-002 claims        30
+  boundary transfer      18
+
+cases=120 failures=54
+GRADIENT EQUIVALENCE: FAIL

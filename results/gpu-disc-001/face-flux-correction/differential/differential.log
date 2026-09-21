@@ -1,0 +1,92 @@
+﻿ninja: no work to do.
+built /tmp/ffcorr_equiv
+=== GPU-DISC-001K: CUDA face-flux correction vs CPU (bitwise) ===
+CPU reference: pressure_velocity::correctFaceMassFlux
+
+       [cartesian2d 8/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 cartesian2d 8  all-Neumann    swirl     all[0->0] solved[0->0 x0] pin=yes solve[it=0 r=0] pairs=112 errors=0
+  PASS L3 cartesian2d 8  all-Neumann    mixed     all[1.553->1.512] solved[1.564->4.596e-14 x2.94e-14] pin=yes solve[it=51 r=5.92e-14] pairs=112 errors=0
+       [cartesian2d 8/mixed pin=no fixedValueFaces=16]
+  PASS L3 cartesian2d 8  mixed          swirl     all[0->0] solved[0->0 x0] pin=no solve[it=0 r=0] pairs=112 errors=0
+  PASS L3 cartesian2d 8  mixed          mixed     all[1.553->5.587e-15] solved[1.553->5.587e-15 x3.6e-15] pin=no solve[it=41 r=4.19e-14] pairs=112 errors=0
+       [cartesian2d 8/all-FixedValue pin=no fixedValueFaces=32]
+  PASS L3 cartesian2d 8  all-FixedValue swirl     all[0->0] solved[0->0 x0] pin=no solve[it=0 r=0] pairs=112 errors=0
+  PASS L3 cartesian2d 8  all-FixedValue mixed     all[1.553->1.485e-14] solved[1.553->1.485e-14 x9.57e-15] pin=no solve[it=34 r=1.19e-13] pairs=112 errors=0
+  PASS L4a cartesian2d 8  controlled p' differing=0 maxAbs=0          scale=25.31
+  PASS L4b cartesian2d 8  cpu[it=37 r=1.9e-10 restarts=0] gpu[it=38 r=1.79e-10 restarts=0] |dp'|=1.17e-09 (<=0.00028) |du|=4.67e-10 |dF|=8.39e-11 |dR|=9.29e-11
+       [cartesian2d 16/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 cartesian2d 16 all-Neumann    swirl     all[0->0] solved[0->0 x0] pin=yes solve[it=0 r=0] pairs=480 errors=0
+  PASS L3 cartesian2d 16 all-Neumann    mixed     all[1.534->0.8219] solved[1.533->1.873e-13 x1.22e-13] pin=yes solve[it=124 r=1.72e-13] pairs=480 errors=0
+       [cartesian2d 16/mixed pin=no fixedValueFaces=32]
+  PASS L3 cartesian2d 16 mixed          swirl     all[0->0] solved[0->0 x0] pin=no solve[it=0 r=0] pairs=480 errors=0
+  PASS L3 cartesian2d 16 mixed          mixed     all[1.534->1.212e-14] solved[1.534->1.212e-14 x7.91e-15] pin=no solve[it=86 r=1.86e-13] pairs=480 errors=0
+       [cartesian2d 16/all-FixedValue pin=no fixedValueFaces=64]
+  PASS L3 cartesian2d 16 all-FixedValue swirl     all[0->0] solved[0->0 x0] pin=no solve[it=0 r=0] pairs=480 errors=0
+  PASS L3 cartesian2d 16 all-FixedValue mixed     all[1.534->1.326e-14] solved[1.534->1.326e-14 x8.65e-15] pin=no solve[it=75 r=2.12e-13] pairs=480 errors=0
+  PASS L4a cartesian2d 16 controlled p' differing=0 maxAbs=0          scale=5.994
+  PASS L4b cartesian2d 16 cpu[it=82 r=3.62e-11 restarts=0] gpu[it=84 r=1.08e-10 restarts=0] |dp'|=1.51e-09 (<=0.000355) |du|=3.51e-10 |dF|=2.68e-11 |dR|=1.22e-11
+       [graded2d 10/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 graded2d 10    all-Neumann    swirl     all[0->0] solved[0->0 x0] pin=yes solve[it=0 r=0] pairs=180 errors=0
+  PASS L3 graded2d 10    all-Neumann    mixed     all[1.54->0.76] solved[1.548->4.428e-14 x2.86e-14] pin=yes solve[it=73 r=1.52e-13] pairs=180 errors=0
+       [graded2d 10/mixed pin=no fixedValueFaces=20]
+  PASS L3 graded2d 10    mixed          swirl     all[0->0] solved[0->0 x0] pin=no solve[it=0 r=0] pairs=180 errors=0
+  PASS L3 graded2d 10    mixed          mixed     all[1.54->7.023e-15] solved[1.54->7.023e-15 x4.56e-15] pin=no solve[it=52 r=6.94e-14] pairs=180 errors=0
+       [graded2d 10/all-FixedValue pin=no fixedValueFaces=40]
+  PASS L3 graded2d 10    all-FixedValue swirl     all[0->0] solved[0->0 x0] pin=no solve[it=0 r=0] pairs=180 errors=0
+  PASS L3 graded2d 10    all-FixedValue mixed     all[1.54->5.119e-15] solved[1.54->5.119e-15 x3.32e-15] pin=no solve[it=49 r=5.07e-14] pairs=180 errors=0
+  PASS L4a graded2d 10    controlled p' differing=0 maxAbs=0          scale=22.78
+  PASS L4b graded2d 10    cpu[it=50 r=2.11e-10 restarts=0] gpu[it=51 r=8.31e-11 restarts=0] |dp'|=1.31e-09 (<=0.000351) |du|=5.4e-10 |dF|=6.86e-11 |dR|=7.89e-11
+       [distorted q16/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 distorted q16  all-Neumann    swirl     all[4.427e-18->4.427e-18] solved[4.436e-18->4.436e-18 x1] pin=yes solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  all-Neumann    mixed     all[1.534->0.8219] solved[1.533->1.245e-13 x8.12e-14] pin=yes solve[it=122 r=1.56e-13] pairs=480 errors=0
+       [distorted q16/mixed pin=no fixedValueFaces=32]
+  PASS L3 distorted q16  mixed          swirl     all[4.427e-18->4.427e-18] solved[4.427e-18->4.427e-18 x1] pin=no solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  mixed          mixed     all[1.534->1.513e-14] solved[1.534->1.513e-14 x9.87e-15] pin=no solve[it=89 r=2.4e-13] pairs=480 errors=0
+       [distorted q16/all-FixedValue pin=no fixedValueFaces=64]
+  PASS L3 distorted q16  all-FixedValue swirl     all[4.427e-18->4.427e-18] solved[4.427e-18->4.427e-18 x1] pin=no solve[it=0 r=7.08e-17] pairs=480 errors=0
+  PASS L3 distorted q16  all-FixedValue mixed     all[1.534->3.692e-15] solved[1.534->3.692e-15 x2.41e-15] pin=no solve[it=79 r=5.66e-14] pairs=480 errors=0
+  PASS L4a distorted q16  controlled p' differing=0 maxAbs=0          scale=6.141
+  PASS L4b distorted q16  cpu[it=84 r=1.02e-10 restarts=0] gpu[it=89 r=9.03e-11 restarts=0] |dp'|=8.13e-10 (<=0.000354) |du|=1.36e-10 |dF|=1.09e-11 |dR|=7.14e-12
+       [cartesian3d 4/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 cartesian3d 4  all-Neumann    swirl     all[0.001563->0.0125] solved[0.001563->7.523e-16 x4.81e-13] pin=yes solve[it=37 r=5.49e-15] pairs=144 errors=0
+  PASS L3 cartesian3d 4  all-Neumann    mixed     all[1.883->2.144] solved[1.897->2.963e-14 x1.56e-14] pin=yes solve[it=39 r=6.42e-14] pairs=144 errors=0
+       [cartesian3d 4/mixed pin=no fixedValueFaces=48]
+  PASS L3 cartesian3d 4  mixed          swirl     all[0.001563->4.92e-16] solved[0.001563->4.92e-16 x3.15e-13] pin=no solve[it=23 r=3.93e-15] pairs=144 errors=0
+  PASS L3 cartesian3d 4  mixed          mixed     all[1.883->1.364e-14] solved[1.883->1.364e-14 x7.25e-15] pin=no solve[it=26 r=1.1e-13] pairs=144 errors=0
+       [cartesian3d 4/all-FixedValue pin=no fixedValueFaces=96]
+  PASS L3 cartesian3d 4  all-FixedValue swirl     all[0.001563->3.018e-16] solved[0.001563->3.018e-16 x1.93e-13] pin=no solve[it=22 r=2.42e-15] pairs=144 errors=0
+  PASS L3 cartesian3d 4  all-FixedValue mixed     all[1.883->7.069e-15] solved[1.883->7.069e-15 x3.75e-15] pin=no solve[it=24 r=5.68e-14] pairs=144 errors=0
+  PASS L4a cartesian3d 4  controlled p' differing=0 maxAbs=0          scale=33.23
+  PASS L4b cartesian3d 4  cpu[it=26 r=1.77e-10 restarts=0] gpu[it=26 r=2.4e-10 restarts=0] |dp'|=2.57e-10 (<=0.000214) |du|=1.63e-10 |dF|=1.51e-11 |dR|=3.07e-11
+       [warped 3d 3/all-Neumann pin=yes fixedValueFaces=0]
+  PASS L3 warped 3d 3    all-Neumann    swirl     all[0.003709->0.01925] solved[0.003707->1.615e-15 x4.36e-13] pin=yes solve[it=20 r=8.26e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    all-Neumann    mixed     all[1.564->2.165] solved[1.584->1.388e-14 x8.76e-15] pin=yes solve[it=24 r=1.81e-14] pairs=54 errors=0
+       [warped 3d 3/mixed pin=no fixedValueFaces=27]
+  PASS L3 warped 3d 3    mixed          swirl     all[0.003709->4.586e-16] solved[0.003709->4.586e-16 x1.24e-13] pin=no solve[it=16 r=2.38e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    mixed          mixed     all[1.564->7.973e-15] solved[1.564->7.973e-15 x5.1e-15] pin=no solve[it=17 r=4.13e-14] pairs=54 errors=0
+       [warped 3d 3/all-FixedValue pin=no fixedValueFaces=54]
+  PASS L3 warped 3d 3    all-FixedValue swirl     all[0.003709->7.45e-16] solved[0.003709->7.45e-16 x2.01e-13] pin=no solve[it=16 r=3.87e-15] pairs=54 errors=0
+  PASS L3 warped 3d 3    all-FixedValue mixed     all[1.564->4.805e-15] solved[1.564->4.805e-15 x3.07e-15] pin=no solve[it=17 r=2.43e-14] pairs=54 errors=0
+  PASS L4a warped 3d 3    controlled p' differing=0 maxAbs=0          scale=133.4
+  PASS L4b warped 3d 3    cpu[it=19 r=4.41e-10 restarts=0] gpu[it=20 r=3.64e-10 restarts=0] |dp'|=1.89e-10 (<=0.000305) |du|=2.11e-10 |dF|=4.28e-11 |dR|=6.41e-11
+
+=== coverage ===
+  2D / 3D direct cases              1200 / 600
+  without / with explicit term      900 / 900
+  interior faces compared           435000
+  corrected (FixedValue) boundary faces 52500
+  untouched Neumann boundary faces  26250
+  continuity cases                  36
+  imbalance reduced                 24
+  already-conservative predictors   12
+  owner/neighbour cancellations     8700
+  signed-zero flips (recorded, not errors) 2352
+  controlled p' cases               6
+  full chain cases (GPU solve)      6
+  values compared                   1621800
+  bitwise-identical                 1621800
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=1848 failures=0
+FACE FLUX CORRECTION EQUIVALENCE: PASS (bitwise)

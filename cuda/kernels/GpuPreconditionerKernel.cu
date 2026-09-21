@@ -70,12 +70,12 @@ void applyJacobiDiagonal(const DeviceVector& inverseDiagonal, const DeviceVector
                                                   output.data());
   checkCuda(cudaGetLastError(), "jacobiApplyKernel launch");
   ++gpuExecutionStats().kernelLaunches;
-  checkCuda(cudaDeviceSynchronize(), "jacobiApplyKernel execution");
+  // GPU-PIPE-001 Phase 3: stream-ordered, no synchronize -- `output` feeds the
+  // following SpMV on the same stream. See phase3-sync/audit.md.
   auto& stats = gpuExecutionStats();
   const double elapsed = timer.elapsedSeconds();
   stats.kernelSeconds += elapsed;
   stats.preconditionerApplySeconds += elapsed;
-  ++stats.synchronizations;
 }
 
 }  // namespace cfd::gpu

@@ -1,0 +1,44 @@
+ninja: no work to do.
+built /tmp/gpu_disc_perf
+OMP_NUM_THREADS=<unset, defaults to nproc>
+=== GPU-DISC-001Q: production performance qualification ===
+cuda available: yes
+mode: 3d
+
+cold start (CUDA context, module load, first kernel) -- untimed for every point below, reported here
+  cold_start_seconds=0.6538  second_identical_run_seconds=0.1479  one-off cost=0.5059
+
+########## 3D cavity -- production 3D SIMPLE (U/V/W) ##########
+
+cavity3d         12x12x12  cells=1728     budget=60   repeats=3
+  cpu        median    0.831 s   min    0.828   max    0.859   spread   3.7%   disc  0.684  solve  0.140
+  gpu-pipe   median    2.319 s   min    2.305   max    2.419   spread   4.9%   disc  0.658  solve  1.643
+  gpu-disc   median    2.253 s   min    2.161   max    2.309   spread   6.6%   disc  0.411  solve  1.868
+  disc-only  median    0.628 s   min    0.615   max    0.633   spread   2.8%   disc  0.448  solve  0.141
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=11663 maxAbs=5.75e-05  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=11663 maxAbs=5.75e-05  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+cavity3d         24x24x24  cells=13824    budget=30   repeats=3
+  cpu        median    5.051 s   min    4.981   max    5.127   spread   2.9%   disc  3.646  solve  1.302
+  gpu-pipe   median    6.574 s   min    6.507   max    6.618   spread   1.7%   disc  3.748  solve  2.722
+  gpu-disc   median    3.444 s   min    3.410   max    3.454   spread   1.3%   disc  0.753  solve  2.540
+  disc-only  median    2.537 s   min    2.528   max    2.551   spread   0.9%   disc  1.003  solve  1.351
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=95039 maxAbs=3.95e-05  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=95039 maxAbs=3.95e-05  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+cavity3d         40x40x40  cells=64000    budget=12   repeats=3
+  cpu        median   10.853 s   min   10.776   max   10.952   spread   1.6%   disc  8.150  solve  2.623
+  gpu-pipe   median    9.907 s   min    9.814   max    9.944   spread   1.3%   disc  8.226  solve  1.594
+  gpu-disc   median    3.263 s   min    3.147   max    3.451   spread   9.3%   disc  1.333  solve  1.215
+  disc-only  median    5.074 s   min    5.022   max    5.098   spread   1.5%   disc  1.699  solve  2.660
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=443199 maxAbs=0.0039  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=443199 maxAbs=0.0039  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+wrote results/gpu-disc-001/performance/raw/runs-3d.csv
+PERFORMANCE BENCHMARK: all integrity checks passed

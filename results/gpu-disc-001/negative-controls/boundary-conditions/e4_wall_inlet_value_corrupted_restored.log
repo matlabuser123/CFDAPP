@@ -1,0 +1,30 @@
+# e4_wall_inlet_value_corrupted -- restored include/cfd/gpu/DeviceBoundaryConditions.hpp
+# sha256 7781818d4c984e1d71351517630749def344946da9ba03cd0968ea2c24434dae
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness boundary -> exit 0 ##########
+=== GPU-DISC-001E: shared CUDA boundary-condition layer vs CPU (bitwise) ===
+isolated -- device evaluators driven directly, no equation or operator
+
+
+=== coverage ===
+  type FixedValue         covered
+  type FixedGradient      covered
+  type Wall               covered
+  type MovingWall         covered
+  type Inlet              covered
+  type Outlet             covered
+  type Symmetry           covered
+  type FixedTemperature   covered
+  type HeatFlux           covered
+  type Adiabatic          covered
+  type WallOmega          covered
+  scalar forms const/shift/affine   10 / 10 / 0 (sets reaching each)
+  vector forms const/identity/symm  10 / 6 / 5
+  ghost inflow/outflow/zero-flux    384 / 360 / 536
+  faces with an alternative distance 2400
+  total scalar comparisons          9600
+
+cases=30 failures=0
+BOUNDARY CONDITION EQUIVALENCE: PASS (bitwise)

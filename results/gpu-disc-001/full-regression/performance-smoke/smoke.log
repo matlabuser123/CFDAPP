@@ -1,0 +1,31 @@
+=== GPU-DISC-001Q: production performance qualification ===
+cuda available: yes
+mode: smoke
+
+cold start (CUDA context, module load, first kernel) -- untimed for every point below, reported here
+  cold_start_seconds=0.2465  second_identical_run_seconds=0.1419  one-off cost=0.1045
+
+########## performance smoke: 160^2 and 320^2 ##########
+
+cavity2d         160x160   cells=25600    budget=60   repeats=3
+  cpu        median   12.228 s   min   12.147   max   12.408   spread   2.1%   disc  5.374  solve  6.799
+  gpu-pipe   median   14.754 s   min   14.606   max   14.785   spread   1.2%   disc  5.386  solve  9.310
+  gpu-disc   median    9.627 s   min    9.607   max   10.008   spread   4.2%   disc  1.501  solve  7.937
+  disc-only  median    8.813 s   min    8.708   max    8.909   spread   2.3%   disc  1.938  solve  6.557
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=127679 maxAbs=0.00133  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=127679 maxAbs=0.00133  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+cavity2d         320x320   cells=102400   budget=20   repeats=3
+  cpu        median   28.996 s   min   28.776   max   29.228   spread   1.6%   disc  7.812  solve 20.816
+  gpu-pipe   median   13.828 s   min   13.757   max   14.697   spread   6.8%   disc  8.021  solve  6.524
+  gpu-disc   median    8.289 s   min    7.972   max    8.318   spread   4.2%   disc  2.037  solve  5.355
+  disc-only  median   24.158 s   min   23.867   max   24.230   spread   1.5%   disc  2.545  solve 20.667
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=511359 maxAbs=0.0299  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=511359 maxAbs=0.0299  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+wrote results/gpu-disc-001/performance/raw/runs-smoke.csv
+PERFORMANCE BENCHMARK: all integrity checks passed

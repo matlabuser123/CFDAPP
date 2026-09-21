@@ -1,0 +1,43 @@
+=== build the benchmark against the FINAL clean build ===
+
+=== smoke: 160^2 and 320^2, all four arms ===
+    cpu        median   12.228 s   min   12.147   max   12.408   spread   2.1%   disc  5.374  solve  6.799
+    gpu-pipe   median   14.754 s   min   14.606   max   14.785   spread   1.2%   disc  5.386  solve  9.310
+    gpu-disc   median    9.627 s   min    9.607   max   10.008   spread   4.2%   disc  1.501  solve  7.937
+    disc-only  median    8.813 s   min    8.708   max    8.909   spread   2.3%   disc  1.938  solve  6.557
+    PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+    PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+    cpu        median   28.996 s   min   28.776   max   29.228   spread   1.6%   disc  7.812  solve 20.816
+    gpu-pipe   median   13.828 s   min   13.757   max   14.697   spread   6.8%   disc  8.021  solve  6.524
+    gpu-disc   median    8.289 s   min    7.972   max    8.318   spread   4.2%   disc  2.037  solve  5.355
+    disc-only  median   24.158 s   min   23.867   max   24.230   spread   1.5%   disc  2.545  solve 20.667
+    PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+    PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+  PERFORMANCE BENCHMARK: all integrity checks passed
+  rc=0
+
+=== compare against the GPU-DISC-001Q qualified baseline ===
+  (exact counters at 0%, timing at the 35% threshold that gate derived)
+  compared 8 points against baseline.json
+    timing threshold 35%, floor 0.05s; exact metrics at 0%
+  
+    16 baseline points are MISSING from this run:
+      cavity2d|20x20|cpu|upwind
+      cavity2d|20x20|gpu-pipe|upwind
+      cavity2d|20x20|gpu-disc|upwind
+      cavity2d|20x20|disc-only|upwind
+      cavity2d|40x40|cpu|upwind
+      cavity2d|40x40|gpu-pipe|upwind
+      cavity2d|40x40|gpu-disc|upwind
+      cavity2d|40x40|disc-only|upwind
+      cavity2d|80x80|cpu|upwind
+      cavity2d|80x80|gpu-pipe|upwind
+  
+  PERFORMANCE GUARD: REGRESSION DETECTED
+  guard rc=1
+
+  NOTE: 'missing' points are the baseline grids this subset does not run.
+        Only TIMING REGRESSIONS and EXACT-COUNTER CHANGES are findings.
+  no timing regression, no exact-counter change
+
+PERFORMANCE SMOKE: PASS

@@ -1,0 +1,44 @@
+ninja: no work to do.
+built /tmp/gpu_disc_perf
+OMP_NUM_THREADS=<unset, defaults to nproc>
+=== GPU-DISC-001Q: production performance qualification ===
+cuda available: yes
+mode: inletoutlet
+
+cold start (CUDA context, module load, first kernel) -- untimed for every point below, reported here
+  cold_start_seconds=0.2314  second_identical_run_seconds=0.1335  one-off cost=0.0979
+
+########## 2D inlet/outlet -- open boundaries, real through-flow ##########
+
+inletoutlet2d    40x40     cells=1600     budget=200  repeats=5
+  cpu        median    1.783 s   min    1.758   max    1.834   spread   4.3%   disc  0.800  solve  0.947
+  gpu-pipe   median   20.168 s   min   18.762   max   20.262   spread   7.4%   disc  0.734  solve 19.372
+  gpu-disc   median   20.216 s   min   19.903   max   21.513   spread   8.0%   disc  1.188  solve 20.283
+  disc-only  median    2.551 s   min    2.401   max    2.709   spread  12.1%   disc  1.488  solve  1.040
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=7960 maxAbs=4.36e-06  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=7960 maxAbs=4.36e-06  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+inletoutlet2d    160x160   cells=25600    budget=60   repeats=3
+  cpu        median   15.408 s   min   14.768   max   15.926   spread   7.5%   disc  4.558  solve 10.103
+  gpu-pipe   median   19.836 s   min   18.274   max   19.989   spread   8.6%   disc  5.339  solve 14.555
+  gpu-disc   median   15.906 s   min   15.523   max   16.077   spread   3.5%   disc  1.622  solve 13.696
+  disc-only  median   12.319 s   min   12.237   max   12.593   spread   2.9%   disc  1.933  solve 10.087
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=127840 maxAbs=4.51e-05  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=127840 maxAbs=4.51e-05  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+inletoutlet2d    320x320   cells=102400   budget=20   repeats=3
+  cpu        median   33.532 s   min   33.096   max   33.737   spread   1.9%   disc  7.552  solve 26.048
+  gpu-pipe   median   17.027 s   min   16.369   max   17.718   spread   7.9%   disc  7.918  solve  8.961
+  gpu-disc   median   10.020 s   min    9.790   max   10.340   spread   5.5%   disc  1.975  solve  7.830
+  disc-only  median   29.016 s   min   28.810   max   29.342   spread   1.8%   disc  2.531  solve 25.816
+  PASS equivalence cpu        vs disc-only  BITWISE differing=0 maxAbs=0  (same CPU solver -- isolates GPU discretization)
+  PASS equivalence gpu-pipe   vs gpu-disc   BITWISE differing=0 maxAbs=0  (same GPU solver -- isolates GPU discretization (old vs new))
+       report    cpu        vs gpu-pipe   differing=511680 maxAbs=0.00644  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+       report    cpu        vs gpu-disc   differing=511680 maxAbs=0.00644  (cross-solver: CPU vs GPU BiCGSTAB, not bitwise by nature)
+
+wrote results/gpu-disc-001/performance/raw/runs-inletoutlet.csv
+PERFORMANCE BENCHMARK: all integrity checks passed

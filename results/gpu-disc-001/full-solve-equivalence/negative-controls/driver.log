@@ -1,0 +1,42 @@
+baseline 642ae8a10935670673dfe4de46ebc32795921b44dd72f3b03ec36fe3edb5c922  cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+baseline f5c69deff2fe8857172b32813687d9e9cdd0831dca75feecf3da9acf8944d5fe  src/pressure_velocity/SIMPLE.cpp
+
+=== n1_stale_face_flux_every_5 ===
+  mutated: DETECTED  first divergent iteration: 5 (expected 5)
+  restored: sha-match=True exit=0
+=== n2_stale_pprime_one_iteration ===
+  mutated: DETECTED  first divergent iteration: 3 (expected 3)
+  restored: sha-match=True exit=0
+=== n3_wrong_velocity_component_uploaded ===
+  mutated: DETECTED  first divergent iteration: 1 (expected 1)
+  restored: sha-match=True exit=0
+=== n4_stale_response_coefficients ===
+  mutated: DETECTED  first divergent iteration: 2 (expected 2)
+  restored: sha-match=True exit=0
+=== n5_skip_pressure_update_every_7 ===
+  mutated: DETECTED  first divergent iteration: 7 (expected 7)
+  restored: sha-match=True exit=0
+=== n6_predictor_flux_from_previous_iteration ===
+  mutated: DETECTED  first divergent iteration: 1 (expected 1)
+  restored: sha-match=True exit=0
+=== n7_mixed_path_one_iteration ===
+  mutated: DETECTED  first divergent iteration: None (expected None)
+  restored: sha-match=True exit=0
+=== n8_missing_upload_is_explicit ===
+  mutated: DETECTED  first divergent iteration: None (expected None)
+  restored: sha-match=True exit=0
+
+=== summary ===
+  n1_stale_face_flux_every_5               DETECTED    first=5      expected=5      sha=True repass=True  ok
+  n2_stale_pprime_one_iteration            DETECTED    first=3      expected=3      sha=True repass=True  ok
+  n3_wrong_velocity_component_uploaded     DETECTED    first=1      expected=1      sha=True repass=True  ok
+  n4_stale_response_coefficients           DETECTED    first=2      expected=2      sha=True repass=True  ok
+  n5_skip_pressure_update_every_7          DETECTED    first=7      expected=7      sha=True repass=True  ok
+  n6_predictor_flux_from_previous_iteration DETECTED    first=1      expected=1      sha=True repass=True  ok
+  n7_mixed_path_one_iteration              DETECTED    first=None   expected=None   sha=True repass=True  ok
+  n8_missing_upload_is_explicit            DETECTED    first=None   expected=None   sha=True repass=True  ok
+
+observable controls: 8
+detected: 8/8
+detected AT THE EXPECTED ITERATION: 8/8
+documented null controls: 0

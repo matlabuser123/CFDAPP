@@ -1,0 +1,29 @@
+# production_equivalence.cpp --ladder
+# date: 2026-09-20T18:02:08Z
+# libcfdcuda.a: 0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: CPU production vs GPU production ===
+Bounds adopted from tests/solver/simple/test_simple_gpu_solver.cpp: velocity 1e-06, pressure 1e-06, boundary flux 1e-08. Nothing is loosened.
+
+
+--- representative production ladder, fixed budget (see ladderCase) ---
+  PASS  cavity 2d 160            budget=60  resident vs pre-residency: 0 differing values, histories bitwise, Krylov work identical, arms differed yes
+        reported only: cpu vs gpu pressure after 60 outer iterations Linf=3.72e-06 L2=3.39e-06 -- an unconverged TRANSIENT across two different linear solvers, not an acceptance measure
+        mass imbalance cpu 0 gpu 0   status cpu MaxIterations gpu MaxIterations
+  PASS  cavity 2d 320            budget=20  resident vs pre-residency: 0 differing values, histories bitwise, Krylov work identical, arms differed yes
+        reported only: cpu vs gpu pressure after 20 outer iterations Linf=0.000256 L2=0.000234 -- an unconverged TRANSIENT across two different linear solvers, not an acceptance measure
+        mass imbalance cpu 0 gpu 0   status cpu MaxIterations gpu MaxIterations
+  PASS  cavity 2d 640            budget=8  resident vs pre-residency: 0 differing values, histories bitwise, Krylov work identical, arms differed yes
+        reported only: cpu vs gpu pressure after 0 outer iterations Linf=0 L2=0 -- an unconverged TRANSIENT across two different linear solvers, not an acceptance measure
+        mass imbalance cpu 0 gpu 0   status cpu PressureCorrectionFailure gpu PressureCorrectionFailure
+
+--- known GPU BiCGSTAB restart asymmetry (technical debt, not fixed here) ---
+  PASS  cavity 2d 40 (reproducer) gpu-resident[PressureCorrectionFailure it=1845]  gpu-pre-residency[PressureCorrectionFailure it=1845]  cpu[MaxIterations it=3000]
+        recorded baseline: gpu PressureCorrectionFailure, cpu runs its budget. shape UNCHANGED; residency changed it: NO
+
+(ladder-only run: the converged case matrix and its coverage assertions are in equivalence/production-matrix.log)
+
+cases=4 failures=0
+PRODUCTION EQUIVALENCE (LADDER): PASS
+# exit code: 0

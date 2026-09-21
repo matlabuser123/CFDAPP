@@ -1,0 +1,95 @@
+# loop_transfer_guard.cpp 
+# date: 2026-09-21T05:20:42Z
+# libcfdcuda.a: cfacb5225b2f25c8b032645b1d3945180cf17d3292c9f598f09ce3db5e0eafea
+# libcfdcore.a: 829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8
+
+=== GPU-PIPE-001 final residency: resident SIMPLE loop transfer guard (AMENDMENT A1) ===
+The RESIDENT arm. Every criterion must PASS here.
+
+  --- cavity 2d 16  cells=256 faces=544 blocks=1  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        378.50 calls           9556.0 bytes/iteration
+      D2H reductions   370.50 groups          5164.0 bytes/iteration  (645.5 quantities x 1 blocks x 8 B)
+      D2H remaining      8.00 calls           4392.0 bytes/iteration
+      of which the justified face-flux download is         4352.0 bytes; everything else       40.0 bytes
+      sync   370.50/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 2048.000000
+      pass   [detection]  C2 non-reduction D2H calls == enumeration      8.000000 == 8.000000
+      pass   [detection]  C3 non-reduction D2H bytes < face + one field  4392.000000 < 6400.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      PASS
+  --- channel 2d 16  cells=256 faces=544 blocks=1  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        396.50 calls           9806.7 bytes/iteration
+      D2H reductions   388.50 groups          5414.7 bytes/iteration  (676.8 quantities x 1 blocks x 8 B)
+      D2H remaining      8.00 calls           4392.0 bytes/iteration
+      of which the justified face-flux download is         4352.0 bytes; everything else       40.0 bytes
+      sync   388.50/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 2048.000000
+      pass   [detection]  C2 non-reduction D2H calls == enumeration      8.000000 == 8.000000
+      pass   [detection]  C3 non-reduction D2H bytes < face + one field  4392.000000 < 6400.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      PASS
+  --- cavity 3d 6  cells=216 faces=756 blocks=1  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        229.33 calls           9150.0 bytes/iteration
+      D2H reductions   220.33 groups          3054.0 bytes/iteration  (381.8 quantities x 1 blocks x 8 B)
+      D2H remaining      9.00 calls           6096.0 bytes/iteration
+      of which the justified face-flux download is         6048.0 bytes; everything else       48.0 bytes
+      sync   220.33/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 1728.000000
+      pass   [detection]  C2 non-reduction D2H calls == enumeration      9.000000 == 9.000000
+      pass   [detection]  C3 non-reduction D2H bytes < face + one field  6096.000000 < 7776.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      PASS
+  --- cavity 2d 80  cells=6400 faces=12960 blocks=25  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total       1372.33 calls         580553.3 bytes/iteration
+      D2H reductions  1364.33 groups        476833.3 bytes/iteration  (2384.2 quantities x 25 blocks x 8 B)
+      D2H remaining      8.00 calls         103720.0 bytes/iteration
+      of which the justified face-flux download is       103680.0 bytes; everything else       40.0 bytes
+      sync  1364.33/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 51200.000000
+      pass   [detection]  C2 non-reduction D2H calls == enumeration      8.000000 == 8.000000
+      pass   [detection]  C3 non-reduction D2H bytes < face + one field  103720.000000 < 154880.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      PASS
+  --- cavity 2d 160  cells=25600 faces=51520 blocks=100  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total       2653.33 calls        4112933.3 bytes/iteration
+      D2H reductions  2645.33 groups       3700733.3 bytes/iteration  (4625.9 quantities x 100 blocks x 8 B)
+      D2H remaining      8.00 calls         412200.0 bytes/iteration
+      of which the justified face-flux download is       412160.0 bytes; everything else       40.0 bytes
+      sync  2645.33/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 204800.000000
+      pass   [detection]  C2 non-reduction D2H calls == enumeration      8.000000 == 8.000000
+      pass   [detection]  C3 non-reduction D2H bytes < face + one field  412200.000000 < 616960.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      PASS
+  --- cavity 3d 12  cells=1728 faces=5616 blocks=7  arm=RESIDENT  (budgets n=4,8,16) ---
+      resident loop engaged: yes   resident pressure solve: yes
+      H2D                0.00 calls              0.0 bytes/iteration
+      D2H total        428.17 calls          85832.7 bytes/iteration
+      D2H reductions   419.17 groups         40856.7 bytes/iteration  (729.6 quantities x 7 blocks x 8 B)
+      D2H remaining      9.00 calls          44976.0 bytes/iteration
+      of which the justified face-flux download is        44928.0 bytes; everything else       48.0 bytes
+      sync   419.17/iteration   allocations 0.00   reallocations 0.00
+      pass   [detection]  C1 H2D bytes/iteration < one cell field        0.000000 < 13824.000000
+      pass   [detection]  C2 non-reduction D2H calls == enumeration      9.000000 == 9.000000
+      pass   [detection]  C3 non-reduction D2H bytes < face + one field  44976.000000 < 58752.000000
+      pass   [preserve]   C4 allocations/iteration == 0                  0.000000
+      pass   [preserve]   C5 reallocations/iteration == 0                0.000000
+      PASS
+
+LOOP TRANSFER GUARD: PASS
+# exit code: 0

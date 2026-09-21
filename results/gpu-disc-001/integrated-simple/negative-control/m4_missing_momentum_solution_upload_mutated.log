@@ -1,0 +1,14 @@
+# m4_missing_momentum_solution_upload  (expectation: detect)
+# the solved predictor is never uploaded, so every stage after the momentum solve reads a stale velocityStar
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+    if (useGpuDiscretization) {
+      gpuDiscretization.setMomentumSolution(0, uResult.solution);
+# --- became ---
+    if (false) {
+      gpuDiscretization.setMomentumSolution(0, uResult.solution);
+# verdict: DETECTED (exit -6)
+# first divergence: n/a
+
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  GpuSimpleDiscretization: the U momentum predictor is not resident -- the stage that supplies it was skipped

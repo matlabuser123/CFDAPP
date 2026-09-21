@@ -1,0 +1,41 @@
+# rl12_momentum_assembly_skipped
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the resident momentum assembly returns before assembling, so the solver adopts whatever the system buffers already held -- nothing on the first iteration, the previous iteration's matrix afterwards. The 'a GPU stage silently did not run inside the GPU loop' class.
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+  const Index nc = impl_->cellCount;
+  // The relaxation's phiOld. The host path uploads
+# --- became ---
+  if (true) return;  // MUTATED
+  const Index nc = impl_->cellCount;
+  // The relaxation's phiOld. The host path uploads
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness loop_comparison --quick -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 final residency: resident SIMPLE loop, controlled comparison ===
+Arms differ ONLY in whether the GPU outer iteration is device-resident.
+Every comparison is BITWISE.
+
+  FAIL  cavity 2d 16             MomentumFailure it=0  mom=0 p=0  red=0  fields=DIFFER  first divergence: 1 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D  395.00 /    1415016 B  D2H  3152.00 /      544008 B  sync  3012.00  alloc 375
+        transfers/iteration   resident H2D  295.00 /    1071976 B  D2H     0.00 /           0 B  sync     0.00  alloc 306
+        non-reduction D2H/iteration   host-arm  140.00   resident    0.00
+  FAIL  cavity 2d 32             MomentumFailure it=0  mom=0 p=0  red=0  fields=DIFFER  first divergence: 1 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D  371.00 /    5221992 B  D2H  4046.00 /     1755232 B  sync  3940.00  alloc 375
+        transfers/iteration   resident H2D  295.00 /    4154984 B  D2H     0.00 /           0 B  sync     0.00  alloc 306
+        non-reduction D2H/iteration   host-arm  106.00   resident    0.00
+  FAIL  channel 2d 16            MomentumFailure it=0  mom=0 p=0  red=0  fields=DIFFER  first divergence: 1 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D  395.00 /    1415032 B  D2H  3110.00 /      543408 B  sync  2970.00  alloc 373
+        transfers/iteration   resident H2D  295.00 /    1071976 B  D2H     0.00 /           0 B  sync     0.00  alloc 306
+        non-reduction D2H/iteration   host-arm  140.00   resident    0.00
+  FAIL  cavity 3d 6              MomentumFailure it=0  mom=0 p=0  red=0  fields=DIFFER  first divergence: 1 (momentum solve (u residual))
+        transfers/iteration   host-arm H2D  407.00 /    1813632 B  D2H  1632.00 /      561848 B  sync  1496.00  alloc 389
+        transfers/iteration   resident H2D  295.00 /    1447304 B  D2H     0.00 /           0 B  sync     0.00  alloc 306
+        non-reduction D2H/iteration   host-arm  136.00   resident    0.00
+
+cases=4 failures=4  values compared=10964  bitwise=1887
+NOT every compared value was bitwise identical
+RESIDENT SIMPLE LOOP COMPARISON: FAIL

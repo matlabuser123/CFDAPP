@@ -1,0 +1,109 @@
+# x1_fmad_contraction_enabled -- restored cuda/CMakeLists.txt
+# sha256 5d805de853b491829dc41688761c906053cf7f409a12a5813052d2e1296de523
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness gradient -> exit 0 ##########
+     mixed     constant      cells=256    |grad|max=53.27       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          dirichlet linear        cells=256    |grad|max=74.6        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   linear        cells=256    |grad|max=2.009       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     linear        cells=256    |grad|max=40.93       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          dirichlet quadratic     cells=256    |grad|max=41.09       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   quadratic     cells=256    |grad|max=3.617       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     quadratic     cells=256    |grad|max=41.09       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          dirichlet manufactured  cells=256    |grad|max=78.15       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          neumann   manufactured  cells=256    |grad|max=3.1         diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+  PASS distorted q16          mixed     manufactured  cells=256    |grad|max=41.85       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=60
+       [warped 3d 6/dirichlet sweeps=yes skewedFaces=540   obliqueFaces=0     claims=216   boundaryTransfer=yes resident=154664 B]
+       [warped 3d 6/neumann   sweeps=yes skewedFaces=540   obliqueFaces=216   claims=216   boundaryTransfer=yes resident=166760 B]
+       [warped 3d 6/mixed     sweeps=yes skewedFaces=540   obliqueFaces=108   claims=216   boundaryTransfer=yes resident=160712 B]
+  PASS warped 3d 6            dirichlet constant      cells=216    |grad|max=17.96       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   constant      cells=216    |grad|max=0.1689      diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     constant      cells=216    |grad|max=17.96       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            dirichlet linear        cells=216    |grad|max=29.1        diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   linear        cells=216    |grad|max=2.008       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     linear        cells=216    |grad|max=29.01       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            dirichlet quadratic     cells=216    |grad|max=25.83       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   quadratic     cells=216    |grad|max=2.965       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     quadratic     cells=216    |grad|max=23.76       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            dirichlet manufactured  cells=216    |grad|max=36.93       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            neumann   manufactured  cells=216    |grad|max=3.608       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+  PASS warped 3d 6            mixed     manufactured  cells=216    |grad|max=33.05       diff=0      maxAbs=0          maxRel=0          L2=0          bcells=152
+
+quick mode: cases=24 failures=0
+GRADIENT EQUIVALENCE (quick): PASS (bitwise)
+
+########## harness diffusion -> exit 0 ##########
+0,abs=0,scale=2.325]
+  PASS warped 3d 6        neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.5581]
+  PASS warped 3d 6        mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.399] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.873]
+  PASS warped 3d 6        dirichlet constant      varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.897]
+  PASS warped 3d 6        neumann   constant      varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.812]
+  PASS warped 3d 6        mixed     constant      varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.812]
+  PASS warped 3d 6        dirichlet constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.903]
+  PASS warped 3d 6        neumann   constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.813]
+  PASS warped 3d 6        mixed     constant      varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.813]
+  PASS warped 3d 6        dirichlet linear        varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.908]
+  PASS warped 3d 6        neumann   linear        varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.658]
+  PASS warped 3d 6        mixed     linear        varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.587]
+  PASS warped 3d 6        dirichlet linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.896]
+  PASS warped 3d 6        neumann   linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.659]
+  PASS warped 3d 6        mixed     linear        varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.587]
+  PASS warped 3d 6        dirichlet quadratic     varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.904]
+  PASS warped 3d 6        neumann   quadratic     varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.712]
+  PASS warped 3d 6        mixed     quadratic     varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.781]
+  PASS warped 3d 6        dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.897]
+  PASS warped 3d 6        neumann   quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.711]
+  PASS warped 3d 6        mixed     quadratic     varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=2.77]
+  PASS warped 3d 6        dirichlet manufactured  varying  corr=off nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.922]
+  PASS warped 3d 6        neumann   manufactured  varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.855]
+  PASS warped 3d 6        mixed     manufactured  varying  corr=off nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.753]
+  PASS warped 3d 6        dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=2.329] off[d=0,abs=0] rhs[d=0,abs=0,scale=3.888]
+  PASS warped 3d 6        neumann   manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=0.8571]
+  PASS warped 3d 6        mixed     manufactured  varying  corr=on  nnz=1296    diag[d=0,abs=0,scale=1.743] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.736]
+
+quick mode: cases=96 failures=0
+DIFFUSION EQUIVALENCE (quick): PASS (bitwise)
+
+########## harness convection -> exit 0 ##########
+egative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5410     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  PASS warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=0] maxAbs=0          scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  PASS warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=0] maxAbs=0          scaleA=5104      scaleR=3905     
+  PASS warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4882      scaleR=6110     
+  PASS warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=37.01     scaleR=40.2     
+  PASS warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=36.57    
+  PASS warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5955     
+  PASS warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  PASS warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=3832     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  PASS warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=0] maxAbs=0          scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  PASS warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=0] maxAbs=0          scaleA=5104      scaleR=3905     
+  PASS warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4882      scaleR=4413     
+  PASS warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=37.01     scaleR=40.2     
+  PASS warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=33.99    
+
+=== non-vacuity control ===
+  PASS identical bits compare equal; a one-ULP perturbation does not (abs=1.78e-15)
+
+=== coverage ===
+  scheme upwind         80 operator cases
+  scheme central        80 operator cases
+  scheme linear_upwind  80 operator cases
+  scheme quick          120 operator cases
+  reversed-flux pairs                160
+  reversal actually changed result   160
+  zero/negative-zero flux cases      32
+  assembly pattern mismatches        0
+
+cases=484 failures=0
+CONVECTION EQUIVALENCE: PASS (bitwise)

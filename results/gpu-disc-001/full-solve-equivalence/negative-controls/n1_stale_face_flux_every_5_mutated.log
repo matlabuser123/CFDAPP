@@ -1,0 +1,31 @@
+# n1_stale_face_flux_every_5
+# every 5th outer iteration commits the PREVIOUS iteration's mass flux instead of the corrected one
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+      gpuDiscretization.correctFaceMassFlux(settings_.nonOrthogonalCorrections > 1, fluxNew);
+# --- became ---
+      gpuDiscretization.correctFaceMassFlux(settings_.nonOrthogonalCorrections > 1, fluxNew);
+      if (outerIteration % 5 == 0) fluxNew = massFlux;
+# verdict: DETECTED (exit 1)
+# first divergent iteration observed: 5
+# expected:                          5
+# first divergent stage:              velocity / face-flux correction -> continuity
+# first divergent metric:             continuity
+
+=== GPU-DISC-001N: full production solves, CPU vs GPU discretization ===
+CUDA available: yes
+Configuration and bounds adopted from tests/solver/simple/test_simple_gpu_solver.cpp: 3000 outer, 1e-6 outer tolerances, 1e-10/1e-8 linear, velocity/pressure bound 1e-6
+
+  PASS C  cavity 2d 8 (controls) cpu[MaxIterations it=30] gpu[MaxIterations it=30 gpuDisc=1] residuals cpu[u=0.000281 v=0.000321 p=0.00496 cont=5.94e-11 mass=0]
+                              gpu residuals   [u=0.000281 v=0.000321 p=0.00496 cont=6.07e-11 mass=0] linear iterations cpu[mom=759 p=1113] gpu[mom=758 p=1112]
+  FAIL H  cavity 2d 8 (controls) 30 outer iterations compared, max history discrepancy 0.000472, first divergent iteration: 5
+       first divergent stage: velocity / face-flux correction -> continuity   first divergent metric: continuity
+  PASS F  cavity 2d 8 (controls) p[Linf=3.27e-05 L2=8.64e-06 rel=0.0275 bit=1/64] u[Linf=1.94e-05 L2=5.47e-06] v[Linf=1.46e-05] w[Linf=0] flux[Linf=4.08e-05 L2=1.41e-05 bit=32/144]   (TRANSIENT comparison -- not an acceptance result)
+  PASS N  cavity 2d 8 (controls) finite[cpu+gpu] pairs=112 |dImbalance|=1.06e-11 maxCellImbalance=4.7e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=651/487280B d2h=480/588240B kern=750 sync=0 alloc=345] per-iteration[h2d=21 d2h=16 kern=25]
+       P                         cpu=0.008s gpu=0.151s outer=30  cpu/iter=0.0002644s gpu/iter=0.005043s ratio=19.1
+  FAIL S  cavity 2d 8 (controls) per-iteration FIELD comparison over 30 iterations, max 9.13e-06, first divergent iteration: 5
+  PASS D  cavity 2d 8 (controls) each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+
+cases=6 failures=2
+FULL SOLVE EQUIVALENCE: FAIL

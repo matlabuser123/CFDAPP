@@ -1,0 +1,69 @@
+# pf5_fmad_on_pressure_update
+# layer:       residency
+# origin:      GPU-PIPE-001 persistent fields
+# expectation: detect
+# the persistent-field kernel loses -fmad=false, so the device pressure update contracts p + alpha*p' into a single FMA and stops matching the CPU bitwise
+# mutation applied to cuda/CMakeLists.txt
+# --- anchor ---
+  kernels/DevicePersistentFieldsKernel.cu
+  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+# --- became ---
+  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+# verdict: DETECTED
+# first divergence: 3
+
+########## harness full_solve --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001N: full production solves, CPU vs GPU discretization ===
+CUDA available: yes
+Configuration and bounds adopted from tests/solver/simple/test_simple_gpu_solver.cpp: 3000 outer, 1e-6 outer tolerances, 1e-10/1e-8 linear, velocity/pressure bound 1e-6
+
+  PASS C  cavity 2d 8            cpu[Converged it=1093] gpu[Converged it=1093 gpuDisc=1] residuals cpu[u=3.45e-08 v=3.45e-08 p=9.98e-07 cont=4.31e-11 mass=0]
+                              gpu residuals   [u=3.45e-08 v=3.45e-08 p=9.98e-07 cont=4.31e-11 mass=0] linear iterations cpu[mom=14772 p=28116] gpu[mom=14772 p=28107]
+  FAIL H  cavity 2d 8            1093 outer iterations compared, max history discrepancy 9.05e-11, first divergent iteration: 3
+       first divergent stage: pressure-correction solve   first divergent metric: pressure residual
+  PASS F  cavity 2d 8            p[Linf=5.3e-15 L2=2.86e-15 rel=7.3e-11 bit=1/64] u[Linf=1.56e-15 L2=8.19e-16] v[Linf=1.6e-15] w[Linf=0] flux[Linf=1.73e-17 L2=4.04e-18 bit=59/144]
+  PASS N  cavity 2d 8            finite[cpu+gpu] pairs=112 |dImbalance|=8.67e-18 maxCellImbalance=3.36e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=6855/3645168B d2h=18585/21437964B kern=29511 sync=0 alloc=347] per-iteration[h2d=6 d2h=17 kern=27]
+       P                         cpu=0.290s gpu=3.735s outer=1093  cpu/iter=0.0002655s gpu/iter=0.003417s ratio=12.9
+  FAIL S  cavity 2d 8            per-iteration FIELD comparison over 40 iterations, max 1.39e-17, first divergent iteration: 2
+  PASS D  cavity 2d 8            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  channel 2d 12          cpu[Converged it=2938] gpu[Converged it=2938 gpuDisc=1] residuals cpu[u=5.52e-09 v=5.27e-08 p=1e-06 cont=6.93e-12 mass=2.9e-10]
+                              gpu residuals   [u=5.52e-09 v=5.27e-08 p=1e-06 cont=5.12e-12 mass=5.1e-10] linear iterations cpu[mom=61377 p=124154] gpu[mom=61379 p=124355]
+  FAIL H  channel 2d 12          2938 outer iterations compared, max history discrepancy 3.77e-10, first divergent iteration: 3
+       first divergent stage: pressure-correction solve   first divergent metric: pressure residual
+  PASS F  channel 2d 12          p[Linf=2.19e-09 L2=1.52e-09 rel=9.8e-08 bit=0/144] u[Linf=2.34e-10 L2=6.74e-11] v[Linf=5.58e-10] w[Linf=0] flux[Linf=4.74e-11 L2=1.26e-11 bit=36/312]
+  PASS N  channel 2d 12          finite[cpu+gpu] pairs=264 |dImbalance|=1.07e-11 maxCellImbalance=2.38e-11 globalNet cpu=2.9e-10 gpu=5.1e-10 maxBoundaryFlux=0.148 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=17925/20929456B d2h=49950/132649432B kern=79326 sync=0 alloc=347] per-iteration[h2d=6 d2h=17 kern=27]
+       P                         cpu=1.879s gpu=9.553s outer=2938  cpu/iter=0.0006396s gpu/iter=0.003251s ratio=5.08
+  PASS D  channel 2d 12          each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+  PASS C  cavity 3d 4            cpu[Converged it=23] gpu[Converged it=23 gpuDisc=1] residuals cpu[u=1.07e-07 v=5.44e-08 p=8.73e-07 cont=7.49e-11 mass=0]
+                              gpu residuals   [u=1.07e-07 v=5.44e-08 p=8.73e-07 cont=7.49e-11 mass=0] linear iterations cpu[mom=475 p=517] gpu[mom=475 p=517]
+  FAIL H  cavity 3d 4            23 outer iterations compared, max history discrepancy 5.46e-11, first divergent iteration: 3
+       first divergent stage: momentum solve   first divergent metric: u residual
+  PASS F  cavity 3d 4            p[Linf=7.26e-14 L2=2.43e-14 rel=7.97e-06 bit=1/64] u[Linf=7.69e-14 L2=2.45e-14] v[Linf=1.04e-13] w[Linf=1.2e-13] flux[Linf=8.08e-15 L2=2.69e-15 bit=96/240]
+  PASS N  cavity 3d 4            finite[cpu+gpu] pairs=144 |dImbalance|=1.34e-14 maxCellImbalance=5.93e-10 globalNet cpu=0 gpu=0 maxBoundaryFlux=0 errors=0
+       T                         cpu-arm[h2d=0 d2h=0 kern=0 sync=0] gpu-arm[h2d=458/547824B d2h=487/694716B kern=943 sync=0 alloc=363] per-iteration[h2d=19 d2h=21 kern=41]
+       P                         cpu=0.015s gpu=0.130s outer=23  cpu/iter=0.0006429s gpu/iter=0.005657s ratio=8.8
+  PASS D  cavity 3d 4            each arm repeated: fields, iteration count and residual history bitwise identical (errors=0)
+
+--- known GPU BiCGSTAB restart asymmetry (solver axis, not this gate's) ---
+  PASS K  cavity 2d 40 (reproducer) gpu-solver[PressureCorrectionFailure it=1845] cpu-solver[MaxIterations it=3000] -- classification UNCHANGED from baseline (known debt, not fixed here)
+
+=== coverage ===
+  2D / 3D cases                     2 / 1
+  both arms converged / not         3 / 0
+  pinned / open-boundary cases      2 / 1
+  non-Upwind convection cases       0
+  non-orthogonal mesh cases         0
+  residual-history comparisons      3
+  per-iteration field comparisons   1
+  conservation checks               3
+  determinism checks                3
+  long-run cases (>=50 outer)       2
+  longest solve (outer iterations)  2938
+  values compared                   1784
+  bitwise-identical                 404
+  max discrepancy over ALL histories and fields  2.19e-09
+
+cases=17 failures=4
+FULL SOLVE EQUIVALENCE: FAIL

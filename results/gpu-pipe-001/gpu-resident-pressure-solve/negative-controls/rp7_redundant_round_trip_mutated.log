@@ -1,0 +1,42 @@
+# rp7_redundant_round_trip
+# layer:       resident-solve
+# origin:      GPU-PIPE-001 resident pressure solve
+# expectation: detect
+# the resident solve additionally downloads the whole system every time, exactly as the old path did. NUMERICALLY IDENTICAL -- every equivalence gate in this project passes it. Only a transfer count can tell, which is why residency needs a transfer detector to be a falsifiable claim at all.
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+  impl_->krylov.resize(nc);
+# --- became ---
+  impl_->krylov.resize(nc);
+  (void)toHostSystem(nc, downloadIndices(system.rowOffsets),
+                     downloadIndices(system.columnIndices), download(system.values),
+                     download(system.rhs));
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness solve_transfers  -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 resident pressure solve: transfer guard ===
+
+=== 40x40  cells=1600 ===
+  per pressure solve, steady state
+    window        H2D    D2H    D2H bytes note
+    assemble        0      0            0   budget 0 / 0
+    solve           0    788       227688   of which 783 are Krylov reductions
+    carry           0      1            4   budget 0 / 1
+    non-reduction D2H calls  6   (budget 2)
+    allocations              0   (budget 0)
+    Krylov iterations 196, converged
+    FAIL the solve brings back more than its input check
+
+=== 160x160  cells=25600 ===
+  per pressure solve, steady state
+    window        H2D    D2H    D2H bytes note
+    assemble        0      0            0   budget 0 / 0
+    solve           0   3372      7160144   of which 3367 are Krylov reductions
+    carry           0      1            4   budget 0 / 1
+    non-reduction D2H calls  6   (budget 2)
+    allocations              0   (budget 0)
+    Krylov iterations 842, converged
+    FAIL the solve brings back more than its input check
+
+SOLVE TRANSFER GUARD: FAIL

@@ -1,0 +1,33 @@
+=== GPU-DISC-001F: CUDA SIMPLE momentum assembly vs CPU (bitwise) ===
+CPU reference: pressure_velocity::assembleRelaxedMomentumComponent
+
+       [cartesian2d 10/wall cells=100 higherOrderBoundary=40 correctableInternal=180 resident=153152 B]
+       [cartesian2d 10/all-five cells=100 higherOrderBoundary=40 correctableInternal=180 resident=153152 B]
+       [graded2d 10/wall cells=100 higherOrderBoundary=40 correctableInternal=180 resident=153152 B]
+       [graded2d 10/all-five cells=100 higherOrderBoundary=40 correctableInternal=180 resident=153152 B]
+       [distorted q16/wall cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+       [distorted q16/all-five cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+       [cartesian3d 4/wall cells=64 higherOrderBoundary=96 correctableInternal=144 resident=164896 B]
+       [cartesian3d 4/all-five cells=64 higherOrderBoundary=96 correctableInternal=144 resident=164896 B]
+       [warped 3d 3/wall cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+       [warped 3d 3/all-five cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+
+=== coverage ===
+  component U   11560 cases
+  component V   11560 cases
+  component W   4624 cases
+  scheme upwind         6936 cases
+  scheme central        6936 cases
+  scheme linear_upwind  6936 cases
+  scheme quick          6936 cases
+  relaxation factors exercised     4 (alpha = 1.0, 0.7, 0.3, 0.05)
+  relaxed (alpha != 1) cases       20832
+  momentum-source cases            6912
+  non-orthogonal-correction cases  6912
+  sparsity pattern mismatches      0
+  bitwise-identical cases          27744 of 27744
+  max absolute discrepancy         0
+  max relative discrepancy         0
+
+cases=27744 failures=0
+MOMENTUM ASSEMBLY EQUIVALENCE: PASS (bitwise)

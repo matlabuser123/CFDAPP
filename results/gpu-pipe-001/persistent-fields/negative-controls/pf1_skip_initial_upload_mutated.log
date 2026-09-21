@@ -1,0 +1,16 @@
+# pf1_skip_initial_upload
+# layer:       residency
+# origin:      GPU-PIPE-001 persistent fields
+# expectation: detect
+# the one-time upload is skipped, so every device stage runs on buffers that were never filled -- the residency equivalent of a missing beginIteration
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+          gpuDiscretization.uploadInitialState(velocity, pressure, massFlux, *effectiveViscosity);
+# --- became ---
+          // MUTATED: the initial upload is skipped.
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness full_solve --quick -> exit -6 (DETECTED) ##########
+terminate called after throwing an instance of 'cfd::NumericalError'
+  what():  cudaMalloc(DeviceBuffer) failed: an illegal memory access was encountered

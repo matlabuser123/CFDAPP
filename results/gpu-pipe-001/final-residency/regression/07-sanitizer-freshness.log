@@ -1,0 +1,31 @@
+=== why a rerun is required, not a reference ===
+  GPU-DISC-001Q changed DeviceBuffer.hpp (resize/release) after the 001P
+  sanitizer campaign. That is GPU memory ownership -- rerun.
+  b72997ad45c852f17548928409757fa0e8c529b594b9bc0a78108557ddb8e5a3  include/cfd/gpu/DeviceBuffer.hpp
+  a5ef3c9b94e52a55624c64851260d48e8e2bda8d9ebf4475f82eb63499f859be  include/cfd/gpu/GPUExecutionStats.hpp
+  ef5ee3c959ce9bcdeb0eaca73cd386fa683a904d203d3d3aebd1c4c8c5fc3283  src/pressure_velocity/SIMPLE.cpp
+  6057b0e4a07a83392a92dc0106bf606c08bccb8def44509b0a6fd73570ede10a  include/cfd/pressure_velocity/SIMPLEResult.hpp
+
+=== build the 001O workload against the FINAL clean build ===
+  built /tmp/final_diag_workload
+  0875bc209c1ec0a8acc1ed3804c6f2e6b1713032d3e102c10d375179c59d6dcd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/cuda/libcfdcuda.a
+
+tool        mode            rc   vacuity       kernels   summary
+memcheck    cavity2d        0    non-vacuous   1120      ========= ERROR SUMMARY: 0 errors
+memcheck    case3d          0    non-vacuous   3059      ========= ERROR SUMMARY: 0 errors
+memcheck    nonorthogonal   0    non-vacuous   5550      ========= ERROR SUMMARY: 0 errors
+memcheck    gpusolver       0    non-vacuous   38882     ========= ERROR SUMMARY: 0 errors
+initcheck   cavity2d        0    non-vacuous   1120      ========= ERROR SUMMARY: 0 errors
+initcheck   case3d          0    non-vacuous   3059      ========= ERROR SUMMARY: 0 errors
+initcheck   nonorthogonal   0    non-vacuous   5550      ========= ERROR SUMMARY: 0 errors
+initcheck   gpusolver       0    non-vacuous   38882     ========= ERROR SUMMARY: 0 errors
+synccheck   cavity2d        0    non-vacuous   1120      ========= ERROR SUMMARY: 0 errors
+synccheck   case3d          0    non-vacuous   3059      ========= ERROR SUMMARY: 0 errors
+synccheck   nonorthogonal   0    non-vacuous   5550      ========= ERROR SUMMARY: 0 errors
+synccheck   gpusolver       0    non-vacuous   38882     ========= ERROR SUMMARY: 0 errors
+racecheck   cavity2d        0    non-vacuous   1120      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   case3d          0    non-vacuous   3059      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   nonorthogonal   0    non-vacuous   5550      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   gpusolver       0    non-vacuous   38882     ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+
+SANITIZER FRESHNESS: PASS -- 16/16 clean and non-vacuous on the FINAL build

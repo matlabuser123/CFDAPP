@@ -1,0 +1,27 @@
+# rl8_resident_loop_disabled
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# the dispatch condition is forced false, so every solve silently takes the host round trip. Numerically identical again -- the comparison catches it ONLY through its non-vacuity assertion, which is what that assertion is for. A vacuity guard nobody tests is itself untested.
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+  const bool useResidentSimpleLoop =
+      useResidentPressureSolve && activeModel->name() == "laminar" &&
+# --- became ---
+  const bool useResidentSimpleLoop =
+      false && useResidentPressureSolve && activeModel->name() == "laminar" &&
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness loop_comparison --quick -> exit 1 (DETECTED) ##########
+=== GPU-PIPE-001 final residency: resident SIMPLE loop, controlled comparison ===
+Arms differ ONLY in whether the GPU outer iteration is device-resident.
+Every comparison is BITWISE.
+
+  FAIL cavity 2d 16             arms did not differ: resident=0 host=0 -- the comparison would be vacuous
+  FAIL cavity 2d 32             arms did not differ: resident=0 host=0 -- the comparison would be vacuous
+  FAIL channel 2d 16            arms did not differ: resident=0 host=0 -- the comparison would be vacuous
+  FAIL cavity 3d 6              arms did not differ: resident=0 host=0 -- the comparison would be vacuous
+
+cases=4 failures=4  values compared=0  bitwise=0
+RESIDENT SIMPLE LOOP COMPARISON: FAIL

@@ -1,6 +1,7 @@
 #include "cfd/pressure_velocity/SIMPLE.hpp"
 
 #include <cmath>
+#include <cstring>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -8,8 +9,13 @@
 #include "cfd/algebra/LinearSolverFactory.hpp"
 #include "cfd/algebra/LinearSolverFallback.hpp"
 #include "cfd/core/Exception.hpp"
+#include "cfd/core/Logger.hpp"
 #include "cfd/discretization/Gradient.hpp"
+// GPU-DISC-001Q: per-stage wall time. steady_clock reads only -- no
+// synchronization is added anywhere, so production behaviour is unchanged.
+#include "cfd/core/Timer.hpp"
 #include "cfd/gpu/GpuResidencyManager.hpp"
+#include "cfd/gpu/GpuSimpleDiscretization.hpp"
 #include "cfd/physics/ContinuityEquation.hpp"
 #include "cfd/physics/MassFlux.hpp"
 #include "cfd/pressure_velocity/PressureCorrectionEquation.hpp"
@@ -40,6 +46,23 @@ namespace {
 bool allFinite(const ScalarField& field) {
   for (Index i = 0; i < field.size(); ++i) {
     if (!std::isfinite(field[i])) return false;
+  }
+  return true;
+}
+
+// GPU-PIPE-001: has the turbulence model actually changed the effective
+// viscosity since the last upload? Bitwise, because "unchanged" has to mean
+// unchanged -- an approximate comparison would let a genuinely updated
+// viscosity stay stale on the device.
+//
+// LaminarModel returns a constant field for the whole solve, so on a laminar
+// case this is true from iteration 2 onward and the viscosity uploads exactly
+// once. A transport model that updates it every iteration re-uploads every
+// iteration, which is correct and is the cost of that model, not of residency.
+bool sameField(const ScalarField& a, const ScalarField& b) {
+  if (a.size() != b.size()) return false;
+  for (Index i = 0; i < a.size(); ++i) {
+    if (std::memcmp(&a[i], &b[i], sizeof(cfd::Real)) != 0) return false;
   }
   return true;
 }
@@ -126,6 +149,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
                            const BoundaryConditionSet& velocityBoundaries,
                            const BoundaryConditionSet& pressureBoundaries,
                            VectorField initialVelocity, ScalarField initialPressure) const {
+  // GPU-DISC-001Q: the whole call, so stageSeconds.other() is a residual that
+  // accounts for everything the ten named stages do not.
+  cfd::Timer solveTimer;
   SIMPLEResult result;
   // P12-MESH-006: a 3D mesh adds the W momentum equation (same assembly, same
   // relaxation, same linear solver as U and V) and the W response in the
@@ -268,6 +294,102 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
   // call issues zero CUDA calls, in either build configuration.
   cfd::gpu::GpuResidencyManager gpuResidency;
 
+  // GPU-DISC-001M: the device DISCRETIZATION path -- the operators themselves,
+  // not just the linear solves. Prepared once per solve() because the plans are
+  // per-mesh, and ALL OR NOTHING: a refusal makes the whole solve run the CPU
+  // operators and records why, so a mixed chain no gate has verified is never
+  // executed.
+  //
+  // The non-orthogonal corrector passes (N > 1) stay on the CPU: their pass
+  // loops call CPU-only helpers, and running pass 1 on the device and the rest
+  // on the host would be exactly such a mixed chain. Declined explicitly, with
+  // a reason, rather than silently half-applied.
+  cfd::gpu::GpuSimpleDiscretization gpuDiscretization;
+  bool useGpuDiscretization = false;
+  if (settings_.enableGpuDiscretization) {
+    std::string reason;
+    if (settings_.nonOrthogonalCorrections > 1) {
+      reason = "nonOrthogonalCorrections > 1 keeps the corrector passes on the CPU";
+    } else if (!gpuDiscretization.prepare(mesh, velocityBoundaries, pressureBoundaries, reason)) {
+      // `reason` was set by prepare().
+    } else {
+      useGpuDiscretization = true;
+    }
+    result.gpuDiscretization = useGpuDiscretization;
+    if (!useGpuDiscretization) {
+      result.gpuDiscretizationFallbackReason = reason;
+      cfd::Logger::instance().warning("SIMPLE: GPU discretization requested but unavailable (" +
+                                      reason + "); running the CPU discretization path");
+    }
+  }
+
+  // GPU-PIPE-001 -- the GPU-resident pressure solve. Engaged only where it is
+  // EXACTLY equivalent to the host round trip it replaces; every other
+  // configuration keeps the existing path untouched. Each condition is a real
+  // difference, not caution:
+  //
+  //   GPU discretization      the device system only exists on this path.
+  //   backend == GPU          a CPU pressure solver must receive a host
+  //                           system; that is the `disc-only` arm the
+  //                           benchmarks compare against, and it must stay
+  //                           bitwise what it was.
+  //   type == BiCGSTAB        only BiCGSTAB has a resident entry point. GpuCG
+  //                           was deliberately not touched.
+  //   no fallback             makeLinearSolverWithFallback wraps the solver and
+  //                           re-solves on the CPU when the GPU solve fails.
+  //                           Bypassing the wrapper would change what happens
+  //                           on failure -- including the KNOWN BiCGSTAB
+  //                           breakdown, which must keep reproducing exactly.
+  //   no residency mirror     gpuResidency.syncMatrix() reads the host matrix,
+  //                           which the resident path never builds.
+  //
+  // Loop-invariant, so it is decided once here rather than re-tested every
+  // outer iteration.
+  const bool useResidentPressureSolve =
+      useGpuDiscretization && !settings_.enableGpuResidency &&
+      !settings_.robustness.linearSolverFallback.enabled &&
+      settings_.pressureSolver.backend == cfd::algebra::LinearSolverBackend::GPU &&
+      settings_.pressureSolver.type == cfd::algebra::LinearSolverType::BiCGSTAB;
+  result.residentPressureSolve = useResidentPressureSolve;
+
+  // GPU-PIPE-001 final residency -- the GPU-resident SIMPLE outer iteration.
+  // Everything the resident pressure solve requires, plus three conditions of
+  // its own. Each is a real difference, not caution:
+  //
+  //   laminar model           activeModel->correct(mesh, velocity, pressure)
+  //                           below reads the HOST velocity, which a resident
+  //                           loop deliberately leaves stale. LaminarModel's
+  //                           correct() is a documented no-op and its
+  //                           effective viscosity is constant for the whole
+  //                           solve, so a stale host velocity changes nothing
+  //                           it computes. A transport model genuinely reads
+  //                           it, so that configuration keeps the
+  //                           per-iteration download it has today.
+  //   momentum backend GPU    a CPU momentum solver must receive a host
+  //                           system -- the `disc-only` benchmark arm, which
+  //                           must stay bitwise what it was.
+  //   momentum type BiCGSTAB  only BiCGSTAB has a resident entry point.
+  //
+  // The solver fallback wrapper and the residency mirror are already excluded
+  // by useResidentPressureSolve, for the same reasons it excludes them.
+  // Loop-invariant, so it is decided once here.
+  const bool useResidentSimpleLoop =
+      useResidentPressureSolve && activeModel->name() == "laminar" &&
+      settings_.momentumSolver.backend == cfd::algebra::LinearSolverBackend::GPU &&
+      settings_.momentumSolver.type == cfd::algebra::LinearSolverType::BiCGSTAB;
+  result.residentSimpleLoop = useResidentSimpleLoop;
+
+  // GPU-DISC-001Q: everything before this point is per-solve setup -- derived
+  // fields, the device plans, the initial mass flux. `stageTimer` is reset at
+  // the start of each stage below and its elapsed time accumulated into the
+  // matching counter; `solveTimer` runs for the whole call.
+  result.stageSeconds.setup = solveTimer.elapsedSeconds();
+  cfd::Timer stageTimer;
+  // GPU-PIPE-001: the viscosity last uploaded to the device, so a laminar solve
+  // uploads it once instead of every iteration. Empty on the CPU path, where it
+  // is never read.
+  ScalarField previousViscosity;
+
   for (Index iteration = 0; iteration < settings_.maxIterations; ++iteration) {
     // P5-B section 13: checked at the top of the outer loop only, before
     // this iteration touches velocity/pressure/massFlux at all -- so a
@@ -279,10 +401,20 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       break;
     }
 
-    const ScalarField previousU = selectComponent(velocity, VelocityComponent::U);
-    const ScalarField previousV = selectComponent(velocity, VelocityComponent::V);
+    // GPU-PIPE-001 final residency: on the resident path the relaxation's
+    // phiOld and the momentum warm start are both taken from the DEVICE
+    // velocity inside assembleMomentumResident/solveMomentumResident, and the
+    // host copy is deliberately stale -- so these are left empty rather than
+    // computed from a field no longer authoritative. Every consumer of them
+    // below is inside a branch the resident path does not take.
+    ScalarField previousU;
+    ScalarField previousV;
     std::optional<ScalarField> previousW;
-    if (threeDimensional) previousW = selectComponent(velocity, VelocityComponent::W);
+    if (!useResidentSimpleLoop) {
+      previousU = selectComponent(velocity, VelocityComponent::U);
+      previousV = selectComponent(velocity, VelocityComponent::V);
+      if (threeDimensional) previousW = selectComponent(velocity, VelocityComponent::W);
+    }
     // P12-NUM-004: this iteration's relaxation factors -- fixed for the
     // whole iteration (the adaptive controller only updates them after a
     // completed iteration); equal to the settings unless it is enabled.
@@ -292,6 +424,11 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     std::optional<MomentumAssembly> uAssembly;
     std::optional<MomentumAssembly> vAssembly;
     std::optional<MomentumAssembly> wAssembly;
+    // GPU-PIPE-001 final residency: on the resident path the momentum systems
+    // never become host MomentumAssembly objects, so the three optionals stay
+    // empty and this records that the assembly nonetheless succeeded -- the
+    // same shape residentAssemblyOk already has for pressure.
+    bool residentMomentumOk = false;
     std::optional<ScalarField> effectiveViscosity;
     try {
       // Correct the turbulence model against the current (previous-
@@ -306,6 +443,31 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // below, not left to propagate out of solve() uncaught.
       activeModel->correct(mesh, velocity, pressure);
       effectiveViscosity = activeModel->effectiveViscosity(fluid.dynamicViscosity());
+      // GPU-DISC-001Q: momentum assembly starts here. On the device path this
+      // includes beginIteration's per-iteration upload, which is the cost of
+      // feeding that assembly and belongs with it rather than in `other`.
+      stageTimer.reset();
+      // GPU-DISC-001M: this iteration's inputs, uploaded once. Every device
+      // stage below then reads state that is already resident.
+      //
+      // GPU-PIPE-001: only the FIRST iteration uploads. After that the device
+      // carries its own corrected velocity, corrected flux and updated pressure
+      // forward, so the six full-field H2D copies that used to happen every
+      // iteration happen once per solve instead. The viscosity is re-uploaded
+      // only when the turbulence model actually changed it -- a laminar solve
+      // transfers it once and never again.
+      if (useGpuDiscretization) {
+        if (iteration == 0) {
+          gpuDiscretization.uploadInitialState(velocity, pressure, massFlux, *effectiveViscosity);
+          previousViscosity = *effectiveViscosity;
+        } else {
+          gpuDiscretization.beginIterationResident();
+          if (!sameField(previousViscosity, *effectiveViscosity)) {
+            gpuDiscretization.setViscosity(*effectiveViscosity);
+            previousViscosity = *effectiveViscosity;
+          }
+        }
+      }
       // P3-PHYS-001: temperature_/buoyancy_ are passed through unchanged
       // every iteration (held fixed for the whole solve() call -- see
       // this class's own header comment on the deliberate one-way-
@@ -316,26 +478,63 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // P12-NUM-003: nonOrthogonalCorrections == 0 (default) -> false,
       // exactly today's assembly; >= 1 -> pass 1 of the correction loop
       // (explicit correction evaluated from the lagged `velocity`).
-      uAssembly = assembleRelaxedMomentumComponent(
-          mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
-          pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
-          buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
-          settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
-          momentumSource_);
-      vAssembly = assembleRelaxedMomentumComponent(
-          mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
-          pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
-          buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
-          settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
-          momentumSource_);
-      if (threeDimensional) {
-        wAssembly = assembleRelaxedMomentumComponent(
+      if (useResidentSimpleLoop) {
+        // GPU-PIPE-001 final residency: the SAME device assembly as the branch
+        // below -- same kernels, same arguments -- but phiOld is carried from
+        // the resident velocity instead of uploaded, and the CSR system stays
+        // on the device instead of being downloaded and rebuilt into a host
+        // SparseMatrix.
+        const Index scheme = static_cast<Index>(settings_.convectionScheme);
+        const bool nonOrthogonal = settings_.nonOrthogonalCorrections > 0;
+        gpuDiscretization.assembleMomentumResident(0, relaxation.velocity, scheme, nonOrthogonal);
+        gpuDiscretization.assembleMomentumResident(1, relaxation.velocity, scheme, nonOrthogonal);
+        if (threeDimensional) {
+          gpuDiscretization.assembleMomentumResident(2, relaxation.velocity, scheme, nonOrthogonal);
+        }
+        residentMomentumOk = true;
+      } else if (useGpuDiscretization) {
+        // GPU-DISC-001M: the verified device assembly (GPU-DISC-001F). The
+        // system comes back on the host because LinearSolver takes a host
+        // LinearSystem; the diagonal stays resident for the response
+        // coefficients, so `diagonal` here is deliberately left empty and the
+        // device path below never reads it.
+        const Index scheme = static_cast<Index>(settings_.convectionScheme);
+        const bool nonOrthogonal = settings_.nonOrthogonalCorrections > 0;
+        uAssembly = MomentumAssembly{gpuDiscretization.assembleMomentum(
+                                         0, previousU, relaxation.velocity, scheme, nonOrthogonal),
+                                     Vector{}};
+        vAssembly = MomentumAssembly{gpuDiscretization.assembleMomentum(
+                                         1, previousV, relaxation.velocity, scheme, nonOrthogonal),
+                                     Vector{}};
+        if (threeDimensional) {
+          wAssembly =
+              MomentumAssembly{gpuDiscretization.assembleMomentum(
+                                   2, *previousW, relaxation.velocity, scheme, nonOrthogonal),
+                               Vector{}};
+        }
+      } else {
+        uAssembly = assembleRelaxedMomentumComponent(
             mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
-            pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity, temperature_,
+            pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
             buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
             settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
             momentumSource_);
+        vAssembly = assembleRelaxedMomentumComponent(
+            mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+            pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
+            buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+            settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
+            momentumSource_);
+        if (threeDimensional) {
+          wAssembly = assembleRelaxedMomentumComponent(
+              mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
+              pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity,
+              temperature_, buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
+              settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
+              momentumSource_);
+        }
       }
+      result.stageSeconds.momentumAssembly += stageTimer.elapsedSeconds();
     } catch (const NumericalError&) {
       // uAssembly/vAssembly left empty -- fall through to the check below.
     } catch (const InvalidArgumentError&) {
@@ -345,8 +544,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // configuration error -- treated the same as NonFiniteState below,
       // not left to propagate out of solve() uncaught.
     }
-    if (!uAssembly.has_value() || !vAssembly.has_value() ||
-        (threeDimensional && !wAssembly.has_value())) {
+    if (!residentMomentumOk && (!uAssembly.has_value() || !vAssembly.has_value() ||
+                                (threeDimensional && !wAssembly.has_value()))) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -382,7 +581,14 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     // convergence after a single iteration (TODO.md section 37: "be
     // explicit... do not invent a second incompatible residual
     // definition").
-    const auto uResult = momentumSolver->solve(uAssembly->system, toVector(previousU));
+    // GPU-PIPE-001 final residency: the resident call runs the SAME BiCGSTAB
+    // implementation -- one algorithm, two entry points -- directly against
+    // the device system, warm started from the same bytes `toVector(previousU)`
+    // would have carried, and leaves u* on the device.
+    stageTimer.reset();
+    const auto uResult = useResidentSimpleLoop
+                             ? gpuDiscretization.solveMomentumResident(0, settings_.momentumSolver)
+                             : momentumSolver->solve(uAssembly->system, toVector(previousU));
     if (!uResult.converged()) {
       failLinearSolve("u-momentum", settings_.momentumSolver, uResult, outerIteration);
       finalStatus = SIMPLEStatus::MomentumFailure;
@@ -390,7 +596,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     }
     cfd::solver::recordLinearSolverFallback(monitor.diagnostics(), outerIteration, "u-momentum",
                                             uResult.fallback);
-    const auto vResult = momentumSolver->solve(vAssembly->system, toVector(previousV));
+    const auto vResult = useResidentSimpleLoop
+                             ? gpuDiscretization.solveMomentumResident(1, settings_.momentumSolver)
+                             : momentumSolver->solve(vAssembly->system, toVector(previousV));
     if (!vResult.converged()) {
       failLinearSolve("v-momentum", settings_.momentumSolver, vResult, outerIteration);
       finalStatus = SIMPLEStatus::MomentumFailure;
@@ -401,7 +609,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     result.momentumLinearIterations += uResult.iterations + vResult.iterations;
     std::optional<cfd::algebra::SolverResult> wResult;
     if (threeDimensional) {
-      wResult = momentumSolver->solve(wAssembly->system, toVector(*previousW));
+      wResult = useResidentSimpleLoop
+                    ? gpuDiscretization.solveMomentumResident(2, settings_.momentumSolver)
+                    : momentumSolver->solve(wAssembly->system, toVector(*previousW));
       if (!wResult->converged()) {
         failLinearSolve("w-momentum", settings_.momentumSolver, *wResult, outerIteration);
         finalStatus = SIMPLEStatus::MomentumFailure;
@@ -412,10 +622,31 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       result.momentumLinearIterations += wResult->iterations;
     }
 
-    VectorField velocityStar =
-        threeDimensional ? combineComponents(uResult.solution, vResult.solution, wResult->solution)
+    // GPU-PIPE-001 final residency: on the resident path the predictor stays
+    // where the solve left it -- on the device -- so no host VectorField is
+    // built and nothing is uploaded back. Both stages that read the predictor
+    // (response coefficients, predicted face flux) already read it there.
+    VectorField velocityStar;
+    if (!useResidentSimpleLoop) {
+      velocityStar = threeDimensional
+                         ? combineComponents(uResult.solution, vResult.solution, wResult->solution)
                          : combineComponents(uResult.solution, vResult.solution);
-    if (!allFinite(velocityStar)) {
+      // GPU-DISC-001M: the predictor goes back to the device for every stage
+      // below. This H2D is forced by the host LinearSolver interface and is
+      // counted in the transfer audit rather than hidden.
+      if (useGpuDiscretization) {
+        gpuDiscretization.setMomentumSolution(0, uResult.solution);
+        gpuDiscretization.setMomentumSolution(1, vResult.solution);
+        if (threeDimensional) gpuDiscretization.setMomentumSolution(2, wResult->solution);
+      }
+    }
+    // The same guard either way; only where it is evaluated differs. On the
+    // resident path four bytes cross instead of a whole field.
+    const bool predictorFinite =
+        useResidentSimpleLoop
+            ? gpuDiscretization.residentMomentumPredictorAllFinite(threeDimensional)
+            : allFinite(velocityStar);
+    if (!predictorFinite) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -467,21 +698,47 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       result.momentumLinearIterations += passes.linearIterations;
     }
     ++result.momentumPredictorPasses;
+    // GPU-DISC-001Q: includes the non-orthogonal momentum corrector passes
+    // (re-assembly + re-solve, a single boundary rather than two interleaved
+    // ones) and, on the device path, the predictor upload the host
+    // LinearSolver interface forces.
+    result.stageSeconds.momentumSolve += stageTimer.elapsedSeconds();
+    stageTimer.reset();
 
     // Response coefficients d = V/aP of this iteration's (relaxed) momentum
     // diagonals -- pure functions of them, so computing them before the
     // predictor flux (which Rhie-Chow needs) changes nothing for Linear.
-    const ScalarField dU = computeMomentumResponseCoefficient(mesh, uAssembly->diagonal);
-    const ScalarField dV = computeMomentumResponseCoefficient(mesh, vAssembly->diagonal);
+    // GPU-DISC-001M: on the device path the coefficients are computed from the
+    // resident diagonals (GPU-DISC-001G) and stay resident -- no host copy is
+    // made, because nothing on that path reads one.
+    ScalarField dU;
+    ScalarField dV;
     std::optional<ScalarField> dW;
-    if (threeDimensional) dW = computeMomentumResponseCoefficient(mesh, wAssembly->diagonal);
+    if (useGpuDiscretization) {
+      gpuDiscretization.computeResponseCoefficients(threeDimensional);
+    } else {
+      dU = computeMomentumResponseCoefficient(mesh, uAssembly->diagonal);
+      dV = computeMomentumResponseCoefficient(mesh, vAssembly->diagonal);
+      if (threeDimensional) dW = computeMomentumResponseCoefficient(mesh, wAssembly->diagonal);
+    }
     const ScalarField* dWPointer = dW.has_value() ? &*dW : nullptr;
+    result.stageSeconds.responseCoefficients += stageTimer.elapsedSeconds();
+    stageTimer.reset();
 
     // P12-MESH-006: the predictor face flux -- the linear interpolation of u*
     // (Linear, exactly as before), or Rhie-Chow (RhieChow.hpp) with the same
     // cell pressure gradient the momentum equations used this iteration.
     SurfaceField predictorFlux;
-    if (faceFlux == FaceFluxScheme::RhieChow) {
+    if (useGpuDiscretization) {
+      // GPU-DISC-001H (Rhie-Chow) or the device linear flux, with the pressure
+      // gradient (GPU-DISC-001B) also computed on the device from the
+      // start-of-iteration pressure. The result stays resident: the pressure
+      // assembly and the flux correction both read it there, so it is never
+      // downloaded.
+      gpuDiscretization.computePredictedFaceFlux(
+          faceFlux == FaceFluxScheme::RhieChow, fluid.density(), relaxation.velocity,
+          static_cast<Index>(settings_.gradientScheme), threeDimensional);
+    } else if (faceFlux == FaceFluxScheme::RhieChow) {
       std::optional<SurfaceField> rhieChowFlux;
       try {
         const VectorField gradP = cfd::discretization::gradient(mesh, pressure, pressureBoundaries,
@@ -499,7 +756,11 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     } else {
       predictorFlux = calculateMassFlux(mesh, velocityStar, fluid, velocityBoundaries);
     }
-    if (!allFinite(predictorFlux)) {
+    result.stageSeconds.predictedFaceFlux += stageTimer.elapsedSeconds();
+    // The device path's predictor stays resident, so there is nothing here to
+    // check; its finiteness is covered by the allFinite() on the corrected flux
+    // below, which is the value that is actually committed.
+    if (!useGpuDiscretization && !allFinite(predictorFlux)) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -527,14 +788,38 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     pressureOptions.gradientScheme = settings_.gradientScheme;
 
     std::optional<PressureCorrectionAssembly> pAssembly;
+    // GPU-PIPE-001: on the resident path the system never becomes a host
+    // PressureCorrectionAssembly, so `pAssembly` stays empty and this records
+    // that the assembly nonetheless succeeded.
+    bool residentAssemblyOk = false;
+    stageTimer.reset();
     try {
-      pAssembly =
-          assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
-                                     pressureBoundaries, pressureOptions, dWPointer);
+      if (useResidentPressureSolve) {
+        // GPU-PIPE-001: identical device assembly to the branch below -- same
+        // kernels, same arguments -- but the CSR system stays on the device
+        // instead of being downloaded and rebuilt into a host SparseMatrix.
+        gpuDiscretization.assemblePressureCorrectionResident(
+            pressureOptions.nonOrthogonal, referenceCell_, fluid.density(), threeDimensional);
+        residentAssemblyOk = true;
+      } else if (useGpuDiscretization) {
+        // GPU-DISC-001I, from the resident predictor flux and response
+        // coefficients. Only the assembled system crosses to the host, for the
+        // solver; faceCoefficient and explicitFaceFlux stay resident for the
+        // flux correction, which is exactly why 001I emits them on device.
+        pAssembly = PressureCorrectionAssembly{gpuDiscretization.assemblePressureCorrection(
+                                                   pressureOptions.nonOrthogonal, referenceCell_,
+                                                   fluid.density(), nullptr, threeDimensional),
+                                               SurfaceField{}, SurfaceField{}};
+      } else {
+        pAssembly =
+            assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
+                                       pressureBoundaries, pressureOptions, dWPointer);
+      }
     } catch (const NumericalError&) {
       // pAssembly left empty -- fall through to the check below.
     }
-    if (!pAssembly.has_value()) {
+    result.stageSeconds.pressureAssembly += stageTimer.elapsedSeconds();
+    if (!pAssembly.has_value() && !residentAssemblyOk) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -547,7 +832,15 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       gpuResidency.syncField("pressure", pressure);
     }
 
-    const auto pResult = pressureSolver->solve(pAssembly->system);
+    stageTimer.reset();
+    // GPU-PIPE-001: the resident call runs the SAME GpuBiCGSTAB algorithm --
+    // one implementation, two entry points (GpuResidentSolve.hpp) -- directly
+    // against the device system, and leaves p' on the device.
+    const auto pResult =
+        useResidentPressureSolve
+            ? gpuDiscretization.solvePressureCorrectionResident(settings_.pressureSolver)
+            : pressureSolver->solve(pAssembly->system);
+    result.stageSeconds.pressureSolve += stageTimer.elapsedSeconds();
     if (!pResult.converged()) {
       failLinearSolve("pressure-correction", settings_.pressureSolver, pResult, outerIteration);
       finalStatus = SIMPLEStatus::PressureCorrectionFailure;
@@ -556,8 +849,25 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     cfd::solver::recordLinearSolverFallback(monitor.diagnostics(), outerIteration,
                                             "pressure-correction", pResult.fallback);
     result.pressureLinearIterations += pResult.iterations;
-    ScalarField pPrime = toScalarField(pResult.solution);
-    if (!allFinite(pPrime)) {
+    // GPU-PIPE-001: on the resident path p' never comes to the host at all --
+    // the solve left it on the device and both corrections read it there -- so
+    // this stays empty. Every later use of it is inside a branch the resident
+    // path does not take (the corrector-pass loop, which the GPU path declines,
+    // and the host pressure update and corrections).
+    ScalarField pPrime;
+    if (!useResidentPressureSolve) {
+      pPrime = toScalarField(pResult.solution);
+      // GPU-DISC-001M: p' goes back to the device for the two corrections. The
+      // host copy is still needed for the pressure update, which is a per-cell
+      // loop here rather than an operator.
+      if (useGpuDiscretization) gpuDiscretization.setPressureCorrection(pResult.solution);
+    }
+    // The same guard either way; only where it is evaluated differs. On the
+    // resident path four bytes cross instead of a whole field.
+    const bool pressureCorrectionFinite =
+        useResidentPressureSolve ? gpuDiscretization.residentPressureCorrectionAllFinite()
+                                 : allFinite(pPrime);
+    if (!pressureCorrectionFinite) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -568,6 +878,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       const ScalarField previousPPrime = pPrime;
       pressureOptions.previousPressureCorrection = &previousPPrime;
       std::optional<PressureCorrectionAssembly> passAssembly;
+      stageTimer.reset();
       try {
         passAssembly =
             assemblePressureCorrection(mesh, predictorFlux, dU, dV, fluid.density(), referenceCell_,
@@ -576,6 +887,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
         // passAssembly left empty -- fall through to the check below.
       }
       pressureOptions.previousPressureCorrection = nullptr;
+      result.stageSeconds.pressureAssembly += stageTimer.elapsedSeconds();
       if (!passAssembly.has_value()) {
         finalStatus = SIMPLEStatus::NonFiniteState;
         pressurePassFailed = true;
@@ -588,7 +900,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // (Breakdown at ~2e-10 from a 5e-8 start on the distorted cavity) --
       // starting from zero keeps every pass at pass 1's well-tested scale.
       // Same exact solution either way.
+      stageTimer.reset();
       const auto passResult = pressureSolver->solve(passAssembly->system);
+      result.stageSeconds.pressureSolve += stageTimer.elapsedSeconds();
       if (!passResult.converged()) {
         failLinearSolve("pressure-correction-pass", settings_.pressureSolver, passResult,
                         outerIteration);
@@ -612,19 +926,92 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       break;
     }
 
-    ScalarField pressureNew(mesh.numberOfCells());
-    for (const auto& cell : mesh.cells()) {
-      pressureNew[cell.id()] = pressure[cell.id()] + (relaxation.pressure * pPrime[cell.id()]);
+    stageTimer.reset();
+    ScalarField pressureNew;
+    if (useGpuDiscretization) {
+      // GPU-PIPE-001: on the device, from the resident pressure and the p' just
+      // uploaded. Bitwise identical to the host loop below -- same association
+      // order, compiled without FMA contraction (see
+      // DevicePersistentFieldsKernel.cu). `pressure` stays resident; the host
+      // copy is refreshed only when something actually needs it.
+      gpuDiscretization.updatePressure(relaxation.pressure);
+    } else {
+      pressureNew = ScalarField(mesh.numberOfCells());
+      for (const auto& cell : mesh.cells()) {
+        pressureNew[cell.id()] = pressure[cell.id()] + (relaxation.pressure * pPrime[cell.id()]);
+      }
     }
+    // The relaxed pressure update is a per-cell host loop on the CPU path -- it
+    // is not an operator and GPU-DISC-001 did not port it. Counted as
+    // bookkeeping so it stays visible rather than disappearing into `other`.
+    result.stageSeconds.bookkeeping += stageTimer.elapsedSeconds();
 
-    const VectorField velocityNew =
-        correctVelocity(mesh, velocityStar, dU, dV, pPrime, pressureBoundaries,
-                        settings_.gradientScheme, dWPointer);
-    const SurfaceField fluxNew = correctFaceMassFlux(
-        mesh, predictorFlux, pAssembly->faceCoefficient, pPrime,
-        (settings_.nonOrthogonalCorrections > 1) ? &pAssembly->explicitFaceFlux : nullptr);
+    VectorField velocityNew;
+    SurfaceField fluxNew;
+    stageTimer.reset();
+    if (useGpuDiscretization) {
+      // GPU-DISC-001J and 001K, from the resident predictor velocity, predictor
+      // flux and face coefficients.
+      //
+      // GPU-PIPE-001: the results are carried into the persistent fields on the
+      // device rather than downloaded. Only the mass flux comes back, because
+      // evaluateContinuity() below genuinely needs the whole face field on the
+      // host to stay bitwise-equal to the CPU (audit.md S3). Velocity and
+      // pressure are downloaded once, after the loop.
+      gpuDiscretization.correctVelocityResident(static_cast<Index>(settings_.gradientScheme),
+                                                threeDimensional);
+      // The velocity comes back every iteration, and NOT because the device
+      // needs it -- the device kept its own copy. The HOST needs it: the next
+      // iteration takes `previousU`/`previousV` from it for the under-relaxation
+      // RHS and, critically, for the momentum solver's warm-start initial guess
+      // `toVector(previousU)`. Leaving it stale changed the solver's iteration
+      // path and broke equivalence at outer iteration 2 -- found by
+      // full_solve_equivalence, and the reason this download is here.
+      //
+      // What residency still buys on this field is the UPLOAD: the device never
+      // re-uploads it, because it carried its own corrected velocity forward.
+      //
+      // GPU-PIPE-001 final residency: on the resident path this download is
+      // GONE. The two host consumers it existed for -- the next iteration's
+      // under-relaxation phiOld and the momentum solver's warm-start guess --
+      // both read the DEVICE velocity now, so the field comes back once,
+      // after the loop, like the pressure already does.
+      if (!useResidentSimpleLoop) gpuDiscretization.downloadVelocity(velocityNew);
+      result.stageSeconds.velocityCorrection += stageTimer.elapsedSeconds();
+      stageTimer.reset();
+      gpuDiscretization.correctFaceMassFluxResident(settings_.nonOrthogonalCorrections > 1);
+      gpuDiscretization.downloadMassFlux(fluxNew);
+    } else {
+      velocityNew = correctVelocity(mesh, velocityStar, dU, dV, pPrime, pressureBoundaries,
+                                    settings_.gradientScheme, dWPointer);
+      result.stageSeconds.velocityCorrection += stageTimer.elapsedSeconds();
+      stageTimer.reset();
+      fluxNew = correctFaceMassFlux(
+          mesh, predictorFlux, pAssembly->faceCoefficient, pPrime,
+          (settings_.nonOrthogonalCorrections > 1) ? &pAssembly->explicitFaceFlux : nullptr);
+    }
+    result.stageSeconds.faceFluxCorrection += stageTimer.elapsedSeconds();
+    stageTimer.reset();
 
-    if (!allFinite(velocityNew) || !allFinite(pressureNew) || !allFinite(fluxNew)) {
+    // GPU-PIPE-001: on the resident path velocity and pressure live on the
+    // device, so the guard is evaluated THERE and one integer per field crosses
+    // the boundary instead of five full fields. It is a predicate, so the
+    // reduction order carries no bitwise consequence -- the one reduction in
+    // this codebase for which that is true.
+    //
+    // GPU-PIPE-001 final residency: velocity joins pressure on the device
+    // side of that split. The face flux stays on the host side because it is
+    // already here -- evaluateContinuity below needs the whole field to stay
+    // bitwise equal to the CPU (audit.md section 5).
+    const bool stateFinite =
+        useResidentSimpleLoop
+            ? (gpuDiscretization.residentVelocityAllFinite() && allFinite(fluxNew) &&
+               gpuDiscretization.residentPressureAllFinite())
+        : useGpuDiscretization
+            ? (allFinite(velocityNew) && allFinite(fluxNew) &&
+               gpuDiscretization.residentPressureAllFinite())
+            : (allFinite(velocityNew) && allFinite(pressureNew) && allFinite(fluxNew));
+    if (!stateFinite) {
       finalStatus = SIMPLEStatus::NonFiniteState;
       break;
     }
@@ -650,8 +1037,17 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     const Real wResidual = threeDimensional ? wResult->initialResidual : 0.0;
     if (threeDimensional) result.wResidualHistory.push_back(wResidual);
 
-    velocity = velocityNew;
-    pressure = pressureNew;
+    // GPU-PIPE-001 final residency: NEITHER `velocity` nor `pressure` is
+    // carried here on the resident path. The device updated both itself and
+    // the host copies stay deliberately stale until the single download after
+    // the loop. `velocity` used to be carried because the next iteration read
+    // previousU/previousV from it; the resident momentum assembly reads the
+    // device copy instead, so that reason is gone. The authority model in
+    // GpuSimpleDiscretization is what makes staleness a stated contract
+    // rather than an accident. `massFlux` IS still carried, because
+    // evaluateContinuity below reads it on the host (audit.md section 5).
+    if (!useResidentSimpleLoop) velocity = velocityNew;
+    if (!useGpuDiscretization) pressure = pressureNew;
     massFlux = fluxNew;
     result.iterations = iteration + 1;
 
@@ -690,6 +1086,9 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
         monitor.record(cfd::solver::OuterResidualSample{
             uResidual, vResidual, pResidual, continuityResidual, globalImbalance,
             turbulenceResidual, threeDimensional ? std::optional<Real>(wResidual) : std::nullopt});
+    // Accumulated BEFORE the verdict branches, so the iteration that converges
+    // or diverges still contributes its bookkeeping rather than dropping it.
+    result.stageSeconds.bookkeeping += stageTimer.elapsedSeconds();
     if (verdict == cfd::solver::OuterIterationVerdict::Converged) {
       finalStatus = SIMPLEStatus::Converged;
       break;
@@ -704,11 +1103,23 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     }
   }
 
+  // GPU-PIPE-001: the one place the resident velocity and pressure come back.
+  // Everything the API promises to hand a caller -- result fields, export,
+  // GUI/CLI retrieval, validation hooks -- is fed from here, so nothing
+  // host-visible is left stale. Skipped when the solve never ran an iteration
+  // (an InvalidConfiguration or a first-iteration failure returns earlier, and
+  // a zero-iteration budget leaves the host state exactly as it arrived).
+  if (useGpuDiscretization && result.iterations > 0) {
+    gpuDiscretization.downloadVelocity(velocity);
+    gpuDiscretization.downloadPressure(pressure);
+  }
+
   result.status = finalStatus;
   result.robustness = monitor.takeDiagnostics();
   result.velocity = std::move(velocity);
   result.pressure = std::move(pressure);
   result.massFlux = std::move(massFlux);
+  result.stageSeconds.total = solveTimer.elapsedSeconds();
   return result;
 }
 

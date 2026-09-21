@@ -72,6 +72,12 @@ class DeviceBuffer {
         auto& stats = gpuExecutionStats();
         ++stats.allocations;
         if (hadPriorAllocation) ++stats.reallocations;
+        // GPU-DISC-001Q: device-byte high-water mark. release() above has
+        // already subtracted any prior allocation, so this is the live total.
+        stats.currentDeviceBytes += static_cast<std::uint64_t>(count) * sizeof(T);
+        if (stats.currentDeviceBytes > stats.peakDeviceBytes) {
+          stats.peakDeviceBytes = stats.currentDeviceBytes;
+        }
       }
       capacity_ = count;
     }
@@ -120,7 +126,16 @@ class DeviceBuffer {
   void release() noexcept {
     if (pointer_ != nullptr) {
       cudaFree(pointer_);
-      ++gpuExecutionStats().frees;
+      auto& stats = gpuExecutionStats();
+      ++stats.frees;
+      // GPU-DISC-001Q: paired with the addition in resize(). Subtracting
+      // `capacity_` (not size_) is what makes the two symmetric -- capacity_ is
+      // what was actually cudaMalloc'd, while size_ is the logical length and
+      // can be smaller. Guarded so a counter reset mid-lifetime, which
+      // resetGpuExecutionStats() permits, cannot wrap this unsigned counter.
+      const std::uint64_t held = static_cast<std::uint64_t>(capacity_) * sizeof(T);
+      stats.currentDeviceBytes =
+          stats.currentDeviceBytes >= held ? stats.currentDeviceBytes - held : 0;
       pointer_ = nullptr;
     }
     capacity_ = 0;

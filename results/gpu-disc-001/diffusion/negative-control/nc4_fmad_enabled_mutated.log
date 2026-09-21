@@ -1,0 +1,1023 @@
+=== GPU-DISC-001C: CUDA implicit diffusion vs CPU reference (bitwise) ===
+CPU reference: turbulence::assembleScalarDiffusionContribution
+
+       [cartesian2d 16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=241432 B]
+  PASS cartesian2d 16     dirichlet constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  FAIL cartesian2d 16     neumann   constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=4,abs=1.78e-15,scale=9.113]
+       worst entry (0,0): cpu=9.1131250000000001 gpu=9.1131249999999984  maxRel=1.95e-16
+  FAIL cartesian2d 16     mixed     constant      uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=9.104]
+       worst entry (255,255): cpu=9.104375000000001 gpu=9.1043749999999992  maxRel=1.95e-16
+  PASS cartesian2d 16     dirichlet constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  FAIL cartesian2d 16     neumann   constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=4,abs=1.78e-15,scale=9.113]
+       worst entry (0,0): cpu=9.1131250000000001 gpu=9.1131249999999984  maxRel=1.95e-16
+  FAIL cartesian2d 16     mixed     constant      uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=9.104]
+       worst entry (255,255): cpu=9.104375000000001 gpu=9.1043749999999992  maxRel=1.95e-16
+  PASS cartesian2d 16     dirichlet linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.702]
+  PASS cartesian2d 16     mixed     linear        uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.087]
+  PASS cartesian2d 16     dirichlet linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  PASS cartesian2d 16     neumann   linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.702]
+  PASS cartesian2d 16     mixed     linear        uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.087]
+  PASS cartesian2d 16     dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  FAIL cartesian2d 16     neumann   quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=3,abs=8.88e-16,scale=6.574]
+       worst entry (240,240): cpu=5.2245703124999991 gpu=5.2245703125  maxRel=1.71e-16
+  FAIL cartesian2d 16     mixed     quadratic     uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=6.574]
+       worst entry (255,255): cpu=6.5737109374999996 gpu=6.5737109375000005  maxRel=1.35e-16
+  PASS cartesian2d 16     dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  FAIL cartesian2d 16     neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=3,abs=8.88e-16,scale=6.574]
+       worst entry (240,240): cpu=5.2245703124999991 gpu=5.2245703125  maxRel=1.71e-16
+  FAIL cartesian2d 16     mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=6.574]
+       worst entry (255,255): cpu=6.5737109374999996 gpu=6.5737109375000005  maxRel=1.35e-16
+  PASS cartesian2d 16     dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  FAIL cartesian2d 16     neumann   manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=1,abs=5.55e-17,scale=1.389]
+       worst entry (0,0): cpu=0.28625145082257952 gpu=0.28625145082257958  maxRel=1.94e-16
+  PASS cartesian2d 16     mixed     manufactured  uniform  corr=off nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.6]
+  PASS cartesian2d 16     dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.467]
+  FAIL cartesian2d 16     neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=1,abs=5.55e-17,scale=1.389]
+       worst entry (0,0): cpu=0.28625145082257952 gpu=0.28625145082257958  maxRel=1.94e-16
+  PASS cartesian2d 16     mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.6]
+  FAIL cartesian2d 16     dirichlet constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  PASS cartesian2d 16     neumann   constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  PASS cartesian2d 16     mixed     constant      varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  FAIL cartesian2d 16     dirichlet constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  PASS cartesian2d 16     neumann   constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  PASS cartesian2d 16     mixed     constant      varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=13.34]
+  FAIL cartesian2d 16     dirichlet linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  FAIL cartesian2d 16     neumann   linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=2,abs=8.88e-16,scale=7.128]
+       worst entry (15,15): cpu=7.1282972126468032 gpu=7.128297212646804  maxRel=1.25e-16
+  FAIL cartesian2d 16     mixed     linear        varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=1,abs=5.55e-17,scale=7.537]
+       worst entry (240,240): cpu=0.49140970970537867 gpu=0.49140970970537873  maxRel=1.13e-16
+  FAIL cartesian2d 16     dirichlet linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  FAIL cartesian2d 16     neumann   linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=2,abs=8.88e-16,scale=7.128]
+       worst entry (15,15): cpu=7.1282972126468032 gpu=7.128297212646804  maxRel=1.25e-16
+  FAIL cartesian2d 16     mixed     linear        varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=1,abs=5.55e-17,scale=7.537]
+       worst entry (240,240): cpu=0.49140970970537867 gpu=0.49140970970537873  maxRel=1.13e-16
+  FAIL cartesian2d 16     dirichlet quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  FAIL cartesian2d 16     neumann   quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=2,abs=8.88e-16,scale=9.633]
+       worst entry (240,240): cpu=4.1570389566148211 gpu=4.1570389566148203  maxRel=2.21e-16
+  PASS cartesian2d 16     mixed     quadratic     varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.633]
+  FAIL cartesian2d 16     dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  FAIL cartesian2d 16     neumann   quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=2,abs=8.88e-16,scale=9.633]
+       worst entry (240,240): cpu=4.1570389566148211 gpu=4.1570389566148203  maxRel=2.21e-16
+  PASS cartesian2d 16     mixed     quadratic     varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.633]
+  FAIL cartesian2d 16     dirichlet manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  PASS cartesian2d 16     neumann   manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.779]
+  PASS cartesian2d 16     mixed     manufactured  varying  corr=off nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.123]
+  FAIL cartesian2d 16     dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=8.182] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=10.94]
+       worst entry (240,240): cpu=5.1983837059742548 gpu=5.1983837059742557  maxRel=1.71e-16
+  PASS cartesian2d 16     neumann   manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=1.779]
+  PASS cartesian2d 16     mixed     manufactured  varying  corr=on  nnz=1216    diag[d=0,abs=0,scale=6.131] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.123]
+       [cartesian2d 40 cells=1600 higherOrderBoundaryFaces=160 correctableInternal=3120 resident=1448344 B]
+  FAIL cartesian2d 40     dirichlet constant      uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   constant      uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=9.105]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     mixed     constant      uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=9.102]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     dirichlet constant      uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   constant      uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=9.105]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     mixed     constant      uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=9.102]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     dirichlet linear        uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   linear        uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=1,abs=4.44e-16,scale=6.881]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     mixed     linear        uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=1,abs=4.44e-16,scale=7.175]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     dirichlet linear        uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   linear        uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=1,abs=4.44e-16,scale=6.881]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     mixed     linear        uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=1,abs=4.44e-16,scale=7.175]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     dirichlet quadratic     uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   quadratic     uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=1,abs=8.88e-16,scale=6.828]
+       worst entry (1560,1560): cpu=5.4475312500000097 gpu=5.4475312500000088  maxRel=1.63e-16
+  FAIL cartesian2d 40     mixed     quadratic     uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=1,abs=8.88e-16,scale=6.828]
+       worst entry (1560,1560): cpu=4.5878072916666763 gpu=4.5878072916666754  maxRel=1.94e-16
+  FAIL cartesian2d 40     dirichlet quadratic     uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   quadratic     uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=1,abs=8.88e-16,scale=6.828]
+       worst entry (1560,1560): cpu=5.4475312500000097 gpu=5.4475312500000088  maxRel=1.63e-16
+  FAIL cartesian2d 40     mixed     quadratic     uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=1,abs=8.88e-16,scale=6.828]
+       worst entry (1560,1560): cpu=4.5878072916666763 gpu=4.5878072916666754  maxRel=1.94e-16
+  FAIL cartesian2d 40     dirichlet manufactured  uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   manufactured  uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=1,abs=1.39e-17,scale=1.399]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     mixed     manufactured  uniform  corr=off nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=5.6]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     dirichlet manufactured  uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=7.467]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     neumann   manufactured  uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=4.2] off[d=320,abs=1.11e-16] rhs[d=1,abs=1.39e-17,scale=1.399]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     mixed     manufactured  uniform  corr=on  nnz=7840    diag[d=112,abs=4.44e-16,scale=5.6] off[d=320,abs=1.11e-16] rhs[d=0,abs=0,scale=5.6]
+       worst entry (91,91): cpu=2.7999999999999998 gpu=2.8000000000000003  maxRel=1.59e-16
+  FAIL cartesian2d 40     dirichlet constant      varying  corr=off nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   constant      varying  corr=off nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=1,abs=4.44e-16,scale=13.53]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     constant      varying  corr=off nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=1,abs=8.88e-16,scale=13.53]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet constant      varying  corr=on  nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   constant      varying  corr=on  nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=1,abs=4.44e-16,scale=13.53]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     constant      varying  corr=on  nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=1,abs=8.88e-16,scale=13.53]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet linear        varying  corr=off nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   linear        varying  corr=off nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=0,abs=0,scale=7.35]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     linear        varying  corr=off nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=1,abs=1.11e-16,scale=7.664]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet linear        varying  corr=on  nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   linear        varying  corr=on  nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=0,abs=0,scale=7.35]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     linear        varying  corr=on  nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=1,abs=1.11e-16,scale=7.664]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet quadratic     varying  corr=off nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   quadratic     varying  corr=off nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=1,abs=4.44e-16,scale=10.15]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     quadratic     varying  corr=off nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=0,abs=0,scale=10.15]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet quadratic     varying  corr=on  nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   quadratic     varying  corr=on  nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=1,abs=4.44e-16,scale=10.15]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     quadratic     varying  corr=on  nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=0,abs=0,scale=10.15]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet manufactured  varying  corr=off nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   manufactured  varying  corr=off nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=3,abs=2.78e-17,scale=1.808]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     manufactured  varying  corr=off nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=1,abs=2.78e-17,scale=4.049]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+  FAIL cartesian2d 40     dirichlet manufactured  varying  corr=on  nnz=7840    diag[d=332,abs=8.88e-16,scale=8.312] off[d=1253,abs=4.44e-16] rhs[d=0,abs=0,scale=11.1]
+       worst entry (14,14): cpu=3.1325747040623044 gpu=3.1325747040623053  maxRel=4.25e-16
+  FAIL cartesian2d 40     neumann   manufactured  varying  corr=on  nnz=7840    diag[d=337,abs=1.78e-15,scale=6.232] off[d=1260,abs=4.44e-16] rhs[d=3,abs=2.78e-17,scale=1.808]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.19e-16
+  FAIL cartesian2d 40     mixed     manufactured  varying  corr=on  nnz=7840    diag[d=339,abs=1.78e-15,scale=6.232] off[d=1255,abs=4.44e-16] rhs[d=1,abs=2.78e-17,scale=4.049]
+       worst entry (1593,1593): cpu=5.0433318701266376 gpu=5.0433318701266394  maxRel=4.25e-16
+       [graded2d 16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=241712 B]
+  FAIL graded2d 16        dirichlet constant      uniform  corr=off nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   constant      uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=20.44]
+       worst entry (10,10): cpu=4.1084841363756732 gpu=4.1084841363756741  maxRel=3.05e-16
+  FAIL graded2d 16        mixed     constant      uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=15.6]
+       worst entry (8,8): cpu=4.4060565329181074 gpu=4.4060565329181083  maxRel=3.05e-16
+  FAIL graded2d 16        dirichlet constant      uniform  corr=on  nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   constant      uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=20.44]
+       worst entry (10,10): cpu=4.1084841363756732 gpu=4.1084841363756741  maxRel=3.05e-16
+  FAIL graded2d 16        mixed     constant      uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=15.6]
+       worst entry (8,8): cpu=4.4060565329181074 gpu=4.4060565329181083  maxRel=3.05e-16
+  FAIL graded2d 16        dirichlet linear        uniform  corr=off nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   linear        uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=11.14]
+       worst entry (10,10): cpu=4.1084841363756732 gpu=4.1084841363756741  maxRel=3.05e-16
+  FAIL graded2d 16        mixed     linear        uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=12.57]
+       worst entry (8,8): cpu=4.4060565329181074 gpu=4.4060565329181083  maxRel=3.05e-16
+  FAIL graded2d 16        dirichlet linear        uniform  corr=on  nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   linear        uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=11.14]
+       worst entry (10,10): cpu=4.1084841363756732 gpu=4.1084841363756741  maxRel=3.05e-16
+  FAIL graded2d 16        mixed     linear        uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=12.57]
+       worst entry (8,8): cpu=4.4060565329181074 gpu=4.4060565329181083  maxRel=3.05e-16
+  FAIL graded2d 16        dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   quadratic     uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=11.11]
+       worst entry (255,255): cpu=11.106259836761289 gpu=11.106259836761287  maxRel=1.6e-16
+  FAIL graded2d 16        mixed     quadratic     uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=11.91]
+       worst entry (255,255): cpu=11.106259836761289 gpu=11.106259836761287  maxRel=1.6e-16
+  FAIL graded2d 16        dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=11.11]
+       worst entry (255,255): cpu=11.106259836761289 gpu=11.106259836761287  maxRel=1.6e-16
+  FAIL graded2d 16        mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=11.91]
+       worst entry (255,255): cpu=11.106259836761289 gpu=11.106259836761287  maxRel=1.6e-16
+  FAIL graded2d 16        dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   manufactured  uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=2.818]
+       worst entry (10,10): cpu=4.1084841363756732 gpu=4.1084841363756741  maxRel=3.05e-16
+  FAIL graded2d 16        mixed     manufactured  uniform  corr=off nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=11.63]
+       worst entry (8,8): cpu=4.4060565329181074 gpu=4.4060565329181083  maxRel=3.05e-16
+  FAIL graded2d 16        dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=52,abs=1.78e-15,scale=12.45] off[d=198,abs=8.88e-16] rhs[d=1,abs=1.78e-15,scale=15.32]
+       worst entry (15,15): cpu=9.4643834875770416 gpu=9.4643834875770434  maxRel=3.05e-16
+  FAIL graded2d 16        neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=9.525] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=2.818]
+       worst entry (10,10): cpu=4.1084841363756732 gpu=4.1084841363756741  maxRel=3.05e-16
+  FAIL graded2d 16        mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=12.45] off[d=202,abs=8.88e-16] rhs[d=0,abs=0,scale=11.63]
+       worst entry (8,8): cpu=4.4060565329181074 gpu=4.4060565329181083  maxRel=3.05e-16
+  FAIL graded2d 16        dirichlet constant      varying  corr=off nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=1,abs=2.22e-16,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   constant      varying  corr=off nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=22.78]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     constant      varying  corr=off nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=22.78]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet constant      varying  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=1,abs=2.22e-16,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   constant      varying  corr=on  nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=22.78]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     constant      varying  corr=on  nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=22.78]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet linear        varying  corr=off nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=0,abs=0,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   linear        varying  corr=off nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=1,abs=1.78e-15,scale=11.72]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     linear        varying  corr=off nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=13.23]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet linear        varying  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=0,abs=0,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   linear        varying  corr=on  nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=1,abs=1.78e-15,scale=11.72]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     linear        varying  corr=on  nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=13.23]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet quadratic     varying  corr=off nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=0,abs=0,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   quadratic     varying  corr=off nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=16.22]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     quadratic     varying  corr=off nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=16.22]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=0,abs=0,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   quadratic     varying  corr=on  nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=16.22]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     quadratic     varying  corr=on  nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=16.22]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet manufactured  varying  corr=off nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=0,abs=0,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   manufactured  varying  corr=off nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=3.855]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     manufactured  varying  corr=off nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=12.24]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=13.78] off[d=177,abs=6.66e-16] rhs[d=0,abs=0,scale=22.37]
+       worst entry (63,63): cpu=4.9281103025349813 gpu=4.9281103025349804  maxRel=3.18e-16
+  FAIL graded2d 16        neumann   manufactured  varying  corr=on  nnz=1216    diag[d=50,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=3.855]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+  FAIL graded2d 16        mixed     manufactured  varying  corr=on  nnz=1216    diag[d=48,abs=1.78e-15,scale=10.37] off[d=178,abs=6.66e-16] rhs[d=0,abs=0,scale=12.24]
+       worst entry (255,255): cpu=10.370466118203877 gpu=10.370466118203876  maxRel=3.18e-16
+       [distorted q16 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=262424 B]
+  FAIL distorted q16      dirichlet constant      uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=9,abs=8.88e-16,scale=7.359]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   constant      uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=0,abs=0,scale=9.329]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     constant      uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=4,abs=8.88e-16,scale=8.89]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet constant      uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=208,abs=8.88e-16,scale=7.24]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   constant      uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=204,abs=1.78e-15,scale=9.328]
+       worst entry (15,15): cpu=9.328384757766214 gpu=9.3283847577662158  maxRel=17.8
+  FAIL distorted q16      mixed     constant      uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=206,abs=8.88e-16,scale=8.89]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet linear        uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=7,abs=8.88e-16,scale=7.253]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   linear        uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=1,abs=4.44e-16,scale=6.872]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     linear        uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=3,abs=4.44e-16,scale=7.259]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet linear        uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=175,abs=8.88e-16,scale=7.351]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   linear        uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=188,abs=4.44e-16,scale=6.869]
+       worst entry (21,21): cpu=2.8211695239491439 gpu=2.821169523949143  maxRel=3.16e-16
+  FAIL distorted q16      mixed     linear        uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=178,abs=8.88e-16,scale=7.273]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=8,abs=8.88e-16,scale=7.317]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   quadratic     uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=3,abs=8.88e-16,scale=6.409]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     quadratic     uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=2,abs=8.88e-16,scale=6.409]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=193,abs=8.88e-16,scale=7.295]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=192,abs=4.44e-16,scale=6.413]
+       worst entry (21,21): cpu=2.8211695239491439 gpu=2.821169523949143  maxRel=3.16e-16
+  FAIL distorted q16      mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=200,abs=8.88e-16,scale=6.413]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=5.667] off[d=207,abs=2.22e-16] rhs[d=8,abs=8.88e-16,scale=7.203]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      neumann   manufactured  uniform  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=4.242] off[d=210,abs=2.22e-16] rhs[d=1,abs=5.55e-17,scale=1.389]
+       worst entry (8,8): cpu=3.5030586922976825 gpu=3.5030586922976816  maxRel=3.18e-16
+  FAIL distorted q16      mixed     manufactured  uniform  corr=off nnz=1216    diag[d=42,abs=8.88e-16,scale=5.537] off[d=208,abs=2.22e-16] rhs[d=1,abs=8.88e-16,scale=5.41]
+       worst entry (9,9): cpu=4.2893411753092447 gpu=4.2893411753092439  maxRel=3.18e-16
+  FAIL distorted q16      dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.669] off[d=209,abs=2.22e-16] rhs[d=171,abs=8.88e-16,scale=7.41]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=46,abs=8.88e-16,scale=4.244] off[d=212,abs=2.22e-16] rhs[d=173,abs=2.22e-16,scale=1.392]
+       worst entry (21,21): cpu=2.8211695239491439 gpu=2.821169523949143  maxRel=3.16e-16
+  FAIL distorted q16      mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=43,abs=8.88e-16,scale=5.539] off[d=210,abs=2.22e-16] rhs[d=164,abs=4.44e-16,scale=5.536]
+       worst entry (2,2): cpu=4.1148918592317072 gpu=4.1148918592317063  maxRel=3.16e-16
+  FAIL distorted q16      dirichlet constant      varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=9,abs=8.88e-16,scale=10.78]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   constant      varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=3,abs=1.78e-15,scale=13.02]
+       worst entry (15,15): cpu=9.9229966321474912 gpu=9.9229966321474929  maxRel=1.79e-16
+  FAIL distorted q16      mixed     constant      varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=1,abs=1.78e-15,scale=13.02]
+       worst entry (255,255): cpu=13.018806043917383 gpu=13.018806043917385  maxRel=1.36e-16
+  FAIL distorted q16      dirichlet constant      varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=205,abs=8.88e-16,scale=10.61]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   constant      varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=209,abs=8.88e-16,scale=13.02]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     constant      varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=207,abs=8.88e-16,scale=13.02]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      dirichlet linear        varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=9,abs=8.88e-16,scale=10.62]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   linear        varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=0,abs=0,scale=7.31]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      mixed     linear        varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=2,abs=8.88e-16,scale=7.722]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      dirichlet linear        varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=183,abs=8.88e-16,scale=10.76]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   linear        varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=182,abs=4.44e-16,scale=7.307]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     linear        varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=184,abs=8.88e-16,scale=7.736]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      dirichlet quadratic     varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=7,abs=8.88e-16,scale=10.72]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   quadratic     varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=1,abs=1.78e-15,scale=9.386]
+       worst entry (255,255): cpu=9.3856504302495338 gpu=9.3856504302495356  maxRel=1.89e-16
+  FAIL distorted q16      mixed     quadratic     varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=1,abs=1.78e-15,scale=9.386]
+       worst entry (255,255): cpu=9.3856504302495338 gpu=9.3856504302495356  maxRel=1.89e-16
+  FAIL distorted q16      dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=189,abs=1.78e-15,scale=10.68]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   quadratic     varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=184,abs=4.44e-16,scale=9.391]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     quadratic     varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=183,abs=8.88e-16,scale=9.391]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      dirichlet manufactured  varying  corr=off nnz=1216    diag[d=46,abs=1.78e-15,scale=8.085] off[d=202,abs=4.44e-16] rhs[d=11,abs=8.88e-16,scale=10.55]
+       worst entry (253,253): cpu=5.8369717076269385 gpu=5.8369717076269403  maxRel=3.24e-16
+  FAIL distorted q16      neumann   manufactured  varying  corr=off nnz=1216    diag[d=49,abs=8.88e-16,scale=6.068] off[d=206,abs=2.22e-16] rhs[d=2,abs=5.55e-17,scale=1.716]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      mixed     manufactured  varying  corr=off nnz=1216    diag[d=48,abs=8.88e-16,scale=6.068] off[d=205,abs=2.22e-16] rhs[d=0,abs=0,scale=4.214]
+       worst entry (58,58): cpu=2.7451745952783044 gpu=2.7451745952783035  maxRel=3.24e-16
+  FAIL distorted q16      dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=34,abs=1.78e-15,scale=8.088] off[d=203,abs=4.44e-16] rhs[d=177,abs=8.88e-16,scale=10.85]
+       worst entry (250,250): cpu=5.5601742851098681 gpu=5.5601742851098663  maxRel=3.53e-16
+  FAIL distorted q16      neumann   manufactured  varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.071] off[d=210,abs=2.22e-16] rhs[d=174,abs=2.22e-16,scale=1.715]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+  FAIL distorted q16      mixed     manufactured  varying  corr=on  nnz=1216    diag[d=38,abs=8.88e-16,scale=6.071] off[d=209,abs=2.22e-16] rhs[d=176,abs=2.22e-16,scale=4.152]
+       worst entry (24,24): cpu=2.5130175972601991 gpu=2.5130175972601982  maxRel=3.53e-16
+       [q16 translated cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=262424 B]
+  FAIL q16 translated     dirichlet constant      uniform  corr=off nnz=1216    diag[d=47,abs=8.88e-16,scale=5.667] off[d=226,abs=3.33e-16] rhs[d=13,abs=8.88e-16,scale=7.359]
+       worst entry (5,5): cpu=4.1164814681060315 gpu=4.1164814681060307  maxRel=3.17e-16
+  FAIL q16 translated     neumann   constant      uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=4.242] off[d=228,abs=3.33e-16] rhs[d=0,abs=0,scale=9.329]
+       worst entry (33,33): cpu=2.8050228789283853 gpu=2.8050228789283844  maxRel=3.17e-16
+  FAIL q16 translated     mixed     constant      uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=5.537] off[d=226,abs=3.33e-16] rhs[d=2,abs=2.22e-16,scale=8.89]
+       worst entry (5,5): cpu=4.1164814681060315 gpu=4.1164814681060307  maxRel=3.17e-16
+  FAIL q16 translated     dirichlet constant      uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.669] off[d=222,abs=2.22e-16] rhs[d=199,abs=8.88e-16,scale=7.24]
+       worst entry (59,59): cpu=2.7963415821698532 gpu=2.7963415821698541  maxRel=3.18e-16
+  FAIL q16 translated     neumann   constant      uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=4.244] off[d=224,abs=2.22e-16] rhs[d=165,abs=8.88e-16,scale=9.329]
+       worst entry (59,59): cpu=2.7963415821698532 gpu=2.7963415821698541  maxRel=3.18e-16
+  FAIL q16 translated     mixed     constant      uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.539] off[d=223,abs=2.22e-16] rhs[d=181,abs=8.88e-16,scale=8.89]
+       worst entry (59,59): cpu=2.7963415821698532 gpu=2.7963415821698541  maxRel=3.18e-16
+  FAIL q16 translated     dirichlet linear        uniform  corr=off nnz=1216    diag[d=47,abs=8.88e-16,scale=5.667] off[d=226,abs=3.33e-16] rhs[d=55,abs=9.46e-14,scale=117.5]
+       worst entry (176,176): cpu=3.3182951579328721 gpu=3.3182951579327775  maxRel=5.32e-14
+  FAIL q16 translated     neumann   linear        uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=4.242] off[d=228,abs=3.33e-16] rhs[d=0,abs=0,scale=6817]
+       worst entry (33,33): cpu=2.8050228789283853 gpu=2.8050228789283844  maxRel=3.17e-16
+  FAIL q16 translated     mixed     linear        uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=5.537] off[d=226,abs=3.33e-16] rhs[d=27,abs=9.46e-14,scale=6496]
+       worst entry (176,176): cpu=3.3182951579328721 gpu=3.3182951579327775  maxRel=4.72e-14
+  FAIL q16 translated     dirichlet linear        uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.669] off[d=222,abs=2.22e-16] rhs[d=242,abs=1.71e-13,scale=121.5]
+       worst entry (192,192): cpu=54.18749139975273 gpu=54.18749139975256  maxRel=9.45e-11
+  FAIL q16 translated     neumann   linear        uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=4.244] off[d=224,abs=2.22e-16] rhs[d=211,abs=9.09e-13,scale=6817]
+       worst entry (0,0): cpu=6494.4292704334312 gpu=6494.4292704334321  maxRel=1.66e-10
+  FAIL q16 translated     mixed     linear        uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.539] off[d=223,abs=2.22e-16] rhs[d=229,abs=4.55e-13,scale=6496]
+       worst entry (31,31): cpu=3524.2473198639623 gpu=3524.2473198639627  maxRel=1.83e-10
+  FAIL q16 translated     dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=47,abs=8.88e-16,scale=5.667] off[d=226,abs=3.33e-16] rhs[d=55,abs=4.81e-11,scale=6.536e+04]
+       worst entry (192,192): cpu=-297.15550103849336 gpu=-297.15550103854144  maxRel=1.62e-13
+  FAIL q16 translated     neumann   quadratic     uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=4.242] off[d=228,abs=3.33e-16] rhs[d=1,abs=4.66e-10,scale=3.59e+06]
+       worst entry (240,240): cpu=3580672.3045909721 gpu=3580672.3045909717  maxRel=1.3e-16
+  FAIL q16 translated     mixed     quadratic     uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=5.537] off[d=226,abs=3.33e-16] rhs[d=28,abs=2.55e-11,scale=3.419e+06]
+       worst entry (160,160): cpu=1724.7157268175374 gpu=1724.7157268175629  maxRel=6.18e-14
+  FAIL q16 translated     dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.669] off[d=222,abs=2.22e-16] rhs[d=245,abs=8.92e-11,scale=6.079e+04]
+       worst entry (136,136): cpu=-0.39043231197099004 gpu=-0.3904323118817814  maxRel=2.28e-10
+  FAIL q16 translated     neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=4.244] off[d=224,abs=2.22e-16] rhs[d=209,abs=4.66e-10,scale=3.59e+06]
+       worst entry (0,0): cpu=3417425.4458652488 gpu=3417425.4458652493  maxRel=2.28e-10
+  FAIL q16 translated     mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.539] off[d=223,abs=2.22e-16] rhs[d=228,abs=4.66e-10,scale=3.419e+06]
+       worst entry (47,47): cpu=1899397.3293792596 gpu=1899397.3293792591  maxRel=2.28e-10
+  FAIL q16 translated     dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=47,abs=8.88e-16,scale=5.667] off[d=226,abs=3.33e-16] rhs[d=6,abs=8.88e-16,scale=7.203]
+       worst entry (5,5): cpu=4.1164814681060315 gpu=4.1164814681060307  maxRel=3.17e-16
+  FAIL q16 translated     neumann   manufactured  uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=4.242] off[d=228,abs=3.33e-16] rhs[d=1,abs=5.55e-17,scale=1.389]
+       worst entry (33,33): cpu=2.8050228789283853 gpu=2.8050228789283844  maxRel=3.17e-16
+  FAIL q16 translated     mixed     manufactured  uniform  corr=off nnz=1216    diag[d=50,abs=8.88e-16,scale=5.537] off[d=226,abs=3.33e-16] rhs[d=0,abs=0,scale=5.41]
+       worst entry (5,5): cpu=4.1164814681060315 gpu=4.1164814681060307  maxRel=3.17e-16
+  FAIL q16 translated     dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.669] off[d=222,abs=2.22e-16] rhs[d=170,abs=8.88e-16,scale=7.41]
+       worst entry (59,59): cpu=2.7963415821698532 gpu=2.7963415821698541  maxRel=3.18e-16
+  FAIL q16 translated     neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=54,abs=8.88e-16,scale=4.244] off[d=224,abs=2.22e-16] rhs[d=188,abs=2.22e-16,scale=1.392]
+       worst entry (59,59): cpu=2.7963415821698532 gpu=2.7963415821698541  maxRel=3.18e-16
+  FAIL q16 translated     mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=52,abs=8.88e-16,scale=5.539] off[d=223,abs=2.22e-16] rhs[d=172,abs=8.88e-16,scale=5.536]
+       worst entry (59,59): cpu=2.7963415821698532 gpu=2.7963415821698541  maxRel=3.18e-16
+  FAIL q16 translated     dirichlet constant      varying  corr=off nnz=1216    diag[d=55,abs=2.91e-11,scale=1.558e+05] off[d=246,abs=7.28e-12] rhs[d=7,abs=2.91e-11,scale=2.008e+05]
+       worst entry (80,80): cpu=112895.91480786591 gpu=112895.91480786593  maxRel=2.58e-16
+  FAIL q16 translated     neumann   constant      varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.166e+05] off[d=246,abs=7.28e-12] rhs[d=0,abs=0,scale=2.565e+05]
+       worst entry (16,16): cpu=95128.424998006027 gpu=95128.424998006056  maxRel=3.06e-16
+  FAIL q16 translated     mixed     constant      varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.522e+05] off[d=246,abs=7.28e-12] rhs[d=1,abs=7.28e-12,scale=2.426e+05]
+       worst entry (80,80): cpu=112895.91480786591 gpu=112895.91480786593  maxRel=2.58e-16
+  FAIL q16 translated     dirichlet constant      varying  corr=on  nnz=1216    diag[d=48,abs=2.91e-11,scale=1.559e+05] off[d=245,abs=7.28e-12] rhs[d=188,abs=2.91e-11,scale=1.976e+05]
+       worst entry (140,140): cpu=77000.783370045247 gpu=77000.783370045217  maxRel=3.78e-16
+  FAIL q16 translated     neumann   constant      varying  corr=on  nnz=1216    diag[d=57,abs=2.91e-11,scale=1.167e+05] off[d=246,abs=7.28e-12] rhs[d=166,abs=2.91e-11,scale=2.565e+05]
+       worst entry (80,80): cpu=95182.325855715069 gpu=95182.325855715098  maxRel=3.78e-16
+  FAIL q16 translated     mixed     constant      varying  corr=on  nnz=1216    diag[d=51,abs=2.91e-11,scale=1.523e+05] off[d=245,abs=7.28e-12] rhs[d=175,abs=2.91e-11,scale=2.426e+05]
+       worst entry (140,140): cpu=77000.783370045247 gpu=77000.783370045217  maxRel=3.78e-16
+  FAIL q16 translated     dirichlet linear        varying  corr=off nnz=1216    diag[d=55,abs=2.91e-11,scale=1.558e+05] off[d=246,abs=7.28e-12] rhs[d=55,abs=2.59e-09,scale=3.226e+06]
+       worst entry (176,176): cpu=90740.978890398532 gpu=90740.978890395942  maxRel=5.36e-14
+  FAIL q16 translated     neumann   linear        varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.166e+05] off[d=246,abs=7.28e-12] rhs[d=1,abs=2.98e-08,scale=1.874e+08]
+       worst entry (255,255): cpu=177297275.6756838 gpu=177297275.67568377  maxRel=1.68e-16
+  FAIL q16 translated     mixed     linear        varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.522e+05] off[d=246,abs=7.28e-12] rhs[d=27,abs=2.98e-08,scale=1.773e+08]
+       worst entry (255,255): cpu=177297275.6756838 gpu=177297275.67568377  maxRel=4.74e-14
+  FAIL q16 translated     dirichlet linear        varying  corr=on  nnz=1216    diag[d=48,abs=2.91e-11,scale=1.559e+05] off[d=245,abs=7.28e-12] rhs[d=240,abs=3.73e-09,scale=3.339e+06]
+       worst entry (127,127): cpu=52245.706884223968 gpu=52245.706884227693  maxRel=8.87e-11
+  FAIL q16 translated     neumann   linear        varying  corr=on  nnz=1216    diag[d=57,abs=2.91e-11,scale=1.167e+05] off[d=246,abs=7.28e-12] rhs[d=210,abs=2.98e-08,scale=1.874e+08]
+       worst entry (15,15): cpu=187443178.49580061 gpu=187443178.49580064  maxRel=1.58e-10
+  FAIL q16 translated     mixed     linear        varying  corr=on  nnz=1216    diag[d=51,abs=2.91e-11,scale=1.523e+05] off[d=245,abs=7.28e-12] rhs[d=230,abs=2.98e-08,scale=1.773e+08]
+       worst entry (255,255): cpu=177297291.2193433 gpu=177297291.21934327  maxRel=1.95e-10
+  FAIL q16 translated     dirichlet quadratic     varying  corr=off nnz=1216    diag[d=55,abs=2.91e-11,scale=1.558e+05] off[d=246,abs=7.28e-12] rhs[d=55,abs=1.31e-06,scale=1.797e+09]
+       worst entry (192,192): cpu=-8121991.354795903 gpu=-8121991.3547972161  maxRel=1.62e-13
+  FAIL q16 translated     neumann   quadratic     varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.166e+05] off[d=246,abs=7.28e-12] rhs[d=0,abs=0,scale=9.871e+10]
+       worst entry (16,16): cpu=95128.424998006027 gpu=95128.424998006056  maxRel=3.06e-16
+  FAIL q16 translated     mixed     quadratic     varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.522e+05] off[d=246,abs=7.28e-12] rhs[d=28,abs=7e-07,scale=9.332e+10]
+       worst entry (160,160): cpu=47186325.521142013 gpu=47186325.521142714  maxRel=6.19e-14
+  FAIL q16 translated     dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=48,abs=2.91e-11,scale=1.559e+05] off[d=245,abs=7.28e-12] rhs[d=241,abs=2.86e-06,scale=1.667e+09]
+       worst entry (7,7): cpu=-139959878.62732559 gpu=-139959878.62732273  maxRel=2.17e-10
+  FAIL q16 translated     neumann   quadratic     varying  corr=on  nnz=1216    diag[d=57,abs=2.91e-11,scale=1.167e+05] off[d=246,abs=7.28e-12] rhs[d=204,abs=1.53e-05,scale=9.871e+10]
+       worst entry (240,240): cpu=97727523098.79007 gpu=97727523098.790054  maxRel=2.17e-10
+  FAIL q16 translated     mixed     quadratic     varying  corr=on  nnz=1216    diag[d=51,abs=2.91e-11,scale=1.523e+05] off[d=245,abs=7.28e-12] rhs[d=221,abs=7.63e-06,scale=9.332e+10]
+       worst entry (159,159): cpu=44918483006.363647 gpu=44918483006.36364  maxRel=2.17e-10
+  FAIL q16 translated     dirichlet manufactured  varying  corr=off nnz=1216    diag[d=55,abs=2.91e-11,scale=1.558e+05] off[d=246,abs=7.28e-12] rhs[d=11,abs=2.91e-11,scale=1.966e+05]
+       worst entry (80,80): cpu=112895.91480786591 gpu=112895.91480786593  maxRel=2.58e-16
+  FAIL q16 translated     neumann   manufactured  varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.166e+05] off[d=246,abs=7.28e-12] rhs[d=1,abs=9.09e-13,scale=3.818e+04]
+       worst entry (16,16): cpu=95128.424998006027 gpu=95128.424998006056  maxRel=3.06e-16
+  FAIL q16 translated     mixed     manufactured  varying  corr=off nnz=1216    diag[d=50,abs=2.91e-11,scale=1.522e+05] off[d=246,abs=7.28e-12] rhs[d=0,abs=0,scale=1.487e+05]
+       worst entry (80,80): cpu=112895.91480786591 gpu=112895.91480786593  maxRel=2.58e-16
+  FAIL q16 translated     dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=48,abs=2.91e-11,scale=1.559e+05] off[d=245,abs=7.28e-12] rhs[d=178,abs=2.91e-11,scale=2.022e+05]
+       worst entry (140,140): cpu=77000.783370045247 gpu=77000.783370045217  maxRel=3.78e-16
+  FAIL q16 translated     neumann   manufactured  varying  corr=on  nnz=1216    diag[d=57,abs=2.91e-11,scale=1.167e+05] off[d=246,abs=7.28e-12] rhs[d=188,abs=7.28e-12,scale=3.826e+04]
+       worst entry (80,80): cpu=95182.325855715069 gpu=95182.325855715098  maxRel=3.78e-16
+  FAIL q16 translated     mixed     manufactured  varying  corr=on  nnz=1216    diag[d=51,abs=2.91e-11,scale=1.523e+05] off[d=245,abs=7.28e-12] rhs[d=180,abs=7.28e-12,scale=1.522e+05]
+       worst entry (140,140): cpu=77000.783370045247 gpu=77000.783370045217  maxRel=3.78e-16
+       [sheared 0.35 cells=256 higherOrderBoundaryFaces=64 correctableInternal=480 resident=257904 B]
+  FAIL sheared 0.35       dirichlet constant      uniform  corr=off nnz=1216    diag[d=21,abs=8.88e-16,scale=5.823] off[d=126,abs=4.44e-16] rhs[d=8,abs=8.88e-16,scale=7.346]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       neumann   constant      uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=4.382] off[d=130,abs=3.33e-16] rhs[d=1,abs=1.78e-15,scale=10.25]
+       worst entry (240,240): cpu=10.246039001945451 gpu=10.246039001945453  maxRel=1.73e-16
+  FAIL sheared 0.35       mixed     constant      uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=5.823] off[d=129,abs=3.33e-16] rhs[d=2,abs=2.22e-16,scale=8.115]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       dirichlet constant      uniform  corr=on  nnz=1216    diag[d=26,abs=8.88e-16,scale=5.862] off[d=114,abs=4.44e-16] rhs[d=83,abs=8.88e-16,scale=7.208]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       neumann   constant      uniform  corr=on  nnz=1216    diag[d=35,abs=8.88e-16,scale=4.421] off[d=116,abs=2.22e-16] rhs[d=90,abs=8.88e-16,scale=10.25]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       mixed     constant      uniform  corr=on  nnz=1216    diag[d=33,abs=8.88e-16,scale=5.862] off[d=116,abs=2.22e-16] rhs[d=94,abs=8.88e-16,scale=8.114]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       dirichlet linear        uniform  corr=off nnz=1216    diag[d=21,abs=8.88e-16,scale=5.823] off[d=126,abs=4.44e-16] rhs[d=10,abs=8.88e-16,scale=8.146]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       neumann   linear        uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=4.382] off[d=130,abs=3.33e-16] rhs[d=2,abs=8.88e-16,scale=5.94]
+       worst entry (19,19): cpu=3.0984391132117119 gpu=3.0984391132117111  maxRel=2.87e-16
+  FAIL sheared 0.35       mixed     linear        uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=5.823] off[d=129,abs=3.33e-16] rhs[d=3,abs=4.44e-16,scale=6.471]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       dirichlet linear        uniform  corr=on  nnz=1216    diag[d=26,abs=8.88e-16,scale=5.862] off[d=114,abs=4.44e-16] rhs[d=151,abs=8.88e-16,scale=7.346]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       neumann   linear        uniform  corr=on  nnz=1216    diag[d=35,abs=8.88e-16,scale=4.421] off[d=116,abs=2.22e-16] rhs[d=162,abs=8.88e-16,scale=5.951]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       mixed     linear        uniform  corr=on  nnz=1216    diag[d=33,abs=8.88e-16,scale=5.862] off[d=116,abs=2.22e-16] rhs[d=152,abs=4.44e-16,scale=6.365]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       dirichlet quadratic     uniform  corr=off nnz=1216    diag[d=21,abs=8.88e-16,scale=5.823] off[d=126,abs=4.44e-16] rhs[d=7,abs=8.88e-16,scale=7.105]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       neumann   quadratic     uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=4.382] off[d=130,abs=3.33e-16] rhs[d=2,abs=8.88e-16,scale=5.91]
+       worst entry (19,19): cpu=3.0984391132117119 gpu=3.0984391132117111  maxRel=2.87e-16
+  FAIL sheared 0.35       mixed     quadratic     uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=5.823] off[d=129,abs=3.33e-16] rhs[d=1,abs=8.88e-16,scale=6.702]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       dirichlet quadratic     uniform  corr=on  nnz=1216    diag[d=26,abs=8.88e-16,scale=5.862] off[d=114,abs=4.44e-16] rhs[d=154,abs=8.88e-16,scale=7.212]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       neumann   quadratic     uniform  corr=on  nnz=1216    diag[d=35,abs=8.88e-16,scale=4.421] off[d=116,abs=2.22e-16] rhs[d=161,abs=8.88e-16,scale=5.898]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       mixed     quadratic     uniform  corr=on  nnz=1216    diag[d=33,abs=8.88e-16,scale=5.862] off[d=116,abs=2.22e-16] rhs[d=156,abs=8.88e-16,scale=6.21]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       dirichlet manufactured  uniform  corr=off nnz=1216    diag[d=21,abs=8.88e-16,scale=5.823] off[d=126,abs=4.44e-16] rhs[d=4,abs=8.88e-16,scale=7.804]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       neumann   manufactured  uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=4.382] off[d=130,abs=3.33e-16] rhs[d=1,abs=5.55e-17,scale=1.315]
+       worst entry (19,19): cpu=3.0984391132117119 gpu=3.0984391132117111  maxRel=2.87e-16
+  FAIL sheared 0.35       mixed     manufactured  uniform  corr=off nnz=1216    diag[d=27,abs=8.88e-16,scale=5.823] off[d=129,abs=3.33e-16] rhs[d=0,abs=0,scale=6.654]
+       worst entry (5,5): cpu=4.2727947340381904 gpu=4.2727947340381913  maxRel=2.87e-16
+  FAIL sheared 0.35       dirichlet manufactured  uniform  corr=on  nnz=1216    diag[d=26,abs=8.88e-16,scale=5.862] off[d=114,abs=4.44e-16] rhs[d=133,abs=8.88e-16,scale=7.188]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       neumann   manufactured  uniform  corr=on  nnz=1216    diag[d=35,abs=8.88e-16,scale=4.421] off[d=116,abs=2.22e-16] rhs[d=155,abs=2.22e-16,scale=1.32]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       mixed     manufactured  uniform  corr=on  nnz=1216    diag[d=33,abs=8.88e-16,scale=5.862] off[d=116,abs=2.22e-16] rhs[d=142,abs=4.44e-16,scale=6.193]
+       worst entry (30,30): cpu=3.4651314822376378 gpu=3.4651314822376387  maxRel=2.56e-16
+  FAIL sheared 0.35       dirichlet constant      varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=8.216] off[d=167,abs=2.22e-16] rhs[d=8,abs=1.78e-15,scale=10.74]
+       worst entry (255,255): cpu=10.743729848489592 gpu=10.743729848489593  maxRel=2.16e-16
+  FAIL sheared 0.35       neumann   constant      varying  corr=off nnz=1216    diag[d=36,abs=8.88e-16,scale=6.124] off[d=172,abs=2.22e-16] rhs[d=0,abs=0,scale=11.87]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       mixed     constant      varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=6.124] off[d=170,abs=2.22e-16] rhs[d=3,abs=2.22e-16,scale=11.87]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       dirichlet constant      varying  corr=on  nnz=1216    diag[d=36,abs=8.88e-16,scale=8.272] off[d=167,abs=2.22e-16] rhs[d=89,abs=1.78e-15,scale=10.54]
+       worst entry (255,255): cpu=10.541397155520642 gpu=10.541397155520643  maxRel=0.833
+  FAIL sheared 0.35       neumann   constant      varying  corr=on  nnz=1216    diag[d=41,abs=8.88e-16,scale=6.179] off[d=170,abs=2.22e-16] rhs[d=93,abs=1.78e-15,scale=11.87]
+       worst entry (240,240): cpu=8.1120426254688738 gpu=8.1120426254688756  maxRel=0.833
+  FAIL sheared 0.35       mixed     constant      varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.179] off[d=169,abs=2.22e-16] rhs[d=87,abs=8.88e-16,scale=11.87]
+       worst entry (15,15): cpu=5.3362317952721803 gpu=5.3362317952721794  maxRel=2.2e-16
+  FAIL sheared 0.35       dirichlet linear        varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=8.216] off[d=167,abs=2.22e-16] rhs[d=13,abs=8.88e-16,scale=9.887]
+       worst entry (15,15): cpu=5.9834126692341485 gpu=5.9834126692341476  maxRel=2.89e-16
+  FAIL sheared 0.35       neumann   linear        varying  corr=off nnz=1216    diag[d=36,abs=8.88e-16,scale=6.124] off[d=172,abs=2.22e-16] rhs[d=0,abs=0,scale=6.309]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       mixed     linear        varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=6.124] off[d=170,abs=2.22e-16] rhs[d=4,abs=4.44e-16,scale=6.845]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       dirichlet linear        varying  corr=on  nnz=1216    diag[d=36,abs=8.88e-16,scale=8.272] off[d=167,abs=2.22e-16] rhs[d=147,abs=8.88e-16,scale=10.51]
+       worst entry (79,79): cpu=4.9997863486999909 gpu=4.9997863486999918  maxRel=2.17e-16
+  FAIL sheared 0.35       neumann   linear        varying  corr=on  nnz=1216    diag[d=41,abs=8.88e-16,scale=6.179] off[d=170,abs=2.22e-16] rhs[d=154,abs=4.44e-16,scale=6.32]
+       worst entry (31,31): cpu=4.0396235139735612 gpu=4.0396235139735603  maxRel=2.45e-16
+  FAIL sheared 0.35       mixed     linear        varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.179] off[d=169,abs=2.22e-16] rhs[d=147,abs=4.44e-16,scale=6.761]
+       worst entry (15,15): cpu=5.3362317952721803 gpu=5.3362317952721794  maxRel=2.2e-16
+  FAIL sheared 0.35       dirichlet quadratic     varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=8.216] off[d=167,abs=2.22e-16] rhs[d=8,abs=1.78e-15,scale=10.39]
+       worst entry (255,255): cpu=10.391140552387487 gpu=10.391140552387489  maxRel=1.71e-16
+  FAIL sheared 0.35       neumann   quadratic     varying  corr=off nnz=1216    diag[d=36,abs=8.88e-16,scale=6.124] off[d=172,abs=2.22e-16] rhs[d=1,abs=4.44e-16,scale=8.52]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       mixed     quadratic     varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=6.124] off[d=170,abs=2.22e-16] rhs[d=1,abs=1.11e-16,scale=8.52]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       dirichlet quadratic     varying  corr=on  nnz=1216    diag[d=36,abs=8.88e-16,scale=8.272] off[d=167,abs=2.22e-16] rhs[d=162,abs=8.88e-16,scale=10.55]
+       worst entry (79,79): cpu=4.9997863486999909 gpu=4.9997863486999918  maxRel=2.17e-16
+  FAIL sheared 0.35       neumann   quadratic     varying  corr=on  nnz=1216    diag[d=41,abs=8.88e-16,scale=6.179] off[d=170,abs=2.22e-16] rhs[d=162,abs=4.44e-16,scale=8.545]
+       worst entry (31,31): cpu=4.0396235139735612 gpu=4.0396235139735603  maxRel=2.45e-16
+  FAIL sheared 0.35       mixed     quadratic     varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.179] off[d=169,abs=2.22e-16] rhs[d=165,abs=8.88e-16,scale=8.545]
+       worst entry (15,15): cpu=5.3362317952721803 gpu=5.3362317952721794  maxRel=2.2e-16
+  FAIL sheared 0.35       dirichlet manufactured  varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=8.216] off[d=167,abs=2.22e-16] rhs[d=11,abs=8.88e-16,scale=9.473]
+       worst entry (15,15): cpu=5.9834126692341485 gpu=5.9834126692341476  maxRel=2.89e-16
+  FAIL sheared 0.35       neumann   manufactured  varying  corr=off nnz=1216    diag[d=36,abs=8.88e-16,scale=6.124] off[d=172,abs=2.22e-16] rhs[d=1,abs=5.55e-17,scale=1.674]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       mixed     manufactured  varying  corr=off nnz=1216    diag[d=38,abs=8.88e-16,scale=6.124] off[d=170,abs=2.22e-16] rhs[d=3,abs=4.44e-16,scale=4.024]
+       worst entry (105,105): cpu=3.0726733574984468 gpu=3.0726733574984477  maxRel=2.89e-16
+  FAIL sheared 0.35       dirichlet manufactured  varying  corr=on  nnz=1216    diag[d=36,abs=8.88e-16,scale=8.272] off[d=167,abs=2.22e-16] rhs[d=152,abs=8.88e-16,scale=10.51]
+       worst entry (79,79): cpu=4.9997863486999909 gpu=4.9997863486999918  maxRel=2.17e-16
+  FAIL sheared 0.35       neumann   manufactured  varying  corr=on  nnz=1216    diag[d=41,abs=8.88e-16,scale=6.179] off[d=170,abs=2.22e-16] rhs[d=162,abs=2.22e-16,scale=1.685]
+       worst entry (31,31): cpu=4.0396235139735612 gpu=4.0396235139735603  maxRel=2.45e-16
+  FAIL sheared 0.35       mixed     manufactured  varying  corr=on  nnz=1216    diag[d=39,abs=8.88e-16,scale=6.179] off[d=169,abs=2.22e-16] rhs[d=157,abs=4.44e-16,scale=4.56]
+       worst entry (15,15): cpu=5.3362317952721803 gpu=5.3362317952721794  maxRel=2.2e-16
+       [multiblock L cells=48 higherOrderBoundaryFaces=32 correctableInternal=80 resident=50328 B]
+  FAIL multiblock L       dirichlet constant      uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  FAIL multiblock L       neumann   constant      uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=9.135]
+       worst entry (0,0): cpu=9.134999999999998 gpu=9.1349999999999998  maxRel=1.94e-16
+  PASS multiblock L       mixed     constant      uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.296]
+  FAIL multiblock L       dirichlet constant      uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  FAIL multiblock L       neumann   constant      uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=9.135]
+       worst entry (0,0): cpu=9.134999999999998 gpu=9.1349999999999998  maxRel=1.94e-16
+  PASS multiblock L       mixed     constant      uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=8.296]
+  FAIL multiblock L       dirichlet linear        uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  PASS multiblock L       neumann   linear        uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.405]
+  FAIL multiblock L       mixed     linear        uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=6.94]
+       worst entry (0,0): cpu=2.6235416666666662 gpu=2.6235416666666667  maxRel=1.69e-16
+  FAIL multiblock L       dirichlet linear        uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  PASS multiblock L       neumann   linear        uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.405]
+  FAIL multiblock L       mixed     linear        uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=6.94]
+       worst entry (0,0): cpu=2.6235416666666662 gpu=2.6235416666666667  maxRel=1.69e-16
+  FAIL multiblock L       dirichlet quadratic     uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  FAIL multiblock L       neumann   quadratic     uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=3,abs=8.88e-16,scale=4.884]
+       worst entry (47,47): cpu=4.8835937499999993 gpu=4.8835937500000002  maxRel=1.84e-16
+  PASS multiblock L       mixed     quadratic     uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.171]
+  FAIL multiblock L       dirichlet quadratic     uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  FAIL multiblock L       neumann   quadratic     uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=3,abs=8.88e-16,scale=4.884]
+       worst entry (47,47): cpu=4.8835937499999993 gpu=4.8835937500000002  maxRel=1.84e-16
+  PASS multiblock L       mixed     quadratic     uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=0,abs=0,scale=6.171]
+  FAIL multiblock L       dirichlet manufactured  uniform  corr=off nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  FAIL multiblock L       neumann   manufactured  uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=1,abs=1.11e-16,scale=2.693]
+       worst entry (0,0): cpu=0.5707568053111256 gpu=0.57075680531112549  maxRel=1.95e-16
+  FAIL multiblock L       mixed     manufactured  uniform  corr=off nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=4.014]
+       worst entry (0,0): cpu=2.1476700693222295 gpu=2.147670069322229  maxRel=2.07e-16
+  FAIL multiblock L       dirichlet manufactured  uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=5.6] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=8.4]
+       worst entry (19,19): cpu=6.5333333333333332 gpu=6.5333333333333323  maxRel=1.36e-16
+  FAIL multiblock L       neumann   manufactured  uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.2] off[d=0,abs=0] rhs[d=1,abs=1.11e-16,scale=2.693]
+       worst entry (0,0): cpu=0.5707568053111256 gpu=0.57075680531112549  maxRel=1.95e-16
+  FAIL multiblock L       mixed     manufactured  uniform  corr=on  nnz=208     diag[d=0,abs=0,scale=4.9] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=4.014]
+       worst entry (0,0): cpu=2.1476700693222295 gpu=2.147670069322229  maxRel=2.07e-16
+  PASS multiblock L       dirichlet constant      varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   constant      varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=10.8]
+       worst entry (31,31): cpu=10.343851793620967 gpu=10.343851793620965  maxRel=1.72e-16
+  PASS multiblock L       mixed     constant      varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.822]
+  PASS multiblock L       dirichlet constant      varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   constant      varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=10.8]
+       worst entry (31,31): cpu=10.343851793620967 gpu=10.343851793620965  maxRel=1.72e-16
+  PASS multiblock L       mixed     constant      varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.822]
+  PASS multiblock L       dirichlet linear        varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   linear        varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=2,abs=8.88e-16,scale=6.766]
+       worst entry (31,31): cpu=5.4703062370110871 gpu=5.470306237011088  maxRel=1.62e-16
+  FAIL multiblock L       mixed     linear        varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=7.331]
+       worst entry (19,19): cpu=7.3311493486926569 gpu=7.3311493486926578  maxRel=1.21e-16
+  PASS multiblock L       dirichlet linear        varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   linear        varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=2,abs=8.88e-16,scale=6.766]
+       worst entry (31,31): cpu=5.4703062370110871 gpu=5.470306237011088  maxRel=1.62e-16
+  FAIL multiblock L       mixed     linear        varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=7.331]
+       worst entry (19,19): cpu=7.3311493486926569 gpu=7.3311493486926578  maxRel=1.21e-16
+  PASS multiblock L       dirichlet quadratic     varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   quadratic     varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=5.794]
+       worst entry (44,44): cpu=3.9254405749287162 gpu=3.9254405749287167  maxRel=1.13e-16
+  PASS multiblock L       mixed     quadratic     varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.321]
+  PASS multiblock L       dirichlet quadratic     varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   quadratic     varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=5.794]
+       worst entry (44,44): cpu=3.9254405749287162 gpu=3.9254405749287167  maxRel=1.13e-16
+  PASS multiblock L       mixed     quadratic     varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=7.321]
+  PASS multiblock L       dirichlet manufactured  varying  corr=off nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   manufactured  varying  corr=off nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=1,abs=1.39e-17,scale=3.196]
+       worst entry (31,31): cpu=0.1211352052560607 gpu=0.12113520525606071  maxRel=1.15e-16
+  PASS multiblock L       mixed     manufactured  varying  corr=off nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.299]
+  PASS multiblock L       dirichlet manufactured  varying  corr=on  nnz=208     diag[d=0,abs=0,scale=6.572] off[d=0,abs=0] rhs[d=0,abs=0,scale=9.966]
+  FAIL multiblock L       neumann   manufactured  varying  corr=on  nnz=208     diag[d=0,abs=0,scale=4.911] off[d=0,abs=0] rhs[d=1,abs=1.39e-17,scale=3.196]
+       worst entry (31,31): cpu=0.1211352052560607 gpu=0.12113520525606071  maxRel=1.15e-16
+  PASS multiblock L       mixed     manufactured  varying  corr=on  nnz=208     diag[d=0,abs=0,scale=5.742] off[d=0,abs=0] rhs[d=0,abs=0,scale=4.299]
+       [two-cell 2x8 cells=16 higherOrderBoundaryFaces=20 correctableInternal=22 resident=19144 B]
+  FAIL two-cell 2x8       dirichlet constant      uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   constant      uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=2,abs=3.55e-15,scale=19.38]
+       worst entry (14,14): cpu=19.341875000000002 gpu=19.341874999999998  maxRel=1.84e-16
+  FAIL two-cell 2x8       mixed     constant      uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.33]
+       worst entry (15,15): cpu=19.333125000000003 gpu=19.333124999999999  maxRel=1.84e-16
+  FAIL two-cell 2x8       dirichlet constant      uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   constant      uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=2,abs=3.55e-15,scale=19.38]
+       worst entry (14,14): cpu=19.341875000000002 gpu=19.341874999999998  maxRel=1.84e-16
+  FAIL two-cell 2x8       mixed     constant      uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.33]
+       worst entry (15,15): cpu=19.333125000000003 gpu=19.333124999999999  maxRel=1.84e-16
+  FAIL two-cell 2x8       dirichlet linear        uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   linear        uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=11.37]
+       worst entry (1,1): cpu=11.372812499999998 gpu=11.3728125  maxRel=1.56e-16
+  FAIL two-cell 2x8       mixed     linear        uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=2.22e-16,scale=15.61]
+       worst entry (14,14): cpu=-1.8258333333333334 gpu=-1.8258333333333332  maxRel=1.22e-16
+  FAIL two-cell 2x8       dirichlet linear        uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   linear        uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=11.37]
+       worst entry (1,1): cpu=11.372812499999998 gpu=11.3728125  maxRel=1.56e-16
+  FAIL two-cell 2x8       mixed     linear        uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=2.22e-16,scale=15.61]
+       worst entry (14,14): cpu=-1.8258333333333334 gpu=-1.8258333333333332  maxRel=1.22e-16
+  FAIL two-cell 2x8       dirichlet quadratic     uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   quadratic     uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=11.71]
+       worst entry (15,15): cpu=11.709687499999998 gpu=11.709687499999999  maxRel=1.52e-16
+  FAIL two-cell 2x8       mixed     quadratic     uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=15.4]
+       worst entry (15,15): cpu=11.709687499999998 gpu=11.709687499999999  maxRel=1.52e-16
+  FAIL two-cell 2x8       dirichlet quadratic     uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   quadratic     uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=11.71]
+       worst entry (15,15): cpu=11.709687499999998 gpu=11.709687499999999  maxRel=1.52e-16
+  FAIL two-cell 2x8       mixed     quadratic     uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=15.4]
+       worst entry (15,15): cpu=11.709687499999998 gpu=11.709687499999999  maxRel=1.52e-16
+  FAIL two-cell 2x8       dirichlet manufactured  uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   manufactured  uniform  corr=off nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=4.166]
+       worst entry (15,15): cpu=-4.1308185398333883 gpu=-4.1308185398333892  maxRel=2.15e-16
+  FAIL two-cell 2x8       mixed     manufactured  uniform  corr=off nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=15.4]
+       worst entry (15,15): cpu=-4.1308185398333883 gpu=-4.1308185398333892  maxRel=2.15e-16
+  FAIL two-cell 2x8       dirichlet manufactured  uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=3.55e-15,scale=19.37]
+       worst entry (14,14): cpu=19.133333333333329 gpu=19.133333333333333  maxRel=1.86e-16
+  FAIL two-cell 2x8       neumann   manufactured  uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=8.925] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=4.166]
+       worst entry (15,15): cpu=-4.1308185398333883 gpu=-4.1308185398333892  maxRel=2.15e-16
+  FAIL two-cell 2x8       mixed     manufactured  uniform  corr=on  nnz=60      diag[d=0,abs=0,scale=11.9] off[d=0,abs=0] rhs[d=1,abs=8.88e-16,scale=15.4]
+       worst entry (15,15): cpu=-4.1308185398333883 gpu=-4.1308185398333892  maxRel=2.15e-16
+  PASS two-cell 2x8       dirichlet constant      varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   constant      varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       mixed     constant      varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       dirichlet constant      varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   constant      varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       mixed     constant      varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.5]
+  PASS two-cell 2x8       dirichlet linear        varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  FAIL two-cell 2x8       neumann   linear        varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=11.32]
+       worst entry (14,14): cpu=-2.4451529877808627 gpu=-2.4451529877808631  maxRel=1.82e-16
+  FAIL two-cell 2x8       mixed     linear        varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=1,abs=2.22e-16,scale=15.54]
+       worst entry (14,14): cpu=-1.8503061593844907 gpu=-1.8503061593844909  maxRel=1.2e-16
+  PASS two-cell 2x8       dirichlet linear        varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  FAIL two-cell 2x8       neumann   linear        varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=1,abs=4.44e-16,scale=11.32]
+       worst entry (14,14): cpu=-2.4451529877808627 gpu=-2.4451529877808631  maxRel=1.82e-16
+  FAIL two-cell 2x8       mixed     linear        varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=1,abs=2.22e-16,scale=15.54]
+       worst entry (14,14): cpu=-1.8503061593844907 gpu=-1.8503061593844909  maxRel=1.2e-16
+  PASS two-cell 2x8       dirichlet quadratic     varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  FAIL two-cell 2x8       neumann   quadratic     varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=2,abs=1.78e-15,scale=16.05]
+       worst entry (14,14): cpu=10.273854507588768 gpu=10.273854507588766  maxRel=2.11e-16
+  FAIL two-cell 2x8       mixed     quadratic     varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=16.05]
+       worst entry (14,14): cpu=10.120524424492809 gpu=10.120524424492807  maxRel=1.76e-16
+  PASS two-cell 2x8       dirichlet quadratic     varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  FAIL two-cell 2x8       neumann   quadratic     varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=2,abs=1.78e-15,scale=16.05]
+       worst entry (14,14): cpu=10.273854507588768 gpu=10.273854507588766  maxRel=2.11e-16
+  FAIL two-cell 2x8       mixed     quadratic     varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=1,abs=1.78e-15,scale=16.05]
+       worst entry (14,14): cpu=10.120524424492809 gpu=10.120524424492807  maxRel=1.76e-16
+  PASS two-cell 2x8       dirichlet manufactured  varying  corr=off nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   manufactured  varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.661]
+  PASS two-cell 2x8       mixed     manufactured  varying  corr=off nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.12]
+  PASS two-cell 2x8       dirichlet manufactured  varying  corr=on  nnz=60      diag[d=0,abs=0,scale=16.15] off[d=0,abs=0] rhs[d=0,abs=0,scale=26.54]
+  PASS two-cell 2x8       neumann   manufactured  varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=5.661]
+  PASS two-cell 2x8       mixed     manufactured  varying  corr=on  nnz=60      diag[d=0,abs=0,scale=12.07] off[d=0,abs=0] rhs[d=0,abs=0,scale=15.12]
+       [cartesian3d 8 cells=512 higherOrderBoundaryFaces=384 correctableInternal=1344 resident=756248 B]
+  FAIL cartesian3d 8      dirichlet constant      uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   constant      uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=20,abs=2.22e-16,scale=1.708]
+       worst entry (8,8): cpu=1.1385937500000001 gpu=1.1385937499999998  maxRel=1.95e-16
+  FAIL cartesian3d 8      mixed     constant      uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=14,abs=2.22e-16,scale=1.839]
+       worst entry (63,63): cpu=1.83859375 gpu=1.8385937499999998  maxRel=1.95e-16
+  FAIL cartesian3d 8      dirichlet constant      uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   constant      uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=20,abs=2.22e-16,scale=1.708]
+       worst entry (8,8): cpu=1.1385937500000001 gpu=1.1385937499999998  maxRel=1.95e-16
+  FAIL cartesian3d 8      mixed     constant      uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=14,abs=2.22e-16,scale=1.839]
+       worst entry (63,63): cpu=1.83859375 gpu=1.8385937499999998  maxRel=1.95e-16
+  FAIL cartesian3d 8      dirichlet linear        uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   linear        uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=18,abs=2.22e-16,scale=1.566]
+       worst entry (455,455): cpu=1.5662499999999997 gpu=1.5662499999999999  maxRel=2.01e-16
+  FAIL cartesian3d 8      mixed     linear        uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=15,abs=2.22e-16,scale=1.576]
+       worst entry (7,7): cpu=1.5757291666666666 gpu=1.5757291666666664  maxRel=2.13e-16
+  FAIL cartesian3d 8      dirichlet linear        uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   linear        uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=18,abs=2.22e-16,scale=1.566]
+       worst entry (455,455): cpu=1.5662499999999997 gpu=1.5662499999999999  maxRel=2.01e-16
+  FAIL cartesian3d 8      mixed     linear        uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=15,abs=2.22e-16,scale=1.576]
+       worst entry (7,7): cpu=1.5757291666666666 gpu=1.5757291666666664  maxRel=2.13e-16
+  FAIL cartesian3d 8      dirichlet quadratic     uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   quadratic     uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=26,abs=2.22e-16,scale=1.267]
+       worst entry (63,63): cpu=1.1535302734375001 gpu=1.1535302734374999  maxRel=2.29e-16
+  FAIL cartesian3d 8      mixed     quadratic     uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=14,abs=2.22e-16,scale=1.47]
+       worst entry (63,63): cpu=1.470478515625 gpu=1.4704785156249998  maxRel=1.66e-16
+  FAIL cartesian3d 8      dirichlet quadratic     uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   quadratic     uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=26,abs=2.22e-16,scale=1.267]
+       worst entry (63,63): cpu=1.1535302734375001 gpu=1.1535302734374999  maxRel=2.29e-16
+  FAIL cartesian3d 8      mixed     quadratic     uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=14,abs=2.22e-16,scale=1.47]
+       worst entry (63,63): cpu=1.470478515625 gpu=1.4704785156249998  maxRel=1.66e-16
+  FAIL cartesian3d 8      dirichlet manufactured  uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   manufactured  uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=21,abs=2.78e-17,scale=0.4347]
+       worst entry (448,448): cpu=0.12925407627591495 gpu=0.12925407627591493  maxRel=2.15e-16
+  FAIL cartesian3d 8      mixed     manufactured  uniform  corr=off nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=14,abs=1.11e-16,scale=1.4]
+       worst entry (47,47): cpu=0.68231736646394314 gpu=0.68231736646394303  maxRel=2.18e-16
+  FAIL cartesian3d 8      dirichlet manufactured  uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=2,abs=2.22e-16,scale=1.75]
+       worst entry (56,56): cpu=1.5166666666666666 gpu=1.5166666666666664  maxRel=1.46e-16
+  FAIL cartesian3d 8      neumann   manufactured  uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=0.7875] off[d=0,abs=0] rhs[d=21,abs=2.78e-17,scale=0.4347]
+       worst entry (448,448): cpu=0.12925407627591495 gpu=0.12925407627591493  maxRel=2.15e-16
+  FAIL cartesian3d 8      mixed     manufactured  uniform  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.05] off[d=0,abs=0] rhs[d=14,abs=1.11e-16,scale=1.4]
+       worst entry (47,47): cpu=0.68231736646394314 gpu=0.68231736646394303  maxRel=2.18e-16
+  FAIL cartesian3d 8      dirichlet constant      varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   constant      varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=21,abs=2.22e-16,scale=2.896]
+       worst entry (5,5): cpu=1.121095345067554 gpu=1.1210953450675538  maxRel=1.98e-16
+  FAIL cartesian3d 8      mixed     constant      varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=11,abs=2.22e-16,scale=2.896]
+       worst entry (57,57): cpu=1.2237777852830045 gpu=1.2237777852830043  maxRel=1.84e-16
+  FAIL cartesian3d 8      dirichlet constant      varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   constant      varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=21,abs=2.22e-16,scale=2.896]
+       worst entry (5,5): cpu=1.121095345067554 gpu=1.1210953450675538  maxRel=1.98e-16
+  FAIL cartesian3d 8      mixed     constant      varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=11,abs=2.22e-16,scale=2.896]
+       worst entry (57,57): cpu=1.2237777852830045 gpu=1.2237777852830043  maxRel=1.84e-16
+  FAIL cartesian3d 8      dirichlet linear        varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   linear        varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=23,abs=2.22e-16,scale=2.074]
+       worst entry (135,135): cpu=1.0111847532995335 gpu=1.0111847532995337  maxRel=2.2e-16
+  FAIL cartesian3d 8      mixed     linear        varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=8,abs=2.22e-16,scale=2]
+       worst entry (453,453): cpu=1.1112641569310298 gpu=1.11126415693103  maxRel=2e-16
+  FAIL cartesian3d 8      dirichlet linear        varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   linear        varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=23,abs=2.22e-16,scale=2.074]
+       worst entry (135,135): cpu=1.0111847532995335 gpu=1.0111847532995337  maxRel=2.2e-16
+  FAIL cartesian3d 8      mixed     linear        varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=8,abs=2.22e-16,scale=2]
+       worst entry (453,453): cpu=1.1112641569310298 gpu=1.11126415693103  maxRel=2e-16
+  FAIL cartesian3d 8      dirichlet quadratic     varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   quadratic     varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=15,abs=2.22e-16,scale=2.153]
+       worst entry (62,62): cpu=1.0037055155307901 gpu=1.0037055155307903  maxRel=2.21e-16
+  FAIL cartesian3d 8      mixed     quadratic     varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=10,abs=2.22e-16,scale=2.153]
+       worst entry (509,509): cpu=1.1949377604091378 gpu=1.194937760409138  maxRel=2.21e-16
+  FAIL cartesian3d 8      dirichlet quadratic     varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   quadratic     varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=15,abs=2.22e-16,scale=2.153]
+       worst entry (62,62): cpu=1.0037055155307901 gpu=1.0037055155307903  maxRel=2.21e-16
+  FAIL cartesian3d 8      mixed     quadratic     varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=10,abs=2.22e-16,scale=2.153]
+       worst entry (509,509): cpu=1.1949377604091378 gpu=1.194937760409138  maxRel=2.21e-16
+  FAIL cartesian3d 8      dirichlet manufactured  varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   manufactured  varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=16,abs=1.11e-16,scale=0.6709]
+       worst entry (507,507): cpu=-0.63210715594705036 gpu=-0.63210715594705025  maxRel=2.03e-16
+  FAIL cartesian3d 8      mixed     manufactured  varying  corr=off nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=9,abs=1.11e-16,scale=1.292]
+       worst entry (2,2): cpu=0.83844806038375763 gpu=0.83844806038375752  maxRel=1.83e-16
+  FAIL cartesian3d 8      dirichlet manufactured  varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.777] off[d=0,abs=0] rhs[d=11,abs=4.44e-16,scale=2.974]
+       worst entry (508,508): cpu=2.1610008060806463 gpu=2.1610008060806458  maxRel=2.06e-16
+  FAIL cartesian3d 8      neumann   manufactured  varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=16,abs=1.11e-16,scale=0.6709]
+       worst entry (507,507): cpu=-0.63210715594705036 gpu=-0.63210715594705025  maxRel=2.03e-16
+  FAIL cartesian3d 8      mixed     manufactured  varying  corr=on  nnz=3200    diag[d=0,abs=0,scale=1.331] off[d=0,abs=0] rhs[d=9,abs=1.11e-16,scale=1.292]
+       worst entry (2,2): cpu=0.83844806038375763 gpu=0.83844806038375752  maxRel=1.83e-16
+       [planar skew 3d 6 cells=216 higherOrderBoundaryFaces=216 correctableInternal=540 resident=359592 B]
+  FAIL planar skew 3d 6   dirichlet constant      uniform  corr=off nnz=1296    diag[d=23,abs=2.22e-16,scale=1.558] off[d=158,abs=5.55e-17] rhs[d=32,abs=4.44e-16,scale=2.391]
+       worst entry (0,0): cpu=2.2947442790547363 gpu=2.2947442790547368  maxRel=2.11e-16
+  FAIL planar skew 3d 6   neumann   constant      uniform  corr=off nnz=1296    diag[d=17,abs=2.22e-16,scale=1.141] off[d=170,abs=4.16e-17] rhs[d=13,abs=4.44e-16,scale=2.45]
+       worst entry (0,0): cpu=2.4501593494217349 gpu=2.4501593494217353  maxRel=2.11e-16
+  FAIL planar skew 3d 6   mixed     constant      uniform  corr=off nnz=1296    diag[d=22,abs=2.22e-16,scale=1.558] off[d=161,abs=5.55e-17] rhs[d=21,abs=4.44e-16,scale=2.488]
+       worst entry (0,0): cpu=2.2947442790547363 gpu=2.2947442790547368  maxRel=2.19e-16
+  FAIL planar skew 3d 6   dirichlet constant      uniform  corr=on  nnz=1296    diag[d=18,abs=4.44e-16,scale=1.57] off[d=153,abs=5.55e-17] rhs[d=99,abs=4.44e-16,scale=2.415]
+       worst entry (77,77): cpu=1.2008036428129416 gpu=1.2008036428129412  maxRel=3.7e-16
+  FAIL planar skew 3d 6   neumann   constant      uniform  corr=on  nnz=1296    diag[d=26,abs=2.22e-16,scale=1.154] off[d=164,abs=4.16e-17] rhs[d=104,abs=4.44e-16,scale=2.45]
+       worst entry (30,30): cpu=2.3194386940858958 gpu=2.3194386940858962  maxRel=2.43e-08
+  FAIL planar skew 3d 6   mixed     constant      uniform  corr=on  nnz=1296    diag[d=18,abs=2.22e-16,scale=1.57] off[d=157,abs=5.55e-17] rhs[d=105,abs=4.44e-16,scale=2.438]
+       worst entry (71,71): cpu=1.4397627400368811 gpu=1.4397627400368815  maxRel=3.04e-08
+  FAIL planar skew 3d 6   dirichlet linear        uniform  corr=off nnz=1296    diag[d=23,abs=2.22e-16,scale=1.558] off[d=158,abs=5.55e-17] rhs[d=28,abs=4.44e-16,scale=2.575]
+       worst entry (181,181): cpu=2.1640121670022241 gpu=2.1640121670022237  maxRel=2.21e-16
+  FAIL planar skew 3d 6   neumann   linear        uniform  corr=off nnz=1296    diag[d=17,abs=2.22e-16,scale=1.141] off[d=170,abs=4.16e-17] rhs[d=13,abs=4.44e-16,scale=2.074]
+       worst entry (185,185): cpu=2.073701253823752 gpu=2.0737012538237525  maxRel=2.14e-16
+  FAIL planar skew 3d 6   mixed     linear        uniform  corr=off nnz=1296    diag[d=22,abs=2.22e-16,scale=1.558] off[d=161,abs=5.55e-17] rhs[d=13,abs=2.22e-16,scale=2.131]
+       worst entry (3,3): cpu=1.2040039316397819 gpu=1.2040039316397817  maxRel=3.22e-16
+  FAIL planar skew 3d 6   dirichlet linear        uniform  corr=on  nnz=1296    diag[d=18,abs=4.44e-16,scale=1.57] off[d=153,abs=5.55e-17] rhs[d=90,abs=4.44e-16,scale=2.401]
+       worst entry (77,77): cpu=1.2008036428129416 gpu=1.2008036428129412  maxRel=3.7e-16
+  FAIL planar skew 3d 6   neumann   linear        uniform  corr=on  nnz=1296    diag[d=26,abs=2.22e-16,scale=1.154] off[d=164,abs=4.16e-17] rhs[d=106,abs=2.22e-16,scale=2.071]
+       worst entry (3,3): cpu=0.95659017193960216 gpu=0.95659017193960194  maxRel=3.12e-16
+  FAIL planar skew 3d 6   mixed     linear        uniform  corr=on  nnz=1296    diag[d=18,abs=2.22e-16,scale=1.57] off[d=157,abs=5.55e-17] rhs[d=92,abs=4.44e-16,scale=2.217]
+       worst entry (185,185): cpu=2.0920435023363124 gpu=2.0920435023363129  maxRel=1.46e-14
+  FAIL planar skew 3d 6   dirichlet quadratic     uniform  corr=off nnz=1296    diag[d=23,abs=2.22e-16,scale=1.558] off[d=158,abs=5.55e-17] rhs[d=28,abs=4.44e-16,scale=2.67]
+       worst entry (215,215): cpu=2.1737229910576437 gpu=2.1737229910576432  maxRel=2.08e-16
+  FAIL planar skew 3d 6   neumann   quadratic     uniform  corr=off nnz=1296    diag[d=17,abs=2.22e-16,scale=1.141] off[d=170,abs=4.16e-17] rhs[d=14,abs=1.11e-16,scale=1.607]
+       worst entry (12,12): cpu=0.98188263854321256 gpu=0.98188263854321234  maxRel=3.22e-16
+  FAIL planar skew 3d 6   mixed     quadratic     uniform  corr=off nnz=1296    diag[d=22,abs=2.22e-16,scale=1.558] off[d=161,abs=5.55e-17] rhs[d=15,abs=2.22e-16,scale=1.935]
+       worst entry (3,3): cpu=1.2040039316397819 gpu=1.2040039316397817  maxRel=3.22e-16
+  FAIL planar skew 3d 6   dirichlet quadratic     uniform  corr=on  nnz=1296    diag[d=18,abs=4.44e-16,scale=1.57] off[d=153,abs=5.55e-17] rhs[d=86,abs=4.44e-16,scale=2.427]
+       worst entry (77,77): cpu=1.2008036428129416 gpu=1.2008036428129412  maxRel=3.7e-16
+  FAIL planar skew 3d 6   neumann   quadratic     uniform  corr=on  nnz=1296    diag[d=26,abs=2.22e-16,scale=1.154] off[d=164,abs=4.16e-17] rhs[d=100,abs=2.22e-16,scale=1.617]
+       worst entry (3,3): cpu=0.95659017193960216 gpu=0.95659017193960194  maxRel=3.12e-16
+  FAIL planar skew 3d 6   mixed     quadratic     uniform  corr=on  nnz=1296    diag[d=18,abs=2.22e-16,scale=1.57] off[d=157,abs=5.55e-17] rhs[d=90,abs=4.44e-16,scale=2.204]
+       worst entry (1,1): cpu=1.8509453149178534 gpu=1.850945314917853  maxRel=6.39e-14
+  FAIL planar skew 3d 6   dirichlet manufactured  uniform  corr=off nnz=1296    diag[d=23,abs=2.22e-16,scale=1.558] off[d=158,abs=5.55e-17] rhs[d=33,abs=4.44e-16,scale=2.658]
+       worst entry (30,30): cpu=2.5585509791069985 gpu=2.5585509791069989  maxRel=2.33e-16
+  FAIL planar skew 3d 6   neumann   manufactured  uniform  corr=off nnz=1296    diag[d=17,abs=2.22e-16,scale=1.141] off[d=170,abs=4.16e-17] rhs[d=12,abs=1.11e-16,scale=0.6234]
+       worst entry (12,12): cpu=0.98188263854321256 gpu=0.98188263854321234  maxRel=3.22e-16
+  FAIL planar skew 3d 6   mixed     manufactured  uniform  corr=off nnz=1296    diag[d=22,abs=2.22e-16,scale=1.558] off[d=161,abs=5.55e-17] rhs[d=23,abs=2.22e-16,scale=1.968]
+       worst entry (3,3): cpu=1.2040039316397819 gpu=1.2040039316397817  maxRel=3.22e-16
+  FAIL planar skew 3d 6   dirichlet manufactured  uniform  corr=on  nnz=1296    diag[d=18,abs=4.44e-16,scale=1.57] off[d=153,abs=5.55e-17] rhs[d=77,abs=4.44e-16,scale=2.415]
+       worst entry (77,77): cpu=1.2008036428129416 gpu=1.2008036428129412  maxRel=3.7e-16
+  FAIL planar skew 3d 6   neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=26,abs=2.22e-16,scale=1.154] off[d=164,abs=4.16e-17] rhs[d=102,abs=5.55e-17,scale=0.633]
+       worst entry (3,3): cpu=0.95659017193960216 gpu=0.95659017193960194  maxRel=3.12e-16
+  FAIL planar skew 3d 6   mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=18,abs=2.22e-16,scale=1.57] off[d=157,abs=5.55e-17] rhs[d=84,abs=4.44e-16,scale=2.215]
+       worst entry (2,2): cpu=1.7568804730378178 gpu=1.7568804730378182  maxRel=2.67e-14
+  FAIL planar skew 3d 6   dirichlet constant      varying  corr=off nnz=1296    diag[d=29,abs=4.44e-16,scale=2.331] off[d=184,abs=5.55e-17] rhs[d=22,abs=4.44e-16,scale=3.934]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   neumann   constant      varying  corr=off nnz=1296    diag[d=35,abs=2.22e-16,scale=1.714] off[d=188,abs=5.55e-17] rhs[d=11,abs=4.44e-16,scale=3.694]
+       worst entry (35,35): cpu=3.1954992431915623 gpu=3.1954992431915628  maxRel=2.19e-16
+  FAIL planar skew 3d 6   mixed     constant      varying  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.714] off[d=185,abs=5.55e-17] rhs[d=13,abs=4.44e-16,scale=3.694]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   dirichlet constant      varying  corr=on  nnz=1296    diag[d=25,abs=2.22e-16,scale=2.349] off[d=197,abs=5.55e-17] rhs[d=121,abs=4.44e-16,scale=3.864]
+       worst entry (107,107): cpu=1.9347323942633661 gpu=1.9347323942633656  maxRel=2.1e-10
+  FAIL planar skew 3d 6   neumann   constant      varying  corr=on  nnz=1296    diag[d=37,abs=2.22e-16,scale=1.731] off[d=200,abs=5.55e-17] rhs[d=102,abs=4.44e-16,scale=3.692]
+       worst entry (17,17): cpu=1.9096155298245756 gpu=1.9096155298245752  maxRel=2.29e-08
+  FAIL planar skew 3d 6   mixed     constant      varying  corr=on  nnz=1296    diag[d=29,abs=2.22e-16,scale=1.731] off[d=197,abs=5.55e-17] rhs[d=107,abs=4.44e-16,scale=3.692]
+       worst entry (11,11): cpu=2.1221144085838195 gpu=2.1221144085838191  maxRel=2.85e-08
+  FAIL planar skew 3d 6   dirichlet linear        varying  corr=off nnz=1296    diag[d=29,abs=4.44e-16,scale=2.331] off[d=184,abs=5.55e-17] rhs[d=30,abs=4.44e-16,scale=3.702]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   neumann   linear        varying  corr=off nnz=1296    diag[d=35,abs=2.22e-16,scale=1.714] off[d=188,abs=5.55e-17] rhs[d=17,abs=2.22e-16,scale=2.748]
+       worst entry (28,28): cpu=1.0665234301479756 gpu=1.0665234301479758  maxRel=2.55e-16
+  FAIL planar skew 3d 6   mixed     linear        varying  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.714] off[d=185,abs=5.55e-17] rhs[d=15,abs=2.22e-16,scale=2.725]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   dirichlet linear        varying  corr=on  nnz=1296    diag[d=25,abs=2.22e-16,scale=2.349] off[d=197,abs=5.55e-17] rhs[d=100,abs=4.44e-16,scale=3.874]
+       worst entry (5,5): cpu=2.228873583373447 gpu=2.2288735833734474  maxRel=4.93e-14
+  FAIL planar skew 3d 6   neumann   linear        varying  corr=on  nnz=1296    diag[d=37,abs=2.22e-16,scale=1.731] off[d=200,abs=5.55e-17] rhs[d=119,abs=4.44e-16,scale=2.745]
+       worst entry (185,185): cpu=2.7453666367720224 gpu=2.7453666367720229  maxRel=1.32e-14
+  FAIL planar skew 3d 6   mixed     linear        varying  corr=on  nnz=1296    diag[d=29,abs=2.22e-16,scale=1.731] off[d=197,abs=5.55e-17] rhs[d=113,abs=4.44e-16,scale=2.772]
+       worst entry (5,5): cpu=2.3394431713354313 gpu=2.3394431713354309  maxRel=2.46e-14
+  FAIL planar skew 3d 6   dirichlet quadratic     varying  corr=off nnz=1296    diag[d=29,abs=4.44e-16,scale=2.331] off[d=184,abs=5.55e-17] rhs[d=36,abs=4.44e-16,scale=3.818]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   neumann   quadratic     varying  corr=off nnz=1296    diag[d=35,abs=2.22e-16,scale=1.714] off[d=188,abs=5.55e-17] rhs[d=8,abs=4.44e-16,scale=2.824]
+       worst entry (35,35): cpu=2.1250647072695958 gpu=2.1250647072695954  maxRel=2.18e-16
+  FAIL planar skew 3d 6   mixed     quadratic     varying  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.714] off[d=185,abs=5.55e-17] rhs[d=11,abs=4.44e-16,scale=2.824]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=25,abs=2.22e-16,scale=2.349] off[d=197,abs=5.55e-17] rhs[d=91,abs=4.44e-16,scale=3.922]
+       worst entry (5,5): cpu=2.2244724536196641 gpu=2.2244724536196645  maxRel=3.2e-14
+  FAIL planar skew 3d 6   neumann   quadratic     varying  corr=on  nnz=1296    diag[d=37,abs=2.22e-16,scale=1.731] off[d=200,abs=5.55e-17] rhs[d=105,abs=2.22e-16,scale=2.84]
+       worst entry (23,23): cpu=1.2050435180235604 gpu=1.2050435180235606  maxRel=2.69e-16
+  FAIL planar skew 3d 6   mixed     quadratic     varying  corr=on  nnz=1296    diag[d=29,abs=2.22e-16,scale=1.731] off[d=197,abs=5.55e-17] rhs[d=101,abs=4.44e-16,scale=2.84]
+       worst entry (21,21): cpu=1.123064956258923 gpu=1.1230649562589226  maxRel=3.2e-14
+  FAIL planar skew 3d 6   dirichlet manufactured  varying  corr=off nnz=1296    diag[d=29,abs=4.44e-16,scale=2.331] off[d=184,abs=5.55e-17] rhs[d=31,abs=4.44e-16,scale=3.47]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   neumann   manufactured  varying  corr=off nnz=1296    diag[d=35,abs=2.22e-16,scale=1.714] off[d=188,abs=5.55e-17] rhs[d=17,abs=1.11e-16,scale=0.9468]
+       worst entry (28,28): cpu=1.0665234301479756 gpu=1.0665234301479758  maxRel=2.55e-16
+  FAIL planar skew 3d 6   mixed     manufactured  varying  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.714] off[d=185,abs=5.55e-17] rhs[d=16,abs=2.22e-16,scale=1.454]
+       worst entry (27,27): cpu=1.1662604525322182 gpu=1.1662604525322187  maxRel=3.81e-16
+  FAIL planar skew 3d 6   dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=25,abs=2.22e-16,scale=2.349] off[d=197,abs=5.55e-17] rhs[d=89,abs=4.44e-16,scale=3.9]
+       worst entry (30,30): cpu=2.0396959679970732 gpu=2.0396959679970728  maxRel=1.86e-14
+  FAIL planar skew 3d 6   neumann   manufactured  varying  corr=on  nnz=1296    diag[d=37,abs=2.22e-16,scale=1.731] off[d=200,abs=5.55e-17] rhs[d=113,abs=1.11e-16,scale=0.9606]
+       worst entry (23,23): cpu=1.2050435180235604 gpu=1.2050435180235606  maxRel=2.69e-16
+  FAIL planar skew 3d 6   mixed     manufactured  varying  corr=on  nnz=1296    diag[d=29,abs=2.22e-16,scale=1.731] off[d=197,abs=5.55e-17] rhs[d=88,abs=2.22e-16,scale=1.648]
+       worst entry (67,67): cpu=0.98033425935397411 gpu=0.98033425935397389  maxRel=2.61e-16
+       [warped 3d 6 cells=216 higherOrderBoundaryFaces=216 correctableInternal=540 resident=360312 B]
+  FAIL warped 3d 6        dirichlet constant      uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=27,abs=2.22e-16,scale=2.332]
+       worst entry (34,34): cpu=1.1672117458247713 gpu=1.1672117458247715  maxRel=2.36e-16
+  FAIL warped 3d 6        neumann   constant      uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=13,abs=4.44e-16,scale=2.301]
+       worst entry (30,30): cpu=2.2789337760906001 gpu=2.2789337760906005  maxRel=1.95e-16
+  FAIL warped 3d 6        mixed     constant      uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=14,abs=4.44e-16,scale=2.48]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet constant      uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=86,abs=2.22e-16,scale=2.335]
+       worst entry (73,73): cpu=0.94375081911894942 gpu=0.9437508191189492  maxRel=2.38e-16
+  FAIL warped 3d 6        neumann   constant      uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=103,abs=4.44e-16,scale=2.301]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     constant      uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=100,abs=4.44e-16,scale=2.481]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet linear        uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=24,abs=4.44e-16,scale=2.338]
+       worst entry (5,5): cpu=2.0335519970993197 gpu=2.0335519970993201  maxRel=2.21e-16
+  FAIL warped 3d 6        neumann   linear        uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=16,abs=2.22e-16,scale=2.024]
+       worst entry (65,65): cpu=0.80334640780196431 gpu=0.80334640780196453  maxRel=2.77e-16
+  FAIL warped 3d 6        mixed     linear        uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=11,abs=4.44e-16,scale=2.103]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet linear        uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=84,abs=4.44e-16,scale=2.331]
+       worst entry (185,185): cpu=2.1677787563961637 gpu=2.1677787563961641  maxRel=2.79e-14
+  FAIL warped 3d 6        neumann   linear        uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=97,abs=2.22e-16,scale=2.024]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     linear        uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=81,abs=2.22e-16,scale=2.1]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet quadratic     uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=22,abs=2.22e-16,scale=2.336]
+       worst entry (34,34): cpu=1.1672117458247713 gpu=1.1672117458247715  maxRel=2.36e-16
+  FAIL warped 3d 6        neumann   quadratic     uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=16,abs=2.22e-16,scale=1.623]
+       worst entry (65,65): cpu=0.80334640780196431 gpu=0.80334640780196453  maxRel=2.77e-16
+  FAIL warped 3d 6        mixed     quadratic     uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=13,abs=2.22e-16,scale=1.94]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet quadratic     uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=83,abs=4.44e-16,scale=2.332]
+       worst entry (35,35): cpu=2.1944054179057093 gpu=2.1944054179057089  maxRel=3.48e-14
+  FAIL warped 3d 6        neumann   quadratic     uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=84,abs=2.22e-16,scale=1.622]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     quadratic     uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=76,abs=2.22e-16,scale=1.932]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet manufactured  uniform  corr=off nnz=1296    diag[d=26,abs=2.22e-16,scale=1.402] off[d=182,abs=5.55e-17] rhs[d=31,abs=4.44e-16,scale=2.347]
+       worst entry (5,5): cpu=2.0472237261901762 gpu=2.0472237261901767  maxRel=2.19e-16
+  FAIL warped 3d 6        neumann   manufactured  uniform  corr=off nnz=1296    diag[d=25,abs=2.22e-16,scale=1.05] off[d=188,abs=4.16e-17] rhs[d=11,abs=1.11e-16,scale=0.5584]
+       worst entry (65,65): cpu=0.80334640780196431 gpu=0.80334640780196453  maxRel=2.77e-16
+  FAIL warped 3d 6        mixed     manufactured  uniform  corr=off nnz=1296    diag[d=32,abs=4.44e-16,scale=1.399] off[d=185,abs=5.55e-17] rhs[d=11,abs=2.22e-16,scale=1.86]
+       worst entry (11,11): cpu=1.0498237403524326 gpu=1.0498237403524331  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet manufactured  uniform  corr=on  nnz=1296    diag[d=27,abs=2.22e-16,scale=1.402] off[d=175,abs=5.55e-17] rhs[d=84,abs=4.44e-16,scale=2.325]
+       worst entry (215,215): cpu=2.3254187837231717 gpu=2.3254187837231721  maxRel=1.89e-14
+  FAIL warped 3d 6        neumann   manufactured  uniform  corr=on  nnz=1296    diag[d=33,abs=4.44e-16,scale=1.05] off[d=184,abs=2.78e-17] rhs[d=85,abs=5.55e-17,scale=0.5581]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        mixed     manufactured  uniform  corr=on  nnz=1296    diag[d=27,abs=4.44e-16,scale=1.399] off[d=179,abs=5.55e-17] rhs[d=80,abs=2.22e-16,scale=1.873]
+       worst entry (215,215): cpu=1.0502559955400281 gpu=1.0502559955400286  maxRel=4.23e-16
+  FAIL warped 3d 6        dirichlet constant      varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=23,abs=4.44e-16,scale=3.897]
+       worst entry (197,197): cpu=2.1400224243121588 gpu=2.1400224243121584  maxRel=2.15e-16
+  FAIL warped 3d 6        neumann   constant      varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=20,abs=4.44e-16,scale=3.812]
+       worst entry (29,29): cpu=2.0564884060894562 gpu=2.0564884060894557  maxRel=2.2e-16
+  FAIL warped 3d 6        mixed     constant      varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=16,abs=4.44e-16,scale=3.812]
+       worst entry (33,33): cpu=2.2603664356556141 gpu=2.2603664356556146  maxRel=2.18e-16
+  FAIL warped 3d 6        dirichlet constant      varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=90,abs=4.44e-16,scale=3.903]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   constant      varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=99,abs=4.44e-16,scale=3.813]
+       worst entry (29,29): cpu=2.0565050805872986 gpu=2.0565050805872982  maxRel=1.86e-07
+  FAIL warped 3d 6        mixed     constant      varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=98,abs=4.44e-16,scale=3.813]
+       worst entry (5,5): cpu=2.5148524494267135 gpu=2.514852449426713  maxRel=3.21e-08
+  FAIL warped 3d 6        dirichlet linear        varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=30,abs=4.44e-16,scale=3.908]
+       worst entry (5,5): cpu=2.187474655061501 gpu=2.1874746550615005  maxRel=2.15e-16
+  FAIL warped 3d 6        neumann   linear        varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=14,abs=4.44e-16,scale=2.658]
+       worst entry (185,185): cpu=2.6584752986596625 gpu=2.658475298659662  maxRel=1.98e-16
+  FAIL warped 3d 6        mixed     linear        varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=18,abs=4.44e-16,scale=2.587]
+       worst entry (5,5): cpu=2.2617387813520198 gpu=2.2617387813520193  maxRel=2.11e-16
+  FAIL warped 3d 6        dirichlet linear        varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=88,abs=4.44e-16,scale=3.896]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   linear        varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=104,abs=2.22e-16,scale=2.659]
+       worst entry (28,28): cpu=1.0207374173205135 gpu=1.0207374173205133  maxRel=3.59e-16
+  FAIL warped 3d 6        mixed     linear        varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=99,abs=2.22e-16,scale=2.587]
+       worst entry (21,21): cpu=1.0228260337181825 gpu=1.0228260337181823  maxRel=3.59e-16
+  FAIL warped 3d 6        dirichlet quadratic     varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=29,abs=4.44e-16,scale=3.904]
+       worst entry (33,33): cpu=2.3019808049767643 gpu=2.3019808049767647  maxRel=2.22e-16
+  FAIL warped 3d 6        neumann   quadratic     varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=15,abs=4.44e-16,scale=2.712]
+       worst entry (215,215): cpu=2.7119955309478172 gpu=2.7119955309478176  maxRel=2.12e-16
+  FAIL warped 3d 6        mixed     quadratic     varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=20,abs=4.44e-16,scale=2.781]
+       worst entry (215,215): cpu=2.7119955309478172 gpu=2.7119955309478176  maxRel=2.1e-16
+  FAIL warped 3d 6        dirichlet quadratic     varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=81,abs=4.44e-16,scale=3.897]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   quadratic     varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=107,abs=4.44e-16,scale=2.711]
+       worst entry (215,215): cpu=2.711468530364411 gpu=2.7114685303644115  maxRel=5.27e-15
+  FAIL warped 3d 6        mixed     quadratic     varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=83,abs=4.44e-16,scale=2.77]
+       worst entry (35,35): cpu=2.7696616466446158 gpu=2.7696616466446153  maxRel=8.4e-15
+  FAIL warped 3d 6        dirichlet manufactured  varying  corr=off nnz=1296    diag[d=37,abs=2.22e-16,scale=2.329] off[d=176,abs=5.55e-17] rhs[d=33,abs=4.44e-16,scale=3.922]
+       worst entry (5,5): cpu=2.202181218217877 gpu=2.2021812182178766  maxRel=2.2e-16
+  FAIL warped 3d 6        neumann   manufactured  varying  corr=off nnz=1296    diag[d=32,abs=2.22e-16,scale=1.743] off[d=182,abs=5.55e-17] rhs[d=9,abs=1.11e-16,scale=0.855]
+       worst entry (32,32): cpu=1.0930005703068644 gpu=1.0930005703068646  maxRel=3.41e-16
+  FAIL warped 3d 6        mixed     manufactured  varying  corr=off nnz=1296    diag[d=38,abs=2.22e-16,scale=1.743] off[d=179,abs=5.55e-17] rhs[d=11,abs=2.22e-16,scale=1.753]
+       worst entry (21,21): cpu=1.0178111718105791 gpu=1.0178111718105789  maxRel=3.41e-16
+  FAIL warped 3d 6        dirichlet manufactured  varying  corr=on  nnz=1296    diag[d=36,abs=4.44e-16,scale=2.329] off[d=209,abs=5.55e-17] rhs[d=83,abs=4.44e-16,scale=3.888]
+       worst entry (202,202): cpu=1.3122528194864556 gpu=1.3122528194864551  maxRel=3.59e-16
+  FAIL warped 3d 6        neumann   manufactured  varying  corr=on  nnz=1296    diag[d=45,abs=2.22e-16,scale=1.743] off[d=216,abs=5.55e-17] rhs[d=91,abs=1.11e-16,scale=0.8571]
+       worst entry (28,28): cpu=1.0207374173205135 gpu=1.0207374173205133  maxRel=3.59e-16
+  FAIL warped 3d 6        mixed     manufactured  varying  corr=on  nnz=1296    diag[d=40,abs=2.22e-16,scale=1.743] off[d=212,abs=5.55e-17] rhs[d=81,abs=2.22e-16,scale=1.736]
+       worst entry (21,21): cpu=1.0228260337181825 gpu=1.0228260337181823  maxRel=3.59e-16
+
+=== non-vacuity control ===
+  PASS identical -> 0 differing; one-ULP perturbation -> 1 differing (abs=1.78e-15)
+
+=== path coverage (cases reaching each branch) ===
+  P12-DIFF-002 boundary reconstruction  528
+  correctable internal faces            528
+  non-orthogonal correction enabled     264
+  spatially varying diffusivity         264
+  CPU/GPU sparsity pattern mismatches   0
+
+cases=528 failures=468
+DIFFUSION EQUIVALENCE: FAIL

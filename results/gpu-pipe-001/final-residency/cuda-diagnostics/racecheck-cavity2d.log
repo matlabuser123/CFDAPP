@@ -1,0 +1,15 @@
+# compute-sanitizer --tool racecheck /tmp/resident_diag cavity2d
+# GPU-PIPE-001 final residency: the resident SIMPLE loop
+# lib: cfacb5225b2f25c8b032645b1d3945180cf17d3292c9f598f09ce3db5e0eafea
+
+========= COMPUTE-SANITIZER
+=== GPU-PIPE-001 final residency diagnostic workload: cavity2d ===
+CUDA available: yes
+  RAN  cavity 2d 12                 resident loop, 40 outer        outer=40    status=MaxIterations  resident=3 kernels=40804 h2d=297/621984B d2h=11376/259800B sync=11052 alloc=361 realloc=0
+  RAN  channel 2d 12                resident loop, open boundary   outer=30    status=MaxIterations  resident=3 kernels=31856 h2d=297/622000B d2h=8890/200984B sync=8646 alloc=359 realloc=0
+  RAN  cavity 2d 12 quick           resident loop, higher-order convection outer=25    status=MaxIterations  resident=3 kernels=27666 h2d=297/621984B d2h=7729/172736B sync=7525 alloc=359 realloc=0
+
+workloads=3 residentWorkloads=3 outerIterations=95 kernelLaunches=100326 failures=0
+DIAGNOSTIC WORKLOAD: RESIDENT GPU PATH EXERCISED
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+# exit code: 0

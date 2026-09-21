@@ -1,0 +1,47 @@
+# d2_reversed_flux_sign -- restored cuda/kernels/DeviceConvectionKernel.cu
+# sha256 6ddb990c6933cc799066f6963dfb0e839d18e305ec4f7a32517e8ea001581100
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness convection -> exit 0 ##########
+egative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5410     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  PASS warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=0] maxAbs=0          scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  PASS warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=0] maxAbs=0          scaleA=5104      scaleR=3905     
+  PASS warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4882      scaleR=6110     
+  PASS warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=37.01     scaleR=40.2     
+  PASS warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=36.57    
+  PASS warped 3d 5      dirichlet cp=scalar   positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=4221      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=field    positive  rev  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=5955     
+  PASS warped 3d 5      mixed     cp=field    positive  fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      dirichlet cp=scalar   negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2110      scaleR=5276     
+  PASS warped 3d 5      dirichlet cp=field    negative  rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=3606      scaleR=0        
+  PASS warped 3d 5      mixed     cp=field    negative  fwd  nnz=424     A[d=0] rhs[d=0] maxAbs=0          scaleA=2382      scaleR=3832     
+  PASS warped 3d 5      dirichlet cp=scalar   mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=5528      scaleR=4824     
+  PASS warped 3d 5      dirichlet cp=field    mixed     rev  nnz=423     A[d=0] rhs[d=0] maxAbs=0          scaleA=5016      scaleR=1.106e+04
+  PASS warped 3d 5      mixed     cp=field    mixed     fwd  nnz=421     A[d=0] rhs[d=0] maxAbs=0          scaleA=6239      scaleR=4121     
+  PASS warped 3d 5      dirichlet cp=scalar   zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4522      scaleR=6784     
+  PASS warped 3d 5      dirichlet cp=field    zeros     rev  nnz=262     A[d=0] rhs[d=0] maxAbs=0          scaleA=5104      scaleR=3905     
+  PASS warped 3d 5      mixed     cp=field    zeros     fwd  nnz=282     A[d=0] rhs[d=0] maxAbs=0          scaleA=4882      scaleR=4413     
+  PASS warped 3d 5      dirichlet cp=scalar   swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=37.01     scaleR=40.2     
+  PASS warped 3d 5      dirichlet cp=field    swirl     rev  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=39.63     scaleR=61.25    
+  PASS warped 3d 5      mixed     cp=field    swirl     fwd  nnz=425     A[d=0] rhs[d=0] maxAbs=0          scaleA=40.53     scaleR=33.99    
+
+=== non-vacuity control ===
+  PASS identical bits compare equal; a one-ULP perturbation does not (abs=1.78e-15)
+
+=== coverage ===
+  scheme upwind         80 operator cases
+  scheme central        80 operator cases
+  scheme linear_upwind  80 operator cases
+  scheme quick          120 operator cases
+  reversed-flux pairs                160
+  reversal actually changed result   160
+  zero/negative-zero flux cases      32
+  assembly pattern mismatches        0
+
+cases=484 failures=0
+CONVECTION EQUIVALENCE: PASS (bitwise)

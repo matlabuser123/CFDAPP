@@ -1,0 +1,74 @@
+# g6n_matrix_side_filter_only  (expectation: null)
+# the MATRIX-side FixedValue filter alone is removed, leaving faceTermsKernel's zeroing in place
+# mutation applied to cuda/kernels/DevicePressureCorrectionKernel.cu
+# --- anchor ---
+        if (p.isFixedValue[f] == 0) continue;  // Neumann-like: no entry at all
+# --- became ---
+        // MUTATED: the matrix-side FixedValue filter is gone.
+# verdict: UNDETECTED (exit 0)
+
+=== GPU-DISC-001I: CUDA pressure-correction assembly vs CPU (bitwise) ===
+CPU reference: pressure_velocity::assemblePressureCorrection (assembly only)
+
+       [distorted q16/all-Neumann pin=yes fixedValueFaces=0 axisAligned=0 general=544 resident=239648 B]
+  PASS L5 distorted q16  all-Neumann    ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  all-Neumann    ref=128   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  all-Neumann    ref=255   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L6 distorted q16  all-Neumann    threshold sweep 25 decades differing=0 decomposingFaces=480 faces[wellposed=9888 fallback=2112]
+  PASS L7 distorted q16  all-Neumann    band sweep root=1788.28 differing=0 facesInBand=15/8160
+       [distorted q16/one-FixedValue pin=no fixedValueFaces=16 axisAligned=0 general=544 resident=238752 B]
+  PASS L5 distorted q16  one-FixedValue ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  one-FixedValue ref=128   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  one-FixedValue ref=255   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L6 distorted q16  one-FixedValue threshold sweep 25 decades differing=0 decomposingFaces=480 faces[wellposed=9888 fallback=2112]
+  PASS L7 distorted q16  one-FixedValue band sweep root=1788.28 differing=0 facesInBand=15/8160
+       [distorted q16/mixed pin=no fixedValueFaces=32 axisAligned=0 general=544 resident=237856 B]
+  PASS L5 distorted q16  mixed          ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  mixed          ref=128   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L5 distorted q16  mixed          ref=255   opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=480 parallel=0 fallback=0]
+  PASS L6 distorted q16  mixed          threshold sweep 25 decades differing=0 decomposingFaces=480 faces[wellposed=9888 fallback=2112]
+  PASS L7 distorted q16  mixed          band sweep root=1788.28 differing=0 facesInBand=15/8160
+  PASS L2 distorted q16  scheme=0 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=0.8176
+  PASS L2 distorted q16  scheme=3 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=0.8176
+       [warped 3d 3/all-Neumann pin=yes fixedValueFaces=0 axisAligned=0 general=108 resident=47768 B]
+  PASS L5 warped 3d 3    all-Neumann    ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    all-Neumann    ref=13    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    all-Neumann    ref=26    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L6 warped 3d 3    all-Neumann    threshold sweep 25 decades differing=0 decomposingFaces=54 faces[wellposed=1207 fallback=143]
+  PASS L7 warped 3d 3    all-Neumann    band sweep root=3775.99 differing=0 facesInBand=8/918
+       [warped 3d 3/one-FixedValue pin=no fixedValueFaces=9 axisAligned=0 general=108 resident=47264 B]
+  PASS L5 warped 3d 3    one-FixedValue ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    one-FixedValue ref=13    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    one-FixedValue ref=26    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L6 warped 3d 3    one-FixedValue threshold sweep 25 decades differing=0 decomposingFaces=54 faces[wellposed=1207 fallback=143]
+  PASS L7 warped 3d 3    one-FixedValue band sweep root=3775.99 differing=0 facesInBand=8/918
+       [warped 3d 3/mixed pin=no fixedValueFaces=27 axisAligned=0 general=108 resident=46256 B]
+  PASS L5 warped 3d 3    mixed          ref=0     opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    mixed          ref=13    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L5 warped 3d 3    mixed          ref=26    opposite[e=0] sign[e=0] ambiguous=0 faces[axisaligned=0 wellposed=54 parallel=0 fallback=0]
+  PASS L6 warped 3d 3    mixed          threshold sweep 25 decades differing=0 decomposingFaces=54 faces[wellposed=1207 fallback=143]
+  PASS L7 warped 3d 3    mixed          band sweep root=3775.99 differing=0 facesInBand=8/918
+  PASS L2 warped 3d 3    scheme=0 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=3.992
+  PASS L2 warped 3d 3    scheme=3 a=0.7   chain A[d=0] rhs[d=0] maxAbs=0          scale=3.992
+
+=== coverage ===
+  2D / 3D cases                     810 / 810
+  pinned / unpinned cases           540 / 1080
+  faces with owner==ref / neighbour==ref / neither  10 / 9 / 4787
+  decomposition fallbacks observed  6765
+  faces inside the 1e-6 guard band  69
+  coupled (FixedValue) boundary faces 22680
+  faces carrying an explicit term   141660
+  nonOrthogonal off / on            540 / 1080
+  meshes with axis-aligned coupling 0
+  meshes with general coupling      6
+  continuity/RHS convention checks  1620
+  integrated chain cases            4
+  sparsity pattern mismatches       0
+  coefficients compared             2605663
+  bitwise-identical                 2605663
+  max absolute discrepancy          0
+  max relative discrepancy          0
+
+cases=1654 failures=0
+PRESSURE CORRECTION EQUIVALENCE: PASS (bitwise)

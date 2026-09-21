@@ -1,0 +1,496 @@
+=== GPU-DISC-001H: CUDA predicted face flux / Rhie-Chow vs CPU (bitwise) ===
+CPU refs: physics::calculateMassFlux, pressure_velocity::rhieChow{FaceCorrection,MassFlux}
+
+       [cartesian2d 8 faces=144 axisAligned=112 general=0 resident=52888 B]
+  PASS L3 cartesian2d 8  invariants: onePerFace=yes interiorFaces=112 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 1.91e-14 of |.|=208.1]
+  PASS L4 cartesian2d 8  checkerboard: differing=0  |RhieChow term|max=45.71 vs |linear flux|max=0.225 (term dominates: yes)
+  PASS L2 cartesian2d 8  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+  PASS L2 cartesian2d 8  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+  PASS L2 cartesian2d 8  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+  PASS L2 cartesian2d 8  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=92.46
+       [cartesian2d 16 faces=544 axisAligned=480 general=0 resident=202008 B]
+  PASS L3 cartesian2d 16 invariants: onePerFace=yes interiorFaces=480 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -7.12e-15 of |.|=344.5]
+  PASS L4 cartesian2d 16 checkerboard: differing=0  |RhieChow term|max=160 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 cartesian2d 16 scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+  PASS L2 cartesian2d 16 scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+  PASS L2 cartesian2d 16 scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+  PASS L2 cartesian2d 16 scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.05
+       [graded2d 10 faces=220 axisAligned=180 general=0 resident=81144 B]
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=48] maxAbs=1.01e-28   scaleL=0          scaleC=4.294e-13 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=48] maxAbs=1.01e-28   scaleL=0.1739     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=42] maxAbs=1.01e-28   scaleL=0          scaleC=6.135e-13 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=42] maxAbs=1.01e-28   scaleL=0.1739     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=47] maxAbs=4.04e-28   scaleL=0          scaleC=1.431e-12 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=47] maxAbs=4.04e-28   scaleL=0.1739     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=40] maxAbs=5.05e-29   scaleL=0          scaleC=5.153e-13 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=40] maxAbs=5.05e-29   scaleL=0.2087     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=37] maxAbs=1.01e-28   scaleL=0          scaleC=7.362e-13 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=37] maxAbs=1.01e-28   scaleL=0.2087     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=37] maxAbs=3.03e-28   scaleL=0          scaleC=1.718e-12 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=37] maxAbs=3.03e-28   scaleL=0.2087     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=48] maxAbs=1.03e-25   scaleL=0          scaleC=4.287e-10 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=48] maxAbs=1.03e-25   scaleL=173.6      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=40] maxAbs=1.55e-25   scaleL=0          scaleC=6.124e-10 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=40] maxAbs=1.55e-25   scaleL=173.6      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    wall      zero        uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=40] maxAbs=3.1e-25    scaleL=0          scaleC=1.429e-09 
+  FAIL L1 graded2d 10    all-five  zero        uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=40] maxAbs=3.1e-25    scaleL=173.6      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=26] maxAbs=2.02e-28   scaleL=0          scaleC=7.792e-13 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=26] maxAbs=2.02e-28   scaleL=0.1739     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=26] maxAbs=2.02e-28   scaleL=0          scaleC=1.113e-12 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=26] maxAbs=2.02e-28   scaleL=0.1739     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=28] maxAbs=4.04e-28   scaleL=0          scaleC=2.597e-12 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=28] maxAbs=4.04e-28   scaleL=0.1739     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=20] maxAbs=3.03e-28   scaleL=0          scaleC=9.35e-13  
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=20] maxAbs=3.03e-28   scaleL=0.2087     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=20] maxAbs=4.04e-28   scaleL=0          scaleC=1.336e-12 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=20] maxAbs=4.04e-28   scaleL=0.2087     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=23] maxAbs=1.21e-27   scaleL=0          scaleC=3.117e-12 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=23] maxAbs=1.21e-27   scaleL=0.2087     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=29] maxAbs=2.07e-25   scaleL=0          scaleC=7.778e-10 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=29] maxAbs=2.07e-25   scaleL=173.6      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=20] maxAbs=4.14e-25   scaleL=0          scaleC=1.111e-09 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=20] maxAbs=4.14e-25   scaleL=173.6      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    wall      zero        uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=26] maxAbs=4.14e-25   scaleL=0          scaleC=2.593e-09 
+  FAIL L1 graded2d 10    all-five  zero        uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=26] maxAbs=4.14e-25   scaleL=173.6      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=68] maxAbs=1.01e-28   scaleL=0          scaleC=7.357     
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=68] maxAbs=1.01e-28   scaleL=0.1739     scaleC=7.357     
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=60] maxAbs=1.51e-28   scaleL=0          scaleC=10.51     
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=60] maxAbs=1.51e-28   scaleL=0.1739     scaleC=10.51     
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=66] maxAbs=4.04e-28   scaleL=0          scaleC=24.52     
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=66] maxAbs=4.04e-28   scaleL=0.1739     scaleC=24.52     
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=63] maxAbs=1.01e-28   scaleL=0          scaleC=8.829     
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=63] maxAbs=1.01e-28   scaleL=0.2087     scaleC=8.829     
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=56] maxAbs=2.02e-28   scaleL=0          scaleC=12.61     
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=56] maxAbs=2.02e-28   scaleL=0.2087     scaleC=12.61     
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=53] maxAbs=4.04e-28   scaleL=0          scaleC=29.43     
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=53] maxAbs=4.04e-28   scaleL=0.2087     scaleC=29.43     
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=58] maxAbs=1.03e-25   scaleL=0          scaleC=7344      
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=58] maxAbs=1.03e-25   scaleL=173.6      scaleC=7344      
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=55] maxAbs=1.03e-25   scaleL=0          scaleC=1.049e+04 
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=55] maxAbs=1.03e-25   scaleL=173.6      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    wall      zero        linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.14e-25   scaleL=0          scaleC=2.448e+04 
+  FAIL L1 graded2d 10    all-five  zero        linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=54] maxAbs=4.14e-25   scaleL=173.6      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=48] maxAbs=1.78e-15   scaleL=0          scaleC=11.95     
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=48] maxAbs=1.78e-15   scaleL=0.1739     scaleC=11.95     
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=47] maxAbs=3.55e-15   scaleL=0          scaleC=17.08     
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=47] maxAbs=3.55e-15   scaleL=0.1739     scaleC=17.08     
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=48] maxAbs=1.42e-14   scaleL=0          scaleC=39.84     
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=48] maxAbs=1.42e-14   scaleL=0.1739     scaleC=39.84     
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=43] maxAbs=3.55e-15   scaleL=0          scaleC=14.34     
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=43] maxAbs=3.55e-15   scaleL=0.2087     scaleC=14.34     
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=39] maxAbs=7.11e-15   scaleL=0          scaleC=20.49     
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=39] maxAbs=7.11e-15   scaleL=0.2087     scaleC=20.49     
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=41] maxAbs=1.42e-14   scaleL=0          scaleC=47.81     
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=41] maxAbs=1.42e-14   scaleL=0.2087     scaleC=47.81     
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=46] maxAbs=3.64e-12   scaleL=0          scaleC=1.193e+04 
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=46] maxAbs=3.64e-12   scaleL=173.6      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=37] maxAbs=3.64e-12   scaleL=0          scaleC=1.705e+04 
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=37] maxAbs=3.64e-12   scaleL=173.6      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    wall      zero        linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=42] maxAbs=7.28e-12   scaleL=0          scaleC=3.977e+04 
+  FAIL L1 graded2d 10    all-five  zero        linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=42] maxAbs=7.28e-12   scaleL=173.6      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=71] maxAbs=2.78e-17   scaleL=0          scaleC=11.49     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=71] maxAbs=2.78e-17   scaleL=0.1739     scaleC=11.49     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=57] maxAbs=5.55e-17   scaleL=0          scaleC=16.41     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=57] maxAbs=5.55e-17   scaleL=0.1739     scaleC=16.41     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=63] maxAbs=1.11e-16   scaleL=0          scaleC=38.29     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=63] maxAbs=1.11e-16   scaleL=0.1739     scaleC=38.29     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=59] maxAbs=2.78e-17   scaleL=0          scaleC=13.79     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=59] maxAbs=2.78e-17   scaleL=0.2087     scaleC=13.79     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=55] maxAbs=2.78e-17   scaleL=0          scaleC=19.69     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=55] maxAbs=2.78e-17   scaleL=0.2087     scaleC=19.69     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=55] maxAbs=1.11e-16   scaleL=0          scaleC=45.95     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=55] maxAbs=1.11e-16   scaleL=0.2087     scaleC=45.95     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=64] maxAbs=2.84e-14   scaleL=0          scaleC=1.147e+04 
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=64] maxAbs=2.84e-14   scaleL=173.6      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=53] maxAbs=5.68e-14   scaleL=0          scaleC=1.638e+04 
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=53] maxAbs=5.68e-14   scaleL=173.6      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    wall      zero        nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=56] maxAbs=5.68e-14   scaleL=0          scaleC=3.822e+04 
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=56] maxAbs=5.68e-14   scaleL=173.6      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=51] maxAbs=8.88e-16   scaleL=0          scaleC=13.67     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=51] maxAbs=8.88e-16   scaleL=0.1739     scaleC=13.67     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=46] maxAbs=1.78e-15   scaleL=0          scaleC=19.52     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=46] maxAbs=1.78e-15   scaleL=0.1739     scaleC=19.52     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=44] maxAbs=7.11e-15   scaleL=0          scaleC=45.56     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=44] maxAbs=7.11e-15   scaleL=0.1739     scaleC=45.56     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=41] maxAbs=3.55e-15   scaleL=0          scaleC=16.4      
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=41] maxAbs=3.55e-15   scaleL=0.2087     scaleC=16.4      
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=39] maxAbs=3.55e-15   scaleL=0          scaleC=23.43     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=39] maxAbs=3.55e-15   scaleL=0.2087     scaleC=23.43     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=44] maxAbs=1.07e-14   scaleL=0          scaleC=54.67     
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=44] maxAbs=1.07e-14   scaleL=0.2087     scaleC=54.67     
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=46] maxAbs=1.82e-12   scaleL=0          scaleC=1.364e+04 
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=46] maxAbs=1.82e-12   scaleL=173.6      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=37] maxAbs=1.82e-12   scaleL=0          scaleC=1.949e+04 
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=37] maxAbs=1.82e-12   scaleL=173.6      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    wall      zero        nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=42] maxAbs=3.64e-12   scaleL=0          scaleC=4.547e+04 
+  FAIL L1 graded2d 10    all-five  zero        nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=42] maxAbs=3.64e-12   scaleL=173.6      scaleC=4.547e+04 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.01e-28   scaleL=0.1449     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.01e-28   scaleL=0.1739     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=0] maxAbs=1.01e-28   scaleL=0.1449     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=0] maxAbs=1.01e-28   scaleL=0.1739     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=0] maxAbs=4.04e-28   scaleL=0.1449     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=0] maxAbs=4.04e-28   scaleL=0.1739     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=0] maxAbs=5.05e-29   scaleL=0.1739     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=0] maxAbs=5.05e-29   scaleL=0.2087     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=0] maxAbs=1.01e-28   scaleL=0.1739     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=0] maxAbs=1.01e-28   scaleL=0.2087     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=0] maxAbs=3.03e-28   scaleL=0.1739     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=0] maxAbs=3.03e-28   scaleL=0.2087     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.03e-25   scaleL=144.7      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.03e-25   scaleL=173.6      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=0] maxAbs=1.55e-25   scaleL=144.7      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=0] maxAbs=1.55e-25   scaleL=173.6      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    wall      uniform     uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=0] maxAbs=3.1e-25    scaleL=144.7      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=0] maxAbs=3.1e-25    scaleL=173.6      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.1449     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.1739     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.1449     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.1739     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=0] maxAbs=4.04e-28   scaleL=0.1449     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=0] maxAbs=4.04e-28   scaleL=0.1739     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=0] maxAbs=3.03e-28   scaleL=0.1739     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=0] maxAbs=3.03e-28   scaleL=0.2087     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.04e-28   scaleL=0.1739     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.04e-28   scaleL=0.2087     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=0] maxAbs=1.21e-27   scaleL=0.1739     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=0] maxAbs=1.21e-27   scaleL=0.2087     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=0] maxAbs=2.07e-25   scaleL=144.7      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=0] maxAbs=2.07e-25   scaleL=173.6      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.14e-25   scaleL=144.7      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.14e-25   scaleL=173.6      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    wall      uniform     uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=0] maxAbs=4.14e-25   scaleL=144.7      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    all-five  uniform     uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=0] maxAbs=4.14e-25   scaleL=173.6      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=0] maxAbs=1.01e-28   scaleL=0.1449     scaleC=7.357     
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=0] maxAbs=1.01e-28   scaleL=0.1739     scaleC=7.357     
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=0] maxAbs=1.51e-28   scaleL=0.1449     scaleC=10.51     
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=0] maxAbs=1.51e-28   scaleL=0.1739     scaleC=10.51     
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=0] maxAbs=4.04e-28   scaleL=0.1449     scaleC=24.52     
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=0] maxAbs=4.04e-28   scaleL=0.1739     scaleC=24.52     
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=0] maxAbs=1.01e-28   scaleL=0.1739     scaleC=8.829     
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=0] maxAbs=1.01e-28   scaleL=0.2087     scaleC=8.829     
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=0] maxAbs=2.02e-28   scaleL=0.1739     scaleC=12.61     
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=0] maxAbs=2.02e-28   scaleL=0.2087     scaleC=12.61     
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=0] maxAbs=4.04e-28   scaleL=0.1739     scaleC=29.43     
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=0] maxAbs=4.04e-28   scaleL=0.2087     scaleC=29.43     
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=0] maxAbs=1.03e-25   scaleL=144.7      scaleC=7344      
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=0] maxAbs=1.03e-25   scaleL=173.6      scaleC=7344      
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=0] maxAbs=1.03e-25   scaleL=144.7      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=0] maxAbs=1.03e-25   scaleL=173.6      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    wall      uniform     linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=0] maxAbs=4.14e-25   scaleL=144.7      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    all-five  uniform     linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=0] maxAbs=4.14e-25   scaleL=173.6      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=8] maxAbs=1.78e-15   scaleL=0.1449     scaleC=11.95     
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=8] maxAbs=1.78e-15   scaleL=0.1739     scaleC=11.95     
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=7] maxAbs=3.55e-15   scaleL=0.1449     scaleC=17.08     
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=7] maxAbs=3.55e-15   scaleL=0.1739     scaleC=17.08     
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=9] maxAbs=1.42e-14   scaleL=0.1449     scaleC=39.84     
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=9] maxAbs=1.42e-14   scaleL=0.1739     scaleC=39.84     
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=6] maxAbs=3.55e-15   scaleL=0.1739     scaleC=14.34     
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=6] maxAbs=3.55e-15   scaleL=0.2087     scaleC=14.34     
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=7] maxAbs=7.11e-15   scaleL=0.1739     scaleC=20.49     
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=7] maxAbs=7.11e-15   scaleL=0.2087     scaleC=20.49     
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=7] maxAbs=1.42e-14   scaleL=0.1739     scaleC=47.81     
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=7] maxAbs=1.42e-14   scaleL=0.2087     scaleC=47.81     
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=4] maxAbs=3.64e-12   scaleL=144.7      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=4] maxAbs=3.64e-12   scaleL=173.6      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=5] maxAbs=3.64e-12   scaleL=144.7      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=5] maxAbs=3.64e-12   scaleL=173.6      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    wall      uniform     linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=4] maxAbs=7.28e-12   scaleL=144.7      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    all-five  uniform     linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=4] maxAbs=7.28e-12   scaleL=173.6      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=28] maxAbs=2.78e-17   scaleL=0.1449     scaleC=11.49     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=28] maxAbs=2.78e-17   scaleL=0.1739     scaleC=11.49     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=26] maxAbs=5.55e-17   scaleL=0.1449     scaleC=16.41     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=26] maxAbs=5.55e-17   scaleL=0.1739     scaleC=16.41     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=47] maxAbs=1.11e-16   scaleL=0.1449     scaleC=38.29     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=47] maxAbs=1.11e-16   scaleL=0.1739     scaleC=38.29     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=29] maxAbs=2.78e-17   scaleL=0.1739     scaleC=13.79     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=29] maxAbs=2.78e-17   scaleL=0.2087     scaleC=13.79     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=28] maxAbs=2.78e-17   scaleL=0.1739     scaleC=19.69     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=28] maxAbs=2.78e-17   scaleL=0.2087     scaleC=19.69     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=42] maxAbs=1.11e-16   scaleL=0.1739     scaleC=45.95     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=42] maxAbs=1.11e-16   scaleL=0.2087     scaleC=45.95     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=24] maxAbs=2.84e-14   scaleL=144.7      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=24] maxAbs=2.84e-14   scaleL=173.6      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=27] maxAbs=5.68e-14   scaleL=144.7      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=27] maxAbs=5.68e-14   scaleL=173.6      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=40] maxAbs=1.14e-13   scaleL=144.7      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=40] maxAbs=1.14e-13   scaleL=173.6      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=23] maxAbs=8.88e-16   scaleL=0.1449     scaleC=13.67     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=23] maxAbs=8.88e-16   scaleL=0.1739     scaleC=13.67     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=24] maxAbs=1.78e-15   scaleL=0.1449     scaleC=19.52     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=24] maxAbs=1.78e-15   scaleL=0.1739     scaleC=19.52     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=28] maxAbs=7.11e-15   scaleL=0.1449     scaleC=45.56     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=28] maxAbs=7.11e-15   scaleL=0.1739     scaleC=45.56     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=20] maxAbs=3.55e-15   scaleL=0.1739     scaleC=16.4      
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=20] maxAbs=3.55e-15   scaleL=0.2087     scaleC=16.4      
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=19] maxAbs=3.55e-15   scaleL=0.1739     scaleC=23.43     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=19] maxAbs=3.55e-15   scaleL=0.2087     scaleC=23.43     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=27] maxAbs=1.07e-14   scaleL=0.1739     scaleC=54.67     
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=27] maxAbs=1.07e-14   scaleL=0.2087     scaleC=54.67     
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=21] maxAbs=1.82e-12   scaleL=144.7      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=21] maxAbs=1.82e-12   scaleL=173.6      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=17] maxAbs=1.82e-12   scaleL=144.7      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=17] maxAbs=1.82e-12   scaleL=173.6      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    wall      uniform     nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=33] maxAbs=3.64e-12   scaleL=144.7      scaleC=4.547e+04 
+  FAIL L1 graded2d 10    all-five  uniform     nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=33] maxAbs=3.64e-12   scaleL=173.6      scaleC=4.547e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=0] maxAbs=5.05e-29   scaleL=0.2489     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=0] maxAbs=5.05e-29   scaleL=0.2489     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=0] maxAbs=1.55e-25   scaleL=207.1      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=0] maxAbs=1.55e-25   scaleL=207.1      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=0] maxAbs=3.1e-25    scaleL=207.1      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=0] maxAbs=3.1e-25    scaleL=207.1      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=0] maxAbs=1.21e-27   scaleL=0.2489     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=0] maxAbs=1.21e-27   scaleL=0.2489     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=0] maxAbs=2.07e-25   scaleL=207.1      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=0] maxAbs=2.07e-25   scaleL=207.1      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    wall      nonuniform  uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    all-five  nonuniform  uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=7.357     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=7.357     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=0] maxAbs=1.51e-28   scaleL=0.2074     scaleC=10.51     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=0] maxAbs=1.51e-28   scaleL=0.2074     scaleC=10.51     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=24.52     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=24.52     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=8.829     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=8.829     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=0] maxAbs=2.02e-28   scaleL=0.2489     scaleC=12.61     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=0] maxAbs=2.02e-28   scaleL=0.2489     scaleC=12.61     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=29.43     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=29.43     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=7344      
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=7344      
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=8] maxAbs=1.78e-15   scaleL=0.2074     scaleC=11.95     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=8] maxAbs=1.78e-15   scaleL=0.2074     scaleC=11.95     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=8] maxAbs=3.55e-15   scaleL=0.2074     scaleC=17.08     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=8] maxAbs=3.55e-15   scaleL=0.2074     scaleC=17.08     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=9] maxAbs=1.42e-14   scaleL=0.2074     scaleC=39.84     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=9] maxAbs=1.42e-14   scaleL=0.2074     scaleC=39.84     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=4] maxAbs=3.55e-15   scaleL=0.2489     scaleC=14.34     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=4] maxAbs=3.55e-15   scaleL=0.2489     scaleC=14.34     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=6] maxAbs=7.11e-15   scaleL=0.2489     scaleC=20.49     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=6] maxAbs=7.11e-15   scaleL=0.2489     scaleC=20.49     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=6] maxAbs=1.42e-14   scaleL=0.2489     scaleC=47.81     
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=6] maxAbs=1.42e-14   scaleL=0.2489     scaleC=47.81     
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=6] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=6] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=5] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=5] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=5] maxAbs=7.28e-12   scaleL=207.1      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=5] maxAbs=7.28e-12   scaleL=207.1      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=31] maxAbs=2.78e-17   scaleL=0.2074     scaleC=11.49     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=31] maxAbs=2.78e-17   scaleL=0.2074     scaleC=11.49     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=37] maxAbs=5.55e-17   scaleL=0.2074     scaleC=16.41     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=37] maxAbs=5.55e-17   scaleL=0.2074     scaleC=16.41     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=50] maxAbs=1.11e-16   scaleL=0.2074     scaleC=38.29     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=50] maxAbs=1.11e-16   scaleL=0.2074     scaleC=38.29     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=30] maxAbs=2.78e-17   scaleL=0.2489     scaleC=13.79     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=30] maxAbs=2.78e-17   scaleL=0.2489     scaleC=13.79     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=38] maxAbs=2.78e-17   scaleL=0.2489     scaleC=19.69     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=38] maxAbs=2.78e-17   scaleL=0.2489     scaleC=19.69     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=44] maxAbs=1.11e-16   scaleL=0.2489     scaleC=45.95     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=44] maxAbs=1.11e-16   scaleL=0.2489     scaleC=45.95     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=35] maxAbs=2.84e-14   scaleL=207.1      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=35] maxAbs=2.84e-14   scaleL=207.1      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=42] maxAbs=5.68e-14   scaleL=207.1      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=42] maxAbs=5.68e-14   scaleL=207.1      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=47] maxAbs=1.14e-13   scaleL=207.1      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=47] maxAbs=1.14e-13   scaleL=207.1      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=29] maxAbs=8.88e-16   scaleL=0.2074     scaleC=13.67     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=29] maxAbs=8.88e-16   scaleL=0.2074     scaleC=13.67     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=26] maxAbs=1.78e-15   scaleL=0.2074     scaleC=19.52     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=26] maxAbs=1.78e-15   scaleL=0.2074     scaleC=19.52     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=31] maxAbs=7.11e-15   scaleL=0.2074     scaleC=45.56     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=31] maxAbs=7.11e-15   scaleL=0.2074     scaleC=45.56     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=19] maxAbs=3.55e-15   scaleL=0.2489     scaleC=16.4      
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=19] maxAbs=3.55e-15   scaleL=0.2489     scaleC=16.4      
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=17] maxAbs=3.55e-15   scaleL=0.2489     scaleC=23.43     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=17] maxAbs=3.55e-15   scaleL=0.2489     scaleC=23.43     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=32] maxAbs=1.07e-14   scaleL=0.2489     scaleC=54.67     
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=32] maxAbs=1.07e-14   scaleL=0.2489     scaleC=54.67     
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=22] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=22] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=24] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=24] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    wall      nonuniform  nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=33] maxAbs=3.64e-12   scaleL=207.1      scaleC=4.547e+04 
+  FAIL L1 graded2d 10    all-five  nonuniform  nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=33] maxAbs=3.64e-12   scaleL=207.1      scaleC=4.547e+04 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=1      a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=4.294e-13 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=1      a=0.7   linear[d=0] corr[d=42] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=6.135e-13 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=1      a=0.3   linear[d=0] corr[d=47] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=1.431e-12 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=0] maxAbs=5.05e-29   scaleL=0.2489     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=1.2    a=1     linear[d=0] corr[d=40] rc[d=0] maxAbs=5.05e-29   scaleL=0.2489     scaleC=5.153e-13 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=1.2    a=0.7   linear[d=0] corr[d=37] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=7.362e-13 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=1.2    a=0.3   linear[d=0] corr[d=37] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=1.718e-12 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=998.2  a=1     linear[d=0] corr[d=48] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=4.287e-10 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=0] maxAbs=1.55e-25   scaleL=207.1      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=998.2  a=0.7   linear[d=0] corr[d=40] rc[d=0] maxAbs=1.55e-25   scaleL=207.1      scaleC=6.124e-10 
+  FAIL L1 graded2d 10    wall      reversed    uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=0] maxAbs=3.1e-25    scaleL=207.1      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     uniform     rho=998.2  a=0.3   linear[d=0] corr[d=40] rc[d=0] maxAbs=3.1e-25    scaleL=207.1      scaleC=1.429e-09 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=1      a=1     linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=7.792e-13 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=1      a=0.7   linear[d=0] corr[d=26] rc[d=0] maxAbs=2.02e-28   scaleL=0.2074     scaleC=1.113e-12 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=1      a=0.3   linear[d=0] corr[d=28] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=2.597e-12 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=1.2    a=1     linear[d=0] corr[d=20] rc[d=0] maxAbs=3.03e-28   scaleL=0.2489     scaleC=9.35e-13  
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=1.336e-12 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=0] maxAbs=1.21e-27   scaleL=0.2489     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=23] rc[d=0] maxAbs=1.21e-27   scaleL=0.2489     scaleC=3.117e-12 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=0] maxAbs=2.07e-25   scaleL=207.1      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=998.2  a=1     linear[d=0] corr[d=29] rc[d=0] maxAbs=2.07e-25   scaleL=207.1      scaleC=7.778e-10 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=20] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=1.111e-09 
+  FAIL L1 graded2d 10    wall      reversed    uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    all-five  reversed    uniform     nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=26] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.593e-09 
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=7.357     
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=1      a=1     linear[d=0] corr[d=68] rc[d=0] maxAbs=1.01e-28   scaleL=0.2074     scaleC=7.357     
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=0] maxAbs=1.51e-28   scaleL=0.2074     scaleC=10.51     
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=1      a=0.7   linear[d=0] corr[d=60] rc[d=0] maxAbs=1.51e-28   scaleL=0.2074     scaleC=10.51     
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=24.52     
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=1      a=0.3   linear[d=0] corr[d=66] rc[d=0] maxAbs=4.04e-28   scaleL=0.2074     scaleC=24.52     
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=8.829     
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=1.2    a=1     linear[d=0] corr[d=63] rc[d=0] maxAbs=1.01e-28   scaleL=0.2489     scaleC=8.829     
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=0] maxAbs=2.02e-28   scaleL=0.2489     scaleC=12.61     
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=1.2    a=0.7   linear[d=0] corr[d=56] rc[d=0] maxAbs=2.02e-28   scaleL=0.2489     scaleC=12.61     
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=29.43     
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=1.2    a=0.3   linear[d=0] corr[d=53] rc[d=0] maxAbs=4.04e-28   scaleL=0.2489     scaleC=29.43     
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=7344      
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=998.2  a=1     linear[d=0] corr[d=58] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=7344      
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=998.2  a=0.7   linear[d=0] corr[d=55] rc[d=0] maxAbs=1.03e-25   scaleL=207.1      scaleC=1.049e+04 
+  FAIL L1 graded2d 10    wall      reversed    linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    all-five  reversed    linear      uniform     rho=998.2  a=0.3   linear[d=0] corr[d=54] rc[d=0] maxAbs=4.14e-25   scaleL=207.1      scaleC=2.448e+04 
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=7] maxAbs=1.78e-15   scaleL=0.2074     scaleC=11.95     
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=1      a=1     linear[d=0] corr[d=48] rc[d=7] maxAbs=1.78e-15   scaleL=0.2074     scaleC=11.95     
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=9] maxAbs=3.55e-15   scaleL=0.2074     scaleC=17.08     
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=1      a=0.7   linear[d=0] corr[d=47] rc[d=9] maxAbs=3.55e-15   scaleL=0.2074     scaleC=17.08     
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=9] maxAbs=1.42e-14   scaleL=0.2074     scaleC=39.84     
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=1      a=0.3   linear[d=0] corr[d=48] rc[d=9] maxAbs=1.42e-14   scaleL=0.2074     scaleC=39.84     
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=7] maxAbs=3.55e-15   scaleL=0.2489     scaleC=14.34     
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=1.2    a=1     linear[d=0] corr[d=43] rc[d=7] maxAbs=3.55e-15   scaleL=0.2489     scaleC=14.34     
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=7] maxAbs=7.11e-15   scaleL=0.2489     scaleC=20.49     
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=7] maxAbs=7.11e-15   scaleL=0.2489     scaleC=20.49     
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=7] maxAbs=1.42e-14   scaleL=0.2489     scaleC=47.81     
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=41] rc[d=7] maxAbs=1.42e-14   scaleL=0.2489     scaleC=47.81     
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=6] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=6] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.193e+04 
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=5] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=5] maxAbs=3.64e-12   scaleL=207.1      scaleC=1.705e+04 
+  FAIL L1 graded2d 10    wall      reversed    linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=5] maxAbs=7.28e-12   scaleL=207.1      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    all-five  reversed    linear      nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=5] maxAbs=7.28e-12   scaleL=207.1      scaleC=3.977e+04 
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=36] maxAbs=2.78e-17   scaleL=0.2074     scaleC=11.49     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=1      a=1     linear[d=0] corr[d=71] rc[d=36] maxAbs=2.78e-17   scaleL=0.2074     scaleC=11.49     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=32] maxAbs=5.55e-17   scaleL=0.2074     scaleC=16.41     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=1      a=0.7   linear[d=0] corr[d=57] rc[d=32] maxAbs=5.55e-17   scaleL=0.2074     scaleC=16.41     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=50] maxAbs=1.11e-16   scaleL=0.2074     scaleC=38.29     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=1      a=0.3   linear[d=0] corr[d=63] rc[d=50] maxAbs=1.11e-16   scaleL=0.2074     scaleC=38.29     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=37] maxAbs=5.55e-17   scaleL=0.2489     scaleC=13.79     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=1.2    a=1     linear[d=0] corr[d=59] rc[d=37] maxAbs=5.55e-17   scaleL=0.2489     scaleC=13.79     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=30] maxAbs=5.55e-17   scaleL=0.2489     scaleC=19.69     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=1.2    a=0.7   linear[d=0] corr[d=55] rc[d=30] maxAbs=5.55e-17   scaleL=0.2489     scaleC=19.69     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=41] maxAbs=1.11e-16   scaleL=0.2489     scaleC=45.95     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=1.2    a=0.3   linear[d=0] corr[d=55] rc[d=41] maxAbs=1.11e-16   scaleL=0.2489     scaleC=45.95     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=31] maxAbs=2.84e-14   scaleL=207.1      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=998.2  a=1     linear[d=0] corr[d=64] rc[d=31] maxAbs=2.84e-14   scaleL=207.1      scaleC=1.147e+04 
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=34] maxAbs=5.68e-14   scaleL=207.1      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=998.2  a=0.7   linear[d=0] corr[d=53] rc[d=34] maxAbs=5.68e-14   scaleL=207.1      scaleC=1.638e+04 
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=46] maxAbs=5.68e-14   scaleL=207.1      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  uniform     rho=998.2  a=0.3   linear[d=0] corr[d=56] rc[d=46] maxAbs=5.68e-14   scaleL=207.1      scaleC=3.822e+04 
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=28] maxAbs=8.88e-16   scaleL=0.2074     scaleC=13.67     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=1      a=1     linear[d=0] corr[d=51] rc[d=28] maxAbs=8.88e-16   scaleL=0.2074     scaleC=13.67     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=28] maxAbs=1.78e-15   scaleL=0.2074     scaleC=19.52     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=1      a=0.7   linear[d=0] corr[d=46] rc[d=28] maxAbs=1.78e-15   scaleL=0.2074     scaleC=19.52     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=29] maxAbs=7.11e-15   scaleL=0.2074     scaleC=45.56     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=1      a=0.3   linear[d=0] corr[d=44] rc[d=29] maxAbs=7.11e-15   scaleL=0.2074     scaleC=45.56     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=19] maxAbs=3.55e-15   scaleL=0.2489     scaleC=16.4      
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=1.2    a=1     linear[d=0] corr[d=41] rc[d=19] maxAbs=3.55e-15   scaleL=0.2489     scaleC=16.4      
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=22] maxAbs=3.55e-15   scaleL=0.2489     scaleC=23.43     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=1.2    a=0.7   linear[d=0] corr[d=39] rc[d=22] maxAbs=3.55e-15   scaleL=0.2489     scaleC=23.43     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=27] maxAbs=1.07e-14   scaleL=0.2489     scaleC=54.67     
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=1.2    a=0.3   linear[d=0] corr[d=44] rc[d=27] maxAbs=1.07e-14   scaleL=0.2489     scaleC=54.67     
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=20] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=998.2  a=1     linear[d=0] corr[d=46] rc[d=20] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.364e+04 
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=21] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=998.2  a=0.7   linear[d=0] corr[d=37] rc[d=21] maxAbs=1.82e-12   scaleL=207.1      scaleC=1.949e+04 
+  FAIL L1 graded2d 10    wall      reversed    nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=30] maxAbs=3.64e-12   scaleL=207.1      scaleC=4.547e+04 
+  FAIL L1 graded2d 10    all-five  reversed    nonuniform  nonuniform  rho=998.2  a=0.3   linear[d=0] corr[d=42] rc[d=30] maxAbs=3.64e-12   scaleL=207.1      scaleC=4.547e+04 
+  PASS L3 graded2d 10    invariants: onePerFace=yes interiorFaces=180 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 1.83e-15 of |.|=275.7]
+  FAIL L4 graded2d 10    checkerboard: differing=30  |RhieChow term|max=358.1 vs |linear flux|max=0.2087 (term dominates: yes)
+  FAIL L2 graded2d 10    scheme=0 a=1     chain differing=43   maxAbs=2.66e-15   maxRel=2.48e-15   scale=107.2
+  FAIL L2 graded2d 10    scheme=0 a=0.7   chain differing=41   maxAbs=1.42e-14   maxRel=5.05e-15   scale=107.2
+  FAIL L2 graded2d 10    scheme=3 a=1     chain differing=43   maxAbs=2.66e-15   maxRel=2.48e-15   scale=107.2
+  FAIL L2 graded2d 10    scheme=3 a=0.7   chain differing=41   maxAbs=1.42e-14   maxRel=5.05e-15   scale=107.2
+       [distorted q16 faces=544 axisAligned=0 general=480 resident=221208 B]
+  PASS L3 distorted q16  invariants: onePerFace=yes interiorFaces=480 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum 1.86e-14 of |.|=349.8]
+  PASS L4 distorted q16  checkerboard: differing=0  |RhieChow term|max=169.5 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 distorted q16  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+  PASS L2 distorted q16  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=36.17
+       [cartesian3d 4 faces=240 axisAligned=144 general=0 resident=84376 B]
+  PASS L3 cartesian3d 4  invariants: onePerFace=yes interiorFaces=144 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -4.11e-15 of |.|=216.4]
+  PASS L4 cartesian3d 4  checkerboard: differing=0  |RhieChow term|max=11.43 vs |linear flux|max=0.1125 (term dominates: yes)
+  PASS L2 cartesian3d 4  scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+  PASS L2 cartesian3d 4  scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+  PASS L2 cartesian3d 4  scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+  PASS L2 cartesian3d 4  scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=58.09
+       [warped 3d 3 faces=108 axisAligned=0 general=54 resident=39768 B]
+  PASS L3 warped 3d 3    invariants: onePerFace=yes interiorFaces=54 pairwiseExact=yes reversalChanged=yes  [diagnostic: signed sum -5.91e-15 of |.|=185.5]
+  PASS L4 warped 3d 3    checkerboard: differing=0  |RhieChow term|max=59.17 vs |linear flux|max=0.2 (term dominates: yes)
+  PASS L2 warped 3d 3    scheme=0 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=0 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=3 a=1     chain differing=0    maxAbs=0          maxRel=0          scale=270
+  PASS L2 warped 3d 3    scheme=3 a=0.7   chain differing=0    maxAbs=0          maxRel=0          scale=270
+
+=== coverage ===
+  Linear-path cases                 2592
+  Rhie-Chow-path cases              2592
+  correction-only cases             2592
+  2D / 3D direct cases              1728 / 864
+  integrated chain cases            24
+  meshes with axis-aligned coupling 4
+  meshes with general coupling      2
+  densities / relaxation factors    3 / 3
+  orientation / conservation checks 6 / 6
+  checkerboard-sensitive cases      6
+  values compared                   2341800
+  bitwise-identical values          2313508
+  max absolute discrepancy          7.28e-12
+  max relative discrepancy          6.47e-14
+
+cases=2628 failures=437
+FACE FLUX EQUIVALENCE: FAIL

@@ -1,0 +1,20 @@
+=== A: current Phase 2 (fusion + DEVICE finaliser) ===
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 49: LAST: unbound variable
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 49: LAST: unbound variable
+  160^2 gpu_solve median 2.0315s   d2h= bytes=
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 49: LAST: unbound variable
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 49: LAST: unbound variable
+  640^2 gpu_solve median 5.0178s   d2h= bytes=
+
+=== B: fusion + HOST finaliser (Phase 2A reverted) ===
+  patched to host finalisation
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 87: LAST: unbound variable
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 87: LAST: unbound variable
+  160^2 gpu_solve median 2.0191s   d2h= bytes=
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 87: LAST: unbound variable
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/gpu-pipe-001/phase2-reductions/tools/isolate_finalizer.sh: line 87: LAST: unbound variable
+  640^2 gpu_solve median 3.7741s   d2h= bytes=
+
+If B is faster than A at 640^2 but slower at 160^2, the serial device
+finaliser is the 640^2 cost and its price scales with the block count.
+restored cuda/kernels/DeviceVectorOpsKernel.cu

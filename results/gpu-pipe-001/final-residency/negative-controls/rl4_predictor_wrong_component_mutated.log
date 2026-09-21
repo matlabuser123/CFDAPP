@@ -1,0 +1,16 @@
+# rl4_predictor_wrong_component
+# layer:       resident-simple-loop
+# origin:      GPU-PIPE-001 final residency
+# expectation: detect
+# every component's momentum solution is carried into the U slot of the device predictor, so V* and W* never reach the stages that read them
+# mutation applied to cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+# --- anchor ---
+  copyWorkspaceSolution(impl_->krylov, nc, target);
+# --- became ---
+  copyWorkspaceSolution(impl_->krylov, nc, impl_->velocityStar.x);  // MUTATED
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness loop_comparison --quick -> exit -6 (DETECTED) ##########
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  countNonFiniteDevice: buffer is not resident

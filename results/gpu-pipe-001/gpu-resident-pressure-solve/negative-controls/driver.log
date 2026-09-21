@@ -1,0 +1,62 @@
+=== 0. detectors must pass on the CLEAN tree first ===
+    syncs (total)              51596        51596
+    reduction groups           51596        51596   identical => same Krylov work
+
+RESIDENCY COMPARISON: PASS (bitwise)
+
+ROUND-TRIP PROBE: PASS
+  comparison rc=0  sparsity rc=0
+
+=== 1. build/cuda up to date ===
+ninja: no work to do.
+
+=== 2. negative controls ===
+baseline fda1a147676097f3c8a377a3db4bcc64f8f3e441c68875b70370cdd0996da7b8  cuda/kernels/DevicePressureCorrectionPlan.cpp
+baseline e019f13e6e048c0b59aa9ece6adb03743ed88ea115c9683712b20c27a0f8db7a  cuda/kernels/GpuResidentSolveKernel.cu
+baseline 7052a87475168323530944aee4be824dc3eb61d8725066563173832345abbf25  cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+baseline 422027a7d82fa1303d28a626b1b4e4ca53ca9ec3c2dce508446e2289e1c533e5  src/pressure_velocity/SIMPLE.cpp
+
+compiled 4 harness objects
+
+=== rp1_structure_not_compacted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [55s]
+=== rp2_jacobi_not_inverted (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [110s]
+=== rp3_nonzero_initial_guess (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [107s]
+=== rp4_rhs_not_copied (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [95s]
+=== rp5_solution_not_carried (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [82s]
+=== rp6_diagonal_rejection_removed (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [58s]
+=== rp7_redundant_round_trip (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [61s]
+=== rp8_resident_path_disabled (detect) ===
+  mutated: DETECTED
+  restored: sha-match=True repass=True  ok  [130s]
+
+=== GPU-PIPE-001 resident pressure solve negative controls ===
+  rp1_structure_not_compacted                          detect  DETECTED      sha=True repass=True  ok
+  rp2_jacobi_not_inverted                              detect  DETECTED      sha=True repass=True  ok
+  rp3_nonzero_initial_guess                            detect  DETECTED      sha=True repass=True  ok
+  rp4_rhs_not_copied                                   detect  DETECTED      sha=True repass=True  ok
+  rp5_solution_not_carried                             detect  DETECTED      sha=True repass=True  ok
+  rp6_diagonal_rejection_removed                       detect  DETECTED      sha=True repass=True  ok
+  rp7_redundant_round_trip                             detect  DETECTED      sha=True repass=True  ok
+  rp8_resident_path_disabled                           detect  DETECTED      sha=True repass=True  ok
+
+observable controls:          8
+detected observable controls: 8/8
+documented null controls:     0
+RESULT: PASS
+NC_RC=0
+
+[exited with code 0]

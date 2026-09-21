@@ -1,0 +1,47 @@
+=== CLI ===
+  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/apps/cli/cfdapp
+  CFDApp 0.2.0-dev
+
+########## H1: normal CLI workflow, GPU linear-solver backend ##########
+  momentum/pressure linear solver backend -> GPU (the only GPU key the case format has)
+  command: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/apps/cli/cfdapp --case /tmp/gpudisc-smoke/case
+  exit code: 0
+  Case: Lid-Driven Cavity Re=100 (40x40)
+  Mesh: 40 x 40
+  Mesh quality: valid
+    cells: 1600, cell area: 0.000625 .. 0.000625, degenerate cells: 0, invalid faces: 0
+    max aspect ratio: 1 (cell 0 at (0.0125, 0.0125))
+    max non-orthogonality (deg): 0 (face 1 at (0.025, 0.0125))
+    max skewness: 0 (face 1 at (0.025, 0.0125))
+    max expansion ratio: 1 (face 1 at (0.025, 0.0125))
+  Solver: SIMPLE
+  
+  Converged: yes
+  Iterations: 6159
+  
+  U residual: 2.80274e-08
+  V residual: 1.7286e-08
+  P residual: 9.99489e-07
+  Continuity: 8.7233e-09
+  Mass imbalance: 0
+  NaN/Inf: no
+  
+  Results:
+    JSON:      /tmp/gpudisc-smoke/case/results/metadata.json
+    Residuals: /tmp/gpudisc-smoke/case/results/residuals.csv
+    CSV:       /tmp/gpudisc-smoke/case/results/fields.csv
+    VTK:       /tmp/gpudisc-smoke/case/results/solution.vtk
+
+  --- checks ---
+  converged=yes  iterations=6159  continuity=8.7233e-09  massImbalance=0  NaN/Inf=no
+  output files produced: 4
+    metadata.json
+
+########## H2: integrated GPU discretization via production SIMPLE::solve ##########
+  (the 001O diagnostic workload drives SIMPLE::solve with enableGpuDiscretization;
+   it is the production entry point, not a harness reimplementation)
+  cavity2d         rc=0  kernelLaunches=1120  DIAGNOSTIC WORKLOAD: PRODUCTION GPU PATH EXERCISED
+  inletoutlet2d    rc=0  kernelLaunches=1120  DIAGNOSTIC WORKLOAD: PRODUCTION GPU PATH EXERCISED
+  case3d           rc=0  kernelLaunches=3059  DIAGNOSTIC WORKLOAD: PRODUCTION GPU PATH EXERCISED
+
+PRODUCTION SMOKE: PASS

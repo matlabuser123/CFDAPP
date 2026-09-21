@@ -1,0 +1,17 @@
+# n7_mixed_path_one_iteration
+# one outer iteration is forced through a CPU/GPU mixed path: the velocity and flux corrections run on the CPU while every other stage stays on the device
+# mutation applied to src/pressure_velocity/SIMPLE.cpp
+# --- anchor ---
+    if (useGpuDiscretization) {
+      // GPU-DISC-001J and 001K, from the resident predictor velocity,
+# --- became ---
+    if (useGpuDiscretization && outerIteration != 4) {
+      // GPU-DISC-001J and 001K, from the resident predictor velocity,
+# verdict: DETECTED (exit -6)
+# first divergent iteration observed: None
+# expected:                          None
+# first divergent stage:              n/a
+# first divergent metric:             n/a
+
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  correctVelocity: field size does not match mesh cell count

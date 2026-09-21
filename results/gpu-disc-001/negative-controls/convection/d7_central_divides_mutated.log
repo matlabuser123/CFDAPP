@@ -1,0 +1,476 @@
+# d7_central_divides
+# layer:       convection
+# origin:      001D M1
+# expectation: detect
+# the momentum Central face value DIVIDES instead of multiplying by the reciprocal -- the same overload confusion as c1, in the vector path
+# mutation applied to include/cfd/gpu/DeviceConvectionTerms.hpp
+# --- anchor ---
+    const cfd::Real fxv = ((ux[owner] * dN) + (ux[neighbor] * dP)) * inverse;
+# --- became ---
+    const cfd::Real fxv = ((ux[owner] * dN) + (ux[neighbor] * dP)) / (dP + dN);
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness momentum_convection --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001D closure: CUDA momentum convection vs CPU (bitwise) ===
+CPU reference: physics::assembleConvectionContribution
+plus discretization::computeVelocityGradient (LinearUpwind's dependency)
+
+       [distorted q16/wall cells=256 bcFaces(const=64 identity=0 symmetry=0) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    wall           velocityGradient constant      differing=0     maxAbs=0          scale=22.3
+  PASS distorted q16    wall           velocityGradient linear        differing=0     maxAbs=0          scale=36.27
+  PASS distorted q16    wall           velocityGradient nonuniform    differing=0     maxAbs=0          scale=24.27
+  PASS distorted q16    wall           velocityGradient step          differing=0     maxAbs=0          scale=35.68
+       [distorted q16/movingwall+inlet cells=256 bcFaces(const=64 identity=0 symmetry=0) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    movingwall+inlet velocityGradient constant      differing=0     maxAbs=0          scale=18.73
+  PASS distorted q16    movingwall+inlet velocityGradient linear        differing=0     maxAbs=0          scale=22.49
+  PASS distorted q16    movingwall+inlet velocityGradient nonuniform    differing=0     maxAbs=0          scale=25.12
+  PASS distorted q16    movingwall+inlet velocityGradient step          differing=0     maxAbs=0          scale=21.41
+       [distorted q16/outlet+symmetry cells=256 bcFaces(const=0 identity=32 symmetry=32) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    outlet+symmetry velocityGradient constant      differing=0     maxAbs=0          scale=22.3
+  PASS distorted q16    outlet+symmetry velocityGradient linear        differing=0     maxAbs=0          scale=36.27
+  PASS distorted q16    outlet+symmetry velocityGradient nonuniform    differing=0     maxAbs=0          scale=11.57
+  PASS distorted q16    outlet+symmetry velocityGradient step          differing=0     maxAbs=0          scale=35.68
+       [distorted q16/all-five cells=256 bcFaces(const=48 identity=16 symmetry=0) skewedFaces=480 resident=190744 B]
+  PASS distorted q16    all-five       velocityGradient constant      differing=0     maxAbs=0          scale=22.3
+  PASS distorted q16    all-five       velocityGradient linear        differing=0     maxAbs=0          scale=21.67
+  PASS distorted q16    all-five       velocityGradient nonuniform    differing=0     maxAbs=0          scale=18.54
+  PASS distorted q16    all-five       velocityGradient step          differing=0     maxAbs=0          scale=19.62
+       [warped 3d 4/wall cells=64 bcFaces(const=96 identity=0 symmetry=0) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      wall           velocityGradient constant      differing=0     maxAbs=0          scale=5.711
+  PASS warped 3d 4      wall           velocityGradient linear        differing=0     maxAbs=0          scale=7.937
+  PASS warped 3d 4      wall           velocityGradient nonuniform    differing=0     maxAbs=0          scale=5.565
+  PASS warped 3d 4      wall           velocityGradient step          differing=0     maxAbs=0          scale=9.137
+       [warped 3d 4/movingwall+inlet cells=64 bcFaces(const=96 identity=0 symmetry=0) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      movingwall+inlet velocityGradient constant      differing=0     maxAbs=0          scale=4.797
+  PASS warped 3d 4      movingwall+inlet velocityGradient linear        differing=0     maxAbs=0          scale=7.292
+  PASS warped 3d 4      movingwall+inlet velocityGradient nonuniform    differing=0     maxAbs=0          scale=7.437
+  PASS warped 3d 4      movingwall+inlet velocityGradient step          differing=0     maxAbs=0          scale=5.482
+       [warped 3d 4/outlet+symmetry cells=64 bcFaces(const=0 identity=48 symmetry=48) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      outlet+symmetry velocityGradient constant      differing=0     maxAbs=0          scale=5.711
+  PASS warped 3d 4      outlet+symmetry velocityGradient linear        differing=0     maxAbs=0          scale=7.239
+  PASS warped 3d 4      outlet+symmetry velocityGradient nonuniform    differing=0     maxAbs=0          scale=4.496
+  PASS warped 3d 4      outlet+symmetry velocityGradient step          differing=0     maxAbs=0          scale=9.137
+       [warped 3d 4/all-five cells=64 bcFaces(const=64 identity=16 symmetry=16) skewedFaces=144 resident=76696 B]
+  PASS warped 3d 4      all-five       velocityGradient constant      differing=0     maxAbs=0          scale=5.085
+  PASS warped 3d 4      all-five       velocityGradient linear        differing=0     maxAbs=0          scale=7.803
+  PASS warped 3d 4      all-five       velocityGradient nonuniform    differing=0     maxAbs=0          scale=6.758
+  PASS warped 3d 4      all-five       velocityGradient step          differing=0     maxAbs=0          scale=8.1
+
+=== coverage ===
+  component U   1280 cases
+  component V   1280 cases
+  component W   640 cases
+  scheme upwind         800 cases
+  scheme central        800 cases
+  scheme linear_upwind  800 cases
+  scheme quick          800 cases
+  vector BC constant/identity/symmetry plans   6 / 4 / 3
+  velocityGradient cases                       32
+  reversed-flux pairs                          1600
+  reversal actually changed the result         1350
+  sparsity pattern mismatches                  0
+
+cases=3232 failures=160
+MOMENTUM CONVECTION EQUIVALENCE: FAIL
+
+########## harness momentum_assembly --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001F: CUDA SIMPLE momentum assembly vs CPU (bitwise) ===
+CPU reference: pressure_velocity::assembleRelaxedMomentumComponent
+
+       [distorted q16/wall cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+  FAIL distorted q16  wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=169] dvec[d=0] maxAbs=2.41e-17   scaleA=0.06069    scaleR=0.001773  
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=129] dvec[d=0] maxAbs=2.78e-17   scaleA=0.0867     scaleR=0.05287   
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=40] dvec[d=0] maxAbs=5.55e-17   scaleA=0.2023     scaleR=0.2999    
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=1.11e-16   scaleA=1.214      scaleR=2.321     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=124] dvec[d=0] maxAbs=5.83e-16   scaleA=4.2        scaleR=0.1058    
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=112] dvec[d=0] maxAbs=6.66e-16   scaleA=6          scaleR=3.319     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=74] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=18.2      
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=39] dvec[d=0] maxAbs=1.42e-14   scaleA=84         scaleR=148.4     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=169] dvec[d=0] maxAbs=2.41e-17   scaleA=0.4614     scaleR=0.004523  
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=29] dvec[d=0] maxAbs=5.55e-17   scaleA=0.6592     scaleR=0.3909    
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=1.11e-16   scaleA=1.538      scaleR=2.16      
+  FAIL distorted q16  wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=124] dvec[d=0] maxAbs=5.83e-16   scaleA=4.493      scaleR=0.1058    
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=108] dvec[d=0] maxAbs=6.66e-16   scaleA=6.418      scaleR=3.478     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=58] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=19.07     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=15] dvec[d=0] maxAbs=1.42e-14   scaleA=89.86      scaleR=155.4     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=168] dvec[d=0] maxAbs=2.41e-17   scaleA=0.1137     scaleR=0.001784  
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=113] dvec[d=0] maxAbs=2.78e-17   scaleA=0.1624     scaleR=0.08758   
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=5.55e-17   scaleA=0.3789     scaleR=0.4888    
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=2.273      scaleR=3.859     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=124] dvec[d=0] maxAbs=5.83e-16   scaleA=4.234      scaleR=0.1058    
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=112] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=3.33      
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=70] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=18.26     
+  FAIL distorted q16  wall      U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=33] dvec[d=0] maxAbs=1.42e-14   scaleA=84.69      scaleR=148.9     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.22e-16   scaleA=0.06069    scaleR=5.477     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.22e-16   scaleA=0.0867     scaleR=5.483     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.22e-16   scaleA=0.2023     scaleR=5.506     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=1.214      scaleR=5.718     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=84] dvec[d=0] maxAbs=6.11e-16   scaleA=4.2        scaleR=5.494     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=66] dvec[d=0] maxAbs=8.88e-16   scaleA=6          scaleR=5.602     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=44] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=19.12     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=24] dvec[d=0] maxAbs=1.42e-14   scaleA=84         scaleR=149.3     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.22e-16   scaleA=0.4614     scaleR=5.477     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.6592     scaleR=5.521     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=1.538      scaleR=5.717     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=9.228      scaleR=17.9      
+  FAIL distorted q16  wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=86] dvec[d=0] maxAbs=6.11e-16   scaleA=4.493      scaleR=5.494     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=65] dvec[d=0] maxAbs=8.88e-16   scaleA=6.418      scaleR=5.66      
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=39] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=19.99     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=1.42e-14   scaleA=89.86      scaleR=156.3     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.1137     scaleR=5.477     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.1624     scaleR=5.485     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=0.3789     scaleR=5.519     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=2.273      scaleR=5.821     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=86] dvec[d=0] maxAbs=5.55e-16   scaleA=4.234      scaleR=5.494     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=66] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=5.605     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=38] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=19.18     
+  FAIL distorted q16  wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=17] dvec[d=0] maxAbs=3.55e-15   scaleA=84.69      scaleR=149.8     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.06069    scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.0867     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.2023     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=69] dvec[d=0] maxAbs=8.88e-16   scaleA=4.2        scaleR=6.218     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=55] dvec[d=0] maxAbs=8.88e-16   scaleA=6          scaleR=7.091     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=41] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=20.04     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=23] dvec[d=0] maxAbs=1.42e-14   scaleA=84         scaleR=150.2     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.4614     scaleR=6.212     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.6592     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=1.538      scaleR=6.994     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=66] dvec[d=0] maxAbs=8.88e-16   scaleA=4.493      scaleR=6.218     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=57] dvec[d=0] maxAbs=8.88e-16   scaleA=6.418      scaleR=7.407     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=20.91     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=14] dvec[d=0] maxAbs=1.42e-14   scaleA=89.86      scaleR=157.3     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1137     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1624     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.3789     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=68] dvec[d=0] maxAbs=8.88e-16   scaleA=4.234      scaleR=6.218     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=54] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=7.119     
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=43] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=20.1      
+  FAIL distorted q16  wall      U  central       linear      nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=18] dvec[d=0] maxAbs=1.42e-14   scaleA=84.69      scaleR=150.7     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=146] dvec[d=0] maxAbs=7.91e-18   scaleA=0.06069    scaleR=0.002954  
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=114] dvec[d=0] maxAbs=6.94e-18   scaleA=0.0867     scaleR=0.03172   
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=32] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2023     scaleR=0.1744    
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=1.11e-16   scaleA=1.214      scaleR=1.372     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=116] dvec[d=0] maxAbs=4.72e-16   scaleA=4.2        scaleR=0.1223    
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=99] dvec[d=0] maxAbs=4.44e-16   scaleA=6          scaleR=3.244     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=59] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=17.52     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=34] dvec[d=0] maxAbs=7.11e-15   scaleA=84         scaleR=142.4     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=146] dvec[d=0] maxAbs=7.91e-18   scaleA=0.4614     scaleR=0.004181  
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=28] dvec[d=0] maxAbs=2.78e-17   scaleA=0.6592     scaleR=0.2733    
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=2.78e-17   scaleA=1.538      scaleR=1.488     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.73e-18   scaleA=9.228      scaleR=12.06     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=116] dvec[d=0] maxAbs=4.72e-16   scaleA=4.493      scaleR=0.1223    
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=91] dvec[d=0] maxAbs=4.44e-16   scaleA=6.418      scaleR=3.397     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=47] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=18.35     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=18] dvec[d=0] maxAbs=3.55e-15   scaleA=89.86      scaleR=149.1     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=146] dvec[d=0] maxAbs=7.91e-18   scaleA=0.1137     scaleR=0.002939  
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=97] dvec[d=0] maxAbs=6.94e-18   scaleA=0.1624     scaleR=0.04474   
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=29] dvec[d=0] maxAbs=2.78e-17   scaleA=0.3789     scaleR=0.253     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=1.11e-16   scaleA=2.273      scaleR=1.973     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=116] dvec[d=0] maxAbs=4.72e-16   scaleA=4.234      scaleR=0.1223    
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=98] dvec[d=0] maxAbs=4.44e-16   scaleA=6.049      scaleR=3.255     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=62] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=17.58     
+  FAIL distorted q16  wall      U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=7.11e-15   scaleA=84.69      scaleR=142.8     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.06069    scaleR=5.473     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.0867     scaleR=5.464     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.2023     scaleR=5.426     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=1.214      scaleR=5.09      
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=50] dvec[d=0] maxAbs=4.44e-16   scaleA=4.2        scaleR=5.48      
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=40] dvec[d=0] maxAbs=4.44e-16   scaleA=6          scaleR=5.412     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=30] dvec[d=0] maxAbs=3.55e-15   scaleA=14         scaleR=18.44     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=17] dvec[d=0] maxAbs=1.78e-15   scaleA=84         scaleR=143.3     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.4614     scaleR=5.474     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.6592     scaleR=5.404     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=4.44e-16   scaleA=1.538      scaleR=5.092     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=50] dvec[d=0] maxAbs=8.88e-16   scaleA=4.493      scaleR=5.481     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=34] dvec[d=0] maxAbs=8.88e-16   scaleA=6.418      scaleR=5.351     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=26] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=19.27     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=1.78e-15   scaleA=89.86      scaleR=150       
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.1137     scaleR=5.473     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.1624     scaleR=5.461     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.3789     scaleR=5.406     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=47] dvec[d=0] maxAbs=4.44e-16   scaleA=4.234      scaleR=5.48      
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=4.44e-16   scaleA=6.049      scaleR=5.408     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=21] dvec[d=0] maxAbs=3.55e-15   scaleA=14.11      scaleR=18.5      
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=11] dvec[d=0] maxAbs=1.78e-15   scaleA=84.69      scaleR=143.7     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.06069    scaleR=6.213     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.0867     scaleR=6.205     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.2023     scaleR=6.17      
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=1.214      scaleR=6.229     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=42] dvec[d=0] maxAbs=8.88e-16   scaleA=4.2        scaleR=6.212     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=8.88e-16   scaleA=6          scaleR=6.293     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=3.55e-15   scaleA=14         scaleR=19.36     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=19] dvec[d=0] maxAbs=7.11e-15   scaleA=84         scaleR=144.2     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.4614     scaleR=6.211     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.6592     scaleR=6.161     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=1.538      scaleR=6.227     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=9.228      scaleR=14.52     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=43] dvec[d=0] maxAbs=8.88e-16   scaleA=4.493      scaleR=6.211     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=8.88e-16   scaleA=6.418      scaleR=6.479     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=25] dvec[d=0] maxAbs=8.88e-16   scaleA=14.98      scaleR=20.19     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=8] dvec[d=0] maxAbs=1.42e-14   scaleA=89.86      scaleR=151       
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.1137     scaleR=6.213     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.1624     scaleR=6.204     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.3789     scaleR=6.164     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=2.273      scaleR=6.954     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=40] dvec[d=0] maxAbs=8.88e-16   scaleA=4.234      scaleR=6.212     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=31] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=6.31      
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=26] dvec[d=0] maxAbs=3.55e-15   scaleA=14.11      scaleR=19.42     
+  FAIL distorted q16  wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=15] dvec[d=0] maxAbs=3.55e-15   scaleA=84.69      scaleR=144.7     
+  FAIL distorted q16  wall      U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=4.44e-16   scaleA=0.1624     scaleR=5.463     
+       [distorted q16/all-five cells=256 higherOrderBoundary=64 correctableInternal=480 resident=418080 B]
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=168] dvec[d=0] maxAbs=2.41e-17   scaleA=0.06069    scaleR=0.04435   
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=126] dvec[d=0] maxAbs=2.78e-17   scaleA=0.0867     scaleR=0.09056   
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=36] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2023     scaleR=0.3322    
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=2.22e-16   scaleA=1.214      scaleR=2.353     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=122] dvec[d=0] maxAbs=6.66e-16   scaleA=4.2        scaleR=1.236     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=110] dvec[d=0] maxAbs=6.66e-16   scaleA=6          scaleR=3.319     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=67] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=18.2      
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=37] dvec[d=0] maxAbs=1.42e-14   scaleA=84         scaleR=148.4     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=150] dvec[d=0] maxAbs=2.78e-17   scaleA=0.4614     scaleR=0.406     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=26] dvec[d=0] maxAbs=5.55e-17   scaleA=0.6592     scaleR=0.7481    
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=1.11e-16   scaleA=1.538      scaleR=2.517     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=124] dvec[d=0] maxAbs=6.66e-16   scaleA=4.493      scaleR=1.426     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=109] dvec[d=0] maxAbs=6.66e-16   scaleA=6.418      scaleR=3.629     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=59] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=19.07     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=14] dvec[d=0] maxAbs=1.42e-14   scaleA=89.86      scaleR=155.4     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=167] dvec[d=0] maxAbs=2.41e-17   scaleA=0.107      scaleR=0.09303   
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=110] dvec[d=0] maxAbs=2.78e-17   scaleA=0.1529     scaleR=0.1745    
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=5.55e-17   scaleA=0.3567     scaleR=0.5505    
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=2.14       scaleR=3.914     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=124] dvec[d=0] maxAbs=6.66e-16   scaleA=4.234      scaleR=1.257     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=112] dvec[d=0] maxAbs=6.66e-16   scaleA=6.049      scaleR=3.33      
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=68] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=18.26     
+  FAIL distorted q16  all-five  U  central       linear      uniform    a=0.05  diag[d=0] off[d=0] rhs[d=32] dvec[d=0] maxAbs=1.42e-14   scaleA=84.69      scaleR=148.9     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.22e-16   scaleA=0.06069    scaleR=5.482     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.22e-16   scaleA=0.0867     scaleR=5.488     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.22e-16   scaleA=0.2023     scaleR=5.511     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=1.214      scaleR=5.723     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=85] dvec[d=0] maxAbs=6.66e-16   scaleA=4.2        scaleR=5.494     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=67] dvec[d=0] maxAbs=6.66e-16   scaleA=6          scaleR=5.602     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=39] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=19.12     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=23] dvec[d=0] maxAbs=1.42e-14   scaleA=84         scaleR=149.3     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.22e-16   scaleA=0.4614     scaleR=5.5       
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.22e-16   scaleA=0.6592     scaleR=5.539     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=4.44e-16   scaleA=1.538      scaleR=5.714     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=9.228      scaleR=18.26     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=83] dvec[d=0] maxAbs=6.66e-16   scaleA=4.493      scaleR=5.512     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=61] dvec[d=0] maxAbs=4.44e-16   scaleA=6.418      scaleR=5.66      
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=38] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=19.99     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=7.11e-15   scaleA=89.86      scaleR=156.3     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.107      scaleR=5.483     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.1529     scaleR=5.491     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=0.3567     scaleR=5.524     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=2.14       scaleR=5.814     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=89] dvec[d=0] maxAbs=6.66e-16   scaleA=4.234      scaleR=5.495     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=68] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=5.605     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=40] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=19.18     
+  FAIL distorted q16  all-five  U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=3.55e-15   scaleA=84.69      scaleR=149.8     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.11e-16   scaleA=0.06069    scaleR=6.213     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.11e-16   scaleA=0.0867     scaleR=6.213     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.2023     scaleR=6.213     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=69] dvec[d=0] maxAbs=8.88e-16   scaleA=4.2        scaleR=6.218     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=56] dvec[d=0] maxAbs=8.88e-16   scaleA=6          scaleR=7.091     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=41] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=20.04     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=23] dvec[d=0] maxAbs=1.42e-14   scaleA=84         scaleR=150.2     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.4614     scaleR=6.209     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=0.6592     scaleR=6.176     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=68] dvec[d=0] maxAbs=8.88e-16   scaleA=4.493      scaleR=6.218     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=59] dvec[d=0] maxAbs=8.88e-16   scaleA=6.418      scaleR=7.538     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=37] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=20.91     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=14] dvec[d=0] maxAbs=1.42e-14   scaleA=89.86      scaleR=157.3     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=5.55e-17   scaleA=0.107      scaleR=6.21      
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=5.55e-17   scaleA=0.1529     scaleR=6.211     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=5.55e-17   scaleA=0.3567     scaleR=6.21      
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=68] dvec[d=0] maxAbs=8.88e-16   scaleA=4.234      scaleR=6.218     
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=54] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=7.13      
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=44] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=20.1      
+  FAIL distorted q16  all-five  U  central       linear      nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=18] dvec[d=0] maxAbs=1.42e-14   scaleA=84.69      scaleR=150.7     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=142] dvec[d=0] maxAbs=7.91e-18   scaleA=0.06069    scaleR=0.04403   
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=111] dvec[d=0] maxAbs=1.39e-17   scaleA=0.0867     scaleR=0.05639   
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=33] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2023     scaleR=0.1834    
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=8] dvec[d=0] maxAbs=1.11e-16   scaleA=1.214      scaleR=1.373     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=115] dvec[d=0] maxAbs=4.72e-16   scaleA=4.2        scaleR=1.213     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=98] dvec[d=0] maxAbs=4.44e-16   scaleA=6          scaleR=3.244     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=59] dvec[d=0] maxAbs=1.78e-15   scaleA=14         scaleR=17.52     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=7.11e-15   scaleA=84         scaleR=142.4     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=131] dvec[d=0] maxAbs=1.39e-17   scaleA=0.4614     scaleR=0.353     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=24] dvec[d=0] maxAbs=2.78e-17   scaleA=0.6592     scaleR=0.4361    
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=5.55e-17   scaleA=1.538      scaleR=1.602     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.73e-18   scaleA=9.228      scaleR=12.18     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=116] dvec[d=0] maxAbs=4.72e-16   scaleA=4.493      scaleR=1.421     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=89] dvec[d=0] maxAbs=4.44e-16   scaleA=6.418      scaleR=3.397     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=47] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=18.35     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=3.55e-15   scaleA=89.86      scaleR=149.1     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=143] dvec[d=0] maxAbs=7.91e-18   scaleA=0.107      scaleR=0.0756    
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=97] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1529     scaleR=0.0974    
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=26] dvec[d=0] maxAbs=2.78e-17   scaleA=0.3567     scaleR=0.2838    
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=2.22e-16   scaleA=2.14       scaleR=2.004     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=116] dvec[d=0] maxAbs=4.72e-16   scaleA=4.234      scaleR=1.234     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=98] dvec[d=0] maxAbs=4.44e-16   scaleA=6.049      scaleR=3.255     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=62] dvec[d=0] maxAbs=1.78e-15   scaleA=14.11      scaleR=17.58     
+  FAIL distorted q16  all-five  U  central       nonuniform  uniform    a=0.05  diag[d=0] off[d=0] rhs[d=36] dvec[d=0] maxAbs=7.11e-15   scaleA=84.69      scaleR=142.8     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.06069    scaleR=5.461     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.0867     scaleR=5.452     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.2023     scaleR=5.414     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=1.214      scaleR=5.079     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=48] dvec[d=0] maxAbs=4.44e-16   scaleA=4.2        scaleR=5.48      
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=38] dvec[d=0] maxAbs=4.44e-16   scaleA=6          scaleR=5.412     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=3.55e-15   scaleA=14         scaleR=18.44     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=16] dvec[d=0] maxAbs=1.78e-15   scaleA=84         scaleR=143.3     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.11e-16   scaleA=0.4614     scaleR=5.42      
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=0.6592     scaleR=5.357     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=1.538      scaleR=5.079     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=46] dvec[d=0] maxAbs=4.44e-16   scaleA=4.493      scaleR=5.439     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=29] dvec[d=0] maxAbs=8.88e-16   scaleA=6.418      scaleR=5.317     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=26] dvec[d=0] maxAbs=1.78e-15   scaleA=14.98      scaleR=19.27     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=6] dvec[d=0] maxAbs=1.78e-15   scaleA=89.86      scaleR=150       
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=2.22e-16   scaleA=0.107      scaleR=5.459     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=4.44e-16   scaleA=0.1529     scaleR=5.447     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.22e-16   scaleA=0.3567     scaleR=5.394     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=2.14       scaleR=4.948     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=50] dvec[d=0] maxAbs=8.88e-16   scaleA=4.234      scaleR=5.478     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=38] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=5.406     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=22] dvec[d=0] maxAbs=3.55e-15   scaleA=14.11      scaleR=18.5      
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.05  diag[d=0] off[d=0] rhs[d=12] dvec[d=0] maxAbs=1.78e-15   scaleA=84.69      scaleR=143.7     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.06069    scaleR=6.213     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.0867     scaleR=6.205     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.2023     scaleR=6.17      
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=1.214      scaleR=6.248     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=41] dvec[d=0] maxAbs=8.88e-16   scaleA=4.2        scaleR=6.212     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=35] dvec[d=0] maxAbs=8.88e-16   scaleA=6          scaleR=6.293     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=27] dvec[d=0] maxAbs=3.55e-15   scaleA=14         scaleR=19.36     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=19] dvec[d=0] maxAbs=7.11e-15   scaleA=84         scaleR=144.2     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.4614     scaleR=6.208     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.6592     scaleR=6.144     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=1.538      scaleR=6.312     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=9.228      scaleR=14.67     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=40] dvec[d=0] maxAbs=8.88e-16   scaleA=4.493      scaleR=6.208     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=33] dvec[d=0] maxAbs=1.78e-15   scaleA=6.418      scaleR=6.61      
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=25] dvec[d=0] maxAbs=8.88e-16   scaleA=14.98      scaleR=20.19     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=7] dvec[d=0] maxAbs=7.11e-15   scaleA=89.86      scaleR=151       
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=0.107      scaleR=6.21      
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=0.1529     scaleR=6.201     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=0.3567     scaleR=6.161     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=2.14       scaleR=6.984     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=40] dvec[d=0] maxAbs=8.88e-16   scaleA=4.234      scaleR=6.21      
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=32] dvec[d=0] maxAbs=8.88e-16   scaleA=6.049      scaleR=6.321     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=25] dvec[d=0] maxAbs=3.55e-15   scaleA=14.11      scaleR=19.42     
+  FAIL distorted q16  all-five  U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=15] dvec[d=0] maxAbs=3.55e-15   scaleA=84.69      scaleR=144.7     
+  FAIL distorted q16  all-five  U  central       nonuniform  gradient   a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=4.44e-16   scaleA=0.1529     scaleR=5.461     
+       [warped 3d 3/wall cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=9.54e-18   scaleA=0.08809    scaleR=0.01317   
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=1.04e-17   scaleA=0.1258     scaleR=0.0976    
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2936     scaleR=0.5818    
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-16   scaleA=4.7        scaleR=0.4445    
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=6.714      scaleR=3.78      
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.67      scaleR=18.74     
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=9.54e-18   scaleA=0.2884     scaleR=0.01422   
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-17   scaleA=0.412      scaleR=0.2948    
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=0.9614     scaleR=1.651     
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-16   scaleA=4.866      scaleR=0.4436    
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=6.951      scaleR=3.93      
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=16.22      scaleR=19.57     
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=9.54e-18   scaleA=0.1104     scaleR=0.01328   
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1577     scaleR=0.118     
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-16   scaleA=4.72       scaleR=0.4445    
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=6.744      scaleR=3.794     
+  FAIL warped 3d 3    wall      U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.73      scaleR=18.81     
+  FAIL warped 3d 3    wall      U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.78e-15   scaleA=4.7        scaleR=11.49     
+  FAIL warped 3d 3    wall      U  central       linear      gradient   a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.78e-15   scaleA=6.714      scaleR=11.9      
+  FAIL warped 3d 3    wall      U  central       linear      gradient   a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.78e-15   scaleA=15.67      scaleR=21.86     
+  FAIL warped 3d 3    wall      U  central       linear      gradient   a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.42e-14   scaleA=94         scaleR=151.7     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.67e-16   scaleA=4.7        scaleR=45.29     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.67e-16   scaleA=6.714      scaleR=44.88     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.67      scaleR=43.39     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=0.2884     scaleR=45.34     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=0.412      scaleR=45.25     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=0.9614     scaleR=44.84     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.67e-16   scaleA=4.866      scaleR=45.28     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=6.951      scaleR=44.81     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=16.22      scaleR=43.68     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.67e-16   scaleA=4.72       scaleR=45.29     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.67e-16   scaleA=6.744      scaleR=44.87     
+  FAIL warped 3d 3    wall      U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.73      scaleR=43.41     
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.04e-17   scaleA=0.08809    scaleR=0.008684  
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1258     scaleR=0.05184   
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=4.7        scaleR=0.3532    
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.04e-17   scaleA=0.2884     scaleR=0.01214   
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=0.412      scaleR=0.1689    
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=4.866      scaleR=0.3532    
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=6.951      scaleR=2.192     
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.04e-17   scaleA=0.1104     scaleR=0.008861  
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1577     scaleR=0.06299   
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=4.72       scaleR=0.3532    
+  FAIL warped 3d 3    wall      U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=15.73      scaleR=10.09     
+  FAIL warped 3d 3    wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.7        scaleR=11.53     
+  FAIL warped 3d 3    wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.866      scaleR=11.53     
+  FAIL warped 3d 3    wall      U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.72       scaleR=11.53     
+  FAIL warped 3d 3    wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=4.7        scaleR=45.25     
+  FAIL warped 3d 3    wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=6.714      scaleR=44.59     
+  FAIL warped 3d 3    wall      U  central       nonuniform  nonuniform a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=4.72       scaleR=45.25     
+  FAIL warped 3d 3    wall      U  central       nonuniform  nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=6.744      scaleR=44.58     
+  FAIL warped 3d 3    wall      U  central       nonuniform  nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=15.73      scaleR=42.76     
+  FAIL warped 3d 3    wall      U  central       nonuniform  nonuniform a=0.05  diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.78e-15   scaleA=94.41      scaleR=80.47     
+       [warped 3d 3/all-five cells=27 higherOrderBoundary=54 correctableInternal=54 resident=80384 B]
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=9.54e-18   scaleA=0.08809    scaleR=0.05279   
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.04e-17   scaleA=0.1258     scaleR=0.131     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2936     scaleR=0.6152    
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-16   scaleA=4.7        scaleR=1.357     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=6.714      scaleR=3.78      
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.67      scaleR=18.74     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=4] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2884     scaleR=0.2248    
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=3.33e-16   scaleA=4.849      scaleR=1.437     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=4.44e-16   scaleA=6.927      scaleR=4.092     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=16.16      scaleR=19.67     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=5] dvec[d=0] maxAbs=9.54e-18   scaleA=0.1082     scaleR=0.07309   
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=1.04e-17   scaleA=0.1545     scaleR=0.1626    
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=1     diag[d=0] off[d=0] rhs[d=3] dvec[d=0] maxAbs=2.78e-16   scaleA=4.718      scaleR=1.365     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=6.741      scaleR=3.809     
+  FAIL warped 3d 3    all-five  U  central       linear      uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.73      scaleR=18.82     
+  FAIL warped 3d 3    all-five  U  central       linear      gradient   a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=4.849      scaleR=11.53     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=4.7        scaleR=45.29     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.67e-16   scaleA=6.714      scaleR=44.88     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.67      scaleR=43.39     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=4.849      scaleR=45.25     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=6.927      scaleR=44.77     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=16.16      scaleR=43.64     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=2.22e-16   scaleA=4.718      scaleR=45.28     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=4.44e-16   scaleA=6.741      scaleR=44.87     
+  FAIL warped 3d 3    all-five  U  central       linear      nonuniform a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=8.88e-16   scaleA=15.73      scaleR=43.41     
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.04e-17   scaleA=0.08809    scaleR=0.04847   
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1258     scaleR=0.08417   
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=0.2936     scaleR=0.4189    
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.7        scaleR=1.81      
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=4.44e-16   scaleA=15.67      scaleR=10.78     
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=6.94e-18   scaleA=0.2884     scaleR=0.1731    
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.78e-17   scaleA=0.412      scaleR=0.3099    
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=5.55e-17   scaleA=4.849      scaleR=1.896     
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.11e-16   scaleA=6.927      scaleR=2.95      
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=2.22e-16   scaleA=16.16      scaleR=11.27     
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.04e-17   scaleA=0.1082     scaleR=0.05761   
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.7   diag[d=0] off[d=0] rhs[d=2] dvec[d=0] maxAbs=1.39e-17   scaleA=0.1545     scaleR=0.1076    
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=0.3   src diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=5.55e-17   scaleA=0.3605     scaleR=0.4965    
+  FAIL warped 3d 3    all-five  U  central       nonuniform  uniform    a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.718      scaleR=1.816     
+  FAIL warped 3d 3    all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.7        scaleR=11.53     
+  FAIL warped 3d 3    all-five  U  central       nonuniform  gradient   a=1     diag[d=0] off[d=0] rhs[d=1] dvec[d=0] maxAbs=1.39e-17   scaleA=4.718      scaleR=11.53     
+
+=== coverage ===
+  component U   4624 cases
+  component V   4624 cases
+  component W   2312 cases
+  scheme upwind         2890 cases
+  scheme central        2890 cases
+  scheme linear_upwind  2890 cases
+  scheme quick          2890 cases
+  relaxation factors exercised     4 (alpha = 1.0, 0.7, 0.3, 0.05)
+  relaxed (alpha != 1) cases       8680
+  momentum-source cases            2880
+  non-orthogonal-correction cases  2880
+  sparsity pattern mismatches      0
+  bitwise-identical cases          11188 of 11560
+  max absolute discrepancy         1.42e-14
+  max relative discrepancy         2.27e-12
+
+cases=11560 failures=372
+MOMENTUM ASSEMBLY EQUIVALENCE: FAIL

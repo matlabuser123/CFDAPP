@@ -1,0 +1,22 @@
+# rp6_diagonal_rejection_removed -- restored cuda/kernels/GpuResidentSolveKernel.cu
+# sha256 e019f13e6e048c0b59aa9ece6adb03743ed88ea115c9683712b20c27a0f8db7a
+# matches baseline: True
+# clean baseline re-passes: True
+
+########## harness rejection -> exit 0 ##########
+=== GPU-PIPE-001 resident pressure solve: rejection behaviour ===
+
+-- healthy systems (non-vacuity: the probe must ACCEPT these) --
+  healthy, Jacobi                            host Converged          resident Converged          match
+  healthy, no preconditioner                 host Converged          resident Converged          match
+
+-- diagonals a Jacobi preconditioner cannot use --
+  zero diagonal                              host InvalidSystem      resident InvalidSystem      match
+  near-zero diagonal                         host InvalidSystem      resident InvalidSystem      match
+
+-- non-finite inputs (a host LinearSystem cannot even hold these) --
+  NaN diagonal                               host refuses to build   resident NonFiniteInput     both reject
+  infinite off-diagonal                      host refuses to build   resident NonFiniteInput     both reject
+  NaN right-hand side                        host NonFiniteInput     resident NonFiniteInput     match
+
+REJECTION PROBE: PASS

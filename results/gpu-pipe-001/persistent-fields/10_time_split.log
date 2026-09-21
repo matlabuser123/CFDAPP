@@ -1,0 +1,8 @@
+   grid  end-to-end  in GPU solves  CPU stages  CPU share
+  160^2       2.661          1.948       0.714      26.8%
+  320^2       4.942          2.540       2.401      48.6%
+  640^2      12.233          2.997       9.236      75.5%
+
+The CPU share is assembly + correction: operations with no device
+implementation. A field cannot usefully stay resident when the next
+thing that reads it is host code.

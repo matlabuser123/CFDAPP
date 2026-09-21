@@ -1,0 +1,44 @@
+# e4_wall_inlet_value_corrupted
+# layer:       boundary-conditions
+# origin:      001E B4
+# expectation: detect
+# WALL/INLET VALUE CORRUPTION: a constant vector condition returns zero for x, so a moving wall or an inlet loses its prescribed x velocity
+# mutation applied to include/cfd/gpu/DeviceBoundaryConditions.hpp
+# --- anchor ---
+    outX = bc.constX[face]; outY = bc.constY[face]; outZ = bc.constZ[face];
+# --- became ---
+    outX = 0.0; outY = bc.constY[face]; outZ = bc.constZ[face];
+# verdict: DETECTED
+# first divergence: n/a
+
+########## harness boundary --quick -> exit 1 (DETECTED) ##########
+=== GPU-DISC-001E: shared CUDA boundary-condition layer vs CPU (bitwise) ===
+isolated -- device evaluators driven directly, no equation or operator
+
+  FAIL distorted q16    all MovingWall           scalar[d=0] alt[d=0] vector[d=64] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.3        scale=1.3
+  FAIL distorted q16    all Inlet                scalar[d=0] alt[d=0] vector[d=64] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.8        scale=0.8
+  FAIL distorted q16    vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=32] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.1        scale=1.702
+  FAIL warped 3d 4      all MovingWall           scalar[d=0] alt[d=0] vector[d=96] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.5        scale=1.5
+  FAIL warped 3d 4      all Inlet                scalar[d=0] alt[d=0] vector[d=96] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=0.8        scale=0.8
+  FAIL warped 3d 4      vector mix (5 types)     scalar[d=0] alt[d=0] vector[d=32] ghost[d=0] type[d=0] prescribes[d=0] maxAbs=1.1        scale=1.942
+
+=== coverage ===
+  type FixedValue         covered
+  type FixedGradient      covered
+  type Wall               covered
+  type MovingWall         covered
+  type Inlet              covered
+  type Outlet             covered
+  type Symmetry           covered
+  type FixedTemperature   covered
+  type HeatFlux           covered
+  type Adiabatic          covered
+  type WallOmega          covered
+  scalar forms const/shift/affine   10 / 10 / 0 (sets reaching each)
+  vector forms const/identity/symm  10 / 6 / 5
+  ghost inflow/outflow/zero-flux    384 / 360 / 536
+  faces with an alternative distance 2400
+  total scalar comparisons          9600
+
+cases=30 failures=6
+BOUNDARY CONDITION EQUIVALENCE: FAIL

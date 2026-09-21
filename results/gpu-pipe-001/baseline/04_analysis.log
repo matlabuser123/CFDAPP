@@ -1,0 +1,46 @@
+available columns: grid, cells, backend, repeat, outer_iterations, total_seconds, mesh_setup_seconds, simple_solve_seconds, status, ran_cleanly, mass_imbalance, h2d_calls, h2d_bytes, d2h_calls, d2h_bytes, upload_seconds, download_seconds, kernel_seconds, gpu_solve_seconds, gpu_linear_solves, gpu_linear_solver_iterations
+
+=== end-to-end (median of repeats; simple_solve_seconds) ===
+     grid    cells  outer     CPU s     GPU s  speedup  CPU spread  GPU spread
+    20x20      400    200     0.292    12.401   0.024x       0.009       3.981
+    40x40     1600    200     1.393    25.450   0.055x       0.059       1.957
+    80x80     6400    200     6.844    37.382   0.183x       0.310       1.039
+  160x160    25600     60    11.874    20.696   0.574x       0.252       2.736
+  320x320   102400     20    28.131    21.715   1.295x       0.071       0.348
+  640x640   409600      8    90.059    29.372   3.066x       0.000       0.000
+
+=== transfers (GPU backend, median) ===
+     grid   H2D cnt    H2D MB   D2H cnt    D2H MB  total cnt  total MB  B/D2H call
+    20x20      1804     13.09     73840      3.09      75644     16.18          42
+    40x40      1804     53.14    133476     15.12     135280     68.26         113
+    80x80      1804    214.11    159930     62.59     161734    276.70         391
+  160x160       544    259.57     82869    103.02      83413    362.59        1243
+  320x320       184    353.26     53446    219.99      53630    573.25        4116
+  640x640        76    589.29     40492    596.63      40568   1185.92       14735
+
+=== per SIMPLE (outer) iteration, and per Krylov iteration ===
+     grid  outer   krylov  xfer/outer  D2H/outer  H2D/outer   kB/outer  D2H/krylov
+    20x20    200    10516       378.2      369.2       9.02       80.9        7.02
+    40x40    200    19047       676.4      667.4       9.02      341.3        7.01
+    80x80    200    22818       808.7      799.6       9.02     1383.5        7.01
+  160x160     60    11838      1390.2     1381.2       9.07     6043.1        7.00
+  320x320     20     7639      2681.5     2672.3       9.20    28662.3        7.00
+  640x640      8     5785      5071.0     5061.5       9.50   148240.6        7.00
+
+=== GPU timing breakdown (median seconds) ===
+     grid     solve  gpu_solve    kernel    upload  download    dl %  xfer %
+    20x20    12.401     12.199     6.105     0.049     5.821   46.9%   47.3%
+    40x40    25.450     24.660    12.330     0.091    11.807   46.4%   46.8%
+    80x80    37.382     33.849    16.655     0.489    16.091   43.0%   44.4%
+  160x160    20.696     15.413     8.166     0.213     6.745   32.6%   33.6%
+  320x320    21.715     13.872     8.000     0.222     5.389   24.8%   25.8%
+  640x640    29.372     10.823     6.981     0.193     3.380   11.5%   12.2%
+
+=== metrics NOT recorded by this harness (reported unavailable, not estimated) ===
+  SIMPLE-loop time             unavailable (no 'simple_loop_seconds' column)
+  SpMV time                    unavailable (no 'spmv_seconds' column)
+  allocations                  unavailable (no 'allocations' column)
+  deallocations                unavailable (no 'frees' column)
+  pressure-correction time     unavailable (no 'pressure_correction_seconds' column)
+  synchronizations             unavailable (no 'synchronizations' column)
+  transfer purpose breakdown   unavailable (no 'h2d_bytes_field' column)

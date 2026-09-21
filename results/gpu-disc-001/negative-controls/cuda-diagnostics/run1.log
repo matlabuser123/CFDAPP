@@ -1,0 +1,31 @@
+=== build identity (the RESTORED tree) ===
+ninja: no work to do.
+202779c8c2a812b1cf10ce52d021b6081c4f540c9b4e17ef10cc46a088c3940e  build/cuda/cuda/libcfdcuda.a
+79b3162c3cfc810773e8c2ce0e3cdd07c5d58a425966a0aee460d4d5cd8c0a7e  build/cuda/src/libcfdcore.a
+
+=== build the 001O diagnostic workload against the restored libraries ===
+built /tmp/gpu_diag_workload_post
+
+tool        mode            rc   vacuity       kernels   summary
+memcheck    cavity2d        0    non-vacuous   1000      ========= ERROR SUMMARY: 0 errors
+memcheck    case3d          0    non-vacuous   2911      ========= ERROR SUMMARY: 0 errors
+memcheck    schemes         0    non-vacuous   4925      ========= ERROR SUMMARY: 0 errors
+memcheck    nonorthogonal   0    non-vacuous   5370      ========= ERROR SUMMARY: 0 errors
+memcheck    gpusolver       0    non-vacuous   37932     ========= ERROR SUMMARY: 0 errors
+initcheck   cavity2d        0    non-vacuous   1000      ========= ERROR SUMMARY: 0 errors
+initcheck   case3d          0    non-vacuous   2911      ========= ERROR SUMMARY: 0 errors
+initcheck   schemes         0    non-vacuous   4925      ========= ERROR SUMMARY: 0 errors
+initcheck   nonorthogonal   0    non-vacuous   5370      ========= ERROR SUMMARY: 0 errors
+initcheck   gpusolver       0    non-vacuous   37932     ========= ERROR SUMMARY: 0 errors
+synccheck   cavity2d        0    non-vacuous   1000      ========= ERROR SUMMARY: 0 errors
+synccheck   case3d          0    non-vacuous   2911      ========= ERROR SUMMARY: 0 errors
+synccheck   schemes         0    non-vacuous   4925      ========= ERROR SUMMARY: 0 errors
+synccheck   nonorthogonal   0    non-vacuous   5370      ========= ERROR SUMMARY: 0 errors
+synccheck   gpusolver       0    non-vacuous   37932     ========= ERROR SUMMARY: 0 errors
+racecheck   cavity2d        0    non-vacuous   1000      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   case3d          0    non-vacuous   2911      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   schemes         0    non-vacuous   4925      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   nonorthogonal   0    non-vacuous   5370      ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+racecheck   gpusolver       0    non-vacuous   37932     ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+
+POST-RESTORATION CUDA DIAGNOSTICS: PASS -- 20/20 runs clean and non-vacuous

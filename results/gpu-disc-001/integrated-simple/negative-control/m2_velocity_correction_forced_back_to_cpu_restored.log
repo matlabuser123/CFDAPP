@@ -1,0 +1,40 @@
+# m2_velocity_correction_forced_back_to_cpu -- restored src/pressure_velocity/SIMPLE.cpp
+# sha256 f5c69deff2fe8857172b32813687d9e9cdd0831dca75feecf3da9acf8944d5fe
+# matches baseline: True
+
+=== GPU-DISC-001M: production SIMPLE, GPU discretization on vs off ===
+CUDA available: yes
+
+  PASS D  cavity 2d 16       cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  cavity 2d 16       u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  cavity 2d 16       off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=303/1096048B d2h=16/81176B kern=25 sync=0 alloc=345]
+                          marginal per extra iteration: h2d=12 d2h=16 kern=25 alloc=0
+  PASS R  cavity 2d 16       GPU discretization repeated, identical: yes
+  PASS D  channel 2d 16      cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  channel 2d 16      u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  channel 2d 16      off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=303/1096048B d2h=16/81176B kern=25 sync=0 alloc=345]
+                          marginal per extra iteration: h2d=12 d2h=16 kern=25 alloc=0
+  PASS R  channel 2d 16      GPU discretization repeated, identical: yes
+  PASS D  cavity 3d 4        cpu[gpuDisc=0] gpu[gpuDisc=1 reason=''] errors=0
+  PASS E  cavity 3d 4        u[d=0] p[d=0] flux[d=0] residuals[d=0] maxAbs=0          status=1/1 iterations=1/1
+  PASS T  cavity 3d 4        off[h2d=0/0B d2h=0/0B kern=0 sync=0 alloc=0]
+                          on [h2d=304/468976B d2h=20/30112B kern=39 sync=0 alloc=360]
+                          marginal per extra iteration: h2d=13 d2h=20 kern=39 alloc=0
+  PASS R  cavity 3d 4        GPU discretization repeated, identical: yes
+  PASS F  cavity 2d 16       unsupported config -> gpuDisc=0 reason='nonOrthogonalCorrections > 1 keeps the corrector passes on the CPU' matches CPU: yes
+
+=== coverage ===
+  2D / 3D cases                     2 / 1
+  equivalence cases                 3
+  dispatch checks                   3
+  transfer measurements             3
+  determinism checks                3
+  documented-fallback checks        1
+  values compared                   8874
+  bitwise-identical                 8874
+
+cases=13 failures=0
+INTEGRATED SIMPLE EQUIVALENCE: PASS (bitwise)
+[WARNING] SIMPLE: GPU discretization requested but unavailable (nonOrthogonalCorrections > 1 keeps the corrector passes on the CPU); running the CPU discretization path

@@ -1,0 +1,70 @@
+baseline 51db9a5314cb487f46c197177e77f20d4afbac56f0cae775d418d2b1b7ab326d  cuda/kernels/DeviceLeastSquaresGradientKernel.cu
+baseline df97eba1eaed37d3963cab65c7ba2485465edbeb446639b699cca0822ad4dab1  cuda/kernels/DeviceLeastSquaresGradientPlan.cpp
+baseline 3337dffd9e71a00c1ca6506380366bc91a3b61f67d2b940d40e44c12a1cefb79  cuda/kernels/DeviceVelocityCorrectionKernel.cu
+baseline ef7eae5b54340bee58cbb08aeab423b7754ef4819e89468c18e1994b99c54c15  cuda/kernels/DeviceVelocityCorrectionPlan.cpp
+harness  be06aee9f6d8b5160651b7bc2822519d7f854a92876c5ad02c8e3089f2359580
+
+=== h1_reversed_gradient_sign (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h2_wrong_velocity_component (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h3_wrong_response_index (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h4_missing_response (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h5_correction_applied_twice (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h6_stale_gradient (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h7_pressure_boundaries_for_pprime (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h8_2d_w_preserved (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h9_factor_order_within_products (null) ===
+  mutated: exit=0 -> UNDETECTED
+  restored: sha-match=True exit=0
+=== h9b_packed_entries_swapped (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h9c_3d_cofactor_row_swapped (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h10_fallback_dropped (null) ===
+  mutated: exit=0 -> UNDETECTED
+  restored: sha-match=True exit=0
+=== h11_oblique_uses_face_centroid (detect) ===
+  mutated: exit=1 -> DETECTED
+  restored: sha-match=True exit=0
+=== h12_zero_distance_skip_removed (null) ===
+  mutated: exit=0 -> UNDETECTED
+  restored: sha-match=True exit=0
+=== h13_3d_weight_in_2d (null) ===
+  mutated: exit=0 -> UNDETECTED
+  restored: sha-match=True exit=0
+
+=== summary ===
+  h1_reversed_gradient_sign            detect  DETECTED    sha=True repass=True  ok
+  h2_wrong_velocity_component          detect  DETECTED    sha=True repass=True  ok
+  h3_wrong_response_index              detect  DETECTED    sha=True repass=True  ok
+  h4_missing_response                  detect  DETECTED    sha=True repass=True  ok
+  h5_correction_applied_twice          detect  DETECTED    sha=True repass=True  ok
+  h6_stale_gradient                    detect  DETECTED    sha=True repass=True  ok
+  h7_pressure_boundaries_for_pprime    detect  DETECTED    sha=True repass=True  ok
+  h8_2d_w_preserved                    detect  DETECTED    sha=True repass=True  ok
+  h9_factor_order_within_products      null    UNDETECTED  sha=True repass=True  ok
+  h9b_packed_entries_swapped           detect  DETECTED    sha=True repass=True  ok
+  h9c_3d_cofactor_row_swapped          detect  DETECTED    sha=True repass=True  ok
+  h10_fallback_dropped                 null    UNDETECTED  sha=True repass=True  ok
+  h11_oblique_uses_face_centroid       detect  DETECTED    sha=True repass=True  ok
+  h12_zero_distance_skip_removed       null    UNDETECTED  sha=True repass=True  ok
+  h13_3d_weight_in_2d                  null    UNDETECTED  sha=True repass=True  ok
+
+11/11 observable controls detected; 4 claimed provably null

@@ -1,0 +1,63 @@
+# clang-format remediation -- 2026-09-20T22:37:52Z
+
+## files with violations, before
+     0  #include
+     0  "cfd/algebra/LinearSolverFactory.hpp
+    14  include/cfd/gpu/DeviceBoundaryConditions.hpp
+     3  include/cfd/gpu/DeviceBuffer.hpp
+     1  include/cfd/gpu/DeviceConvection.hpp
+     5  include/cfd/gpu/DeviceConvectionTerms.hpp
+     4  include/cfd/gpu/DeviceDiffusionTerms.hpp
+    18  include/cfd/gpu/DeviceFaceFlux.hpp
+    11  include/cfd/gpu/DeviceMomentumAssembly.hpp
+     4  include/cfd/gpu/DeviceMomentumConvection.hpp
+    16  include/cfd/gpu/DevicePressureCorrection.hpp
+     1  include/cfd/gpu/GpuSimpleDiscretization.hpp
+     6  include/cfd/gpu/VectorBoundaryEncoding.hpp
+    23  src/pressure_velocity/SIMPLE.cpp
+
+## libcfdcore.a before
+829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8  build/final/src/libcfdcore.a
+
+## PROOF 1 -- diff -w against the pre-format snapshot (must be empty)
+  NON-WHITESPACE CHANGE: #include
+  NON-WHITESPACE CHANGE: "cfd/algebra/LinearSolverFactory.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceBoundaryConditions.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceBuffer.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceConvection.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceConvectionTerms.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceDiffusionTerms.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceFaceFlux.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceMomentumAssembly.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DeviceMomentumConvection.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/DevicePressureCorrection.hpp
+  NON-WHITESPACE CHANGE: include/cfd/gpu/GpuSimpleDiscretization.hpp
+  NON-WHITESPACE CHANGE: src/pressure_velocity/SIMPLE.cpp
+
+## violations after
+  total violations in the CI scope: 0
+
+## PROOF 2 -- libcfdcore.a after the rebuild
+829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8  build/final/src/libcfdcore.a
+  (g++ is deterministic; an identical hash proves the reformatting changed
+   nothing the compiler can see. nvcc is NOT deterministic, so libcfdcuda.a
+   is deliberately not compared -- the gates below cover it instead.)
+  NON-WHITESPACE CHANGE: src/pressure_velocity/SIMPLE.cpp
+  compared 12 files, whitespace stripped
+  A NON-WHITESPACE CHANGE WAS FOUND
+
+## PROOF 1, corrected -- what actually changed
+  11 of 12 files: whitespace-identical after stripping whitespace (pure reflow)
+   1 of 12 files: src/pressure_velocity/SIMPLE.cpp differs by ONE reordered #include --
+                  "cfd/core/Logger.hpp" moved ahead of "cfd/discretization/Gradient.hpp"
+                  to satisfy alphabetical ordering. Both were already included;
+                  reordering two independent includes is semantically neutral, and
+                  PROOF 2's byte-identical libcfdcore.a demonstrates it for this compiler.
+
+## the first version of PROOF 1 was wrong, twice, and is recorded above
+  - its file list came from grep over clang-format's OUTPUT, which also matches the
+    source lines clang-format echoes back, so it contained entries like "#include"
+    that are not files;
+  - it compared with `diff -w`, which ignores whitespace within a line but still
+    reports a difference when clang-format JOINS lines -- which is most of what it does.
+  Both made every file look changed, contradicting the byte-identical archive.
