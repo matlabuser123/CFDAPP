@@ -1,0 +1,61 @@
+TD-005 -- GATE FREEZE
+frozen 2026-10-05T00:55:10+10:00
+
+=== THE GATE
+6a7ccf3cc038a310b99059b75c97062ea7564a25f4c274bbc7e110b4d9de286d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/GATE.md
+
+=== THE EVIDENCE IT WAS FROZEN AGAINST (dry-run complete for EVERY criterion)
+9c5dab2566762dda6e7c780494ead582e02e1d5739a396795e3f705045bce6ba  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/audit.md
+9a726e3dc8d077c4f94a52f0eb484ce80c1d49bdc28bf3f7f23ae63d903a0a37  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/dry_run.md
+8de7a9db05b69d494401abd9dda17531ea6376eced88fc815446bb0688fdceb2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/01_reproducibility_baseline.log
+b1182ba11c2848b959bf75841a405b1df800cf2d851f9fd0b6991e617dd1592d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/02_field_dump.log
+e1d8a979510cb03be32a91ab5efa8bb465ebe335ec652b071b968b87afe8bfe3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/03_tests_at_repo_cap.log
+e13c7f3978ef2e6f8d7ede447fbcd1cd931327f19ac20bf7ddebca8f17385ef2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/04_controls_dryrun_INVALID_construction.log
+bd9ec09f1d7fb9c9648c4fa10e28a7b6f2c9f6cd20e9ddfdd448e357b370d79b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/05_controls_dryrun.log
+
+=== PRODUCTION, UNCHANGED AT THE MOMENT OF FREEZING
+b52fc24c703bc9df51e0671b735e29c2099cba15012ceef4e4b36cb3c0eae635  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+765fbee924693d8d49967318b4386f10b548160819aa69585b3fd00d3d9fce61  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+
+=== TESTS, UNCHANGED
+c0d00509c25e7460978bdfdc2210b91ac68f0ac6ef5273c7ff4cd6df3d8a1f2b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+
+=== LIBRARY AND TEST BINARY THE BASELINE WAS MEASURED WITH
+738f7b555b2a22fb19632eb5b742feda86114dcd6afb2f4bb996c77e342e2303  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+6b9514ede124d6b1d7dbc203bcddbb7ae336f5ee1aa805160e028643a05c01c6  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+
+=== PROBES
+94710a235895ec02cd4310579dacc925549aadf4a05e6a1bc9a05987bfc439b5  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/reproducibility_probe.cpp
+85f7aa9cd8d9b1df0261190b2cc49fdcf5bd238f09ba8950bc2a4b39b16c3c02  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/field_dump_probe.cpp
+089faf349cd791c46a032b4e9d6a73531bb9c9698977a7accddb65a4abfaeca6  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/controls_probe.cpp
+
+=== ENVIRONMENT
+compiler c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+CFDAPP_ENABLE_CUDA:BOOL=OFF
+CFDAPP_ENABLE_OPENMP:BOOL=OFF
+CMAKE_BUILD_TYPE:STRING=Release
+nproc 32
+
+=== DRY-RUN SUMMARY, as frozen
+
+  C1   PASS   bitwise flameSpeed == massFlux/unburntDensity, both modes      logs/02
+  C2   PASS   brackets honest; ladder converges inside the derived bounds    logs/01 logs/05
+  C3   FAIL   5 of 12 configurations, 0.2380..0.3721 against < 0.05          logs/01
+  C4a  PASS   plateau test 997 s against the 7200 s cap; no change needed    logs/03
+  C4b  PASS   0.001355 <= 0.02                                               logs/01 logs/03
+  C4c  PASS   exactly 0 against 6.77e-04                                     logs/01
+  C4d  FAIL   48.2 cells at the bad mode against <= 1; 0.3 at the good       logs/02
+  C5   1 of 2 controls demonstrated; the no-flame control is UNMEASURED      logs/05
+  C6   FAIL   by construction -- the TD-003 bound is bundled into the test   audit 6
+  C7   PASS   343, matching TD-004's baseline for the same exclusion         logs/03
+
+C3, C4d and C6 fail on the unchanged tree BECAUSE THEY ARE THE DEFECTS. Every other criterion
+passes, so the gate is neither vacuous nor trivially satisfiable, and C3/C4d are each proved
+non-vacuous in BOTH directions by the baseline alone, with nothing constructed.
+
+=== AUTHORIZED CHANGE IN HAND
+
+"fix the report" -- C4d ONLY. C3 and C6 remain open, and closing C4d does not close TD-005.
+
+FROZEN. No threshold, criterion or control in GATE.md may now change without a separately
+authorized amendment carrying its own dry-run (CLAUDE.md 5.3).

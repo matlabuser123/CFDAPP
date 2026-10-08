@@ -1,0 +1,114 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T02:47:32+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp -o /tmp/td005_trajectory /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp: In function ‘void {anonymous}::profileAroundFront(const cfd::species::PremixedFlameResult&, cfd::Real)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp:134:14: warning: comparison of unsigned expression in ‘< 0’ is always false [-Wtype-limits]
+  134 |   if (centre < 0) {
+      |       ~~~~~~~^~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp:141:11: warning: comparison of unsigned expression in ‘< 0’ is always false [-Wtype-limits]
+  141 |     if (c < 0 || c >= nc) {
+      |         ~~^~~
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- THE FRONT'S TRAJECTORY THROUGH THE FINAL MARCH
+
+  500 cells / 10 mm / anchor 0.35 = 3.500 mm; dt and trials IDENTICAL across rows,
+  because finalMarchRelaxationTimes scales ONLY the final march.
+  driftWindow 16 = the inadmissible mode (fuel balance 0.3647, delta 0.7365 mm)
+  driftWindow 32 = the admissible mode  (fuel balance 0.0153, delta 1.2289 mm)
+
+================================================================ driftWindow 16
+  relaxT  marchStp    front mm offset cells   fuel bal   S_c cm/s   delta mm  S_L cm/s worstJmp   shifts  rejects
+    0.25       128     3.52026         1.01  3.188e-02    4.70219     1.1309   4.85901     2.98        4        0
+    0.50       198     3.53603         1.80  3.063e-02    4.70808     1.1336   4.85901     2.98        4        0
+    1.00       397     3.50524         0.26  2.660e-02    4.72558     1.1413   4.85901     2.99        4        0
+    2.00       794     3.52933         1.47  2.281e-02    4.73992     1.1467   4.85901     2.99        4        0
+    4.00      1589     3.52999         1.50  1.993e-02    4.74706     1.1496   4.85901     2.99        4        0
+   10.00      3973     2.56838       -46.58  3.647e-01    3.04347     0.7365   4.85901     5.12        4      470
+
+  TRAJECTORY of the front offset, in cells:
+      +1.0 +1.8 +0.3 +1.5 +1.5 -46.6
+  at the SHORTEST march (0.25 relax times): +1.0 cells
+  at the LONGEST  march (10.00 relax times): -46.6 cells
+  => ACQUIRED: the front STARTS near the anchor and walks away DURING the final
+     march. The trajectory above shows whether it creeps or jumps.
+
+  FIELD at relaxT 0.25 (shortest march), around the front:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+
+  FIELD at relaxT 10.00 (longest march), around the front:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+
+================================================================ driftWindow 32
+  relaxT  marchStp    front mm offset cells   fuel bal   S_c cm/s   delta mm  S_L cm/s worstJmp   shifts  rejects
+    0.25       128     3.52060         1.03  3.252e-02    4.70227     1.1309   4.86230     2.98        4        0
+    0.50       198     3.53654         1.83  3.125e-02    4.70826     1.1336   4.86230     2.98        4        0
+    1.00       396     3.50609         0.30  2.723e-02    4.72583     1.1413   4.86230     2.99        4        0
+    2.00       793     3.53089         1.54  2.345e-02    4.74006     1.1467   4.86230     2.99        4        0
+    4.00      1587     3.53297         1.65  2.054e-02    4.74736     1.1498   4.86230     2.99        4        0
+   10.00      3968     3.52333         1.17  1.531e-02    4.90004     1.2289   4.86230     5.13        4      472
+
+  TRAJECTORY of the front offset, in cells:
+      +1.0 +1.8 +0.3 +1.5 +1.6 +1.2
+  at the SHORTEST march (0.25 relax times): +1.0 cells
+  at the LONGEST  march (10.00 relax times): +1.2 cells
+  => the front stays near the anchor at every march length in this ladder.
+
+  FIELD at relaxT 0.25 (shortest march), around the front:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+
+  FIELD at relaxT 10.00 (longest march), around the front:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+
+HOW TO READ THIS
+  The two driftWindow blocks share every setting except the window, so comparing
+  their trajectories isolates what the window does to the front -- which is the
+  one thing logs/01 sweep A could not explain (16 and 64 bad, 32 good).
+  A *** line means the reported flamePosition does not match the field's own
+  crossing, which would be a C4d regression and must stop everything.
+
+probe exit: 0
+
+=================================================================================================
+ANNOTATION added after the run.
+
+TRAJECTORY TABLES VALID.  FIELD DUMPS EMPTY -- A PROBE DEFECT, NOT A PHYSICAL RESULT.
+
+`profileAroundFront` looped `for (Index k = -60; k <= 60; k += 15)` and `cfd::Index` is
+`std::size_t` -- UNSIGNED (include/cfd/core/Types.hpp:13). So `k = -60` wrapped to ~1.8e19, failed
+`k <= 60` immediately, and the loop ran ZERO times. All four field dumps printed their column
+header and no rows. DO NOT read those empty tables as "no features present".
+
+The six-row trajectory table for each driftWindow is unaffected and is the result of record:
+
+  * both modes hold the front within ~2 cells of the anchor for 1589 steps, with the fuel balance
+    improving MONOTONICALLY (3.19e-02 -> 1.99e-02) and S_c climbing toward S_L;
+  * at 3973 steps driftWindow 16 departs to -46.6 cells, balance 3.647e-01, delta halved, and 470
+    rejected crossings appear where there were none;
+  * driftWindow 32, identical in every other setting, does NOT depart (+1.2 cells, 1.531e-02);
+  * both end with ~470 rejected crossings and worstJmp ~5.1, so the rejections are NOT what
+    distinguishes them.
+
+SUPERSEDED FOR THE FIELD DUMPS ONLY by logs/11, which fixes the loop with a signed offset, adds a
+fail-closed empty-dump guard, and re-aims the ladder at {4,5,6,7,8,10} to bracket the departure.
+=================================================================================================

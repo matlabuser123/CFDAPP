@@ -1,0 +1,39 @@
+=== ENVIRONMENT
+date        2026-10-08T03:05:20+10:00
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE
+be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  (expect 8c85bc9f... -- NO production change was made for this trace)
+4f92a0c5b114ba7fd960e49910f0fd72eddbff75ceaa91936d3cddb2ec3fc609  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/locator_trace_probe.cpp
+
+=== COMPILE
+compile exit: 0
+
+=== RUN  (8 solves; the search dominates each, so expect 40-60 min)
+TD-004 AUDIT -- RAW LOCATED-POSITION TRACE via the march budget ceiling
+
+  500 cells, dt 9.4243e-06 pinned, relaxT 10 (derived budget 17194), anchor 3.500 mm
+  dead band 3.0 cells; the recentre operator acts only for 3.000 < |off| < ~4.234
+  DIFFERENCE consecutive rows: cumulative counters then describe each interval.
+
+  budget    front mm  offCells finalRc rej<10 rej10-50 rej>50   worstRejC worstRejPos  maxX
+       1    3.500013     0.001       0     12        0      0       2.999    3.500022     1
+      10    3.501474     0.074       0     12        0      0       2.999    3.500022     1
+      50    3.534720     1.736       0     12        0      0       2.999    3.500022     1
+     100    3.546212     2.311       0     12        0      0       2.999    3.500022     1
+     500    3.559962     2.998       0     12        0      0       2.999    3.500022     1
+    1000    3.494269    -0.287       1    507        0      0       3.287    3.494269     1
+    5000    3.258746   -12.063       1   3009     1498      0      15.063    3.258746     1
+   17194    2.474665   -51.267       1   3009    12193   1499      54.267    2.474665     1
+
+=== HOW TO READ THIS
+  The rejection counters are CUMULATIVE OVER THE WHOLE SOLVE, trials included, so
+  their absolute values carry the search's history. Only the DIFFERENCES between
+  consecutive rows belong to the final march, and only those should be read.
+  If a difference is zero across an interval in which the front moved, then the
+  locator neither accepted nor refused anything there -- which would mean it was
+  not called at all, and the question moves to why.
+probe exit: 0
+DONE 2026-10-08T03:47:36+10:00

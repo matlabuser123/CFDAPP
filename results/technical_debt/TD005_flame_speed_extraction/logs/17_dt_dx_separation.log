@@ -1,0 +1,75 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T15:10:14+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/dt_dx_separation_probe.cpp -o /tmp/td005_dtdx /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- SEPARATING dt FROM dx
+
+  ladder relaxT {10, 18, 26, 32, 40, 46}; relaxT is PHYSICAL march duration
+  reference patterns, both with dt DERIVED from dx (logs/14, logs/16):
+    500 cells, dt 3.770e-05  ->  GBGBGB   period 14 relaxation times
+    250 cells, dt ~1.45e-04  ->  BGBBGB   period ~18
+  phase is classified by HEALTH (fuel balance > 0.1), not by front position --
+  logs/16's N1 verdict was wrong because it judged by position.
+
+=== TEST T1 -- 250 cells with dt PINNED at the 500-cell value 3.76972e-05 s
+    dx doubles; dt does not move.
+    pattern ~ GBGBGB (period 14) => the 14->18 shift was dt   => TIME INTEGRATION
+    pattern ~ BGBBGB (period ~18) => the shift survives dt    => SPATIAL
+
+  relaxT  marchStp   offset mm    fuel bal  delta mm  S_L cm/s   wall s  status  phase
+      10      4033     -0.7796   3.089e-01    0.7901   4.82296       67       0    BAD
+      18      7260      0.0436   2.511e-02    1.2340   4.82296       83       0   good
+      26     10487     -3.2719   8.292e-01    0.4049   4.82296      112       0    BAD
+      32     12907     -3.2350   5.816e-01    0.4288   4.82296      190       0    BAD
+      40     16134      0.0667   2.485e-02    1.2332   4.82296      243       0   good
+      46     18554      0.1167   2.439e-02    1.2348   4.82296      211       0   good
+
+    T1 pattern BGBBGG    (500-cell/period-14 GBGBGB, 250-cell/period-18 BGBBGB)
+    => NEITHER reference pattern. The period is set by a COMBINATION of dt and
+       dx -- a cell-Courant or cell-diffusion number rather than either alone.
+
+=== TEST T2 -- 500 cells with dt HALVED to 1.88486e-05 s
+    dx fixed; dt halves. maximumStepsPerTrial doubled to 40000 so each trial keeps
+    the same PHYSICAL budget -- a safety cap, not an accuracy tolerance.
+    pattern ~ GBGBGB => dt is converged and does not set the period => SPATIAL
+    pattern moves => dt sets the period => TIME INTEGRATION
+
+  relaxT  marchStp   offset mm    fuel bal  delta mm  S_L cm/s   wall s  status  phase
+      10      8655      0.0546   7.585e-02    1.2588   4.65615      396       0   good
+      18     15580     -3.2862   1.324e+00    0.3943   4.65615      515       0    BAD
+      26     22504     -3.2341   6.226e-01    0.4346   4.65615      626       0    BAD
+      32     27697      0.0266   7.651e-02    1.2589   4.65615      575       0   good
+      40     34622     -3.2704   8.856e-01    0.4130   4.65615      564       0    BAD
+      46     39815      0.0521   7.624e-02    1.2585   4.65615      583       0   good
+
+    T2 pattern GBBGBG    (500-cell baseline at the full dt: GBGBGB)
+    => THE PATTERN MOVED under a finer dt => THE TIME INTEGRATION SETS IT.
+
+=== CONSISTENCY OF T1 AND T2
+    *** THE TWO TESTS DISAGREE. T1 says spatial and T2 says temporal.
+    That is the third outcome this probe was written to allow: the period is set
+    by an INTERACTION of dt and dx -- a cell-Courant or cell-diffusion number --
+    and neither knob owns it. Report it; do not pick one.
+
+probe exit: 0

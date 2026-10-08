@@ -1,0 +1,27 @@
+TD-004 -- refinement fixture selection, measured
+
+  the test's current triplet {250, 500, 1000} does not finish in 1750 s (logs/07)
+  resolution guard: flameThickness / cellSize > 4
+
+  cells    S_L cm/s thickness mm res cells     wall s     steps   status  fuel bal
+     63     3.88104     0.649896      4.09       13.8      2523       OK    0.8021
+    125     4.40773     0.625498      7.82       17.6      2862       OK    0.4703
+    250     4.77424     0.536935     13.42       41.6      5445       OK    0.5457
+    500     4.86230     1.228906     61.45      247.5     19264       OK    0.0433
+
+SUCCESSIVE DIFFERENCES AND OBSERVED ORDER
+
+                   triplet    coarse diff      fine diff   order p
+            {63, 125, 250}  +5.266934e-03  +3.665073e-03     0.523
+           {125, 250, 500}  +3.665073e-03  +8.805786e-04     2.057
+
+HOW TO READ THIS
+  A triplet is admissible only if ALL of these hold:
+    * every level converged and spans > 4 cells of front;
+    * the differences SHRINK (|fine| < |coarse|) -- the test's own criterion;
+    * no sign change -- an observed order across a zero crossing is undefined;
+    * p is near the record's 1.93, which is the evidence that the cheaper family
+      is still in the asymptotic range rather than merely cheaper.
+  If the cheapest admissible triplet's p departs from 1.93, the family has left the
+  asymptotic range and shrinking the fixture is NOT a free substitution -- that
+  would have to be reported, not absorbed.

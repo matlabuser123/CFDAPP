@@ -1,0 +1,41 @@
+TD-034/TD-041 -- THE REFUTATION: CR count vs CR/LINES RATIO
+date: 2026-10-08T14:04:28Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+The census in 02 compared ABSOLUTE CR counts and found all 21 up. That is ambiguous:
+a flipped line ending and an added line both raise it. The ratio CR/lines disambiguates.
+
+FILE                                                   HEAD CR/lines TREE CR/lines   HEADr   TREEr
+CMakeLists.txt                                               100/100       138/138   1.000   1.000
+apps/gui/CMakeLists.txt                                      100/100       103/103   1.000   1.000
+benchmarks/CMakeLists.txt                                      10/10         39/39   1.000   1.000
+cuda/CMakeLists.txt                                          100/100       206/206   1.000   1.000
+src/CMakeLists.txt                                           411/411       508/508   1.000   1.000
+tests/CMakeLists.txt                                         170/170       299/299   1.000   1.000
+tests/integration/CMakeLists.txt                               12/12         13/13   1.000   1.000
+tests/integration/backward_facing_step/CMakeLists.txt          30/30         40/40   1.000   1.000
+tests/integration/case/CMakeLists.txt                          38/38         49/49   1.000   1.000
+tests/integration/compressible/CMakeLists.txt                  23/23         98/98   1.000   1.000
+tests/integration/io/CMakeLists.txt                            26/26         29/29   1.000   1.000
+tests/integration/restart/CMakeLists.txt                       16/16         20/20   1.000   1.000
+tests/integration/thermal/CMakeLists.txt                       87/87       106/106   1.000   1.000
+tests/integration/turbulence_channel/CMakeLists.txt            27/27         43/43   1.000   1.000
+tests/unit/CMakeLists.txt                                      23/23         24/24   1.000   1.000
+tests/unit/compressible/CMakeLists.txt                         16/16         32/32   1.000   1.000
+tests/unit/gpu/CMakeLists.txt                                  15/15         90/90   1.000   1.000
+tests/unit/io/CMakeLists.txt                                   41/41         48/48   1.000   1.000
+tests/unit/species/CMakeLists.txt                              22/22         37/37   1.000   1.000
+tests/unit/thermal/CMakeLists.txt                              31/31         40/40   1.000   1.000
+tests/unit/turbulence/CMakeLists.txt                           33/33         47/47   1.000   1.000
+
+total modified CMakeLists.txt : 21
+fully CRLF in HEAD            : 21
+fully CRLF in the tree        : 21
+
+VERDICT: ratio 1.000 on BOTH sides for all 21 files. No line ending changed.
+         TD-041 is N/A AS A DEFECT. The CR count rose because the files grew.
+
+--- the convention, for context: CRLF is what this repo COMMITS ---
+  HEAD:TODO.md        CR=416 of 416 lines
+  HEAD:ROADMAP.md     CR=366 of 366 lines
+  HEAD:CLAUDE.md      CR=358 of 358 lines

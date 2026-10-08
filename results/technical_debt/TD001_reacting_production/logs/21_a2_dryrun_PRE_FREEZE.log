@@ -1,0 +1,324 @@
+production src/app/ProjectRunner.cpp sha256 f14aa151d743190777d242e101cef6b19fb7ed77005bb9c65ead090292d8bc9a
+
+#################################################################
+# A2-N4 -- the PRODUCTION implementation must pass every replacement
+#################################################################
+{
+  "label": "A2-N4 production dt=0.1",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 5.718197704229766e-08,
+    "min_mass_fraction": 0.0012307413645062176,
+    "max_abs_dY": 0.001355074611440965,
+    "max_abs_dT": 2.7101938457000188,
+    "min_dT": 2.4524336944894003,
+    "max_dT": 2.7101938457000188,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "PASS",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "PASS (exothermic, no cell cooled)"
+  }
+}
+{
+  "label": "production dt=0.01 (the C4b-i pair)",
+  "dt": 0.01,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.0001354796940551183,
+    "dT_pred": 0.2709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 100.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 7.078766461887653e-09,
+    "min_mass_fraction": 0.00013415114769011163,
+    "max_abs_dY": 0.000135507604046875,
+    "max_abs_dT": 0.2710207284887929,
+    "min_dT": 0.2681899617715544,
+    "max_dT": 0.2710207284887929,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      6.773984702755915e-05,
+      0.0002709593881102366
+    ],
+    "C7a_predicted_dT_band": "PASS",
+    "C7a_band": [
+      0.1354796940551183,
+      0.5419187762204732
+    ],
+    "C7b_sign": "PASS (exothermic, no cell cooled)"
+  }
+}
+
+#################################################################
+# C4b-ii -- CONTINUITY SCALING: a tighter flow must reduce D
+#################################################################
+  note: cli exit 3 -- Converged: no (max iterations reached), results still written
+Converged: no (max iterations reached)
+Iterations: 400000
+P residual: 9.99724e-11
+Continuity: 1.11773e-11
+Mass imbalance: 5.53432e-10
+{
+  "label": "production, flow tolerances 1e-10",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 6.808347219333655e-10,
+    "min_mass_fraction": 0.0012307413595766335,
+    "max_abs_dY": 0.001355068988835001,
+    "max_abs_dT": 2.71013862234895,
+    "min_dT": 2.4524297228955447,
+    "max_dT": 2.71013862234895,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 5.534321080840482e-10,
+    "flow_continuity_residual": 1.117725221666298e-11,
+    "flow_pressure_residual_ACHIEVED": 9.997238303247453e-11,
+    "flow_converged": false,
+    "flow_iterations": 400000
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "PASS",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "PASS (exothermic, no cell cooled)"
+  }
+}
+
+#################################################################
+# A2-N2 -- pre_exponential = 0 must FAIL C6b
+#################################################################
+{
+  "label": "A2-N2 pre_exponential=0",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.0,
+    "dY_pred": 0.0,
+    "dT_pred": 0.0,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 5.718228723861074e-08,
+    "min_mass_fraction": 0.0,
+    "max_abs_dY": 5.146405857026082e-08,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 0.0,
+    "max_SE": 0.0,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "FAIL",
+    "C6b_predicted_dY_band": "FAIL (prediction 0.000000e+00, measured 5.146406e-08)",
+    "C6b_band": [
+      0.0,
+      0.0
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 0.000000e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      0.0,
+      0.0
+    ],
+    "C7b_sign": "FAIL (inadmissible instrument: max|S_E| = 0, thermally neutral, and dT = 5.688378e-05 != 0)"
+  }
+}
+
+#################################################################
+# A2-N3 -- formation_enthalpy = 0 must FAIL C7a AND C7b
+#################################################################
+{
+  "label": "A2-N3 formation_enthalpy=0",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 0.0,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 5.718197704229766e-08,
+    "min_mass_fraction": 0.0012307413645062176,
+    "max_abs_dY": 0.001355074611440965,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 0.0,
+    "max_SE": 0.0,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 0.000000e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      0.0,
+      0.0
+    ],
+    "C7b_sign": "FAIL (inadmissible instrument: max|S_E| = 0, thermally neutral, and dT = 5.688378e-05 != 0)"
+  }
+}
+
+#################################################################
+# A2-N1 -- the Patankar steady pass must FAIL C4b-i (ratio must be 1, not 10)
+#################################################################
+  variant applied: patankar
+  cfdapp 8587ffef85031e14
+{
+  "label": "A2-N1 Patankar steady dt=0.1",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 0.30026183572609555,
+    "min_mass_fraction": 0.0028388456441326283,
+    "max_abs_dY": 0.3974230704969976,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "FAIL (prediction 1.354797e-03, measured 3.974231e-01)",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 2.709594e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "FAIL (exothermic, a cell cooled: min dT = -5.688378e-05)"
+  }
+}
+{
+  "label": "A2-N1 Patankar steady dt=0.01",
+  "dt": 0.01,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.0001354796940551183,
+    "dT_pred": 0.2709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 100.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 0.30026183572609555,
+    "min_mass_fraction": 0.0028388456441326283,
+    "max_abs_dY": 0.3974230704969976,
+    "max_abs_dT": 7.074405402818229e-06,
+    "min_dT": -7.074405402818229e-06,
+    "max_dT": 6.9324089508882025e-06,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "FAIL (prediction 1.354797e-04, measured 3.974231e-01)",
+    "C6b_band": [
+      6.773984702755915e-05,
+      0.0002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 2.709594e-01, measured 7.074405e-06)",
+    "C7a_band": [
+      0.1354796940551183,
+      0.5419187762204732
+    ],
+    "C7b_sign": "FAIL (exothermic, a cell cooled: min dT = -7.074405e-06)"
+  }
+}
+  restored, sha256 verified
+  production binary rebuilt: c58b32eeea5a64fc6409bafc5dec50496e4a6a09237ca674377bbc09fbf984d3
+
+#################################################################
+# C4b-i RATIOS
+#################################################################
+  production        D(0.1)=5.718198e-08  D(0.01)=7.078766e-09  ratio=  8.078  ratio/10= 0.808  C4b-i PASS
+  A2-N1 (Patankar)  D(0.1)=3.002618e-01  D(0.01)=3.002618e-01  ratio=  1.000  ratio/10= 0.100  C4b-i FAIL

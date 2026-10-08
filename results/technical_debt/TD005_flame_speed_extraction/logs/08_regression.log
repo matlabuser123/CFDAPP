@@ -1,0 +1,49 @@
+TD-005 -- REGRESSION, post-C4d-fix
+per-test timeout 7200s   (ci.yml: ctest --timeout 7200; gtest_discover_tests => per case)
+started 2026-10-05T01:17:34+10:00
+
+=== REBUILD, fail-closed
+[1/2] Building CXX object tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_premixed_flame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp: In member function ‘virtual void G8PremixedFlameTest_DISABLED_PropagationHistory_Test::TestBody()’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:769:75: warning: conversion from ‘long unsigned int’ to ‘cfd::Real’ {aka ‘double’} may change value [-Wconversion]
+  769 |     std::cout << "    budget " << budget << ": dt = " << dt << " t = " << budget * dt
+      |                                                                           ^~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp: In member function ‘virtual void G8PremixedFlameTest_DISABLED_BalanceVersusMarchLength_Test::TestBody()’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:927:25: warning: conversion from ‘cfd::Real’ {aka ‘double’} to ‘cfd::Index’ {aka ‘long unsigned int’} may change value [-Wfloat-conversion]
+  927 |     const Index march = relaxationTimes;  // reported below; the achieved length is what matters
+      |                         ^~~~~~~~~~~~~~~
+[2/2] Linking CXX executable tests/unit/species/CFDSpeciesTests
+build exit: 0
+binary NEWER than newest source (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp): OK
+2d064494263996b68b3dcce4a1a82526cf008ad2dec88f93d21918f5cd1dce08  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+
+=== C7  CFDSpeciesTests excluding G8PremixedFlameTest   (expect 343, unchanged)
+    
+    [----------] Global test environment tear-down
+    [==========] 343 tests from 56 test suites ran. (15966 ms total)
+    [  PASSED  ] 343 tests.
+
+=== G8PremixedFlameTest, TEST BY TEST
+MalformedConfigurationsAreRefused                                  PASS                    0s
+TheBurntCompositionConsumesTheFuelExactlyAndConservesMass          PASS                    0s
+TheObviousChecksAreVacuousOnTheSeededProfile                       PASS                    0s
+ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature   PASS                  256s
+TheConsumptionIntegralAgreesWithTheEigenvalue                      FAIL (rc=1)           256s
+      /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:468: Failure
+      Expected: (flame.maxCompositionSumDeviation) < (1.0e-8), actual: 5.9641086092021567e-07 vs 1e-08
+TheAnswerIsInsensitiveToTheStepsPerTrial                           PASS                  759s
+TheEigenvalueIsIndependentOfTheInitialMassFluxGuess                PASS                  471s
+TenTimesThePreExponentialMovesTheFlameSpeedFar                     PASS                  798s
+AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue FAIL (rc=1)             0s
+      /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:624: Failure
+      Expected: (risingConductivity.value(kExpectedAdiabatic)) > (3.0 * kConductivity), actual: 0.11000000000000001 vs 0.15000000000000002
+TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength         FAIL (rc=1)           910s
+      /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:409: Failure
+TheFlameSpeedConvergesUnderMeshRefinement                          PASS                  268s
+
+NOT RUN: WithReactionsDisabledNoFlamePropagates -- C5's unmeasured control, TD-020's cost
+problem, run separately by run_noflame_control_at_repo_cap.sh.
+finished 2026-10-05T02:20:06+10:00

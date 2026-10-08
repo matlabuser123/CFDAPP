@@ -1,0 +1,24 @@
+TD-004 balance probe -- 500 cells, 10 mm domain, synthetic F->P
+test gates for reference:  fuel balance < 0.02   |sum Y - 1| < 1e-8
+linear acceptance fraction in PremixedFlame.cpp: 1e-9 of ||b||
+
+  relaxT marchSteps  steady    dT resid     fuel bal      e/f     |sumY-1|  S_L cm/s   x_front    T_peak offCells recentr
+    10.0       3968      no  6.9730e-01 1.531435e-02  1.00003   5.9641e-07   4.86230   3.50000   1800.00     3.03       7
+        front: worst single-step JUMP 5.13 cells, largest SHIFT applied 4 cells (dead band 3.0, physical motion ~0.09 cells/step)' + NL + '        refused: 472 front crossings, 0 shifts  (a refusal is the fix working; a flood of them means the profile has multiple crossings)' + NL + '        crossings: max 1 in one locate; farthest rejected at x = 0.0000 mm  (anchor 3.50 mm, domain 10.00 mm, tAnchor = 1050 K)' + NL + '        ledger: fuel -2.471500e-05 kg/m2  rate -1.656199e-04 kg/(m2 s)  energy +1.482899e+02 J/m2
+    30.0      11905      no  9.8980e-01 6.022411e-01  1.00000   8.2758e-07   4.86230   3.50000   1800.00     3.04      64
+        front: worst single-step JUMP 5.13 cells, largest SHIFT applied 4 cells (dead band 3.0, physical motion ~0.09 cells/step)' + NL + '        refused: 4441 front crossings, 0 shifts  (a refusal is the fix working; a flood of them means the profile has multiple crossings)' + NL + '        crossings: max 1 in one locate; farthest rejected at x = 0.0000 mm  (anchor 3.50 mm, domain 10.00 mm, tAnchor = 1050 K)' + NL + '        ledger: fuel -2.258722e-04 kg/m2  rate -5.036956e-04 kg/(m2 s)  energy +1.355233e+03 J/m2
+    90.0      35717      no  9.8982e-01 7.187978e-01  1.00000   8.6823e-07   4.86230   3.50000   1800.00     3.04     241
+        front: worst single-step JUMP 5.13 cells, largest SHIFT applied 4 cells (dead band 3.0, physical motion ~0.09 cells/step)' + NL + '        refused: 16347 front crossings, 0 shifts  (a refusal is the fix working; a flood of them means the profile has multiple crossings)' + NL + '        crossings: max 1 in one locate; farthest rejected at x = 0.0000 mm  (anchor 3.50 mm, domain 10.00 mm, tAnchor = 1050 K)' + NL + '        ledger: fuel -8.505767e-04 kg/m2  rate -6.318936e-04 kg/(m2 s)  energy +5.103458e+03 J/m2
+
+independent variable MOVED: march length 3968 -> 11905 -> 35717  (guard passed)
+fuel balance 1.531435e-02 -> 7.187978e-01   ratio 46.9362 over a 9.0x longer march
+
+HOW TO READ THIS
+  Q1  worstLinRes <= ~1e-9      -> the inner solves are NOT the precision limit,
+                                   and audit.md section 1's clearing of TD-003 stands.
+  Q2  fuel bal falling with     -> the 4.33% is a STOPPING-CRITERION artefact; the
+      march length                 gate should require steadiness.
+      fuel bal plateauing       -> a REAL conservation defect; no march length fixes
+                                   it and TD-004 must repair the discretisation.
+  Q3  e/f staying at ~1.0000    -> the two balances are ONE measurement (F12), and
+                                   the gate must not count them as two.

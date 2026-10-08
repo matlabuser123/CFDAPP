@@ -1,0 +1,82 @@
+TD-032 -- DISCRIMINATING PROBE, both libraries
+date 2026-10-07T16:26:14+10:00
+
+############################################################ POST-FIX (the current tree)
+f9f554bf9e1fe1fd29f6ce4c185e7d579fa5c5708958112bc83127e4a6717b6e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+post-fix library  a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf
+
+TD-032 -- THE DISCRIMINATING PROBE: is NoFlame at driftWindow 64 truthful?
+
+  T_anchor = 1050.0 K   T_ad(expected) = 1800.0 K   anchor x = 3.500 mm
+  The reported field is filled even on a failure status (finalise() is the single
+  return path), so a NoFlame result still carries the profile that explains it.
+
+================ driftWindow 32   (330 s)
+  status            Converged
+  T range           300.3535 .. 1799.9993 K
+  peakTemperature   1799.9993 K
+  flamePosition     2.474664 mm      (anchor is 3.500 mm)
+  S_L               4.67194 cm/s
+  CROSSINGS of 1050 K  1   at 2.4747 mm
+  upstream profile  T[5]=304.1  T[15]=313.3  T[25]=325.5  T[35]=341.5  T[45]=362.7  
+  BRANCH            COLD -- upstream is preheat  (T[25] = 325.5 K against the midpoint 1050.0 K)
+  READING           converged on a COLD-BRANCH field with a real crossing.
+
+================ driftWindow 64   (14 s)
+  status            NoFlame
+  T range           300.0003 .. 1800.0000 K
+  peakTemperature   1800.0000 K
+  flamePosition     3.501746 mm      (anchor is 3.500 mm)
+  S_L               7.39035 cm/s
+  CROSSINGS of 1050 K  1   at 3.5017 mm
+  upstream profile  T[5]=300.0  T[15]=300.0  T[25]=300.0  T[35]=300.0  T[45]=300.0  
+  BRANCH            COLD -- upstream is preheat  (T[25] = 300.0 K against the midpoint 1050.0 K)
+  READING           *** 1 CROSSINGS EXIST yet NoFlame was reported -- a FALSE REPORT.
+
+=== Read both windows against the pre-registered readings in this file's header.
+    Window 32 is the control: it passes on BOTH libraries, so whichever branch it
+    reports tells us what a "passing" result on this library actually looks like.
+probe exit: 0
+
+############################################################ PRE-FIX (reconstructed)
+wrote src/species/PremixedFlame.cpp  PRE-FIX (lagged)  sha256 dac2992006a51cce... PROVED
+pre-fix library  3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0
+
+TD-032 -- THE DISCRIMINATING PROBE: is NoFlame at driftWindow 64 truthful?
+
+  T_anchor = 1050.0 K   T_ad(expected) = 1800.0 K   anchor x = 3.500 mm
+  The reported field is filled even on a failure status (finalise() is the single
+  return path), so a NoFlame result still carries the profile that explains it.
+
+================ driftWindow 32   (496 s)
+  status            Converged
+  T range           300.1559 .. 1800.0006 K
+  peakTemperature   1800.0006 K
+  flamePosition     2.805484 mm      (anchor is 3.500 mm)
+  S_L               4.67194 cm/s
+  CROSSINGS of 1050 K  1   at 2.8055 mm
+  upstream profile  T[5]=301.8  T[15]=305.9  T[25]=311.3  T[35]=318.5  T[45]=328.3  
+  BRANCH            COLD -- upstream is preheat  (T[25] = 311.3 K against the midpoint 1050.0 K)
+  READING           converged on a COLD-BRANCH field with a real crossing.
+
+================ driftWindow 64   (777 s)
+  status            Converged
+  T range           300.1559 .. 1800.0006 K
+  peakTemperature   1800.0006 K
+  flamePosition     2.805484 mm      (anchor is 3.500 mm)
+  S_L               4.67194 cm/s
+  CROSSINGS of 1050 K  1   at 2.8055 mm
+  upstream profile  T[5]=301.8  T[15]=305.9  T[25]=311.3  T[35]=318.5  T[45]=328.3  
+  BRANCH            COLD -- upstream is preheat  (T[25] = 311.3 K against the midpoint 1050.0 K)
+  READING           converged on a COLD-BRANCH field with a real crossing.
+
+=== Read both windows against the pre-registered readings in this file's header.
+    Window 32 is the control: it passes on BOTH libraries, so whichever branch it
+    reports tells us what a "passing" result on this library actually looks like.
+probe exit: 0
+
+DONE 2026-10-07T16:53:31+10:00
+
+=== ENSURING the tree is left in the FIXED form
+tree is NOT fixed (dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3) -- restoring
+wrote src/species/PremixedFlame.cpp  POST-FIX (fixed)  sha256 f9f554bf9e1fe1fd... PROVED

@@ -1,0 +1,64 @@
+date 2026-10-08T08:56:09+10:00
+
+############################ POST-FIX (locator translated)
+3c2263cd34f3ae93e7605fa56b4c7823f077b567c5ed9cc8ebd3b95da30204a9  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+post-fix library  43a2488314395ca5479c54adafd0aa2007e9aa80d029c7eb06713de07935e9db
+
+TD-004 -- THE RECENTRING LEDGER, on the scale the fuel budget uses
+
+  S_L                      4.955332 cm/s
+  front                    3.499220 mm   (-0.039 cells off the 3.500 mm anchor)
+  fuelBalanceResidual      6.302834e-03
+  final march steps        15283
+  recentrings  total 223, FINAL MARCH 3
+
+  fuelThrough (normaliser) 2.918784e-03 kg/(m^2 s)
+  recentringFuelLedger     -1.060026e-05 kg/m^2        (final march only -- it is reset)
+  recentringFuelLedgerRate -7.364218e-05 kg/(m^2 s)
+    AS % OF fuelThrough    -2.523043 %   <- compare: convection -100, reaction
+                                        -103.9, inlet diffusion -5.0
+  recentringEnergyLedger   6.360155e+01 J/m^2
+  recentringEnergyLedgerRate 4.418531e+02 W/m^2
+
+  per recentring: fuel -3.533419e-06 kg/m^2, energy 2.120052e+01 J/m^2
+
+=== READING, against the directions in this file's header
+    2.523043 % of fuelThrough -- the SAME ORDER as the terms that moved.
+    Translation is NOT neutral and reading (i) is SUPPORTED: the fix is wrong
+    as written, despite the balance improving 15x.
+
+  This run measures ONE library. The pre-fix comparison follows in the same log.
+
+############################ PRE-FIX (locator NOT translated, reconstructed)
+wrote src/species/PremixedFlame.cpp  PRE-FIX (locator not translated)  sha256 8c85bc9f5f457bf2... PROVED
+pre-fix library  be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5
+
+TD-004 -- THE RECENTRING LEDGER, on the scale the fuel budget uses
+
+  S_L                      4.671937 cm/s
+  front                    2.474665 mm   (-51.267 cells off the 3.500 mm anchor)
+  fuelBalanceResidual      6.047382e-02
+  final march steps        17194
+  recentrings  total 121, FINAL MARCH 1
+
+  fuelThrough (normaliser) 2.751859e-03 kg/(m^2 s)
+  recentringFuelLedger     -3.533634e-06 kg/m^2        (final march only -- it is reset)
+  recentringFuelLedgerRate -2.181894e-05 kg/(m^2 s)
+    AS % OF fuelThrough    -0.792880 %   <- compare: convection -100, reaction
+                                        -103.9, inlet diffusion -5.0
+  recentringEnergyLedger   2.120180e+01 J/m^2
+  recentringEnergyLedgerRate 1.309136e+02 W/m^2
+
+  per recentring: fuel -3.533634e-06 kg/m^2, energy 2.120180e+01 J/m^2
+
+=== READING, against the directions in this file's header
+    0.792880 % of fuelThrough -- INTERMEDIATE. Neither reading is clean; report
+    the number and do not round to either.
+
+  This run measures ONE library. The pre-fix comparison follows in the same log.
+
+DONE 2026-10-08T09:12:45+10:00
+
+=== ENSURING the tree is left in the POST-FIX form
+tree is NOT post-fix (8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a) -- restoring
+wrote src/species/PremixedFlame.cpp  POST-FIX (locator translated)  sha256 3c2263cd34f3ae93... PROVED

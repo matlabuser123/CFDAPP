@@ -1,0 +1,52 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T17:20:00+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/cycle_at_dt4_probe.cpp -o /tmp/td005_cycledt4 /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- DOES THE LIMIT CYCLE SURVIVE AT dt/4 (D = 0.833)?
+
+  500 cells, dt pinned at 9.4243e-06 s -- INSIDE the accurate region (S_L -0.08 %)
+  baseline on this SAME ladder at the default dt (D = 3.33), logs/14:
+    relaxT   10     14     18       22     26     30
+    offset  +1.17  +2.76  -162.81  +1.30  +0.62  -162.24   pattern GGBGGB
+  amplitude there: ~163 cells = ~3.26 mm
+  phase classified by HEALTH (fuel balance > 0.1), not by position.
+
+  relaxT   marchStp  offset cel   offset mm    fuel bal  delta mm  S_L cm/s   wall s  phase
+      10      17194      -34.25     -0.6850   8.602e-02    0.9909   4.67194      744   good
+      14      24072     -124.70     -2.4940   4.395e-01    0.5505   4.67194      778    BAD
+      18      30949        1.46      0.0292   8.477e-02    1.2781   4.67194     1066   good
+      22      37827        2.01      0.0401   8.464e-02    1.2779   4.67194      865   good
+      26      44705        2.56      0.0512   8.454e-02    1.2783   4.67194      869   good
+      30      51583        0.11      0.0021   8.636e-02    1.2778   4.67194      956   good
+
+=== VERDICT
+  pattern at dt/4  GBGGGG      baseline at the default dt  GGBGGB
+  bad rows 1 of 6      peak |offset| 124.7 cells (2.494 mm)      worst balance 4.395e-01
+  baseline for comparison: 2 of 6 bad, peak ~163 cells, worst balance ~6.8e-01
+
+  => PARTIAL. The cycle is present but altered (1 bad rows, peak 124.7 cells
+     against 2 and ~163 at the default dt). D contributes but is not the whole
+     mechanism. Reported as partial -- NOT rounded to either verdict.
+
+probe exit: 0

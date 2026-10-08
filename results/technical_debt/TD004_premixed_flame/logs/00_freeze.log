@@ -1,0 +1,57 @@
+TD-004 -- GATE FREEZE RECORD
+date (host):  2026-10-04T05:24:22Z
+git HEAD:     3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+AUTHORIZATION
+  route (a) -- make recentring conservative -- chosen by the user from three measured
+  options after the defect was root-caused. Then: "add C6a and freeze the gate".
+
+FROZEN GATE
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  results/technical_debt/TD004_premixed_flame/GATE.md
+
+PRE-FREEZE DRY-RUN (CLAUDE.md section 5.2)
+53c1fbba9ae0a6432834311cd30cd1a2c89f9f0b0723bf2cef122afeea6c76fd  results/technical_debt/TD004_premixed_flame/logs/05_c1_dryrun_PRE_FREEZE.log
+  C1 run against the UNCHANGED operator: FAILS at every shift, by the full size of the
+  change it makes and does not report. Controls N2 (sign flipped) and N3 (upstream fill
+  only) both fail it; N3 passes for one sign and fails for the other, which is why both
+  fill paths are required.
+
+BASELINE MEASURED BEFORE THE FREEZE
+ed8e475b75dd589cc6709b90fda693d1eeb1d1c4eabbc416cd710c54e36e3a95  results/technical_debt/TD004_premixed_flame/logs/01_flame_state.log
+b7787de9fd9e074b862f2db5424f50566c890576ebfdd987680b34344d31bbbf  results/technical_debt/TD004_premixed_flame/logs/03_balance_probe_fixed.log
+9e3d876fdae2c53c4de96ed9405be1ae6f47a166050888562ed87d1c39b2f01c  results/technical_debt/TD004_premixed_flame/logs/04_front_diagnostic.log
+21b1c402a67a29c4a7898b64a4c049125b832412c5db4f4eb0ebd96abb73e3be  results/technical_debt/TD004_premixed_flame/logs/06_flame_baseline_per_test.log
+c3dc99991c686859ea4cdc31c430dc32905a0402f1ab781d72b50d7530f73099  results/technical_debt/TD004_premixed_flame/logs/07_refinement_long_timeout.log
+c7ba0cb9562d0e080d034849e98863f1f3805e17cec6bdf7241c09fc6d937347  results/technical_debt/TD004_premixed_flame/logs/08_fixture_selection.log
+
+PROBES
+0f669e90eab48ca308e7dec8570807df609a72f975de744d24564be83380a965  results/technical_debt/TD004_premixed_flame/tools/balance_probe.cpp
+e9d83b3a0740b2a599fc1225b7e84b56294e1d5a419e243553ab0598ff76b403  results/technical_debt/TD004_premixed_flame/tools/fixture_probe.cpp
+0f562965e3485d4c265c262bfb1d4ae17f51eccf6f84225e25db95169bd15fb5  results/technical_debt/TD004_premixed_flame/tools/ledger_dryrun.cpp
+
+PRODUCTION SOURCE AT FREEZE (the operator under test is UNCHANGED)
+5625914253164facc2113c07d2f7af0fc5686ab296e02fb9a6f54b6e25097072  src/species/PremixedFlame.cpp
+8342f0743f9fec8b34f6770f444c373f52e4e47c076b0780e368c667411d9c9f  include/cfd/species/PremixedFlame.hpp
+
+TEST FILE AT FREEZE (two pre-freeze baseline changes, neither touching the operator:
+ the refinement triplet shrunk per logs/08, and the DISABLED_ sweep's knob corrected)
+c0d00509c25e7460978bdfdc2210b91ac68f0ac6ef5273c7ff4cd6df3d8a1f2b  tests/unit/species/test_premixed_flame.cpp
+
+OTHER FROZEN GATES, recomputed -- all must be unchanged
+921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+0749efbf1120db1fa6689a5b86be2e5045a20722413e6c2770e4605d5c7c319b  results/technical_debt/TD001_reacting_production/GATE.md
+53aee7afa7b38193fee1d045d43f35720d038fb8b0b6d7851809c0b9969f43b3  results/technical_debt/TD001_reacting_production/GATE_A1.md
+6b1d97e541b555b94524d9e95b44161646b95c13ebaeacab9da5d540f2da42f2  results/technical_debt/TD001_reacting_production/GATE_A2.md
+287c7027bc7db99f0d590eaad1b35388803ffec9dfdd182a2af584bf00e581e5  results/technical_debt/TD002_stiff_chemistry/GATE.md
+
+PRESERVED FAILURE RECORDS, unchanged
+aaafe56975dc4d9643cf7e6a91c8d740be6f1111c9aa94ff16fefefb7bd8e0b4  results/technical_debt/TD001_reacting_production/verification.md
+056d2bf6fb32f81c2f3be95fb4e1ef85062ee9504a2d99b9fcfaaad5fa1fa3ce  results/technical_debt/TD001_reacting_production/verification_A1.md
+0aa84afeaeb84919f65727f108734bc5d58535d18793960ff4724c3915e2a915  results/technical_debt/TD004_premixed_flame/logs/02_balance_probe.log
+
+PERMITTED NON-RUNNERS, named in GATE.md section 5.1
+  WithReactionsDisabledNoFlamePropagates    TIMEOUT 900s   property 6 / G8 control 1 -> TD-020
+  TheEigenvaluePlateausInTheAnchorPosition  TIMEOUT 900s   property 3
+  TheFlameSpeedConvergesUnderMeshRefinement NOW PASSES 313s after the logs/08 fixture shrink
+
+NEXT: reproduce, fix, controls, verify in frozen order. Stop at the first failure.

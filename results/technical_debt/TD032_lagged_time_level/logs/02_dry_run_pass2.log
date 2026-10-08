@@ -1,0 +1,59 @@
+=== ENVIRONMENT
+date        2026-10-06T20:32:27+10:00
+nproc       32
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE -- still the LAGGED library, unchanged since logs/01
+3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+
+=== STAGE A  C3(b) baseline: the per-step change against march length
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/residual_vs_length_probe.cpp -o /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_residual /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+772bab1678092578b3f6cdeb04d32b0570e7e521c0fcfc97495b72bac66e223b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_residual
+
+TD-032 -- C3(b) BASELINE: the per-step change against MARCH LENGTH
+
+  500 cells / cap 5, the gated fixture, with the step ceiling raised so the
+  DERIVED budget governs. A saturated quantity does not move; a converging
+  march's per-step change must FALL. C3(b) asks for a factor 2.0.
+
+  relaxT   marchStp            T resid      worstChange     S_L cm/s    wall s
+      18      30949   9.8936959608e-01     9.895679e-01      4.67194       579
+      26      44705   9.8943789689e-01     9.895690e-01      4.67194       715
+
+=== C3(b) ON THE LAGGED TREE
+    resid(26) / resid(18) = 1.000069   against the required <= 0.50
+    => NO FALL. The quantity is SATURATED, exactly as TD-031's six-configuration
+       invariance said. C3(b) FAILS here, which is its fail-direction
+       non-vacuity, and the criterion may be frozen.
+stage A exit: 0
+
+=== STAGE B  C6 baseline: the three suites, rebuilt then run
+
+all three targets rebuilt against the current source
+
+ok  tests/unit/io/CFDIoTests is newer than the newest production source   646a71a12886502f...
+ok  tests/unit/app/CFDAppLayerTests is newer than the newest production source   f195a2f9b4472cb4...
+ok  tests/unit/species/CFDSpeciesTests is newer than the newest production source   732f6049fc09a18d...
+
+--- CFDIoTests                 (expect 331)
+    
+    [----------] Global test environment tear-down
+    [==========] 331 tests from 24 test suites ran. (278 ms total)
+    [  PASSED  ] 331 tests.
+
+--- CFDAppLayerTests           (expect 32)
+    
+    [----------] Global test environment tear-down
+    [==========] 32 tests from 5 test suites ran. (2912 ms total)
+    [  PASSED  ] 32 tests.
+
+--- CFDSpeciesTests, excluding G8PremixedFlameTest   (expect 343)
+    the exclusion is TD-004 territory and is carried from its baseline; it is recorded
+    here as part of the invocation so the count is never quoted without its conditions.
+    
+    [----------] Global test environment tear-down
+    [==========] 343 tests from 56 test suites ran. (14212 ms total)
+    [  PASSED  ] 343 tests.
+
+DONE 2026-10-06T20:54:50+10:00

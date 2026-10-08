@@ -1,0 +1,53 @@
+=== TD-037 GATE FREEZE
+date   2026-10-07T18:02:19+10:00
+
+The gate is frozen at the hashes below. Any change to GATE.md after this point is an
+AMENDMENT and needs its own file, its own dry-run and its own authorization (CLAUDE.md §5.3).
+
+--- SANITY: the baseline tree must be the one WITH TD-032's fix
+PremixedFlame.cpp  f9f554bf9e1fe1fd29f6ce4c185e7d579fa5c5708958112bc83127e4a6717b6e
+confirmed: post-TD-032
+
+--- THE GATE
+bf4b9bcff8f70423196fe8059799172014479139f7574a78f59943778c572b17  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/GATE.md
+a57bb847e86748048e06465595bccda869fec4647df535684d146440dfa4ac8c  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/dry_run.md
+c2d784bc8bc733c395a5ec74988a2b8d20c6388e23f4cb025f4bc1a52e570a8c  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/audit.md
+
+--- PRODUCTION FILES IN SCOPE (the pre-fix state, which the fix will change)
+f9f554bf9e1fe1fd29f6ce4c185e7d579fa5c5708958112bc83127e4a6717b6e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+
+--- TEST FILES (must be UNCHANGED by this item)
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+
+--- THE DEFECTIVE LIBRARY AND BINARIES THE DRY RUN MEASURED (C8's negative control)
+a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+646a71a12886502f843514fac91cb36770972883d3836c016a4884e7796ad0b9  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/io/CFDIoTests
+f195a2f9b4472cb4580bd3224e736879019f6e397995f458955cfc03ff14125e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/app/CFDAppLayerTests
+6d96a2b82d382e1b5cc88c39027b7c00b791b8e5cda7b43606b396f49f3f54a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+
+--- PROBE
+d311d49f3eb49b27c98c79ae5a8a279adef60f53a3b2f5e4d06b90d440748122  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/tools/ladder_probe.cpp
+6aa0d28f1a2447d8a01a60635763fe57c92daef95f9b5bde1c9ff54946408296  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/tools/td037_ladder
+
+--- THE FROZEN CRITERIA, restated so this log stands alone
+fixture  the test's makeSettings(): 500 cells, 0.010 m, anchorFraction 0.35, tolerance 1e-3,
+         maxOuterIterations 40, driftSettleTolerance 0.05, maximumStepsPerTrial 20000.
+         driftWindow in {16, 32, 64, 128} -- a ladder that STRADDLES the 40-step trial.
+
+C0  REPRODUCE: on the unchanged tree, driftWindow 64 is not Converged and has an unmeasured trial
+C1  status == Converged at driftWindow 16, 32, 64 AND 128
+C2  |S_L - 4.671937| / 4.671937 <= 1.0e-3 at windows 16 and 32   (bound = the bisection tolerance)
+C3  for every measured trial: tooLarge == (massFlux > final mdot), skipping trials within
+    tolerance of the final mdot, where the side is genuinely undetermined
+C4  at driftWindow 32 the 15-trial record is IDENTICAL to dry_run.md section 3
+C5  G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial PASSES, spread below its own 0.02
+C6  CFDIoTests 331 / CFDAppLayerTests 32 / CFDSpeciesTests 343 under -G8PremixedFlameTest.*
+C7  no test breaches ctest --timeout 7200. Wall times REPORTED, NOT bounded -- see dry_run.md §5
+C8  the defective library reproduces C0 and fails C1 and C5 -- SATISFIED by logs/01
+
+STOP RULES: C0 passing on the baseline, or C2, C3 or C4 failing, each stop the item outright.
+            trialSaysTooLarge() must keep failing closed; the unsided case must never guess.
+            No commit, no push. TD-034 blocks commits regardless.
+
+FROZEN 2026-10-07T18:02:19+10:00

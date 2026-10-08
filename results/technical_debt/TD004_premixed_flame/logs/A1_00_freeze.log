@@ -1,0 +1,64 @@
+TD-004 AMENDMENT A1 -- FREEZE
+frozen 2026-10-05T21:02:54+10:00
+
+=== THE AMENDMENT
+e57bc758ca5610eb7431438537de3e3211a884a9ed8a33adcefe0d3694eed42e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A1.md
+
+=== THE ORIGINAL GATE, UNCHANGED (A1 supersedes its C2 and nothing else)
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE.md
+
+=== THE EVIDENCE A1 IS DERIVED FROM
+994425409716320e9ece18f6979d4b6b437291091cb07884ba9232d8883251b6  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/verification.md
+89f9117851f2ee00ab638fe41d2bb3419da1aa96c5d26ed465fae9d6991c1b9b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/summary.md
+ffbfaeed8dc6bf823548b8f02cdd5b2320e57e7e19a136906721b54792ce29eb  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/dry_run.md
+8af9ef8cfa71457949f5a815812adbb19ea2935ef6b4fee5ba501c56112ed3ac  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/10_front_trajectory.log
+7efeb26b81d98c7bc4800e45147691f67045995767d12bc523e1e384ce54ea7a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/13_falsification.log
+baf1cbdf3ac484356dd2aaccfbea6e82ae60ee1bd56cf3eeca4eb18b449237e6  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/14_period.log
+e6348814386e7bd0b4d915d9f795f4171cdba4442517fa562f96cb7420a6bd5a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/15_decay.log
+3f83722724ab6a5b786f282b5aa163561e3b3eb93677ad54e0160f5bc08cafd4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/19_cycle_at_dt4.log
+a2875ea5c3d5254ea51238bcbc59e5f591cad36804ef39851e5d100aa265065d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/20_fuel_budget.log
+
+=== PRODUCTION AND TESTS AT THE MOMENT OF FREEZING
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+
+=== LIBRARY
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+
+=== THE AMENDMENT'S OWN PROBE
+83a6c5d843466ba98770050dfeb942e0bdda6365193757f41bdb4a6fb63a89e7  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c2a1_probe.cpp
+
+=== WHAT A1 CHANGES, as frozen
+
+  REPLACED   C2  "the balance no longer degrades with march length; ratio <= 2.0"
+                 Premise FALSE: the signal is a LIMIT CYCLE of constant amplitude, so there is
+                 no ratio to bound and no fix to the recentring operator could have satisfied it.
+                 The measured 46.9362 stands as a real measurement; the criterion was wrong.
+
+  WITH       C2-A1 over relaxT {10, 14, 18, 22, 26, 30} at GATE.md's fixture:
+                 (a) REACHES  some level has fuelBalanceResidual < 0.05
+                 (b) STAYS    every level at or beyond it is also admissible
+                 (c) SETTLES  over those levels, (max - min) <= mean      [no constant]
+
+  THRESHOLD PROVENANCE  0.05 is the tree's OWN bound (test_premixed_flame.cpp:447), neither
+                        weakened nor tightened, and the same bound TD-005 C3 uses. Clause (c)
+                        carries NO constant: a quantity varying by more than its own mean has
+                        not settled, which is scale-free by construction.
+  FAMILY PROVENANCE     sized to RESOLVE the measured 14-relaxation-time period -- 1.43 periods
+                        at 3.5 points per period. The family is sized from a measured property
+                        of the SYSTEM, as a mesh is sized from a measured flame thickness. No
+                        THRESHOLD is taken from observed output (CLAUDE.md 5.3).
+
+  UNCHANGED  C1, C3, C4, C5, C6, C6a, C6b and C7 stand exactly as frozen in GATE.md.
+
+=== DRY-RUN, as frozen (GATE_A1.md section 5)
+
+  every clause has a real PASS case AND a real FAIL case, from measured data, nothing constructed
+  on the unchanged baseline C2-A1 FAILS at (b); (c) also fails
+  C2-A1 is SATISFIABLE: logs/19's sub-family satisfies (b) and (c) by 47x, the baseline satisfies
+  (a); it requires TD-028 and TD-030's candidate to be resolved
+
+  PREDICTED for the fresh rerun: FAIL at (b)
+
+FROZEN. Rerun fresh per CLAUDE.md 5.3 -- no earlier result may stand in for the verdict.

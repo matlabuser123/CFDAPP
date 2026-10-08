@@ -1,0 +1,48 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T19:29:06+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/chemistry_limiter_probe.cpp -o /tmp/td005_limiter /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 -- DOES THE CHEMISTRY SUB-STEP LIMITER CAUSE THE REACTION EXCESS?
+
+  500 cells, dt = 9.4243e-06 s (D = 0.833), relaxT 22 -- the converged point logs/20 used
+  logs/20 at the default fraction 0.1:  S_L 4.67194  S_c 5.04065  mismatch +7.892 %
+  reaction term -107.892 % of fuelThrough; convection exactly -100.000 %
+
+  KEY COLUMN is subSteps/step: ~1 means the limiter NEVER BINDS and the hypothesis
+  is dead on the first row, whatever the sweep then shows.
+
+ fraction   S_L cm/s   S_c cm/s   mismatch    fuel bal  chemSubSteps    perStep    wall s
+    0.100    4.67194    5.04065   +7.8920%   8.464e-02      32319000     500.00      1000
+    0.030    4.66562    2.06929  -55.6482%   5.564e-01      74216604    1223.65       697
+    0.010    4.66878    1.88758  -59.5701%   6.468e-01     212560735    3282.69      1545
+
+=== VERDICT
+    sub-steps per time step:  500.00 1223.65 3282.69
+    mismatch:                 +7.8920% -55.6482% -59.5701%
+
+    => THE MISMATCH GROWS as the limiter tightens (+7.8920% -> -59.5701%).
+       More accurate chemistry makes the two measures disagree MORE, which points
+       at the OPERATOR SPLIT rather than at either half of it.
+
+probe exit: 0

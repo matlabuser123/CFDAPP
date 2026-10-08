@@ -1,0 +1,69 @@
+TD-027 AMENDMENT A1 -- FREEZE
+frozen 2026-10-06T15:31:08+10:00
+
+=== THE AMENDMENT
+f5ac7f98a75378aab67c0337c24638c7f4bd2a713403c8941e3b6ad3a6f4883d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE_A1.md
+
+=== THE ORIGINAL GATE AND AUDIT, WHICH MUST BE BIT-IDENTICAL TO logs/00_freeze.log
+56080f7ff3a0ad53655e05f13530bfb8f6ed898f5dc722d9f96cb351284b0e75  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE.md
+abb4a6202c7dafe011ded5ec901cd7fc025267ebb1df12374a7300b0c5d52df9  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/audit.md
+    expected  56080f7ff3a0ad53655e05f13530bfb8f6ed898f5dc722d9f96cb351284b0e75  GATE.md
+    expected  abb4a6202c7dafe011ded5ec901cd7fc025267ebb1df12374a7300b0c5d52df9  audit.md
+
+=== THE EVIDENCE C7 IS EVALUATED AGAINST (measured BEFORE the amendment -- see GATE_A1 5)
+6071f1e437e8a828026f71915bf65da0b07855c52271f7ade0a9c5b5863a661d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/01_verify_c1_c4.log
+dadc4a6ce1be39e4234b2998ab8c324ca02f9f829bbe6eb5a95d480e03494dfb  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/02_c1_rerun.log
+96ea19300a90d5a5afcc9b7d149726e3b8f45651a14e5b6dc7ee6168751f892f  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/03_regression_A.log
+2e1968ec0a59361d606e4042dc227a4a96a54610dd2dafb4546ce10cc320f4c4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/04_regression_B.log
+046f78cd38e96e18ed18d1f4d2ed6fb7440192a90aa9650e609faee04de1a2e5  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/05_regression_C.log
+eccc9ad1032e370f29937ac43bcb63ca48ba03739c7bf6dd0c7964f3036ccdef  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/06_regression_D.log
+c9f67239093636646c884806f761baa39431dba0795be2c3cb98ea4d8a1685ad  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/logs/08_stage_d_control.log
+
+=== THE FORWARD CORRECTIONS THAT ACCOMPANY THIS AMENDMENT
+fffb87deb6b34f538d4160489721446ca46b60736f524383181bcab79cabe5d8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/attribution_correction.md
+e72f7a4efdfba02e4614562e83189ab552aebb9bfe8f6539f69b5db11f3d0b7b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/regression.md
+
+=== PRODUCTION AS SHIPPED BY TD-027
+882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+267:  Real maximumCellDiffusionNumber{5.0};
+
+=== LIBRARY AND TEST BINARY
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+489180ece9c683b8b8e2546d295daa28a87c1757d1f9e09eb44f59137d1656c8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+
+=== WHAT A1 ADDS
+
+  C7  every flame-suite verdict movement is NAMED, with its cause and the item that owns it.
+      Threshold: the set of observed movements must EQUAL the named set. Any movement the
+      amendment does not name FAILS C7. No numerical threshold -- nothing in it to weaken.
+
+=== WHAT A1 DOES NOT DO
+
+  * it changes NO threshold, in this gate or in any test
+  * it does NOT make the two PASS -> FAIL failures acceptable. They are real, they are owned by
+    TD-029 and TD-030, and both items stay OPEN
+  * it does NOT amend GATE.md or audit.md, whose hashes are the freeze record. The refuted
+    cap-governs-the-cycle attribution they contain is corrected FORWARD in
+    attribution_correction.md, for the same reason
+
+=== THE TWELVE NAMED MOVEMENTS
+
+  PASS -> FAIL   ItConverges...                 TD-030   converged balance 0.0847 vs < 0.02
+  PASS -> FAIL   TheFlameSpeedConverges...      TD-029   refinement differences GROW
+  FAIL -> FAIL   ThePlateau...                  TD-031   now 2 anchors; front 32-36 cells off
+  FAIL -> FAIL   TheConsumptionIntegral...      TD-030   failing CLAUSE changed
+  FAIL -> FAIL   AVariableConductivity...       pre-existing fixture arithmetic
+  UNMEAS -> PASS WithReactionsDisabled...       TD-004's locator fix, NOT TD-027 (logs/08)
+  PASS -> PASS   TheAnswerIsInsensitive...      TD-005 F1 RESOLVED: spread exactly 0
+  PASS -> PASS   TheEigenvalueIsIndependent...  TD-031   S_c 20 % / delta 30 % state spread
+  PASS -> PASS   TenTimesThePreExponential...   S_L down ~4 % as C2 requires
+  PASS -> PASS   three instant cases            unchanged
+
+=== OUTSTANDING CORROBORATION, recorded rather than waited for
+
+  TD-031's stage 2 re-measures 500 cells / cap 5 -- the configuration C4 was verified at -- on a
+  different relaxT ladder. It is NOT a control on C4, whose verdict comes from this item's own
+  logs/01, but a disagreement would be a reproducibility problem worth knowing about. In flight
+  at freeze time.
+
+FROZEN. C1-C7 all PASS; TD-027 is closeable with its named failures owned elsewhere.

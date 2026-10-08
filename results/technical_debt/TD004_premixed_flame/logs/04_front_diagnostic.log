@@ -1,0 +1,40 @@
+TD-004 balance probe -- 500 cells, 10 mm domain, synthetic F->P
+test gates for reference:  fuel balance < 0.02   |sum Y - 1| < 1e-8
+linear acceptance fraction in PremixedFlame.cpp: 1e-9 of ||b||
+
+  relaxT marchSteps  steady    dT resid     fuel bal   energy bal      e/f     |sumY-1| worstLinRes  S_L cm/s
+    10.0       3968      no  1.6619e-01 4.327958e-02  1.00002   6.2910e-07   4.86230   3.50000   1800.00    47.50     920
+    30.0      11905      no  3.7687e-01 6.343790e-01  1.00000   1.0996e-06   4.86230   3.50000   1800.00   163.96    8857
+    90.0      35717      no  3.7687e-01 6.343790e-01  1.00000   1.1035e-06   4.86230   3.50000   1800.00   163.96   32669
+
+independent variable MOVED: march length 3968 -> 11905 -> 35717  (guard passed)
+fuel balance 4.327958e-02 -> 6.343790e-01   ratio 14.6577 over a 9.0x longer march
+
+HOW TO READ THIS
+  Q1  worstLinRes <= ~1e-9      -> the inner solves are NOT the precision limit,
+                                   and audit.md section 1's clearing of TD-003 stands.
+  Q2  fuel bal falling with     -> the 4.33% is a STOPPING-CRITERION artefact; the
+      march length                 gate should require steadiness.
+      fuel bal plateauing       -> a REAL conservation defect; no march length fixes
+                                   it and TD-004 must repair the discretisation.
+  Q3  e/f staying at ~1.0000    -> the two balances are ONE measurement (F12), and
+                                   the gate must not count them as two.
+
+=================================================================================================
+CORRECTION TO THIS LOG'S COLUMN HEADER (added after the run; the DATA is valid and unaltered)
+=================================================================================================
+The probe's header string was not updated when the `energy bal` column was dropped from the row,
+so the printed header is one column wider than the data and the labels after `fuel bal` are
+shifted. The numbers are correct; only the labels are misaligned. The true mapping, read from the
+printf argument list in tools/balance_probe.cpp, is:
+
+  relaxT  marchSteps  steady  dT_resid    fuel_bal      e/f      |sumY-1|   S_L    x_front  T_peak   offCells  recentr
+    10.0        3968      no  1.6619e-01  4.327958e-02  1.00002  6.2910e-07 4.86230  3.50000  1800.00     47.50      920
+    30.0       11905      no  3.7687e-01  6.343790e-01  1.00000  1.0996e-06 4.86230  3.50000  1800.00    163.96     8857
+    90.0       35717      no  3.7687e-01  6.343790e-01  1.00000  1.1035e-06 4.86230  3.50000  1800.00    163.96    32669
+
+  x_front in mm (anchor = 3.50 mm, domain 10 mm); T_peak in K (T_ad = 1800); offCells = worst
+  front offset from the anchor during the march, in cells; recentr = recentrings during the march.
+
+The header string in the probe source is fixed, so a future run prints correctly. This log is
+annotated rather than re-run: the measurement cost ~21 minutes and the data needs no repeat.

@@ -1,0 +1,192 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T03:34:37+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp -o /tmp/td005_trajectory /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp: In function ‘void {anonymous}::profileAroundFront(const cfd::species::PremixedFlameResult&, cfd::Real)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp:143:14: warning: comparison of unsigned expression in ‘< 0’ is always false [-Wtype-limits]
+  143 |   if (centre < 0) {
+      |       ~~~~~~~^~~
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- THE FRONT'S TRAJECTORY THROUGH THE FINAL MARCH
+
+  500 cells / 10 mm / anchor 0.35 = 3.500 mm; dt and trials IDENTICAL across rows,
+  because finalMarchRelaxationTimes scales ONLY the final march.
+  driftWindow 16 = the inadmissible mode (fuel balance 0.3647, delta 0.7365 mm)
+  driftWindow 32 = the admissible mode  (fuel balance 0.0153, delta 1.2289 mm)
+
+================================================================ driftWindow 16
+  relaxT  marchStp    front mm offset cells   fuel bal   S_c cm/s   delta mm  S_L cm/s worstJmp   shifts  rejects
+    4.00      1589     3.52999         1.50  1.993e-02    4.74706     1.1496   4.85901     2.99        4        0
+    5.00      1986     3.52416         1.21  1.837e-02    4.75278     1.1522   4.85901     2.99        4        0
+    6.00      2384     3.51837         0.92  1.619e-02    4.76217     1.1568   4.85901     2.99        4        0
+    7.00      2781     3.47747        -1.13  2.878e-02    4.70013     1.1290   4.85901     2.99        4        0
+    8.00      3179     3.34396        -7.80  6.409e-02    4.52177     1.0656   4.85901     5.12        4       73
+   10.00      3973     2.56838       -46.58  3.647e-01    3.04347     0.7365   4.85901     5.12        4      470
+
+  TRAJECTORY of the front offset, in cells:
+      +1.5 +1.2 +0.9 -1.1 -7.8 -46.6
+  at the SHORTEST march (4.00 relax times): +1.5 cells
+  at the LONGEST  march (10.00 relax times): -46.6 cells
+  => ACQUIRED: the front STARTS near the anchor and walks away DURING the final
+     march. The trajectory above shows whether it creeps or jumps.
+
+  FIELD at relaxT 4.00 (1589 march steps), front +1.5 cells off anchor:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          86    1.7300     352.43 4.825233e-02     0.05708    8.5698e-05
+          96    1.9300     372.22 4.759273e-02     0.06029    7.0594e-04
+         106    2.1300     398.60 4.671340e-02     0.06456    8.4219e-03
+         116    2.3300     433.62 4.554587e-02     0.07023    1.4062e-01
+         126    2.5300     479.98 4.400082e-02     0.07774    3.0540e+00
+         136    2.7300     541.16 4.196136e-02     0.08765    7.7379e+01
+         146    2.9300     621.77 3.927432e-02     0.10071    2.0009e+03
+         156    3.1300     727.84 3.573879e-02     0.11789    4.5807e+04
+         166    3.3300     867.25 3.109163e-02     0.14047    8.1046e+05
+         176    3.5300    1050.01 2.499952e-02     0.17007    9.7491e+06   <- front
+         186    3.7300    1283.79 1.720700e-02     0.20793    6.7061e+07
+         196    3.9300    1537.07 8.764227e-03     0.24895    1.8189e+08
+         206    4.1300    1705.30 3.156759e-03     0.27620    1.4911e+08
+         216    4.3300    1769.72 1.009281e-03     0.28664    6.2516e+07
+         226    4.5300    1790.35 3.217935e-04     0.28998    2.1643e+07
+         236    4.7300    1796.91 1.030751e-04     0.29104    7.1137e+06
+         246    4.9300    1799.01 3.309802e-05     0.29138    2.3031e+06
+         256    5.1300    1799.68 1.063721e-05     0.29149    7.4212e+05
+         266    5.3300    1799.90 3.419196e-06     0.29152    2.3875e+05
+
+  FIELD at relaxT 5.00 (1986 march steps), front +1.2 cells off anchor:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          86    1.7300     354.83 4.817229e-02     0.05747    1.1211e-04
+          96    1.9300     374.90 4.750340e-02     0.06072    9.2303e-04
+         106    2.1300     401.53 4.661554e-02     0.06504    1.0871e-02
+         116    2.3300     436.80 4.543993e-02     0.07075    1.7743e-01
+         126    2.5300     483.40 4.388657e-02     0.07830    3.7432e+00
+         136    2.7300     544.87 4.183761e-02     0.08825    9.1894e+01
+         146    2.9300     625.84 3.913864e-02     0.10137    2.3039e+03
+         156    3.1300     732.38 3.558726e-02     0.11862    5.1267e+04
+         166    3.3300     872.44 3.091877e-02     0.14131    8.8446e+05
+         176    3.5300    1056.02 2.479933e-02     0.17104    1.0398e+07   <- front
+         186    3.7300    1290.45 1.698489e-02     0.20901    6.9789e+07
+         196    3.9300    1542.51 8.582842e-03     0.24984    1.8348e+08
+         206    4.1300    1707.68 3.077292e-03     0.27659    1.4688e+08
+         216    4.3300    1770.49 9.836614e-04     0.28676    6.1119e+07
+         226    4.5300    1790.59 3.136939e-04     0.29002    2.1119e+07
+         236    4.7300    1796.98 1.004914e-04     0.29105    6.9375e+06
+         246    4.9300    1799.03 3.226974e-05     0.29138    2.2457e+06
+         256    5.1300    1799.69 1.037156e-05     0.29149    7.2361e+05
+         266    5.3300    1799.90 3.334093e-06     0.29152    2.3281e+05
+
+  FIELD at relaxT 6.00 (2384 march steps), front +0.9 cells off anchor:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          85    1.7100     354.89 4.817020e-02     0.05748    1.1289e-04
+          95    1.9100     374.69 4.751028e-02     0.06069    9.0427e-04
+         105    2.1100     400.90 4.663662e-02     0.06493    1.0293e-02
+         115    2.3100     435.54 4.548194e-02     0.07054    1.6187e-01
+         125    2.5100     481.25 4.395824e-02     0.07795    3.2958e+00
+         135    2.7100     541.49 4.195037e-02     0.08770    7.8577e+01
+         145    2.9100     620.77 3.930766e-02     0.10054    1.9322e+03
+         155    3.1100     725.01 3.583297e-02     0.11743    4.2678e+04
+         165    3.3100     861.94 3.126876e-02     0.13961    7.4013e+05
+         175    3.5100    1041.34 2.528860e-02     0.16866    8.8684e+06   <- front
+         185    3.7100    1271.26 1.762480e-02     0.20590    6.2089e+07
+         195    3.9100    1524.41 9.186382e-03     0.24690    1.7781e+08
+         205    4.1100    1699.00 3.366759e-03     0.27518    1.5469e+08
+         215    4.3100    1767.61 1.079743e-03     0.28629    6.6311e+07
+         225    4.5100    1789.67 3.442421e-04     0.28987    2.3092e+07
+         235    4.7100    1796.69 1.102283e-04     0.29100    7.6010e+06
+         245    4.9100    1798.94 3.538431e-05     0.29137    2.4615e+06
+         255    5.1100    1799.66 1.136895e-05     0.29149    7.9311e+05
+         265    5.3100    1799.89 3.653572e-06     0.29152    2.5511e+05
+
+  FIELD at relaxT 7.00 (2781 march steps), front -1.1 cells off anchor:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          83    1.6700     353.26 4.822474e-02     0.05722    9.4053e-05
+          93    1.8700     372.51 4.758289e-02     0.06033    7.2724e-04
+         103    2.0700     398.06 4.673122e-02     0.06447    8.0360e-03
+         113    2.2700     431.95 4.560153e-02     0.06996    1.2427e-01
+         123    2.4700     476.90 4.410349e-02     0.07724    2.5371e+00
+         133    2.6700     536.48 4.211739e-02     0.08689    6.2079e+01
+         143    2.8700     615.46 3.948466e-02     0.09968    1.6019e+03
+         153    3.0700     720.13 3.599553e-02     0.11664    3.7719e+04
+         163    3.2700     858.80 3.137331e-02     0.13910    7.0110e+05
+         173    3.4700    1042.08 2.526403e-02     0.16878    8.9408e+06   <- front
+         183    3.6700    1278.60 1.738003e-02     0.20709    6.4976e+07
+         193    3.8700    1536.42 8.786043e-03     0.24885    1.8170e+08
+         203    4.0700    1706.09 3.130287e-03     0.27633    1.4838e+08
+         213    4.2700    1770.09 9.971532e-04     0.28670    6.1856e+07
+         223    4.4700    1790.46 3.179951e-04     0.29000    2.1398e+07
+         233    4.6700    1796.94 1.019978e-04     0.29104    7.0403e+06
+         243    4.8700    1799.02 3.280889e-05     0.29138    2.2830e+06
+         253    5.0700    1799.68 1.056466e-05     0.29149    7.3707e+05
+         263    5.2700    1799.90 3.403135e-06     0.29152    2.3763e+05
+
+  FIELD at relaxT 8.00 (3179 march steps), front -7.8 cells off anchor:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          77    1.5500     350.15 4.832845e-02     0.05671    6.6143e-05
+          87    1.7500     368.56 4.771456e-02     0.05970    4.8659e-04
+          97    1.9500     393.15 4.689486e-02     0.06368    5.1918e-03
+         107    2.1500     426.05 4.579843e-02     0.06901    7.9620e-02
+         117    2.3500     470.13 4.432896e-02     0.07615    1.6736e+00
+         127    2.5500     529.34 4.235539e-02     0.08574    4.4016e+01
+         137    2.7500     609.02 3.969949e-02     0.09864    1.2699e+03
+         147    2.9500     716.42 3.611919e-02     0.11604    3.4294e+04
+         157    3.1500     861.38 3.128736e-02     0.13951    7.3306e+05
+         167    3.3500    1056.70 2.477656e-02     0.17115    1.0474e+07   <- front
+         177    3.5500    1311.92 1.626934e-02     0.21249    7.8960e+07
+         187    3.7500    1577.56 7.414747e-03     0.25551    1.9079e+08
+         197    3.9500    1727.21 2.426226e-03     0.27975    1.2598e+08
+         207    4.1500    1777.28 7.574388e-04     0.28786    4.8365e+07
+         217    4.3500    1792.76 2.414047e-04     0.29037    1.6392e+07
+         227    4.5500    1797.67 7.771171e-05     0.29116    5.3793e+06
+         237    4.7500    1799.25 2.510942e-05     0.29142    1.7488e+06
+         247    4.9500    1799.76 8.123114e-06     0.29150    5.6689e+05
+         257    5.1500    1799.92 2.629124e-06     0.29153    1.8360e+05
+
+  FIELD at relaxT 10.00 (3973 march steps), front -46.6 cells off anchor:
+        cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          38    0.7700     322.36 4.925462e-02     0.05221    2.0974e-06
+          48    0.9700     333.34 4.888862e-02     0.05399    8.7978e-06
+          58    1.1700     348.69 4.837703e-02     0.05648    5.5963e-05
+          68    1.3700     370.59 4.764688e-02     0.06002    5.9889e-04
+          78    1.5700     402.48 4.658400e-02     0.06519    1.1794e-02
+          88    1.7700     449.74 4.500867e-02     0.07284    4.4159e-01
+          98    1.9700     520.88 4.263736e-02     0.08437    2.8919e+01
+         108    2.1700     629.27 3.902422e-02     0.10192    2.5909e+03
+         118    2.3700     795.80 3.347340e-02     0.12889    2.1340e+05
+         128    2.5700    1052.50 2.491667e-02     0.17047    1.0014e+07   <- front
+         138    2.7700    1427.31 1.242285e-02     0.23118    1.3487e+08
+         148    2.9700    1719.01 2.699806e-03     0.27842    1.3535e+08
+         158    3.1700    1786.01 4.661912e-04     0.28928    3.0823e+07
+         168    3.3700    1797.23 9.238254e-05     0.29109    6.3838e+06
+         178    3.5700    1799.36 2.125571e-05     0.29144    1.4811e+06
+         188    3.7700    1799.83 5.637788e-06     0.29151    3.9356e+05
+         198    3.9700    1799.95 1.681477e-06     0.29153    1.1743e+05
+         208    4.1700    1799.98 5.370949e-07     0.29154    3.7516e+04
+         218    4.3700    1799.99 1.761911e-07     0.29154    1.2307e+04
+
+HOW TO READ THIS
+  The two driftWindow blocks share every setting except the window, so comparing
+  their trajectories isolates what the window does to the front -- which is the
+  one thing logs/01 sweep A could not explain (16 and 64 bad, 32 good).
+  A *** line means the reported flamePosition does not match the field's own
+  crossing, which would be a C4d regression and must stop everything.
+
+probe exit: 0

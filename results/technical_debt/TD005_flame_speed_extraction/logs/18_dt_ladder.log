@@ -1,0 +1,52 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T16:43:35+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/dt_ladder_probe.cpp -o /tmp/td005_dtladder /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 / TD-006 -- TEMPORAL CONVERGENCE OF S_L, at FIXED dx
+
+  500 cells over 10 mm (dx = 20.0 um), refinement ratio r = 2 in dt only
+  final march pinned at 1.0 relaxation time: S_L comes from the BRACKETING, which
+  completes first. Verified -- 19 solves over relaxT 10..46 gave identical S_L.
+  The balances below are at a SHORT march and are CONTEXT ONLY, not admissibility.
+  G8's band 35.0-37.0 cm/s is +-2.80 %. Implicit Euler should give p ~ 1.
+
+      dt s       divisor    S_L cm/s      bracket  marchStp    fuel bal     steps   wall s
+3.7697e-05          dt/1     4.86230   6.7713e-04       396   2.722e-02     15692      212
+1.8849e-05          dt/2     4.65615   6.7713e-04       865   3.291e-02     15628      192
+9.4243e-06          dt/4     4.67194   6.7713e-04      1719   4.062e-02     28530      365
+4.7122e-06          dt/8     4.67510   6.7713e-04      3434   4.929e-02     64448     1108
+
+=== CONVERGENCE ANALYSIS (CLAUDE.md section 6)
+
+  successive differences:
+    S(dt/2) - S(dt/1) = -0.20615 cm/s   (-4.240 % of 4.86230)
+    S(dt/4) - S(dt/2) = +0.01579 cm/s   (+0.339 % of 4.65615)
+    S(dt/8) - S(dt/4) = +0.00316 cm/s   (+0.068 % of 4.67194)
+
+  error changes sign across the ladder: YES
+  *** AN OBSERVED ORDER IS UNDEFINED ACROSS A SIGN CHANGE (CLAUDE.md section 6).
+      No order is reported. The differences above stand on their own, and the
+      non-monotone behaviour is itself the finding.
+
+probe exit: 0

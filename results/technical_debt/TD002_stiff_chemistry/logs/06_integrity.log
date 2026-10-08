@@ -1,0 +1,41 @@
+=== frozen gates, recomputed ===
+287c7027bc7db99f0d590eaad1b35388803ffec9dfdd182a2af584bf00e581e5  results/technical_debt/TD002_stiff_chemistry/GATE.md
+0749efbf1120db1fa6689a5b86be2e5045a20722413e6c2770e4605d5c7c319b  results/technical_debt/TD001_reacting_production/GATE.md
+53aee7afa7b38193fee1d045d43f35720d038fb8b0b6d7851809c0b9969f43b3  results/technical_debt/TD001_reacting_production/GATE_A1.md
+6b1d97e541b555b94524d9e95b44161646b95c13ebaeacab9da5d540f2da42f2  results/technical_debt/TD001_reacting_production/GATE_A2.md
+921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+
+=== preserved failure records, unchanged ===
+aaafe56975dc4d9643cf7e6a91c8d740be6f1111c9aa94ff16fefefb7bd8e0b4  results/technical_debt/TD001_reacting_production/verification.md
+056d2bf6fb32f81c2f3be95fb4e1ef85062ee9504a2d99b9fcfaaad5fa1fa3ce  results/technical_debt/TD001_reacting_production/verification_A1.md
+4ec94a019c42a2ab290dea769a6c12e1589d47e90c22e5820f9ffc717eccf6e4  results/technical_debt/TD002_stiff_chemistry/reproducer.md
+
+=== restore runtime noise from this item's case runs ===
+ M cases/heated_cavity/results/metadata.json
+ M cases/heated_species_diffusion/results/metadata.json
+ M cases/lid_driven_cavity_40x40/results/metadata.json
+ M cases/species_diffusion/results/metadata.json
+?? cases/reacting_plug_flow/
+?? cases/reacting_plug_flow_march/
+?? cases/turbulent_heated_channel/
+
+=== git diff --check : which FILES are flagged ===
+cuda/CMakeLists.txt
+tests/unit/compressible/CMakeLists.txt
+tests/unit/gpu/CMakeLists.txt
+(expect exactly the three TD-018 CRLF files)
+
+=== production files TD-002 changed ===
+cfc70496428d88149efd4a3192f8b1c723371ebcb811aa20533e7bb2ada98102  include/cfd/species/HeatRelease.hpp
+60801b508aeada03cec9e040c295e84e6b80dd92810d1ad3346778f44acaa6d8  src/species/HeatRelease.cpp
+d165560b7a6eea8108f236075c0774fa83762075769e35f53e8afb82b9beda27  include/cfd/species/ChemistryIntegrator.hpp
+34a41ab077b3946b31b05d3e97c66f1fbe34bf6ea56b1d1a6eec97c74eea4144  src/species/ChemistryIntegrator.cpp
+6db0093d6626a5d7fb1dc0c155ba3a52a35b6b0beff6f02ebcd07c3456597791  include/cfd/io/case/PhysicsConfig.hpp
+ffd5e010990aa63a5e4e303c7c0925eb77b65bb2f6bd92d2f51951e37621efba  src/io/case/PhysicsConfigParser.cpp
+5333d998b5dcfde83065cefe177e0779409872489c1810f453be7c7ba7a03c4d  include/cfd/io/SimulationSetup.hpp
+602818bfe77de300952f2541659dadf0e157d716633e4bee17467a6ea60859d8  src/io/CaseBuilder.cpp
+48036743e1b1544e4c76b11598ba8f69bde340176d317fcb44d8a2b626fcb8c1  include/cfd/app/ProjectRunner.hpp
+6d04c6022342ee75c5abfd7f30bf5ad5e6be21a9de687d1d342c7496789b924e  src/app/ProjectRunner.cpp
+
+=== the device restatement was NOT touched ===
+9e182e4d8e9568e1b8a5e01379fef328066934e365657987444abd1eb2595ae7  include/cfd/gpu/DeviceSpeciesThermochemistry.hpp

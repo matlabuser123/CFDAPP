@@ -1,0 +1,41 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T04:29:54+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/falsification_probe.cpp -o /tmp/td005_falsify /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+terminate called after throwing an instance of 'cfd::InvalidArgumentError'
+  what():  solvePremixedFlame: recentreDeadBandCells is 0.5; must be >= 1. Below one cell the front is translated on essentially every step, and the translation is not conservative -- it leaks fresh fuel off the upstream end.TD-005 C3 -- FALSIFICATION TESTS for the instability reading (dry_run G.3)
+baseline for comparison, bad mode at the default band 3.0, relaxT 10:
+  offset -46.58 cells   fuel bal 3.647e-01   S_c 3.04347   delta 0.7365
+
+=== TEST A -- recentreDeadBandCells, bad mode (driftWindow 16), relaxT 10
+    (d) predicts |offset| GROWS with the band and shrinks as the band shrinks.
+    FALSIFIED IF flat in the band, or if a SMALLER band is WORSE.
+    CONFOUND: a tiny band recentres nearly every step and leaks fuel (TD-004).
+    Separate by offset: bad balance + SMALL offset = leak; + LARGE offset = instability.
+
+  deadBand  offset cell    fuel bal   S_c cm/s  delta mm  S_L cm/s    march  recentr  rejects worstJmp   wall s
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/run_falsification_probe.sh: line 62:   853 Aborted                 (core dumped) "$BIN"
+
+probe exit: 134

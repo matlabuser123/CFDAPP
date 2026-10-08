@@ -1,0 +1,63 @@
+production ChemistryIntegrator.cpp 34a41ab077b3946b31b05d3e97c66f1fbe34bf6ea56b1d1a6eec97c74eea4144
+production ProjectRunner.cpp       6d04c6022342ee75c5abfd7f30bf5ad5e6be21a9de687d1d342c7496789b924e
+
+############################################################
+# N2 -- a NORMALISING raw-fields entry point must FAIL C9
+############################################################
+  N2 variant applied: normalising entry point
+    deviation in 5.7182e-08, out 2.22045e-16, ratio 3.88312e-09
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_chemistry_integrator.cpp:531: Failure
+Expected: (marched.worstSumDeviationOut) >= (0.5 * marched.worstSumDeviationIn), actual: 2.2204460492503131e-16 vs 2.8590988465637679e-08
+[  FAILED  ] G8ChemistryIntegratorTest.TD002_TheRawFieldsPathCARRIESATransportClosureRatherThanErasingIt (3 ms)
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] G8ChemistryIntegratorTest.TD002_TheRawFieldsPathCARRIESATransportClosureRatherThanErasingIt
+ 1 FAILED TEST
+  restored, both sha256 verified
+
+############################################################
+# N4 -- STALE RATES across sub-steps must FAIL C5 (refinement)
+############################################################
+  N4 variant applied: rates frozen at the first sub-step
+    control 0.2 -> worst relative error: Y_A 0.0473867, T 0.0520555
+    control 0.05 -> worst relative error: Y_A 0.0473867, T 0.0520555
+    control 0.0125 -> worst relative error: Y_A 0.0473867, T 0.0520555
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_chemistry_integrator.cpp:260: Failure
+Y_A error did not fall from control 0.20000000000000001 to 0.050000000000000003
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_chemistry_integrator.cpp:262: Failure
+T error did not fall from control 0.20000000000000001 to 0.050000000000000003
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_chemistry_integrator.cpp:260: Failure
+Y_A error did not fall from control 0.050000000000000003 to 0.012500000000000001
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_chemistry_integrator.cpp:262: Failure
+  restored, both sha256 verified
+
+############################################################
+# N5 -- the march removed from ProjectRunner must FAIL C10
+############################################################
+  N5 variant applied: march removed
+  cli exit 0
+  fields.csv header: cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,temperature
+  metadata species: []
+  C10: FAILS, as required
+  restored, both sha256 verified
+
+############################################################
+# N3 -- pre_exponential = 0 on the MARCH case
+############################################################
+  cli exit 0
+
+############################################################
+# N6 -- steps = 1 on the MARCH case must equal TD-001 BITWISE
+############################################################
+  cli exit 0
+
+N3  pre_exponential = 0 on a 20-step march
+      max |dY| = 3.323292e-07   max |dT| = 3.516102e-04   max S_E = 0.000000e+00
+      C6a requires no chemistry: FAILS C6a's omega>0, as required
+
+N6  steps = 1 on the march case vs cases/reacting_plug_flow
+      every exported reacting value bitwise identical: YES
+      N6 requires bitwise equality: PASS
+
+final source hashes:
+34a41ab077b3946b31b05d3e97c66f1fbe34bf6ea56b1d1a6eec97c74eea4144  src/species/ChemistryIntegrator.cpp
+6d04c6022342ee75c5abfd7f30bf5ad5e6be21a9de687d1d342c7496789b924e  src/app/ProjectRunner.cpp

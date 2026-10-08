@@ -1,0 +1,340 @@
+date   2026-10-06T22:04:09+10:00
+a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+6d96a2b82d382e1b5cc88c39027b7c00b791b8e5cda7b43606b396f49f3f54a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+
+=== G8PremixedFlameTest, per-test timings. Repository cap is 7200 s PER TEST CASE.
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = G8PremixedFlameTest.*
+[==========] Running 12 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 12 tests from G8PremixedFlameTest
+[ RUN      ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature
+    baseline: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32395 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+              fuel balance = 0.0604715, energy balance = 0.0604738, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432481 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117507 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115821 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00828565 dt = 9.4243e-06 steps = 2255 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359064 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00742403 dt = 9.4243e-06 steps = 2765 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00697576 dt = 9.4243e-06 steps = 3083 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00202351 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.0068613 dt = 9.4243e-06 steps = 3172 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00142039 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+    steady = 0 after 17194 final-march steps, dT residual = 4.69876e-05
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:274: Failure
+Expected: (flame.fuelBalanceResidual) < (0.02), actual: 0.060471505026933173 vs 0.02
+fuel is not conserved: mdot (Y_out - Y_u) disagrees with the reaction integral plus the inlet diffusive influx by 6.0471505026933174% of the through-flux
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:284: Failure
+Expected: (flame.energyBalanceResidual) < (0.02), actual: 0.060473788804921727 vs 0.02
+energy is not conserved: mdot cp (T_out - T_u) disagrees with the heat-release integral plus the inlet conductive influx by 6.0473788804921726%
+
+[  FAILED  ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature (302765 ms)
+[ RUN      ] G8PremixedFlameTest.TheObviousChecksAreVacuousOnTheSeededProfile
+    seeded state: T_peak = 1800 K, outlet Y_fuel = 0, fuel balance = 0.987111, energy balance = 0.987111
+[       OK ] G8PremixedFlameTest.TheObviousChecksAreVacuousOnTheSeededProfile (10 ms)
+[ RUN      ] G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess
+    mdot_0 = 0.1: S_L = 4.67208 cm/s (seed 59.1228), S_c = 4.87113 cm/s, T_peak = 1800 K, delta = 1.18445 mm, bracket = 0.000677131, bisect 10 after 1 brackets, 23846 steps, minY = -3.95867e-12, |sumY-1| = 1.21548e-06
+              fuel balance = 0.0604272, energy balance = 0.0604295, final march 17193 (NOT steady)
+        trial mdot = 0.03 drift = -0.107273 dt = 9.4243e-06 steps = 133 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.06 drift = 0.0416444 dt = 9.4243e-06 steps = 94 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0424264 drift = -0.0496703 dt = 9.4243e-06 steps = 239 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0504538 drift = -0.0142988 dt = 9.4243e-06 steps = 811 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550202 drift = -0.00685868 dt = 9.4243e-06 steps = 3174 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0574562 drift = 0.0190241 dt = 9.4243e-06 steps = 134 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.056225 drift = 0.0100765 dt = 9.4243e-06 steps = 191 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0556194 drift = 0.0063106 dt = 9.4243e-06 steps = 257 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.055319 drift = 0.00422965 dt = 9.4243e-06 steps = 323 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0551694 drift = 0.00291709 dt = 9.4243e-06 steps = 382 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550948 drift = 0.00204117 dt = 9.4243e-06 steps = 432 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550575 drift = 0.00146016 dt = 9.4243e-06 steps = 471 (measured, UNSETTLED, extinguished) -> too large
+    mdot_0 = 0.9: S_L = 10.6109 cm/s (seed 59.1228), S_c = 4.27575 cm/s, T_peak = 1800 K, delta = 0.877316 mm, bracket = 0, bisect 0 after 0 brackets, 317 steps, minY = -1.86322e-12, |sumY-1| = 2.6757e-07
+              fuel balance = 0.59704, energy balance = 0.59704, final march 0 (NOT steady)
+        trial mdot = 0.25 drift = 0.573261 dt = 9.4243e-06 steps = 288 (measured, settled) -> too large
+        trial mdot = 0.125 drift = 0 dt = 9.4243e-06 steps = 28 (UNDECIDED, UNSETTLED, extinguished) -> too small
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:369: Failure
+Expected equality of these values:
+  flameHigh.status
+    Which is: 4-byte object <02-00 00-00>
+  PremixedFlameStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+
+[  FAILED  ] G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess (230545 ms)
+[ RUN      ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength
+    anchor 0.300000: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.86499 cm/s, T_peak = 1800 K, delta = 1.1816 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32475 steps, minY = -6.82925e-12, |sumY-1| = 6.67873e-07
+              fuel balance = 0.0720863, energy balance = 0.0720877, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432482 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117333 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115821 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00818465 dt = 9.4243e-06 steps = 2262 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359062 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00726393 dt = 9.4243e-06 steps = 2782 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00677382 dt = 9.4243e-06 steps = 3110 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.0020235 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.00664738 dt = 9.4243e-06 steps = 3201 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00142039 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:409: Failure
+The difference between flame.flamePosition and fraction * settings.domainLength is 0.000868329219080271, which exceeds 0.02 * settings.domainLength, where
+flame.flamePosition evaluates to 0.0021316707809197291,
+fraction * settings.domainLength evaluates to 0.0030000000000000001, and
+0.02 * settings.domainLength evaluates to 0.00020000000000000001.
+
+    anchor 0.400000: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.8748 cm/s, T_peak = 1800 K, delta = 1.18609 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32383 steps, minY = -1.37323e-11, |sumY-1| = 1.3913e-06
+              fuel balance = 0.0525992, energy balance = 0.052599, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432481 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117518 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115821 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00829915 dt = 9.4243e-06 steps = 2254 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359066 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00744897 dt = 9.4243e-06 steps = 2762 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00701048 dt = 9.4243e-06 steps = 3080 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00202352 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.00689889 dt = 9.4243e-06 steps = 3167 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.0014204 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:409: Failure
+The difference between flame.flamePosition and fraction * settings.domainLength is 0.0010997227143161679, which exceeds 0.02 * settings.domainLength, where
+flame.flamePosition evaluates to 0.0029002772856838322,
+fraction * settings.domainLength evaluates to 0.0040000000000000001, and
+0.02 * settings.domainLength evaluates to 0.00020000000000000001.
+
+    anchor 0.500000: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.8774 cm/s, T_peak = 1800 K, delta = 1.18739 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32382 steps, minY = -1.31865e-11, |sumY-1| = 1.89856e-06
+              fuel balance = 0.0460816, energy balance = 0.0460824, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432481 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117518 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115822 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.0083009 dt = 9.4243e-06 steps = 2254 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359069 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00745275 dt = 9.4243e-06 steps = 2762 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00701596 dt = 9.4243e-06 steps = 3079 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00202356 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.00690513 dt = 9.4243e-06 steps = 3167 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00142044 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:409: Failure
+The difference between flame.flamePosition and fraction * settings.domainLength is 0.0011436322047498251, which exceeds 0.02 * settings.domainLength, where
+flame.flamePosition evaluates to 0.003856367795250175,
+fraction * settings.domainLength evaluates to 0.0050000000000000001, and
+0.02 * settings.domainLength evaluates to 0.00020000000000000001.
+
+    anchor plateau: 4.67194 .. 4.67194 cm/s
+    domain 40 mm: S_L = 4.66878 cm/s (seed 59.1228), S_c = 4.87755 cm/s, T_peak = 1800 K, delta = 1.18699 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32447 steps, minY = -1.03031e-11, |sumY-1| = 1.87844e-06
+              fuel balance = 0.0449482, energy balance = 0.044949, final march 17217 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864958 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.32616 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207974 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0429633 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0554603 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0116174 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0117067 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00820787 dt = 9.4243e-06 steps = 2255 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00365803 dt = 9.4243e-06 steps = 348 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00736737 dt = 9.4243e-06 steps = 2763 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.0069345 dt = 9.4243e-06 steps = 3080 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00208388 dt = 9.4243e-06 steps = 430 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = 0.000376214 dt = 9.4243e-06 steps = 561 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0549813 drift = -0.00688338 dt = 9.4243e-06 steps = 3124 (measured, UNSETTLED, extinguished) -> too small
+[  FAILED  ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength (1283214 ms)
+[ RUN      ] G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue
+    steady = 0, fuel balance = 0.0604715
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:456: Failure
+Expected: (flame.fuelBalanceResidual) < (0.05), actual: 0.060471505026933173 vs 0.05
+the state does not conserve fuel well enough for the consumption identity to mean anything, so the mismatch below would be measuring the wrong state
+
+[  FAILED  ] G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue (321503 ms)
+[ RUN      ] G8PremixedFlameTest.TheFlameSpeedConvergesUnderMeshRefinement
+    125 cells: S_L = 4.90527 cm/s (seed 59.1228), S_c = 4.14831 cm/s, T_peak = 1800 K, delta = 1.00973 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 5422 steps, minY = 0, |sumY-1| = 2.1437e-07
+              fuel balance = 0.150485, energy balance = 0.150485, final march 974 (NOT steady)
+        trial mdot = 0.696488 drift = 1.75572 dt = 4.05935e-05 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.739029 dt = 8.1187e-05 steps = 192 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.269843 dt = 0.000150789 steps = 192 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.0657364 dt = 0.000150789 steps = 192 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.0294572 dt = 0.000150789 steps = 544 (measured, settled) -> too small
+        trial mdot = 0.0615615 drift = 0.00858585 dt = 0.000150789 steps = 288 (measured, settled) -> too large
+        trial mdot = 0.0517668 drift = -0.012489 dt = 0.000150789 steps = 384 (measured, settled) -> too small
+        trial mdot = 0.0564521 drift = -0.00273511 dt = 0.000150789 steps = 320 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.00298816 dt = 0.000150789 steps = 288 (measured, settled) -> too large
+        trial mdot = 0.0576883 drift = -0.000168429 dt = 0.000150789 steps = 320 (measured, settled) -> too small
+        trial mdot = 0.0583164 drift = 0.00154324 dt = 0.000150789 steps = 288 (measured, settled) -> too large
+        trial mdot = 0.0580015 drift = 0.000616375 dt = 0.000150789 steps = 320 (measured, settled) -> too large
+        trial mdot = 0.0578447 drift = 0.00014075 dt = 0.000150789 steps = 320 (measured, settled) -> too large
+        trial mdot = 0.0577664 drift = -2.87593e-05 dt = 0.000150789 steps = 320 (measured, settled) -> too small
+        trial mdot = 0.0578055 drift = 5.60402e-05 dt = 0.000150789 steps = 320 (measured, settled) -> too large
+    250 cells: S_L = 4.82296 cm/s (seed 59.1228), S_c = 4.77406 cm/s, T_peak = 1800 K, delta = 1.1576 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 10625 steps, minY = 0, |sumY-1| = 6.03956e-07
+              fuel balance = 0.00249251, energy balance = 0.00249223, final march 4033 (NOT steady)
+        trial mdot = 0.696488 drift = 1.84692 dt = 2.02967e-05 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.785257 dt = 3.76972e-05 steps = 224 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.302532 dt = 3.76972e-05 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.0685387 dt = 3.76972e-05 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.0373561 dt = 3.76972e-05 steps = 120 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0309685 dt = 3.76972e-05 steps = 73 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0123315 dt = 3.76972e-05 steps = 448 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = -0.00398817 dt = 3.76972e-05 steps = 1248 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.0165466 dt = 3.76972e-05 steps = 110 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0576883 drift = 0.00887284 dt = 3.76972e-05 steps = 160 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0570668 drift = 0.00414491 dt = 3.76972e-05 steps = 228 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0567586 drift = -0.0033201 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too small
+        trial mdot = 0.0569125 drift = 0.00254054 dt = 3.76972e-05 steps = 269 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0568355 drift = 0.00137204 dt = 3.76972e-05 steps = 312 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0567971 drift = -0.00325081 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too small
+    500 cells: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32395 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+              fuel balance = 0.0604715, energy balance = 0.0604738, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432481 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117507 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115821 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00828565 dt = 9.4243e-06 steps = 2255 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359064 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00742403 dt = 9.4243e-06 steps = 2765 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00697576 dt = 9.4243e-06 steps = 3083 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00202351 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.0068613 dt = 9.4243e-06 steps = 3172 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00142039 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+    refinement differences: 0.0823112 then 0.151024 cm/s
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:531: Failure
+Expected: (fine) < (coarse), actual: 0.0015102437583818171 vs 0.00082311241600546009
+S_L is not converging under refinement
+
+[  FAILED  ] G8PremixedFlameTest.TheFlameSpeedConvergesUnderMeshRefinement (372890 ms)
+[ RUN      ] G8PremixedFlameTest.WithReactionsDisabledNoFlamePropagates
+    reactions off: status 1, S_L = 0.0144343 cm/s, S_c = -0 cm/s, peak |S_E| = 0, brackets = 13
+[       OK ] G8PremixedFlameTest.WithReactionsDisabledNoFlamePropagates (23707 ms)
+[ RUN      ] G8PremixedFlameTest.TenTimesThePreExponentialMovesTheFlameSpeedFar
+    A x 1: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32395 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+              fuel balance = 0.0604715, energy balance = 0.0604738, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432481 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117507 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115821 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00828565 dt = 9.4243e-06 steps = 2255 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359064 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00742403 dt = 9.4243e-06 steps = 2765 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00697576 dt = 9.4243e-06 steps = 3083 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00202351 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.0068613 dt = 9.4243e-06 steps = 3172 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00142039 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+    A x 10: S_L = 14.814 cm/s (seed 186.963), S_c = 15.4031 cm/s, T_peak = 1800 K, delta = 0.375113 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32247 steps, minY = -1.19311e-13, |sumY-1| = 1.71857e-06
+              fuel balance = 0.0397673, energy balance = 0.0397689, final march 15391 (NOT steady)
+        trial mdot = 2.20249 drift = 6.04964 dt = 1.04714e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 1.10124 drift = 2.71218 dt = 1.04714e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.550622 drift = 1.03391 dt = 1.04714e-06 steps = 480 (measured, settled) -> too large
+        trial mdot = 0.275311 drift = 0.651636 dt = 1.04714e-06 steps = 39 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.137656 drift = -0.135562 dt = 1.04714e-06 steps = 247 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.194674 drift = 0.164126 dt = 1.04714e-06 steps = 82 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.163701 drift = -0.037462 dt = 1.04714e-06 steps = 1049 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.178517 drift = 0.0335226 dt = 1.04714e-06 steps = 187 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.170949 drift = -0.0264526 dt = 1.04714e-06 steps = 2065 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.174692 drift = 0.00609214 dt = 1.04714e-06 steps = 434 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.17281 drift = -0.023739 dt = 1.04714e-06 steps = 2525 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.173749 drift = -0.0223428 dt = 1.04714e-06 steps = 2811 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.17422 drift = -0.0216321 dt = 1.04714e-06 steps = 2973 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.174456 drift = -0.0212732 dt = 1.04714e-06 steps = 3059 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.174574 drift = 0.00402013 dt = 1.04714e-06 steps = 477 (measured, UNSETTLED, extinguished) -> too large
+    S_L ratio for 10x A: 3.17085
+[       OK ] G8PremixedFlameTest.TenTimesThePreExponentialMovesTheFlameSpeedFar (1195573 ms)
+[ RUN      ] G8PremixedFlameTest.AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:624: Failure
+Expected: (risingConductivity.value(kExpectedAdiabatic)) > (3.0 * kConductivity), actual: 0.11000000000000001 vs 0.15000000000000002
+
+[  FAILED  ] G8PremixedFlameTest.AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue (0 ms)
+[ RUN      ] G8PremixedFlameTest.MalformedConfigurationsAreRefused
+[       OK ] G8PremixedFlameTest.MalformedConfigurationsAreRefused (3 ms)
+[ RUN      ] G8PremixedFlameTest.TheBurntCompositionConsumesTheFuelExactlyAndConservesMass
+[       OK ] G8PremixedFlameTest.TheBurntCompositionConsumesTheFuelExactlyAndConservesMass (0 ms)
+[ RUN      ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+    16 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32219 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+              fuel balance = 0.0604715, energy balance = 0.0604738, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.93555 dt = 9.4243e-06 steps = 128 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.916199 dt = 9.4243e-06 steps = 128 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326463 dt = 9.4243e-06 steps = 528 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.191974 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0429113 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0491139 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.011761 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0112679 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00828863 dt = 9.4243e-06 steps = 2255 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00348314 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00742522 dt = 9.4243e-06 steps = 2765 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00697621 dt = 9.4243e-06 steps = 3083 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00192647 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.00686158 dt = 9.4243e-06 steps = 3172 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00132879 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+    32 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32395 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+              fuel balance = 0.0604715, energy balance = 0.0604738, final march 17194 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.207889 dt = 9.4243e-06 steps = 40 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0435305 drift = -0.0432481 dt = 9.4243e-06 steps = 264 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0615615 drift = 0.0553479 dt = 9.4243e-06 steps = 83 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0517668 drift = -0.0117507 dt = 9.4243e-06 steps = 1135 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0564521 drift = 0.0115821 dt = 9.4243e-06 steps = 175 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0540587 drift = -0.00828565 dt = 9.4243e-06 steps = 2255 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0552425 drift = 0.00359064 dt = 9.4243e-06 steps = 350 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0546474 drift = -0.00742403 dt = 9.4243e-06 steps = 2765 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0549441 drift = -0.00697576 dt = 9.4243e-06 steps = 3083 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550931 drift = 0.00202351 dt = 9.4243e-06 steps = 433 (measured, UNSETTLED, extinguished) -> too large
+        trial mdot = 0.0550186 drift = -0.0068613 dt = 9.4243e-06 steps = 3172 (measured, UNSETTLED, extinguished) -> too small
+        trial mdot = 0.0550558 drift = 0.00142039 dt = 9.4243e-06 steps = 474 (measured, UNSETTLED, extinguished) -> too large
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:725: Failure
+Expected equality of these values:
+  flame.status
+    Which is: 4-byte object <02-00 00-00>
+  PremixedFlameStatus::Converged
+    Which is: 4-byte object <00-00 00-00>
+steps 64
+
+[  FAILED  ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial (612304 ms)
+[ DISABLED ] G8PremixedFlameTest.DISABLED_PropagationHistory
+[ DISABLED ] G8PremixedFlameTest.DISABLED_ParameterWindowScan
+[ DISABLED ] G8PremixedFlameTest.DISABLED_SettlingCurve
+[ DISABLED ] G8PremixedFlameTest.DISABLED_BalanceVersusMarchLength
+[ DISABLED ] G8PremixedFlameTest.DISABLED_FinalProfileDump
+[----------] 12 tests from G8PremixedFlameTest (4342518 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 1 test suite ran. (4342518 ms total)
+[  PASSED  ] 5 tests.
+[  FAILED  ] 7 tests, listed below:
+[  FAILED  ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature
+[  FAILED  ] G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess
+[  FAILED  ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength
+[  FAILED  ] G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue
+[  FAILED  ] G8PremixedFlameTest.TheFlameSpeedConvergesUnderMeshRefinement
+[  FAILED  ] G8PremixedFlameTest.AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue
+[  FAILED  ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+
+ 7 FAILED TESTS
+  YOU HAVE 5 DISABLED TESTS
+
+
+total elapsed 4343 s
+DONE 2026-10-06T23:16:32+10:00

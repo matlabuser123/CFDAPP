@@ -46,6 +46,19 @@ CMakeFiles/
 !results/ci-perf-001/**/*.log
 !results/gpu-pipe-001/**/*.log
 !results/gpu-disc-001/**/*.log
+# Technical Debt Resolution Campaign. Same rule, same reason: results/technical_debt/
+# holds frozen gates, dry-runs and verification docs that cite their logs BY FILENAME,
+# and the logs carry the freeze hashes, the two-library attributions and the preserved
+# FAILED runs that CLAUDE.md §4 forbids deleting. Without this negation the bare *.log
+# above silently drops all of them and the committed evidence cannot be reproduced.
+!results/technical_debt/**/*.log
+
+# ...but NOT the compiled probe executables sitting beside their sources in those same
+# tools/ directories. They are build artifacts (ELF, ~2 MB each) that §11.5 forbids
+# committing, and they re-staged twice during one `git add results/technical_debt`.
+# The binaries have no extension; their sources do, so the negation keeps the sources.
+results/technical_debt/*/tools/td0*
+!results/technical_debt/*/tools/td0*.*
 
 # Nsight Systems profiler output. Large binary databases (a .nsys-rep/.sqlite
 # pair is ~10 MB) that cannot be diffed or reviewed, and that git would carry

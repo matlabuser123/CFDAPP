@@ -1,0 +1,65 @@
+TD-027 -- GATE FREEZE
+frozen 2026-10-05T21:58:20+10:00
+
+=== THE GATE
+56080f7ff3a0ad53655e05f13530bfb8f6ed898f5dc722d9f96cb351284b0e75  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE.md
+abb4a6202c7dafe011ded5ec901cd7fc025267ebb1df12374a7300b0c5d52df9  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/audit.md
+
+=== PRODUCTION, UNCHANGED AT THE MOMENT OF FREEZING
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+
+=== TESTS, UNCHANGED
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+
+=== LIBRARY
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+
+=== THE EVIDENCE THE DRY-RUN CITES (non-vacuity; the verdicts must be fresh)
+79492f16ca4f5121aa611900120b017d7aa0ecf56bd2430443bf2b8bba0905e7  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/18_dt_ladder.log
+3f83722724ab6a5b786f282b5aa163561e3b3eb93677ad54e0160f5bc08cafd4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/19_cycle_at_dt4.log
+e1d8a979510cb03be32a91ab5efa8bb465ebe335ec652b071b968b87afe8bfe3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/03_tests_at_repo_cap.log
+0cfe1284d147edf6a6104117985d6b32c427032f60a2d2043a33a506507263a6  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/08_regression.log
+3dd920ec5cf616211d12498828723860aa1f9c377987972f3507587f935d8632  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/logs/A1_01_c2a1_verification.log
+
+=== THE THREE FROZEN GATE FILES THIS FIX INVALIDATES VALUES IN (must NOT be edited)
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE.md
+e57bc758ca5610eb7431438537de3e3211a884a9ed8a33adcefe0d3694eed42e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A1.md
+6a7ccf3cc038a310b99059b75c97062ea7564a25f4c274bbc7e110b4d9de286d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/GATE.md
+
+=== THE CHANGE UNDER TEST
+
+  include/cfd/species/PremixedFlame.hpp
+     Real maximumCellDiffusionNumber{20.0};   ->   {5.0}
+
+  dt = cap * dx^2 / alpha_max, and the diffusion limit binds at the eigenvalue, so D IS the cap
+  (audit section 1). dt therefore falls 4x for every premixed-flame solve.
+
+=== CRITERIA, as frozen
+
+  C1  the cap IS the realized D         alpha_max*dt/dx^2 == cap to 1e-12 relative
+  C2  S_L within the temporal budget    |S_L - 4.67589|/4.67589 <= 0.28 %   (G8's band / 10)
+  C3  reported precision coherent       error / (sqrt(1+tol)-1) <= 2
+  C4  the limit cycle is suppressed     (max-min) <= mean over relaxT {18,22,26,30}
+  C5  nothing else changes              343 / 331 / 32
+  C6  no test breaches 7200 s           every case produces a verdict; longest <= 7200 s
+
+  CONVERGED REFERENCE, fixed before any criterion uses it:  S_L = 4.67589 cm/s
+  (Richardson over {dt/2, dt/4, dt/8}, p = 2.321, GCI 0.021 %). This REPLACES 4.86230, which was
+  measured at D = 20, outside the asymptotic range, and is 3.99 % high.
+
+=== DRY-RUN, as frozen (GATE.md section 6)
+
+  C2, C3 and C4 all FAIL on the unchanged tree -- they ARE the defect -- and all three are
+  demonstrated to PASS at cap = 5 on data measured before this gate was written.
+  C1, C5, C6 pass on the unchanged tree. Every criterion has a real pass AND a real fail case.
+
+=== EMPIRICAL CONSTANTS, labelled per CLAUDE.md 5.1
+
+  C2's "one tenth of G8's band"   an engineering margin, so the time discretisation is not a
+                                  material contributor to a gated comparison
+  C3's "factor of 2"              within 2x, a reported uncertainty and the true error are the
+                                  same order and the report is not misleading
+  C4 carries NO constant.
+
+FROZEN. No threshold or criterion may change without a separately authorized amendment.

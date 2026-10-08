@@ -1,0 +1,37 @@
+date 2026-10-08T19:08:03+10:00
+
+=== reconstruct the PRE-FIX source, hash-proved
+wrote src/species/PremixedFlame.cpp  PRE-FIX (locator not translated)  sha256 8c85bc9f5f457bf2... PROVED
+pre-fix library  be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5
+  (TD-004's A2_05 measured the pre-fix library as be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5)
+
+=== the probe source must be UNCHANGED from the post-fix run
+40855fdb8f56a06b8e2c30b74b9e0fd42a310323739fb3368206ea696d227c9a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD040_recentre_conservation/tools/deadband_ladder_probe.cpp
+
+=== RUN on the PRE-FIX library
+TD-040 -- S_L against the RECENTRING RATE, via the dead band
+
+  deadBand 1000 DISABLES recentring: |offset| cannot exceed 500 in 500 cells.
+  pre-fix reference   S_L 4.671937 cm/s  (1 final-march recentring, 121 total)
+  post-fix reference  S_L 4.955332 cm/s  (3 final-march recentrings, 223 total)
+
+ deadBand     S_L cm/s   recentr   final      ledgerRate   as % fuelT   front off     balance
+        1     3.627024       861     459    2.011847e-03      94.1706      -0.721   3.181e-01
+        3     4.671937       121       1   -2.181894e-05      -0.7929     -51.267   6.047e-02
+       10     4.951979        25       1   -8.154487e-05      -2.7957      -1.681   5.529e-03
+       20     4.955332         7       0    0.000000e+00       0.0000       8.335   7.066e-03
+     1000     4.955332         0       0    0.000000e+00       0.0000       8.335   7.066e-03
+
+=== HOW TO READ THIS
+  The deadBand-1000 row is the NEGATIVE CONTROL: recentring off, ledger exactly
+  zero, and whatever S_L it gives is the eigenvalue with no translation at all.
+  If rows 1..20 show a FLAT ledger rate, audit.md section 4.4 holds and the middle
+  of this ladder discriminates nothing -- read the control row against the two
+  reference eigenvalues instead, and say so rather than reading a flat line as a
+  result.
+probe exit: 0
+DONE 2026-10-08T19:47:20+10:00
+
+=== ENSURING the tree is left POST-FIX
+tree is NOT post-fix (8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a) -- restoring
+wrote src/species/PremixedFlame.cpp  POST-FIX (locator translated)  sha256 3c2263cd34f3ae93... PROVED

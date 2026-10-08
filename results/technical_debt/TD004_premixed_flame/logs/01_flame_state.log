@@ -1,0 +1,44 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature:G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue:G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from G8PremixedFlameTest
+[ RUN      ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature
+    baseline: S_L = 4.8623 cm/s (seed 59.1228), S_c = 4.90006 cm/s, T_peak = 1800 K, delta = 1.22891 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 19264 steps, minY = 0, |sumY-1| = 6.29103e-07
+              fuel balance = 0.0432796, energy balance = 0.0432805, final march 3968 (NOT steady)
+        trial mdot = 0.696488 drift = 0.992883 dt = 1.01484e-05 steps = 128 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.446959 dt = 2.02967e-05 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.172493 dt = 3.76972e-05 steps = 192 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.039275 dt = 3.76972e-05 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.0156805 dt = 3.76972e-05 steps = 2080 (measured, settled) -> too small
+        trial mdot = 0.0615615 drift = 0.0052698 dt = 3.76972e-05 steps = 1056 (measured, settled) -> too large
+        trial mdot = 0.0517668 drift = -0.0064339 dt = 3.76972e-05 steps = 1472 (measured, settled) -> too small
+        trial mdot = 0.0564521 drift = -0.000976964 dt = 3.76972e-05 steps = 1248 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.00201522 dt = 3.76972e-05 steps = 1152 (measured, settled) -> too large
+        trial mdot = 0.0576883 drift = 0.000530908 dt = 3.76972e-05 steps = 1184 (measured, settled) -> too large
+        trial mdot = 0.0570668 drift = -0.000227385 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too small
+        trial mdot = 0.0573767 drift = 0.000129515 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too large
+        trial mdot = 0.0572216 drift = -4.87299e-05 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too small
+        trial mdot = 0.0572991 drift = 4.0439e-05 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too large
+        trial mdot = 0.0572603 drift = -4.39864e-06 dt = 3.76972e-05 steps = 1216 (measured, settled) -> too small
+    steady = 0 after 3968 final-march steps, dT residual = 0.166188
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:274: Failure
+Expected: (flame.fuelBalanceResidual) < (0.02), actual: 0.043279584823336506 vs 0.02
+fuel is not conserved: mdot (Y_out - Y_u) disagrees with the reaction integral plus the inlet diffusive influx by 4.327958482333651% of the through-flux
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:284: Failure
+Expected: (flame.energyBalanceResidual) < (0.02), actual: 0.043280513031895881 vs 0.02
+energy is not conserved: mdot cp (T_out - T_u) disagrees with the heat-release integral plus the inlet conductive influx by 4.3280513031895884%
+
+[  FAILED  ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature (240557 ms)
+[ RUN      ] G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue
+    steady = 0, fuel balance = 0.0432796
+    S_L = 4.8623 cm/s, S_c = 4.90006 cm/s, mismatch = 0.00776642
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:459: Failure
+Expected: (flame.maxCompositionSumDeviation) < (1.0e-8), actual: 6.2910252851544612e-07 vs 1e-08
+
+[  FAILED  ] G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue (241602 ms)
+[ RUN      ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+=== exit 0 ===
+
+[exited with code 0]

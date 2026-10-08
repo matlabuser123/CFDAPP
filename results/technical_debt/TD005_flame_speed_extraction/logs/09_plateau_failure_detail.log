@@ -1,0 +1,24 @@
+    // `flamePosition` a measurement of the reported field, which turns this line into the check it
+    // always claimed to be -- so it is left exactly as written, at the same tolerance, rather than
+    // rewritten. `0.02 * domainLength` is 10 cells on this fixture, against a 3-cell recentring
+    // dead band. Evidence: results/technical_debt/TD005_flame_speed_extraction/logs/02.
+    EXPECT_NEAR(flame.flamePosition, fraction * settings.domainLength,
+                0.02 * settings.domainLength);
+  }
+
+=== rerun just that test to capture the full assertion text ===
+    anchor 0.300000: S_L = 4.85572 cm/s (seed 59.1228), S_c = 3.03387 cm/s, T_peak = 1800 K, delta = 0.734479 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 19275 steps, minY = 0, |sumY-1| = 5.20805e-07
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:409: Failure
+The difference between flame.flamePosition and fraction * settings.domainLength is 0.0009154349155490191, which exceeds 0.02 * settings.domainLength, where
+flame.flamePosition evaluates to 0.002084565084450981,
+fraction * settings.domainLength evaluates to 0.0030000000000000001, and
+0.02 * settings.domainLength evaluates to 0.00020000000000000001.
+    anchor 0.400000: S_L = 4.8623 cm/s (seed 59.1228), S_c = 4.90129 cm/s, T_peak = 1800 K, delta = 1.22999 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 19264 steps, minY = 0, |sumY-1| = 6.35706e-07
+    anchor 0.500000: S_L = 4.8623 cm/s (seed 59.1228), S_c = 4.90185 cm/s, T_peak = 1800 K, delta = 1.22992 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 19264 steps, minY = 0, |sumY-1| = 6.61227e-07
+    anchor plateau: 4.85572 .. 4.8623 cm/s
+[  FAILED  ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength (919214 ms)
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength
+ 1 FAILED TEST
+
+[exited with code 0]

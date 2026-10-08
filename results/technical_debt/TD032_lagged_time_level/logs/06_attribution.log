@@ -1,0 +1,57 @@
+*** REFUSED: count=0 for a 130-char anchor. The tree is not in the form this direction expects; nothing written.
+
+
+=== STEP 1  reconstruct the PRE-FIX source and PROVE it against the frozen sha256
+wrote src/species/PremixedFlame.cpp  PRE-FIX (lagged)  sha256 dac2992006a51cce... PROVED
+
+=== STEP 2  build the PRE-FIX library and test binary
+pre-fix library  3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0
+  (the frozen lagged library was 3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0)
+  IDENTICAL to the frozen lagged library -- the baseline is the same one the dry run used.
+
+=== STEP 3  run the ONE test on the PRE-FIX library
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from G8PremixedFlameTest
+[ RUN      ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+    16 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.19794 cm/s, T_peak = 1800 K, delta = 0.982081 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 43893 steps, minY = -3.86708e-12, |sumY-1| = 1.40713e-06
+    32 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.19794 cm/s, T_peak = 1800 K, delta = 0.982081 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 44005 steps, minY = -3.86708e-12, |sumY-1| = 1.40713e-06
+    64 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.19794 cm/s, T_peak = 1800 K, delta = 0.982081 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 44293 steps, minY = -3.86708e-12, |sumY-1| = 1.40713e-06
+    drift-window spread: 0
+[       OK ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial (1311361 ms)
+[----------] 1 test from G8PremixedFlameTest (1311361 ms total)
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1311361 ms total)
+[  PASSED  ] 1 test.
+pre-fix elapsed 1311 s
+
+=== STEP 4  restore the fix, rebuild, and re-run the SAME test for the pair
+wrote src/species/PremixedFlame.cpp  POST-FIX (fixed)  sha256 f9f554bf9e1fe1fd... PROVED
+post-fix library a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf
+
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from G8PremixedFlameTest
+[ RUN      ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+    16 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32219 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+    32 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32395 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:725: Failure
+Expected equality of these values:
+    Which is: 4-byte object <02-00 00-00>
+    Which is: 4-byte object <00-00 00-00>
+[  FAILED  ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial (662540 ms)
+[----------] 1 test from G8PremixedFlameTest (662540 ms total)
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (662540 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+post-fix elapsed 663 s
+
+Read the pair against the pre-registered outcomes in this script's header.
+DONE 2026-10-07T03:52:28+10:00
+
+=== RESTORING the fixed tree (runs even on failure)
+*** RESTORE FAILED -- the tree may be left pre-fix. CHECK IT.
+restored library a9b01668be7ccb7f...
+  (the verified fixed library is a9b01668be7ccb7f...)

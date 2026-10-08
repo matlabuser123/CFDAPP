@@ -1,0 +1,45 @@
+=== ENVIRONMENT
+date        2026-10-08T00:07:00+10:00
+nproc       32
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE
+be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  (expect 8c85bc9f... = TD-027 cap 5 + TD-032 time level + TD-037 drift window)
+3eef43554165ebccbd3b5300db09cd958abac4985cf288ef8089c5a7e8933619  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD030_split_order/tools/front_inlet_probe.cpp
+
+=== COMPILE
+compile exit: 0
+
+=== RUN
+TD-030 AUDIT -- FRONT POSITION vs INLET FUEL DEFICIT
+
+  fixture identical to TD-005's fuel_budget_probe: 500 cells, dt 9.4243e-06 (D = 0.833)
+  anchor x = 3.500 mm   gamma = 4.166667e-05   half cell = 1.000e-05 m
+
+ relaxT  marchStp    front mm    delta mm         Y_F[0]      deficit  inletDiff%       S_L
+     10     17194    2.474665    1.184404 4.998821558e-02  -1.1784e-05      -1.784   4.67194
+     14     24072    2.147040    1.181815 4.998017537e-02  -1.9825e-05      -3.002   4.67194
+     18     30949    1.940455    1.179529 4.997232431e-02  -2.7676e-05      -4.190   4.67194
+     22     37827    1.836799    1.177435 4.996720579e-02  -3.2794e-05      -4.965   4.67194
+     26     44705    1.792941    1.176498 4.996474542e-02  -3.5255e-05      -5.338   4.67194
+     30     51583    1.775956    1.176144 4.996374205e-02  -3.6258e-05      -5.490   4.67194
+
+=== UPSTREAM FUEL PROFILE, Y_F at the first cells (inlet value 0.050)
+ relaxT  x=0.00mm  x=0.04mm  x=0.10mm  x=0.20mm  x=0.40mm  x=0.80mm  x=1.60mm  x=2.40mm
+     10  0.049988  0.049940  0.049863  0.049719  0.049367  0.048289  0.043067  0.027188
+     14  0.049980  0.049899  0.049769  0.049528  0.048937  0.047145  0.038678  0.014514
+     18  0.049972  0.049859  0.049678  0.049341  0.048520  0.046046  0.034610  0.006647
+     22  0.049967  0.049833  0.049618  0.049220  0.048249  0.045340  0.032061  0.003969
+     26  0.049965  0.049820  0.049589  0.049162  0.048119  0.045003  0.030863  0.003132
+     30  0.049964  0.049815  0.049578  0.049138  0.048066  0.044866  0.030380  0.002851
+
+=== READING, against the directions registered in this file's header
+    front  relaxT 10 -> 30 : 2.474665 -> 1.775956 mm   (-0.698710 mm)
+    deficit relaxT 10 -> 30: -1.1784e-05 -> -3.6258e-05      (x 3.077)
+
+    => the front moves UPSTREAM and the deficit grows: the hypothesis HOLDS, and
+       the inlet term is a domain/anchor effect rather than a chemistry one.
+probe exit: 0
+DONE 2026-10-08T01:19:52+10:00

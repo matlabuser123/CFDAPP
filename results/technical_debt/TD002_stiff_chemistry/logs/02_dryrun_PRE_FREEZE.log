@@ -1,0 +1,68 @@
+library: 0a29fd9821bc84c0b107e52bf4c50c9ee9947a7046c6efbd529d8fc6c443a7ce  build/release/src/libcfdcore.a
+dryrun:  b534d17602c3897526b354bd18c0192376be9545dc229bbecf8f03e85dd1e68c  results/technical_debt/TD002_stiff_chemistry/tools/dryrun.cpp
+
+compiled OK
+
+eps = 2.2204460492503131e-16
+4*eps*2 = 1.7763568394002505e-15  (= 8 eps)
+
+==============================================================================================
+C1 DRY-RUN -- the reproducer: dt=20, control=0.0125. The BASELINE must FAIL.
+==============================================================================================
+  baseline THREW -- C1 is a real instrument
+    mass fractions at cell 0 sum to 1.000000000000002; must be within 1.7763568394002505e-15 of 1 (deviation 1.9984014443252818e-15)
+
+==============================================================================================
+C2 DRY-RUN -- the control ladder. Which rungs does the baseline reach?
+==============================================================================================
+    control      sub-steps   deviation        in eps   verdict
+  0.40000000          64   0.000000e+00      0.00   ok
+  0.20000000         136   4.440892e-16      2.00   ok
+  0.10000000         284   4.440892e-16      2.00   ok
+  0.05000000         584   1.110223e-15      5.00   ok
+  0.01250000   THREW
+  0.00312500   THREW
+  0.00078125   THREW
+
+==============================================================================================
+C3 DRY-RUN -- is 30 000 steps reachable, and does the uncompensated march miss by 100x?
+==============================================================================================
+  A reversible reaction keeps both species O(1) indefinitely, which is what makes
+  the problem exercise round-off at all (audit 2.1: the irreversible one does not).
+
+    variant          steps      worst deviation    in eps    x bound   min Y
+  plain              1000      1.332268e-15        6.00      0.75   +2.710e-04
+  plain             30000      THREW: mass fractions at cell 0 sum to 0.99999999999999811; must be
+  compensated        1000      0.000000e+00        0.00      0.00   +2.710e-04
+  compensated       30000      0.000000e+00        0.00      0.00   +9.034e-06
+
+==============================================================================================
+C5 DRY-RUN -- refinement direction on the baseline (the level the fix must not worsen)
+==============================================================================================
+    control     Y_A error        T error
+   0.200000   1.009672366e-01   1.109150770e-01
+   0.050000   2.140920033e-02   2.351855100e-02
+   0.012500   2.143575509e-03   2.354772208e-03
+
+==============================================================================================
+C6 DRY-RUN -- the zero limits on the baseline
+==============================================================================================
+  C6a pre_exponential=0 : 1 sub-step(s), Y_A = 1, T = 1000
+  C6b formation=0       : 4 sub-steps, Y_A = 0.86842014905921683, T = 1000  (T0 = 1000.0)
+
+==============================================================================================
+C7 DRY-RUN -- determinism on the baseline
+==============================================================================================
+  3 identical calls bitwise identical: YES   (Y_A = 0.007215383863182722)
+
+==============================================================================================
+C9 DRY-RUN -- can the BASELINE accept a transport-closure composition at all?
+==============================================================================================
+  input deviation to carry: 5.718197704e-08  (4*eps*2 = 1.776357e-15)
+  MassFractionState REFUSED it, as expected:
+    mass fractions at cell 0 sum to 1.0000000571819769; must be within 1.7763568394002505e-15 of 1 (deviation 5.7181976931275358e-08)
+  => there is NO baseline path that accepts a transported composition, so C9
+     measures something that does not exist yet. A raw-fields entry point is
+     REQUIRED, not optional, for scope (b).
+
+(dry-run complete -- measurements only, no production code touched)

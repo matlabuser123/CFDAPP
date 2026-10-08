@@ -1,0 +1,38 @@
+TD-034 -- CRLF CENSUS against .gitattributes `* -text`
+date: 2026-10-08T14:00:31Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+branch: td-campaign-evidence
+core.autocrlf = input
+core.whitespace = (unset)
+check-attr: CMakeLists.txt: text: unset
+
+command: for each modified CMakeLists.txt, grep -c CR in 'git show HEAD:<f>' vs the working tree
+
+FILE                                                      HEAD    TREE    DELTA
+CMakeLists.txt                                             100     138      +38
+apps/gui/CMakeLists.txt                                    100     103       +3
+benchmarks/CMakeLists.txt                                   10      39      +29
+cuda/CMakeLists.txt                                        100     206     +106
+src/CMakeLists.txt                                         411     508      +97
+tests/CMakeLists.txt                                       170     299     +129
+tests/integration/CMakeLists.txt                            12      13       +1
+tests/integration/backward_facing_step/CMakeLists.txt       30      40      +10
+tests/integration/case/CMakeLists.txt                       38      49      +11
+tests/integration/compressible/CMakeLists.txt               23      98      +75
+tests/integration/io/CMakeLists.txt                         26      29       +3
+tests/integration/restart/CMakeLists.txt                    16      20       +4
+tests/integration/thermal/CMakeLists.txt                    87     106      +19
+tests/integration/turbulence_channel/CMakeLists.txt         27      43      +16
+tests/unit/CMakeLists.txt                                   23      24       +1
+tests/unit/compressible/CMakeLists.txt                      16      32      +16
+tests/unit/gpu/CMakeLists.txt                               15      90      +75
+tests/unit/io/CMakeLists.txt                                41      48       +7
+tests/unit/species/CMakeLists.txt                           22      37      +15
+tests/unit/thermal/CMakeLists.txt                           31      40       +9
+tests/unit/turbulence/CMakeLists.txt                        33      47      +14
+
+git diff --check (unstaged): 0 lines
+git diff --cached --check:   0 lines
+
+NONE of these files is in the staged set for this commit:
+  staged CMakeLists.txt count: 0

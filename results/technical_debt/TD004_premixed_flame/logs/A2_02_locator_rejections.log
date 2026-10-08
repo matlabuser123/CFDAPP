@@ -1,0 +1,38 @@
+=== ENVIRONMENT
+date        2026-10-08T02:23:01+10:00
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE
+be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  (expect 8c85bc9f... = TD-027 cap 5 + TD-032 time level + TD-037 drift window)
+31f0b01ad768ec7c5a4fff8ef19041fd51acae9e6ffb39a1d043fec8cbe8baad  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/recentre_counters_probe.cpp
+
+=== COMPILE
+compile exit: 0
+
+=== RUN
+TD-004 AUDIT -- THE RECENTRING OPERATOR'S OWN DECISIONS
+
+  dead band 3.0 cells; the operator ACTS only for 3.000 < |offset| < ~4.234
+  anchor x = 3.500 mm; the measured front sits ~87 cells upstream of it
+
+ relaxT   front mm  offCells  recentres     final   rejected  largestShf      steps
+     10   2.474665    -51.27        121         1          0           4      17194
+        locator: maxCrossings 1 | worstRejectedJump 54.267 cells at 2.474665 mm
+        rejected jumps: <10c 3009 | 10-50c 12193 | >50c 1499 | at anchor 916
+        worstFrontJumpCells 0.0626  (largest ACCEPTED single-step move)
+     18   1.940455    -77.98        121         1          0           4      30949
+        locator: maxCrossings 1 | worstRejectedJump 80.977 cells at 1.940455 mm
+        rejected jumps: <10c 3009 | 10-50c 12193 | >50c 15254 | at anchor 916
+        worstFrontJumpCells 0.0626  (largest ACCEPTED single-step move)
+     30   1.775956    -86.20        121         1          0           4      51583
+        locator: maxCrossings 1 | worstRejectedJump 89.202 cells at 1.775956 mm
+        rejected jumps: <10c 3009 | 10-50c 12193 | >50c 35888 | at anchor 916
+        worstFrontJumpCells 0.0626  (largest ACCEPTED single-step move)
+
+=== READING, against the directions registered in this file's header
+    => THE OPERATOR IS NEVER INVOKED -- locateFront is failing, and the defect
+       is upstream of recentring entirely.
+probe exit: 0
+DONE 2026-10-08T03:05:11+10:00

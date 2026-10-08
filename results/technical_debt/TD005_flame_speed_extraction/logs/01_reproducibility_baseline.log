@@ -1,0 +1,79 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-04T22:52:05+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+738f7b555b2a22fb19632eb5b742feda86114dcd6afb2f4bb996c77e342e2303  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+b52fc24c703bc9df51e0671b735e29c2099cba15012ceef4e4b36cb3c0eae635  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+765fbee924693d8d49967318b4386f10b548160819aa69585b3fd00d3d9fce61  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-04 22:04:30.447988200
+  src  2026-10-04 22:04:10.954950700
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/reproducibility_probe.cpp -o /tmp/td005_reproducibility /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 -- flame-speed extraction: reproducibility and the state behind it
+fixture: 500 cells / 10 mm / anchor 0.35 / tolerance 1e-3 (the gated makeSettings)
+reference thresholds for reading only, NOT gate thresholds:
+  existing test bounds   S_L spread < 0.02   fuel balance < 0.05   mismatch < 0.01
+  G8 band 35.0-37.0 cm/s is +-2.8 %, so findings 3.1 requires reproducibility << 2.8 %
+
+=== SWEEP A -- driftWindow (recorded blocker: 4.3 % at windows 32 vs 64, PRE relaxationTimes)
+         level   S_L cm/s   S_c cm/s  mismatch   fuel bal  delta mm    x_f mm    bracket   |sumY-1|   steps   march   wall s
+     window 16    4.85901    3.04347   0.37364  3.647e-01    0.7365   3.50000  6.771e-04  5.581e-07   19013    3973    361.0
+     window 32    4.86230    4.90004   0.00776  1.531e-02    1.2289   3.50000  6.771e-04  5.964e-07   19264    3968    274.3
+     window 64    4.85901    3.04347   0.37364  3.647e-01    0.7365   3.50000  6.771e-04  5.581e-07   19909    3973    285.7
+  S_L spread (hi-lo)/lo = 0.000677   worst fuel balance = 3.6467e-01   worst mismatch = 0.37364
+  guard passed: the independent variable moved the solve.
+  READ: a small S_L spread with a LARGE worst balance/mismatch is the fail-open
+        case -- the number is stable while one state is not a steady flame.
+
+=== SWEEP B -- anchorFraction -- the cold-boundary PLATEAU, test times out at 900 s
+         level   S_L cm/s   S_c cm/s  mismatch   fuel bal  delta mm    x_f mm    bracket   |sumY-1|   steps   march   wall s
+   anchor 0.30    4.85572    3.03387   0.37520  3.571e-01    0.7345   3.00000  6.771e-04  5.208e-07   19275    3979    263.1
+   anchor 0.40    4.86230    4.90129   0.00802  1.194e-02    1.2300   4.00000  6.771e-04  6.357e-07   19264    3968    302.5
+   anchor 0.50    4.86230    4.90185   0.00813  9.031e-03    1.2299   5.00000  6.771e-04  6.612e-07   19264    3968    350.5
+  S_L spread (hi-lo)/lo = 0.001355   worst fuel balance = 3.5705e-01   worst mismatch = 0.37520
+  guard passed: the independent variable moved the solve.
+  READ: a small S_L spread with a LARGE worst balance/mismatch is the fail-open
+        case -- the number is stable while one state is not a steady flame.
+
+=== SWEEP C -- relaxationTimesPerTrial -- the convergence requirement, swept by no test
+         level   S_L cm/s   S_c cm/s  mismatch   fuel bal  delta mm    x_f mm    bracket   |sumY-1|   steps   march   wall s
+relaxT/trial 1.5    4.76455    3.59953   0.24452  2.380e-01    0.8501   3.50000  6.771e-04  6.322e-07   12389    4133    240.4
+relaxT/trial 3.0    4.86230    4.90004   0.00776  1.531e-02    1.2289   3.50000  6.771e-04  5.964e-07   19264    3968    382.5
+relaxT/trial 6.0    4.86888    3.01833   0.38008  3.721e-01    0.7311   3.50000  6.771e-04  5.656e-07   32862    3957    643.6
+  S_L spread (hi-lo)/lo = 0.021897   worst fuel balance = 3.7213e-01   worst mismatch = 0.38008
+  guard passed: the independent variable moved the solve.
+  READ: a small S_L spread with a LARGE worst balance/mismatch is the fail-open
+        case -- the number is stable while one state is not a steady flame.
+
+=== SWEEP D -- tolerance -- the bracket on mdot; S_L must CONVERGE as it tightens
+         level   S_L cm/s   S_c cm/s  mismatch   fuel bal  delta mm    x_f mm    bracket   |sumY-1|   steps   march   wall s
+     tol 1e-02    4.85736    4.89991   0.00876  9.696e-03    1.2289   3.50000  5.430e-03  6.429e-07   15624    3976    297.7
+     tol 1e-03    4.86230    4.90004   0.00776  1.531e-02    1.2289   3.50000  6.771e-04  5.964e-07   19264    3968    330.6
+     tol 1e-04    4.86086    4.90012   0.00808  8.996e-03    1.2291   3.50000  8.462e-05  6.123e-07   22914    3970    291.3
+  S_L spread (hi-lo)/lo = 0.001016   worst fuel balance = 1.5314e-02   worst mismatch = 0.00876
+  guard passed: the independent variable moved the solve.
+  READ: a small S_L spread with a LARGE worst balance/mismatch is the fail-open
+        case -- the number is stable while one state is not a steady flame.
+  NOTE: this sweep is NOT judged by a small spread. A bracket of 1e-2 is a
+        LOOSER measurement and is allowed to differ; what must hold is that the
+        reported `bracket` <= the requested tolerance and that successive
+        tightenings stop moving S_L.
+
+DONE. This is a DRY-RUN for non-vacuity only. Thresholds are derived in GATE.md
+from each quantity's own floor, never read off these numbers.
+
+probe exit: 0
