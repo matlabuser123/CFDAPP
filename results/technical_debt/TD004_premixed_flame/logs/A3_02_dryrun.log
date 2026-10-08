@@ -1,0 +1,206 @@
+=== ENVIRONMENT
+date   2026-10-09T01:29:44+10:00
+nproc  32   load 0.00 0.00 0.00 1/563 767
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+0034b3e16862d032d46064d96d12d61a2ff9c670cc39389d0a525a8804a8d055  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c5_amended_probe.cpp
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE.md
+8a11ad39a147830ce5e2d1e91310c85212a881222ba143bde177a2771e6fb113  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A3.md
+  GATE_A3.md is NOT frozen; this dry-run is what qualifies it for freezing.
+
+=== EXPECTED LIBRARY HASHES, from A2_07 -- asserted, not merely printed
+  pre-fix   1eb0e2cb8b1083ec56d7c5681dbc7cafcd6feb78910e2dce8db3c9e516113c68
+  post-fix  852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+
+############################################################ M1  pre-fix, deadBand 3
+patched 'locator_out': 1 site, source sha256 ebf80b8fee18b713
+library  1eb0e2cb8b1083ec56d7c5681dbc7cafcd6feb78910e2dce8db3c9e516113c68
+  OK: matches the expected library for this leg.
+=== GATE_A3  C5a..C5d   label=M1_prefix  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            17194
+  peakTemperature            1799.999258440192762 K
+  minMassFraction            -8.453045954736468e-12
+  flamePosition              2.474664271154 mm  (-51.267 cells off anchor)
+  maxCompositionSumDeviation 9.300262713285434e-07
+  flameSpeed                 4.671936901 cm/s
+  fuelBalanceResidual        6.047150503e-02
+  recentrings                121 (final march 1)
+  wall                       314 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  7.415598e-04 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        8.453046e-12 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  1.025336e-03 <= 8.000000e-05 m     FAIL
+  C5d  |sum Y - 1|      9.300263e-07 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=M1_prefix C5a=PASS C5b=PASS C5c=FAIL C5d=PASS
+
+############################################################ REF  post-fix, deadBand 3
+library  852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK: matches the expected library for this leg.
+=== GATE_A3  C5a..C5d   label=REF_postfix  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15283
+  peakTemperature            1799.998974446609736 K
+  minMassFraction            -1.889798074490678e-11
+  flamePosition              3.499219221840 mm  (-0.039 cells off anchor)
+  maxCompositionSumDeviation 8.822866316426925e-07
+  flameSpeed                 4.955332027 cm/s
+  fuelBalanceResidual        6.302972231e-03
+  recentrings                223 (final march 3)
+  wall                       679 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  1.025553e-03 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        1.889798e-11 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  7.807782e-07 <= 8.000000e-05 m     PASS
+  C5d  |sum Y - 1|      8.822866e-07 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=REF_postfix C5a=PASS C5b=PASS C5c=PASS C5d=PASS
+
+############################################################ M2  post-fix, deadBand 1
+  MECHANISM TEST, not C5b's control. Same library, only the setting differs.
+  Does |min Y_i| grow with the recentring count? Pass 1's invalid leg said NO.
+=== GATE_A3  C5a..C5d   label=M2_deadband1  deadBand=1.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 4.000000e-05 m = 0.0400 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15283
+  peakTemperature            1799.999004364590519 K
+  minMassFraction            -1.184131392736700e-11
+  flamePosition              3.480775558806 mm  (-0.961 cells off anchor)
+  maxCompositionSumDeviation 1.235467400828583e-06
+  flameSpeed                 4.955332027 cm/s
+  fuelBalanceResidual        6.206567852e-03
+  recentrings                666 (final march 10)
+  wall                       681 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  9.956354e-04 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        1.184131e-11 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  1.922444e-05 <= 4.000000e-05 m     PASS
+  C5d  |sum Y - 1|      1.235467e-06 <= 1.200000e-06       FAIL
+
+  MACHINE-READABLE: label=M2_deadband1 C5a=PASS C5b=PASS C5c=PASS C5d=FAIL
+
+############################################################ M3  heat release x 0.9999
+patched 'heat': 1 site, source sha256 3a6b5058fa38e83e
+library  730e6c0dd3365aefe77326db48bf2d92999f66af94bf2e54ddaa0ed172009e07
+  OK: differs from both uncorrupted libraries, so the corruption reached the binary.
+=== GATE_A3  C5a..C5d   label=M3_heat9999  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15304
+  peakTemperature            1799.848951985298754 K
+  minMassFraction            -1.288404121441571e-11
+  flamePosition              3.493222707169 mm  (-0.339 cells off anchor)
+  maxCompositionSumDeviation 1.191616688656083e-06
+  flameSpeed                 4.951978890 cm/s
+  fuelBalanceResidual        5.968904996e-03
+  recentrings                223 (final march 3)
+  wall                       702 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  1.510480e-01 <= 1.800000e-03 K     FAIL
+  C5b  |min Y_i|        1.288404e-11 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  6.777293e-06 <= 8.000000e-05 m     PASS
+  C5d  |sum Y - 1|      1.191617e-06 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=M3_heat9999 C5a=FAIL C5b=PASS C5c=PASS C5d=PASS
+
+############################################################ M4  species update x 1.0001
+  C5b's negative control. Over-integrating the species update drives Y_fuel below zero at
+  the trailing edge by ~1e-4 of its scale, i.e. ~5e-06 against a 5e-11 bound. Scaling ALL
+  species by one factor keeps sum(sources) = 0, so this targets C5b WITHOUT corrupting C5d.
+patched 'species': 1 site, source sha256 cce5cd6f508f9d39
+library  4614d078cf5262aaa795ead7a5471efab116ac4929c42acf9722f91d51bab5ac
+  OK: differs from both uncorrupted libraries, so the corruption reached the binary.
+=== GATE_A3  C5a..C5d   label=M4_species10001  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15304
+  peakTemperature            1799.848902375628768 K
+  minMassFraction            -1.184755660233812e-11
+  flamePosition              3.492284097705 mm  (-0.386 cells off anchor)
+  maxCompositionSumDeviation 8.408843497065277e-07
+  flameSpeed                 4.951978890 cm/s
+  fuelBalanceResidual        6.020490690e-03
+  recentrings                223 (final march 3)
+  wall                       702 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  1.510976e-01 <= 1.800000e-03 K     FAIL
+  C5b  |min Y_i|        1.184756e-11 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  7.715902e-06 <= 8.000000e-05 m     PASS
+  C5d  |sum Y - 1|      8.408843e-07 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=M4_species10001 C5a=FAIL C5b=PASS C5c=PASS C5d=PASS
+
+############################################################ NON-VACUITY SUMMARY
+
+MACHINE-READABLE: label=M1_prefix C5a=PASS C5b=PASS C5c=FAIL C5d=PASS
+MACHINE-READABLE: label=REF_postfix C5a=PASS C5b=PASS C5c=PASS C5d=PASS
+MACHINE-READABLE: label=M2_deadband1 C5a=PASS C5b=PASS C5c=PASS C5d=FAIL
+MACHINE-READABLE: label=M3_heat9999 C5a=FAIL C5b=PASS C5c=PASS C5d=PASS
+MACHINE-READABLE: label=M4_species10001 C5a=FAIL C5b=PASS C5c=PASS C5d=PASS
+
+REQUIRED for GATE_A3.md to be frozen:
+  C5a must FAIL on at least one leg   (expected: M3)
+  C5b must FAIL on at least one leg   (expected: M4)
+  C5c must FAIL on at least one leg   (expected: M1)
+  C5d must PASS on REF, and is carried over unchanged
+  REF must reproduce A2_07: T_peak 1799.998974, min Y -1.889798e-11, front +3.499219 mm
+
+M2 is a MECHANISM TEST and has no required outcome. Either result is recorded:
+  |min Y| grows with deadBand 1 -> the fill-count mechanism holds
+  |min Y| does not grow         -> the mechanism is refuted and verification_A3.md section 4
+                                   must say so. C5b's bound then rests on its DERIVATION
+                                   from the linear acceptance fraction alone, with M4 as its
+                                   only control -- which is sufficient for non-vacuity but
+                                   means the mechanism claim must be withdrawn.
+
+The verdict is written in dry_run_A3.md, not asserted here.
+DONE 2026-10-09T02:21:41+10:00
+
+=== EXIT TRAP
+post-fix source restored and hash-verified
+library rebuilt: 852555cfda54f8da013bde93f9c205c1

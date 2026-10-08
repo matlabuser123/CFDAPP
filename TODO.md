@@ -52,14 +52,19 @@ method-insensitivity test TD-032 broke **passes with its spread exactly 0**.
 
 ```text
 TD-032, TD-037  both RESOLVED on their frozen gates, both with REGRESSION PARTIAL — Debug+GUI not
-                run, sanitizers infeasible for this suite (TD-035). clang-format is CLEAN as of
+                run, sanitizers infeasible AT FULL RESOLUTION for this suite (TD-035 — but a
+                150-cell fixture is MEASURED at 282.6 s and clean). clang-format is CLEAN as of
                 2026-10-09 (741 files, exit 0), so TD-034 is no longer a reason.
-still open      TD-033, TD-035, TD-036, TD-038 — none authorized
+still open      TD-033, TD-035, TD-036, TD-038, TD-042 — none authorized
 TD-004          locator fix APPLIED and RETAINED: the front now sits 0.039 cells off the
                 anchor (was 51-86 cells), zero locator rejections, and C2-A1's three clauses are
                 SATISFIED. The item STOPS on a pre-registered condition -- S_L moved +6.07 % --
                 because the working locator makes a non-conservative operator fire far more
                 often. New blocker: TD-040.
+                C5 now PASSES (2026-10-09) under the GATE_A3 amendment. Three of its four
+                clauses had been transcribed from a PRINTED TABLE and failed on the BASELINE
+                too, so none was a regression; they are replaced by bounds derived from named
+                constants, each shown able to fail. The gate now stands at C6, never run.
 re-measured     TD-028's alternation is measured GONE (status is a decision).
                 TD-030 — the reaction excess is HALF its recorded size and no longer the larger
                 term. The inlet diffusive flux (~5.5 %) is a flame-ANCHORING effect and has been
@@ -142,13 +147,21 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
+register totals   42 items: 5 RESOLVED (TD-001, TD-002, TD-032, TD-034, TD-037), 2 N/A,
+                  1 REOPENED, the rest open. TD-001/TD-002 closed before this phase and are
+                  not repeated below; the frontier block is the CURRENT frontier only.
 resolved          TD-032   transient time level one step stale — RESOLVED 2026-10-07 (gate only)
 resolved          TD-037   driftWindow unguarded against trial length — RESOLVED 2026-10-07
 resolved          TD-034   clang-format clean — RESOLVED 2026-10-09 (741 files, exit 0)
 current blocker   TD-040  recentring is not conservation-neutral; it carries TD-004's stop
+                  NEW: the dead-band ladder shows the composition SUM tracks the recentring
+                  count (8.82e-07 -> 1.24e-06 at deadBand 1) while min Y does NOT. The
+                  fill-count explanation for min Y is REFUTED and nothing replaces it
 to re-measure     TD-027, TD-028, TD-029, TD-030, TD-031 — all were measured on the alternating
                   field, each needs re-measuring under its own gate
-also open         TD-033, TD-035, TD-036, TD-038, TD-039, TD-040 — none authorized
+also open         TD-033, TD-035, TD-036, TD-038, TD-039, TD-040, TD-042 — none authorized
+                  TD-042   reactionHeatRelease at :1086 is computed every step and DISCARDED;
+                  found because patching it as a gate control would have been vacuous
 n/a as a defect   TD-041   CRLF growth — REFUTED 2026-10-09 by the CR/lines ratio: 1.000 on
                   both sides for all 21 files. CRLF is the committed convention
 next              determined by TECHNICAL_DEBT.md; nothing is authorized
@@ -228,7 +241,9 @@ phase is authorized.
 PROJECT STATE          P17 PARTIAL · P18 PARTIAL
 BLOCKING ISSUE         P18 G8 — not closed; next is the re-measurement in §2
 ROADMAP AUTHORIZATION  NO NEW FUTURE PHASE AUTHORIZED
-PUSH BLOCKER           TD-035 — the §8 regression has NOT been run on this tree (ASan 38x).
+PUSH BLOCKER           TD-035 — the §8 regression has NOT been run on this tree. The per-case
+                       ASan factor is now MEASURED at 12.6-14.7x, NOT the 38x on record; the
+                       heaviest tests still exceed the 7200 s cap, so the blocker stands.
                        clang-format is CLEAN and git diff --check is 0 (TD-034 resolved
                        2026-10-09); TD-041 was refuted, so neither blocks a commit
 ```

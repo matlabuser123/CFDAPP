@@ -1,0 +1,197 @@
+################################################################################
+INVALID AS AUTHORITATIVE -- 2 of 4 legs ran the WRONG LIBRARY.  Marked 2026-10-09.
+CLAUDE.md section 4: marked in place, never deleted.
+
+WHAT IS WRONG
+  The REF leg reported values BYTE-IDENTICAL to the M1 pre-fix leg
+  (T_peak 1799.999258440192762, min Y -8.453045954736468e-12, front -51.267 cells),
+  where A2_07 measured the post-fix library as 1799.998974446609736,
+  -1.889798074490678e-11 and +3.499219221840 mm.
+  The per-leg library hashes prove it: M1 and REF are BOTH 1eb0e2cb... (pre-fix).
+  The post-fix library is 852555cf... and was never built in this run.
+
+CAUSE, diagnosed not assumed
+  The harness restored the post-fix source with `cp -p`, which PRESERVES THE BACKUP'S
+  MTIME. That mtime is older than the object file already built from the M1-patched
+  source, so ninja saw no work to do and the library was never rebuilt. M3 rebuilt
+  correctly only because a python write advanced the mtime.
+
+WHICH LEGS SURVIVE
+  M1  VALID    pre-fix, deadBand 3, library 1eb0e2cb -> C5c FAIL. C5c is non-vacuous.
+  REF INVALID  ran the pre-fix library. No post-fix reference was measured.
+  M2  INVALID  reused REF's stale binary, so it is pre-fix + deadBand 1, not post-fix.
+  M3  VALID    post-fix + heat x 0.9999, library 730e6c0d -> C5a FAIL by 84x. C5a is
+               non-vacuous. (GATE_A3.md predicted ~83x before the run.)
+
+THE INSTRUMENT DEFECT THIS EXPOSES
+  run_c5_precision.sh asserted that the library hash CHANGED between its two legs.
+  This harness printed the hash and asserted NOTHING about it, so it failed open --
+  exactly the class CLAUDE.md section 8 exists to prevent ("authoritative only if the
+  binary was demonstrably rebuilt against the exact source being tested"). What caught
+  it was the reproduction control against A2_07, not the harness.
+
+NOT SUPERSEDED BY THIS BANNER
+  C5b NEVER FAILED on any leg, valid or not, and the invalid M2 points the OPPOSITE way
+  from the mechanism GATE_A3.md section 3.2 registered: deadBand 1 gave |min Y| 6.20e-12,
+  SMALLER than deadBand 3's 8.45e-12. That is a pre-registered stop condition and it is
+  carried forward to the corrected run, not discarded with this log.
+################################################################################
+
+=== ENVIRONMENT
+date   2026-10-09T00:57:23+10:00
+nproc  32   load 0.19 0.07 0.02 1/546 830
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+0034b3e16862d032d46064d96d12d61a2ff9c670cc39389d0a525a8804a8d055  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c5_amended_probe.cpp
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE.md
+4b873fa418ae2d501e0b9064ea60c6dbd153904ddc9632d79ba433baba489277  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A3.md
+  GATE_A3.md is NOT yet frozen -- this dry-run is what qualifies it for freezing.
+
+############################################################ M1  pre-fix, deadBand 3
+patched: removed exactly 1 line (the locator fix)
+library  1eb0e2cb8b1083ec56d7c5681dbc7caf
+=== GATE_A3  C5a..C5d   label=M1_prefix  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            17194
+  peakTemperature            1799.999258440192762 K
+  minMassFraction            -8.453045954736468e-12
+  flamePosition              2.474664271154 mm  (-51.267 cells off anchor)
+  maxCompositionSumDeviation 9.300262713285434e-07
+  flameSpeed                 4.671936901 cm/s
+  fuelBalanceResidual        6.047150503e-02
+  recentrings                121 (final march 1)
+  wall                       319 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  7.415598e-04 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        8.453046e-12 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  1.025336e-03 <= 8.000000e-05 m     FAIL
+  C5d  |sum Y - 1|      9.300263e-07 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=M1_prefix C5a=PASS C5b=PASS C5c=FAIL C5d=PASS
+
+############################################################ restore post-fix
+post-fix source restored
+
+############################################################ REF  post-fix, deadBand 3
+library  1eb0e2cb8b1083ec56d7c5681dbc7caf
+=== GATE_A3  C5a..C5d   label=REF_postfix  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            17194
+  peakTemperature            1799.999258440192762 K
+  minMassFraction            -8.453045954736468e-12
+  flamePosition              2.474664271154 mm  (-51.267 cells off anchor)
+  maxCompositionSumDeviation 9.300262713285434e-07
+  flameSpeed                 4.671936901 cm/s
+  fuelBalanceResidual        6.047150503e-02
+  recentrings                121 (final march 1)
+  wall                       314 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  7.415598e-04 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        8.453046e-12 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  1.025336e-03 <= 8.000000e-05 m     FAIL
+  C5d  |sum Y - 1|      9.300263e-07 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=REF_postfix C5a=PASS C5b=PASS C5c=FAIL C5d=PASS
+
+############################################################ M2  post-fix, deadBand 1
+  (same library -- only the setting differs, so no rebuild)
+=== GATE_A3  C5a..C5d   label=M2_deadband1  deadBand=1.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 4.000000e-05 m = 0.0400 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            28528
+  peakTemperature            1799.999055452943367 K
+  minMassFraction            -6.199700293224220e-12
+  flamePosition              3.485586925024 mm  (-0.721 cells off anchor)
+  maxCompositionSumDeviation 1.975778807672413e-06
+  flameSpeed                 3.627024309 cm/s
+  fuelBalanceResidual        3.180806862e-01
+  recentrings                861 (final march 459)
+  wall                       319 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  9.445471e-04 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        6.199700e-12 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  1.441307e-05 <= 4.000000e-05 m     PASS
+  C5d  |sum Y - 1|      1.975779e-06 <= 1.200000e-06       FAIL
+
+  MACHINE-READABLE: label=M2_deadband1 C5a=PASS C5b=PASS C5c=PASS C5d=FAIL
+
+############################################################ M3  heat release x 0.9999
+patched: reactor heat release scaled by 0.9999 (exactly 1 site)
+library  730e6c0dd3365aefe77326db48bf2d92
+=== GATE_A3  C5a..C5d   label=M3_heat9999  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15304
+  peakTemperature            1799.848951985298754 K
+  minMassFraction            -1.288404121441571e-11
+  flamePosition              3.493222707169 mm  (-0.339 cells off anchor)
+  maxCompositionSumDeviation 1.191616688656083e-06
+  flameSpeed                 4.951978890 cm/s
+  fuelBalanceResidual        5.968904996e-03
+  recentrings                223 (final march 3)
+  wall                       719 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  1.510480e-01 <= 1.800000e-03 K     FAIL
+  C5b  |min Y_i|        1.288404e-11 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  6.777293e-06 <= 8.000000e-05 m     PASS
+  C5d  |sum Y - 1|      1.191617e-06 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=M3_heat9999 C5a=FAIL C5b=PASS C5c=PASS C5d=PASS
+
+############################################################ NON-VACUITY SUMMARY
+
+MACHINE-READABLE: label=M1_prefix C5a=PASS C5b=PASS C5c=FAIL C5d=PASS
+MACHINE-READABLE: label=REF_postfix C5a=PASS C5b=PASS C5c=FAIL C5d=PASS
+MACHINE-READABLE: label=M2_deadband1 C5a=PASS C5b=PASS C5c=PASS C5d=FAIL
+MACHINE-READABLE: label=M3_heat9999 C5a=FAIL C5b=PASS C5c=PASS C5d=PASS
+
+REQUIRED, from GATE_A3.md §3.1:
+  M1  C5c=FAIL  and C5a=PASS C5b=PASS C5d=PASS
+  M2  C5b=FAIL
+  M3  C5a=FAIL
+
+Each of C5a, C5b, C5c must have FAILED on at least one leg. A clause that never failed is
+VACUOUS and GATE_A3.md may NOT be frozen -- CLAUDE.md §12 requires stopping and reporting.
+The verdict is written in dry_run_A3.md, not asserted here.
+
+DONE 2026-10-09T01:25:36+10:00
+
+=== EXIT TRAP: restoring the post-fix source
+restored and hash-verified: fa815c9721658448
+library rebuilt post-fix

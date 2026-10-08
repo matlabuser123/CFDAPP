@@ -1,0 +1,36 @@
+=== ENVIRONMENT
+date 2026-10-09T02:54:35+10:00
+nproc 32  load 0.00 0.00 0.00 2/571 764
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE -- the tree must be the uncorrupted post-fix one
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+be76d422cefaf4b87cbd49653be08cc8ab6e26629c317f957b781d1ebe0e3475  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD035_sanitizer_scope/tools/cost_ladder_probe.cpp
+  expected source fa815c97..., library 852555cf... (A3's verified post-fix pair)
+
+TD-035 -- COST AGAINST RESOLUTION, Release, relaxT 10
+
+  cells     wall s   marchSteps      recentr   S_L cm/s   ASan est (s) status
+     60        7.0          269          112    4.47992            266 Converged
+    100       10.5          643          135    4.82950            399 Converged
+    150       19.2         1396          143    4.91857            728 Converged
+    220       63.2         2975          155    4.94193           2401 Converged
+    320      117.0         6260          184    4.95533           4447 Converged
+    500      720.5        15283          223    4.95533          27379 Converged
+
+=== THE EXPONENT, fitted between consecutive rows: wall ~ cells^p
+    60 ->  100   cost x1.50   p = 0.79
+   100 ->  150   cost x1.82   p = 1.48
+   150 ->  220   cost x3.30   p = 3.12
+   220 ->  320   cost x1.85   p = 1.64
+   320 ->  500   cost x6.16   p = 4.07
+
+=== HOW TO READ THIS
+  'ASan est' is wall x 38, the factor TD-032 measured on this suite. It is an
+  EXTRAPOLATION from one measured point, not a measurement at that resolution, and
+  the policy must say so. The cap it has to clear is ctest --timeout 7200 PER TEST.
+  A row whose status is not Converged is NOT a candidate fixture at any price: a
+  cheap case that stops exercising the reacting path tests nothing.
+
+DONE 2026-10-09T03:10:15+10:00

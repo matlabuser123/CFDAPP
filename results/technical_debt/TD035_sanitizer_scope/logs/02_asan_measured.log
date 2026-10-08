@@ -1,0 +1,49 @@
+=== ENVIRONMENT
+date 2026-10-09T03:12:50+10:00
+nproc 32  load 0.00 0.00 0.00 4/549 743
+CFDAPP_ENABLE_SANITIZERS:BOOL=ON
+CMAKE_BUILD_TYPE:STRING=Debug
+  NOTE: the asan preset is DEBUG + sanitizers. So a Release->asan ratio conflates DEBUG
+  overhead with SANITIZER overhead. TD-032's 38x has the same property; that is why this
+  measurement is comparable to it and why neither is 'the ASan factor' alone.
+
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+2fe1ac38b489bc52ce46c1ee125401ba0450a22fbae04239b90d93916ab27239  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD035_sanitizer_scope/tools/cost_ladder_probe.cpp
+
+=== building cfdcore in the asan tree (NOT reconfiguring: the cache is authoritative)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/app/ProjectRunner.cpp:1250:76: warning: missing initializer for member ‘cfd::io::RunMetadata::gradientScheme’ [-Wmissing-field-initializers]
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/app/ProjectRunner.cpp:1250:76: warning: missing initializer for member ‘cfd::io::RunMetadata::linearSolverBackend’ [-Wmissing-field-initializers]
+[19/19] Linking CXX static library src/libcfdcore.a
+66cab15c37280ca9afce8f160f8577af6abc00f0da809be83b7f76ed3bdbf1cf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/src/libcfdcore.a
+
+=== compiling the probe WITH the sanitizer, matching the library
+compiled
+
+=== RUN at CI sanitizer settings (CLAUDE.md section 7), resolutions 100 and 150
+ASAN_OPTIONS=detect_leaks=1:halt_on_error=0
+UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+
+TD-035 -- COST AGAINST RESOLUTION, Release, relaxT 10
+
+  cells     wall s   marchSteps      recentr   S_L cm/s   ASan est (s) status
+    100      132.7          643          135    4.82950           5042 Converged
+    150      282.6         1396          143    4.91857          10737 Converged
+
+=== THE EXPONENT, fitted between consecutive rows: wall ~ cells^p
+   100 ->  150   cost x2.13   p = 1.86
+
+=== HOW TO READ THIS
+  'ASan est' is wall x 38, the factor TD-032 measured on this suite. It is an
+  EXTRAPOLATION from one measured point, not a measurement at that resolution, and
+  the policy must say so. The cap it has to clear is ctest --timeout 7200 PER TEST.
+  A row whose status is not Converged is NOT a candidate fixture at any price: a
+  cheap case that stops exercising the reacting path tests nothing.
+
+=== THE COMPARISON the audit section 5 said was missing
+  Release measured: 100 cells 10.5 s, 150 cells 19.2 s (logs/01)
+  The 'ASan est' column above is Release x 38 and is NOT this run; the wall column IS.
+  Divide to get the REAL factor at each resolution, and compare the two factors to each
+  other: if they differ a lot, the factor is resolution-dependent and the audit's
+  extrapolation to other sizes is unsound.
+
+DONE 2026-10-09T03:21:55+10:00
