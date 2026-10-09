@@ -1,0 +1,81 @@
+P13 G10 -- full regression, three canonical configurations
+date: 2026-09-25T10:32:52Z
+
+exclusions (frozen, regress_both.sh p16 mode):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+invocation (frozen): OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200
+
+############################################################
+### release_cuda  (build/qual-final)
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build ---
+  build exit: 0   (3 s)
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 ---
+  ctest exit status : 0
+  total tests       : 2488
+  passed            : 100% tests passed
+  failed            : 0
+  Not Run           : 0
+  Disabled          : 98
+  runtime           : 2160 s (36.0 min)
+
+############################################################
+### debug_gui  (build/qual-debug)
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=ON
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=OFF
+  CMAKE_BUILD_TYPE:STRING=Debug
+
+--- build ---
+  build exit: 0   (317 s)
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 ---
+  ctest exit status : 8
+  total tests       : 2550
+  passed            : 99% tests passed
+  failed            : 3
+  Not Run           : 0
+  Disabled          : 98
+  runtime           : 10444 s (174.1 min)
+  --- every non-passing test ---
+    	2533 - DriverSeegmiller.CorrectedSequenceIsDeterministic (Timeout)
+    	2535 - DriverSeegmillerInlet.MappedInletPreservesTheMassFlow (Timeout)
+    	2536 - DriverSeegmillerInlet.MediumGridAB (Timeout)
+
+############################################################
+### cpu_only  (build/qual-cpuonly)
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build ---
+  build exit: 0   (81 s)
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 ---
+  ctest exit status : 0
+  total tests       : 2288
+  passed            : 100% tests passed
+  failed            : 0
+  Not Run           : 0
+  Disabled          : 94
+  runtime           : 1976 s (32.9 min)
+
+############################################################
+### CPU-only: no accidental CUDA dependency (step 4)
+############################################################
+  nvcc invocations in the build log : 0
+  libcudart references              : 0
+  cuda/libcfdcuda.a present         : no
+  binaries linking libcudart        :
+    build/qual-cpuonly/apps/cli/cfdapp         0
+
+done: 2026-09-25T14:42:33Z

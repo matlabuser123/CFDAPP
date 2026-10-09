@@ -1,0 +1,77 @@
+P17.8 -- clang-format verification
+date: 2026-09-27T21:54:28Z
+
+### 1. the PRODUCTION source: full two-part proof ###
+  The reference is the file as it stood BEFORE the clang-format pass. Since that pass, ONE
+  deliberate semantic change was made: the dead local `totalVolume` (assigned in its own
+  loop, read nowhere) was removed from solve(). So the comparison below is NOT expected to
+  report "formatting only" -- it is expected to report EXACTLY that deletion and nothing
+  else. A precise, falsifiable statement is more useful here than a vague one.
+  pre-format  results/p17/density_based_solver/controls/format/DensityBasedSolver.cpp.before_format_and_cleanup
+    sha256 3e9a07534ed19207a48950a439d98c153545ac61f688e74c392fb8f2484fcf0d   (saved by controls.sh BEFORE formatting)
+  post-format src/compressible/DensityBasedSolver.cpp
+    sha256 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  line count 683 -> 684
+      *** TOKEN MULTISET CHANGED for src/compressible/DensityBasedSolver.cpp
+          lost : [('(', 3), (')', 3), ('+', 3), ('.', 2), ('0', 1), ('0.0', 1), (';', 4), ('<', 1), ('=', 3), ('Index', 1), ('Real', 1), ('cell', 1), ('for', 1), ('i', 4), ('mesh', 1), ('n', 1), ('totalVolume', 2), ('volume', 1)]
+          gained: []
+  the difference must be EXACTLY the removed dead local, and nothing else:
+    lost : [('(', 3), (')', 3), ('+', 3), ('.', 2), ('0', 1), ('0.0', 1), (';', 4), ('<', 1), ('=', 3), ('Index', 1), ('Real', 1), ('cell', 1), ('for', 1), ('i', 4), ('mesh', 1), ('n', 1), ('totalVolume', 2), ('volume', 1)]
+    CONFIRMED: totalVolume is among the removed tokens
+    string-literal content UNCHANGED -- no message or diagnostic was altered
+    totalVolume occurrences in the current source: 0   (must be 0)
+
+  the two P17.7 files the STAR-ENERGY AMENDMENT edited, and therefore P17.8's to keep clean:
+  include/cfd/compressible/HllcFlux.hpp
+    sha256 05cf1c2870509149d3aaefc0ec2a63830440ac93efbdcf675b181769cf16c318 -> fc4a8db5f98568923ffe320b6adb3b6574f855cf538bb238ba9385bd046b61f0
+    TOKENS IDENTICAL (2844) and STRING CONTENT IDENTICAL (38 chars) -- formatting only
+  tests/unit/compressible/hllc_reference_data.hpp
+    sha256 b618cbd1840763cbcfcaf9c1d1cd8425311090024ed3e2b8571da8935e476ad1 -> 1492b1dbfedc9eb11206b8952dac64b7375bdb121fb4cd2e3de296accbbe334c
+    TOKENS IDENTICAL (2191) and STRING CONTENT IDENTICAL (543 chars) -- formatting only
+
+  SANITY -- the proof must be able to FAIL. One character changed inside a string literal:
+    detected, as required
+
+### 2. the other three files: the saved token multisets, with delimiters separated out ###
+  No pre-format copy exists for these, so the check uses logs/12_format.log's saved token
+  files. The claim verified is narrow and stated as such: the ONLY tokens that differ are
+  string delimiters, which is the signature of literal splitting and of nothing else.
+  DensityBasedSolver.hpp               non-delimiter tokens IDENTICAL (903); delimiters 12 -> 12
+  test_density_based_solver.cpp        non-delimiter tokens IDENTICAL (14899); delimiters 374 -> 376
+  test_density_based_canonical.cpp     non-delimiter tokens IDENTICAL (4057); delimiters 124 -> 124
+
+### 3. the project's OWN format command, verbatim from .github/workflows/ci.yml ###
+  find include src apps tests \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) -print0 |
+  xargs -0 clang-format-18 --dry-run --Werror
+  *** violations ***
+    files with violations: 22
+    OF THOSE, any that P17.8 added or edited (these would be P17.8's to fix):
+      0   (must be 0)
+    the remainder are PRE-EXISTING, in files P17.8 does not touch. P17.7's own close
+    scoped its format claim to "all 5 hand-written files" rather than the tree, so the
+    tree has not been clean for some time. Recorded as technical debt, NOT fixed here:
+    CLAUDE.md section 2 forbids fixing unrelated defects inside another phase.
+        apps/gui/tests/test_cli_gui_equivalence.cpp:
+        include/cfd/gpu/DeviceMomentumAssembly.hpp:
+        include/cfd/gpu/GpuKEpsilonCorrection.hpp:
+        include/cfd/thermal/ThermalSolver.hpp:
+        include/cfd/turbulence/KEpsilonModel.hpp:
+        src/io/case/PhysicsConfigParser.cpp:
+        src/pressure_velocity/SIMPLE.cpp:
+        src/thermal/ThermalSolver.cpp:
+        src/turbulence/KEpsilonModel.cpp:
+        tests/integration/backward_facing_step/DriverSeegmillerPrecursor.cpp:
+        tests/integration/backward_facing_step/test_driver_seegmiller.cpp:
+        tests/integration/turbulence_channel/ChannelFlowValidationUtils.cpp:
+        tests/integration/turbulence_channel/test_channel_flow_validation.cpp:
+        tests/integration/turbulence_channel/test_wall_function_channel.cpp:
+        tests/unit/gpu/KEpsilonModelTestAccess.hpp:
+        tests/unit/gpu/test_device_effective_viscosity.cpp:
+        tests/unit/gpu/test_device_max_abs_difference.cpp:
+        tests/unit/gpu/test_device_wall_face_viscosity.cpp:
+        tests/unit/gpu/test_resident_channel_production.cpp:
+        tests/unit/gpu/test_resident_kepsilon_entry.cpp:
+        tests/unit/gpu/test_resident_turbulent_simple.cpp:
+        tests/unit/gpu/test_resident_wall_exchange.cpp:
+
+FORMAT VERIFICATION FAILURES: 0   (must be 0)

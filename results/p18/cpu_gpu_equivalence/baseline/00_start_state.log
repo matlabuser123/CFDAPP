@@ -1,0 +1,65 @@
+=== P18.8 START STATE (section 1) ===
+date: 2026-10-02T00:06:13Z
+authorized: P18.8 CPU/GPU Equivalence. P18.9 NOT authorized.
+
+--- git ---
+  HEAD   : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  branch : main
+  status --short, by state:
+        130  M
+        158 ??
+  working tree: UNCOMMITTED P13-P18.7 work present; nothing committed, pushed, reset,
+                cleaned or stashed by P18.8.
+
+--- the frozen gate, re-verified ---
+  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+--- CUDA toolkit and hardware ---
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+  GPU: NVIDIA RTX 5000 Ada Generation Laptop GPU, 8.9, 580.97, 15352 MiB
+  free -h (WSL2 sees only part of host RAM):
+    Mem:            31Gi       816Mi        28Gi       4.0Mi       1.7Gi        30Gi
+  nproc: 32
+
+--- CUDA PRECISION FLAGS (P17.10 condition 4, G9's own) ---
+  40:  # gcc and nvcc compile that same source. See the --fmad=false property set below.
+  45:  # cross-comparison test. --fmad=false below, for the same reason and by the same convention.
+  98:  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+  127:# block above already applies -fmad=false to the twenty-odd existing kernels for the same reason. A
+  132:#   --fmad=false   17 of 17 rows BITWISE, max |flux diff| exactly 0
+  133:#   --fmad=true     8 of 17 rows bitwise, max |flux diff| 1.52587890625e-04 absolute
+  139:  COMPILE_OPTIONS "--fmad=false")
+  147:  COMPILE_OPTIONS "--fmad=false")
+  --use_fast_math occurrences in the whole tree: 0
+
+--- compilers ---
+  g++   : g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+  cmake : cmake version 3.22.1
+
+--- source fingerprint: the P18 production files P18.8 must not change ---
+  include/cfd/species/MassFractionState.hpp            34a70761f2debb6da62bc97e5a0905997c6fdb7df8d736506f1856e8472b0159
+  include/cfd/species/SpeciesTransport.hpp             850f5a5e03a5ea701988d2cb260230a46e9ac30ae8d0392c2fd0c27611852a95
+  include/cfd/species/MixtureThermodynamics.hpp        58d9cf18b8b298664be50b6d9d75b132db1fa62e88b054a86d932361194ca540
+  include/cfd/species/ReactionMechanism.hpp            0e0b8829ab4a14389c145392055921c8d4bb79c3eafbc48dbb450c27db46a5d2
+  include/cfd/species/ArrheniusKinetics.hpp            44d6561f14bf23c1d81a4013cb641e281c65464da0c880bf39db517ffc7e5e58
+  include/cfd/species/HeatRelease.hpp                  3b8efc2d4778f106cff7f4fcb653e77ced57130b9a5d3029ccc499b50590e65c
+  src/species/MassFractionState.cpp                    429321301b079cd80b26b8a2dcef4929fbf85ece08f28cbe7ff08179cffa1f4f
+  src/species/SpeciesTransport.cpp                     69cc3141ea92d286fbf5c55fc8e40bb3913a78edfe659503b9dd8f7572cbf508
+  src/species/MixtureThermodynamics.cpp                313928eb1d175532da4da14036e045eff75bc58bb6092438d70b680c9e783f8f
+  src/species/ReactionMechanism.cpp                    0145fab31061a97ceb7eb72e752e7fe17057a97370e6d30365d7d649205de236
+  src/species/ArrheniusKinetics.cpp                    ba095f0e5ec785bf89f70834bf9359455bd3a901600372890ceceae6722af795
+  src/species/HeatRelease.cpp                          3adfd95b3438f7c59fd22f4fa23281680f17220936364ede2faa35150ac31e65
+
+--- baseline test counts ---
+  CFDSpeciesTests          302
+  CFDThermalTests          163
+  CFDCompressibleTests     215
+  CFDTransportTests        22
+  CFDTurbulenceTests       247
+
+--- regression baseline (P18.7 close) ---
+  release_cuda  3028 selected, 2977 Passed, 0 FAILED, 2 Skipped, 49 DISABLED
+  cpu_only      2805 selected, 2758 Passed, 0 FAILED, 0 Skipped, 47 DISABLED
+  debug_gui     3090 selected, 3036 Passed, 3 FAILED, 2 Skipped, 49 DISABLED

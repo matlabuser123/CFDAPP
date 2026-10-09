@@ -1,0 +1,31 @@
+=== configuration asserted BEFORE anything runs ===
+  configure exit: 0
+    CFDAPP_BUILD_GUI:BOOL=OFF
+    CFDAPP_ENABLE_CUDA:BOOL=OFF
+    CFDAPP_ENABLE_OPENMP:BOOL=OFF
+    CFDAPP_ENABLE_SANITIZERS:BOOL=ON
+    CMAKE_BUILD_TYPE:STRING=Debug
+  --- the sanitizer flags actually compiled in ---
+    -fsanitize=address,undefined
+
+=== build ===
+  build exit: 0   (574 s)
+
+=== focused P17 suite under ASan+UBSan ===
+  registered by the filter: 315
+  ctest exit : 0   (1176 s)
+  Passed     : 315
+  FAILED     : 0
+  Skipped    : 0
+  Disabled   : 0
+
+  --- sanitizer diagnostics found ---
+  AddressSanitizer errors  : 0
+  LeakSanitizer leaks      : 0
+  UBSan runtime errors     : 0
+
+  --- the CONTROL: is the sanitizer actually instrumenting? ---
+  A clean ASan run prints no diagnostics, which is indistinguishable from an uninstrumented
+  binary. The check is that the binary LINKS the sanitizer runtime:
+    __asan/__ubsan symbols in CFDCompressibleTests : 52
+    CONTROL OK: the binary is instrumented, so the diagnostic counts above are real.

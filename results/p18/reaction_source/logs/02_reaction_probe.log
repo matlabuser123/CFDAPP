@@ -1,0 +1,33 @@
+=== P18.4 quantitative evidence (section 50) ===
+eps = 2.2204460492503131e-16
+
+max per-reaction |sum_i M_i nu_i|      0   (reaction 0)
+  relative to max|M_i nu_i|            0
+  G6 tolerance 4 eps * max|M nu|       1.1102230246251565e-16
+
+max per-cell |sum_i omega_i|           0   (cell 0)
+  max |omega_i| for scale              1.0625
+  relative                             0
+
+source ratio error (recovers q)        0
+zero-rate source magnitude             0   (must be exactly 0)
+reversible zero-net error              0   (must be exactly 0)
+multi-reaction accumulation error      0
+
+determinism: 200 repeats x 4 species x 256 cells, bitwise differences : 0
+
+=== control margins ===
+  N2 omitting M_A       omega -1.718750e-01 -> -2.750000e+00   ratio 16.0x
+  N9 kmol instead of mol                          ratio 1000.0x
+  N1 coefficient perturbed by 1e-9   residual 3.125000e-11 vs tolerance 1.110223e-16   281475x over
+
+=== non-dyadic weights: the balance is ROUND-OFF, not exact ===
+    (the dyadic mechanism above gives exactly 0 everywhere, which is sharp but
+     never exercises the tolerance. These weights were found by search outside
+     CFDApp so that M_C - M_A - 2 M_B is non-zero yet within 4 eps * scale.)
+  per-reaction |sum M nu|              0   (0.00 eps)
+  tolerance 4 eps * max|M nu|          9.989798564295896e-17
+  ACCEPTED by the mechanism            yes -- it is within tolerance
+  max per-cell |sum omega_i|           1.1102230246251565e-16
+  max |omega_i| for scale              0.89980106183338626
+  relative                             1.2338538725026906e-16   (allowance 8 eps = 1.776357e-15)

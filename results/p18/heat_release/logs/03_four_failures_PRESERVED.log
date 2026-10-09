@@ -1,0 +1,73 @@
+=== P18.6 FOUR FAILURES, PRESERVED VERBATIM (CLAUDE.md 1.5) ===
+date: 2026-10-01T05:31:15Z
+
+################################################################
+### EnergyAccountingTest.TemperatureRecoveryHandlesATemperatureDependentSpecificHeat
+################################################################
+[==========] Running 1 test from 1 test suite.
+[ RUN      ] EnergyAccountingTest.TemperatureRecoveryHandlesATemperatureDependentSpecificHeat
+unknown file: Failure
+C++ exception with description "TemperatureDependentProperty(cp_A): temperature 1.000000 is outside the validity range [200.000000, 3000.000000]. Extrapolating a fitted property is refused rather than silently performed." thrown in the test body.
+[  FAILED  ] EnergyAccountingTest.TemperatureRecoveryHandlesATemperatureDependentSpecificHeat (4 ms)
+[==========] 1 test from 1 test suite ran. (4 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] EnergyAccountingTest.TemperatureRecoveryHandlesATemperatureDependentSpecificHeat
+ 1 FAILED TEST
+
+################################################################
+### ClosedReactorTest.TotalEnergyIsConservedToG7sFloor
+################################################################
+[==========] Running 1 test from 1 test suite.
+[ RUN      ] ClosedReactorTest.TotalEnergyIsConservedToG7sFloor
+unknown file: Failure
+C++ exception with description "mass fractions at cell 0 sum to 0.99999999999999722; must be within 2.6645352591003757e-15 of 1 (deviation 2.7755575615628914e-15)" thrown in the test body.
+[  FAILED  ] ClosedReactorTest.TotalEnergyIsConservedToG7sFloor (183 ms)
+[==========] 1 test from 1 test suite ran. (183 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ClosedReactorTest.TotalEnergyIsConservedToG7sFloor
+ 1 FAILED TEST
+
+################################################################
+### TemperatureFeedbackTest.EndothermicFeedbackLowersTheRate
+################################################################
+[==========] Running 1 test from 1 test suite.
+[ RUN      ] TemperatureFeedbackTest.EndothermicFeedbackLowersTheRate
+unknown file: Failure
+C++ exception with description "advanceClosedReactor: the explicit step would drive rho*Y negative for species "A" at cell 0: rho*Y = 1 kg/m^3, dt*omega = -1.815011283612517 kg/m^3, sum = -0.81501128361251696. dt is too large for this rate. P18.6 has no stiff-chemistry integrator and does not clamp or renormalise species." thrown in the test body.
+[  FAILED  ] TemperatureFeedbackTest.EndothermicFeedbackLowersTheRate (4 ms)
+[==========] 1 test from 1 test suite ran. (5 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] TemperatureFeedbackTest.EndothermicFeedbackLowersTheRate
+ 1 FAILED TEST
+
+################################################################
+### NonReactingLimitTest.N10_WithNoReactionTheThermalStateIsBitwiseUnchanged
+################################################################
+[==========] Running 1 test from 1 test suite.
+[ RUN      ] NonReactingLimitTest.N10_WithNoReactionTheThermalStateIsBitwiseUnchanged
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_heat_release.cpp:1354: Failure
+Expected equality of these values:
+  next.composition.massFraction(i, cell)
+    Which is: 0.24218749999999997
+  state.composition.massFraction(i, cell)
+    Which is: 0.2421875
+Y_2 at cell 1
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_heat_release.cpp:1354: Failure
+Expected equality of these values:
+  next.composition.massFraction(i, cell)
+    Which is: 0.47656249999999994
+  state.composition.massFraction(i, cell)
+    Which is: 0.4765625
+Y_1 at cell 3
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_heat_release.cpp:1354: Failure
+Expected equality of these values:
+  next.composition.massFraction(i, cell)
+    Which is: 0.46875000000000006
+  state.composition.massFraction(i, cell)
+    Which is: 0.46875
+Y_1 at cell 4
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_heat_release.cpp:1354: Failure
+

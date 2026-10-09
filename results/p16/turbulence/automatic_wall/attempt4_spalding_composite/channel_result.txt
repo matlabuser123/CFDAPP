@@ -1,0 +1,27 @@
+P16b attempt 4 -- Spalding composite wall shear, Re_tau = 590
+============================================================
+mesh     y1+      E hiRe    E blend     E comp    u+ hiRe    u+ comp   iters   G1
+ny06   92.813     0.0556     0.0347     0.0304     1.3072     0.6633    1051   OK
+ny12   49.132     0.0003     0.0483     0.0482     0.4784     1.5776    1038   OK
+ny16   37.056     0.0059     0.0698     0.0464     1.0443     1.9240    1287   OK
+ny32   18.407     0.0018     0.1199     0.0524     0.5449     1.4091    1680   REJECT
+
+ADOPTED GATE (unchanged): E_Re_tau <= 0.059  AND  u+ Linf <= 1.4
+  E_Re_tau      : PASS on all four (ny16 0.0698 -> 0.0464)
+  u+ Linf       : FAIL at ny12 (1.578) and ny16 (1.924)
+  HighRe path   : bitwise unchanged (verified)
+
+Both gates fail/pass for the SAME underlying reason: a residual u_tau bias of
+~4.6% at ny16. u+ = U/u_tau, so a 4.6% u_tau bias shifts every profile sample
+by 4.6%; at u+ ~ 16-20 that is 0.7-0.9, which on top of the baseline 1.04 gives
+the observed 1.92. The two gates are not independent measurements.
+
+ROOT OF THE RESIDUAL, measured at unit level and not inferred:
+  Spalding's law reaches this repository's log law only for y+ >~ 70.
+    u+ = 14 (y+ ~ 36) : 1.96% off the log law
+    u+ = 16 (y+ ~ 72) : 0.07%
+    u+ = 20 (y+ ~ 359): 0.43%  (truncation residual)
+  ny16 sits at y+ = 37, i.e. exactly where the composite law is NOT yet the log
+  law. The validated high-Re path uses the pure log law there and is nearly
+  exact for this channel (E = 0.0059), so the composite law is trading log-layer
+  accuracy for continuity into the sublayer.

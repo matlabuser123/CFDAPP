@@ -1,0 +1,56 @@
+P17.2 dry-run -- the UNCHANGED tree
+date: 2026-09-26T02:45:47Z
+HEAD: 3bd32f918656
+SOURCE_FINGERPRINT_V2: 721ce161aafbf6958a4620c4d9fe4b4f332dbba3519f6e9b9496548213901955
+
+### the interface as it stands ###
+  EquationOfState virtual methods:
+    24:  [[nodiscard]] virtual Real density(Real pressure, Real temperature) const = 0;
+    30:  [[nodiscard]] virtual Real dDensityDPressure(Real pressure, Real temperature) const = 0;
+    33:  [[nodiscard]] virtual Real dDensityDTemperature(Real pressure, Real temperature) const = 0;
+  implementations of EquationOfState:
+    include/cfd/compressible/IdealGasEOS.hpp
+  pressure(rho,T) present? 0 occurrences  (0 = absent, the baseline)
+
+### existing compressible test inventory ###
+    tests/integration/case/test_compressible_coupled_production_case.cpp 6
+    tests/integration/case/test_compressible_production_case.cpp   8
+    tests/integration/compressible/test_low_mach_regression.cpp    7
+    tests/integration/mms/test_mms_compressible.cpp                1
+    tests/solver/compressible_simple/test_compressible_non_orthogonal.cpp 4
+    tests/solver/compressible_simple/test_compressible_pressure_correction.cpp 6
+    tests/solver/compressible_simple/test_compressible_relaxed_momentum.cpp 5
+    tests/solver/compressible_simple/test_compressible_robustness.cpp 3
+    tests/solver/compressible_simple/test_compressible_simple.cpp  10
+    tests/unit/compressible/test_compressible_continuity.cpp       6
+    tests/unit/compressible/test_compressible_mass_flux.cpp        12
+    tests/unit/compressible/test_compressible_momentum.cpp         7
+    tests/unit/io/test_compressible_case.cpp                       15
+  total: 90 tests
+
+### reference values, %.17g so 'unchanged' is a string comparison later ###
+  P17.2 dry-run -- EOS reference values on the UNCHANGED tree
+  
+  state                              R              p              T              density(p,T)             dRho/dp                  dRho/dT                 
+  air, sea-level standard            287.05         101325         288.15         1.2250122659906946       1.2089931073187215e-05   -0.004251300593408623   
+  air, compressed and hot            287.05         250000         450            1.9353964659660532       7.7415858638642131e-06   -0.0043008810354801183  
+  helium, low p, cryogenic           2077.1         50000          120            0.20060019578579108      4.0120039157158214e-06   -0.0016716682982149257  
+  water vapour, triple point         461.5          611.657        273.16         0.0048519815514962558    7.9325202711589265e-06   -1.7762415988784066e-05 
+  extreme small p and T              287.05         0.001          0.001          0.0034837136387388954    3.4837136387388954       -3.4837136387388954     
+  
+  ThermodynamicProperties invariants (derived, not stored):
+    air        R=287.05       cp=1004.67      cv=717.625        gamma=1.3999999999999999   cp-cv-R=-5.6843418860808015e-14
+               speedOfSound(288.15)=340.29228686527705  speedOfSound(450)=425.25462960442889
+    helium     R=2077.1       cp=5193         cv=3115.9000000000001 gamma=1.6666131775730928   cp-cv-R=0
+               speedOfSound(288.15)=998.74684525266309  speedOfSound(450)=1248.1085706026067
+  
+  pressure(rho,T) on EquationOfState: ABSENT on this tree (this file would not compile if it called it)
+
+### the pressure convention, as already documented ###
+    90:// ProjectRunner.cpp post-hoc pass works). `pressure` is gauge pressure,
+    150:  // referencePressure converts this solve's gauge pressure to absolute
+    include/cfd/compressible/CompressibleSIMPLE.hpp:150:  // referencePressure converts this solve's gauge pressure to absolute
+    include/cfd/io/case/PhysicsConfig.hpp:179:// solve. referencePressure converts SIMPLE's own gauge pressure to
+    144:  cfd::fields::ScalarField pressureAbsolute;  // referencePressure + SIMPLE's gauge pressure.
+
+done: 2026-09-26T02:46:05Z

@@ -1,0 +1,61 @@
+P17.5 REPOSITORY INTEGRITY
+date: 2026-09-27T03:07:15Z
+
+### 1. nothing was committed, pushed, reset or stashed ###
+  HEAD                     : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD at the P17.5 freeze : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD unchanged           : YES
+  branch                   : main
+  stash entries            : 0   (expected 0)
+
+### 2. the frozen documents are unchanged ###
+  ca84e432a277a2724f0c94a8ccc46294ff405b5b8168b66327690a01ba72a04b  acceptance_gate.md
+  d230209e9a903fed353467da0d6447acaade83f84d31860d65516eda336dc63d  audit.md
+  cb999b044aae20dd8758c35331be9d2867bf7c0538596c2e40c1298681c8b47e  thermodynamic_contract.md
+  expected, from logs/02_freeze.log:
+    ca84e432a277a2724f0c94a8ccc46294ff405b5b8168b66327690a01ba72a04b  acceptance_gate.md
+    d230209e9a903fed353467da0d6447acaade83f84d31860d65516eda336dc63d  audit.md
+    cb999b044aae20dd8758c35331be9d2867bf7c0538596c2e40c1298681c8b47e  thermodynamic_contract.md
+
+### 3. upstream files UNTOUCHED -- SHA-256, never git diff HEAD ###
+  UNTOUCHED: 15    TOUCHED: 0   (TOUCHED must be 0)
+
+### 4. no planted control marker survived ###
+  surviving // N<id> markers in include/ src/ cuda/ : 0   (expected 0)
+  (unanchored '// N[0-9]' would report 2 -- pre-existing Newton-node comments in
+   src/discretization/Diffusion.cpp, present at HEAD. A loose probe is not a finding.)
+  sanity: the pattern DOES match a trailing marker:
+    matches on a synthetic marker line: 1
+  control scratch files left : 0   (expected 0)
+
+### 5. clang-format across every file P17.5 touched ###
+  exit: 0   (0 = clean)
+
+### 6. no duplicate EOS or conductivity logic was introduced ###
+  new EOS implementations           : 0   (0 required -- pressure goes through IdealGasEOS)
+  equationOfState().pressure() uses : 1
+  new conductivity correlations     : 0   (0 required -- k is an argument)
+  P15 helper reuse in conduction    : 2
+
+### 7. the code fingerprint ###
+  P17_CODE_FINGERPRINT now              : d2e65555534bde2208cb7affd9caac7c7b4406c3f1cd17dfd473d441b882364a
+  at the P17.4 close (the P17.5 freeze) : 4e253ce4ce955f629002a0e6102bb864ff564c1492d007ed7300fc05a019cc87
+  NOTE: this MUST differ -- P17.5 added code. It is an identifier, not a pass/fail; its
+        pass/fail use is that it must not move DURING a regression run.
+
+### 8. files P17.5 introduced ###
+    include/cfd/compressible/TotalEnergy.hpp  untracked, as expected for a new file
+    src/compressible/TotalEnergy.cpp  untracked, as expected for a new file
+    include/cfd/compressible/TotalEnergyEquation.hpp  untracked, as expected for a new file
+    src/compressible/TotalEnergyEquation.cpp  untracked, as expected for a new file
+    tests/unit/compressible/test_total_energy.cpp  untracked, as expected for a new file
+  P17.5 new files                : 5
+  ALL untracked in the tree      : 129
+  attributable to EARLIER phases : 124
+  (the enumeration is explicit rather than a listing of every untracked file: nothing since
+   P12 is committed, so the untracked set is the union of every uncommitted phase)
+
+### 9. the suite size ###
+  TESTs in test_total_energy.cpp : 34   (derived, not hard-coded)
+
+done: 2026-09-27T03:07:32Z

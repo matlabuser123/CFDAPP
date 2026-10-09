@@ -52,6 +52,32 @@ CMakeFiles/
 # FAILED runs that CLAUDE.md §4 forbids deleting. Without this negation the bare *.log
 # above silently drops all of them and the committed evidence cannot be reproduced.
 !results/technical_debt/**/*.log
+# Phases P13-P18 and the GPU closeout. Same rule, same reason, and the omission was NOT
+# harmless: 1177 .log files across these seven trees were being swallowed by the bare *.log
+# above, including files explicitly named *_FAILURE_PRESERVED_* that CLAUDE.md §4 forbids
+# losing. Committing the trees without this negation would have committed the directories
+# MINUS their evidence.
+!results/p13/**/*.log
+!results/p14/**/*.log
+!results/p15/**/*.log
+!results/p16/**/*.log
+!results/p17/**/*.log
+!results/p18/**/*.log
+!results/gpu-closeout/**/*.log
+
+# Compiled probe artifacts anywhere under results/. kernel_tracer.so (an ELF shared object in
+# p16's CUDA diagnostics tools/) is the only one present, and §11.5 forbids committing it.
+results/**/*.so
+
+# THIRD-PARTY COPYRIGHTED SOURCE DOCUMENTS -- held back pending an explicit decision.
+# WestbrookDryerCST1981.pdf is a 10-page Combustion Science and Technology article, and the
+# _extracted.txt beside it is an 848-line full-text extraction of the same paper. Committing
+# either places a complete copy of a copyrighted article in the repository's permanent history.
+# g8_closure/g8_reference.md IS committed: it cites specific published values with attribution,
+# which is ordinary scientific citation rather than redistribution. Remove these two lines if
+# the licence or the repository's distribution makes carrying the source document appropriate.
+results/p18/g8_closure/data/WestbrookDryerCST1981.pdf
+results/p18/g8_closure/data/WestbrookDryerCST1981_extracted.txt
 
 # ...but NOT the compiled probe executables sitting beside their sources in those same
 # tools/ directories. They are build artifacts (ELF, ~2 MB each) that §11.5 forbids

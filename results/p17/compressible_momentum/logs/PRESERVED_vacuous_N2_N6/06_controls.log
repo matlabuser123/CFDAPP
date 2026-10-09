@@ -1,0 +1,54 @@
+P17.4 GROUP N -- non-vacuity controls
+date: 2026-09-26T21:59:54Z
+baseline src/compressible/DilatationalStress.cpp sha256: fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3
+baseline src/compressible/CompressibleMomentum.cpp sha256: 2e5fd838dbfb678ebfd84fd561b831b4c20f50032f614b442c6aa119f477f4d0
+baseline include/cfd/compressible/CompressibleRelaxedMomentum.hpp sha256: ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510
+
+=== N1 -- drop the -(2/3) factor (use -1) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED
+      DilatationalStressTest.MatchesMinusTwoThirdsMuGradDivergenceTimesVolume
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 2
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N2 -- drop the V_P factor ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          *** DID NOT FAIL -- the criterion is VACUOUS ***
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N3 -- use div U instead of grad(div U) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED
+      DilatationalStressTest.MatchesMinusTwoThirdsMuGradDivergenceTimesVolume
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N5 -- flip the sign of the transient source term ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 tests)
+  DETECTION          DETECTED
+      CompressibleMomentumTermsTest.TransientTermDistinguishesDRhoUDtFromRhoDUDt
+      CompressibleMomentumTimeDerivativeTest.ConstantDensityMatchesIncompressibleFormula
+      CompressibleMomentumTimeDerivativeTest.HandDerivedDiagonalAndSource
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N6 -- make the dilatational option default ENABLED ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          *** DID NOT FAIL -- the criterion is VACUOUS ***
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== restored, and proved back at baseline ===
+  fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+  2e5fd838dbfb678ebfd84fd561b831b4c20f50032f614b442c6aa119f477f4d0  src/compressible/CompressibleMomentum.cpp
+  ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510  include/cfd/compressible/CompressibleRelaxedMomentum.hpp
+  expected: fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3
+            2e5fd838dbfb678ebfd84fd561b831b4c20f50032f614b442c6aa119f477f4d0
+            ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510
+  N-markers left: 0  (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 17
+
+done: 2026-09-26T22:07:48Z

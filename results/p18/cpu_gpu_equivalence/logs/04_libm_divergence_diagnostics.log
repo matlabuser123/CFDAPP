@@ -1,0 +1,89 @@
+P18.8 -- INDEPENDENT DIAGNOSIS of the preserved failure in 03_second_failure_PRESERVED.log.
+No production code was changed to produce this.  Three probes, in the GPU test file.
+date (WSL): 2026-10-02T02:33:54Z
+sha256(CFDGpuTests): ed992c6ca3f60a52ad0d1c5017450ea75ac4ab83f03d4660ae65db97a0847385
+sha256(libcfdcuda.a): 17102812c7142acc8040cfbd84bb744dd8f9a806d6be3358d5e39fb772fae754
+nvcc USED BY THE BUILD (CMAKE_CUDA_COMPILER): /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  NOTE: the nvcc first on PATH is 11.5.119 and is NOT the one that built this.
+  Recording the PATH one would have named the wrong toolchain for a libm finding.
+glibc: ldd (Ubuntu GLIBC 2.35-0ubuntu3.15) 2.35
+g++: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+
+=== the three diagnostics, verbatim ===
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = P188GpuEquivalence.DIAGNOSTIC_*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from P188GpuEquivalence
+[ RUN      ] P188GpuEquivalence.DIAGNOSTIC_CanHostAndDeviceTakeDifferentArrheniusBranches
+  T swept across 4096 consecutive doubles around 1196.12
+  host branch at the low end 1, at the high end 2  (1 = direct, 2 = log-space fallback)
+  BRANCH DISAGREEMENTS host vs device: 0 / 4096
+  worst relative difference where the branches DISAGREED: 0
+  worst ULP distance where the branches AGREED: 3
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_CanHostAndDeviceTakeDifferentArrheniusBranches (2137 ms)
+[ RUN      ] P188GpuEquivalence.DIAGNOSTIC_WhichCallDivergesAndByHowManyUlp
+  case A  n=0 Ea=0  isolates: nothing -- pow(T,0) and exp(0) are exactly 1
+          differing cells 0 / 4096,  worst ULP distance 0 (cell none),  worst relative 0
+  case B  n=0 Ea=40000  isolates: exp() only
+          differing cells 218 / 4096,  worst ULP distance 2 (cell 9),  worst relative 2.8754e-16
+  case C  n=0.5 Ea=0  isolates: pow() only
+          differing cells 901 / 4096,  worst ULP distance 2 (cell 5),  worst relative 2.95339e-16
+  case D  n=0.5 Ea=40000  isolates: exp() and pow()
+          differing cells 1029 / 4096,  worst ULP distance 3 (cell 82),  worst relative 5.70791e-16
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_WhichCallDivergesAndByHowManyUlp (4 ms)
+[ RUN      ] P188GpuEquivalence.DIAGNOSTIC_HowTheDivergenceGrowsAlongATrajectory
+  dt = 1e-05,  256 cells,  50 steps
+  step |   max |dT|/T    |   max |dY|      | worst T ULP | status
+  1 | 0 | 0 | 0 | 0
+  5 | 0 | 0 | 0 | 0
+  20 | 0 | 0 | 0 | 0
+  50 | 0 | 0 | 0 | 0
+  the state actually moved:  max |T - T_0| = 28.6389 K,   max |Y - Y_0| = 0.0075085
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_HowTheDivergenceGrowsAlongATrajectory (20 ms)
+[----------] 3 tests from P188GpuEquivalence (2171 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (2174 ms total)
+[  PASSED  ] 3 tests.
+EXIT=0
+
+=== which quantities diverged in the preserved failure, by count ===
+    496 S_E
+    266 q_1
+    263 k for reaction 1
+    260 q_0
+    260 omega_1
+    260 omega_0
+    235 omega_2
+    221 k for reaction 0
+    217 S_E (mass route)
+
+=== transcendental calls reached by the SHARED arithmetic ===
+-- P18.8 (this phase) include/cfd/gpu/DeviceSpeciesThermochemistry.hpp:
+61:  return ::exp(v);
+63:  return std::exp(v);
+68:  return ::log(v);
+70:  return std::log(v);
+75:  return ::pow(a, b);
+77:  return std::pow(a, b);
+316:  return species_detail::logR(parameters.preExponential) +
+317:         (parameters.exponent * species_detail::logR(temperature)) +
+336:      parameters.preExponential * species_detail::powR(temperature, parameters.exponent);
+338:    const Real direct = powerLaw * species_detail::expR(deviceExponentialArgument(
+353:      species_detail::expR(deviceLogRateCoefficient(parameters, temperature, controls));
+399:    product *= species_detail::powR(c, order);
+-- P17.7/P17.10 (the phases that DID achieve bitwise) include/cfd/compressible/HllcFlux.hpp:
+65:  return ::sqrt(v);
+67:  return std::sqrt(v);
+254:  return hllc_detail::sqrtR(1.0 + (gamma + 1.0) / (2.0 * gamma) * (pStar / pK - 1.0));
+
+=== --use_fast_math anywhere in the build (must stay 0) ===
+0 occurrences
+
+=== FROZEN HASHES RE-VERIFIED AT THIS STEP ===
+921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03  results/p18/cpu_gpu_equivalence/acceptance_gate.md
+d98c57d87e40658a38f04162c03b48d992a3c704077e81532b4d6a4e5ecba9e9  results/p18/cpu_gpu_equivalence/audit.md
+20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe  results/p18/heat_release/energy_accounting.md

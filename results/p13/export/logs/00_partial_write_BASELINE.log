@@ -1,0 +1,12 @@
+P13-004 audit probe -- BASELINE, before any change
+date: 2026-09-21T12:23:21Z
+every export written to /dev/full: opens succeed, every write fails ENOSPC
+
+  CSVWriter::writeFields   -> threw: Failed while writing output file (the file may be incomplete): /dev/full
+  CSVWriter::writeResiduals-> threw: Failed while writing output file (the file may be incomplete): /dev/full
+  JSONWriter::writeMetadata-> threw: Failed while writing output file (the file may be incomplete): /dev/full
+  VTKWriter::writeCellFields-> threw: Failed while writing output file (the file may be incomplete): /dev/full
+
+  writers that silently reported success: 0
+
+probe exit code (= number of writers that silently succeeded): 0

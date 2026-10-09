@@ -1,0 +1,67 @@
+P18.8 -- tracked case metadata.json rewritten by the regression: classified, then reverted.
+date (WSL): 2026-10-02T11:28:31Z
+
+CLAUDE.md §11 requires a generated-file audit with runtime noise reverted. results/validation
+was handled by P18.7's fail-closed classifier (log 11). These four are a SEPARATE set that
+classifier does not cover, and they were nearly missed: they surfaced only because the
+whitespace warning count rose by more than the one comment block I had added could explain.
+
+=== the four tracked files, and when they were written ===
+  2026-10-02T11:12:22Z  cases/heated_cavity/results/metadata.json
+  2026-10-02T11:12:20Z  tests/data/cases/does_not_converge/results/metadata.json
+  2026-10-02T11:12:07Z  tests/data/cases/mesh_quality_warning_cli/results/metadata.json
+  2026-10-02T11:12:11Z  tests/data/cases/valid_cavity_cli_smoke/results/metadata.json
+  (the debug_gui ctest ran until 2026-10-02T11:13:14Z, so all four are from this regression)
+
+=== CLASSIFICATION: every distinct changed JSON key ===
+        4 version
+        4 velocity
+        4 tolerances
+        4 pressure
+        4 non_orthogonal_corrections
+        4 max_iterations
+        4 linear_solver_backend
+        4 gradient_scheme
+        4 gpu_discretization_used
+        4 convection_scheme
+        4 continuity
+        4 build_identity
+        4 -  }
+        4 +  },
+        4 +    },
+
+=== are any NUMERICAL RESULT fields among them? (each must be 0) ===
+  final_residual         0
+  residual_history       0
+  iterations             0
+  converged              0
+  u_max                  0
+  v_max                  0
+  p_max                  0
+  nusselt                0
+  mass_imbalance         0
+  max_divergence         0
+  wall_shear             0
+  l2                     0
+  linf                   0
+
+=== POSITIVE CONTROL: the classification read a real diff ===
+  changed lines inspected: 68
+
+=== what the change IS ===
+  Solver-configuration echoes (convection_scheme, gradient_scheme, linear_solver_backend,
+  gpu_discretization_used, max_iterations, tolerances) plus build_identity, which is
+  '3bd32f918656-modified' because the working tree is dirty -- a pre-existing condition of
+  the whole uncommitted P13-P18 series, not something P18.8 caused.
+  These are regenerated case outputs. No numerical result field moved.
+
+=== REVERTING ===
+  before: 4
+  after:  0
+
+  NOT touched: the untracked metadata.json files under cases/turbulent_heated_channel/,
+  cli_log_level_valid_cavity_cli_smoke/ and results/p13/. All three predate this phase
+  (mtimes 22:05 and 23:21 on earlier days) and are prior phases' untracked artifacts.
+
+=== whitespace warnings after the revert ===
+  328

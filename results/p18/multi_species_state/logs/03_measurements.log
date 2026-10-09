@@ -1,0 +1,43 @@
+=== test counts (from --gtest_list_tests, not counted by hand) ===
+  SpeciesRegistryTest    (new P18.1) : 11
+  MassFractionStateTest  (new P18.1) : 45
+  pre-existing species unit tests    : 37
+  total in CFDSpeciesTests           : 93
+
+=== measurements ===
+eps                        2.2204460492503131e-16
+tolerance N=1  (4*eps*1)   8.8817841970012523e-16
+tolerance N=2  (4*eps*2)   1.7763568394002505e-15
+tolerance N=3  (4*eps*3)   2.6645352591003757e-15
+tolerance N=64 (4*eps*64)  5.6843418860808015e-14
+
+--- binary ULP ladder about the N=2 bound (8*eps = 1.7763568394002505e-15) ---
+   0 eps  deviation 0  ACCEPTED
+   1 eps  deviation 2.2204460492503131e-16  ACCEPTED
+   2 eps  deviation 4.4408920985006262e-16  ACCEPTED
+   3 eps  deviation 6.6613381477509392e-16  ACCEPTED
+   4 eps  deviation 8.8817841970012523e-16  ACCEPTED
+   5 eps  deviation 1.1102230246251565e-15  ACCEPTED
+   6 eps  deviation 1.3322676295501878e-15  ACCEPTED
+  16 eps  deviation 3.5527136788005009e-15  REJECTED
+  17 eps  deviation 3.7747582837255322e-15  REJECTED
+  18 eps  deviation 3.9968028886505635e-15  REJECTED
+  19 eps  deviation 4.2188474935755949e-15  REJECTED
+  20 eps  deviation 4.4408920985006262e-15  REJECTED
+
+--- tallies over the ladder and the explicit cases ---
+accepted                       19
+rejected: sum                  17
+rejected: bounds               4
+rejected: non-finite           4
+max deviation ACCEPTED         1.7763568394002505e-15  (8.000 eps)
+min deviation REJECTED         1.9984014443252818e-15  (9.000 eps)
+largest Y_i accepted           1
+smallest Y_i accepted          0
+
+--- one bad cell in 100000, global min/max of each field unchanged ---
+  mass fractions at cell 99999 sum to 1.0000000010000001; must be within 1.7763568394002505e-15 of 1 (deviation 1.000000082740371e-09)
+
+--- normalisation ---
+  normalizeMassFractions({0.8, 0.8}) = {0.5, 0.5}
+  construction from {0.8, 0.8} silently normalised: NO (rejected)

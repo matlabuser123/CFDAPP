@@ -1,0 +1,193 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 13 tests from 8 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from ShockDetectorTest
+[ RUN      ] ShockDetectorTest.D0_CppSamplerReproducesThePythonReferenceProfile
+
+  D0 C++ exact sampler vs the 60-digit Python profile: worst relative 8.246e-16 over 41 spot points
+[       OK ] ShockDetectorTest.D0_CppSamplerReproducesThePythonReferenceProfile (0 ms)
+[ RUN      ] ShockDetectorTest.D1_DetectorsMeasureTheExactProfileAndCanFail
+
+  D1 detectors on the EXACT profile (nx = 200, dx = 5.0000e-03)
+      rarefaction head   0.2644846433 vs 0.2633721125   err 1.1125e-03 = 0.2225 dx (limit 2 dx)
+      rarefaction tail   0.4828701972 vs 0.4859601022   err 3.0899e-03 = 0.6180 dx (limit 4 dx)
+      contact            0.6850000000 vs 0.6855039870   err 5.0399e-04 = 0.1008 dx (limit 2 dx)
+      shock              0.8500000000 vs 0.8504185628   err 4.1856e-04 = 0.0837 dx (limit 2 dx)
+      fan spans 45 cells (exact 44.5)
+      V4 jumpless ramp -> no shock
+      V3 profile shifted 3 dx -> shock err 2.9163 dx (must exceed 2)
+[       OK ] ShockDetectorTest.D1_DetectorsMeasureTheExactProfileAndCanFail (0 ms)
+[----------] 2 tests from ShockDetectorTest (1 ms total)
+
+[----------] 5 tests from SodShockTubeTest
+[ RUN      ] SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly
+
+  SOD, 2D mesh 200x1, dx = 5.0000e-03, CFL 0.4, t = 0.200, 677 steps
+      W1 rarefaction -> contact -> shock, in order: yes
+      W2 fan spans 60 cells (exact 44.5, floor 3)
+      wave               numerical      exact          err          err/dx    
+      rarefaction head   0.2044513848   0.2633721125   5.8921e-02   11.7841    (limit 2 dx)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/compressible/test_shock_validation.cpp:401: Failure
+Expected: (err) <= (row.limitCells * r.dx), actual: 0.058920727715888799 vs 0.0099999999999999985
+rarefaction head
+
+      rarefaction tail   0.4995056388   0.4859601022   1.3546e-02   2.7091     (limit 4 dx)
+      contact            0.6797523107   0.6855039870   5.7517e-03   1.1503     (limit 2 dx)
+      shock              0.8545118193   0.8504185628   4.0933e-03   0.8187     (limit 2 dx)
+      W3 contact: |dp|/p* 1.6374e-03, |du|/u* 3.6299e-03, drho 0.149362 vs exact 0.160674
+      W4 shock jumps in rho, p and u, all in the correct direction
+      §23 smeared width: shock 7 cells, contact 16 cells
+[  FAILED  ] SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly (53 ms)
+[ RUN      ] SodShockTubeTest.S_PlateauStatesMatchTheExactSolution
+
+  SOD plateau states, nx = 200 (sampled 5 cells clear of every detected wave)
+      quantity                 numerical      exact          |err|        limit     
+      p_star (left plateau)    0.302786386    0.303137627    3.5124e-04   2.0314e-02
+      p_star (right plateau)   0.302290035    0.303137627    8.4759e-04   2.0314e-02
+      u_star (left plateau)    0.928586151    0.927519935    1.0662e-03   9.2752e-02
+      u_star (right plateau)   0.925219369    0.927519935    2.3006e-03   9.2752e-02
+      rho_star_left            0.418562081    0.426279898    7.7178e-03   1.6067e-02
+      rho_star_right           0.269200173    0.265606118    3.5941e-03   1.4061e-02
+      pre-shock rho            0.125085890    0.125000000    8.5890e-05   2.5000e-03
+[       OK ] SodShockTubeTest.S_PlateauStatesMatchTheExactSolution (51 ms)
+[ RUN      ] SodShockTubeTest.Z_WriteProfileEvidence
+
+  wrote results/p17/shock_validation/data/sod_profile_nx200.csv  (200 cells, 677 steps)
+
+  wrote results/p17/shock_validation/data/sod_profile_nx400.csv  (400 cells, 1368 steps)
+
+  wrote results/p17/shock_validation/data/sod_profile_nx800.csv  (800 cells, 2751 steps)
+[       OK ] SodShockTubeTest.Z_WriteProfileEvidence (1193 ms)
+[ RUN      ] SodShockTubeTest.R_RefinementImprovesEveryError
+
+  SOD REFINEMENT (CFL 0.4, t = 0.2, 2D mesh nx x 1)
+      nx     dx         head err    tail err    contact err shock err  
+      200    5.000e-03  5.8921e-02  1.3546e-02  5.7517e-03  4.0933e-03 
+      400    2.500e-03  3.8596e-02  6.7506e-03  3.2352e-03  2.1143e-03 
+      800    1.250e-03  2.4860e-02  2.5824e-03  1.8011e-03  1.0724e-03 
+      nx     dx         head/dx     tail/dx     contact/dx  shock/dx   
+      200    5.000e-03  11.7841     2.7091      1.1503      0.8187     
+      400    2.500e-03  15.4384     2.7002      1.2941      0.8457     
+      800    1.250e-03  19.8881     2.0659      1.4408      0.8580     
+      nx     L1 rho       L1 u         L1 p         Linf rho     shock w  cont w  
+      200    1.27769e-02  2.20461e-02  1.09023e-02  8.60857e-02  7        16      
+      400    8.09055e-03  1.24045e-02  6.48265e-03  8.47407e-02  7        23      
+      800    5.10495e-03  6.97039e-03  3.81260e-03  8.58707e-02  7        31      
+      observed L1 rates (REPORTED, not gated -- a discontinuous solution has no
+      single first-order rate; a contact converges ~dx^1/2, a fan ~dx):
+        nx 200 -> 400 : rho 0.6592   u 0.8297   p 0.7500
+        nx 400 -> 800 : rho 0.6643   u 0.8316   p 0.7658
+      nx     |dp*|        |du*|        |drho*_L|    |drho*_R|   
+      200    3.51241e-04  1.06622e-03  7.71782e-03  3.59405e-03 
+      400    1.71478e-04  5.28371e-04  5.68888e-03  3.74699e-03 
+      800    7.52235e-05  2.46821e-04  4.21735e-03  3.42003e-03 
+      head error / sqrt(dx) -- the DIFFUSIVE scaling a weak wave should follow:
+        nx 200    err/sqrt(dx) = 0.83326
+        nx 400    err/sqrt(dx) = 0.77192
+        nx 800    err/sqrt(dx) = 0.70315
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/compressible/test_shock_validation.cpp:592: Failure
+Expected: (rows[k].rhoStarR) < (rows[k - 1].rhoStarR), actual: 0.0037469886406341635 vs 0.0035940543992120655
+rho_star_right did not improve
+
+[  FAILED  ] SodShockTubeTest.R_RefinementImprovesEveryError (1034 ms)
+[ RUN      ] SodShockTubeTest.CFL_ResultIsNotAnArtefactOfOneTimeStep
+
+  SOD CFL SENSITIVITY (nx = 200). Both values were declared in configuration.md
+      BEFORE any run; neither was chosen after seeing an answer.
+      CFL    steps    shock err    contact err  head err     L1 rho       mass err    
+      0.40   677      4.0933e-03   5.7517e-03   5.8921e-02   1.2777e-02   2.3130e-15  
+      0.20   1353     4.3534e-03   5.9231e-03   6.0176e-02   1.3041e-02   2.6214e-15  
+[       OK ] SodShockTubeTest.CFL_ResultIsNotAnArtefactOfOneTimeStep (143 ms)
+[----------] 5 tests from SodShockTubeTest (2489 ms total)
+
+[----------] 1 test from NormalShockTest
+[ RUN      ] NormalShockTest.N_JumpRelationsAndRankineHugoniot
+
+  NORMAL SHOCK, 2D mesh 400x1, M1 = 2.0000, dx = 2.5000e-03, t = 5.00e-04, 1389 steps
+      quantity     numerical        analytical       rel err     
+      rho2/rho1    2.6667102673     2.6670020510     1.0941e-04  
+      p2/p1        4.4995544351     4.4998113700     5.7099e-05  
+      T2/T1        1.6873053253     1.6872170639     5.2312e-05  
+      u2/u1        0.3749263486     0.3749528425     7.0659e-05  
+      M2           0.5772701741     0.5773260664     9.6812e-05  
+      Rankine-Hugoniot residuals: mass 1.8006e-04  momentum 1.1869e-04  total enthalpy 4.0216e-05
+      N9 shock position 0.49995539 vs initial 0.5000 -> drift 4.4611e-05 = 0.0178 dx
+      min rho 1.200000  min p 103338.00  min T 300.0000  retries 0  rejected 0
+[       OK ] NormalShockTest.N_JumpRelationsAndRankineHugoniot (191 ms)
+[----------] 1 test from NormalShockTest (192 ms total)
+
+[----------] 1 test from ContactDiscontinuityTest
+[ RUN      ] ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly
+
+  STATIONARY CONTACT, 2D mesh 200x1, t = 0.20, 1339 steps
+      position 0.5000000000 vs 0.5 -> err 0.0000e+00 = 0.0000 dx
+      pressure variation 0.0000e+00, velocity variation 0.0000e+00, width 0 cells
+      mass 2.812500000000e-03 -> 2.812500000000e-03   relative 0.0000e+00
+
+  MOVING CONTACT at u = 4.0 (Ma_L 3.38, Ma_R 1.20), t = 0.10, 1070 steps
+      position 0.6992930944 vs expected 0.7000000000 -> err 7.0691e-04 = 0.1414 dx
+      pressure variation 4.0856e-14, velocity variation 2.9976e-15, width 22 cells
+[       OK ] ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly (167 ms)
+[----------] 1 test from ContactDiscontinuityTest (168 ms total)
+
+[----------] 1 test from CompressionExpansionTest
+[ RUN      ] CompressionExpansionTest.CE_SymmetricCompressionAndExpansionMatchTheExactSolution
+
+  COMPRESSION WAVE (u_L = +0.4, u_R = -0.4), t = 0.12, 332 steps
+      p*   1.5760937179 vs 1.5788857454   rel 1.7684e-03   (p rises: yes)
+      rho* 1.3764661731 vs 1.3819657312   rel 3.9795e-03   (rho rises: yes)
+      u*   0.0000000000 vs 0.0000000000   (symmetric, so exactly 0)
+      right shock 0.6273051917 vs 0.6256657236 -> 0.3279 dx
+
+  EXPANSION WAVE (u_L = -0.4, u_R = +0.4), t = 0.12, 332 steps
+      p*   0.6150551777 vs 0.6126216501   rel 3.9723e-03   (p falls: yes)
+      rho* 0.7026036890 vs 0.7046522885   rel 2.9072e-03   (rho falls: yes)
+      u*   0.0000000000 vs 0.0000000000   (symmetric, so exactly 0)
+      min rho 0.688108, min p 0.612220 -- an expansion is where positivity is at risk
+[       OK ] CompressionExpansionTest.CE_SymmetricCompressionAndExpansionMatchTheExactSolution (52 ms)
+[----------] 1 test from CompressionExpansionTest (53 ms total)
+
+[----------] 1 test from SupersonicAdvectionTest
+[ RUN      ] SupersonicAdvectionTest.SA_SmoothPulseAdvectsAtTheFlowSpeed
+
+  SUPERSONIC ADVECTION, Ma = 2.02, 2D mesh 200x1, t = 3.000e-04, 419 steps
+      pulse centroid 0.3000000886 -> 0.5100000886, expected 0.5100000886
+      position err 2.0151e-13 = 0.0000 dx
+      pressure variation 9.7165e-15, velocity variation 2.2737e-15 (an entropy wave: both ~0)
+      mass rel change 9.4027e-15, energy rel change 4.0508e-15 (open domain: flux carries them)
+[       OK ] SupersonicAdvectionTest.SA_SmoothPulseAdvectsAtTheFlowSpeed (29 ms)
+[----------] 1 test from SupersonicAdvectionTest (30 ms total)
+
+[----------] 1 test from ShockConservationTest
+[ RUN      ] ShockConservationTest.C_ClosedShockTubeConservesMassAndEnergy
+
+  SOD CONSERVATION (closed box, walls), nx = 200, 677 steps
+      mass   2.81250000000001e-03 -> 2.81250000000000e-03   relative 2.3130e-15  (bound 3.5527e-13)
+      energy 6.87811356906458e-03 -> 6.87811356906462e-03   relative 6.3052e-15  (bound 3.5527e-13)
+      min rho 0.12500000, min p 0.10000000, min T 0.0024874862
+      retries 0, rejected steps 0, non-finite detections 0
+
+  SOD CONSERVATION (closed box, walls), nx = 400, 1368 steps
+      mass   1.40624999999998e-03 -> 1.40625000000000e-03   relative 1.5111e-14  (bound 7.1054e-13)
+      energy 3.43905678453233e-03 -> 3.43905678453232e-03   relative 4.2876e-15  (bound 7.1054e-13)
+      min rho 0.12500000, min p 0.10000000, min T 0.0024817563
+      retries 0, rejected steps 0, non-finite detections 0
+[       OK ] ShockConservationTest.C_ClosedShockTubeConservesMassAndEnergy (248 ms)
+[----------] 1 test from ShockConservationTest (249 ms total)
+
+[----------] 1 test from ShockDeterminismTest
+[ RUN      ] ShockDeterminismTest.D_RepeatedShockRunsAreBitwiseIdentical
+
+  SOD DETERMINISM: 677 steps, 200 cells -- dt, time, residual, retry, full state,
+      shock position and contact position ALL BITWISE identical across two runs
+[       OK ] ShockDeterminismTest.D_RepeatedShockRunsAreBitwiseIdentical (101 ms)
+[----------] 1 test from ShockDeterminismTest (103 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 8 test suites ran. (3300 ms total)
+[  PASSED  ] 11 tests.
+[  FAILED  ] 2 tests, listed below:
+[  FAILED  ] SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly
+[  FAILED  ] SodShockTubeTest.R_RefinementImprovesEveryError
+
+ 2 FAILED TESTS

@@ -1,0 +1,104 @@
+P17.5 AUDIT -- existing energy infrastructure, unchanged tree
+date: 2026-09-27T00:57:52Z
+HEAD: 3bd32f918656
+
+### 1. does a total-energy state exist at all? (0 = MISSING) ###
+    rhoE                   0
+    totalEnergy            0
+    internalEnergy         0
+    specificEnergy         0
+    totalEnthalpy          0
+    eTotal                 0
+    hTotal                 0
+    pressureWork           0
+    viscousWork            0
+    viscousDissipation     0
+
+### 2. what P15 energy infrastructure DOES exist ###
+    EnergyEquation                             15
+    SensibleEnthalpy                           3
+    TemperatureDependentProperty               8
+    ThermalProperties                          18
+    TurbulentConductivity                      5
+    assembleThermalConvectionContribution      7
+    assembleThermalDiffusionContribution       4
+    assembleThermalTransientContribution       2
+
+### 3. THE KEY QUESTION: what does the production energy equation transport? ###
+  'cp*T' mentions in the energy equation header:
+    3
+  Enthalpy.hpp's own verdict on that form:
+    16://   h    = cp * T                                              wrong when cp varies
+
+  SensibleEnthalpy consumers (production vs test):
+    src/io               0
+    src/app              0
+    src/thermal          1
+    src/compressible     0
+    tests                2
+  => library-only if src/io and src/app are both 0: a case cannot reach it.
+
+### 4. does the compressible solver have an energy equation? ###
+  CompressibleSIMPLE scope statement:
+    144:// convention, never updated by this solver itself (no energy-equation
+    146:// compressible-energy formulation" is explicitly out of scope for
+  energy/rhoE references inside the compressible module:
+    rhoE                 0
+    totalEnergy          0
+    EnergyEquation       0
+    SensibleEnthalpy     0
+
+### 5. the DUAL-cp hazard, concretely ###
+  the two independent case keys:
+    143:  rejectUnknownKeys(json, path, context, {"conductivity", "specific_heat", "initial_temperature"});
+    157:      json, path, context, "specific_heat", thermal.initialTemperature, thermal.specificHeatModel);
+    512:                    {"gas_constant", "specific_heat_pressure", "reference_pressure", "temperature",
+    522:      getRequiredReal(json, path, "specific_heat_pressure", context + ".specific_heat_pressure");
+  any code that cross-validates the two: (excluding parse/write/plumbing)
+    cross-validation sites: 0   (0 = nothing detects a disagreement)
+  how they meet at runtime, in ProjectRunner:
+    770:        for (cfd::Index i = 0; i < n; ++i) temperatureField[i] = thermalResult->temperature[i];
+    800:            setup.mesh, pressureAbsolute, temperatureField, c.thermodynamics);
+    822:            compressibleSettings, c.thermodynamics, c.referencePressure, /*referenceCell=*/0);
+    833:          const Real soundSpeed = c.thermodynamics.speedOfSound(temperatureField[i]);
+    => in a thermal-coupled compressible case, T is produced by a P15 solve using
+       thermal.specific_heat and then consumed by thermodynamics built from
+       compressible.specific_heat_pressure. Nothing requires them to agree.
+
+### 6. GPU: is there ANY compressible or energy path to be equivalent to? ###
+    compressible             1
+    IdealGas                 0
+    EquationOfState          0
+    ThermodynamicProperties  0
+    Enthalpy                 0
+    rhoE                     0
+    totalEnergy              0
+    machNumber               0
+  the single 'compressible' hit, in context:
+    include/cfd/gpu/DevicePressureCorrection.hpp:6:// (PressureCorrectionEquation.cpp:181), the body behind the incompressible
+  GPU scalar-transport kernels that DO exist (the nearest reusable machinery):
+    DeviceConvectionKernel.cu
+    DeviceConvectionPlan.cpp
+    DeviceDiffusionKernel.cu
+    DeviceDiffusionPlan.cpp
+    DeviceMomentumConvectionKernel.cu
+    DeviceMomentumConvectionPlan.cpp
+    DeviceScalarTransportKernel.cu
+
+### 7. thermodynamic authorities to reuse, NOT duplicate ###
+    IdealGasEOS (P17.2)                            include/cfd/compressible/IdealGasEOS.hpp
+    ThermodynamicProperties R/cp/cv/gamma (P17.2)  include/cfd/compressible/ThermodynamicProperties.hpp
+    SensibleEnthalpy h(T), T(h) (P15)              include/cfd/thermal/Enthalpy.hpp
+    ThermalProperties k, cp (P15)                  include/cfd/thermal/ThermalProperties.hpp
+    compressible mass flux (P17.3)                 include/cfd/compressible/CompressibleMassFlux.hpp
+    dilatational stress (P17.4)                    include/cfd/compressible/DilatationalStress.hpp
+
+  SensibleEnthalpy inversion tolerance, as the class documents it:
+    81:  static constexpr Real kInversionToleranceKelvin = 1e-12;
+
+### 8. test-suite sizes that P17.5 must preserve ###
+    tests/unit/thermal/test_enthalpy_properties.cpp            13 TESTs
+    tests/unit/compressible/test_thermodynamic_properties.cpp  18 TESTs
+    tests/unit/compressible/test_ideal_gas_eos.cpp             30 TESTs
+
+done: 2026-09-27T00:58:07Z

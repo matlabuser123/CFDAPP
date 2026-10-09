@@ -1,0 +1,51 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from DensityBasedCanonicalIntegration
+[ RUN      ] DensityBasedCanonicalIntegration.C4_SmoothAdvectedPulseConvergesToTheAnalyticSolution
+
+  C4 smooth advected pulse, Ma = 2.02, t_end = 3.000e-04 s
+        nx         dx        L1(rho)      max|dp|/p      max|du|/u      steps
+        64 1.5625e-02   1.038274e-02   2.393917e-15   8.120488e-16        134
+       128 7.8125e-03   5.993063e-03   2.675554e-15   9.744586e-16        268
+       256 3.9062e-03   3.255498e-03   7.322569e-15   1.948917e-15        536
+    observed order between successive refinements:
+      nx 64 -> 128 : 0.7928
+      nx 128 -> 256 : 0.8804
+[       OK ] DensityBasedCanonicalIntegration.C4_SmoothAdvectedPulseConvergesToTheAnalyticSolution (83 ms)
+[ RUN      ] DensityBasedCanonicalIntegration.G2_OpenDomainBalancesAgainstTheIntegratedBoundaryFlux
+
+  G2 open domain, 60 cells, 46 boundary faces, 40 steps
+    (i)  worst |sum_P R_P - boundary flux| / |boundary flux| : 6.376e-16
+    (ii) mass      d(total) +3.3803615524e-03  + integral -3.3803615524e-03  -> 3.816e-17  (bound 5.509e-13)
+    (ii) momentum  d(total) +2.7193294163e+00  + integral -2.7193294163e+00  -> 1.332e-14  (bound 3.598e-10)
+    (ii) energy    d(total) +1.8024890687e+03  + integral -1.8024890687e+03  -> 3.365e-11  (bound 2.401e-07)
+[       OK ] DensityBasedCanonicalIntegration.G2_OpenDomainBalancesAgainstTheIntegratedBoundaryFlux (0 ms)
+[ RUN      ] DensityBasedCanonicalIntegration.G1_ClosedDomainMomentumMatchesTheIntegratedWallForce
+
+  G1 closed box, 80 cells, 36 wall faces, 37 steps
+    momentum-x  d(total) +2.8641555536e+01  + wall impulse -2.8641555536e+01  -> 1.066e-14  (bound 2.610e-08)
+    momentum-y  d(total) +1.2764285254e-15  + wall impulse -1.2493348824e-15  -> 2.709e-17
+    mass    8.0161733969e-01 -> 8.0161733969e-01   relative 5.540e-16
+    energy  1.7161788150e+05 -> 1.7161788150e+05   relative 3.392e-16
+[       OK ] DensityBasedCanonicalIntegration.G1_ClosedDomainMomentumMatchesTheIntegratedWallForce (0 ms)
+[ RUN      ] DensityBasedCanonicalIntegration.LowMachRemainsValidAndItsConditioningIsReported
+
+  §27 low-Mach density-based sanity (a = 347.196 m/s)
+          Ma    u [m/s]     dt_0 [s]      min rho        min p        min T      EOS err
+       0.200     69.439  6.54594e-06     0.972666      77822.7     277.1570    0.000e+00
+       0.050     17.360  7.02491e-06     1.141702      96384.8     293.5850    0.000e+00
+       0.010      3.472  7.16471e-06     1.188581     101905.8     298.0534    0.000e+00
+       0.002      0.694  7.19334e-06     1.198036     103039.8     298.9177    0.000e+00
+    conditioning: dt_0(Ma=0.002) / dt_0(Ma=0.2) = 1.098901
+    dt is set by |u| + a, so it SATURATES at the acoustic limit as Ma -> 0 while the
+    convective time scale grows like 1/Ma: the step stops shrinking but the number of
+    steps needed to convect one domain length grows without bound. Explicit density-
+    based stiffness at low Mach, stated plainly. P17.6's CompressibleSIMPLE remains
+    the low-Mach reference; P17.8 makes no low-Mach accuracy or efficiency claim.
+[       OK ] DensityBasedCanonicalIntegration.LowMachRemainsValidAndItsConditioningIsReported (7 ms)
+[----------] 4 tests from DensityBasedCanonicalIntegration (101 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (104 ms total)
+[  PASSED  ] 4 tests.

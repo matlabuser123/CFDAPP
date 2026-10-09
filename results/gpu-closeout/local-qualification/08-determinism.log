@@ -1,0 +1,24 @@
+=== the project's own determinism checks, on the final binaries ===
+  integrated_simple_equivalence layer R: 'GPU discretization repeated, identical'
+    PASS R  cavity 2d 16       GPU discretization repeated, identical: yes
+    PASS R  channel 2d 16      GPU discretization repeated, identical: yes
+    PASS R  cavity 3d 4        GPU discretization repeated, identical: yes
+    PASS R  cavity 2d 8        GPU discretization repeated, identical: yes
+    PASS R  channel 3d 4       GPU discretization repeated, identical: yes
+    PASS R  warped 3d 3        GPU discretization repeated, identical: yes
+
+=== repeated production solves ===
+=== GPU-DISC-001R Phase I: determinism of repeated production solves ===
+policy: BITWISE for a repeated solve on the same backend -- the project's own
+        (GPU-DISC-001M layer R, GPU-DISC-001N history comparison). Not weakened.
+
+cuda available: yes
+
+case: 40x40 lid-driven cavity, production tolerances 1e-6, budget 400
+
+  PASS CPU solver + CPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+  PASS GPU solver + CPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+  PASS GPU solver + GPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+  PASS CPU solver + GPU disc    status=MaxIterations/MaxIterations  iters=400/400  fields[d=0 maxAbs=0]  history[d=0]  massImbalance identical
+
+DETERMINISM: PASS -- every repeated solve is bitwise identical

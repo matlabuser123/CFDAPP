@@ -1,0 +1,42 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from P17_10_DryRun
+[ RUN      ] P17_10_DryRun.D1_EveryCellFaceListIsAscendingOnEveryMeshConstructionPath
+  cartesian2d_uniform              cells=35 faces=82 cellFaceRefs=140 ascending=YES
+  cartesian2d_single_column        cells=40 faces=121 cellFaceRefs=160 ascending=YES
+  graded2d_geometric_both_axes     cells=24 faces=58 cellFaceRefs=96 ascending=YES
+  cartesian3d                      cells=24 faces=98 cellFaceRefs=144 ascending=YES
+  cartesian3d_translated_origin    cells=27 faces=108 cellFaceRefs=162 ascending=YES
+  TOTAL cell-face references examined: 702
+[       OK ] P17_10_DryRun.D1_EveryCellFaceListIsAscendingOnEveryMeshConstructionPath (0 ms)
+[ RUN      ] P17_10_DryRun.D1_NonVacuity_TheAscendingCheckDetectsADescendingList
+[       OK ] P17_10_DryRun.D1_NonVacuity_TheAscendingCheckDetectsADescendingList (0 ms)
+[ RUN      ] P17_10_DryRun.D2_ComparatorReportsEqualForIdenticalState
+  D2 identical: compared=180 differing=0 -> equal=YES
+[       OK ] P17_10_DryRun.D2_ComparatorReportsEqualForIdenticalState (0 ms)
+[ RUN      ] P17_10_DryRun.D3_NonVacuity_OneUlpInAnyConservedComponentIsDetected
+  D3 density      1 ulp at cell 17 -> detected=YES, 1/180 values differ
+  D3 momentumX    1 ulp at cell 17 -> detected=YES, 1/180 values differ
+  D3 momentumY    1 ulp at cell 17 -> detected=YES, 1/180 values differ
+  D3 momentumZ    1 ulp at cell 17 -> detected=YES, 1/180 values differ
+  D3 totalEnergy  1 ulp at cell 17 -> detected=YES, 1/180 values differ
+[       OK ] P17_10_DryRun.D3_NonVacuity_OneUlpInAnyConservedComponentIsDetected (0 ms)
+[ RUN      ] P17_10_DryRun.D4_FailClosed_EveryWayAComparisonCanSilentlyNotHappen
+  D4a never ran            -> equal=NO (the comparison never ran (no backend produced a result))
+  D4b gpu not populated    -> equal=NO (the GPU side was never populated)
+  D4c cpu not populated    -> equal=NO
+  D4d both empty           -> equal=NO (zero values were compared -- the inputs were empty)
+  D4e size mismatch        -> equal=NO (the two sides have different sizes: 36 vs 0)
+[       OK ] P17_10_DryRun.D4_FailClosed_EveryWayAComparisonCanSilentlyNotHappen (0 ms)
+[ RUN      ] P17_10_DryRun.D5_MatchingNonFiniteValuesAreEqualButCounted
+  D5 matching NaN: equal=YES but nonFinite cpu=1 gpu=1 -- equivalence is NOT validity
+[       OK ] P17_10_DryRun.D5_MatchingNonFiniteValuesAreEqualButCounted (0 ms)
+[ RUN      ] P17_10_DryRun.D6_TheCpuBaselineIsItselfBitwiseRepeatable
+  D6 cpu repeat: 34 iterations, 34 steps, state bitwise equal=YES, dt bitwise=YES
+[       OK ] P17_10_DryRun.D6_TheCpuBaselineIsItselfBitwiseRepeatable (1 ms)
+[----------] 7 tests from P17_10_DryRun (7 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (9 ms total)
+[  PASSED  ] 7 tests.

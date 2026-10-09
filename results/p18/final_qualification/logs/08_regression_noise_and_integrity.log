@@ -1,0 +1,67 @@
+P18.9 -- runtime noise from the FINAL regression, classified then restored; then integrity.
+date (WSL): 2026-10-02T20:43:30Z
+
+before: results/validation 50, metadata 4
+
+=== results/validation, P18.7's fail-closed classifier ===
+  distinct keys : 37
+  all keys are timing or iteratively-converged quantities (L36)  ok
+  wall_shear               0    ok
+  u_tau                    0    ok
+  y_plus                   0    ok
+  nusselt                  0    ok
+  reattachment             0    ok
+  cf_                      0    ok
+  pressure_coefficient     0    ok
+  mass_flow                0    ok
+  max_divergence           0    ok
+  mass_imbalance           0    ok
+  changed lines inspected : 1076
+  keys absent from the new file : 0  (a structural change, not drift)
+  max relative change, NON-TIMING : 3.513e-06
+    max ABSOLUTE change among them : 1.328e-08
+  max relative change, TIMING     : 1.055e+01  (expected, meaningless)
+restored.  modified before: 50   after: 0
+
+=== case metadata ===
+  numerical result fields (each must be 0):
+    final_residual     0
+    iterations         0
+    converged          0
+    nusselt            0
+    mass_imbalance     0
+    max_divergence     0
+    wall_shear         0
+    l2                 0
+    linf               0
+  changed lines inspected: 68
+  metadata restored -> 0
+
+=== REPOSITORY INTEGRITY (sections 50, 51) ===
+  HEAD                  : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  branch                : main
+  tracked modified      : 126   (candidate freeze recorded 126)
+  untracked             : 168   (candidate freeze recorded 168)
+  results/validation    : 0
+  git diff --check      : 328 warnings
+          206 cuda/CMakeLists.txt
+           90 tests/unit/gpu/CMakeLists.txt
+           32 tests/unit/compressible/CMakeLists.txt
+
+  clang-format over every P18 source:
+      violations: 0
+
+=== FINGERPRINT STABILITY after every step (section 55) ===
+  recorded final : 83d43668dfd4b19877831b55ab44e187726f774d34e5ac68b591f1e8b2c3384d
+  recomputed now : 83d43668dfd4b19877831b55ab44e187726f774d34e5ac68b591f1e8b2c3384d
+  STABLE -- unchanged through the regressions, the sanitizers and every noise revert.
+
+=== the P18.8 phase integrity check, re-run on the final tree ===
+==============================================
+checks run: 47
+INTEGRITY: PASS
+
+=== FINAL_QUALIFICATION.md ===
+8cfa81fa5966a76fbe6ebd2bc4876632cbfc7a02311ef6b5983af89efab593c0  results/p18/FINAL_QUALIFICATION.md
+d3483c436a12331c4891337be87a6d2e8323b7a8937961dcaf316db625fb1b45  results/p18/KNOWN_LIMITATIONS.md
+  lines: 487

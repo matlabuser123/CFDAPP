@@ -1,0 +1,52 @@
+case      lid_driven_cavity
+total     400 outer iterations
+split at  150
+binary    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/apps/cli/cfdapp
+sha256    f03aa8f125a21723f34cb482a81e4498ae1c9f0add85a0a1eb820c6a536ef5b3
+
+=== A: continuous run ===
+  exit 3  iterations 400
+=== B: checkpoint at 150, resume to 400 ===
+  segment 1 exit 3  iterations 150
+  PASS a checkpoint file was written
+  segment 2 exit 3  iterations 400
+  PASS the resumed run reported resuming
+=== F2: exported results, continuous vs resumed ===
+  PASS fields.csv identical
+  PASS residuals.csv identical
+  PASS metadata.json identical
+=== C: --checkpoint-every 50 over the full run ===
+  exit 3  Checkpoints written: 8 -> /tmp/p13cli.mh6ZeU/ckC.json
+  PASS segmented run matches continuous run: fields.csv
+  PASS segmented run matches continuous run: metadata.json
+=== D: rejections through the CLI ===
+  PASS missing checkpoint file (exit 1)
+  PASS truncated checkpoint (exit 1)
+  PASS unsupported format version (exit 1)
+  PASS missing required key (exit 1)
+  PASS truncated field array (exit 1)
+  PASS NaN in a field (exit 1)
+  PASS different case configuration (exit 1)
+  PASS different mesh (exit 1)
+=== C14: transport-equation turbulence ===
+  PASS the k_epsilon case itself runs normally (exit 3) -- the rows below are specific
+  PASS --checkpoint is refused for k_epsilon (exit 1)
+  PASS --resume is refused for k_epsilon (exit 1)
+  PASS the refusal names the models
+  PASS no checkpoint file was created for the refused case
+=== F4: flags ===
+  PASS --help documents --checkpoint
+  PASS --help documents --resume
+  PASS --help documents --checkpoint-every
+  PASS --checkpoint-every without --checkpoint (exit 1)
+  PASS --checkpoint-every with a non-number (exit 1)
+  PASS --checkpoint-every 0 (exit 1)
+  PASS --resume with no argument (exit 1)
+=== F3: one execution path ===
+  PASS the checkpoint orchestration exists in exactly one file (found 1)
+  PASS that file is src/app/ProjectRunner.cpp
+  PASS the GUI contains no checkpoint implementation of its own (found 0 files)
+  PASS the CLI contains none either -- it only sets ProjectRunOptions (found 0)
+
+GROUP F: PASS
+work dir kept at /tmp/p13cli.mh6ZeU

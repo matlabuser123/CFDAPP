@@ -1,0 +1,622 @@
+========= COMPUTE-SANITIZER
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/cuda/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 196 tests from 28 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from CudaSpmvTest
+[ RUN      ] CudaSpmvTest.CudaAvailableDoesNotThrow
+[       OK ] CudaSpmvTest.CudaAvailableDoesNotThrow (171 ms)
+[ RUN      ] CudaSpmvTest.MatchesCpuReferenceOnASmallMatrix
+[       OK ] CudaSpmvTest.MatchesCpuReferenceOnASmallMatrix (125 ms)
+[ RUN      ] CudaSpmvTest.MatchesCpuReferenceOnARepresentativeGridMatrix
+[       OK ] CudaSpmvTest.MatchesCpuReferenceOnARepresentativeGridMatrix (2 ms)
+[ RUN      ] CudaSpmvTest.MismatchedVectorSizeThrows
+[       OK ] CudaSpmvTest.MismatchedVectorSizeThrows (0 ms)
+[ RUN      ] CudaSpmvTest.RepeatedCallsAreBitIdentical
+[       OK ] CudaSpmvTest.RepeatedCallsAreBitIdentical (8 ms)
+[----------] 5 tests from CudaSpmvTest (310 ms total)
+
+[----------] 13 tests from DeviceBufferTest
+[ RUN      ] DeviceBufferTest.DefaultConstructedIsEmpty
+[       OK ] DeviceBufferTest.DefaultConstructedIsEmpty (0 ms)
+[ RUN      ] DeviceBufferTest.ZeroSizeResizeNeverAllocates
+[       OK ] DeviceBufferTest.ZeroSizeResizeNeverAllocates (0 ms)
+[ RUN      ] DeviceBufferTest.UploadDownloadRoundTrip
+[       OK ] DeviceBufferTest.UploadDownloadRoundTrip (1 ms)
+[ RUN      ] DeviceBufferTest.ResizeReusesCapacityWhenNotGrowingPastIt
+[       OK ] DeviceBufferTest.ResizeReusesCapacityWhenNotGrowingPastIt (0 ms)
+[ RUN      ] DeviceBufferTest.ResizePastCapacityAllocatesExactlyOnce
+[       OK ] DeviceBufferTest.ResizePastCapacityAllocatesExactlyOnce (0 ms)
+[ RUN      ] DeviceBufferTest.FirstAllocationIsNotCountedAsReallocation
+[       OK ] DeviceBufferTest.FirstAllocationIsNotCountedAsReallocation (0 ms)
+[ RUN      ] DeviceBufferTest.GrowingAnAlreadyAllocatedBufferCountsAsReallocation
+[       OK ] DeviceBufferTest.GrowingAnAlreadyAllocatedBufferCountsAsReallocation (0 ms)
+[ RUN      ] DeviceBufferTest.ResizeWithinCapacityCountsAsNeitherAllocationNorReallocation
+[       OK ] DeviceBufferTest.ResizeWithinCapacityCountsAsNeitherAllocationNorReallocation (0 ms)
+[ RUN      ] DeviceBufferTest.UploadAndDownloadRecordNonZeroTiming
+[       OK ] DeviceBufferTest.UploadAndDownloadRecordNonZeroTiming (1 ms)
+[ RUN      ] DeviceBufferTest.DestructorFreesDeviceAllocation
+[       OK ] DeviceBufferTest.DestructorFreesDeviceAllocation (0 ms)
+[ RUN      ] DeviceBufferTest.DownloadMoreThanLogicalSizeThrows
+[       OK ] DeviceBufferTest.DownloadMoreThanLogicalSizeThrows (0 ms)
+[ RUN      ] DeviceBufferTest.MoveConstructorTransfersOwnership
+[       OK ] DeviceBufferTest.MoveConstructorTransfersOwnership (2 ms)
+[ RUN      ] DeviceBufferTest.MoveAssignmentReleasesPreviousAllocation
+[       OK ] DeviceBufferTest.MoveAssignmentReleasesPreviousAllocation (0 ms)
+[----------] 13 tests from DeviceBufferTest (29 ms total)
+
+[----------] 1 test from DeviceVectorTest
+[ RUN      ] DeviceVectorTest.UploadDownloadRoundTrip
+[       OK ] DeviceVectorTest.UploadDownloadRoundTrip (1 ms)
+[----------] 1 test from DeviceVectorTest (2 ms total)
+
+[----------] 7 tests from DeviceCsrMatrixTest
+[ RUN      ] DeviceCsrMatrixTest.SpmvMatchesCpuReference
+[       OK ] DeviceCsrMatrixTest.SpmvMatchesCpuReference (1 ms)
+[ RUN      ] DeviceCsrMatrixTest.StructureUploadedExactlyOnceAcrossRepeatedValueUpdates
+[       OK ] DeviceCsrMatrixTest.StructureUploadedExactlyOnceAcrossRepeatedValueUpdates (6 ms)
+[ RUN      ] DeviceCsrMatrixTest.UpdateValuesBeforeStructureUploadThrows
+[       OK ] DeviceCsrMatrixTest.UpdateValuesBeforeStructureUploadThrows (0 ms)
+[ RUN      ] DeviceCsrMatrixTest.UpdateValuesWithChangedStructureThrows
+[       OK ] DeviceCsrMatrixTest.UpdateValuesWithChangedStructureThrows (1 ms)
+[ RUN      ] DeviceCsrMatrixTest.ReUploadingStructureAfterAGenuineChangeWorksAndReallocates
+[       OK ] DeviceCsrMatrixTest.ReUploadingStructureAfterAGenuineChangeWorksAndReallocates (3 ms)
+[ RUN      ] DeviceCsrMatrixTest.SpmvMismatchedInputSizeThrows
+[       OK ] DeviceCsrMatrixTest.SpmvMismatchedInputSizeThrows (1 ms)
+[ RUN      ] DeviceCsrMatrixTest.SpmvMismatchedOutputSizeThrows
+[       OK ] DeviceCsrMatrixTest.SpmvMismatchedOutputSizeThrows (1 ms)
+[----------] 7 tests from DeviceCsrMatrixTest (22 ms total)
+
+[----------] 5 tests from DeviceFieldTest
+[ RUN      ] DeviceFieldTest.StartsHostDirty
+[       OK ] DeviceFieldTest.StartsHostDirty (0 ms)
+[ RUN      ] DeviceFieldTest.SyncToDeviceThenToHostRoundTrips
+[       OK ] DeviceFieldTest.SyncToDeviceThenToHostRoundTrips (1 ms)
+[ RUN      ] DeviceFieldTest.MarkHostDirtyThenMarkDeviceDirtyTransitionsState
+[       OK ] DeviceFieldTest.MarkHostDirtyThenMarkDeviceDirtyTransitionsState (0 ms)
+[ RUN      ] DeviceFieldTest.SyncToHostSizeMismatchThrows
+[       OK ] DeviceFieldTest.SyncToHostSizeMismatchThrows (0 ms)
+[ RUN      ] DeviceFieldTest.NoDeviceToHostCopyUntilSyncToHostIsExplicitlyCalled
+[       OK ] DeviceFieldTest.NoDeviceToHostCopyUntilSyncToHostIsExplicitlyCalled (1 ms)
+[----------] 5 tests from DeviceFieldTest (8 ms total)
+
+[----------] 1 test from SpmvKernelTimingTest
+[ RUN      ] SpmvKernelTimingTest.RecordsNonZeroKernelTime
+[       OK ] SpmvKernelTimingTest.RecordsNonZeroKernelTime (1 ms)
+[----------] 1 test from SpmvKernelTimingTest (2 ms total)
+
+[----------] 5 tests from GpuResidencyManagerTest
+[ RUN      ] GpuResidencyManagerTest.ActiveWithAUsableDevice
+[       OK ] GpuResidencyManagerTest.ActiveWithAUsableDevice (0 ms)
+[ RUN      ] GpuResidencyManagerTest.SyncMatrixUploadsStructureOnceThenValuesOnlyOnRepeatedCalls
+[       OK ] GpuResidencyManagerTest.SyncMatrixUploadsStructureOnceThenValuesOnlyOnRepeatedCalls (1 ms)
+[ RUN      ] GpuResidencyManagerTest.SyncMatrixHandlesAGenuineStructureChange
+[       OK ] GpuResidencyManagerTest.SyncMatrixHandlesAGenuineStructureChange (2 ms)
+[ RUN      ] GpuResidencyManagerTest.DistinctKeysAreTrackedIndependently
+[       OK ] GpuResidencyManagerTest.DistinctKeysAreTrackedIndependently (1 ms)
+[ RUN      ] GpuResidencyManagerTest.SyncFieldReusesItsDeviceAllocationAcrossCalls
+[       OK ] GpuResidencyManagerTest.SyncFieldReusesItsDeviceAllocationAcrossCalls (0 ms)
+[----------] 5 tests from GpuResidencyManagerTest (9 ms total)
+
+[----------] 10 tests from GpuCGTest
+[ RUN      ] GpuCGTest.MakeGpuCGReturnsNonNullWithAUsableDevice
+[       OK ] GpuCGTest.MakeGpuCGReturnsNonNullWithAUsableDevice (0 ms)
+[ RUN      ] GpuCGTest.SolvesSpdSystemAndMatchesBackendUsed
+[       OK ] GpuCGTest.SolvesSpdSystemAndMatchesBackendUsed (139 ms)
+[ RUN      ] GpuCGTest.NonzeroInitialGuessConverges
+[       OK ] GpuCGTest.NonzeroInitialGuessConverges (110 ms)
+[ RUN      ] GpuCGTest.ZeroRhsConvergesImmediately
+[       OK ] GpuCGTest.ZeroRhsConvergesImmediately (0 ms)
+[ RUN      ] GpuCGTest.MaxIterationsIsReportedWhenTooFewIterationsAllowed
+[       OK ] GpuCGTest.MaxIterationsIsReportedWhenTooFewIterationsAllowed (5 ms)
+[ RUN      ] GpuCGTest.ZeroMatrixTriggersBreakdown
+[       OK ] GpuCGTest.ZeroMatrixTriggersBreakdown (2 ms)
+[ RUN      ] GpuCGTest.NonFiniteInputRejectedBeforeAnyGpuWork
+[       OK ] GpuCGTest.NonFiniteInputRejectedBeforeAnyGpuWork (0 ms)
+[ RUN      ] GpuCGTest.MatchesCpuCgWithinTolerance
+[       OK ] GpuCGTest.MatchesCpuCgWithinTolerance (147 ms)
+[ RUN      ] GpuCGTest.RepeatedSolveReusesPersistentBuffersWithoutReallocating
+[       OK ] GpuCGTest.RepeatedSolveReusesPersistentBuffersWithoutReallocating (751 ms)
+[ RUN      ] GpuCGTest.WorksWithAnExistingCpuSidePreconditioner
+[       OK ] GpuCGTest.WorksWithAnExistingCpuSidePreconditioner (118 ms)
+[----------] 10 tests from GpuCGTest (1284 ms total)
+
+[----------] 10 tests from GpuBiCGSTABTest
+[ RUN      ] GpuBiCGSTABTest.MakeGpuBiCGSTABReturnsNonNullWithAUsableDevice
+[       OK ] GpuBiCGSTABTest.MakeGpuBiCGSTABReturnsNonNullWithAUsableDevice (0 ms)
+[ RUN      ] GpuBiCGSTABTest.SolvesNonsymmetricSystem
+[       OK ] GpuBiCGSTABTest.SolvesNonsymmetricSystem (9 ms)
+[ RUN      ] GpuBiCGSTABTest.NonzeroInitialGuessConverges
+[       OK ] GpuBiCGSTABTest.NonzeroInitialGuessConverges (147 ms)
+[ RUN      ] GpuBiCGSTABTest.ZeroRhsConvergesImmediately
+[       OK ] GpuBiCGSTABTest.ZeroRhsConvergesImmediately (1 ms)
+[ RUN      ] GpuBiCGSTABTest.MaxIterationsIsReportedWhenTooFewIterationsAllowed
+[       OK ] GpuBiCGSTABTest.MaxIterationsIsReportedWhenTooFewIterationsAllowed (5 ms)
+[ RUN      ] GpuBiCGSTABTest.ZeroMatrixTriggersBreakdown
+[       OK ] GpuBiCGSTABTest.ZeroMatrixTriggersBreakdown (3 ms)
+[ RUN      ] GpuBiCGSTABTest.NonFiniteInputRejectedBeforeAnyGpuWork
+[       OK ] GpuBiCGSTABTest.NonFiniteInputRejectedBeforeAnyGpuWork (0 ms)
+[ RUN      ] GpuBiCGSTABTest.MatchesCpuBiCGSTABWithinTolerance
+[       OK ] GpuBiCGSTABTest.MatchesCpuBiCGSTABWithinTolerance (167 ms)
+[ RUN      ] GpuBiCGSTABTest.MatchesCpuOnANonsymmetricSystem
+[       OK ] GpuBiCGSTABTest.MatchesCpuOnANonsymmetricSystem (9 ms)
+[ RUN      ] GpuBiCGSTABTest.RepeatedSolveReusesPersistentBuffersWithoutReallocating
+[       OK ] GpuBiCGSTABTest.RepeatedSolveReusesPersistentBuffersWithoutReallocating (863 ms)
+[----------] 10 tests from GpuBiCGSTABTest (1214 ms total)
+
+[----------] 8 tests from GpuJacobiTest
+[ RUN      ] GpuJacobiTest.CgMatchesCpuJacobiWithinTolerance
+[       OK ] GpuJacobiTest.CgMatchesCpuJacobiWithinTolerance (153 ms)
+[ RUN      ] GpuJacobiTest.BiCGSTABMatchesCpuJacobiWithinTolerance
+[       OK ] GpuJacobiTest.BiCGSTABMatchesCpuJacobiWithinTolerance (159 ms)
+[ RUN      ] GpuJacobiTest.NonsymmetricSystemMatchesCpuJacobi
+[       OK ] GpuJacobiTest.NonsymmetricSystemMatchesCpuJacobi (8 ms)
+[ RUN      ] GpuJacobiTest.ZeroDiagonalMatrixReportsInvalidSystemNotAnException
+[       OK ] GpuJacobiTest.ZeroDiagonalMatrixReportsInvalidSystemNotAnException (0 ms)
+[ RUN      ] GpuJacobiTest.BiCGSTABZeroDiagonalMatrixReportsInvalidSystem
+[       OK ] GpuJacobiTest.BiCGSTABZeroDiagonalMatrixReportsInvalidSystem (0 ms)
+[ RUN      ] GpuJacobiTest.RepeatedSolveReusesPersistentDiagonalBufferWithoutReallocating
+[       OK ] GpuJacobiTest.RepeatedSolveReusesPersistentDiagonalBufferWithoutReallocating (753 ms)
+[ RUN      ] GpuJacobiTest.RebuildsDiagonalWhenMatrixValuesChange
+[       OK ] GpuJacobiTest.RebuildsDiagonalWhenMatrixValuesChange (5 ms)
+[ RUN      ] GpuJacobiTest.ReducesIterationCountOnAPoorlyConditionedSystem
+[       OK ] GpuJacobiTest.ReducesIterationCountOnAPoorlyConditionedSystem (544 ms)
+[----------] 8 tests from GpuJacobiTest (1667 ms total)
+
+[----------] 1 test from GpuLinearSolverInstrumentationTest
+[ RUN      ] GpuLinearSolverInstrumentationTest.RecordsSolveTimingAndIterationCounts
+[       OK ] GpuLinearSolverInstrumentationTest.RecordsSolveTimingAndIterationCounts (150 ms)
+[----------] 1 test from GpuLinearSolverInstrumentationTest (153 ms total)
+
+[----------] 6 tests from GpuBiCGSTABRestartTest
+[ RUN      ] GpuBiCGSTABRestartTest.RestartsWhereTheCpuReferenceRestarts
+[       OK ] GpuBiCGSTABRestartTest.RestartsWhereTheCpuReferenceRestarts (948 ms)
+[ RUN      ] GpuBiCGSTABRestartTest.RestartsDoNotBuyExtraIterationBudget
+[       OK ] GpuBiCGSTABRestartTest.RestartsDoNotBuyExtraIterationBudget (762 ms)
+[ RUN      ] GpuBiCGSTABRestartTest.HealthySystemNeverRestarts
+[       OK ] GpuBiCGSTABRestartTest.HealthySystemNeverRestarts (175 ms)
+[ RUN      ] GpuBiCGSTABRestartTest.BreakdownIsStillReachable
+[       OK ] GpuBiCGSTABRestartTest.BreakdownIsStillReachable (3 ms)
+[ RUN      ] GpuBiCGSTABRestartTest.RestartingSolveIsDeterministic
+[       OK ] GpuBiCGSTABRestartTest.RestartingSolveIsDeterministic (3820 ms)
+[ RUN      ] GpuBiCGSTABRestartTest.RestartAllocatesNothingInSteadyState
+[       OK ] GpuBiCGSTABRestartTest.RestartAllocatesNothingInSteadyState (6080 ms)
+[----------] 6 tests from GpuBiCGSTABRestartTest (11796 ms total)
+
+[----------] 9 tests from BoundaryEncoding
+[ RUN      ] BoundaryEncoding.ConvectiveWallIsReportedUnsupportedNotThrown
+[       OK ] BoundaryEncoding.ConvectiveWallIsReportedUnsupportedNotThrown (0 ms)
+[ RUN      ] BoundaryEncoding.ConvectiveWallRefusalDoesNotDependOnItsCoefficients
+[       OK ] BoundaryEncoding.ConvectiveWallRefusalDoesNotDependOnItsCoefficients (0 ms)
+[ RUN      ] BoundaryEncoding.FixedValueEncodesAsConstant
+[       OK ] BoundaryEncoding.FixedValueEncodesAsConstant (0 ms)
+[ RUN      ] BoundaryEncoding.FixedTemperatureEncodesAsConstant
+[       OK ] BoundaryEncoding.FixedTemperatureEncodesAsConstant (0 ms)
+[ RUN      ] BoundaryEncoding.ZeroGradientEncodesAsShift
+[       OK ] BoundaryEncoding.ZeroGradientEncodesAsShift (0 ms)
+[ RUN      ] BoundaryEncoding.NonZeroGradientEncodesAsShiftWithOffset
+[       OK ] BoundaryEncoding.NonZeroGradientEncodesAsShiftWithOffset (0 ms)
+[ RUN      ] BoundaryEncoding.AdiabaticEncodesAsShift
+[       OK ] BoundaryEncoding.AdiabaticEncodesAsShift (0 ms)
+[ RUN      ] BoundaryEncoding.HeatFluxEncodesAsShift
+[       OK ] BoundaryEncoding.HeatFluxEncodesAsShift (0 ms)
+[ RUN      ] BoundaryEncoding.EncodingsReproduceTheConditionExactly
+[       OK ] BoundaryEncoding.EncodingsReproduceTheConditionExactly (0 ms)
+[----------] 9 tests from BoundaryEncoding (3 ms total)
+
+[----------] 8 tests from TurbulenceBackendTrace
+[ RUN      ] TurbulenceBackendTrace.NotAttemptedIsNotGpu
+[       OK ] TurbulenceBackendTrace.NotAttemptedIsNotGpu (0 ms)
+[ RUN      ] TurbulenceBackendTrace.AllOnGpuOnlyWhenEveryOperationRanOnDevice
+[       OK ] TurbulenceBackendTrace.AllOnGpuOnlyWhenEveryOperationRanOnDevice (0 ms)
+[ RUN      ] TurbulenceBackendTrace.ASingleHostExecutionDowngradesTheWholeOperation
+[       OK ] TurbulenceBackendTrace.ASingleHostExecutionDowngradesTheWholeOperation (0 ms)
+[ RUN      ] TurbulenceBackendTrace.ResetClearsEverything
+[       OK ] TurbulenceBackendTrace.ResetClearsEverything (0 ms)
+[ RUN      ] TurbulenceBackendTrace.TheFallbackInjectorIsDetectedByTheGate
+[       OK ] TurbulenceBackendTrace.TheFallbackInjectorIsDetectedByTheGate (0 ms)
+[ RUN      ] TurbulenceBackendTrace.DescribeNamesEveryOperationAndBackend
+[       OK ] TurbulenceBackendTrace.DescribeNamesEveryOperationAndBackend (0 ms)
+[ RUN      ] TurbulenceBackendTrace.ProcessWideTraceIsUsableAndResettable
+[       OK ] TurbulenceBackendTrace.ProcessWideTraceIsUsableAndResettable (0 ms)
+[ RUN      ] TurbulenceBackendTrace.ScopeCoversKEpsilonAndWallTreatmentOnly
+[       OK ] TurbulenceBackendTrace.ScopeCoversKEpsilonAndWallTreatmentOnly (0 ms)
+[----------] 8 tests from TurbulenceBackendTrace (3 ms total)
+
+[----------] 10 tests from DeviceScalarTransportSemantics
+[ RUN      ] DeviceScalarTransportSemantics.ComposedPathMatchesTheHostOnEveryFrozenConfiguration
+  1 no imposed, alpha=1                    structure host->device OK, device->host OK (0 device-only entries), values 486/498 bitwise, max value 1 ulp (0.000000), max rhs 0 ulp (0.000000); first difference: row 9 col 9: host 5.191389 device 5.191389
+  1b no imposed, alpha=0.7                 structure host->device OK, device->host OK (0 device-only entries), values 489/498 bitwise, max value 1 ulp (0.000000), max rhs 2 ulp (0.000000); first difference: row 9 col 9: host 7.416270 device 7.416270
+  2 imposed cell 0, alpha=1                structure host->device OK, device->host OK (2 device-only entries), values 484/496 bitwise, max value 1 ulp (0.000000), max rhs 0 ulp (0.000000); first difference: row 9 col 9: host 5.191389 device 5.191389
+  3 imposed {0,interior,last}, alpha=1     structure host->device OK, device->host OK (8 device-only entries), values 479/490 bitwise, max value 1 ulp (0.000000), max rhs 0 ulp (0.000000); first difference: row 9 col 9: host 5.191389 device 5.191389
+  4 imposed {0,interior,last}, alpha=0.7   structure host->device OK, device->host OK (8 device-only entries), values 482/490 bitwise, max value 1 ulp (0.000000), max rhs 2 ulp (0.000000); first difference: row 9 col 9: host 7.416270 device 7.416270
+  5 imposed + non-orthogonal, alpha=0.7    structure host->device OK, device->host OK (8 device-only entries), values 483/490 bitwise, max value 1 ulp (0.000000), max rhs 2 ulp (0.000000); first difference: row 14 col 14: host 7.350738 device 7.350738
+[       OK ] DeviceScalarTransportSemantics.ComposedPathMatchesTheHostOnEveryFrozenConfiguration (92 ms)
+[ RUN      ] DeviceScalarTransportSemantics.RelaxationAndImposedRowsAreBitwiseIdenticalToTheHost
+[       OK ] DeviceScalarTransportSemantics.RelaxationAndImposedRowsAreBitwiseIdenticalToTheHost (88 ms)
+[ RUN      ] DeviceScalarTransportSemantics.UnderRelaxationChangesTheSystemSoTheComparisonIsNotVacuous
+[       OK ] DeviceScalarTransportSemantics.UnderRelaxationChangesTheSystemSoTheComparisonIsNotVacuous (29 ms)
+[ RUN      ] DeviceScalarTransportSemantics.UsingTheRelaxedDiagonalInTheRhsIsDetected
+[       OK ] DeviceScalarTransportSemantics.UsingTheRelaxedDiagonalInTheRhsIsDetected (12 ms)
+[ RUN      ] DeviceScalarTransportSemantics.DroppingOrPerturbingAnImposedRowBreaksTheComparison
+[       OK ] DeviceScalarTransportSemantics.DroppingOrPerturbingAnImposedRowBreaksTheComparison (13 ms)
+[ RUN      ] DeviceScalarTransportSemantics.AnImposedRowIsAUnitDiagonalAndExplicitZeros
+[       OK ] DeviceScalarTransportSemantics.AnImposedRowIsAUnitDiagonalAndExplicitZeros (18 ms)
+[ RUN      ] DeviceScalarTransportSemantics.ImposingBeforeRelaxingProducesADifferentSystem
+[       OK ] DeviceScalarTransportSemantics.ImposingBeforeRelaxingProducesADifferentSystem (21 ms)
+[ RUN      ] DeviceScalarTransportSemantics.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceScalarTransportSemantics.TheSameInputsProduceTheSameBytesTwice (20 ms)
+[ RUN      ] DeviceScalarTransportSemantics.InvalidInputsAreRefused
+[       OK ] DeviceScalarTransportSemantics.InvalidInputsAreRefused (12 ms)
+[ RUN      ] DeviceScalarTransportSemantics.ReplicaReproducesTheProductionSolve
+[       OK ] DeviceScalarTransportSemantics.ReplicaReproducesTheProductionSolve (0 ms)
+[----------] 10 tests from DeviceScalarTransportSemantics (318 ms total)
+
+[----------] 7 tests from DeviceTurbulenceAlgebra
+[ RUN      ] DeviceTurbulenceAlgebra.StrainRateProductionAndViscosityAreBitwise
+[       OK ] DeviceTurbulenceAlgebra.StrainRateProductionAndViscosityAreBitwise (6 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.ExactlyThreeOperationsReportGpu
+[       OK ] DeviceTurbulenceAlgebra.ExactlyThreeOperationsReportGpu (0 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.BothFloorsActivateAndMatchTheHost
+[       OK ] DeviceTurbulenceAlgebra.BothFloorsActivateAndMatchTheHost (0 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.AForcedFallbackIsDetectedForEachOperation
+[       OK ] DeviceTurbulenceAlgebra.AForcedFallbackIsDetectedForEachOperation (3 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.PerturbingOneInputCellChangesOnlyThatOutput
+[       OK ] DeviceTurbulenceAlgebra.PerturbingOneInputCellChangesOnlyThatOutput (0 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceTurbulenceAlgebra.TheSameInputsProduceTheSameBytesTwice (2 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.PromotedViscosityMatchesTheProductionModel
+[       OK ] DeviceTurbulenceAlgebra.PromotedViscosityMatchesTheProductionModel (0 ms)
+[----------] 7 tests from DeviceTurbulenceAlgebra (18 ms total)
+
+[----------] 9 tests from DeviceKTransport
+[ RUN      ] DeviceKTransport.EffectiveDiffusivityIsBitwise
+[       OK ] DeviceKTransport.EffectiveDiffusivityIsBitwise (1 ms)
+[ RUN      ] DeviceKTransport.EffectiveDiffusivityFailsClosedLikeTheHost
+[       OK ] DeviceKTransport.EffectiveDiffusivityFailsClosedLikeTheHost (1 ms)
+[ RUN      ] DeviceKTransport.SourceCoefficientsAreBitwise
+[       OK ] DeviceKTransport.SourceCoefficientsAreBitwise (0 ms)
+[ RUN      ] DeviceKTransport.MatrixStructureCoefficientsAndRhsMatchTheHost
+  k matrix: 473/498 bitwise, max value 2 ulp, max rhs 2 ulp
+[       OK ] DeviceKTransport.MatrixStructureCoefficientsAndRhsMatchTheHost (11 ms)
+[ RUN      ] DeviceKTransport.SolvedKMatchesTheProductionSolve
+  solved k relative L2 = 2.385e-16
+[       OK ] DeviceKTransport.SolvedKMatchesTheProductionSolve (12 ms)
+[ RUN      ] DeviceKTransport.TheFloorIsAppliedAndBinds
+[       OK ] DeviceKTransport.TheFloorIsAppliedAndBinds (0 ms)
+[ RUN      ] DeviceKTransport.KHasNoImposedRowsAndTheWallEntersThroughProduction
+[       OK ] DeviceKTransport.KHasNoImposedRowsAndTheWallEntersThroughProduction (21 ms)
+[ RUN      ] DeviceKTransport.ThePerturbedSystemIsDetected
+[       OK ] DeviceKTransport.ThePerturbedSystemIsDetected (11 ms)
+[ RUN      ] DeviceKTransport.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceKTransport.TheSameInputsProduceTheSameBytesTwice (20 ms)
+[----------] 9 tests from DeviceKTransport (86 ms total)
+
+[----------] 8 tests from DeviceEpsilonTransport
+[ RUN      ] DeviceEpsilonTransport.EffectiveDiffusivityIsBitwiseAtProductionSigma
+[       OK ] DeviceEpsilonTransport.EffectiveDiffusivityIsBitwiseAtProductionSigma (0 ms)
+[ RUN      ] DeviceEpsilonTransport.SourceCoefficientsAreBitwiseIncludingFlooredCells
+[       OK ] DeviceEpsilonTransport.SourceCoefficientsAreBitwiseIncludingFlooredCells (1 ms)
+[ RUN      ] DeviceEpsilonTransport.MatrixRhsAndImposedRowsMatchTheHost
+  epsilon matrix: 478/490 bitwise, max value 2 ulp, max rhs 2 ulp
+[       OK ] DeviceEpsilonTransport.MatrixRhsAndImposedRowsMatchTheHost (12 ms)
+[ RUN      ] DeviceEpsilonTransport.DroppingOrCorruptingAnImposedRowIsDetected
+[       OK ] DeviceEpsilonTransport.DroppingOrCorruptingAnImposedRowIsDetected (12 ms)
+[ RUN      ] DeviceEpsilonTransport.SolvedEpsilonMatchesTheProductionSolve
+  solved epsilon relative L2 = 9.107e-17
+[       OK ] DeviceEpsilonTransport.SolvedEpsilonMatchesTheProductionSolve (13 ms)
+[ RUN      ] DeviceEpsilonTransport.ReversedPostSolveOrderIsDetected
+[       OK ] DeviceEpsilonTransport.ReversedPostSolveOrderIsDetected (1 ms)
+[ RUN      ] DeviceEpsilonTransport.ProductionTraceEntriesRemainNotAttempted
+[       OK ] DeviceEpsilonTransport.ProductionTraceEntriesRemainNotAttempted (12 ms)
+[ RUN      ] DeviceEpsilonTransport.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceEpsilonTransport.TheSameInputsProduceTheSameBytesTwice (20 ms)
+[----------] 8 tests from DeviceEpsilonTransport (80 ms total)
+
+[----------] 6 tests from DeviceKEpsilonCorrection
+[ RUN      ] DeviceKEpsilonCorrection.OneCorrectionMatchesTheProductionModel
+  wall functions OFF   k 3.610e-16  epsilon 3.356e-16  mu_t 7.726e-16
+  wall functions ON    k 3.115e-16  epsilon 3.647e-16  mu_t 6.023e-16
+[       OK ] DeviceKEpsilonCorrection.OneCorrectionMatchesTheProductionModel (307 ms)
+[ RUN      ] DeviceKEpsilonCorrection.MultipleCorrectionsStayInStep
+  correction 1: k 3.115e-16  epsilon 3.647e-16  mu_t 6.023e-16
+  correction 2: k 5.014e-16  epsilon 2.095e-15  mu_t 9.370e-16
+  correction 3: k 6.994e-16  epsilon 9.591e-16  mu_t 1.362e-15
+  correction 4: k 2.293e-15  epsilon 5.665e-16  mu_t 1.163e-14
+  correction 5: k 2.748e-15  epsilon 8.071e-16  mu_t 8.319e-15
+[       OK ] DeviceKEpsilonCorrection.MultipleCorrectionsStayInStep (943 ms)
+[ RUN      ] DeviceKEpsilonCorrection.BypassingTheWallProductionReplacementIsDetected
+  bypassed wall production: k relative L2 = 5.253e-02 (must exceed 2.1e-12)
+[       OK ] DeviceKEpsilonCorrection.BypassingTheWallProductionReplacementIsDetected (342 ms)
+[ RUN      ] DeviceKEpsilonCorrection.TraceReportsExactlyWhatRanOnTheDevice
+[       OK ] DeviceKEpsilonCorrection.TraceReportsExactlyWhatRanOnTheDevice (175 ms)
+[ RUN      ] DeviceKEpsilonCorrection.SharingTheKPlanWithEpsilonIsDetected
+  shared plans: epsilon relative L2 = 2.114e-01 (must exceed 2.1e-12)
+[       OK ] DeviceKEpsilonCorrection.SharingTheKPlanWithEpsilonIsDetected (163 ms)
+[ RUN      ] DeviceKEpsilonCorrection.RepeatedCorrectionsAreBitwiseIdentical
+[       OK ] DeviceKEpsilonCorrection.RepeatedCorrectionsAreBitwiseIdentical (362 ms)
+[----------] 6 tests from DeviceKEpsilonCorrection (2299 ms total)
+
+[----------] 6 tests from ProductionKEpsilonBackend
+[ RUN      ] ProductionKEpsilonBackend.BackendSelectionIsObservable
+[       OK ] ProductionKEpsilonBackend.BackendSelectionIsObservable (9 ms)
+[ RUN      ] ProductionKEpsilonBackend.OneProductionCorrectionAgrees
+  walls OFF  k 3.324e-16  epsilon 3.088e-16  mu_t 8.208e-16
+  walls ON   k 3.916e-16  epsilon 6.721e-16  mu_t 8.725e-16
+[       OK ] ProductionKEpsilonBackend.OneProductionCorrectionAgrees (380 ms)
+[ RUN      ] ProductionKEpsilonBackend.ChainedProductionCorrectionsStayInStep
+  correction 1: k 3.916e-16  epsilon 6.721e-16  mu_t 8.725e-16
+  correction 2: k 4.772e-16  epsilon 5.407e-16  mu_t 6.723e-16
+  correction 3: k 1.030e-15  epsilon 1.321e-15  mu_t 2.622e-15
+  correction 4: k 2.023e-15  epsilon 1.300e-15  mu_t 8.295e-15
+  correction 5: k 1.965e-15  epsilon 4.212e-15  mu_t 7.563e-15
+[       OK ] ProductionKEpsilonBackend.ChainedProductionCorrectionsStayInStep (1174 ms)
+[ RUN      ] ProductionKEpsilonBackend.ProductionTraceRecordsTheRealExecution
+[       OK ] ProductionKEpsilonBackend.ProductionTraceRecordsTheRealExecution (194 ms)
+[ RUN      ] ProductionKEpsilonBackend.RepeatedProductionCorrectionsAreDeterministic
+[       OK ] ProductionKEpsilonBackend.RepeatedProductionCorrectionsAreDeterministic (385 ms)
+[ RUN      ] ProductionKEpsilonBackend.TheCpuPathIsUnchangedByTheSeam
+[       OK ] ProductionKEpsilonBackend.TheCpuPathIsUnchangedByTheSeam (0 ms)
+[----------] 6 tests from ProductionKEpsilonBackend (2150 ms total)
+
+[----------] 5 tests from ResidentKEpsilonEntry
+[ RUN      ] ResidentKEpsilonEntry.ResidentEntryPointMatchesTheCpuModel
+  resident vs CPU: k 3.610e-16  epsilon 3.356e-16  mu_t 7.726e-16
+[       OK ] ResidentKEpsilonEntry.ResidentEntryPointMatchesTheCpuModel (188 ms)
+[ RUN      ] ResidentKEpsilonEntry.TheResidentPathFollowsTheDeviceVelocityNotTheHost
+[       OK ] ResidentKEpsilonEntry.TheResidentPathFollowsTheDeviceVelocityNotTheHost (591 ms)
+[ RUN      ] ResidentKEpsilonEntry.TurbulenceFluxFollowsVelocityNotTheCarriedFlux
+[       OK ] ResidentKEpsilonEntry.TurbulenceFluxFollowsVelocityNotTheCarriedFlux (570 ms)
+[ RUN      ] ResidentKEpsilonEntry.AnUnusableOrMismatchedViewIsRefused
+[       OK ] ResidentKEpsilonEntry.AnUnusableOrMismatchedViewIsRefused (15 ms)
+[ RUN      ] ResidentKEpsilonEntry.RepeatedResidentCorrectionsAreBitwiseIdentical
+[       OK ] ResidentKEpsilonEntry.RepeatedResidentCorrectionsAreBitwiseIdentical (420 ms)
+[----------] 5 tests from ResidentKEpsilonEntry (1791 ms total)
+
+[----------] 12 tests from ResidentWallExchange
+[ RUN      ] ResidentWallExchange.CompactExchangeReproducesTheFullFieldWallTreatment
+  16x1   wall faces 32, wall cells 16 -- bitwise match
+  14x8   wall faces 28, wall cells 28 -- bitwise match
+[       OK ] ResidentWallExchange.CompactExchangeReproducesTheFullFieldWallTreatment (354 ms)
+[ RUN      ] ResidentWallExchange.AllWallOutputsAreFiniteDespiteNaNPoisonedInteriorCells
+[       OK ] ResidentWallExchange.AllWallOutputsAreFiniteDespiteNaNPoisonedInteriorCells (244 ms)
+[ RUN      ] ResidentWallExchange.PerturbingAWallOwnerChangesTheWallResult
+[       OK ] ResidentWallExchange.PerturbingAWallOwnerChangesTheWallResult (487 ms)
+[ RUN      ] ResidentWallExchange.ResidentCorrectionWithCompactWallMatchesTheCpuModel
+  compact-wall resident vs CPU: k 2.759e-16  epsilon 4.041e-16  mu_t 5.584e-16
+[       OK ] ResidentWallExchange.ResidentCorrectionWithCompactWallMatchesTheCpuModel (230 ms)
+[ RUN      ] ResidentWallExchange.ProbeWhereTheKSolveStopsConverging
+  nx=16  cells=128    CPU ok   GPU ok   
+  nx=24  cells=192    CPU ok   GPU ok   
+  nx=32  cells=256    CPU ok   GPU ok   
+  nx=48  cells=384    CPU ok   GPU ok   
+  nx=64  cells=512    CPU ok   GPU ok   
+[       OK ] ResidentWallExchange.ProbeWhereTheKSolveStopsConverging (1255 ms)
+[ RUN      ] ResidentWallExchange.TransferLedgerAccountsForEveryDownloadedByte
+
+  grid 128 cells, 32 wall faces, 1 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication       3072        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          1624      117  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                   5516      132
+    MEASURED D2H                 5516      132   (k 15 iters, eps 14 iters)
+    H2D (steady state)           1300       10
+
+  grid 256 cells, 32 wall faces, 1 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication       6144        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          1736      125  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                   8700      140
+    MEASURED D2H                 8700      140   (k 15 iters, eps 16 iters)
+    H2D (steady state)           1300       10
+
+  grid 512 cells, 32 wall faces, 2 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      12288        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          3584      129  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  16692      144
+    MEASURED D2H                16692      144   (k 14 iters, eps 18 iters)
+    H2D (steady state)           1300       10
+
+  grid 1024 cells, 32 wall faces, 4 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      24576        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          8064      145  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  33460      160
+    MEASURED D2H                33460      160   (k 16 iters, eps 20 iters)
+    H2D (steady state)           1300       10
+
+  grid 256 cells, 64 wall faces, 1 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H              1536        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication       6144        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          2384      174  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  10116      189
+    MEASURED D2H                10116      189   (k 28 iters, eps 14 iters)
+    H2D (steady state)           2580       10
+
+  grid 512 cells, 128 wall faces, 2 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H              3072        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      12288        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          4992      182  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  20404      197
+    MEASURED D2H                20404      197   (k 24 iters, eps 19 iters)
+    H2D (steady state)           5140       10
+
+  grid 2048 cells, 128 wall faces, 8 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H              3072        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      49152        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums         27584      252  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  79860      267
+    MEASURED D2H                79860      267   (k 26 iters, eps 34 iters)
+    H2D (steady state)           5140       10
+[       OK ] ResidentWallExchange.TransferLedgerAccountsForEveryDownloadedByte (1808 ms)
+[ RUN      ] ResidentWallExchange.WallExchangeIsCompactAndIndependentOfCellCount
+[       OK ] ResidentWallExchange.WallExchangeIsCompactAndIndependentOfCellCount (725 ms)
+[ RUN      ] ResidentWallExchange.WallProductionReassertionReadsTheResidentBuffers
+[       OK ] ResidentWallExchange.WallProductionReassertionReadsTheResidentBuffers (1 ms)
+[ RUN      ] ResidentWallExchange.WallProductionReassertionReadsTheResidentIndexBuffer
+[       OK ] ResidentWallExchange.WallProductionReassertionReadsTheResidentIndexBuffer (1 ms)
+[ RUN      ] ResidentWallExchange.WallExchangeIsExactlyThreeRealsPerWallFace
+[       OK ] ResidentWallExchange.WallExchangeIsExactlyThreeRealsPerWallFace (762 ms)
+[ RUN      ] ResidentWallExchange.NoFullFieldLeavesTheDeviceBeyondTheSevenAudited
+[       OK ] ResidentWallExchange.NoFullFieldLeavesTheDeviceBeyondTheSevenAudited (700 ms)
+[ RUN      ] ResidentWallExchange.Step3LadderIsGreenAcrossProductionSizes
+
+  Step 3 ladder -- compact wall, resident correction, repaired solver
+  nx    cells  walls  k relL2     eps relL2   mu_t relL2  gatherB   determinism
+  16    128    32     4.656e-16   1.231e-14   6.483e-15   768       bitwise
+  24    192    48     5.712e-16   2.938e-15   2.121e-15   1152      bitwise
+  28    224    56     6.611e-16   2.785e-14   1.401e-14   1344      bitwise
+  32    256    64     1.693e-15   1.638e-14   9.201e-15   1536      bitwise
+  48    384    96     7.829e-16   3.161e-14   1.552e-14   2304      bitwise
+  64    512    128    6.973e-16   6.097e-14   2.893e-14   3072      bitwise
+[       OK ] ResidentWallExchange.Step3LadderIsGreenAcrossProductionSizes (4053 ms)
+[----------] 12 tests from ResidentWallExchange (10636 ms total)
+
+[----------] 2 tests from KrylovRestartParity
+[ RUN      ] KrylovRestartParity.TheSameDeviceSystemSolvesOnBothSolvers
+
+  Frozen ladder -- one device-assembled system, both solvers
+  nx    cells  eq    CPU                           GPU                         
+  16   128   k   CPU Converged      it=15  r0=3.171e-02 rN=1.631e-13
+                 GPU Converged      it=15  r0=3.171e-02 rN=1.631e-13 restarts=0 
+  16   128   eps CPU Converged      it=14  r0=1.001e+00 rN=1.097e-11
+                 GPU Converged      it=14  r0=1.001e+00 rN=1.097e-11 restarts=0 
+  24   192   k   CPU Converged      it=21  r0=2.594e-02 rN=2.083e-13
+                 GPU Converged      it=21  r0=2.594e-02 rN=2.102e-13 restarts=0 
+  24   192   eps CPU Converged      it=14  r0=8.175e-01 rN=7.029e-11
+                 GPU Converged      it=13  r0=8.175e-01 rN=6.317e-11 restarts=0 
+  28   224   k   CPU Converged      it=17  r0=2.403e-02 rN=3.487e-13
+                 GPU Converged      it=24  r0=2.403e-02 rN=1.485e-12 restarts=0 
+  28   224   eps CPU Converged      it=13  r0=7.569e-01 rN=7.076e-11
+                 GPU Converged      it=13  r0=7.569e-01 rN=4.323e-11 restarts=1 
+  32   256   k   CPU Converged      it=19  r0=2.250e-02 rN=2.788e-13
+                 GPU Converged      it=19  r0=2.250e-02 rN=5.742e-13 restarts=1 
+  32   256   eps CPU Converged      it=14  r0=7.080e-01 rN=5.923e-11
+                 GPU Converged      it=14  r0=7.080e-01 rN=6.424e-11 restarts=0 
+  40   320   k   CPU Converged      it=20  r0=2.016e-02 rN=1.420e-12
+                 GPU Converged      it=20  r0=2.016e-02 rN=1.226e-12 restarts=1 
+  40   320   eps CPU Converged      it=16  r0=6.334e-01 rN=3.049e-11
+                 GPU Converged      it=15  r0=6.334e-01 rN=6.080e-11 restarts=1 
+  48   384   k   CPU Converged      it=23  r0=1.843e-02 rN=3.893e-13
+                 GPU Converged      it=21  r0=1.843e-02 rN=1.678e-12 restarts=1 
+  48   384   eps CPU Converged      it=18  r0=5.783e-01 rN=7.393e-12
+                 GPU Converged      it=17  r0=5.783e-01 rN=3.763e-11 restarts=1 
+  64   512   k   CPU Converged      it=23  r0=1.602e-02 rN=1.225e-12
+                 GPU Converged      it=23  r0=1.602e-02 rN=1.480e-12 restarts=1 
+  64   512   eps CPU Converged      it=20  r0=5.010e-01 rN=7.979e-12
+                 GPU Converged      it=18  r0=5.010e-01 rN=3.826e-11 restarts=1 
+[       OK ] KrylovRestartParity.TheSameDeviceSystemSolvesOnBothSolvers (1631 ms)
+[ RUN      ] KrylovRestartParity.EveryPreviouslyBrokenRungIsExplainedByARestart
+[       OK ] KrylovRestartParity.EveryPreviouslyBrokenRungIsExplainedByARestart (1706 ms)
+[----------] 2 tests from KrylovRestartParity (3338 ms total)
+
+[----------] 8 tests from DeviceMaxAbsDifference
+[ RUN      ] DeviceMaxAbsDifference.MatchesTheHostLoopBitwiseAcrossBlockPartitions
+[       OK ] DeviceMaxAbsDifference.MatchesTheHostLoopBitwiseAcrossBlockPartitions (5 ms)
+[ RUN      ] DeviceMaxAbsDifference.EmptyFieldsReduceToZeroNotToAnError
+[       OK ] DeviceMaxAbsDifference.EmptyFieldsReduceToZeroNotToAnError (0 ms)
+[ RUN      ] DeviceMaxAbsDifference.NaNDifferencesAreIgnoredExactlyAsStdMaxIgnoresThem
+[       OK ] DeviceMaxAbsDifference.NaNDifferencesAreIgnoredExactlyAsStdMaxIgnoresThem (1 ms)
+[ RUN      ] DeviceMaxAbsDifference.AnInfiniteDifferenceIsCarriedThroughLikeTheHostLoop
+[       OK ] DeviceMaxAbsDifference.AnInfiniteDifferenceIsCarriedThroughLikeTheHostLoop (0 ms)
+[ RUN      ] DeviceMaxAbsDifference.PerturbingTheMaximumCellMovesTheMetricInEachField
+[       OK ] DeviceMaxAbsDifference.PerturbingTheMaximumCellMovesTheMetricInEachField (2 ms)
+[ RUN      ] DeviceMaxAbsDifference.PerturbingBelowTheMaximumLeavesTheMetricUnchanged
+[       OK ] DeviceMaxAbsDifference.PerturbingBelowTheMaximumLeavesTheMetricUnchanged (2 ms)
+[ RUN      ] DeviceMaxAbsDifference.RepeatedReductionIsBitwiseReproducible
+[       OK ] DeviceMaxAbsDifference.RepeatedReductionIsBitwiseReproducible (3 ms)
+[ RUN      ] DeviceMaxAbsDifference.DownloadsOnlyTheReductionPartialsNotTheFields
+[       OK ] DeviceMaxAbsDifference.DownloadsOnlyTheReductionPartialsNotTheFields (1 ms)
+[----------] 8 tests from DeviceMaxAbsDifference (22 ms total)
+
+[----------] 7 tests from DeviceEffectiveViscosity
+[ RUN      ] DeviceEffectiveViscosity.MatchesTheHostReferenceBitwise
+[       OK ] DeviceEffectiveViscosity.MatchesTheHostReferenceBitwise (10 ms)
+[ RUN      ] DeviceEffectiveViscosity.RejectsInvalidInputsExactlyAsTheHostDoes
+[       OK ] DeviceEffectiveViscosity.RejectsInvalidInputsExactlyAsTheHostDoes (1 ms)
+[ RUN      ] DeviceEffectiveViscosity.PerturbingOneCellChangesExactlyThatCell
+[       OK ] DeviceEffectiveViscosity.PerturbingOneCellChangesExactlyThatCell (1 ms)
+[ RUN      ] DeviceEffectiveViscosity.ChangingMolecularViscosityShiftsEveryCell
+[       OK ] DeviceEffectiveViscosity.ChangingMolecularViscosityShiftsEveryCell (1 ms)
+[ RUN      ] DeviceEffectiveViscosity.RepeatedComputationIsBitwiseReproducible
+[       OK ] DeviceEffectiveViscosity.RepeatedComputationIsBitwiseReproducible (3 ms)
+[ RUN      ] DeviceEffectiveViscosity.ResidentHandoffTakesDeviceAuthorityWithoutTransfer
+[       OK ] DeviceEffectiveViscosity.ResidentHandoffTakesDeviceAuthorityWithoutTransfer (11 ms)
+[ RUN      ] DeviceEffectiveViscosity.ResidentViscosityFollowsDeviceMuTAndIgnoresTheHostMirror
+[       OK ] DeviceEffectiveViscosity.ResidentViscosityFollowsDeviceMuTAndIgnoresTheHostMirror (10 ms)
+[----------] 7 tests from DeviceEffectiveViscosity (43 ms total)
+
+[----------] 5 tests from DeviceWallFaceViscosity
+[ RUN      ] DeviceWallFaceViscosity.NoOverrideReproducesTheHostAssemblyBitwise
+[       OK ] DeviceWallFaceViscosity.NoOverrideReproducesTheHostAssemblyBitwise (20 ms)
+[ RUN      ] DeviceWallFaceViscosity.OverrideReproducesTheHostAssemblyBitwise
+[       OK ] DeviceWallFaceViscosity.OverrideReproducesTheHostAssemblyBitwise (22 ms)
+[ RUN      ] DeviceWallFaceViscosity.WallValueDoesNotLeakToInteriorFaces
+[       OK ] DeviceWallFaceViscosity.WallValueDoesNotLeakToInteriorFaces (19 ms)
+[ RUN      ] DeviceWallFaceViscosity.TurningTheOverrideOffMeasurablyChangesMomentum
+[       OK ] DeviceWallFaceViscosity.TurningTheOverrideOffMeasurablyChangesMomentum (38 ms)
+[ RUN      ] DeviceWallFaceViscosity.ClearingTheOverrideRestoresTheLaminarAssemblyExactly
+[       OK ] DeviceWallFaceViscosity.ClearingTheOverrideRestoresTheLaminarAssemblyExactly (54 ms)
+[----------] 5 tests from DeviceWallFaceViscosity (159 ms total)
+
+[----------] 7 tests from ResidentTurbulentSimple
+[ RUN      ] ResidentTurbulentSimple.QualifiedKEpsilonEngagesTheResidentLoop
+[       OK ] ResidentTurbulentSimple.QualifiedKEpsilonEngagesTheResidentLoop (4673 ms)
+[ RUN      ] ResidentTurbulentSimple.LaminarStillEngagesTheResidentLoop
+[       OK ] ResidentTurbulentSimple.LaminarStillEngagesTheResidentLoop (1605 ms)
+[ RUN      ] ResidentTurbulentSimple.SstIsRefusedByTheCapabilityQuery
+[       OK ] ResidentTurbulentSimple.SstIsRefusedByTheCapabilityQuery (1220 ms)
+[ RUN      ] ResidentTurbulentSimple.CpuBackendKEpsilonIsNotAdmitted
+[       OK ] ResidentTurbulentSimple.CpuBackendKEpsilonIsNotAdmitted (0 ms)
+[ RUN      ] ResidentTurbulentSimple.HostVelocitySeedCannotReachTheResidentAnswer
+  stale-host control: max|mu_t(A) - mu_t(B)| = 2.578e-04 after 40/40 iterations
+[       OK ] ResidentTurbulentSimple.HostVelocitySeedCannotReachTheResidentAnswer (49316 ms)
+[ RUN      ] ResidentTurbulentSimple.ResidentGpuSolveMatchesTheCpuProductionSolve
+
+  CPU/GPU production differential, 100 cells, 1061 outer iterations
+    U 4.180e-16  p 2.188e-15  flux 2.320e-16  k 3.132e-16  eps 2.102e-16  mu_t 6.459e-16  y+ 0.000e+00  tau_w 0.000e+00
+    continuity cpu 3.207e-13 gpu 3.207e-13   mass cpu 0.000e+00 gpu 0.000e+00
+[       OK ] ResidentTurbulentSimple.ResidentGpuSolveMatchesTheCpuProductionSolve (486852 ms)
+[ DISABLED ] ResidentTurbulentSimple.DISABLED_ConvergenceTrendProbe
+[ RUN      ] ResidentTurbulentSimple.ResidentTurbulentSolveIsDeterministic
+[       OK ] ResidentTurbulentSimple.ResidentTurbulentSolveIsDeterministic (15487 ms)
+[----------] 7 tests from ResidentTurbulentSimple (559162 ms total)
+
+[----------] 15 tests from ResidentChannelProduction
+[ RUN      ] ResidentChannelProduction.CpuReferenceIsConvergedAndNonTrivial
+
+  CPU channel baseline: status=0 iters=52  maxU=1.0668  maxK=9.2897e-03  maxMuT=4.6723e-03
+    wall faces with override: 48   max y+ = 50.60   continuity=1.098e-11  mass=2.026e-10
+[       OK ] ResidentChannelProduction.CpuReferenceIsConvergedAndNonTrivial (121 ms)
+[ RUN      ] ResidentChannelProduction.ProvenanceShowsGpuTurbulenceWithCpuWallTreatment
+[       OK ] ResidentChannelProduction.ProvenanceShowsGpuTurbulenceWithCpuWallTreatment (41465 ms)
+[ DISABLED ] ResidentChannelProduction.DISABLED_OuterResidualPlateauProbe
+[ RUN      ] ResidentChannelProduction.GpuChannelMatchesTheCpuProductionSolve

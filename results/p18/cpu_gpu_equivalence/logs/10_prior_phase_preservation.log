@@ -1,0 +1,73 @@
+P18.8 §55/§56 -- PRESERVATION OF PRIOR PHASES, the EVIDENCE side.
+date (WSL): 2026-10-02T05:44:46Z
+
+WHAT THIS CAN AND CANNOT ESTABLISH -- stated first, because the obvious check is not
+available here. P18.8's baseline (baseline/00_start_state.log) recorded a fingerprint of the
+PRODUCTION sources it must not change, but NO manifest of prior phases' evidence files. And
+nothing in the whole P18 series has been committed, so git cannot separate P18.8's changes
+from P18.1-P18.7's uncommitted work either.
+
+So this log provides:
+  (a) a HASH check where a recorded value exists -- conclusive;
+  (b) an mtime check for files touched during P18.8's window -- a POSITIVE detector only.
+      If it finds something, that is real. Finding nothing is weak evidence of absence and
+      is reported as such, not as proof.
+  (c) the test-side preservation, which is the three-configuration regression, reported
+      separately in regression.md.
+
+=== (a) prior-phase frozen documents with RECORDED hashes ===
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  P18_GATES.md
+  actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+  expected 20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe  energy_accounting.md
+  actual   20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe  results/p18/heat_release/energy_accounting.md
+
+=== (b) prior-phase evidence files modified during P18.8's window (since 2026-10-02 03:00) ===
+  multi_species_state          54 files, 0 modified in the window
+  species_transport            48 files, 0 modified in the window
+  mixture_properties           42 files, 0 modified in the window
+  reaction_source              40 files, 0 modified in the window
+  arrhenius_chemistry          59 files, 0 modified in the window
+  heat_release                 55 files, 0 modified in the window
+  conservation_validation      41 files, 0 modified in the window
+  audit                         8 files, 0 modified in the window
+  baseline                     23 files, 0 modified in the window
+  gates                         2 files, 0 modified in the window
+  logs                          6 files, 0 modified in the window
+  tools                        12 files, 0 modified in the window
+
+  TOTAL: 390 prior-phase evidence files, 0 modified during P18.8's window.
+  No prior-phase evidence file was written during P18.8. (Positive detector found nothing;
+  see the caveat above -- consistent with preservation, not a proof of it.)
+
+=== the CPU production fingerprint -- the conclusive part ===
+All 12 CPU species sources recorded in baseline/00_start_state.log are byte-identical.
+Verified by tools/check_integrity.sh check 6, which replaced a git-status check that could
+never read 0 because nothing in the P18 series is committed.
+
+=== P18.8's OWN files, named exactly ===
+A 'git status' over include/cfd/gpu, cuda and tests lists ~75 entries, nearly all of them
+P16/P17/P18.1-P18.7 work that was already uncommitted before this phase opened. Listing
+that as 'what P18.8 changed' would be false, so P18.8's own files are enumerated here:
+
+  [??] 9e182e4d8e9568e1  include/cfd/gpu/DeviceSpeciesThermochemistry.hpp
+  [??] e96f437415752e57  include/cfd/gpu/DeviceSpeciesLaunch.hpp
+  [??] 95673237f0d3135e  include/cfd/gpu/DeviceSpeciesFmadControl.hpp
+  [??] 22af529ebed026f9  cuda/kernels/DeviceSpeciesKernel.cu
+  [??] e75ec3a8291e26d0  cuda/kernels/DeviceSpeciesFmadControl.cu
+  [ M] a2a24aaf43caa8ba  cuda/CMakeLists.txt
+  [??] 1ddd7044219c98c2  tests/unit/species/test_device_species_equivalence.cpp
+  [ M] 037778267b10ceaf  tests/unit/species/CMakeLists.txt
+  [??] 8335b3b9faf40c79  tests/unit/gpu/SpeciesEquivalenceCompare.hpp
+  [??] a41167926d4b4a17  tests/unit/gpu/test_device_species_gpu_equivalence.cpp
+  [??] d1ed5bb3162d4309  tests/unit/gpu/test_device_species_a2_dryrun.cpp
+  [??] e018517b9348b790  tests/unit/gpu/test_device_species_sanitizer_control.cpp
+  [ M] 1296876700011ce9  tests/unit/gpu/CMakeLists.txt
+  [ M] 1a690a1ead68f9a0  TODO.md
+
+  3 of those are MODIFICATIONS to existing files (the three CMakeLists.txt) plus TODO.md;
+  the other 10 are new. No CPU production file appears in the list.
+
+=== runtime noise: tracked validation reports rewritten by a full ctest (CLAUDE.md §7) ===
+  results/validation files currently showing as modified: 0
+  (a full ctest rewrites these with timing-only changes; the regression is still running,
+   so this figure is re-taken and the noise classified and reverted after it completes)

@@ -1,0 +1,21 @@
+=== as a BARE login shell resolves them (NOT what qualification uses) ===
+  nvcc              : /usr/bin/nvcc -> Cuda compilation tools, release 11.5, V11.5.119
+  compute-sanitizer : /usr/bin/compute-sanitizer
+
+=== as every qualification harness resolves them (PATH=/usr/local/cuda-12.9/bin:...) ===
+  nvcc              : /usr/local/cuda-12.9/bin/nvcc
+                      Cuda compilation tools, release 12.9, V12.9.86
+                      Build cuda_12.9.r12.9/compiler.36037853_0
+  compute-sanitizer : /usr/local/cuda-12.9/bin/compute-sanitizer
+                      Version 2025.2.1.0 (build 35969825) (public-release)
+
+=== what the build trees were ACTUALLY compiled with (from their caches) ===
+  qual-final:
+      CMAKE_CUDA_COMPILER:STRING=/usr/local/cuda-12.9/bin/nvcc
+      CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+  qual-debug:
+      CMAKE_CUDA_COMPILER:STRING=/usr/local/cuda-12.9/bin/nvcc
+      CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+  qual-cpuonly:
+      CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
+      (CUDA OFF -- no CUDA compiler involved)

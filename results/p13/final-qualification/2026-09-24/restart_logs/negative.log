@@ -1,0 +1,41 @@
+# restart_negative.cpp 
+# date: 2026-09-24T17:43:23Z
+# git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+# libcfdcuda.a: 0a64478a5d1929248ebdbc6026381346aa8697f2df26df41ce9ab5bde6b77a60
+# libcfdcore.a: c270abc08f806b86710a69bdc65308f44eff3009110c51ee46d34bd77957551b
+# SIMPLE.cpp:   34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1
+
+=== A: format and identity ===
+  PASS A1 both formats exist and are versioned independently
+  PASS A2 every documented key is present
+  PASS A5 no device pointer, handle, stream or scratch appears in the file
+  PASS A3 round-trip is bitwise (425 values)
+  PASS A3b a 3D checkpoint carries dimension 3 and w residuals
+  PASS A4 repeated writes are byte-identical
+=== C: rejection matrix ===
+  PASS C0 the unmutated checkpoint reads successfully (rows below are non-vacuous)
+  PASS C1 file does not exist
+  PASS C2 truncated mid-file
+  PASS C3 unsupported format version
+  PASS C4 missing required key
+  PASS C5 wrong JSON type for a key
+  PASS C6 different mesh, same counts
+  PASS C7 different cell count
+  PASS C8 2D checkpoint into a 3D mesh
+  PASS C9 different case configuration
+  PASS C10 truncated field array
+  PASS C11 NaN in a field
+  PASS C12 Inf in a field
+  PASS C13 history length contradicts the iteration count
+  PASS C-zero completedIterations 0 is refused
+  PASS C-write the writer refuses an invalid checkpoint
+  PASS C-write-no-file a refused checkpoint leaves no file behind
+=== E: device residency across a restart ===
+  PASS E1 the resumed segment used the same resident GPU path as the continuous run
+  PASS E1b the resumed segment reported resuming (the comparison is not vacuous)
+  PASS E2 0 device reallocations in the resumed segment
+  PASS E3 two resumes from the same checkpoint are bitwise identical
+
+checks 27   failures 0
+GROUPS A/C/E: PASS
+# exit code: 0

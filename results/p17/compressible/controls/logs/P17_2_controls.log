@@ -1,0 +1,40 @@
+P17.2 -- group N non-vacuity controls
+date: 2026-09-26T03:39:03Z
+target: src/compressible/IdealGasEOS.cpp
+sha256 before: aba335fe053620482e8fdb0b294226ca5742bb97bf7dae3bde8cc436a027f8d0
+
+=== N1 -- drop R: return density * temperature ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (4 tests)
+  DETECTION          DETECTED
+  RESTORE            VERIFIED by SHA-256
+  which tests: 
+
+=== N2 -- return a constant ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (5 tests)
+  DETECTION          DETECTED
+  RESTORE            VERIFIED by SHA-256
+  a constant cannot satisfy the round trips at non-default states
+
+=== N3 -- remove the input validation ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED
+  RESTORE            VERIFIED by SHA-256
+  which tests: 
+
+=== N4 -- perturb R by 1e-6 relative; the 1e-12 BOUND must detect it ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (4 tests)
+  DETECTION          DETECTED -- the 1e-12 bound caught 1e-6
+  RESTORE            VERIFIED by SHA-256
+  this is what proves the BOUND detects, not merely the plumbing
+
+=== restored, and proved back at baseline ===
+  aba335fe053620482e8fdb0b294226ca5742bb97bf7dae3bde8cc436a027f8d0  src/compressible/IdealGasEOS.cpp  IDENTICAL
+  markers left: 0  (0 required)
+  EOS tests at baseline: 100% tests passed, 0 tests failed out of 21
+
+P17.2 GROUP N: ALL DETECTED, ALL RESTORED
+done: 2026-09-26T03:45:52Z

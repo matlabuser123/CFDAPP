@@ -1,0 +1,70 @@
+P17.3 GROUP N -- non-vacuity controls
+date: 2026-09-26T13:28:45Z
+baseline src/compressible/CompressibleContinuity.cpp sha256: 5396726d935905d450df2bdb01d215ed29136f23d2f0f78f6dae4563b0b1f267
+baseline src/compressible/CompressibleMassFlux.cpp   sha256: 2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7
+
+=== N1 -- drop the density-value validation ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (2 tests)
+  DETECTION          DETECTED
+      CompressibleContinuityTest.RejectionMessagesNameTheOffendingIndex
+      CompressibleContinuityTest.RejectsNonFiniteOrNonPositiveDensity
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N2 -- drop the mass-flux finiteness validation ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (2 tests)
+  DETECTION          DETECTED
+      CompressibleContinuityTest.RejectionMessagesNameTheOffendingIndex
+      CompressibleContinuityTest.RejectsNonFiniteMassFlux
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N3 -- globalNetFlux sums ALL faces, not only the boundary ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 tests)
+  DETECTION          DETECTED
+      CompressibleContinuityTest.GlobalNetFluxSumsBoundaryFacesOnly
+      CompressibleContinuityTest.InteriorFaceContributionsCancelGlobally
+      CompressibleContinuityTest.TransientIntegralMassConservationHolds
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N4 -- internal face density is a global constant (a rho*div(U) implementation) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 tests)
+  DETECTION          DETECTED
+      CompressibleMassFluxTest.InternalFaceUsesArithmeticMeanDensity
+      CompressibleMassFluxTest.RhoTimesUConstantConvergesAtSecondOrder
+      CompressibleMassFluxTest.RowVaryingDensityConservesMassAndScalesFluxPerRow
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N5 -- flip the neighbour sign (+F instead of -F) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (4 tests)
+  DETECTION          DETECTED
+      CompressibleContinuityTest.InteriorFaceContributionsCancelGlobally
+      CompressibleContinuityTest.ReducesToTheSteadyEvaluatorWhenDensityIsUnchanged
+      CompressibleContinuityTest.SteadyStateWithBalancedFluxGivesZeroImbalance
+      CompressibleContinuityTest.UniformDivergenceFreeFluxGivesExactlyZeroImbalance
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N6 -- drop V_P/dt from the transient term ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (2 tests)
+  DETECTION          DETECTED
+      CompressibleContinuityTest.CombinedTimeAndFluxHandDerived
+      CompressibleContinuityTest.TimeOnlyImbalanceWithZeroFlux
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== restored, and proved back at baseline ===
+  5396726d935905d450df2bdb01d215ed29136f23d2f0f78f6dae4563b0b1f267  src/compressible/CompressibleContinuity.cpp
+  2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7  src/compressible/CompressibleMassFlux.cpp
+  expected: 5396726d935905d450df2bdb01d215ed29136f23d2f0f78f6dae4563b0b1f267
+            2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7
+  N-markers left: 0  (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 38
+
+done: 2026-09-26T13:38:17Z

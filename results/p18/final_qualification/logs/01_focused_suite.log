@@ -1,0 +1,94 @@
+============================================================
+P18.9 section 5 -- THE FOCUSED P18 QUALIFICATION SUITE, RUN FIRST
+============================================================
+date (WSL): 2026-10-02T12:00:24Z
+Run BEFORE the expensive full regressions, so a focused failure cannot be buried under
+thousands of unrelated passes (section 5).
+
+build exit: 0
+  ninja: no work to do.
+
+--- the suite definition, from the test FILES each phase added ---
+  P18.1-P18.7 + P18.8 link one : tests/unit/species/*.cpp  -> CFDSpeciesTests (12 files)
+  P18.8 link two + controls    : tests/unit/gpu/test_device_species_*.cpp -> CFDGpuTests, P188*
+  NOT included: tests/unit/transport/ and tests/integration/transport/ belong to P14
+  (Generic Transport Foundation) and are covered by section 36 preservation, not by P18's
+  own suite. Counting them as P18 would inflate this phase's figures.
+
+sha256(CFDSpeciesTests): 80a2cee67c1b1be5c759331a6c5389622b50a67cf9c2eec94a25ff17be10e910
+sha256(CFDGpuTests)    : dc2e981a434d7c765f400bc17319740e8fc1fce38331b6962fb16bb5525804bb
+
+============ CFDSpeciesTests (Release+CUDA build) ============
+[       OK ] P188InvalidStateTest.N11_SilentlyAcceptingAnInvalidStateIsDetected (0 ms)
+[----------] 2 tests from P188InvalidStateTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 319 tests from 52 test suites ran. (143002 ms total)
+[  PASSED  ] 319 tests.
+
+--- per-suite breakdown ---
+  ArrheniusKineticsTest.                   14
+  ArrheniusTest.                           24
+  ClosedReactorTest.                       9
+  ConcentrationBoundsTest.                 2
+  EnergyAccountingTest.                    4
+  FormationEnthalpyTest.                   4
+  HeatReleaseDeterminismTest.              2
+  HeatSourceTest.                          11
+  MassFractionStateTest.                   48
+  MixtureThermodynamicsTest.               30
+  NonReactingLimitTest.                    2
+  P187BatchReactorTest.                    4
+  P187DeterminismTest.                     1
+  P187EnergyConservationTest.              1
+  P187NegativeControlTest.                 6
+  P187ReactingFlowTest.                    3
+  P187SpeciesConservationTest.             2
+  P187ZeroLimitTest.                       2
+  P188ArrheniusTest.                       2
+  P188CoupledStepTest.                     3
+  P188EnergyTest.                          1
+  P188EquationOfStateTest.                 1
+  P188HeatReleaseTest.                     2
+  P188InvalidStateTest.                    2
+  P188MixturePropertyTest.                 2
+  P188ReactionSourceTest.                  2
+  P188RestatementTest.                     2
+  ReactionEnthalpyTest.                    7
+  ReactionMechanismTest.                   3
+  ReactionSourceTest.                      19
+  ReactionTest.                            12
+  ReactionTransportTest.                   4
+  SpeciesBoundaryConditionTest.            2
+  SpeciesBoundaryTest.                     4
+  SpeciesCanonicalTest.                    4
+  SpeciesClosureTest.                      8
+  SpeciesConservationTest.                 7
+  SpeciesControlTest.                      2
+  SpeciesEquationAssemblyTest.             6
+  SpeciesEquationConvectionTest.           4
+  SpeciesEquationDiffusionTest.            5
+  SpeciesEquationSourceTest.               2
+  SpeciesFaceConservationTest.             2
+  SpeciesNonOrthogonalTest.                2
+  SpeciesPropertiesTest.                   6
+  SpeciesRegistryTest.                     12
+  SpeciesSolverTest.                       8
+  SpeciesSourceTest.                       2
+  SpeciesThermodynamicsTest.               4
+  SpeciesTransientTest.                    3
+  SpeciesTransportTest.                    2
+  TemperatureFeedbackTest.                 3
+
+============ CFDGpuTests, P188* only ============
+[----------] Global test environment tear-down
+[==========] 20 tests from 3 test suites ran. (2232 ms total)
+[  PASSED  ] 20 tests.
+
+  YOU HAVE 3 DISABLED TESTS
+
+
+============ TOTALS ============
+  CFDSpeciesTests selected : 319
+  CFDGpuTests P188 selected: 23   (of which DISABLED_: 3)
+  FOCUSED P18 TOTAL        : 342  active 339  disabled 3

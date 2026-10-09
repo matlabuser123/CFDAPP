@@ -1,0 +1,72 @@
+=== git status summary ===
+      130  M
+      142 ??
+
+=== git diff --check (whitespace errors) ===
+  total warnings in the whole tree : 260
+  by file:
+        152 cuda/CMakeLists.txt
+         75 tests/unit/gpu/CMakeLists.txt
+         32 tests/unit/compressible/CMakeLists.txt
+          1 TODO.md
+
+  ...of which in a P18.1 FILE (must be 0):
+    count: 0
+
+  NOTE: the three CMakeLists offenders are PRE-EXISTING P17/GPU files P18.1 never touched.
+  TODO.md:3 is a Markdown hard line break (two trailing spaces) written by P18.0's rewrite;
+  HEAD's line 3 is different text entirely, so it is an added line from that rewrite, not
+  from P18.1. Neither is repaired here (CLAUDE.md section 2).
+
+=== control-doc line endings (must match CLAUDE.md's convention: LF) ===
+  TODO.md      CR lines: 0     Unicode text, UTF-8 text
+  ROADMAP.md   CR lines: 0     Unicode text, UTF-8 text
+  CLAUDE.md    CR lines: 0     Unicode text, UTF-8 text
+
+=== frozen gates, re-hashed at close ===
+  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+  3809c100ca4323966ae38bcf99d9bbd87187296089732f8ff54bfd85c6c4804d  results/p17/gates/P17_GATES.md
+  P18 expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  P17 expected 3809c100ca4323966ae38bcf99d9bbd87187296089732f8ff54bfd85c6c4804d
+
+=== results/validation runtime noise ===
+  modified: 0   (must be 0)
+
+=== P18.1 did not implement later-phase physics ===
+  later-phase terms anywhere under include/cfd/species or src/species:
+    omega_i          0
+    Arrhenius        0
+    stoichiom        0
+    reactionRate     0
+    heatRelease      0
+    W_mix            0
+    R_mix            0
+    cp_mix           0
+
+  transport verbs in the two NEW sources (P18.1 owns state, not the PDE):
+    assemble     0
+    BiCGSTAB     0
+    massFlux     0
+    convect      0
+    diffus       0
+
+=== no silent clipping or normalization on any accepting path ===
+  clamp/clip in the new sources : 0
+  every occurrence of normalizeMassFractions in the production source:
+    196:std::vector<Real> normalizeMassFractions(const std::vector<Real>& composition) {
+    -> its declaration and its definition only. No constructor or setter calls it.
+
+=== no test deleted or disabled ===
+  DISABLED_ added by P18.1                : 0
+  pre-existing species tests still present: 37  (baseline 37)
+
+=== the P18.1 changeset, final hashes ===
+  include/cfd/species/SpeciesRegistry.hpp              c68ab74c6b836344758327714da3161b5bdf444765d49a752d963251369c94fe
+  include/cfd/species/MassFractionState.hpp            20462909c405e0099c6023084f36d8136a4251f3a864c65d7ed3652ced9a9cf2
+  src/species/SpeciesRegistry.cpp                      d55652da02e0a85f9d8fad7f87de664804057edbf82f4f3d3282eb2e9320e8dd
+  src/species/MassFractionState.cpp                    429321301b079cd80b26b8a2dcef4929fbf85ece08f28cbe7ff08179cffa1f4f
+  tests/unit/species/test_mass_fraction_state.cpp      c2971b3e3347272df9e8df2586909815db89d0dcbfa6fb6df4ee45b110e97586
+
+=== commit / push ===
+  HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  nothing committed, pushed, reset, cleaned or stashed by P18.1.

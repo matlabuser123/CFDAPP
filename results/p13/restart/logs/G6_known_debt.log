@@ -1,0 +1,21 @@
+# known_debt_probe on the P13-001 binaries
+# date: 2026-09-21T10:07:07Z
+# libcfdcuda.a: cfacb5225b2f25c8b032645b1d3945180cf17d3292c9f598f09ce3db5e0eafea
+# libcfdcore.a: 4eeb7aae09d3d063a8b3620336ef16c26fb7c6922dd32b94c60ea73031929a0c
+# SIMPLE.cpp:   c0478ca79ed2f109623fe5b2cee24979ee36b9a9c9e50a20798b7510bdf5c2a2
+
+=== GPU-DISC-001R: known GPU BiCGSTAB restart asymmetry ===
+TODO.md reproducer: 2D cavity 40x40, outer tolerance 1e-6, budget 3000
+recorded at baseline 548401a -- NOT introduced here, NOT fixed here.
+
+  cpu (CPU solver, CPU disc)   status=MaxIterations              iterations=3000
+  gpu-pipe (GPU solver, CPU disc) status=PressureCorrectionFailure  iterations=1845
+  gpu-disc (GPU solver, GPU disc) status=PressureCorrectionFailure  iterations=1845
+
+=== has the debt BROADENED? ===
+  gpu-disc status matches gpu-pipe:     yes
+  gpu-disc iterations match gpu-pipe:   yes (1845 vs 1845)
+  reproducer actually triggered on gpu-pipe:  yes
+
+KNOWN DEBT: UNCHANGED -- GPU-DISC behaves exactly as the pre-existing GPU path
+# exit code: 0

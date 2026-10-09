@@ -1,0 +1,58 @@
+P17.3 ACCEPTANCE GATE
+date: 2026-09-26T13:07:49Z
+gate sha256: a89642a491acc0c86fda87dc17345fc1c5d24de7ef4cf6f43b33cbda545d23ef
+
+### G6: clang-format on the files P17.3 changed ###
+  clang-format exit: 0  (0 = clean)
+
+### physics::evaluateContinuity must be UNTOUCHED ###
+  delta: ''  (empty = unchanged)
+
+### the P17.3 delta (deletions must be 0) ###
+  include/cfd/compressible/CompressibleContinuity.hpp        +20 -0
+  src/compressible/CompressibleContinuity.cpp                +51 -0
+  tests/unit/compressible/test_compressible_continuity.cpp   +342 -0
+  tests/unit/compressible/test_compressible_mass_flux.cpp    +357 -0
+
+### build ###
+  build exit: 0  (69 s)
+
+### Groups S, T, F, C, M, O, V, G9: the continuity suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 17
+  the 11 P17.3 rows:
+    GlobalNetFluxSumsBoundaryFacesOnly                       Passed
+    UniformDivergenceFreeFluxGivesExactlyZeroImbalance       Passed
+    InteriorFaceContributionsCancelGlobally                  Passed
+    ReducesToTheSteadyEvaluatorWhenDensityIsUnchanged        Passed
+    TransientIntegralMassConservationHolds                   Passed
+    RejectsNonFiniteOrNonPositiveDensity                     Passed
+    RejectsNonFiniteMassFlux                                 Passed
+    RejectionMessagesNameTheOffendingIndex                   Passed
+    QuiescentClosedBoxConservesExactly                       Passed
+    TotalMassMatchesSumOfRhoTimesVolume                      Passed
+    RepeatedEvaluationIsBitwiseIdentical                     Passed
+
+### Group M4: the rho*U = const refinement study ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 21
+    RhoTimesUConstantConvergesAtSecondOrder                  Passed
+
+### Group L: low-Mach reduction, existing suite unchanged ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 10
+
+### Groups G1/G2: the whole compressible suite, then P14/P15/P16 ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 161
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P16_turbulence   exit=0  100% tests passed, 0 tests failed out of 315
+
+### G8: GPU compressible continuity -- must be NOT PRESENT ###
+  files in cuda/ or include/cfd/gpu/ mentioning 'compressible': 1
+    include/cfd/gpu/DevicePressureCorrection.hpp
+  (the one hit is DevicePressureCorrection.hpp, recording that it ports the
+   INCOMPRESSIBLE assembly -- there is no compressible continuity kernel)
+
+done: 2026-09-26T13:27:38Z

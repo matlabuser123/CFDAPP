@@ -1,0 +1,21 @@
+=== P18.5: proving final_integrity.sh's FAIL path actually works ===
+date: 2026-10-01T01:23:14Z
+
+The first version of the script wrote fail=1 inside a $( ) command substitution -- a
+subshell -- so the assignment was discarded and it printed INTEGRITY: PASS while three
+checks reported NOT 0. After a fail-open defect, a PASS proves nothing until the FAIL path
+is exercised. Three corruptions are applied to a COPY; the real script is never modified.
+
+--- control 0: the unmodified script ---
+  exit=0  verdict: INTEGRITY: PASS
+--- 1: a must_be_zero check given a non-zero count ---
+  exit=1  verdict: INTEGRITY: FAIL
+      INJECTED nonzero                             7    *** NOT 0 ***
+--- 2: a must_be_nonzero control given 0 (a blind probe) ---
+  exit=1  verdict: INTEGRITY: FAIL
+      INJECTED blind probe                         0    *** 0 -- THE PROBE IS BLIND ***
+--- 3: a wrong expected frozen-gate hash ---
+  exit=1  verdict: INTEGRITY: FAIL
+      *** THE FROZEN GATE HAS CHANGED ***
+
+EXPECTED: control 0 PASS exit 0; corruptions 1, 2 and 3 each FAIL exit 1.

@@ -1,0 +1,76 @@
+
+########## rebuild build/qual-final (Release + CUDA) ##########
+ninja: no work to do.
+freshness: ninja: no work to do.
+date:     2026-09-24T17:43:07Z
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+freshness: ninja: no work to do.
+c270abc08f806b86710a69bdc65308f44eff3009110c51ee46d34bd77957551b  build/qual-final/src/libcfdcore.a
+0a64478a5d1929248ebdbc6026381346aa8697f2df26df41ce9ab5bde6b77a60  build/qual-final/cuda/libcfdcuda.a
+34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1  src/pressure_velocity/SIMPLE.cpp
+3f8214b4412f1877bbd2c98446ac08b00ea6c2662c98aea9e7b2970b7d714a4a  src/app/ProjectRunner.cpp
+f03aa8f125a21723f34cb482a81e4498ae1c9f0add85a0a1eb820c6a536ef5b3  build/qual-final/apps/cli/cfdapp
+
+########## G1 preservation -- the existing solver's numbers must not move ##########
+G1: IDENTICAL -- 10 cases, every field, residual and history, bitwise
+
+########## A (format/identity), C (rejection matrix), E (residency) ##########
+checks 27   failures 0
+GROUPS A/C/E: PASS
+
+########## B -- continuous vs checkpoint/resume, bitwise ##########
+rows 35   failures 0   values compared 124584
+GROUP B: PASS
+
+########## D -- non-vacuity controls (each MUST fail) ##########
+  drop-flux      DETECTED (the criterion can fail)
+  skip-replay    DETECTED (the criterion can fail)
+  ignore-count   DETECTED (the criterion can fail)
+
+########## F -- the production CLI path ##########
+  checks passed: 31
+GROUP F: PASS
+
+########## G6 -- the known GPU BiCGSTAB restart asymmetry ##########
+  === GPU-DISC-001R: known GPU BiCGSTAB restart asymmetry ===
+  TODO.md reproducer: 2D cavity 40x40, outer tolerance 1e-6, budget 3000
+  recorded at baseline 548401a -- NOT introduced here, NOT fixed here.
+  
+    cpu (CPU solver, CPU disc)   status=MaxIterations              iterations=3000
+    gpu-pipe (GPU solver, CPU disc) status=MaxIterations              iterations=3000
+    gpu-disc (GPU solver, GPU disc) status=MaxIterations              iterations=3000
+  
+  === has the debt BROADENED? ===
+    gpu-disc status matches gpu-pipe:     yes
+    gpu-disc iterations match gpu-pipe:   yes (3000 vs 3000)
+    reproducer actually triggered on gpu-pipe:  NO -- this probe would be VACUOUS
+  
+  KNOWN DEBT: NOT REPRODUCED -- the recorded GPU failure did not occur on this
+              build/settings combination, so this run proves nothing about whether
+              the debt broadened. Reported as such rather than as 'unchanged'.
+  # exit code: 2
+G6: SUPERSEDED -- the reproducer no longer triggers because the defect
+    was repaired on 2026-09-23. The probe reports NOT REPRODUCED and
+    refuses to claim 'unchanged', which is correct behaviour.
+    Replacement gates are required to pass in its place:
+      [       OK ] GpuBiCGSTABRestartTest.RestartsWhereTheCpuReferenceRestarts (335 ms)
+      [       OK ] GpuBiCGSTABRestartTest.RestartsDoNotBuyExtraIterationBudget (133 ms)
+      [       OK ] GpuBiCGSTABRestartTest.HealthySystemNeverRestarts (61 ms)
+      [       OK ] GpuBiCGSTABRestartTest.BreakdownIsStillReachable (5 ms)
+      [       OK ] GpuBiCGSTABRestartTest.RestartingSolveIsDeterministic (587 ms)
+      [       OK ] GpuBiCGSTABRestartTest.RestartAllocatesNothingInSteadyState (738 ms)
+      [       OK ] KrylovRestartParity.TheSameDeviceSystemSolvesOnBothSolvers (510 ms)
+      [       OK ] KrylovRestartParity.EveryPreviouslyBrokenRungIsExplainedByARestart (664 ms)
+      [  PASSED  ] 8 tests.
+      non-vacuity: BreakdownIsStillReachable ran and passed -- the
+      replacement criterion can still detect a Breakdown.
+
+########## G3 -- full Release + CUDA CTest ##########
+  100% tests passed, 0 tests failed out of 2488
+  Total Test time (real) = 1994.09 sec
+
+########## G4 -- CPU-only build (CFDAPP_ENABLE_CUDA=OFF) and its suite ##########
+  nvcc invocations 0   libcudart 0   libcfdcuda.a no
+  100% tests passed, 0 tests failed out of 2288
+
+==================== P13-001 GATE: PASS ====================

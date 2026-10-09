@@ -1,0 +1,96 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/cuda/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ResidentWallExchange.TransferLedger*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ResidentWallExchange
+[ RUN      ] ResidentWallExchange.TransferLedgerAccountsForEveryDownloadedByte
+
+  grid 128 cells, 32 wall faces, 1 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication       3072        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          1624      117  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                   5516      132
+    MEASURED D2H                 5516      132   (k 15 iters, eps 14 iters)
+    H2D (steady state)           1300       10
+
+  grid 256 cells, 32 wall faces, 1 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication       6144        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          1736      125  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                   8700      140
+    MEASURED D2H                 8700      140   (k 15 iters, eps 16 iters)
+    H2D (steady state)           1300       10
+
+  grid 512 cells, 32 wall faces, 2 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      12288        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          3584      129  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  16692      144
+    MEASURED D2H                16692      144   (k 14 iters, eps 18 iters)
+    H2D (steady state)           1300       10
+
+  grid 1024 cells, 32 wall faces, 4 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H               768        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      24576        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          8064      145  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  33460      160
+    MEASURED D2H                33460      160   (k 16 iters, eps 20 iters)
+    H2D (steady state)           1300       10
+
+  grid 256 cells, 64 wall faces, 1 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H              1536        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication       6144        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          2384      174  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  10116      189
+    MEASURED D2H                10116      189   (k 28 iters, eps 14 iters)
+    H2D (steady state)           2580       10
+
+  grid 512 cells, 128 wall faces, 2 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H              3072        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      12288        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums          4992      182  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  20404      197
+    MEASURED D2H                20404      197   (k 24 iters, eps 19 iters)
+    H2D (steady state)           5140       10
+
+  grid 2048 cells, 128 wall faces, 8 reduction blocks
+    category                    bytes    calls  scales with
+    wall gather D2H              3072        3  O(N_wall)
+    wall production RT              0        0  removed (was 16*N_wall)
+    convergence residual            0        0  removed (was 32*N)
+    k/eps/mu_t publication      49152        3  O(N)  <-- NOT wall traffic
+    Krylov partial sums         27584      252  O(iters * N/256)
+    control (flags+counters)         52        9  O(1)
+    LEDGER SUM                  79860      267
+    MEASURED D2H                79860      267   (k 26 iters, eps 34 iters)
+    H2D (steady state)           5140       10
+[       OK ] ResidentWallExchange.TransferLedgerAccountsForEveryDownloadedByte (1064 ms)
+[----------] 1 test from ResidentWallExchange (1064 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1065 ms total)
+[  PASSED  ] 1 test.

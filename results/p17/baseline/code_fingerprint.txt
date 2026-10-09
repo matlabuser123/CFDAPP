@@ -1,0 +1,33 @@
+P17_CODE_FINGERPRINT -- documentation-invariant companion to SOURCE_FINGERPRINT_V2
+date   : 2026-09-26T05:42:15Z
+HEAD   : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+WHY THIS EXISTS
+  SOURCE_FINGERPRINT_V2 excludes exactly results/** and TODO.md. Every other
+  markdown file -- ROADMAP.md, CLAUDE.md, README.md, docs/** -- is INSIDE it.
+  On 2026-09-26T03:58:06Z ROADMAP.md was rewritten (624+/257-) by work outside
+  P17. V2 moved fb69dc2a -> fbf78665 with ZERO source change. V2 is therefore a
+  CONTAMINATED instrument for the question P17 needs to ask repeatedly:
+  'did any code change?'
+
+  V2 IS NOT REDEFINED. It is preserved verbatim and still recorded, because it is
+  the only value comparable with P13's G4..G10 chain. This is an ADDITIONAL,
+  NARROWER instrument with its own name. A CODE value must NEVER be compared
+  numerically with a V2 value: they hash different file sets.
+
+EXACT FILE SELECTION -- V2's algorithm, with documentation additionally excluded
+  EXCLUDE = results/**  TODO.md  ROADMAP.md  CLAUDE.md  README.md  CONTRIBUTING.md
+            QUALITY_GATE.md  PROJECT_STRUCTURE.md  RELEASE_NOTES_*.md  docs/**
+  1. tracked   : sha256 of git diff --binary HEAD over that set
+  2. untracked : sha256 of the sorted per-file sha256 list over that set
+  3. CODE      = sha256("<tracked> <untracked>")
+
+file counts
+  tracked code files changed : 114   (V2 counts 116)
+  untracked code+output files: 121   (V2 counts 122)
+
+components
+  tracked diff sha256      : b0ffdb08aa120c94891ad6be94b8d21e659e1766eb0166b4a545830316db85c4
+  untracked contents sha256: 6e5f9285f3904d8366ed83a3c6f38f9467e6c14bb5bb2f82962173badc711def
+
+P17_CODE_FINGERPRINT = 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2

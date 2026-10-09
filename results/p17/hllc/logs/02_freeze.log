@@ -1,0 +1,45 @@
+P17.7 GATE FREEZE
+date: 2026-09-27T06:23:12Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### the frozen documents ###
+1f4ccd8af57f529e1654b2465df9e1c07124c22e0e8a500c56116372009a6465  acceptance_gate.md
+bd2f77dc8adde786f287797ea98f2a219182dd738f147b27f64484f4fd5f7c4b  audit.md
+cddf94e5cc227eb6a53906cefecb03670e3e6d9efb2156b378d86af24843d390  tools/exact_riemann.py
+7cc938786ca73d5d65380302ef231941ac2ba65cd739d473208f5d934d00a399  tools/audit.sh
+
+### proof that no implementation exists yet -- the gate is frozen FIRST ###
+  include/cfd/compressible/HllcFlux.hpp                absent, as required
+  src/compressible/HllcFlux.cpp                        absent, as required
+  cuda/kernels/DeviceHllcFluxKernel.cu                 absent, as required
+  tests/unit/compressible/test_hllc_flux.cpp           absent, as required
+
+### NOT to be touched -- P17.2 EOS / thermodynamics (SHA-256, never git diff HEAD) ###
+bdd096490437ee602de31695184035e2ce28f0ab4d2da6187e45c709e919324e  include/cfd/compressible/IdealGasEOS.hpp
+daa27c5fc7e296482fd29fd93a0b4b6185fc7f3d39bc72855aa6240aad3bfe24  src/compressible/IdealGasEOS.cpp
+1dd39383f5d87eb77a5b69252737db0cd0640121ea6e19eb5ec3916377008335  include/cfd/compressible/ThermodynamicProperties.hpp
+27d74d9e535f8e716421ce24e7f955f32dc8200c5ae5a3ddfd1c9cbdb4da3a88  src/compressible/ThermodynamicProperties.cpp
+16cb9b91ce6fd9de1011b064b3798c5a80304f3e9520722f1a141c9c7a5aa661  include/cfd/compressible/EquationOfState.hpp
+
+### NOT to be touched -- P17.5 total energy (the conversion P17.7 REUSES) ###
+a15726f9ffce7f14871f18446ad70129df4c9b34de5d3e8fdaf855abbabe265d  include/cfd/compressible/TotalEnergy.hpp
+23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5  src/compressible/TotalEnergy.cpp
+02067df44148ef0ed4171780344779cbf25e7743909c0e0142d0e145517f5e03  include/cfd/compressible/TotalEnergyEquation.hpp
+2df1c9f54d5186fb5f22cf1f74fbb3c3aaaaddbbebef929df1853441b2c1956e  src/compressible/TotalEnergyEquation.cpp
+
+### NOT to be touched -- P17.3/P17.4 and both SIMPLE paths (section 35) ###
+2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7  src/compressible/CompressibleMassFlux.cpp
+5396726d935905d450df2bdb01d215ed29136f23d2f0f78f6dae4563b0b1f267  src/compressible/CompressibleContinuity.cpp
+0bdff82ec3e717bc8fc8aac01f5bf06914153039673bcf43cfcfe8902532007d  src/compressible/CompressibleRelaxedMomentum.cpp
+f95f760bbe2abb284ec33161209bf33f25ec9a0fb4a02e170a2232bd17d6d8ed  src/compressible/CompressibleSIMPLE.cpp
+fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1  src/pressure_velocity/SIMPLE.cpp
+325a7f380be58144794538cd64d0fd4f1324a46b1bc9fa2727d5fa899e2eb9da  include/cfd/pressure_velocity/SIMPLE.hpp
+
+### NOT to be touched -- the core types P17.7 must NOT modify ###
+94d5b7c20f530fd9e84ed5f114b58074e26466f410b34b247a883025d20b5896  include/cfd/core/Vector3.hpp
+e5f01146cabb25ad238ad6c12dd7754a03da370fa850d79d7038b090529a5559  include/cfd/core/Vector2.hpp
+46150d2e101f6eb5afbfcbf6a8e80f48a3555d4341c9282e5199c820794366d0  include/cfd/core/Types.hpp
+
+### NOT to be touched -- the validation suites section 39 protects ###
+593165a1a2fff9ccbad8b3675ccbdff093bcf22c82b5daad90462fe228949acc  tests/integration/compressible/test_low_mach_regression.cpp

@@ -1,0 +1,65 @@
+P13 G9 -- P14/P15/P16 preservation
+date: 2026-09-24T22:22:29Z
+tree: build/qual-final
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+  libcfdcuda.a: present
+
+### Step 2 -- P14 generic transport ###
+  p14_transport              rc=0   100% tests passed    tests=68    failed=0
+  p14_gpu_transport          rc=0   100% tests passed    tests=36    failed=0
+
+### Step 2 -- the P13-001 SIMPLE fingerprint, bitwise ###
+  (P14's sharpest preservation instrument: a passing CTest does not prove
+   SIMPLE produced the same BITS; this does.)
+  COMPILE FAILED -- see G9_fp_build.log
+    SparseMatrix.cpp:(.text+0x26): undefined reference to `omp_get_num_threads'
+    /usr/bin/ld: SparseMatrix.cpp:(.text+0x2d): undefined reference to `omp_get_thread_num'
+    /usr/bin/ld: build/qual-final/src/libcfdcore.a(SparseMatrix.cpp.o): in function `cfd::algebra::SparseMatrix::multiply(cfd::algebra::Vector const&) const':
+    SparseMatrix.cpp:(.text+0x1705): undefined reference to `GOMP_parallel'
+    collect2: error: ld returned 1 exit status
+
+### Step 3 -- P15 thermal / energy ###
+  p15_energy                 rc=0   100% tests passed    tests=96    failed=0
+  p15_thermal_bc             rc=0   100% tests passed    tests=53    failed=0
+  p15_validation             rc=0   100% tests passed    tests=99    failed=0
+
+### Step 4 -- P16 turbulence (adopted scope, deferred suites excluded) ###
+  p16_unit                   rc=0   100% tests passed    tests=329   failed=0
+  p16_channel                rc=0   100% tests passed    tests=14    failed=0
+  p16_thermal                rc=0   100% tests passed    tests=20    failed=0
+
+### Step 5 -- P16 GPU equivalence ###
+  p16_gpu_turb               rc=0   100% tests passed    tests=51    failed=0
+  p16_gpu_resident           rc=0   100% tests passed    tests=55    failed=0
+  p16_gpu_determinism        rc=0   100% tests passed    tests=20    failed=0
+
+### Step 4/6 -- the PRESERVED P20 failures: RED is the required outcome ###
+  exit status: 1  (non-zero is REQUIRED -- these are deferred to P20)
+    [  PASSED  ] 8 tests.
+    [  FAILED  ] 4 tests, listed below:
+    [  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate
+    [  FAILED  ] SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects
+    [  FAILED  ] SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590
+    [  FAILED  ] SSTMomentumFluxChannel.FourWayComparisonAtReTau590
+  individually:
+      [  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate (366632 ms)
+      [  FAILED  ] SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects (374788 ms)
+      [  FAILED  ] SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590 (377356 ms)
+      [  FAILED  ] SSTMomentumFluxChannel.FourWayComparisonAtReTau590 (594053 ms)
+      [  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate
+      [  FAILED  ] SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects
+      [  FAILED  ] SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590
+      [  FAILED  ] SSTMomentumFluxChannel.FourWayComparisonAtReTau590
+
+### Step 6 -- the documented exclusions, verified unchanged ###
+  filter used by this gate, copied from regress_both.sh:
+    SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+  regress_both.sh still declares the same set:
+    54:EXCLUDE='SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic'
+    56:DEFERRED_BFS='DriverSeegmiller.CorrectedMeshSequence'
+  P16 scope statement in TODO.md:
+    31:* [~] k-omega SST — advanced near-wall / separated-flow validation deferred to P20
+    412:## P20 — Advanced SST Near-Wall Treatment
+
+done: 2026-09-25T00:37:23Z

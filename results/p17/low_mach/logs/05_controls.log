@@ -1,0 +1,56 @@
+P17.6 GROUP N -- non-vacuity controls
+date: 2026-09-27T04:21:20Z
+baseline tests/integration/compressible/test_low_mach_family.cpp sha256: 01838fd3a113420641ef878550dde080adb9d39a0326b046a7ca4ea4fee895c5
+probe set: -R 'LowMachFamily' = all 15 tests of the phase
+
+=== N1 -- the reference is the COMPRESSIBLE solution itself, not the incompressible one ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 of 15 tests)
+  DETECTION          DETECTED, by:
+      LowMachFamilyTest.CompressiblePathIsGenuinelyActive
+      LowMachFamilyTest.EveryErrorMetricDecreasesMonotonicallyAsMachFalls
+      LowMachFamilyTest.EveryOtherErrorExponentIsGenuinelyDecreasing
+  RESTORE            VERIFIED by SHA-256
+
+=== N2 -- rho_ref = 1.0 instead of the EOS-derived 1.176624 (a 15 percent mismatch) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (4 of 15 tests)
+  DETECTION          DETECTED, by:
+      LowMachFamilyTest.EveryErrorMetricDecreasesMonotonicallyAsMachFalls
+      LowMachFamilyTest.EveryOtherErrorExponentIsGenuinelyDecreasing
+      LowMachFamilyTest.KineticContributionMatchesTheIncompressibleReference
+      LowMachFamilyTest.RelativePressureDifferenceFallsToItsConvergenceFloorAndStaysThere
+  RESTORE            VERIFIED by SHA-256
+
+=== N3 -- machMax reports the inlet Mach, i.e. the requested value, not the achieved one ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 of 15 tests)
+  DETECTION          DETECTED, by:
+      LowMachFamilyTest.InheritedG5ThresholdsHoldAtEveryLevel
+  RESTORE            VERIFIED by SHA-256
+
+=== N5 -- the energy criterion is normalised by the rhoE scale, not by the kinetic part ===
+  PLANTED DEFECT     yes (compiled)
+  RESULT             PASSED, as the trap predicts (0 failures)
+  => a criterion placed on rhoE instead of the kinetic part is satisfied by anything.
+  RESTORE            VERIFIED by SHA-256
+
+=== restored, and proved back at baseline ===
+  01838fd3a113420641ef878550dde080adb9d39a0326b046a7ca4ea4fee895c5  tests/integration/compressible/test_low_mach_family.cpp
+  expected: 01838fd3a113420641ef878550dde080adb9d39a0326b046a7ca4ea4fee895c5
+  N-markers left: 0 (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 15
+
+=== N4 -- verified by MEASUREMENT, not by a plant, and here is why ===
+  The frozen gate lists N4 as 'drop the 1.25 * inletMach clause -> M4 becomes vacuous'.
+  Planting that means DELETING an assertion, and a deleted assertion always 'passes' -- so it
+  is not a defect any probe can detect. It is a degenerate control.
+  What the clause is actually worth is its MARGIN, which is measurable:
+    machMax / inletMach = 0.0041552 / 0.0028802 = 1.4427
+    the clause requires                          > 1.25
+  So the flow does accelerate, by 44 percent against a 25 percent bar -- a real but not
+  enormous margin, and the Poiseuille peak factor of 1.5 is the physical value it approaches.
+  Recorded as a measurement rather than faked as a plant.
+
+done: 2026-09-27T04:28:12Z

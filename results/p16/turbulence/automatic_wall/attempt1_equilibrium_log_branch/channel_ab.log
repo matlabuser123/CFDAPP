@@ -1,0 +1,182 @@
+BUILD OK
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SSTAutomaticWallChannel.*
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from SSTAutomaticWallChannel
+[ RUN      ] SSTAutomaticWallChannel.TheDefaultCaseFileIsBitwiseTheHighRePath
+[       OK ] SSTAutomaticWallChannel.TheDefaultCaseFileIsBitwiseTheHighRePath (14227 ms)
+[ RUN      ] SSTAutomaticWallChannel.HighReSweep
+
+re_tau_590
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny06              6     69.278    415.948     0.2950     9.0385        4 1.466288e-03      0      0  1079 G1-OK
+ny08              8     57.428    460.372     0.2197     6.2634        6 1.796218e-03      0      0  1076 G1-OK
+ny12             12     47.297    570.929     0.0323     1.2654        6 2.762513e-03      0      0   913 G1-OK
+ny16             16     42.285    681.795     0.1556     4.6739        8 3.939567e-03      2      0   791 G1-REJECT
+ny20             20     38.273    770.786     0.3064     7.6253        8 5.035093e-03     12      0   865 G1-REJECT
+ny24             24     34.541    833.317     0.4124     8.9494        8 5.885194e-03     16      0   983 G1-REJECT
+ny32             32     27.403    878.619     0.4892     8.5863        8 6.542466e-03    128      0  1265 G1-REJECT
+[       OK ] SSTAutomaticWallChannel.HighReSweep (63129 ms)
+[ RUN      ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate
+
+re_tau_590
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny06              6     92.813    557.207     0.0556     1.3072        4 2.631321e-03      0      0  1051 G1-OK
+ny08              8     71.758    574.324     0.0266     0.6683        4 2.795465e-03      0      0   991 G1-OK
+ny12             12     49.132    589.852     0.0003     0.4784        6 2.948671e-03      0      0   922 G1-OK
+ny16             16     37.056    593.498     0.0059     1.0443        8 2.985242e-03      0      0   912 G1-OK
+ny20             20     29.610    593.281     0.0056     0.4498        8 2.983052e-03     72      0   963 G1-REJECT
+ny24             24     24.615    592.249     0.0038     0.5183       10 2.972688e-03    128      0   989 G1-REJECT
+ny32             32     18.407    591.060     0.0018     0.5449       14 2.960762e-03    128      0  1123 G1-REJECT
+
+re_tau_590
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny06              6     69.278    415.948     0.2950     9.0385        4 1.466288e-03      0      0  1079 G1-OK
+ny08              8     57.428    460.372     0.2197     6.2634        6 1.796218e-03      0      0  1076 G1-OK
+ny12             12     47.297    570.929     0.0323     1.2654        6 2.762513e-03      0      0   913 G1-OK
+ny16             16     42.285    681.795     0.1556     4.6739        8 3.939567e-03      2      0   791 G1-REJECT
+ny20             20     38.273    770.786     0.3064     7.6253        8 5.035093e-03     12      0   865 G1-REJECT
+ny24             24     34.541    833.317     0.4124     8.9494        8 5.885194e-03     16      0   983 G1-REJECT
+ny32             32     27.403    878.619     0.4892     8.5863        8 6.542466e-03    128      0  1265 G1-REJECT
+
+Re_tau = 590 -- high-Re vs automatic on the same meshes
+mesh          y1+     E hiRe     E auto    u+ hiRe    u+ auto     G1
+ny06       69.278     0.0556     0.2950     1.3072     9.0385     OK
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:938: Failure
+Expected: (automatic[i].reTauError) <= (kSSTHighReGateReTauError), actual: 0.29500274946397131 vs 0.059
+ny06: the automatic treatment fails the ADOPTED high-Re gate that the high-Re path passes (0.055581025722016945)
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:941: Failure
+Expected: (automatic[i].uPlusLInf) <= (kSSTHighReGateUPlusLInf), actual: 9.0384543641736776 vs 1.4
+ny06
+
+ny08       57.428     0.0266     0.2197     0.6683     6.2634     OK
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:938: Failure
+Expected: (automatic[i].reTauError) <= (kSSTHighReGateReTauError), actual: 0.21970775126624426 vs 0.059
+ny08: the automatic treatment fails the ADOPTED high-Re gate that the high-Re path passes (0.026569855416473574)
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:941: Failure
+Expected: (automatic[i].uPlusLInf) <= (kSSTHighReGateUPlusLInf), actual: 6.2633530613650912 vs 1.4
+ny08
+
+ny12       47.297     0.0003     0.0323     0.4784     1.2654     OK
+ny16       42.285     0.0059     0.1556     1.0443     4.6739     OK
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:938: Failure
+Expected: (automatic[i].reTauError) <= (kSSTHighReGateReTauError), actual: 0.15558540674915461 vs 0.059
+ny16: the automatic treatment fails the ADOPTED high-Re gate that the high-Re path passes (0.0059294911674114548)
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:941: Failure
+Expected: (automatic[i].uPlusLInf) <= (kSSTHighReGateUPlusLInf), actual: 4.6738888242913283 vs 1.4
+ny16
+
+ny20       38.273     0.0056     0.3064     0.4498     7.6253 REJECT
+ny24       34.541     0.0038     0.4124     0.5183     8.9494 REJECT
+ny32       27.403     0.0018     0.4892     0.5449     8.5863 REJECT
+[  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate (120449 ms)
+[ RUN      ] SSTAutomaticWallChannel.LowReStressSweep
+
+re_tau_180
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny02_yplus90      2     53.776    107.593     0.4023    10.7391        2 1.476551e-03      0      0   643 G1-OK
+ny03_yplus60      3     40.911    122.917     0.3171     7.8205        3 1.927103e-03      0      0   852 G1-OK
+ny04_yplus45      4     35.234    141.418     0.2143     4.7633        4 2.550882e-03      0      0   921 G1-OK
+ny05_yplus36      5     32.088    161.349     0.1036     2.0131        5 3.320616e-03     40      0   963 G1-REJECT
+ny06_yplus30      6     30.051    181.705     0.0095     1.2289        6 4.211337e-03     60      0   930 G1-REJECT
+ny08_yplus22      8     27.110    218.935     0.2163     4.0370        6 6.113858e-03     88      0   906 G1-REJECT
+ny12_yplus15     12     21.414    258.174     0.4343     6.0927       10 8.501735e-03    128      0   816 G1-REJECT
+[       OK ] SSTAutomaticWallChannel.LowReStressSweep (15592 ms)
+[ RUN      ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedLowReGate
+
+re_tau_180
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny02_yplus90      2     71.139    142.369     0.2091     3.6990        2 2.585332e-03      0      0   659 G1-OK
+ny03_yplus60      3     50.409    151.377     0.1590     2.9592        3 2.922829e-03      0      0   858 G1-OK
+ny04_yplus45      4     39.622    158.676     0.1185     2.2387        4 3.211476e-03      0      0   916 G1-OK
+ny05_yplus36      5     32.846    164.423     0.0865     1.6146        5 3.448319e-03     10      0   942 G1-REJECT
+ny06_yplus30      6     28.103    168.796     0.0622     0.9094        4 3.634184e-03    128      0   897 G1-REJECT
+ny08_yplus22      8     21.790    174.442     0.0309     0.6922        6 3.881368e-03    128      0   830 G1-REJECT
+ny12_yplus15     12     14.852    178.374     0.0090     0.9301       10 4.058350e-03    128     14   743 G1-REJECT
+
+re_tau_180
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny02_yplus90      2     53.776    107.593     0.4023    10.7391        2 1.476551e-03      0      0   643 G1-OK
+ny03_yplus60      3     40.911    122.917     0.3171     7.8205        3 1.927103e-03      0      0   852 G1-OK
+ny04_yplus45      4     35.234    141.418     0.2143     4.7633        4 2.550882e-03      0      0   921 G1-OK
+ny05_yplus36      5     32.088    161.349     0.1036     2.0131        5 3.320616e-03     40      0   963 G1-REJECT
+ny06_yplus30      6     30.051    181.705     0.0095     1.2289        6 4.211337e-03     60      0   930 G1-REJECT
+ny08_yplus22      8     27.110    218.935     0.2163     4.0370        6 6.113858e-03     88      0   906 G1-REJECT
+ny12_yplus15     12     21.414    258.174     0.4343     6.0927       10 8.501735e-03    128      0   816 G1-REJECT
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:964: Failure
+Expected: (automatic[i].reTauError) <= (kSSTLowReGateReTauError), actual: 0.40226344658487634 vs 0.22
+ny02_yplus90: automatic 0.40226344658487634 vs high-Re 0.20905968699244254
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:967: Failure
+Expected: (automatic[i].uPlusLInf) <= (kSSTLowReGateUPlusLInf), actual: 10.739094392224651 vs 3.9
+ny02_yplus90
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:964: Failure
+Expected: (automatic[i].reTauError) <= (kSSTLowReGateReTauError), actual: 0.31713002845533189 vs 0.22
+ny03_yplus60: automatic 0.31713002845533189 vs high-Re 0.15901693140618503
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:967: Failure
+Expected: (automatic[i].uPlusLInf) <= (kSSTLowReGateUPlusLInf), actual: 7.8205267197044535 vs 3.9
+ny03_yplus60
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:967: Failure
+Expected: (automatic[i].uPlusLInf) <= (kSSTLowReGateUPlusLInf), actual: 4.7632722599865076 vs 3.9
+ny04_yplus45
+
+[  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedLowReGate (29571 ms)
+[ RUN      ] SSTAutomaticWallChannel.IsDeterministic
+[       OK ] SSTAutomaticWallChannel.IsDeterministic (12008 ms)
+[ RUN      ] SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects
+
+re_tau_590
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny06              6     92.813    557.207     0.0556     1.3072        4 2.631321e-03      0      0  1051 G1-OK
+ny08              8     71.758    574.324     0.0266     0.6683        4 2.795465e-03      0      0   991 G1-OK
+ny12             12     49.132    589.852     0.0003     0.4784        6 2.948671e-03      0      0   922 G1-OK
+ny16             16     37.056    593.498     0.0059     1.0443        8 2.985242e-03      0      0   912 G1-OK
+ny20             20     29.610    593.281     0.0056     0.4498        8 2.983052e-03     72      0   963 G1-REJECT
+ny24             24     24.615    592.249     0.0038     0.5183       10 2.972688e-03    128      0   989 G1-REJECT
+ny32             32     18.407    591.060     0.0018     0.5449       14 2.960762e-03    128      0  1123 G1-REJECT
+
+re_tau_590
+mesh             ny        y1+     Re_tau   E_Re_tau    u+ Linf  samples        tau_w    out  floor  iter
+ny06              6     69.278    415.948     0.2950     9.0385        4 1.466288e-03      0      0  1079 G1-OK
+ny08              8     57.428    460.372     0.2197     6.2634        6 1.796218e-03      0      0  1076 G1-OK
+ny12             12     47.297    570.929     0.0323     1.2654        6 2.762513e-03      0      0   913 G1-OK
+ny16             16     42.285    681.795     0.1556     4.6739        8 3.939567e-03      2      0   791 G1-REJECT
+ny20             20     38.273    770.786     0.3064     7.6253        8 5.035093e-03     12      0   865 G1-REJECT
+ny24             24     34.541    833.317     0.4124     8.9494        8 5.885194e-03     16      0   983 G1-REJECT
+ny32             32     27.403    878.619     0.4892     8.5863        8 6.542466e-03    128      0  1265 G1-REJECT
+G1-rejected ny20     y1+ =  38.273 : E high-Re = 0.0056, E automatic = 0.3064 (sublayer 0 / blended 12 / log 116)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:1024: Failure
+Expected: (automatic[i].reTauError) <= (kSSTHighReGateReTauError), actual: 0.30641615238982711 vs 0.059
+ny20: refining past the validity band broke the automatic treatment
+
+G1-rejected ny24     y1+ =  34.541 : E high-Re = 0.0038, E automatic = 0.4124 (sublayer 0 / blended 16 / log 112)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:1024: Failure
+Expected: (automatic[i].reTauError) <= (kSSTHighReGateReTauError), actual: 0.41240153998033646 vs 0.059
+ny24: refining past the validity band broke the automatic treatment
+
+G1-rejected ny32     y1+ =  27.403 : E high-Re = 0.0018, E automatic = 0.4892 (sublayer 0 / blended 128 / log 0)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:1024: Failure
+Expected: (automatic[i].reTauError) <= (kSSTHighReGateReTauError), actual: 0.48918456458730464 vs 0.059
+ny32: refining past the validity band broke the automatic treatment
+
+[  FAILED  ] SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects (112699 ms)
+[----------] 7 tests from SSTAutomaticWallChannel (367677 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (367678 ms total)
+[  PASSED  ] 4 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate
+[  FAILED  ] SSTAutomaticWallChannel.DoesNotRegressTheAdoptedLowReGate
+[  FAILED  ] SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects
+
+ 3 FAILED TESTS
+
+[exited with code 0]

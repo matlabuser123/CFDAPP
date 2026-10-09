@@ -1,0 +1,78 @@
+P18.8 E13 -- CUDA DIAGNOSTICS
+date (WSL): 2026-10-02T03:30:45Z
+binary: build/qual-final/tests/unit/gpu/CFDGpuTests
+sha256: 418682c8332d74445564df30842d269c531600d20c42ea9f102392be44b1ae91
+sanitizer: Version 2025.2.1.0 (build 35969825) (public-release)
+GPU: NVIDIA RTX 5000 Ada Generation Laptop GPU, 8.9, 580.97
+nvcc that built the kernels: /usr/local/cuda-12.9/bin/nvcc
+
+KERNEL SCOPE: the filter below launches all five production kernels in one process --
+mixtureProperties, equationOfState, rateCoefficient, reactionSources, advanceReactor.
+filter: P188GpuEquivalence.*:P188DeviceInvalidState.*:P188SanitizerControl.DISABLED_SANITIZER_SCOPE_EveryKernelIsLaunched
+NATIVE run of that filter passes 13 test(s). Every sanitizer run below must
+report the SAME count, or it did not actually execute the kernels and is NO RESULT.
+
+=================== memcheck ===================
+  production kernels : 0 error(s),  13 of 13 test(s) passed
+  LIVE CONTROL (a deliberate out-of-bounds cudaMemcpy) : 2 error(s)
+  VERDICT: PASS -- 0 errors over all 13 tests, and the tool is proven live by the
+           control firing (2 error(s)) on the same binary and machine.
+
+  --- control output, the lines that matter ---
+    ========= Program hit cudaErrorInvalidValue (error 1) due to "invalid argument" on CUDA API call to cudaMemcpy.
+    ========= Program hit cudaErrorInvalidValue (error 1) due to "invalid argument" on CUDA API call to cudaGetLastError.
+    ========= ERROR SUMMARY: 2 errors
+
+=================== initcheck ===================
+  production kernels : 0 error(s),  13 of 13 test(s) passed
+  LIVE CONTROL (a production kernel reading an uninitialised buffer) : 2972 error(s)
+  VERDICT: PASS -- 0 errors over all 13 tests, and the tool is proven live by the
+           control firing (2972 error(s)) on the same binary and machine.
+
+  NOTE: that control routes through the REAL equationOfStateKernel and its real launcher
+  with one input deliberately left unwritten, so initcheck is proven live ON THESE
+  KERNELS rather than on a toy.
+  --- control output, the lines that matter ---
+    ========= Uninitialized __global__ memory read of size 8 bytes
+    ========= Uninitialized __global__ memory read of size 8 bytes
+    ========= Uninitialized __global__ memory read of size 8 bytes
+    ========= Uninitialized __global__ memory read of size 8 bytes
+
+=================== racecheck ===================
+  production kernels : 0 error(s),  13 of 13 test(s) passed
+  VERDICT: CLEAN, SCOPE-LIMITED -- 0 errors over all 13 tests. NO LIVE CONTROL
+           EXISTS for this tool here; see the scope note below.
+
+  SCOPE: racecheck detects SHARED-MEMORY hazards. These kernels declare no shared memory
+  (measured below), so a clean result follows from that absence and is NOT evidence about
+  cross-thread interference in general.
+
+=================== synccheck ===================
+  production kernels : 0 error(s),  13 of 13 test(s) passed
+  VERDICT: CLEAN, SCOPE-LIMITED -- 0 errors over all 13 tests. NO LIVE CONTROL
+           EXISTS for this tool here; see the scope note below.
+
+  SCOPE: synccheck detects divergent or illegal __syncthreads. These kernels contain none
+  (measured below), so a clean result follows from that absence.
+
+  WHAT DOES COVER CROSS-THREAD BEHAVIOUR: one thread per cell, no atomics and no
+  cross-thread reads (structural, measured below), plus E10's bitwise equality across
+  block sizes 64/128/256/512 and across repeated runs.
+
+=================== the structural claims, measured from the source ===================
+  cuda/kernels/DeviceSpeciesKernel.cu:
+    __shared__ declarations : 0
+    __syncthreads calls     : 0
+    atomic* calls           : 0
+    cooperative groups      : 0
+    warp shuffles           : 0
+  cuda/kernels/DeviceSpeciesFmadControl.cu:
+    __shared__ declarations : 0
+    __syncthreads calls     : 0
+    atomic* calls           : 0
+    cooperative groups      : 0
+    warp shuffles           : 0
+
+=================== OVERALL ===================
+  E13: PASS -- memcheck and initcheck clean over all 13 tests WITH their
+  controls firing; racecheck and synccheck clean with their scope stated.

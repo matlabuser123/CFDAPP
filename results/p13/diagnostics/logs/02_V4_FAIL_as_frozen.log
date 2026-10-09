@@ -1,0 +1,20 @@
+P13-005 -- V4 measured against the gate as frozen, before any amendment.
+Binary: build/final/apps/cli/cfdapp, all log points wired, no default changed.
+
+  cases: 7   stdout differing: 0   stderr differing: 7
+  C2 (stdout byte-identical):    PASS
+  V4 (default stderr unchanged): FAIL
+
+The seven stderr differences, in full:
+
+bad_physics              0a1 > [ERROR] case rejected: <case>/physics.json: field "density" must satisfy be > 0; received -1.000000
+malformed_json           0a1 > [ERROR] case rejected: malformed JSON in <case>/case.json: [json.exception.parse_error.101] ...
+missing_mesh             0a1 > [ERROR] case rejected: <case>/case.json: field "mesh" must satisfy reference a file that exists; ...
+does_not_converge        0a1 > [INFO] solve finished: MaxIterations, 8 outer iterations, residuals u=... discretization CPU
+mesh_quality_warning_cli 0a1 > [INFO] solve finished: ...
+valid_cavity             0a1 > [INFO] solve finished: ...
+valid_duct3d_cli_smoke   0a1 > [INFO] solve finished: ...
+
+Baseline stderr for the three rejection cases was NOT empty -- 103, 217 and 152
+bytes. The CLI already prints the same rejection text. So the [ERROR] line is a
+verbatim second copy of a message the user is already being shown.

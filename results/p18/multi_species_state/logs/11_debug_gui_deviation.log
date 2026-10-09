@@ -1,0 +1,52 @@
+==================================================================
+1. WHICH TEST MOVED, AND BY HOW MUCH
+==================================================================
+  baseline (results/p18/baseline + P17.11): 4 timeouts, incl. DriverSeegmiller.MeshSequence
+  this run:
+      47/2885 Test #2814: DriverSeegmiller.MeshSequence     Passed  7123.03 sec
+      51/2885 Test #2819: DriverSeegmiller.CorrectedSequenceIsDeterministic  ***Timeout 7200.64 sec
+      52/2885 Test #2821: DriverSeegmillerInlet.MappedInletPreservesTheMassFlow  ***Timeout 7200.65 sec
+      53/2885 Test #2822: DriverSeegmillerInlet.MediumGridAB  ***Timeout 7200.67 sec
+
+  MeshSequence passed with 76.97 s of margin
+  against the frozen 7200 s cap -- 1.07% under the limit.
+
+==================================================================
+2. THE TIMEOUT WAS NOT RAISED
+==================================================================
+    harness invoked with --timeout 7200
+    the three remaining timeouts fired at 7200.6x s, so the cap was in force.
+
+==================================================================
+3. CAN P18.1 REACH THIS TEST AT ALL?
+==================================================================
+  every file in the repository that names either new type:
+    include/cfd/species/MassFractionState.hpp
+    include/cfd/species/SpeciesRegistry.hpp
+    src/CMakeLists.txt
+    src/species/MassFractionState.cpp
+    src/species/SpeciesRegistry.cpp
+    tests/unit/species/test_mass_fraction_state.cpp
+
+  ...and whether the DriverSeegmiller sources reference them:
+    references inside tests/integration/backward_facing_step/ : 0
+    -> the test cannot construct, call or link against either new type. P18.1 adds two
+       translation units to cfdcore that nothing on this test's path references.
+
+==================================================================
+4. THE SAME TEST IN THE RELEASE CONFIGURATIONS OF THIS SAME RUN
+==================================================================
+    release_cuda:    7/2823 Test #2814: DriverSeegmiller.MeshSequence     Passed  1213.43 sec
+    -> it passes comfortably in Release. The Debug+GUI problem is a TIME BUDGET, not a
+       correctness defect -- which is exactly what P17.11 recorded when it left G10 PARTIAL.
+
+==================================================================
+5. WHOLE-RUN TIMING, WHICH IS THE ACTUAL EXPLANATION
+==================================================================
+    baseline debug_gui runtime : 8514 s
+    this run                   : 8172 s
+    delta                      : -4.0%
+
+    A test sitting at ~100% of the cap moves across it on a run that is 4% faster overall.
+    MeshSequence came in at 98.9% of the cap. This is ordinary machine variance on a
+    two-hour Debug solve, in the favourable direction.

@@ -1,0 +1,110 @@
+P17.9 REPOSITORY INTEGRITY
+date: 2026-09-28T07:39:23Z
+
+### 1. nothing was committed, pushed, reset or stashed ###
+  HEAD                     : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD at the P17.9 freeze : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD unchanged           : YES
+  branch                   : main
+  stash entries            : 0   (expected 0)
+
+### 2. the FROZEN documents are unchanged -- including after three amendments ###
+  b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40  acceptance_gate.md
+  0b463149053b5523cc82ac4b0e0aaeb654860bc4a30453749cb414ba61178e2b  configuration.md
+  f8c2388623ad6ec759267adb0a380609957115c08750a70d3faa0df8aaf1e898  tools/riemann_reference.py
+  61f3f62cbec50dab894b2125d29af05655d39d37cf255da9e97ad789927c6b18  tools/dry_run_detectors.py
+  ff7297a89b3f8da146f8603257e02601b15827c8c013cfac2baae277f188acba  tools/audit.sh
+  acceptance_gate.md               MATCHES the freeze
+  configuration.md                 MATCHES the freeze
+  tools/riemann_reference.py       MATCHES the freeze
+  tools/dry_run_detectors.py       MATCHES the freeze
+  tools/audit.sh                   MATCHES the freeze
+  THE AMENDMENTS DO NOT EDIT THE GATE. A1, A2 and A3 live in amendments/ and the gate's own
+  hash above is the proof -- it is the value logs/02_freeze.log recorded before any
+  benchmark existed.
+  audit.md, verification.md, regression.md, summary.md and amendments/ are EVIDENCE written
+  after the freeze and are deliberately NOT in the frozen set.
+
+### 3. the P17.9 delta, enumerated ###
+  PRODUCTION SOURCES ADDED OR MODIFIED: 0. P17.9 is a VALIDATION phase (gate criterion A3).
+  The P17.8 solver and P17.7 flux it drives, against their P17.9 freeze values:
+    include/cfd/compressible/DensityBasedSolver.hpp            UNCHANGED
+    src/compressible/DensityBasedSolver.cpp                    UNCHANGED
+    include/cfd/compressible/HllcFlux.hpp                      UNCHANGED
+    src/compressible/HllcFlux.cpp                              UNCHANGED
+    src/pressure_velocity/SIMPLE.cpp                           UNCHANGED
+    src/app/ProjectRunner.cpp                                  UNCHANGED
+
+  TEST SOURCES ADDED (3):
+    tests/integration/compressible/test_shock_validation.cpp   7e1a306b39c9944a611dc2f73e209813302b3cb3d68c5e62be8b9aa33784adba
+    tests/integration/compressible/ShockDetectors.hpp          5615e60dac77ab3c544fd13b1b5714fdc370207eb4552a6014e587035fae8458
+    tests/integration/compressible/shock_reference_data.hpp    19e7ed9efe5c6a4ac573929938403f932440e807d42a3321e8f8772410508caf
+    shock_reference_data.hpp is GENERATED from the frozen tools/riemann_reference.py by
+    tools/gen_shock_reference.py, which IMPORTS that file rather than editing it -- which is
+    why the reference's hash in section 2 still matches after the header was produced.
+
+  BUILD FILES EDITED (1) -- registration only, no target removed:
+    tests/integration/compressible/CMakeLists.txt              60a832bff9e1dc3e2a81ef82cc9f8df0e9a57db02b09b19fe016bb981ac5ec09
+    P17.9's OWN lines in it: 5 (the CFDShockValidationTests target)
+
+  CUDA FILES: 0.    CASE / CONFIG FILES: 0.    PRODUCTION CMakeLists: 0.
+
+### 4. the §47 hazards, each checked by name ###
+-- threshold weakening
+   THREE criteria were amended, all with the user's explicit authorisation, all recorded in
+   amendments/ with the original frozen text and the original failing result preserved:
+     A1  ADDS a criterion (stationary-contact width == 0)     -> gate STRENGTHENED
+     A2  replaces a dimensionally wrong C*dx bound with a derived scaling law, no constant
+     A3  replaces a CONTAMINATED estimator; every acceptance BOUND (S1-S5) unchanged
+   numeric acceptance bounds LOOSENED: 0
+   the frozen gate's own hash, unmoved: b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40
+-- removed tests: none
+   P17.9 shock TESTs          : 13
+   P17.8 density-based TESTs  : 32   (untouched)
+   P17.8 canonical TESTs      : 4   (untouched)
+   P17.7 HLLC TESTs           : 35   (untouched)
+   test targets removed anywhere: 0   (must be 0)
+-- accidental solver retuning: none
+   the solver files are byte-identical to their freeze values (section 3), and the core
+   library archive libcfdcore.a came out of BOTH regression configurations with the SAME
+   sha256 P17.8 recorded -- 188e5039... (release) and 1305a82a... (cpu-only).
+-- changed SIMPLE defaults: none
+   P17.9 references in the dispatch: 0   (must be 0)
+-- hidden fallback behaviour: none
+   the solver was not edited at all, so no fallback could have been introduced.
+   fallback occurrences in the solver: 0
+-- an exact Riemann solver duplicated into production: none
+   production files referencing the reference solver: 0   (must be 0)
+   SANITY: the same pattern finds the TEST files: 2   (must be > 0)
+-- unexpected generated files
+   profile CSVs under results/p17/shock_validation/data : 3   (evidence, §31)
+   control scratch files left (*.pristine)              : 0   (must be 0)
+   pre-format references kept (*.preformat)             : 2   (deliberate -- they ARE the format proof)
+   stray binaries under results/                        : 0   (must be 0)
+
+### 5. no planted control survived ###
+  P17.9 planted TWO controls, both inside src/compressible/DensityBasedSolver.cpp:
+    V1  a Rusanov / local Lax-Friedrichs flux
+    V2  hllFluxForControlOnly (HLL, contact wave deleted)
+  marker "V1 RUSANOV PLANT"         occurrences in the solver: 0
+  marker "hllFluxForControlOnly"    occurrences in the solver: 0
+  marker "0.5 \* smax"              occurrences in the solver: 0
+  SANITY -- the marker search must be able to find something:
+    hllFluxForControlOnly in HllcFlux.hpp, where it legitimately lives: 1   (must be > 0)
+  AUTHORITATIVE, beyond the greps -- the solver's SHA-256:
+    src/compressible/DensityBasedSolver.cpp        53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+    must equal the freeze value 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+
+### 6. git status / diff --stat / diff --check ###
+  tracked files modified in total : 129
+  untracked paths in total        : 129
+  (both dominated by ~286 pre-existing uncommitted files from earlier phases against a
+   2026-09-21 HEAD; section 3 is the P17.9 delta.)
+  runtime noise under results/validation still modified: 0   (must be 0 -- classified timing-only and restored)
+  git diff --stat, P17.9's edited TRACKED file:
+     tests/integration/compressible/CMakeLists.txt | 56 +++++++++++++++++++++++++++
+     1 file changed, 56 insertions(+)
+  git diff --check (whitespace errors):
+    CLEAN
+
+INTEGRITY FAILURES: 0   (must be 0)

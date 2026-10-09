@@ -1,0 +1,39 @@
+four-way channel comparison added
+BUILD OK
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SSTMomentumFluxChannel.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SSTMomentumFluxChannel
+[ RUN      ] SSTMomentumFluxChannel.FourWayComparisonAtReTau590
+
+Re_tau = 590 -- four wall treatments, same meshes, same metrics
+mesh        y1+    E hiRe   E blend    E comp    E flux   u+ hiRe   u+ flux  tau flux u_tau flx   iters     G1
+ny06     92.813    0.0556    0.0347    0.0304    0.0342    1.3072    0.7837 2.752e-03   0.05246    1050     OK
+ny12     49.132    0.0003    0.0483    0.0482    0.0483    0.4784    1.6559 3.242e-03   0.05694     933     OK
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:1189: Failure
+Expected: (flux.uPlusLInf) <= (kSSTHighReGateUPlusLInf), actual: 1.6558645435094856 vs 1.4
+ny12
+
+ny16     37.056    0.0059    0.0698    0.0464    0.0698    1.0443    2.5608 3.376e-03   0.05811     959     OK
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:1188: Failure
+Expected: (flux.reTauError) <= (kSSTHighReGateReTauError), actual: 0.069791236718541594 vs 0.059
+ny16
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/turbulence_channel/test_wall_function_channel.cpp:1189: Failure
+Expected: (flux.uPlusLInf) <= (kSSTHighReGateUPlusLInf), actual: 2.5608202767955284 vs 1.4
+ny16
+
+ny32     18.407    0.0018    0.1199    0.0524    0.1243    0.5449    2.9226 3.729e-03   0.06107    1435 REJECT
+[  FAILED  ] SSTMomentumFluxChannel.FourWayComparisonAtReTau590 (150365 ms)
+[----------] 1 test from SSTMomentumFluxChannel (150365 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (150365 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SSTMomentumFluxChannel.FourWayComparisonAtReTau590
+
+ 1 FAILED TEST
+
+[exited with code 0]

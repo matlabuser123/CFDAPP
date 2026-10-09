@@ -1,0 +1,63 @@
+P17.4 REPOSITORY INTEGRITY
+date: 2026-09-27T00:33:20Z
+
+### 1. nothing was committed, pushed, reset or stashed ###
+  HEAD                     : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD at the P17.4 freeze : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD unchanged           : YES
+  branch                   : main
+  stash entries            : 0   (expected 0)
+  commits ahead of HEAD~0  : 0 by construction (HEAD unchanged)
+
+### 2. the files P17.4 was allowed to touch, and no others ###
+  FORBIDDEN (must hash to the freeze):
+    e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59  src/physics/MomentumEquation.cpp
+      expected e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59
+    7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af  include/cfd/physics/MomentumEquation.hpp
+      expected 7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af
+
+  P17.4's own files, as they now stand:
+    842b927fb63f9cff4306fa8d1f1c8bbc3e06088dffd8e9b88308513e253dcc5b  include/cfd/compressible/DilatationalStress.hpp
+    fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+    ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510  include/cfd/compressible/CompressibleRelaxedMomentum.hpp
+    0bdff82ec3e717bc8fc8aac01f5bf06914153039673bcf43cfcfe8902532007d  src/compressible/CompressibleRelaxedMomentum.cpp
+    6d6a3934b295af705653a6a335db2a622284376ffd4b465258c05b45c5d0015e  tests/unit/compressible/test_compressible_momentum.cpp
+    803978fab662ee51473c1f351794e42d3277457d976b5f0643a46d5430fdfbb7  src/CMakeLists.txt
+
+### 3. no planted control marker survived ###
+  surviving control markers in include/ src/ cuda/ : 0   (expected 0)
+  surviving L5b probe marker                      : 0
+0   (expected 0)
+
+### 4. no control scratch files left in the tree ###
+  *.pristine / *.pristine2 under results/controls : 3
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p17/compressible_momentum/controls/CompressibleMomentum.cpp.pristine
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p17/compressible_momentum/controls/CompressibleRelaxedMomentum.hpp.pristine
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p17/compressible_momentum/controls/DilatationalStress.cpp.pristine
+  Control scratch copies from the FIRST controls run, kept deliberately.
+  What matters: 0 markers survived (section 3) and both guarded files hash to the
+  freeze (section 2), so no planted defect reached the tree.
+
+### 5. clang-format across every file P17.4 touched ###
+  exit: 0   (0 = clean)
+
+### 6. the code fingerprint ###
+  P17_CODE_FINGERPRINT now              : 4e253ce4ce955f629002a0e6102bb864ff564c1492d007ed7300fc05a019cc87
+  at the P17.3 close (the P17.4 freeze) : 437ac0e3d9f09692f6bf415d7b1cce38b65d2c02e0158a346869232ad800a272
+  NOTE: this MUST differ -- P17.4 changed code. It is an identifier, not a pass/fail.
+        The pass/fail use is that it must not move DURING a regression run.
+
+### 7. untracked files P17.4 introduced ###
+    include/cfd/compressible/DilatationalStress.hpp  untracked, as expected for a new file
+    src/compressible/DilatationalStress.cpp  untracked, as expected for a new file
+  P17.4 new files                : 2
+  ALL untracked in the tree      : 124
+  attributable to EARLIER phases : 122   (P13-001 restart, thermal,
+                                   P16 wall functions, GPU turbulence)
+
+### 8. the test-suite size ###
+  TESTs in test_compressible_momentum.cpp : 22   (7 at the freeze, +15)
+  DERIVED, not hard-coded, so this line cannot go stale the way the P17.2
+  PREDICTED 21 constant did.
+
+done: 2026-09-27T00:33:34Z

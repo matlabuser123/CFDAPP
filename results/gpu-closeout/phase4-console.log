@@ -1,0 +1,94 @@
+##################### A. clean Release+CUDA build #####################
+    removed /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final
+    configure rc=0
+    build rc=0
+  === errors ===
+  rc=0
+
+##################### B. build freshness #####################
+  1789943872.5372416000 src/pressure_velocity/SIMPLE.cpp
+  # oldest test binary
+  1789966218.8743182000 build/final/tests/unit/core/CFDCoreTests
+  
+  # ninja after the build (must be: no work to do)
+  ninja: no work to do.
+  rc=0
+
+##################### C. complete CTest, Release + CUDA #####################
+  100% tests passed, 0 tests failed out of 1998
+  Total Test time (real) = 1404.93 sec
+  freshness after ctest: ninja: no work to do.
+  rc=0
+
+##################### D. 15 GPU-DISC differential gates #####################
+  
+  15/15 GPU-DISC differential gates green on the FINAL binaries
+  rc=0
+
+##################### E. GPU-PIPE residency gates #####################
+  LOOP TRANSFER GUARD: PASS
+  transfers rc=0
+  cases=12 failures=0  values compared=217755  bitwise=217755
+  RESIDENT SIMPLE LOOP COMPARISON: PASS (bitwise)
+  compare rc=0
+  DISPATCH PROBE: PASS
+  dispatch rc=0
+  LIFECYCLE: PASS
+  lifecycle rc=0
+
+##################### F. full CPU/GPU equivalence #####################
+  cases=15 failures=0
+  PRODUCTION EQUIVALENCE: PASS
+  rc=0
+
+##################### G. production GPU CLI smoke #####################
+    exit code: 0
+    output files produced: 4
+  PRODUCTION SMOKE: PASS
+  rc=0
+
+##################### H. determinism #####################
+  DETERMINISM: PASS -- every repeated solve is bitwise identical
+  rc=0
+
+##################### I. CUDA diagnostics, re-run #####################
+  clean runs: 16 / 16
+  vacuous runs: 0
+  rc=0
+
+##################### J. CPU-only build and full suite #####################
+    nvcc invocations in build.ninja: 0  (must be 0)
+    cfdapp does not link libcudart -- correct
+    100% tests passed, 0 tests failed out of 1932
+  rc=0
+
+##################### K. Debug + GUI #####################
+  100% tests passed, 0 tests failed out of 1984
+  Total Test time (real) = 1273.28 sec
+  rc=0
+
+##################### L. sanitizers at CI settings #####################
+  100% tests passed, 0 tests failed out of 1932
+  Total Test time (real) = 3959.69 sec
+  sanitizer reports: 0
+  rc=0
+
+############################## PHASE 4 SUMMARY ##############################
+  build         rc=0  PASS
+  fresh         rc=0  PASS
+  ctest         rc=0  PASS
+  gates         rc=0  PASS
+  transfers     rc=0  PASS
+  compare       rc=0  PASS
+  dispatch      rc=0  PASS
+  lifecycle     rc=0  PASS
+  equiv         rc=0  PASS
+  smoke         rc=0  PASS
+  determinism   rc=0  PASS
+  diagnostics   rc=0  PASS
+  cpuonly       rc=0  PASS
+  debug_build   rc=0  PASS
+  debug         rc=0  PASS
+  asan_build    rc=0  PASS
+  asan          rc=0  PASS
+PHASE 4 LOCAL QUALIFICATION: ALL PASS

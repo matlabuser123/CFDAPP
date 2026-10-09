@@ -1,0 +1,934 @@
+{
+  "format_version": 1,
+  "kind": "production_validation",
+  "study": "turbulent_channel",
+  "description": "Turbulent channel Re_tau = 180: k-epsilon, k-omega, SST on coarse (48x12), medium (64x16), fine (96x24)",
+  "reference": "Kim, Moin & Moser (1987) J. Fluid Mech. 177; Moser, Kim & Mansour (1999) Phys. Fluids 11: Re_tau 180 summary statistics (Re_tau 180, Re_bulk 5600, U_c+ 18.2, U_b+ 15.6, Cf 8.2e-3) and the log law u+ = ln(y+)/0.41 + 5.0 (validation/data/turbulence/channel_flow/)",
+  "method": {
+    "error_norms": "against sample-point reference data (benchmark tables): unweighted L1 = mean|e|, L2 = sqrt(mean e^2), Linf = max|e| over the tabulated stations; against a field: volume-weighted (cfd/validation/ErrorNorms.hpp)",
+    "solve_acceptance": "a run is accepted only if SIMPLE Converged, every field is finite and the global mass imbalance is within tolerance (P12-NUM-005 assessSimpleSolve)",
+    "grid_convergence": "P12-NUM-005 three-grid study of this code's own solutions (observed order, Richardson extrapolation, GCI) -- separate from the error against the reference",
+    "indexing": "runs listed in execution order; grid sequences coarse -> fine"
+  },
+  "coefficients": {
+    "re_bulk": 5600.0,
+    "re_tau_reference": 180.0,
+    "channel_height": 2.0,
+    "channel_length": 16.0,
+    "density": 1.0,
+    "viscosity": 0.00035714285714285714,
+    "bulk_velocity": 1.0
+  },
+  "configuration": {
+    "formulation": "inlet/outlet channel (no periodic BCs in CFDApp), L = 8H, uniform inlet, 5 % intensity, mixing length 0.07 H; comparison station 0.9 L",
+    "algorithm": "SIMPLE, upwind convection, alpha 0.5/0.3, u/p gates 2e-5/5e-4, continuity 1e-6, turbulence 1e-5 (P2-TURB-007 settings)",
+    "wall_shear": "secant mu U(y1)/y1 (P2-TURB-007) and momentum balance -dp/dx delta (pair-averaged dp/dx between 0.8 L and 0.9 L)",
+    "thresholds": "P2-TURB-007 locked Re_tau / log-law bounds per grid, reused unchanged"
+  },
+  "runs": [
+    {
+      "id": "turbulent_channel_re_tau_180_kEpsilon/coarse/upwind",
+      "case": "turbulent_channel_re_tau_180_kEpsilon",
+      "reynolds": 180.0,
+      "mesh": "coarse",
+      "nx": 48,
+      "ny": 12,
+      "cells": 576,
+      "h": 0.23570226039551584,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 413,
+      "mass_imbalance": 3.2000254529540584e-10,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 15.163031106748555,
+          "l2": 15.45095487490291,
+          "linf": 18.276872634749342,
+          "samples": 4,
+          "weight": 4.0
+        },
+        "u_plus_all_regions": {
+          "l1": 11.69091693489982,
+          "l2": 12.95558444059385,
+          "linf": 18.276872634749342,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 11.345928130307756,
+          "l2": 11.349224329102896,
+          "linf": 11.735507604289282,
+          "samples": 6,
+          "weight": 6.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 8544.0,
+        "pressure_linear_iterations": 40693.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.9941389307600037e-05,
+        "final_v_residual": 4.886600144858721e-07,
+        "final_pressure_residual": 0.00016874162801261644,
+        "final_continuity_residual": 4.0551772627135686e-11,
+        "wall_shear_bottom": 0.001583653155314716,
+        "wall_shear_top": 0.001583653155313838,
+        "friction_velocity": 0.03979513984539715,
+        "re_tau": 111.42639156711202,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.3809644912938221,
+        "skin_friction_coefficient": 0.003167306310629432,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 34.56066002643313,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 25.128696717362175,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 9.285532630592668,
+        "development_relative_difference": 0.01064719708636238,
+        "pressure_gradient": -0.025642159100759936,
+        "wall_shear_momentum_balance": 0.025642159100759936,
+        "friction_velocity_momentum_balance": 0.16013169299286115,
+        "re_tau_momentum_balance": 448.3687403800112,
+        "skin_friction_coefficient_momentum_balance": 0.05128431820151987,
+        "u_bulk_plus_momentum_balance": 6.244859973125877,
+        "log_region_samples": 4.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 111.43 vs 180: relative error 0.3810 (bound 0.45)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 15.451 over 4 samples (bound 18.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0106 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_kEpsilon/medium/upwind",
+      "case": "turbulent_channel_re_tau_180_kEpsilon",
+      "reynolds": 180.0,
+      "mesh": "medium",
+      "nx": 64,
+      "ny": 16,
+      "cells": 1024,
+      "h": 0.1767766952966369,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 448,
+      "mass_imbalance": 2.154331555509481e-08,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 11.597951537001164,
+          "l2": 11.985291384806068,
+          "linf": 14.613348630381001,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_all_regions": {
+          "l1": 9.503339501751524,
+          "l2": 10.530629634369582,
+          "linf": 14.613348630381001,
+          "samples": 8,
+          "weight": 8.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 10.842933051230933,
+          "l2": 10.846337534833188,
+          "linf": 11.241560390972868,
+          "samples": 7,
+          "weight": 7.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 9501.0,
+        "pressure_linear_iterations": 53357.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.9895976742257423e-05,
+        "final_v_residual": 5.580075555834963e-07,
+        "final_pressure_residual": 0.00018041592311688313,
+        "final_continuity_residual": 2.7869262046609243e-11,
+        "wall_shear_bottom": 0.0018680019081260078,
+        "wall_shear_top": 0.0018680019081243815,
+        "friction_velocity": 0.04322038764432832,
+        "re_tau": 121.0170854041193,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.3276828588660039,
+        "skin_friction_coefficient": 0.0037360038162520155,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 31.15333208447307,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 23.137228852023657,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 7.563567837757456,
+        "development_relative_difference": 0.011280454166448864,
+        "pressure_gradient": -0.0230671926203778,
+        "wall_shear_momentum_balance": 0.0230671926203778,
+        "friction_velocity_momentum_balance": 0.15187887483247234,
+        "re_tau_momentum_balance": 425.26084953092254,
+        "skin_friction_coefficient_momentum_balance": 0.0461343852407556,
+        "u_bulk_plus_momentum_balance": 6.584194155395441,
+        "log_region_samples": 6.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 121.02 vs 180: relative error 0.3277 (bound 0.40)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 11.985 over 6 samples (bound 15.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0113 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_kEpsilon/fine/upwind",
+      "case": "turbulent_channel_re_tau_180_kEpsilon",
+      "reynolds": 180.0,
+      "mesh": "fine",
+      "nx": 96,
+      "ny": 24,
+      "cells": 2304,
+      "h": 0.11785113019775792,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 489,
+      "mass_imbalance": 3.667125331868748e-08,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 8.07548425852469,
+          "l2": 8.36848320235681,
+          "linf": 10.096477135483163,
+          "samples": 9,
+          "weight": 9.0
+        },
+        "u_plus_all_regions": {
+          "l1": 6.516601541563364,
+          "l2": 7.322186180024059,
+          "linf": 10.096477135483163,
+          "samples": 12,
+          "weight": 12.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 10.178173345674724,
+          "l2": 10.181260294186195,
+          "linf": 10.556907041075306,
+          "samples": 11,
+          "weight": 11.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 10754.0,
+        "pressure_linear_iterations": 83700.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.99105656320836e-05,
+        "final_v_residual": 7.497537909159782e-07,
+        "final_pressure_residual": 0.00019642332400891802,
+        "final_continuity_residual": 2.0332046436523363e-11,
+        "wall_shear_bottom": 0.002373400564296389,
+        "wall_shear_top": 0.0023734005642934925,
+        "friction_velocity": 0.04871755909624772,
+        "re_tau": 136.40916546949362,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.2421713029472577,
+        "skin_friction_coefficient": 0.004746801128592778,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 26.823379866130622,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 20.526479949957533,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 5.683715227895567,
+        "development_relative_difference": 0.011745595776278525,
+        "pressure_gradient": -0.020021667544209237,
+        "wall_shear_momentum_balance": 0.020021667544209237,
+        "friction_velocity_momentum_balance": 0.14149794183736114,
+        "re_tau_momentum_balance": 396.1942371446112,
+        "skin_friction_coefficient_momentum_balance": 0.04004333508841847,
+        "u_bulk_plus_momentum_balance": 7.067240604456338,
+        "log_region_samples": 9.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 136.41 vs 180: relative error 0.2422 (bound 0.32)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 8.368 over 9 samples (bound 12.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0117 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_kOmega/coarse/upwind",
+      "case": "turbulent_channel_re_tau_180_kOmega",
+      "reynolds": 180.0,
+      "mesh": "coarse",
+      "nx": 48,
+      "ny": 12,
+      "cells": 576,
+      "h": 0.23570226039551584,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 739,
+      "mass_imbalance": 4.442825968231645e-09,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 16.21266415037615,
+          "l2": 16.399807742546965,
+          "linf": 18.75098774655438,
+          "samples": 4,
+          "weight": 4.0
+        },
+        "u_plus_all_regions": {
+          "l1": 12.56126061622575,
+          "l2": 13.810646238532646,
+          "linf": 18.75098774655438,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 10.896622477908586,
+          "l2": 10.901853168994352,
+          "linf": 11.419963921610245,
+          "samples": 6,
+          "weight": 6.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 13449.0,
+        "pressure_linear_iterations": 59366.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.6094042162219827e-05,
+        "final_v_residual": 7.387185394610448e-07,
+        "final_pressure_residual": 0.00031910262081295067,
+        "final_continuity_residual": 3.7120382533442125e-11,
+        "wall_shear_bottom": 0.0014918764953027052,
+        "wall_shear_top": 0.001491876495302264,
+        "friction_velocity": 0.03862481709086407,
+        "re_tau": 108.1494878544194,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.3991695119198922,
+        "skin_friction_coefficient": 0.0029837529906054103,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 34.96197077067271,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 25.890090240363364,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 9.012457321201618,
+        "development_relative_difference": 0.0037543625872036054,
+        "pressure_gradient": -0.023165061503957023,
+        "wall_shear_momentum_balance": 0.023165061503957023,
+        "friction_velocity_momentum_balance": 0.1522007276722323,
+        "re_tau_momentum_balance": 426.16203748225047,
+        "skin_friction_coefficient_momentum_balance": 0.046330123007914045,
+        "u_bulk_plus_momentum_balance": 6.570270821263894,
+        "log_region_samples": 4.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 108.15 vs 180: relative error 0.3992 (bound 0.45)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 16.400 over 4 samples (bound 18.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0038 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_kOmega/medium/upwind",
+      "case": "turbulent_channel_re_tau_180_kOmega",
+      "reynolds": 180.0,
+      "mesh": "medium",
+      "nx": 64,
+      "ny": 16,
+      "cells": 1024,
+      "h": 0.1767766952966369,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 808,
+      "mass_imbalance": 4.861476110562535e-09,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 13.241199306800368,
+          "l2": 13.53361100496583,
+          "linf": 15.992328185063407,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_all_regions": {
+          "l1": 10.841879918010356,
+          "l2": 11.911078429524455,
+          "linf": 15.992328185063407,
+          "samples": 8,
+          "weight": 8.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 9.987381276483651,
+          "l2": 9.993378700291847,
+          "linf": 10.678283536925916,
+          "samples": 7,
+          "weight": 7.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 14092.0,
+        "pressure_linear_iterations": 73256.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.007114386447686e-05,
+        "final_v_residual": 4.6824489980144844e-07,
+        "final_pressure_residual": 0.00021311893860267766,
+        "final_continuity_residual": 2.970875086824085e-11,
+        "wall_shear_bottom": 0.0016902905719278698,
+        "wall_shear_top": 0.001690290571928276,
+        "friction_velocity": 0.04111314354227696,
+        "re_tau": 115.11680191837549,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.36046221156458064,
+        "skin_friction_coefficient": 0.0033805811438557395,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 32.41039833296287,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 24.32312184962681,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 7.194800119898468,
+        "development_relative_difference": 0.00521098879418156,
+        "pressure_gradient": -0.019551411914210896,
+        "wall_shear_momentum_balance": 0.019551411914210896,
+        "friction_velocity_momentum_balance": 0.1398263634448486,
+        "re_tau_momentum_balance": 391.5138176455761,
+        "skin_friction_coefficient_momentum_balance": 0.03910282382842179,
+        "u_bulk_plus_momentum_balance": 7.151727151900276,
+        "log_region_samples": 6.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 115.12 vs 180: relative error 0.3605 (bound 0.40)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 13.534 over 6 samples (bound 15.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0052 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_kOmega/fine/upwind",
+      "case": "turbulent_channel_re_tau_180_kOmega",
+      "reynolds": 180.0,
+      "mesh": "fine",
+      "nx": 96,
+      "ny": 24,
+      "cells": 2304,
+      "h": 0.11785113019775792,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 882,
+      "mass_imbalance": 2.866581960692116e-08,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 10.272459222180714,
+          "l2": 10.478579667857042,
+          "linf": 12.096207454757941,
+          "samples": 9,
+          "weight": 9.0
+        },
+        "u_plus_all_regions": {
+          "l1": 8.382541340046577,
+          "l2": 9.220701265041283,
+          "linf": 12.096207454757941,
+          "samples": 12,
+          "weight": 12.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 8.98453278930942,
+          "l2": 8.994319727434439,
+          "linf": 9.908194799250278,
+          "samples": 11,
+          "weight": 11.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 14676.0,
+        "pressure_linear_iterations": 107005.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 5.29027361221253e-06,
+        "final_v_residual": 2.616177529919637e-07,
+        "final_pressure_residual": 0.00011908054034527084,
+        "final_continuity_residual": 2.0801307046991342e-11,
+        "wall_shear_bottom": 0.00203830262063522,
+        "wall_shear_top": 0.0020383026206342502,
+        "friction_velocity": 0.04514756494690738,
+        "re_tau": 126.41318185134067,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.29770454527032963,
+        "skin_friction_coefficient": 0.00407660524127044,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 28.731951630679433,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 22.14958882446882,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 5.267215910472528,
+        "development_relative_difference": 0.007250365260580383,
+        "pressure_gradient": -0.016004292349195714,
+        "wall_shear_momentum_balance": 0.016004292349195714,
+        "friction_velocity_momentum_balance": 0.12650807226890984,
+        "re_tau_momentum_balance": 354.22260235294755,
+        "skin_friction_coefficient_momentum_balance": 0.03200858469839143,
+        "u_bulk_plus_momentum_balance": 7.904633926239633,
+        "log_region_samples": 9.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 126.41 vs 180: relative error 0.2977 (bound 0.32)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 10.479 over 9 samples (bound 12.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0073 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_SST/coarse/upwind",
+      "case": "turbulent_channel_re_tau_180_SST",
+      "reynolds": 180.0,
+      "mesh": "coarse",
+      "nx": 48,
+      "ny": 12,
+      "cells": 576,
+      "h": 0.23570226039551584,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1223,
+      "mass_imbalance": 9.509246404193483e-09,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 13.042565929373914,
+          "l2": 13.070094537711295,
+          "linf": 13.713064517484431,
+          "samples": 4,
+          "weight": 4.0
+        },
+        "u_plus_all_regions": {
+          "l1": 10.48617868325807,
+          "l2": 11.188501531993444,
+          "linf": 13.713064517484431,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 7.584710067550004,
+          "l2": 7.592365791285731,
+          "linf": 8.090168056783071,
+          "samples": 5,
+          "weight": 5.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 20466.0,
+        "pressure_linear_iterations": 121884.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 1.198250245707674e-05,
+        "final_v_residual": 1.4060237426084664e-07,
+        "final_pressure_residual": 0.00018232230374195008,
+        "final_continuity_residual": 2.297738283960848e-11,
+        "wall_shear_bottom": 0.001724216734123039,
+        "wall_shear_top": 0.0017242167343335094,
+        "friction_velocity": 0.04152368883087146,
+        "re_tau": 116.26632872644008,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.35407595151977733,
+        "skin_friction_coefficient": 0.003448433468246078,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 29.83275640099896,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 24.082638805840723,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 9.68886072720334,
+        "development_relative_difference": 0.010709795112218989,
+        "pressure_gradient": -0.012767945897104768,
+        "wall_shear_momentum_balance": 0.012767945897104768,
+        "friction_velocity_momentum_balance": 0.11299533573163438,
+        "re_tau_momentum_balance": 316.38694004857626,
+        "skin_friction_coefficient_momentum_balance": 0.025535891794209536,
+        "u_bulk_plus_momentum_balance": 8.849922817832189,
+        "log_region_samples": 4.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 116.27 vs 180: relative error 0.3541 (bound 0.45)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 13.070 over 4 samples (bound 18.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0107 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_SST/medium/upwind",
+      "case": "turbulent_channel_re_tau_180_SST",
+      "reynolds": 180.0,
+      "mesh": "medium",
+      "nx": 64,
+      "ny": 16,
+      "cells": 1024,
+      "h": 0.1767766952966369,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1286,
+      "mass_imbalance": 2.917965674642531e-09,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 8.588447732575425,
+          "l2": 8.623609214480958,
+          "linf": 9.24254729046861,
+          "samples": 6,
+          "weight": 6.0
+        },
+        "u_plus_all_regions": {
+          "l1": 7.359409117884822,
+          "l2": 7.727782052571965,
+          "linf": 9.24254729046861,
+          "samples": 8,
+          "weight": 8.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 4.966850983407141,
+          "l2": 4.989970065749616,
+          "linf": 5.869814993113554,
+          "samples": 7,
+          "weight": 7.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 21006.0,
+        "pressure_linear_iterations": 123792.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 7.755567738924862e-06,
+        "final_v_residual": 1.1019304621521477e-07,
+        "final_pressure_residual": 0.0001217799782208937,
+        "final_continuity_residual": 3.121111611075908e-11,
+        "wall_shear_bottom": 0.0022126533447550906,
+        "wall_shear_top": 0.0022126533447545133,
+        "friction_velocity": 0.04703884931367997,
+        "re_tau": 131.7087780783039,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.268284566231645,
+        "skin_friction_coefficient": 0.004425306689510181,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 25.357345452281205,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 21.259023436807947,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 8.231798629893994,
+        "development_relative_difference": 0.009100945391727833,
+        "pressure_gradient": -0.008405377038800376,
+        "wall_shear_momentum_balance": 0.008405377038800376,
+        "friction_velocity_momentum_balance": 0.0916808433578159,
+        "re_tau_momentum_balance": 256.7063614018845,
+        "skin_friction_coefficient_momentum_balance": 0.016810754077600753,
+        "u_bulk_plus_momentum_balance": 10.907404026565914,
+        "log_region_samples": 6.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 131.71 vs 180: relative error 0.2683 (bound 0.40)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 8.624 over 6 samples (bound 15.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0091 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "turbulent_channel_re_tau_180_SST/fine/upwind",
+      "case": "turbulent_channel_re_tau_180_SST",
+      "reynolds": 180.0,
+      "mesh": "fine",
+      "nx": 96,
+      "ny": 24,
+      "cells": 2304,
+      "h": 0.11785113019775792,
+      "scheme": "upwind",
+      "solver_status": "Converged",
+      "accepted": true,
+      "rejection_reason": "",
+      "iterations": 1360,
+      "mass_imbalance": 9.031043197993416e-09,
+      "errors": {
+        "u_plus_log_region": {
+          "l1": 3.123845732016509,
+          "l2": 3.1650385680792024,
+          "linf": 3.792541616935628,
+          "samples": 10,
+          "weight": 10.0
+        },
+        "u_plus_all_regions": {
+          "l1": 2.9408123888679256,
+          "l2": 3.0273496505949424,
+          "linf": 3.792541616935628,
+          "samples": 12,
+          "weight": 12.0
+        },
+        "u_plus_log_region_momentum_balance_u_tau": {
+          "l1": 1.520194883528822,
+          "l2": 1.5990103195256138,
+          "linf": 2.369566905608618,
+          "samples": 10,
+          "weight": 10.0
+        }
+      },
+      "diagnostics": {
+        "momentum_linear_iterations": 23449.0,
+        "pressure_linear_iterations": 184993.0,
+        "linear_solver_fallbacks": 0.0,
+        "final_u_residual": 4.1495002716204555e-06,
+        "final_v_residual": 8.766960807057638e-08,
+        "final_pressure_residual": 6.824294460417781e-05,
+        "final_continuity_residual": 2.0783098286066462e-11,
+        "wall_shear_bottom": 0.00329239184206603,
+        "wall_shear_top": 0.003292391842078559,
+        "friction_velocity": 0.05737936773846528,
+        "re_tau": 160.6622296677028,
+        "re_tau_reference": 180.0,
+        "re_tau_relative_error": 0.1074320574016511,
+        "skin_friction_coefficient": 0.00658478368413206,
+        "skin_friction_coefficient_reference": 0.0082,
+        "u_centerline_plus": 19.724707988489993,
+        "u_centerline_plus_reference": 18.2,
+        "u_bulk_plus": 17.427867183165773,
+        "u_bulk_plus_reference": 15.6,
+        "first_cell_y_plus": 6.694259569487616,
+        "development_relative_difference": 0.007256758243582309,
+        "pressure_gradient": -0.005329926025543778,
+        "wall_shear_momentum_balance": 0.005329926025543778,
+        "friction_velocity_momentum_balance": 0.07300634236519302,
+        "re_tau_momentum_balance": 204.41775862254045,
+        "skin_friction_coefficient_momentum_balance": 0.010659852051087555,
+        "u_bulk_plus_momentum_balance": 13.697440079901423,
+        "log_region_samples": 10.0,
+        "re_tau_bracket_contains_reference": 1.0
+      },
+      "checks": [
+        {
+          "name": "solve_accepted",
+          "passed": true,
+          "detail": "Converged "
+        },
+        {
+          "name": "re_tau",
+          "passed": true,
+          "detail": "achieved Re_tau 160.66 vs 180: relative error 0.1074 (bound 0.32)"
+        },
+        {
+          "name": "log_law",
+          "passed": true,
+          "detail": "u+ vs log law, y+ > 30: L2 3.165 over 10 samples (bound 12.0)"
+        },
+        {
+          "name": "developed",
+          "passed": true,
+          "detail": "profile change 0.8 L -> 0.9 L 0.0073 (bound 0.05)"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "orders": [],
+  "grid_convergence": [],
+  "gates": [
+    {
+      "name": "turbulent_channel_re_tau_180_kEpsilon_re_tau_trend",
+      "passed": true,
+      "detail": "Re_tau error 0.380964 -> 0.327683 -> 0.242171"
+    },
+    {
+      "name": "turbulent_channel_re_tau_180_kOmega_re_tau_trend",
+      "passed": true,
+      "detail": "Re_tau error 0.399170 -> 0.360462 -> 0.297705"
+    },
+    {
+      "name": "turbulent_channel_re_tau_180_SST_re_tau_trend",
+      "passed": true,
+      "detail": "Re_tau error 0.354076 -> 0.268285 -> 0.107432"
+    }
+  ],
+  "limitations": [
+    "No velocity wall function: on these grids the first cell is outside the viscous sublayer and the secant wall shear under-estimates tau_w -- Re_tau, Cf and u+ carry that bias; the momentum-balance values bound it from the other side.",
+    "Inlet/outlet channel instead of a periodic one: at 0.8-0.9 L the profile shape has stopped changing (< 5 %) but the flow is not momentum-developed -- the momentum-balance wall shear (-dp/dx delta) includes the still-accelerating core and over-estimates tau_w (Re_tau 204-448); secant and balance values bracket the true wall shear.",
+    "The reference is a set of DNS summary statistics plus the log law, not a point-by-point DNS profile (see validation/data/turbulence/channel_flow/README.md).",
+    "Runtimes are wall-clock and not deterministic."
+  ],
+  "passed": true,
+  "runtime": {
+    "note": "measured wall time -- with grid_convergence[*].grids[*].runtime_seconds, the only non-deterministic part of this report",
+    "runs": [
+      {
+        "id": "turbulent_channel_re_tau_180_kEpsilon/coarse/upwind",
+        "seconds": 3.025608787
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_kEpsilon/medium/upwind",
+        "seconds": 6.130605737
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_kEpsilon/fine/upwind",
+        "seconds": 17.944651559
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_kOmega/coarse/upwind",
+        "seconds": 5.57897076
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_kOmega/medium/upwind",
+        "seconds": 10.27075267
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_kOmega/fine/upwind",
+        "seconds": 27.375865915
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_SST/coarse/upwind",
+        "seconds": 9.362285771
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_SST/medium/upwind",
+        "seconds": 16.585115345
+      },
+      {
+        "id": "turbulent_channel_re_tau_180_SST/fine/upwind",
+        "seconds": 45.371111586
+      }
+    ]
+  }
+}

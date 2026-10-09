@@ -1,0 +1,131 @@
+============================================================
+P18.9 section 44 -- HOST SANITIZERS (ASan + UBSan)
+============================================================
+started (WSL): 2026-10-02T12:08:29Z
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+--- the configuration, read from its own cache ---
+    CMAKE_BUILD_TYPE             Debug
+    CFDAPP_BUILD_GUI             OFF
+    CFDAPP_ENABLE_CUDA           OFF
+    CFDAPP_ENABLE_OPENMP         OFF
+    CFDAPP_ENABLE_SANITIZERS     ON
+
+--- are the sanitizers actually in the compile line? (not just the cache flag) ---
+    observed -fsanitize flags: -fsanitize=address,undefined 
+
+--- clean-first build (ASan, Debug, CUDA OFF) ---
+    build exit: 0   elapsed: 526 s
+      [512/516] Linking CXX executable tests/integration/turbulence_channel/CFDTurbulenceChannelValidationTests
+      [513/516] Linking CXX executable tests/integration/io/CFDResultExportIntegrationTests
+      [514/516] Linking CXX executable tests/integration/mms/CFDMMSValidationTests
+      [515/516] Linking CXX executable tests/integration/backward_facing_step/CFDBackwardFacingStepTests
+      [516/516] Linking CXX executable tests/integration/case/CFDCaseIntegrationTests
+
+--- registered / excluded ---
+    registered : 2835
+    excluded   : 13  by the 5 frozen patterns
+
+--- ASAN_OPTIONS=detect_leaks=1:halt_on_error=0 ---
+--- UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0 ---
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen> ---
+
+============ RESULT ============
+  ctest exit     : 8
+  ran ('out of') : 2775
+    Passed       : 2768
+    Failed       : 7
+    Skipped      : 0
+    Disabled     : 47
+  elapsed        : 16425 s
+
+============ SANITIZER FINDINGS ============
+  AddressSanitizer reports : 0
+  LeakSanitizer reports    : 0
+  UBSan reports            : 0
+
+  --- every distinct AddressSanitizer error kind ---
+  --- every distinct UBSan message ---
+
+  --- every non-passing row, named ---
+    2815/2822 Test #2813: DriverSeegmiller.MeshSequence ............................................................................***Timeout 7200.11 sec
+    2817/2822 Test #2814: DriverSeegmiller.WallDistributionsHaveSeparatedFlowStructure .............................................***Timeout 7200.11 sec
+    2818/2822 Test #2815: DriverSeegmiller.MechanismControlsStillDiscriminate ......................................................***Timeout 7200.10 sec
+    2819/2822 Test #2818: DriverSeegmiller.CorrectedSequenceIsDeterministic ........................................................***Timeout 7200.10 sec
+    2820/2822 Test #2819: DriverSeegmillerInlet.PrecursorReproducesTheReferenceInflowState .........................................***Timeout 7200.08 sec
+    2821/2822 Test #2820: DriverSeegmillerInlet.MappedInletPreservesTheMassFlow ....................................................***Timeout 7200.06 sec
+    2822/2822 Test #2821: DriverSeegmillerInlet.MediumGridAB .......................................................................***Timeout 7200.12 sec
+
+  --- P18's own rows under the sanitizers ---
+      87/2822 Test #2475: HeatedCavityConductionValidation.Grid80x80MatchesAnalyticalProfile .......................................   Passed    1.82 sec
+      91/2822 Test #2722: SpeciesSolverCouplingTest.PassiveSpeciesDoesNotAlterVelocityOrThermalSolution ............................   Passed   81.38 sec
+     117/2822 Test #2723: SpeciesSolverCouplingTest.TwoIndependentSpeciesShowNoCrossCoupling .......................................   Passed   44.10 sec
+     118/2822 Test #2721: SpeciesSolverCouplingTest.TransportsThroughAGenuineSIMPLESolvedPoiseuilleFlow ............................   Passed   38.95 sec
+     139/2822 Test #2713: SpeciesAdvectionDiffusionValidation.DiffusionDominatedRegimePe0p1MatchesAnalytical .......................   Passed   15.59 sec
+     143/2822 Test #2714: SpeciesAdvectionDiffusionValidation.MixedRegimePe5MatchesAnalytical ......................................   Passed   14.14 sec
+     147/2822 Test #2474: HeatedCavityConductionValidation.Grid40x40MatchesAnalyticalProfile .......................................   Passed    0.53 sec
+     149/2822 Test #2476: HeatedCavityConductionValidation.GridRefinementDoesNotDegradeAccuracy ....................................   Passed    0.51 sec
+     153/2822 Test #2553: StructuredQuadProductionCase.ThermalAndSpeciesMatchLinearProfilesOnDistortedSlab .........................   Passed    6.49 sec
+     167/2822 Test #2547: HeatedSpeciesDiffusionProductionCaseTest.RepeatedRunsAreDeterministic ....................................   Passed    3.48 sec
+     176/2822 Test #2715: SpeciesAdvectionDiffusionValidation.AdvectionDominatedRegimePe50MatchesAnalyticalWithinUpwindDiffusion ...   Passed    3.40 sec
+     180/2822 Test #2521: SpeciesProductionCaseTest.RepeatedRunsAreDeterministic ...................................................   Passed    4.56 sec
+     181/2822 Test #2716: SpeciesAdvectionDiffusionValidation.PureAdvectionTransportsInletValueDownstreamWithoutSourceOrSink .......   Passed    2.90 sec
+     184/2822 Test #2484: BoussinesqCouplingTest.DifferentiallyHeatedCavityProducesNonzeroVelocity .................................   Passed    2.37 sec
+     193/2822 Test #2546: HeatedSpeciesDiffusionProductionCaseTest.ExportsBothFieldsToCsvVtkAndJson ................................   Passed    2.50 sec
+     194/2822 Test #2543: HeatedSpeciesDiffusionProductionCaseTest.RunsEndToEndAndConverges ........................................   Passed    2.10 sec
+     197/2822 Test #2544: HeatedSpeciesDiffusionProductionCaseTest.BothFieldsMatchAnalyticalProfilesSimultaneously .................   Passed    1.83 sec
+     199/2822 Test #1563: SpeciesNonOrthogonalTest.NonOrthogonalDiffusion ..........................................................   Passed    2.12 sec
+     201/2822 Test #2545: HeatedSpeciesDiffusionProductionCaseTest.BothFieldsConserveFluxIndependently .............................   Passed    1.84 sec
+     206/2822 Test #2711: SpeciesDiffusionValidation.Grid80MatchesAnalyticalSlabProfile ............................................   Passed    2.32 sec
+     211/2822 Test #2128: VisualizationSnapshotTest.SpeciesCaseExposesConcentrationFieldLiveAndReloaded ............................   Passed    1.76 sec
+     213/2822 Test #2517: SpeciesProductionCaseTest.GlobalDiffusiveFluxBalanceIsConserved ..........................................   Passed    2.01 sec
+     214/2822 Test #2516: SpeciesProductionCaseTest.ConcentrationMatchesAnalyticalProfile ..........................................   Passed    2.34 sec
+     215/2822 Test #2519: SpeciesProductionCaseTest.ExportsSpeciesFieldToCsvVtkAndJson .............................................   Passed    2.07 sec
+     219/2822 Test #2477: HeatedCavityConductionValidation.RepeatedSolveIsDeterministic ............................................   Passed    0.15 sec
+     220/2822 Test #2473: HeatedCavityConductionValidation.Grid20x20MatchesAnalyticalProfile .......................................   Passed    0.43 sec
+     221/2822 Test #2515: SpeciesProductionCaseTest.RunsEndToEndAndConverges .......................................................   Passed    1.76 sec
+     224/2822 Test #2520: SpeciesProductionCaseTest.NonSpeciesCaseStillRunsWithEmptySpeciesResults .................................   Passed    1.19 sec
+     244/2822 Test #2719: SpeciesConservationTest.OpenChannelSteadyStateInflowEqualsOutflowWithZeroSource ..........................   Passed    1.02 sec
+     246/2822 Test #2710: SpeciesDiffusionValidation.Grid40MatchesAnalyticalSlabProfile ............................................   Passed    1.12 sec
+     254/2822 Test #1564: SpeciesNonOrthogonalTest.CartesianSolveIsBitIdentical ....................................................   Passed    0.91 sec
+     256/2822 Test #1562: SpeciesSolverTest.RepeatedSolveIsDeterministic ...........................................................   Passed    1.08 sec
+     262/2822 Test #2712: SpeciesDiffusionValidation.GlobalDiffusiveFluxBalanceIsExact .............................................   Passed    1.13 sec
+     265/2822 Test #2720: SpeciesConservationTest.OpenChannelWithVolumetricSourceBalancesNetOutflowAgainstSource ...................   Passed    0.91 sec
+     274/2822 Test #2129: VisualizationSnapshotTest.MultiphaseCaseExposesMixtureFieldsLiveAndReloaded ..............................   Passed    0.85 sec
+     290/2822 Test #1555: SpeciesSolverTest.ConvergesAndMatchesAnalytical1DDiffusionProfile ........................................   Passed    0.84 sec
+     296/2822 Test #2523: MultiphaseProductionCaseTest.AlphaAndMixturePropertiesMatchExactExpectedValues ...........................   Passed    0.18 sec
+     303/2822 Test #2709: SpeciesDiffusionValidation.Grid20MatchesAnalyticalSlabProfile ............................................   Passed    0.61 sec
+     334/2822 Test #2525: MultiphaseProductionCaseTest.ExportsMixtureFieldsToCsvVtkAndJson .........................................   Passed    0.36 sec
+     342/2822 Test  #845: SpeciesCaseTest.RejectsDuplicateSpeciesNames .............................................................   Passed    0.43 sec
+     351/2822 Test  #942: VTKWriterTest.AppendsOneSpeciesBlockAfterVelocityMagnitudeWhenProvided ...................................   Passed    0.11 sec
+     370/2822 Test  #852: SpeciesCaseTest.RejectsMissingValueForConcentrationBoundary ..............................................   Passed    0.63 sec
+     385/2822 Test  #908: CSVWriterTest.OmitsSpeciesColumnsWhenNotProvided .........................................................   Passed    0.15 sec
+     399/2822 Test  #848: SpeciesCaseTest.RejectsSpeciesKeyWhenSpeciesDisabled .....................................................   Passed    0.44 sec
+     430/2822 Test  #879: PhysicsCompatibilityTest.SpeciesSupportedAlongsideMultiphase .............................................   Passed    0.39 sec
+     460/2822 Test  #839: SpeciesCaseTest.NonSpeciesFixtureHasNoSpeciesConfig ......................................................   Passed    0.27 sec
+     468/2822 Test  #945: VTKWriterTest.NonFiniteSpeciesThrows .....................................................................   Passed    0.15 sec
+     469/2822 Test  #880: PhysicsCompatibilityTest.SpeciesSupportedAlongsideCompressible ...........................................   Passed    0.57 sec
+     478/2822 Test  #944: VTKWriterTest.MismatchedSpeciesSizeThrows ................................................................   Passed    0.56 sec
+     480/2822 Test  #846: SpeciesCaseTest.RejectsUnknownSpeciesKey .................................................................   Passed    0.31 sec
+     481/2822 Test  #941: VTKWriterTest.OmitsSpeciesBlocksWhenNotProvided ..........................................................   Passed    0.30 sec
+     515/2822 Test  #943: VTKWriterTest.MultipleSpeciesWrittenInOrderAfterTemperature ..............................................   Passed    0.79 sec
+     519/2822 Test #2518: SpeciesProductionCaseTest.MissingCaseDirectoryReportsInvalidCase .........................................   Passed    1.15 sec
+     542/2822 Test  #844: SpeciesCaseTest.RejectsEmptyName .........................................................................   Passed    0.46 sec
+     553/2822 Test  #876: CompressibleCaseTest.RejectsSpecificHeatPressureNotGreaterThanGasConstant ................................   Passed    0.48 sec
+     560/2822 Test  #850: SpeciesCaseTest.RejectsUnknownSpeciesNameOnPatch .........................................................   Passed    0.09 sec
+     573/2822 Test  #910: CSVWriterTest.MismatchedSpeciesSizeThrows ................................................................   Passed    0.54 sec
+     575/2822 Test  #849: SpeciesCaseTest.RejectsPatchMissingOneDeclaredSpecies ....................................................   Passed    0.54 sec
+     609/2822 Test  #909: CSVWriterTest.AppendsSpeciesColumnsInOrderAfterTemperature ...............................................   Passed    0.57 sec
+     616/2822 Test  #843: SpeciesCaseTest.RejectsNegativeDiffusivity ...............................................................   Passed    0.09 sec
+     646/2822 Test  #922: JSONWriterTest.SpeciesArrayIsEmptyByDefault ..............................................................   Passed    0.49 sec
+     672/2822 Test  #758: ThermalCaseTest.BuilderConstructsHeatFluxWithCaseConductivity ............................................   Passed    0.48 sec
+     681/2822 Test  #840: SpeciesCaseTest.ParsesSpeciesListWhenEnabled .............................................................   Passed    0.67 sec
+     717/2822 Test  #842: SpeciesCaseTest.ZeroDiffusivityIsAccepted ................................................................   Passed    0.61 sec
+     719/2822 Test  #841: SpeciesCaseTest.BuilderConstructsSpeciesRuntimeObjects ...................................................   Passed    0.27 sec
+     739/2822 Test  #760: ThermalCaseTest.RejectsNegativeSpecificHeat ..............................................................   Passed    0.11 sec
+     790/2822 Test  #851: SpeciesCaseTest.RejectsUnknownConcentrationBoundaryType ..................................................   Passed    0.52 sec
+     812/2822 Test  #847: SpeciesCaseTest.RejectsMissingPerPatchSpeciesWhenSpeciesEnabled ..........................................   Passed    0.69 sec
+     834/2822 Test  #717: CaseWriterTest.SpeciesRoundTrip ..........................................................................   Passed    0.58 sec
+     844/2822 Test #1157: EnergyEquationThermalBCIntegrationTest.HeatFluxAndAdiabaticBoundariesMatchHandDerivedRhs .................   Passed    0.18 sec
+
+finished (WSL): 2026-10-02T16:51:05Z

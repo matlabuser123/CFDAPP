@@ -1,0 +1,40 @@
+=== P18.6 -- AN OPEN REGRESSION-INTEGRITY CONCERN, recorded when noticed ===
+date: 2026-10-01T06:20:53Z
+
+WHAT HAPPENED. include/cfd/species/HeatRelease.hpp was edited AFTER the regression's
+release_cuda configuration had already configured, built and passed its staleness check.
+The edit added a comment block naming the P15 assembler that consumes S_E -- made because the
+integrity probe correctly reported itself BLIND, having grepped for a symbol the header did
+not mention.
+
+WHY IT MATTERS. CLAUDE.md section 8: a regression result is authoritative ONLY if the test
+binary was demonstrably rebuilt against the exact source being tested. release_cuda's
+binaries now predate the current header, so strictly its counts are against a different
+source file than the tree's final state.
+
+WHY IT PROBABLY DOES NOT CHANGE THE RESULT -- and 'probably' is why this is recorded as OPEN
+rather than dismissed: the edit is a COMMENT BLOCK only. Comments do not reach codegen. But
+the source HASH changed, and a hash change is what the staleness check exists to catch, so
+the claim needs proving rather than asserting.
+
+HOW IT WILL BE RESOLVED AT CLOSE, in order:
+  1. let the regression finish -- build/qual-final must NOT be touched while its ctest reads
+     binaries from it;
+  2. rebuild build/qual-final and compare libcfdcore.a's sha256 against the value the
+     regression recorded at its start. The host toolchain is bit-reproducible, so an
+     IDENTICAL hash proves the comment-only edit changed no object code and the release_cuda
+     counts stand for the final source;
+  3. if the hash DIFFERS, re-run the release_cuda configuration in full. The counts from the
+     first run would then be marked INVALID AS AUTHORITATIVE in place, not deleted.
+
+cpu_only and debug_gui are unaffected: both configure and build AFTER this point in the run,
+so they compile the edited header and their staleness checks cover it.
+
+--- the hash the regression recorded for release_cuda at its start ---
+  --- library hashes ---
+    libcfdcore.a                   a82a7c3c913fafbc1d6f5f90d656fe3e08ee1fb29fa08edd14d16e1319c1aba5
+    libcfdcuda.a                   1e2e0f914afd40ef1f624f03cdb2bbee8aa141d46d780ad1bbcc3c29c404290a
+  registered              : 3022
+
+--- the header hash now ---
+3b8efc2d4778f106cff7f4fcb653e77ced57130b9a5d3029ccc499b50590e65c  include/cfd/species/HeatRelease.hpp

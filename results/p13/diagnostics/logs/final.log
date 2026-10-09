@@ -1,0 +1,205 @@
+date: 2026-09-21T13:56:32Z
+
+=== P3: no logging in a hot loop ===
+-- static: Logger call sites inside the SIMPLE outer-iteration loop --
+  Logger call sites in SIMPLE.cpp: 1
+  inside the outer-iteration loop  : 0
+-- dynamic: stderr lines must not grow with the iteration count --
+  max_iterations=5 -> stderr lines at --log-level trace: 3
+  max_iterations=50 -> stderr lines at --log-level trace: 3
+
+=== P2: the P13-001..004 gates still pass ===
+100% tests passed, 0 tests failed out of 79
+
+Label Time Summary:
+integration    =   1.72 sec*proc (45 tests)
+unit           =   0.35 sec*proc (28 tests)
+validation     =   1.00 sec*proc (6 tests)
+
+Total Test time (real) =   3.77 sec
+
+=== G: clang-format over the whole tree ===
+  FORMAT: benchmarks/cpu/benchmark_openmp_scaling.cpp
+  FORMAT: benchmarks/cpu/benchmark_runner.cpp
+  FORMAT: benchmarks/cpu/benchmark_spmv_scaling.cpp
+  FORMAT: benchmarks/gpu/benchmark_cuda_end_to_end.cpp
+  FORMAT: benchmarks/gpu/benchmark_gpu_preconditioner.cpp
+  FORMAT: benchmarks/gpu/benchmark_gpu_spmv.cpp
+  FORMAT: benchmarks/gpu/benchmark_large_grid_stress.cpp
+  FORMAT: cuda/kernels/DeviceBoundaryConditions.cpp
+  FORMAT: cuda/kernels/DeviceConvectionPlan.cpp
+  FORMAT: cuda/kernels/DeviceDiffusionPlan.cpp
+  FORMAT: cuda/kernels/DeviceFaceFluxPlan.cpp
+  FORMAT: cuda/kernels/DeviceGradientPlan.cpp
+  FORMAT: cuda/kernels/DeviceLeastSquaresGradientPlan.cpp
+  FORMAT: cuda/kernels/DeviceMomentumAssemblyPlan.cpp
+  FORMAT: cuda/kernels/DeviceMomentumConvectionPlan.cpp
+  FORMAT: cuda/kernels/DevicePressureCorrectionPlan.cpp
+  FORMAT: cuda/kernels/GpuLinearSolverCuda.cpp
+  FORMAT: cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+  FORMAT: results/cuda-qual-001/tools/gpu_execution_probe.cpp
+  FORMAT: results/gpu-disc-001/boundary-conditions/tools/boundary_condition_equivalence.cpp
+  FORMAT: results/gpu-disc-001/convection/tools/convection_equivalence.cpp
+  FORMAT: results/gpu-disc-001/convection/tools/momentum_convection_equivalence.cpp
+  FORMAT: results/gpu-disc-001/cuda-diagnostics/tools/diagnostic_workload.cpp
+  FORMAT: results/gpu-disc-001/diffusion/tools/diffusion_equivalence.cpp
+  FORMAT: results/gpu-disc-001/face-flux-correction/tools/face_flux_correction_equivalence.cpp
+  FORMAT: results/gpu-disc-001/full-regression/tools/determinism_probe.cpp
+  FORMAT: results/gpu-disc-001/full-regression/tools/known_debt_probe.cpp
+  FORMAT: results/gpu-disc-001/full-solve-equivalence/tools/full_solve_equivalence.cpp
+  FORMAT: results/gpu-disc-001/gradients/tools/gradient_benchmark.cpp
+  FORMAT: results/gpu-disc-001/gradients/tools/gradient_equivalence.cpp
+  FORMAT: results/gpu-disc-001/integrated-simple/tools/integrated_simple_equivalence.cpp
+  FORMAT: results/gpu-disc-001/momentum-assembly/tools/momentum_assembly_equivalence.cpp
+  FORMAT: results/gpu-disc-001/momentum-response/tools/momentum_response_equivalence.cpp
+  FORMAT: results/gpu-disc-001/performance/tools/memory_probe.cpp
+  FORMAT: results/gpu-disc-001/performance/tools/performance_benchmark.cpp
+  FORMAT: results/gpu-disc-001/performance/tools/stage_profiler.cpp
+  FORMAT: results/gpu-disc-001/pressure-correction-assembly/tools/pressure_correction_equivalence.cpp
+  FORMAT: results/gpu-disc-001/rhie-chow/tools/face_flux_equivalence.cpp
+  FORMAT: results/gpu-disc-001/single-iteration/tools/single_iteration_equivalence.cpp
+  FORMAT: results/gpu-disc-001/velocity-correction/tools/velocity_correction_equivalence.cpp
+  FORMAT: results/gpu-pcorr-001/tools/pcorr_repro.cpp
+  FORMAT: results/gpu-pcorr-001/tools/scale_breakdown.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/dispatch_probe.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/lifecycle.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/loop_transfer_guard.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/momentum_roundtrip.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/production_equivalence.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/residency_baseline.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/resident_diagnostic_workload.cpp
+  FORMAT: results/gpu-pipe-001/final-residency/tools/resident_loop_comparison.cpp
+  FORMAT: results/gpu-pipe-001/gpu-resident-pressure-solve/tools/lifecycle_probe.cpp
+  FORMAT: results/gpu-pipe-001/gpu-resident-pressure-solve/tools/rejection_probe.cpp
+  FORMAT: results/gpu-pipe-001/gpu-resident-pressure-solve/tools/residency_comparison.cpp
+  FORMAT: results/gpu-pipe-001/gpu-resident-pressure-solve/tools/roundtrip_probe.cpp
+  FORMAT: results/gpu-pipe-001/gpu-resident-pressure-solve/tools/solve_transfer_guard.cpp
+  FORMAT: results/gpu-pipe-001/persistent-fields/tools/dirty_state.cpp
+  FORMAT: results/gpu-pipe-001/persistent-fields/tools/transfer_guard.cpp
+  FORMAT: results/gpu-pipe-001/persistent-fields/tools/transfer_probe.cpp
+  FORMAT: results/gpu-pipe-001/phase2-reductions/tools/paired_probe.cpp
+  FORMAT: results/gpu-pipe-001/phase2-reductions/tools/reduction_identity.cpp
+  FORMAT: results/p12-diff-001/tools/diff_geometry.cpp
+  FORMAT: results/p12-diff-001/tools/diff_identity.cpp
+  FORMAT: results/p12-diff-001/tools/diff_wallflux.cpp
+  FORMAT: results/p12-diff-002/a2/tools/diff2_activation.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/src/discretization/NonOrthogonalDiffusion.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/src/mesh/Mesh.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/src/mesh/MeshGeometry.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/src/mesh/MeshMotion.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/src/pressure_velocity/AlePISO.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/src/pressure_velocity/PISO.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/integration/case/test_multiblock_production_case.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/integration/case/test_structured_quad_production_case.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/integration/compressible/test_low_mach_regression.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/integration/poiseuille/PoiseuilleValidationUtils.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/integration/poiseuille/test_poiseuille_production_validation.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/integration/thermal/test_natural_convection_validation.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/solver/piso/test_ale_piso.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/support/BoundaryFluxProbe.hpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/support/MeshMotionCases.hpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/unit/discretization/test_ale_operators.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/unit/mesh/test_mesh_motion.cpp
+  FORMAT: results/p12-diff-002/format-001/data/before/tests/unit/thermal/test_thermal_boundary_consistency.cpp
+  FORMAT: results/p12-diff-002/investigation-f/tools/invf_conjugate.cpp
+  FORMAT: results/p12-diff-002/investigation-f/tools/invf_conservation.cpp
+  FORMAT: results/p12-diff-002/investigation-f/tools/invf_lowmach.cpp
+  FORMAT: results/p12-diff-002/investigation-f/tools/invf_species.cpp
+  FORMAT: results/p12-diff-002/investigation/tools/diff2_channel1d.cpp
+  FORMAT: results/p12-diff-002/investigation/tools/diff2_perface.cpp
+  FORMAT: results/p12-diff-002/investigation/tools/diff2_topology.cpp
+  FORMAT: results/p12-diff-002/investigation/tools/diff2_wallflux.cpp
+  FORMAT: results/p12-diff-002/lowmach-001/data/candidate/test_low_mach_regression.cpp
+  FORMAT: results/p12-diff-002/lowmach-001/tools/lowmach_probe.cpp
+  FORMAT: results/p12-diff-002/rob-001/tools/rob001_reproducer.cpp
+  FORMAT: results/p12-diff-002/rob-001/tools/rob001_sensitivity.cpp
+  FORMAT: results/p12-diff-002/thermal-interface-fix/tools/ti_t1_dump.cpp
+  FORMAT: results/p12-diff-002/thermal-interface-fix/tools/ti_t5_topology.cpp
+  FORMAT: results/p12-diff-002/thermal-interface-fix/tools/ti_t7_accuracy.cpp
+  FORMAT: results/p12-diff-002/thermal-interface-fix/tools/ti_t8_multiregion.cpp
+  FORMAT: results/p12-diff-002/tools/diff2_cases.cpp
+  FORMAT: results/p12-diff-002/tools/diff2_gate.cpp
+  FORMAT: results/p12-diff-002/uc-001/tools/uc001_crosscheck.cpp
+  FORMAT: results/p12-diff-002/uc-001/tools/uc001_grids.cpp
+  FORMAT: results/p12-diff-002/uf-001/tools/uf001_equiv.cpp
+  FORMAT: results/p12-diff-002/uf-001/tools/uf001_grids.cpp
+  FORMAT: results/p12-diff-002/uf-001/tools/uf001_wallshear.cpp
+  FORMAT: results/p12-diff-002/validation-migration/a6/resumed/tools/a6r_mms_asymptotic.cpp
+  FORMAT: results/p12-diff-002/validation-migration/a6/resumed/tools/a6r_nonvacuity.cpp
+  FORMAT: results/p12-diff-002/validation-migration/a6/resumed/tools/a6r_trigger_derivation.cpp
+  FORMAT: results/p12-diff-002/validation-migration/a6/tools/a6_divergence_replay.cpp
+  FORMAT: results/p12-diff-002/validation-migration/a6/tools/a6_me_probe.cpp
+  FORMAT: results/p12-diff-002/w8-inv-001/tools/w8inv_multiblock.cpp
+  FORMAT: results/p12-diff-002/w8-inv-001/tools/w8inv_structured.cpp
+  FORMAT: results/p12-diff-002/w8b/data/candidate/test_multiblock_production_case.cpp
+  FORMAT: results/p12-diff-002/w8b/data/candidate/test_structured_quad_production_case.cpp
+  FORMAT: results/p12-diff-002/w9/tools/w9_run.cpp
+  FORMAT: results/p12-grad-001/tools/diag_floor.cpp
+  FORMAT: results/p12-grad-001/tools/gradient_probe.cpp
+  FORMAT: results/p12-grad-001/tools/measure_misalignment.cpp
+  FORMAT: results/p12-grad-001/tools/predicate_behaviour.cpp
+  FORMAT: results/p12-grad-002/a2/data/before/tests/unit/discretization/test_gradient_boundary_consistency.cpp
+  FORMAT: results/p12-grad-002/a2/tools/a2_3d.cpp
+  FORMAT: results/p12-grad-002/a2/tools/a2_c10.cpp
+  FORMAT: results/p12-grad-002/a2/tools/a2_c9.cpp
+  FORMAT: results/p12-grad-002/a2/tools/a2_prodmesh.cpp
+  FORMAT: results/p12-grad-002/drift-001/tools/drift_probe.cpp
+  FORMAT: results/p12-grad-002/investigation/tools/inv_curved.cpp
+  FORMAT: results/p12-grad-002/investigation/tools/inv_operator.cpp
+  FORMAT: results/p12-grad-002/investigation/tools/inv_poiseuille.cpp
+  FORMAT: results/p12-grad-002/investigation/tools/inv_quadrature.cpp
+  FORMAT: results/p12-grad-002/investigation/tools/inv_sweeps.cpp
+  FORMAT: results/p12-grad-002/investigation/tools/inv_wallflux.cpp
+  FORMAT: results/p12-grad-002/tools/a1_3d.cpp
+  FORMAT: results/p12-grad-002/tools/a1_cavity.cpp
+  FORMAT: results/p12-grad-002/tools/a1_convergence.cpp
+  FORMAT: results/p12-grad-002/tools/a1_envelope.cpp
+  FORMAT: results/p12-grad-002/tools/diagnostics.cpp
+  FORMAT: results/p12-grad-002/tools/gradient_probe.cpp
+  FORMAT: results/p12-grad-002/val-001/tools/val001_controls.cpp
+  FORMAT: results/p12-grad-002/val-001/tools/val001_refinement.cpp
+  FORMAT: results/p12-mesh-005/tools/bitprobe.cpp
+  FORMAT: results/p12-mesh-005/tools/diffusion_n2_probe.cpp
+  FORMAT: results/p12-mesh-005/tools/exactness_probe.cpp
+  FORMAT: results/p12-mesh-005/tools/fingerprint_probe.cpp
+  FORMAT: results/p12-mesh-006/tools/bitprobe6.cpp
+  FORMAT: results/p12-mesh-007/tools/bitprobe7.cpp
+  FORMAT: results/p12-mesh-007/tools/diag_g63.cpp
+  FORMAT: results/p12-mesh-007/tools/diag_g63b.cpp
+  FORMAT: results/p12-mesh-007/tools/diag_g63c_static.cpp
+  FORMAT: results/p12-mesh-007/tools/diag_g63d.cpp
+  FORMAT: results/p12-mesh-007/tools/perf_baseline.cpp
+  FORMAT: results/p12-mesh-007/tools/prefreeze_solver_feasibility.cpp
+  FORMAT: tests/solver/piso/test_ale_piso.cpp
+  FORMAT: tests/unit/discretization/test_divergence.cpp
+  FORMAT: tests/unit/mesh/test_mesh_quality_report.cpp
+  FORMAT: tests/unit/physics/test_continuity_equation.cpp
+  violations: 155
+
+=== G: Release + CUDA (build/final) ===
+ninja: no work to do.
+	2086 - MMSSimple3DTest.RefinementStudy (Disabled)
+	2089 - BackwardFacingStep.Converges (Disabled)
+	2090 - BackwardFacingStep.MassConservation (Disabled)
+	2091 - BackwardFacingStep.ReattachmentLength (Disabled)
+  RC=0
+
+=== G: Debug + GUI (build/debug) ===
+[53/54] Linking CXX executable apps/gui/cfdapp_gui
+[54/54] Linking CXX executable apps/gui/CFDGuiControllerTests
+	2020 - MMSSimple3DTest.RefinementStudy (Disabled)
+	2023 - BackwardFacingStep.Converges (Disabled)
+	2024 - BackwardFacingStep.MassConservation (Disabled)
+	2025 - BackwardFacingStep.ReattachmentLength (Disabled)
+  RC=0
+
+=== G: CPU-only (build/cpuonly) ===
+[361/362] Linking CXX executable tests/integration/mms/CFDMMSValidationTests
+[362/362] Linking CXX executable tests/integration/case/CFDCaseIntegrationTests
+	2020 - MMSSimple3DTest.RefinementStudy (Disabled)
+	2023 - BackwardFacingStep.Converges (Disabled)
+	2024 - BackwardFacingStep.MassConservation (Disabled)
+	2025 - BackwardFacingStep.ReattachmentLength (Disabled)
+  RC=0
+
+done: 2026-09-21T14:57:35Z

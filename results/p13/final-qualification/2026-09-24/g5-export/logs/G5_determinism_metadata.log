@@ -1,0 +1,220 @@
+P13 G5 -- deterministic exports, metadata, build identity
+date: 2026-09-24T20:24:52Z
+cli : build/debug/apps/cli/cfdapp
+
+### Step 6 -- build identity as the binary reports it ###
+CFDApp 0.2.0-dev
+
+### Step 5 -- a NON-DEFAULT configuration, so metadata cannot pass vacuously ###
+configured: {'max_iterations': 7, 'convection_scheme': 'quick', 'velocity_tolerance': 3.7e-07, 'pressure_tolerance': 4.1e-07, 'continuity_tolerance': 5.3e-07}
+
+### Step 4 -- two runs, ISOLATED directories, same binary ###
+runA exit=3
+runB exit=3
+runA results: fields.csv metadata.json residuals.csv solution.vtk 
+runB results: fields.csv metadata.json residuals.csv solution.vtk 
+
+path aliasing check (the two must NOT be the same directory):
+  runA inode 50211   runB inode 73899
+
+byte-for-byte, per artifact:
+  fields.csv       IDENTICAL  6613f382257d8be6
+  residuals.csv    IDENTICAL  6a935462e2d85e40
+  metadata.json    IDENTICAL  c0b11821213333e6
+  solution.vtk     IDENTICAL  9cb476b2fe274e82
+
+### Step 5 -- the metadata itself ###
+{
+  "application": "CFDApp",
+  "build_identity": "3bd32f918656-modified",
+  "case": {
+    "name": "Test Cavity 4x4"
+  },
+  "compressible": {
+    "enabled": false
+  },
+  "conservation": {
+    "global_mass_imbalance": 0.0
+  },
+  "format_version": 1,
+  "mesh": {
+    "cells": 16,
+    "faces": 40,
+    "nx": 4,
+    "ny": 4
+  },
+  "mesh_quality": {
+    "aspect_ratio": {
+      "above_warning": 0,
+      "count": 16,
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0,
+      "rms": 1.0,
+      "warning_threshold": 100.0,
+      "worst_id": 0,
+      "worst_location": [
+        0.125,
+        0.125
+      ]
+    },
+    "boundary_faces": 16,
+    "cell_area": {
+      "above_warning": 0,
+      "count": 16,
+      "max": 0.0625,
+      "mean": 0.0625,
+      "min": 0.0625,
+      "rms": 0.0625,
+      "warning_threshold": null,
+      "worst_id": 0,
+      "worst_location": [
+        0.125,
+        0.125
+      ]
+    },
+    "cells": 16,
+    "connected_components": 1,
+    "degenerate_cells": 0,
+    "expansion_ratio": {
+      "above_warning": 0,
+      "count": 24,
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0,
+      "rms": 1.0,
+      "warning_threshold": 2.0,
+      "worst_id": 1,
+      "worst_location": [
+        0.25,
+        0.125
+      ]
+    },
+    "face_length": {
+      "above_warning": 0,
+      "count": 40,
+      "max": 0.25,
+      "mean": 0.25,
+      "min": 0.25,
+      "rms": 0.25,
+      "warning_threshold": null,
+      "worst_id": 0,
+      "worst_location": [
+        0.0,
+        0.125
+      ]
+    },
+    "faces": 40,
+    "internal_faces": 24,
+    "invalid_faces": 0,
+    "issues": [],
+    "non_orthogonality_deg": {
+      "above_warning": 0,
+      "count": 24,
+      "max": 0.0,
+      "mean": 0.0,
+      "min": 0.0,
+      "rms": 0.0,
+      "warning_threshold": 70.0,
+      "worst_id": 1,
+      "worst_location": [
+        0.25,
+        0.125
+      ]
+    },
+    "skewness": {
+      "above_warning": 0,
+      "count": 24,
+      "max": 0.0,
+      "mean": 0.0,
+      "min": 0.0,
+      "rms": 0.0,
+      "warning_threshold": 0.5,
+      "worst_id": 1,
+      "worst_location": [
+        0.25,
+        0.125
+      ]
+    },
+    "status": "valid"
+  },
+  "multiphase": {
+    "enabled": false
+  },
+  "numerics": {
+    "finite": true
+  },
+  "physics": {
+    "density": 1.0,
+    "dynamic_viscosity": 0.01
+  },
+  "residuals": {
+    "continuity": 3.828589289448171e-11,
+    "p": 0.04128316370602517,
+    "u": 0.0025578258946011706,
+    "v": 0.0032116678086926698
+  },
+  "robustness": {
+    "convergence_criterion": "absolute",
+    "final_pressure_relaxation": 0.3,
+    "final_velocity_relaxation": 0.7,
+    "linear_solver_fallback_recoveries": 0,
+    "linear_solver_fallbacks": 0,
+    "normalized_residuals": {
+      "continuity": 7.223753376317304e-05,
+      "p": 0.3221927735637475,
+      "u": 0.04795923552377195,
+      "v": 0.37529588668930347
+    },
+    "relaxation_decreases": 0,
+    "relaxation_increases": 0,
+    "status_detail": ""
+  },
+  "solver": {
+    "convection_scheme": "quick",
+    "converged": false,
+    "gpu_discretization_used": false,
+    "gradient_scheme": "green_gauss",
+    "iterations": 7,
+    "linear_solver_backend": "CPU",
+    "max_iterations": 7,
+    "non_orthogonal_corrections": 0,
+    "status": "MaxIterations",
+    "tolerances": {
+      "continuity": 5.3e-07,
+      "pressure": 4.1e-07,
+      "velocity": 3.7e-07
+    },
+    "type": "SIMPLE"
+  },
+  "species": [],
+  "thermal": {
+    "enabled": false
+  },
+  "version": "0.2.0-dev"
+}
+
+### does metadata reflect THIS run rather than a default? ###
+  solver.max_iterations                configured=7            metadata=7            MATCH
+  solver.convection_scheme             configured='quick'      metadata='quick'      MATCH
+  solver.tolerances.velocity           configured=3.7e-07      metadata=3.7e-07      MATCH
+  solver.tolerances.pressure           configured=4.1e-07      metadata=4.1e-07      MATCH
+  solver.tolerances.continuity         configured=5.3e-07      metadata=5.3e-07      MATCH
+
+  version                              '0.2.0-dev'
+  build_identity                       '3bd32f918656-modified'
+  mesh_quality.non_orthogonality_deg.above_warning 0
+  mesh_quality.non_orthogonality_deg.count 24
+  mesh_quality.non_orthogonality_deg.max 0.0
+  mesh_quality.non_orthogonality_deg.mean 0.0
+  mesh_quality.non_orthogonality_deg.min 0.0
+  mesh_quality.non_orthogonality_deg.rms 0.0
+  mesh_quality.non_orthogonality_deg.warning_threshold 70.0
+  mesh_quality.non_orthogonality_deg.worst_id 1
+  mesh_quality.non_orthogonality_deg.worst_location [0.25, 0.125]
+  solver.gpu_discretization_used       False
+  solver.gradient_scheme               'green_gauss'
+  solver.linear_solver_backend         'CPU'
+  solver.non_orthogonal_corrections    0
+
+workdir: /tmp/g5_export.vkNUCj

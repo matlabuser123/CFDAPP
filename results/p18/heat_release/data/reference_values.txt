@@ -1,0 +1,105 @@
+=== P18.6 INDEPENDENT ARBITRARY-PRECISION THERMOCHEMICAL REFERENCE ===
+mpmath dps=60. NO CFDApp code involved.
+
+M_i = 0.0625 kg/mol for every species (2^-4, dyadic)
+  h_f,A =                    0.0 J/kg    hbar_f,A =                    0.0 J/mol
+  h_f,B =    -2000000.0000000000 J/kg    hbar_f,B =    -125000.00000000000 J/mol
+  h_f,C =     3000000.0000000000 J/kg    hbar_f,C =     187500.00000000000 J/mol
+
+--- Delta H_r^0 and the P18.4 mass invariant ---
+  A->B   Delta H_r^0 =    -125000.00000000000 J/mol   EXOTHERMIC
+         sum_i M_i nu_i = 0.0   (must be exactly 0)
+  A->C   Delta H_r^0 =     187500.00000000000 J/mol   ENDOTHERMIC
+         sum_i M_i nu_i = 0.0   (must be exactly 0)
+  B->C   Delta H_r^0 =     312500.00000000000 J/mol   ENDOTHERMIC
+         sum_i M_i nu_i = 0.0   (must be exactly 0)
+
+--- a THERMONEUTRAL reaction (section 12): Delta H_r^0 = 0 with q != 0 ---
+  h_f,A = h_f,B = -750000.00000000000 J/kg (equal and NON-ZERO, so the result is 0
+  by cancellation rather than by every term being 0)
+    Delta H_r^0 = 0.0   (exactly 0)
+    q =      1  ->  S_E = 0.0   (exactly 0)
+    q =   1000  ->  S_E = 0.0   (exactly 0)
+    q =    1e6  ->  S_E = 0.0   (exactly 0)
+
+--- S_E, the MOLAR and MASS routes (sections 6, 7) ---
+  A->B
+    q =       0  S_E(molar) =                    0.0  S_E(mass) =                    0.0  identical: True
+    q =       1  S_E(molar) =     125000.00000000000  S_E(mass) =     125000.00000000000  identical: True
+    q =       2  S_E(molar) =     250000.00000000000  S_E(mass) =     250000.00000000000  identical: True
+    q =     7.5  S_E(molar) =     937500.00000000000  S_E(mass) =     937500.00000000000  identical: True
+    q =    1000  S_E(molar) =     125000000.00000000  S_E(mass) =     125000000.00000000  identical: True
+    at q = 1:  omega_A = -0.062500000000000000  omega_B = 0.062500000000000000  omega_C = 0.0
+               sum_i omega_i = 0.0   (must be exactly 0)
+  A->C
+    q =       0  S_E(molar) =                    0.0  S_E(mass) =                    0.0  identical: True
+    q =       1  S_E(molar) =    -187500.00000000000  S_E(mass) =    -187500.00000000000  identical: True
+    q =       2  S_E(molar) =    -375000.00000000000  S_E(mass) =    -375000.00000000000  identical: True
+    q =     7.5  S_E(molar) =    -1406250.0000000000  S_E(mass) =    -1406250.0000000000  identical: True
+    q =    1000  S_E(molar) =    -187500000.00000000  S_E(mass) =    -187500000.00000000  identical: True
+    at q = 1:  omega_A = -0.062500000000000000  omega_B = 0.0  omega_C = 0.062500000000000000
+               sum_i omega_i = 0.0   (must be exactly 0)
+
+--- source linearity (section 27): S_E(c q) = c S_E(q) ---
+  c =      2  S_E(c q) =     812500.00000000000  c S_E(q) =     812500.00000000000  exact: True
+  c =    0.5  S_E(c q) =     203125.00000000000  c S_E(q) =     203125.00000000000  exact: True
+  c =    1e6  S_E(c q) =     406250000000.00000  c S_E(q) =     406250000000.00000  exact: True
+  c =     -1  S_E(c q) =    -406250.00000000000  c S_E(q) =    -406250.00000000000  exact: True
+
+--- multiple reactions (section 28): S_E,total = sum_r S_E,r ---
+  A->B at q = 2.0:  S_E = 250000.00000000000   (exothermic)
+  A->C at q = 0.5:  S_E = -93750.000000000000   (endothermic)
+  total                S_E = 156250.00000000000
+
+--- reference-state invariance (section 33) ---
+  Delta H_r^0 unshifted                      = -125000.00000000000
+  shift EVERY h_f,i (mass) by       1e5  = -125000.00000000000   invariant: True
+  shift EVERY h_f,i (mass) by    -2.5e6  = -125000.00000000000   invariant: True
+  shift EVERY h_f,i (mass) by     0.125  = -125000.00000000000   invariant: True
+  WHY: the shift contributes c * sum_i M_i nu_i, and P18.4 makes that EXACTLY 0.
+
+  THE MOLAR SHIFT MUST *NOT* CANCEL -- and a 1:1 reaction CANNOT SHOW THAT, because
+  sum_i nu_i = 0 for it too. Using A + B -> C, which conserves mass but not moles:
+    sum_i M_i nu_i = 0.0   (exactly 0 -- mass conserved)
+    sum_i nu_i     = -1.0000000000000000   (NOT 0 -- moles not conserved)
+    Delta H_r^0 unshifted                   = -750000.00000000000
+    shift h_f,i (MASS)  by      1e5  =    -750000.00000000000   invariant: True
+    shift hbar_f,i (MOLAR) by      1e5 =    -850000.00000000000   invariant: False   <- MUST be False
+    shift h_f,i (MASS)  by   -2.5e6  =    -750000.00000000000   invariant: True
+    shift hbar_f,i (MOLAR) by   -2.5e6 =     1750000.0000000000   invariant: False   <- MUST be False
+  shift ONLY h_f,B by 1e5                    = -118750.00000000000   invariant: False
+
+--- Delta H_r(T) and KIRCHHOFF d(Delta H_r)/dT = Delta Cp_r (sections 31, 32) ---
+  cp_i(T) = a0 + a1 T, T_ref = 298.15
+    cp_A(T) = 900.0 + 0.25 T
+    cp_B(T) = 1100.0 + -0.15 T
+    cp_C(T) = 1000.0 + 0.05 T
+  A->B
+    T =   400  Delta H_r(T) =    -124615.70721875000  Delta Cp_r =     2.5000000000000000
+    T =   800  Delta H_r(T) =    -125615.70721875000  Delta Cp_r =    -7.5000000000000000
+    T =  1500  Delta H_r(T) =    -136990.70721875000  Delta Cp_r =    -25.000000000000000
+    T =  2500  Delta H_r(T) =    -174490.70721875000  Delta Cp_r =    -50.000000000000000
+  A->C
+    T =   400  Delta H_r(T) =     187692.14639062500  Delta Cp_r =     1.2500000000000000
+    T =   800  Delta H_r(T) =     187192.14639062500  Delta Cp_r =    -3.7500000000000000
+    T =  1500  Delta H_r(T) =     181504.64639062500  Delta Cp_r =    -12.500000000000000
+    T =  2500  Delta H_r(T) =     162754.64639062500  Delta Cp_r =    -25.000000000000000
+
+--- CLOSED ADIABATIC REACTOR: the analytic final temperature (sections 23, 24) ---
+    equal CONSTANT cp for every species, so cp_mix is composition-independent and
+    T_final = T_0 + ( sum Y^0 h_f - sum Y^f h_f ) / cp   EXACTLY
+    cp = 1000.0 J/(kg K), rho = 1.0 kg/m^3, T_0 = 1000.0 K
+    A->B complete    T_final =     3000.0000000000000 K   E_0 =   1000000.0000000000  E_f =   1000000.0000000000  drift = 0.0
+    A->B half        T_final =     2000.0000000000000 K   E_0 =   1000000.0000000000  E_f =   1000000.0000000000  drift = 0.0
+    A->C complete    T_final =    -2000.0000000000000 K   E_0 =   1000000.0000000000  E_f =   1000000.0000000000  drift = 0.0   <-- T <= 0: PHYSICALLY IMPOSSIBLE, must be REFUSED (section 42)
+    A->C 20%         T_final =     400.00000000000000 K   E_0 =   1000000.0000000000  E_f =   1000000.0000000000  drift = 0.0
+
+--- one-step balance (section 26): Delta u_sens = dt * S_E ---
+    q =     1  dt =   1e-3  S_E =   125000.00000000000  dt*S_E = 125.00000000000000
+    q =   100  dt =   1e-5  S_E =   12500000.000000000  dt*S_E = 125.00000000000000
+    q =   0.5  dt =      2  S_E =   62500.000000000000  dt*S_E = 125000.00000000000
+
+--- the mol/kmol control (section 43) ---
+    Delta H_r^0 correct [J/mol]        = -125000.00000000000
+    with M in kg/kmol (1000x too big)  = -125000000.00000000
+    ratio                              = 1000 exactly

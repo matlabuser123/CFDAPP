@@ -1,0 +1,64 @@
+P17.6 ACCEPTANCE GATE
+date: 2026-09-27T04:11:23Z
+gate sha256: f275c4ac3fab31509b9f80036e1c8b4b6f4f3e8c9ec20cf8b8ae7a1d8b303c9a
+
+### P7: clang-format on the one changed file ###
+  clang-format exit after -i: 0  (0 = clean)
+
+### P1/P2/P8: the files that must be UNTOUCHED -- SHA-256, never git diff HEAD ###
+  UNTOUCHED: 15    TOUCHED: 0   (TOUCHED must be 0)
+  NOTE: P17.6 is a VALIDATION phase -- it adds ONE test file and ONE CMake line, and changes
+        no production source at all.
+
+### build ###
+  build exit: 0  (61 s)
+
+### Groups M, A, E, C, D, F: the NEW low-Mach family ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 15
+    LowMachFamilyTest.CompressiblePathIsGenuinelyActive     Passed
+    LowMachFamilyTest.DensityVariationExponentMatchesViscousTheory     Passed
+    LowMachFamilyTest.EnergyBalanceIsReportedWithItsSignalToNoiseAndNotGatedBelowOne     Passed
+    LowMachFamilyTest.EveryErrorMetricDecreasesMonotonicallyAsMachFalls     Passed
+    LowMachFamilyTest.EveryLevelConvergesInBothFormulations     Passed
+    LowMachFamilyTest.EveryOtherErrorExponentIsGenuinelyDecreasing     Passed
+    LowMachFamilyTest.FamilyMetricsAreReportedForTheRecord     Passed
+    LowMachFamilyTest.FamilySpansAtLeastFourTimesInAchievedMach     Passed
+    LowMachFamilyTest.KineticContributionMatchesTheIncompressibleReference     Passed
+    LowMachFamilyTest.MassFlowsBalanceAtEveryLevel     Passed
+    LowMachFamilyTest.MomentumBudgetMatchesThePoiseuilleWallShear     Passed
+    LowMachFamilyTest.RelativePressureDifferenceFallsToItsConvergenceFloorAndStaysThere     Passed
+    LowMachFamilyTest.RepeatedCompressibleSolveIsBitwiseIdentical     Passed
+    LowMachFamilyTest.TemperatureRecoveryFromConservedEnergyIsExact     Passed
+
+### P1: the EXISTING low-Mach test, UNCHANGED, re-run ###
+  exit=0   100% tests passed, 0 tests failed out of 9
+
+### P2/P3: MMS, Poiseuille, cavity ###
+  mms_compressible   exit=0  100% tests passed, 0 tests failed out of 1
+  poiseuille         exit=0  100% tests passed, 0 tests failed out of 13
+  cavity             exit=0  100% tests passed, 0 tests failed out of 3
+
+### P5: preservation -- frozen narrow regexes ###
+  P14_transport      exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal        exit=0  100% tests passed, 0 tests failed out of 161
+  compressible       exit=0   100% tests passed, 0 tests failed out of 225
+    210 at the P17.5 baseline, plus P17.6's 15
+
+### X1: the GPU compressible surface -- expected NOT PRESENT, never PASS ###
+    compressible             1
+    IdealGas                 0
+    EquationOfState          0
+    ThermodynamicProperties  0
+    Enthalpy                 0
+    rhoE                     0
+    totalEnergy              0
+    TotalEnergy              0
+    machNumber               0
+    CompressibleSIMPLE       0
+    the only nonzero hit is a COMMENT about the INCOMPRESSIBLE path:
+      include/cfd/gpu/DevicePressureCorrection.hpp:6:// (PressureCorrectionEquation.cpp:181), the body behind the incompressible
+    => no GPU compressible solver exists, so there is no GPU low-Mach behaviour to preserve.
+       Reported NOT PRESENT. P17.10's qualification is NOT claimed.
+
+done: 2026-09-27T04:17:38Z

@@ -1,0 +1,35 @@
+P13 G5 -- W2/W3/W4/W5 through the production CLI
+date: 2026-09-24T20:25:47Z
+
+### W5 (preservation) -- an unwritable DIRECTORY is still rejected ###
+  exit=0
+  stdout/stderr:
+    CFDApp
+    
+    Case: Test Cavity 4x4
+    Mesh: 4 x 4
+    Mesh quality: valid
+      cells: 16, cell area: 0.0625 .. 0.0625, degenerate cells: 0, invalid faces: 0
+      max aspect ratio: 1 (cell 0 at (0.125, 0.125))
+      max non-orthogonality (deg): 0 (face 1 at (0.25, 0.125))
+  printed a Results: block? 1
+
+### W2/W3/W4 -- writes fail AFTER a successful open (symlink -> /dev/full) ###
+  destinations:
+    total 0
+    lrwxrwxrwx 1 root root 9 Sep 25 06:25 fields.csv -> /dev/full
+    lrwxrwxrwx 1 root root 9 Sep 25 06:25 metadata.json -> /dev/full
+    lrwxrwxrwx 1 root root 9 Sep 25 06:25 residuals.csv -> /dev/full
+    lrwxrwxrwx 1 root root 9 Sep 25 06:25 solution.vtk -> /dev/full
+
+  W4  CLI exit code                    : 1   (non-zero required)
+  W4  printed a 'Results:' block?      : 0   (0 required)
+  W3  message names the failing file?  : 1
+  output:
+    Run error: Failed while writing output file (the file may be incomplete): /tmp/g5_cli.IKrZwm/full/results/metadata.json
+
+### P1 -- every existing export test ###
+  ctest rc=0
+  100% tests passed, 0 tests failed out of 23
+
+workdir: /tmp/g5_cli.IKrZwm

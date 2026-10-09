@@ -1,0 +1,67 @@
+P17.4 dry-run -- the UNCHANGED tree
+date: 2026-09-26T21:11:46Z
+HEAD: 3bd32f918656
+P17_CODE_FINGERPRINT at the P17.3 close: 437ac0e3d9f09692f6bf415d7b1cce38b65d2c02e0158a346869232ad800a272
+
+### the momentum assembly as it stands ###
+  dilatational stress hits (grad(div/dilatation/bulkViscosity/twoThirds/Stokes):
+    grad(div         0
+    dilatation       0
+    bulkViscosity    0
+    twoThirds        0
+    Stokes           0
+    divU             0
+  production caller of assembleCompressibleMomentumComponent: 0  (0 = library only)
+  body force on the compressible path: 0
+
+### GPU compressible momentum (0 everywhere = no duplication) ###
+    compressibleMomentum 0
+    CompressibleRelaxed 0
+    dilatational     0
+
+### existing continuity test counts ###
+    tests/unit/compressible/test_compressible_momentum.cpp   7
+    tests/unit/compressible/test_compressible_mass_flux.cpp  21
+
+### measured behaviour ###
+  P17.4 dry-run -- compressible momentum on the UNCHANGED tree
+  
+  ### A. pressure force: linear p => grad(p) constant => rhs = -V * C
+    interior cells 2   worst relative error vs -V*dp/dx: 0
+    (a 4x3 mesh has few interior cells; the value is the check, not the count)
+    sample rhs[0] = -2.3333333333333286   V = 1   -V*C = -7
+  
+  ### B. transient term: d(rho U)/dt, NOT rho dU/dt
+    rho_old 1.0 -> rho_new 2.0, u_old 3.0, dt 0.25, V 1
+    diagonal[0] = 8    expected rho_new*V/dt = 8
+    source[0]   = 12    expected rho_old*V/dt*u_old = 12
+    the WRONG form rho_new*V/dt would give source = 24 -- differs by 12
+    => a test with BOTH rho and u changing can tell the two apart
+  
+  ### C. body force: the API takes a FORCE DENSITY and scales by volume
+    rho 1.0 -> rhs[0] = -9.8100000000000005       expected V*rho*g = -9.8100000000000005
+    rho 2.0 -> rhs[0] = -19.620000000000001       expected V*rho*g = -19.620000000000001
+    rho 4.0 -> rhs[0] = -39.240000000000002       expected V*rho*g = -39.240000000000002
+    => linear in rho, so supplying rho*f gives the correct rho f weighting
+  
+  ### D. internal-face convective momentum: owner +F, neighbour -F
+    irregular flux, varying U: diagonal range [5.6100000000000003, 8.6700000000000017]
+    sum of rhs = 0   (boundary contributions only -- the interior telescopes)
+    the GLOBAL conservation statement is tested separately, not from row sums.
+  
+  ### E. THE GAP: what -(2/3) mu grad(div U) WOULD contribute
+    U = (x^2/2, 0)  =>  div U = x  =>  grad(div U) = (1, 0) analytically
+    cell   x              div U (should be x)      grad(div U).x (should be 1) -(2/3) mu gradDivU.x * V
+    9      1.5            1.5                      1                        -0.066666666666666666
+    10     2.5            2.5                      1                        -0.066666666666666666
+    11     3.5            3.5                      1                        -0.066666666666666666
+    12     4.5            4.5                      1                        -0.066666666666666666
+    interior cells 12   worst |div U - x| = 0   worst |gradDivU.x - 1| = 2
+    MAGNITUDE OF THE MISSING TERM: up to 0.066666666666666666 per cell
+    for comparison, -(2/3)*mu*1*V exactly = -0.066666666666666666
+    Nothing in the momentum assembly produces this today:
+      grad(div / dilatation / bulkViscosity / twoThirds / Stokes  = 0 hits
+  
+  done
+
+done: 2026-09-26T21:11:59Z

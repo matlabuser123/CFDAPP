@@ -1,0 +1,67 @@
+=== pre-control hashes ===
+  3f7a6bc7f8576cb0d7791eaf66ace0994e0d7b0dcb7ea8c6ef6df7247e1b700c  src/species/MassFractionState.cpp
+  d55652da02e0a85f9d8fad7f87de664804057edbf82f4f3d3282eb2e9320e8dd  src/species/SpeciesRegistry.cpp
+
+==================================================================
+C1 -- BOUNDS CHECK REMOVED (0 <= Y_i <= 1 widened to +/-1e9)
+==================================================================
+  tests failing under this control: 4
+    DETECTED by  MassFractionStateTest.RejectsNegativeMassFraction
+    DETECTED by  MassFractionStateTest.RejectsATinyNegativeMassFraction
+    DETECTED by  MassFractionStateTest.RejectsMassFractionAboveOne
+    DETECTED by  MassFractionStateTest.BoundsDiagnosticNamesSpeciesCellAndValue
+  C1 bounds: DETECTED
+  RESTORED (sha256 verified)
+
+==================================================================
+C2 -- SUM-TO-ONE CHECK REMOVED (tolerance widened to 1e9)
+==================================================================
+  tests failing under this control: 9
+    DETECTED by  MassFractionStateTest.RejectsASumMeaningfullyAboveOne
+    DETECTED by  MassFractionStateTest.RejectsASumMeaningfullyBelowOne
+    DETECTED by  MassFractionStateTest.SumCriterionIsNonVacuousJustInsideAndJustOutside
+    DETECTED by  MassFractionStateTest.ConstructionNeverNormalisesSilently
+    DETECTED by  MassFractionStateTest.DetectsExactlyOneInvalidCellAmongManyValidOnes
+  C2 sum: DETECTED
+  RESTORED (sha256 verified)
+
+==================================================================
+C3 -- FINITENESS CHECK REMOVED
+==================================================================
+  tests failing under this control: 2
+    DETECTED by  MassFractionStateTest.RejectsNaN
+  C3 finiteness: DETECTED
+  (expected: RejectsInf still passes -- Inf is caught by the bounds check)
+    CONFIRMED: RejectsInf still passes
+  RESTORED (sha256 verified)
+
+==================================================================
+C4 -- SPECIES IDENTITY MISMATCH (registry equality ignores names/order)
+==================================================================
+  tests failing under this control: 2
+    DETECTED by  SpeciesRegistryTest.LookupIsIndependentOfDeclarationOrder
+    DETECTED by  SpeciesRegistryTest.EqualityDistinguishesDifferentSpecies
+  C4 identity: DETECTED
+  RESTORED (sha256 verified)
+
+==================================================================
+C5 -- THRESHOLD WEAKENED (frozen 4*eps*N replaced by 1e-3)
+==================================================================
+  tests failing under this control: 3
+    DETECTED by  MassFractionStateTest.ToleranceIsTheFrozenFourEpsN
+    DETECTED by  MassFractionStateTest.SumCriterionIsNonVacuousJustInsideAndJustOutside
+  C5 weakened threshold: DETECTED
+  RESTORED (sha256 verified)
+
+==================================================================
+FINAL TREE STATE
+==================================================================
+src/species/MassFractionState.cpp: OK
+src/species/SpeciesRegistry.cpp: OK
+  every control restored; production source is byte-identical to pre-control
+
+=== rebuilding clean and re-running to prove the suite is green again ===
+
+[----------] Global test environment tear-down
+[==========] 60 tests from 2 test suites ran. (1 ms total)
+[  PASSED  ] 60 tests.

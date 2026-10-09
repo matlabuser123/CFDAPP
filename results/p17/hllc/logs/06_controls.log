@@ -1,0 +1,75 @@
+P17.7 GROUP V -- non-vacuity controls
+date: 2026-09-27T06:46:12Z
+baseline include/cfd/compressible/HllcFlux.hpp sha256: db7d90f5f2e64e991d1327ab53899893e7f752c75674cb14e80f2fb60682ee01
+probe set: -R 'Hllc' -- the whole phase suite, CPU and GPU
+
+=== V3 -- the star tangential velocity comes from the OPPOSITE side ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 tests)
+  DETECTION          DETECTED, by:
+      HllcBranchTest.B3_B4_StarBranchFluxMatchesTheReference
+      HllcContactTest.T3_TangentialShearCarriesNoMassOrTangentialMomentum
+      HllcExactSolverTest.X2_MatchesTheSixtyDigitHllcEverywhere
+  RESTORE            VERIFIED by SHA-256
+
+=== V4 -- S* is the arithmetic mean of u_nL and u_nR, not Toro's contact speed ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (5 tests)
+  DETECTION          DETECTED, by:
+      HllcBranchTest.B3_B4_StarBranchFluxMatchesTheReference
+      HllcConservationTest.N1_FluxIsBitwiseAntisymmetricUnderReversal
+      HllcExactSolverTest.X2_MatchesTheSixtyDigitHllcEverywhere
+      HllcStarStateTest.S1_S2_S3_S4_StarStatesAreAdmissibleAndMatchTheReference
+      HllcWaveSpeedTest.W1_W2_W3_MatchTheReferenceAndAreWellConditioned
+  RESTORE            VERIFIED by SHA-256
+
+=== V5 -- the p*n term is dropped from the physical Euler flux ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (8 tests)
+  DETECTION          DETECTED, by:
+      HllcBranchTest.B3_B4_StarBranchFluxMatchesTheReference
+      HllcContactTest.T1_StationaryContactCarriesNoMassOrEnergyBitwise
+      HllcContactTest.T2_MovingContactMatchesTheReference
+      HllcContactTest.T3_TangentialShearCarriesNoMassOrTangentialMomentum
+      HllcExactSolverTest.X1_MatchesTheExactGodunovFluxWhereHllcIsExact
+      HllcExactSolverTest.X2_MatchesTheSixtyDigitHllcEverywhere
+      HllcPhysicalFluxTest.F1_XNormalIsTheTextbookOneDimensionalFlux
+      HllcPhysicalFluxTest.F3_MatchesTheIndependentReference
+  RESTORE            VERIFIED by SHA-256
+
+=== V6 -- the unit-normal validation is removed, so an AREA VECTOR is accepted ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (2 tests)
+  DETECTION          DETECTED, by:
+      HllcGpuEquivalenceTest.G2_InadmissibleInputsAreRefusedIdenticallyOnDevice
+      HllcNegativeTest.P2_InvalidNormalsAreRefused
+  RESTORE            VERIFIED by SHA-256
+
+=== V7 -- the star density divides by (S_K - u_nK) instead of (S_K - S*) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (4 tests)
+  DETECTION          DETECTED, by:
+      HllcBranchTest.B3_B4_StarBranchFluxMatchesTheReference
+      HllcExactSolverTest.X2_MatchesTheSixtyDigitHllcEverywhere
+      HllcReconstructionTest.BoundaryFaceTakesAnExteriorStateFromTheCaller
+      HllcStarStateTest.S1_S2_S3_S4_StarStatesAreAdmissibleAndMatchTheReference
+  RESTORE            VERIFIED by SHA-256
+
+=== restored, and proved back at baseline ===
+  db7d90f5f2e64e991d1327ab53899893e7f752c75674cb14e80f2fb60682ee01  include/cfd/compressible/HllcFlux.hpp
+  expected: db7d90f5f2e64e991d1327ab53899893e7f752c75674cb14e80f2fb60682ee01
+  V-markers left: 0 (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 37
+
+=== V1 and V2 -- PERMANENT tests, not plants, and here is why ===
+  Both defects exist as real callable code that is worth keeping:
+    V1  WaveSpeedEstimator::Davis -- the estimator the authorization SUGGESTED, measured to
+        fail the signal-bounding criterion W4 in 8 of 14 cases against the exact solver.
+    V2  hllFluxForControlOnly()   -- HLLC with the contact wave deleted, i.e. HLL, which the
+        frozen G6 criterion itself names as the non-vacuity backbone.
+  Both are asserted by permanent tests (W4_NonVacuity_Davis..., T4_NonVacuity_Deleting...,
+  and V2_...OnDeviceToo), so they are re-checked by every future regression instead of living
+  in a script that may never be run again.
+
+done: 2026-09-27T06:50:39Z

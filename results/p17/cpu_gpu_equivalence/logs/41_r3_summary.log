@@ -1,0 +1,18 @@
+=== two independent processes, same filter ===
+process A exit: 0
+process B exit: 0
+
+--- non-vacuity: the output must actually contain the GPU-computed numbers ---
+  PRESENT (1): global dt cpu=
+  PRESENT (1): D1 step  50
+  PRESENT (1): D4: shock cpu=
+  PRESENT (1): A7 recovery:
+  process A stdout: 70 lines
+
+--- byte comparison (timings stripped) ---
+  IDENTICAL: every GPU-computed value agrees across two separate processes
+  sha256 A (stripped): 6e44d998ad983fe88b8c8d88f30cae6bbea3064c86b176bf913c45c7f0589e4a
+  sha256 B (stripped): 6e44d998ad983fe88b8c8d88f30cae6bbea3064c86b176bf913c45c7f0589e4a
+
+--- the control: the comparison must be able to report a difference ---
+  CONTROL OK: a one-character perturbation is detected

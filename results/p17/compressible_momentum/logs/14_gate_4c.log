@@ -1,0 +1,53 @@
+P17.4 GATE ATTEMPT 4c -- focused re-verification (B3 added)
+date: 2026-09-26T23:12:05Z
+gate sha256: ded6feaa03b53e9fd65018491e57c9c318383798bf13fbabc4b910cf4fd6b673   (unchanged)
+TESTs in test_compressible_momentum.cpp: 22   (7 at the freeze)
+
+### G6: clang-format ###
+  clang-format exit after -i: 0  (0 = clean)
+
+### L5: physics::MomentumEquation must be UNTOUCHED ###
+  verdict: UNTOUCHED -- both files hash to the freeze
+
+### D1: default disabled -- source text AND behaviour ###
+  header default: 1  (1 = false)
+
+### build ###
+  build exit: 0  (75 s)
+
+### binary separation -- CHECKED, not assumed ###
+  P17.4 test binaries : CFDCompressibleSimpleTests CFDCompressibleTests
+  P16 test binaries   : CFDBackwardFacingStepTests CFDCaseIntegrationTests CFDGpuTests CFDIoTests CFDPhysicsTests CFDPisoTests CFDSimpleTests CFDThermalTests CFDTurbulenceChannelValidationTests CFDTurbulenceTests
+  overlap             : NONE   (NONE = the P16 result from attempt 4 is unaffected)
+
+### the momentum suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 23
+  the 15 P17.4 rows:
+    MatchesMinusTwoThirdsMuGradDivergenceTimesVolume         Passed
+    IsExactlyZeroForADivergenceFreeField                     Passed
+    UniformVelocityContributesNothing                        Passed
+    ScalesLinearlyWithViscosityAndVanishesAtZeroViscosity    Passed
+    RejectsInvalidInputs                                     Passed
+    RepeatedAssemblyIsBitwiseIdentical                       Passed
+    PressureForceMatchesMinusVolumeTimesAnalyticalGradient   Passed
+    BodyForceScalesLinearlyWithDensity                       Passed
+    TransientTermDistinguishesDRhoUDtFromRhoDUDt             Passed
+    IsWiredIntoTheRelaxedMomentumAssembly                    Passed
+    DefaultIsDisabledBehaviourally                           Passed
+    UniformFlowResidualIsAtRoundOff                          Passed
+    ConvectiveAssemblyIsGloballyConservative                 Passed
+    NonFiniteAssembledSystemThrowsNumericalError             Passed
+    SymmetryCarriesZeroNormalMomentumFlux                    Passed
+
+### Group L: low-Mach + MMS, and the whole compressible suite ###
+  low-Mach + MMS exit: 0   100% tests passed, 0 tests failed out of 10
+  compressible suite exit: 0   100% tests passed, 0 tests failed out of 176
+
+### G8: GPU compressible momentum -- must be NOT PRESENT ###
+    compressibleMomentum     0
+    CompressibleRelaxed      0
+    dilatational             0
+    DilatationalStress       0
+
+done: 2026-09-26T23:15:54Z

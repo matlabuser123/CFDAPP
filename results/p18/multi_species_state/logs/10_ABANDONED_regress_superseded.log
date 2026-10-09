@@ -1,0 +1,56 @@
+P18.1 -- POST-CHANGE regression, three configurations
+date: 2026-09-29T06:52:08Z
+P18 start fingerprint: 60cf951bde2a4eb2fc32d21470377090fa3453c6b5b435c130b2247164f89318
+newest production source: 2026-09-29T06:49:48Z  src/species/MassFractionState.cpp
+
+### PREDICTIONS -- DECLARED BEFORE THIS RUN (G11's requirement) ###
+
+P18.1 is ADDITIVE. It adds two production translation units
+(src/species/SpeciesRegistry.cpp, src/species/MassFractionState.cpp) and one test file
+(tests/unit/species/test_mass_fraction_state.cpp). NO existing source file is modified
+except the two CMakeLists.txt lines that compile them. Every pre-existing count must
+therefore be UNCHANGED, and the only movement must be the new tests.
+
+gtest_discover_tests registers ONE CTEST ROW PER GTEST TEST, so the 57 new gtest tests
+(12 SpeciesRegistryTest + 45 MassFractionStateTest, counted from --gtest_list_tests at
+results/p18/multi_species_state/logs/07_test_counts.log) add 57 rows to every
+configuration. None of them matches the 5 frozen exclusion patterns, so selected rises
+by 57 too. Skipped and DISABLED must NOT move: the new tests are neither.
+
+  BASELINE (P18.0)                      PREDICTED (P18.1 = baseline + 57)
+  release_cuda 2763 sel 2712 P 0 F  ->  2820 selected, 2769 Passed, 0 FAILED, 2 Skipped, 49 DISABLED
+  cpu_only     2540 sel 2493 P 0 F  ->  2597 selected, 2550 Passed, 0 FAILED, 0 Skipped, 47 DISABLED
+  debug_gui    2825 sel 2770 P 4 F  ->  2882 selected, 2827 Passed, 4 FAILED, 2 Skipped, 49 DISABLED
+
+  THE 4 DEBUG+GUI FAILURES ARE EXPECTED AND INHERITED, not a P18.1 regression:
+    DriverSeegmiller.MeshSequence, .CorrectedSequenceIsDeterministic,
+    DriverSeegmillerInlet.MappedInletPreservesTheMassFlow, .MediumGridAB
+  all four TIMEOUT at the frozen 7200 s. They pass in both Release configurations and are
+  pre-P17 tests; Debug is >3.8x-6.0x slower than the limit was set for. P17.11 left G10 at
+  PARTIAL for exactly this. The timeout is NOT raised here either.
+  results/p17/qualification/G10_DEBUG_GUI_TIMEOUTS.md
+
+  ANY DEVIATION FROM THESE NUMBERS IS A P18.1 FINDING. A FIFTH failure, a changed
+  Skipped/DISABLED count, or a delta other than exactly +57 all mean P18.1 was not additive.
+
+############################################################
+### release_cuda   (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final)
+############################################################
+  configure exit: 0
+  CONFIG ASSERT  build=Release  gui=OFF  cuda=ON   openmp=ON  
+  build exit: 0   (59 s)
+  --- staleness (P17.7 staleness.py, unchanged; fail closed) ---
+      oldest built binary       : 2026-09-29T06:52:33Z  tests/unit/core/CFDCoreTests
+      stale vs production       : 0
+      stale vs its own sources  : 0
+      unverifiable (fail closed): 0
+      VERDICT: all 50 built test binaries postdate the newest production source AND every
+               source they actually compile, per CMake's own object lists
+    staleness exit: 0
+  --- library hashes ---
+    libcfdcore.a                   a2d4ea6f6c633bdf57938c46f571f51443455b34bce3fe164c7d35be4d909aac
+    libcfdcuda.a                   1e2e0f914afd40ef1f624f03cdb2bbee8aa141d46d780ad1bbcc3c29c404290a
+  registered              : 2833
+  matching the exclusions : 13
+  selected                : 2820
+  --- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---

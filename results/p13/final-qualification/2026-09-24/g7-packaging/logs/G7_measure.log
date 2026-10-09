@@ -1,0 +1,156 @@
+P13 G7 -- packaging, measurement half
+date: 2026-09-24T21:20:31Z
+
+### preserving the committed P13-006 logs before the frozen script rewrites them ###
+  preserved files: 7
+
+### Step 11 (part 1) -- what package artifacts existed BEFORE G7 ###
+  so a stale archive cannot later be mistaken for the one G7 qualified:
+    2026-09-10_05:53    61179151  build/windows-release/CFDApp-0.1.0-Windows-x64.zip
+    2026-09-10_05:54    49872003  build/windows-release/CFDApp-0.1.0-Windows-x64.exe
+    2026-09-11_22:51    61097920  build/windows-release/CFDApp-0.2.0-Windows-x64.zip
+    2026-09-11_22:52    49806715  build/windows-release/CFDApp-0.2.0-Windows-x64.exe
+    2026-09-22_02:17     1883372  build/pkg/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    2026-09-22_02:18      879733  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    2026-09-22_02:18      883741  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.sh
+    2026-09-22_02:18     1887300  build/pkg/CFDApp-0.2.0-dev-Linux-x64.sh
+  (count: 8)
+  removing them, so every artifact below is provably produced by this run:
+  remaining: 0
+
+### Step 2 -- platform naming, the pure-CMake contract (incl. Windows derivation) ###
+  === expectations ===
+  -- -- the Windows release contract (release.yml globs this name) --
+  --   windows release: CFDApp-0.2.0-Windows-x64  [ZIP;NSIS]
+  --   windows x86_64 spelling: CFDApp-0.2.0-Windows-x64  [ZIP;NSIS]
+  -- -- a development build must not be named like a release --
+  --   windows dev: CFDApp-0.2.0-dev-Windows-x64  [ZIP;NSIS]
+  --   linux dev: CFDApp-0.2.0-dev-Linux-x64  [TGZ;STGZ]
+  -- -- the platform in the name is the platform built for --
+  --   linux release: CFDApp-0.2.0-Linux-x64  [TGZ;STGZ]
+  --   linux arm64: CFDApp-0.2.0-Linux-arm64  [TGZ;STGZ]
+  --   macos arm64: CFDApp-0.2.0-macOS-arm64  [TGZ]
+  -- -- NSIS is requested only where it can exist --
+  --   NSIS on Windows only: ok
+  -- -- an output variable named like a CMake false constant --
+  --   n / no / off / ignore as output variable names: ok
+  -- cfdapp_package_naming: all expectations met
+    exit status: 0
+  
+  === refusal (must exit nonzero) ===
+  CMake Error at cmake/PackageNaming.cmake:98 (message):
+    cfdapp_package_naming: unsupported system "Haiku".  Packaging is defined
+    for Windows, Linux and Darwin.  Add the platform deliberately -- with
+    something actually built and run on it -- rather than letting the package
+    take a name nobody has verified.
+  Call Stack (most recent call first):
+    tests/cmake/test_package_naming_refuses.cmake:19 (cfdapp_package_naming)
+  
+  
+    exit status: 1
+
+### Step 2 -- the naming contract as registered ctests ###
+  Test project /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final
+      Start 17: CFDAppPackageNaming
+  1/2 Test #17: CFDAppPackageNaming .......................   Passed    0.01 sec
+      Start 18: CFDAppPackageNamingRefusesUnknownSystem
+  2/2 Test #18: CFDAppPackageNamingRefusesUnknownSystem ...   Passed    0.01 sec
+  
+  100% tests passed, 0 tests failed out of 2
+  
+  Label Time Summary:
+  unit    =   0.02 sec*proc (2 tests)
+  
+  Total Test time (real) =   0.39 sec
+
+### Steps 3-7 -- the frozen end-to-end verifier ###
+  === configure + build: GUI package ===
+    -- CFDApp package: CFDApp-0.2.0-dev-Linux-x64 (TGZ;STGZ)
+  
+  === configure + build: CLI-only package (criterion C1) ===
+    -- CFDApp package: CFDApp-0.2.0-dev-Linux-x64 (TGZ;STGZ)
+    C1a: PASS  CPackConfig.cmake produced
+  
+  === G1: cpack exit status ===
+    G1a: PASS  GUI cpack exit 0
+    C1b: PASS  CLI cpack exit 0
+    G2: PASS  NSIS never mentioned on Linux
+  
+  === N1/N3: what the artifacts are called ===
+    build/pkg/CFDApp-0.2.0-dev-Linux-x64.sh
+    build/pkg/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.sh
+    build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    N1: PASS  CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    N3: PASS  package name carries the binary's version 0.2.0-dev
+  
+  === N4: the packaged binary matches the platform in the name ===
+      ELF 64-bit LSB pie executable, x86-64, version 1 (GNU/Linux), dynamically link
+    N4: PASS  ELF/Linux inside a Linux-named package
+  
+  === C2/C3: what is in each package ===
+    GUI package bin/: cfdapp cfdapp_gui 
+    CLI package bin/: cfdapp 
+    C3: PASS  GUI package has both executables
+    C2a: PASS  CLI package has no cfdapp_gui
+    C2-examples: PASS  present in the CLI package
+    C2-docs: PASS  present in the CLI package
+    C2-licenses: PASS  present in the CLI package
+  
+  === P1: install tree cleanliness ===
+    build/pkg -> 131 files, bin/: cfdapp cfdapp_gui 
+    P1-pkg: PASS  no build-only artifacts
+    build/pkgcli -> 130 files, bin/: cfdapp 
+    P1-pkgcli: PASS  no build-only artifacts
+  
+  === P2: the PACKAGED cli runs a PACKAGED example ===
+    P2: PASS  packaged cfdapp ran annular_sector_conduction_multiblock, exit 0
+      Case: Annular Sector Conduction (3-block multiblock)
+      Converged: yes
+  
+  FAILURES: 0
+
+### Step 5 -- exactly which artifacts THIS run produced ###
+  build/pkg/CFDApp-0.2.0-dev-Linux-x64.sh
+      size      : 1998898 bytes
+      mtime     : 2026-09-25 07:30:37.747599300 +1000
+      sha256    : bd5f22537a07906ace037ad975ced943b39811dc8167075e418f9a0def34b3d5
+  build/pkg/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+      size      : 1994954 bytes
+      mtime     : 2026-09-25 07:30:29.596739200 +1000
+      sha256    : c3b21fedb302d6001ff01e9b8fc95550026e326475ec7653d32686a71848103f
+  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.sh
+      size      : 937829 bytes
+      mtime     : 2026-09-25 07:30:54.733113500 +1000
+      sha256    : c2410fe4171e0f0c4bc49c62f6b7bd6570dd68f91ff20b2eb78b90c468115077
+  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+      size      : 933895 bytes
+      mtime     : 2026-09-25 07:30:46.671062100 +1000
+      sha256    : ca0d56dd2de412e68b183643ce477eafcb387de35b15e51d5374fd6b9bf0d2f5
+  generator / version / platform as CPack resolved them:
+    set(CPACK_GENERATOR "TGZ;STGZ")
+    set(CPACK_PACKAGE_FILE_NAME "CFDApp-0.2.0-dev-Linux-x64")
+    set(CPACK_PACKAGE_VERSION "0.2.0-dev")
+    set(CPACK_PACKAGE_VERSION_MAJOR "0")
+    set(CPACK_PACKAGE_VERSION_MINOR "2")
+    set(CPACK_PACKAGE_VERSION_PATCH "0")
+    set(CPACK_SYSTEM_NAME "Linux")
+  arch of the host that produced them: x86_64   kernel: Linux
+
+### Step 3 -- one version source drives filename AND executable ###
+  project() version in CMakeLists.txt:
+    cmake_minimum_required(VERSION 3.20)
+    project(CFDApp
+      VERSION 0.2.0
+    # Suffix appended after the project() version in the string `cfdapp`
+  CFDAPP_VERSION_SUFFIX:
+    set(CFDAPP_VERSION_SUFFIX "dev" CACHE STRING
+  build/pkg/apps/cli/cfdapp --version : CFDApp 0.2.0-dev
+  CPACK_PACKAGE_VERSION               : set(CPACK_PACKAGE_VERSION "0.2.0-dev")
+
+### Step 7 -- the packaged binary's real type, not its filename ###
+    cfdapp_gui                   ELF 64-bit LSB pie executable, x86-64, version 1 (GNU/Linux), dynamically linked, in
+    cfdapp                       ELF 64-bit LSB pie executable, x86-64, version 1 (GNU/Linux), dynamically linked, in
+  package name says : CFDApp-0.2.0-dev-Linux-x64.tar.gz
+
+done: 2026-09-24T21:30:58Z

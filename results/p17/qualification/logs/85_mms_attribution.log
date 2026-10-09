@@ -1,0 +1,62 @@
+=== baseline: the tracked file is clean before we start ===
+  modified under results/validation: 0
+  tracked results/validation/mms/distorted_mesh_mms.json sha256: 74a04fcb5dd6ead5881e869763dfd312c8d60baa9fabed612775a40c05a1d3c4
+
+=== the same MMS test, run from each configuration's own binary ===
+  release_cuda: test exit=0, files changed=6, sha256=c72d64a1a323e395b8cbd434d58f9b2ad05cea8c53ec784f3bea97a6ccf16e12
+            8 seconds
+  cpu_only: test exit=0, files changed=6, sha256=6cb16c0371c29a7114b71e3a6c6e264369540a88cfc64362dd991393089efa4e
+            8 seconds
+  debug_gui: test exit=0, files changed=6, sha256=15394fe6f67f69ac96fbf5c0410d6bf44f3b99316e4103e4d17ca7d4d0b4316b
+            1 1.5702984921680796,
+            1 1.5702985007830264,
+            1 1.774040210043582,
+            1 1.774040255842409,
+            1 1.8166261050576744,
+            1 1.8166261126149879,
+            1 1.8853147673592456
+            1 1.8853150797914222
+            1 1.8906919970925546,
+            1 1.8906920644592236,
+            1 1.9407135334941634
+            1 1.9407141704142301
+            8 asymptotic_ratio
+            2 diagnostic
+            8 extrapolated_error
+            4 finest_observed_order
+           36 l1
+           36 l2
+           36 linf
+            8 observed_order
+            8 seconds
+
+=== do the Release and Debug binaries write DIFFERENT norms? ===
+  DIFFERENT -- Debug and Release write different values. Sample:
+    <           "l1": 0.001908553421221324,
+    <           "l2": 0.0025949962834065066,
+    <           "linf": 0.007296027070596844,
+    >           "l1": 0.0019085534139583096,
+    >           "l2": 0.0025949962726111095,
+    >           "linf": 0.0072960270538871,
+    <           "l1": 0.0021207590558649085,
+    <           "l2": 0.002762839385552208,
+  differing lines: 158
+
+=== restore ===
+  modified under results/validation: 0
+  non-timing numeric leaves that differ : 74
+  timing leaves that differ             : 4
+  WORST relative difference             : 1.128e-05
+  at                                    : orders[2].triplets[1].extrapolated_error
+  double precision eps                  : 2.220e-16
+  ratio to eps                          : 5.079e+10
+  field                       n   worst relative diff
+  seconds                     4             8.526e-01
+  extrapolated_error          4             1.128e-05
+  observed_order              4             4.929e-07
+  finest_observed_order       2             4.929e-07
+  l1                         18             4.136e-07
+  linf                       18             3.664e-07
+  l2                         18             3.597e-07
+  reduction_factors           6             3.282e-07
+  asymptotic_ratio            4             2.732e-07

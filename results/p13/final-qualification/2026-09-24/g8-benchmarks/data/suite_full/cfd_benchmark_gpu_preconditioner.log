@@ -1,0 +1,38 @@
+cfd_benchmark_gpu_preconditioner -- CFDApp version 0.2.0-dev
+cuda_available_at_runtime: yes
+
+=== Linear-system-level: CG/BiCGSTAB x CPU/GPU x None/Jacobi ===
+small_spd_3x3 | CG | CPU | None | n=3 nnz=7 | iters=3 | t0=2.59245 | tFinal=3.94459e-17 | solve_s=1.1893e-05 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+small_spd_3x3 | CG | CPU | Jacobi | n=3 nnz=7 | iters=3 | t0=2.59245 | tFinal=5.86993e-17 | solve_s=1.186e-05 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+small_spd_3x3 | CG | GPU | None | n=3 nnz=7 | iters=3 | t0=2.59245 | tFinal=4.49475e-17 | solve_s=0.00120783 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+small_spd_3x3 | CG | GPU | Jacobi | n=3 nnz=7 | iters=3 | t0=2.59245 | tFinal=1.0871e-16 | solve_s=0.00175195 | precond_setup_s=1.6499e-05 | precond_apply_s=2.9384e-05 | CONVERGED
+pressure_like_well_conditioned_40x40 | CG | CPU | None | n=1600 nnz=7840 | iters=63 | t0=96.334 | tFinal=8.87692e-07 | solve_s=0.001133 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_well_conditioned_40x40 | CG | CPU | Jacobi | n=1600 nnz=7840 | iters=60 | t0=96.334 | tFinal=8.13372e-07 | solve_s=0.00169543 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_well_conditioned_40x40 | CG | GPU | None | n=1600 nnz=7840 | iters=63 | t0=96.334 | tFinal=8.87692e-07 | solve_s=0.0198668 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_well_conditioned_40x40 | CG | GPU | Jacobi | n=1600 nnz=7840 | iters=60 | t0=96.334 | tFinal=8.13372e-07 | solve_s=0.0208311 | precond_setup_s=2.1828e-05 | precond_apply_s=0.000362703 | CONVERGED
+pressure_like_poorly_conditioned_40x40 | CG | CPU | None | n=1600 nnz=7840 | iters=170 | t0=93.5536 | tFinal=7.7657e-07 | solve_s=0.167294 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_poorly_conditioned_40x40 | CG | CPU | Jacobi | n=1600 nnz=7840 | iters=165 | t0=93.5536 | tFinal=8.96291e-07 | solve_s=0.235366 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_poorly_conditioned_40x40 | CG | GPU | None | n=1600 nnz=7840 | iters=170 | t0=93.5536 | tFinal=7.7657e-07 | solve_s=0.0826351 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_poorly_conditioned_40x40 | CG | GPU | Jacobi | n=1600 nnz=7840 | iters=165 | t0=93.5536 | tFinal=8.96291e-07 | solve_s=0.0780324 | precond_setup_s=2.8363e-05 | precond_apply_s=0.00138474 | CONVERGED
+pressure_like_poorly_conditioned_80x80 | CG | CPU | None | n=6400 nnz=31680 | iters=278 | t0=147.167 | tFinal=1.35483e-06 | solve_s=0.249013 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_poorly_conditioned_80x80 | CG | CPU | Jacobi | n=6400 nnz=31680 | iters=203 | t0=147.167 | tFinal=1.32468e-06 | solve_s=0.0215084 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_poorly_conditioned_80x80 | CG | GPU | None | n=6400 nnz=31680 | iters=278 | t0=147.167 | tFinal=1.35483e-06 | solve_s=0.0990502 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+pressure_like_poorly_conditioned_80x80 | CG | GPU | Jacobi | n=6400 nnz=31680 | iters=203 | t0=147.167 | tFinal=1.32468e-06 | solve_s=0.0776725 | precond_setup_s=4.0953e-05 | precond_apply_s=0.00169671 | CONVERGED
+momentum_like_40x40 | BiCGSTAB | CPU | None | n=1600 nnz=7840 | iters=56 | t0=30.4211 | tFinal=2.26303e-07 | solve_s=0.00168785 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+momentum_like_40x40 | BiCGSTAB | CPU | Jacobi | n=1600 nnz=7840 | iters=55 | t0=30.4211 | tFinal=1.78828e-07 | solve_s=0.00249882 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+momentum_like_40x40 | BiCGSTAB | GPU | None | n=1600 nnz=7840 | iters=56 | t0=30.4211 | tFinal=2.26302e-07 | solve_s=0.0273148 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+momentum_like_40x40 | BiCGSTAB | GPU | Jacobi | n=1600 nnz=7840 | iters=55 | t0=30.4211 | tFinal=1.78828e-07 | solve_s=0.0262326 | precond_setup_s=2.6115e-05 | precond_apply_s=0.000477665 | CONVERGED
+momentum_like_poorly_conditioned_40x40 | BiCGSTAB | CPU | None | n=1600 nnz=7840 | iters=70 | t0=27.9741 | tFinal=2.49162e-07 | solve_s=0.00383269 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+momentum_like_poorly_conditioned_40x40 | BiCGSTAB | CPU | Jacobi | n=1600 nnz=7840 | iters=71 | t0=27.9741 | tFinal=2.02153e-07 | solve_s=0.00375117 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+momentum_like_poorly_conditioned_40x40 | BiCGSTAB | GPU | None | n=1600 nnz=7840 | iters=70 | t0=27.9741 | tFinal=2.49654e-07 | solve_s=0.0322075 | precond_setup_s=0 | precond_apply_s=0 | CONVERGED
+momentum_like_poorly_conditioned_40x40 | BiCGSTAB | GPU | Jacobi | n=1600 nnz=7840 | iters=71 | t0=27.9741 | tFinal=2.02154e-07 | solve_s=0.0353725 | precond_setup_s=5.2612e-05 | precond_apply_s=0.000921533 | CONVERGED
+
+=== Production SIMPLE (lid-driven cavity, GPU BiCGSTAB) ===
+
+SIMPLE lid-driven cavity 40x40 -- preconditioner | total_s | per_iter_ms | outer_iters | status | gpu_linear_solves | gpu_linear_iters | gpu_solve_s | precond_setup_s | precond_apply_s | mass_imbalance
+None | 12.3307 | 61.6533 | 200 | ok | 600 | 19047 | 11.5712 | 0 | 0 | 0
+Jacobi | 11.6316 | 58.1578 | 200 | ok | 600 | 16116 | 10.8947 | 0.0894458 | 0.164582 | 0
+
+SIMPLE lid-driven cavity 80x80 -- preconditioner | total_s | per_iter_ms | outer_iters | status | gpu_linear_solves | gpu_linear_iters | gpu_solve_s | precond_setup_s | precond_apply_s | mass_imbalance
+None | 20.08 | 100.4 | 200 | ok | 600 | 22818 | 16.3387 | 0 | 0 | 0
+Jacobi | 17.6812 | 88.4061 | 200 | ok | 600 | 19166 | 14.0471 | 0.212565 | 0.191503 | 0

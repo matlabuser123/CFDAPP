@@ -1,0 +1,48 @@
+P17.1 ACCEPTANCE GATE
+date: 2026-09-26T06:01:37Z
+gate sha256: 876466e2c97fd8db93e1dd96ac834a18a0c1c99ee8d381ab45b324b6dedc39ff
+  frozen was: 876466e2c97fd8db93e1dd96ac834a18a0c1c99ee8d381ab45b324b6dedc39ff
+
+### build ###
+  build exit: 0  (56 s)
+
+### Groups D, S, M: the new and existing mass-flux criteria ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 20
+  the 8 P17.1 rows:
+    RejectsNegativeCellDensity                           Passed
+    RejectsZeroCellDensity                               Passed
+    RejectsNonFiniteCellDensity                          Passed
+    FaceDensityEvaluationRejectsInvalidCellDensity       Passed
+    ValidUniformDensityIsUnaffectedByTheNewValidation    Passed
+    ReversingVelocityReversesMassFluxExactly             Passed
+    FaceDensityIsRecomputedPerCallNotCached              Passed
+    RowVaryingDensityConservesMassAndScalesFluxPerRow    Passed
+
+### Group T: thermodynamic closure -- p/T coupling (existing EOS suite) ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 28
+  the coupling rows:
+    DoublingPressureAtFixedTemperatureDoublesDensity     Passed
+    DoublingTemperatureAtFixedPressureHalvesDensity      Passed
+    DDensityDPressureMatchesAnalyticalFormula            Passed
+    DDensityDTemperatureIsNegative                       Passed
+
+### Group G3: the boundary-EOS instrument must still REACH the boundary EOS ###
+    ThrowsOnNonPositiveBoundaryTemperature               Passed
+    (it sets temperature[0] = -1.0 with a VALID density, so the up-front density
+     check cannot intercept it -- it still reaches the boundary EOS by construction)
+
+### Group C2: incompressible SIMPLE must remain EOS-free (structural) ###
+  EOS references under src/ and include/cfd/pressure_velocity: 0   (must be 0)
+
+### Group G1/G2: the whole existing compressible suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 137
+
+### Groups G4/G5/G6: P14, P15, P16 preservation -- the FROZEN narrow regexes ###
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P16_turbulence   exit=0  100% tests passed, 0 tests failed out of 315
+
+done: 2026-09-26T06:38:02Z

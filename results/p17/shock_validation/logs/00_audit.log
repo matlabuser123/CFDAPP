@@ -1,0 +1,117 @@
+P17.9 AUDIT -- existing shock / discontinuity infrastructure
+date: 2026-09-28T05:06:34Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+searched roots: include src cuda tests apps results/p17
+
+### 1. the term sweep (section 1's list, verbatim) ###
+term                        files  lines   where
+Sod                            44    281   include/cfd/compressible/HllcFlux.hpp tests/integration/compressible/test_density_based_canonical.cpp tests/unit/compressible/hllc_reference_data.hpp 
+shock tube                      7     13   results/p17/audit/audit_verification.md results/p17/audit/capability_matrix.md results/p17/audit/implementation_gaps.md 
+normal shock                   12     14   tests/integration/compressible/test_density_based_canonical.cpp results/p17/audit/audit_verification.md results/p17/audit/capability_matrix.md 
+Rankine-Hugoniot               13     17   include/cfd/compressible/HllcFlux.hpp tests/unit/compressible/test_density_based_solver.cpp results/p17/density_based_solver/AMENDMENT_A6_upstream_exception.md 
+supersonic                     75    264   include/cfd/compressible/DensityBasedSolver.hpp include/cfd/compressible/HllcFlux.hpp src/compressible/DensityBasedSolver.cpp 
+contact discontinuity           2      2   results/p17/gates/P17_GATES.md results/p17/shock_validation/tools/audit.sh 
+compression wave                1      1   results/p17/shock_validation/tools/audit.sh 
+expansion wave                  8     15   results/p17/audit/audit_verification.md results/p17/audit/capability_matrix.md results/p17/audit/compressible_inventory.md 
+Riemann exact                   9     13   include/cfd/compressible/HllcFlux.hpp results/p17/density_based_solver/controls/format/HllcFlux.hpp.preformat results/p17/gates/P17_GATES.md 
+shock position                  7      7   tests/integration/compressible/test_density_based_canonical.cpp results/p17/audit/capability_matrix.md results/p17/audit/test_inventory.md 
+density ratio                  26     55   tests/unit/compressible/hllc_reference_data.hpp tests/unit/compressible/test_hllc_flux.cpp results/p17/density_based_solver/controls/format/hllc_reference_data.hpp.preformat 
+pressure ratio                 26     76   tests/unit/compressible/hllc_reference_data.hpp tests/unit/compressible/test_hllc_flux.cpp results/p17/density_based_solver/controls/format/hllc_reference_data.hpp.preformat 
+Mach relation                   1      1   results/p17/shock_validation/tools/audit.sh 
+
+### 2. what P17.7 / P17.8 actually left behind ###
+-- the independent exact Riemann reference (P17.7's, frozen then AMENDED):
+   -rwxrwxrwx 1 root root 29910 Sep 27 19:21 results/p17/hllc/tools/exact_riemann.py
+   sha256 a50242580f620c42280df042a3bd4802739c87d6dfcaa163b70236a54609d95c
+   what it EXPORTS (def/class at module level):
+     58:def sound_speed(rho, p):
+     63:def total_energy_density(rho, vel, p):
+     76:def euler_flux(rho, vel, p, n):
+     89:def conserved(rho, vel, p):
+     98:def _f_K(p, rho_k, p_k, a_k):
+     112:def exact_star(rho_l, un_l, p_l, rho_r, un_r, p_r):
+     146:def exact_wave_extremes(rho_l, un_l, p_l, rho_r, un_r, p_r):
+     171:def exact_sample_at_zero(rho_l, un_l, p_l, rho_r, un_r, p_r):
+     231:def davis_speeds(rho_l, un_l, p_l, a_l, rho_r, un_r, p_r, a_r):
+     241:def toro_pvrs_speeds(rho_l, un_l, p_l, a_l, rho_r, un_r, p_r, a_r):
+     269:def hllc(rho_l, vel_l, p_l, rho_r, vel_r, p_r, n, estimator="toro_pvrs"):
+     361:def V(a, b=0, c=0):
+     394:def _near_sonic():
+     402:def oblique_normal():
+     409:def build_cases():
+     421:def fmt(x):
+     425:def flux_scales(rho_l, p_l, a_l, rho_r, p_r, a_r):
+     448:def rel_to_scale(a, b, scale):
+     453:def main():
+
+-- Sod appearances in P17.7's reference data / tests:
+     results/p17/hllc/tools/exact_riemann.py:378:    ("sod_literature", SOD_L, SOD_R, NX),
+     results/p17/hllc/tools/exact_riemann.py:379:    ("sod_atmospheric", SOD_ATM_L, SOD_ATM_R, NX),
+     results/p17/hllc/tools/exact_riemann.py:380:    ("sod_y", (SOD_L[0], V(0), SOD_L[2]), (SOD_R[0], V(0), SOD_R[2]), NY),
+     results/p17/hllc/tools/exact_riemann.py:381:    ("sod_z", (SOD_L[0], V(0), SOD_L[2]), (SOD_R[0], V(0), SOD_R[2]), NZ),
+     tests/unit/compressible/hllc_reference_data.hpp:106:    {"sod_literature",
+     tests/unit/compressible/hllc_reference_data.hpp:132:    {"sod_atmospheric",
+     tests/unit/compressible/hllc_reference_data.hpp:158:    {"sod_y",
+     tests/unit/compressible/hllc_reference_data.hpp:184:    {"sod_z",
+
+-- P17.8's canonical cases (what is already integrated at SOLVER level):
+     133:TEST(DensityBasedCanonicalIntegration, C4_SmoothAdvectedPulseConvergesToTheAnalyticSolution) {
+     250:TEST(DensityBasedCanonicalIntegration, G2_OpenDomainBalancesAgainstTheIntegratedBoundaryFlux) {
+     403:TEST(DensityBasedCanonicalIntegration, G1_ClosedDomainMomentumMatchesTheIntegratedWallForce) {
+     525:TEST(DensityBasedCanonicalIntegration, LowMachRemainsValidAndItsConditioningIsReported) {
+     contact mentions in the P17.8 unit suite: 6
+
+### 3. the solver API P17.9 must drive (P17.8's, unchanged) ###
+   58:// toPrimitive(), which routes through P17.5's recover(), so they cannot drift out of step with the
+   223:  DensityBasedSolver(DensityBasedSettings settings, TotalEnergyState thermodynamics);
+   230:  [[nodiscard]] ConservedField fromPrimitive(const cfd::mesh::Mesh& mesh,
+   237:  [[nodiscard]] std::vector<PrimitiveState> toPrimitive(const ConservedField& q) const;
+   245:  [[nodiscard]] ResidualField assembleResidual(const cfd::mesh::Mesh& mesh,
+   263:  [[nodiscard]] Real globalTimeStep(const cfd::mesh::Mesh& mesh,
+   268:  [[nodiscard]] static ConservedField applyUpdate(const cfd::mesh::Mesh& mesh,
+   278:  // Takes Q by value and returns the final state, mirroring SIMPLE::solve() and
+   279:  // TransientSolver::solve(): the caller's field is never mutated.
+   280:  [[nodiscard]] DensityBasedResult solve(const cfd::mesh::Mesh& mesh, ConservedField q,
+
+   boundary treatments available:
+     InviscidWall,
+     SupersonicInflow,
+     SupersonicOutflow
+
+### 4. mesh factories usable for a 1D-on-2D shock tube ###
+   222:  [[nodiscard]] static Mesh createCartesian2D(Index nx, Index ny, Real lengthX, Real lengthY);
+   233:  [[nodiscard]] static Mesh createRectilinear2D(const AxisSpacing& x, const AxisSpacing& y);
+   239:  [[nodiscard]] static Mesh createGraded2D(Index nx, Index ny, Real lengthX, Real lengthY,
+
+### 5. existing validation-harness conventions to REUSE, not reinvent ###
+   grid-convergence / GCI helpers:
+     include/cfd/validation/GridConvergence.hpp
+     include/cfd/validation/GridConvergenceStudy.hpp
+     src/validation/GridConvergence.cpp
+     src/validation/GridConvergenceStudy.cpp
+     src/validation/ProductionValidation.cpp
+   L1/L2 error helpers:
+     include/cfd/solver/CFL.hpp
+     src/compressible/DensityBasedSolver.cpp
+   validation report writers:
+     cavity_re100
+     conjugate_heat_transfer
+     grid_convergence
+     heated_cavity
+     mms
+     natural_convection
+
+### 6. is there ANY existing shock benchmark that already runs a solver? ###
+   test files mentioning Sod / shock tube: 2
+     tests/integration/compressible/test_density_based_canonical.cpp
+     tests/unit/compressible/test_hllc_flux.cpp
+   SANITY -- the pattern must FIND something where Sod is known to live.
+   The first version of this control used a \b-anchored sod and returned 0, which reads as
+   'no reference data' when the truth is that \b cannot match inside sod_literature --
+   underscore is a word character. Corrected; BOTH forms are printed so the difference is
+   visible rather than silently fixed:
+     \bsod\b anchored : 0 files   <- the BLIND one
+     plain sod        : 19 files   (must be > 0)
+     Sod|sod in p17   : 41 files
+
+done: 2026-09-28T05:07:49Z

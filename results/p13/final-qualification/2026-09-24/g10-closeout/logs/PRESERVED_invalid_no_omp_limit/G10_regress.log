@@ -1,0 +1,19 @@
+P13 G10 -- full regression, three canonical configurations
+date: 2026-09-25T04:52:06Z
+
+exclusions (frozen, regress_both.sh p16 mode):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+invocation (frozen): ctest -j 8 --timeout 7200
+
+############################################################
+### release_cuda  (build/qual-final)
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build ---
+  build exit: 0   (87 s)
+
+--- ctest -j 8 --timeout 7200 ---

@@ -1,0 +1,175 @@
+=== working tree: 265 entries ===
+
+  pre-existing: core/IO/solver (P13-P16)   39
+  pre-existing: P16 turbulence             27
+  P17 implementation (GPU)                  6
+  evidence / case data (earlier phases)    11
+  P17 implementation (compressible)        19
+  tests (P17 + earlier phases)             99
+  pre-existing: GPU-DISC discretization    18
+  pre-existing: P14 transport               5
+  control docs                              2
+  P17 evidence                              1
+  pre-existing: P13 checkpoint/restart     10
+  pre-existing: GUI                         4
+  pre-existing: benchmarks                 10
+  pre-existing: P15 thermal                14
+  ----------------------------------------------
+  TOTAL classified                        265
+
+=== anything in the OTHER bucket, listed in full ===
+  (none)
+
+=== P17 PRODUCTION source changes, enumerated individually ===
+   M CMakeLists.txt
+   M cuda/CMakeLists.txt
+   M cuda/kernels/DeviceBoundaryConditions.cpp
+   M cuda/kernels/DeviceConvectionPlan.cpp
+   M cuda/kernels/DeviceDiffusionPlan.cpp
+   M cuda/kernels/DeviceGradientPlan.cpp
+   M cuda/kernels/DeviceMomentumAssemblyKernel.cu
+   M cuda/kernels/DeviceVectorOpsKernel.cu
+   M cuda/kernels/GpuLinearSolverCuda.cpp
+   M cuda/kernels/GpuResidentSolveKernel.cu
+   M cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+   M include/cfd/algebra/SparseMatrix.hpp
+   M include/cfd/app/ProjectRunner.hpp
+   M include/cfd/boundary/BoundaryCondition.hpp
+   M include/cfd/compressible/CompressibleContinuity.hpp
+   M include/cfd/compressible/CompressibleMassFlux.hpp
+   M include/cfd/compressible/CompressibleRelaxedMomentum.hpp
+   M include/cfd/compressible/EquationOfState.hpp
+   M include/cfd/compressible/IdealGasEOS.hpp
+   M include/cfd/core/Exception.hpp
+   M include/cfd/core/Logger.hpp
+   M include/cfd/core/Version.hpp.in
+   M include/cfd/discretization/NonOrthogonalDiffusion.hpp
+   M include/cfd/discretization/TimeDerivative.hpp
+   M include/cfd/gpu/BoundaryEncoding.hpp
+   M include/cfd/gpu/DeviceBuffer.hpp
+   M include/cfd/gpu/DeviceDiffusion.hpp
+   M include/cfd/gpu/DeviceDiffusionTerms.hpp
+   M include/cfd/gpu/DeviceMomentumAssembly.hpp
+   M include/cfd/gpu/DeviceVectorOps.hpp
+   M include/cfd/gpu/GPUExecutionStats.hpp
+   M include/cfd/gpu/GpuSimpleDiscretization.hpp
+   M include/cfd/io/JSONWriter.hpp
+   M include/cfd/io/SimulationSetup.hpp
+   M include/cfd/io/case/PhysicsConfig.hpp
+   M include/cfd/physics/MomentumEquation.hpp
+   M include/cfd/pressure_velocity/RelaxedMomentum.hpp
+   M include/cfd/pressure_velocity/SIMPLE.hpp
+   M include/cfd/pressure_velocity/SIMPLEResult.hpp
+   M include/cfd/thermal/EnergyEquation.hpp
+   M include/cfd/thermal/ThermalSolver.hpp
+   M include/cfd/turbulence/KEpsilonEquation.hpp
+   M include/cfd/turbulence/KEpsilonModel.hpp
+   M include/cfd/turbulence/KOmegaEquation.hpp
+   M include/cfd/turbulence/KOmegaModel.hpp
+   M include/cfd/turbulence/SSTEquation.hpp
+   M include/cfd/turbulence/SSTModel.hpp
+   M include/cfd/turbulence/TurbulenceModel.hpp
+   M include/cfd/turbulence/TurbulenceProduction.hpp
+   M src/CMakeLists.txt
+   M src/algebra/SparseMatrix.cpp
+   M src/app/ProjectRunner.cpp
+   M src/compressible/CompressibleContinuity.cpp
+   M src/compressible/CompressibleMassFlux.cpp
+   M src/compressible/CompressibleRelaxedMomentum.cpp
+   M src/compressible/IdealGasEOS.cpp
+   M src/core/Logger.cpp
+   M src/core/Version.cpp
+   M src/discretization/NonOrthogonalDiffusion.cpp
+   M src/discretization/TimeDerivative.cpp
+   M src/gpu/GpuSimpleDiscretization.cpp
+   M src/io/CSVWriter.cpp
+   M src/io/CaseBuilder.cpp
+   M src/io/CaseReader.cpp
+   M src/io/DeterministicOstream.hpp
+   M src/io/JSONWriter.cpp
+   M src/io/VTKWriter.cpp
+   M src/io/case/JsonUtil.cpp
+   M src/io/case/PhysicsConfigParser.cpp
+   M src/physics/MomentumEquation.cpp
+   M src/pressure_velocity/RelaxedMomentum.cpp
+   M src/pressure_velocity/SIMPLE.cpp
+   M src/thermal/EnergyEquation.cpp
+   M src/thermal/ThermalSolver.cpp
+   M src/turbulence/KEpsilonEquation.cpp
+   M src/turbulence/KEpsilonModel.cpp
+   M src/turbulence/KOmegaModel.cpp
+   M src/turbulence/SSTModel.cpp
+   M src/turbulence/TurbulenceProduction.cpp
+  ?? cuda/kernels/DeviceDensityBasedKernel.cu
+  ?? cuda/kernels/DeviceHllcFluxKernel.cu
+  ?? cuda/kernels/DeviceKEpsilonCuda.cpp
+  ?? cuda/kernels/DeviceScalarTransportKernel.cu
+  ?? cuda/kernels/DeviceTurbulenceKernel.cu
+  ?? cuda/kernels/GpuKEpsilonCorrectionCuda.cpp
+  ?? include/cfd/boundary/ConvectiveHeatTransfer.hpp
+  ?? include/cfd/compressible/DensityBasedSolver.hpp
+  ?? include/cfd/compressible/DilatationalStress.hpp
+  ?? include/cfd/compressible/HllcFlux.hpp
+  ?? include/cfd/compressible/TotalEnergy.hpp
+  ?? include/cfd/compressible/TotalEnergyEquation.hpp
+  ?? include/cfd/gpu/DeviceDensityBasedSolver.hpp
+  ?? include/cfd/gpu/DeviceHllcFlux.hpp
+  ?? include/cfd/gpu/DeviceKEpsilon.hpp
+  ?? include/cfd/gpu/DeviceScalarTransport.hpp
+  ?? include/cfd/gpu/DeviceThermodynamics.hpp
+  ?? include/cfd/gpu/DeviceTurbulence.hpp
+  ?? include/cfd/gpu/GpuKEpsilonCorrection.hpp
+  ?? include/cfd/gpu/GpuSimpleResidentTurbulence.hpp
+  ?? include/cfd/gpu/TurbulenceBackendTrace.hpp
+  ?? include/cfd/io/CheckpointReader.hpp
+  ?? include/cfd/io/CheckpointWriter.hpp
+  ?? include/cfd/io/case/CaseFingerprint.hpp
+  ?? include/cfd/pressure_velocity/SIMPLECheckpoint.hpp
+  ?? include/cfd/pressure_velocity/SIMPLEContinuation.hpp
+  ?? include/cfd/thermal/Enthalpy.hpp
+  ?? include/cfd/thermal/TemperatureDependentProperty.hpp
+  ?? include/cfd/thermal/ThermalWallFunction.hpp
+  ?? include/cfd/thermal/TurbulentConductivity.hpp
+  ?? include/cfd/transport/
+  ?? include/cfd/turbulence/WallFunctions.hpp
+  ?? include/cfd/turbulence/WallTreatment.hpp
+  ?? src/boundary/ConvectiveHeatTransfer.cpp
+  ?? src/compressible/DensityBasedSolver.cpp
+  ?? src/compressible/DilatationalStress.cpp
+  ?? src/compressible/HllcFlux.cpp
+  ?? src/compressible/TotalEnergy.cpp
+  ?? src/compressible/TotalEnergyEquation.cpp
+  ?? src/gpu/GpuKEpsilonCorrection.cpp
+  ?? src/gpu/TurbulenceBackendTrace.cpp
+  ?? src/io/CheckpointReader.cpp
+  ?? src/io/CheckpointWriter.cpp
+  ?? src/io/case/CaseFingerprint.cpp
+  ?? src/pressure_velocity/SIMPLECheckpoint.cpp
+  ?? src/pressure_velocity/SIMPLEContinuation.cpp
+  ?? src/thermal/Enthalpy.cpp
+  ?? src/thermal/TemperatureDependentProperty.cpp
+  ?? src/thermal/ThermalWallFunction.cpp
+  ?? src/thermal/TurbulentConductivity.cpp
+  ?? src/transport/
+  ?? src/turbulence/WallFunctions.cpp
+  ?? src/turbulence/WallTreatment.cpp
+
+=== the three P17 sources that must be at their frozen values ===
+  53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326  src/compressible/DensityBasedSolver.cpp
+  fc4a8db5f98568923ffe320b6adb3b6574f855cf538bb238ba9385bd046b61f0  include/cfd/compressible/HllcFlux.hpp
+  23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5  src/compressible/TotalEnergy.cpp
+  34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1  src/pressure_velocity/SIMPLE.cpp
+  expected:
+    53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326  DensityBasedSolver.cpp
+    fc4a8db5f98568923ffe320b6adb3b6574f855cf538bb238ba9385bd046b61f0  HllcFlux.hpp
+    23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5  TotalEnergy.cpp
+    34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1  SIMPLE.cpp  (plant restored)
+
+=== generated data written during qualification (untracked, not committed) ===
+  ?? results/p17/shock_validation/data/
+  results/validation modified: 0  (must be 0)
+
+=== repository history: unchanged ===
+  HEAD                    : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  commits ahead of origin : 0
+  stash entries           : 0

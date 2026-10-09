@@ -1,0 +1,38 @@
+=== P18.6 FREEZE: the convention is fixed BEFORE the heat-release source is written ===
+date: 2026-10-01T05:11:49Z
+
+--- frozen P18.6 docs ---
+  audit.md                 263d57019af8e6a6f6e950d58ec985d3b4b0aa3d8ac27fe48ef33427b4caaa47
+  energy_accounting.md     20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe
+
+--- the frozen gate (unchanged) ---
+  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+--- WHAT IS FROZEN ---
+  transported energy    rho * cp(T,Y) * T          [J/m^3], sensible, zero at T=0
+  chemical pool         rho * sum_i Y_i h_f,i      [J/m^3]
+  conserved total       E = sensible + chemical
+  source                S_E = -sum_i h_f,i omega_i = -sum_r q_r Delta H_r   [W/m^3]
+  reaction enthalpy     Delta H_r = sum_i nu_i hbar_f,i,  hbar_f,i = M_i h_f,i  [J/mol]
+  sign                  Delta H_r < 0 exothermic; q_r > 0 forward; S_E > 0 adds heat
+  double counting       IMPOSSIBLE -- no formation energy is in the transported variable
+  h_f treatment         a NEW distinct quantity; NOT SensibleEnthalpy::referenceEnthalpy
+  coupling              EXPLICIT operator splitting; one q_r per step shared by P18.4+P18.6
+
+--- PRE-IMPLEMENTATION DRY-RUN: can the baseline exercise any of this? ---
+  formation enthalpy in the tree today:
+    formationEnthalpy      0 files
+    heatOfFormation        0 files
+    h_f                    6 files
+    reactionEnthalpy       0 files
+    heatRelease            0 files
+  => ZERO. The baseline cannot exercise ANY P18.6 criterion, so a dry-run against it is
+     VACUOUS BY CONSTRUCTION (CLAUDE.md 5.2's named case). Per that rule the question asked
+     instead is whether a CORRECT implementation can satisfy each criterion, and every
+     criterion therefore carries a negative control that CAN fail -- N1..N12, section 49.
+
+  THE ONE CRITERION THE BASELINE *CAN* DRY-RUN is the non-reacting limit (section 34):
+  with chemistry off the thermal results must be BITWISE what they are now. Baseline:
+    CFDThermalTests      163
+    CFDCompressibleTests 215
+    CFDSpeciesTests      241

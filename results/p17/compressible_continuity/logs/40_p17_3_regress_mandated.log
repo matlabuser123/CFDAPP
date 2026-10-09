@@ -1,0 +1,330 @@
+P17.3 -- regression   stage: mandated
+date: 2026-09-26T13:39:01Z
+gate: results/p17/compressible_continuity/acceptance_gate.md
+      sha256 a89642a491acc0c86fda87dc17345fc1c5d24de7ef4cf6f43b33cbda545d23ef
+
+FROZEN exclusions (5 patterns, verbatim from G10_regress.sh):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200   (debug_gui: 14400)
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 437ac0e3d9f09692f6bf415d7b1cce38b65d2c02e0158a346869232ad800a272
+P17.2 close was          : 4d08c2367c1d24fca640f2c4d3ec47084cfdc6ba52788972edaf2a19d3704491 (MOVES by the authorized P17.3 delta)
+
+newest PRODUCTION source: 2026-09-26T13:37:06Z  src/compressible/CompressibleContinuity.cpp
+  (test sources are checked per-directory against their own binary, below)
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (5 s)
+
+--- section 8 step 3: every BUILT test binary newer than the newest production source (FAIL CLOSED) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries    : 46
+  external tools in registry: 1
+  oldest built binary    : 2026-09-26T13:37:31Z  tests/unit/core/CFDCoreTests
+  stale vs production    : 0
+  stale vs own test src  : 0
+  VERDICT: all 46 built test binaries postdate the newest production source
+           AND postdate the test sources in their own directory
+
+--- library and test-binary hashes (section 8 step 4) ---
+  src/libcfdcore.a                               4f44c7ed51f747c1f620e0af51294ac8654306040952ccc9a9da697e4eacfde0
+  cuda/libcfdcuda.a                              0a64478a5d1929248ebdbc6026381346aa8697f2df26df41ce9ab5bde6b77a60
+  cfdapp                                         c4f34ee5bf91a1976ac4fde891f2415408f191f6950eec01358785d87b48dec7
+  CFDBackwardFacingStepTests                     2a9ba3deb95a2855d24cab1f0b78d5566de9dd445077e943c312eea1f4e8114b
+  CFDCaseIntegrationTests                        b1b00d67f842ce04e98ac1a2d2778ebe0eaa7926b3dbe55a63a12855e5103aa0
+  CFDCavityValidationTests                       28fcc2554fa83bafe5f0677035fda1d9a7bdc61eaf327d3f39e3e85d1f4bd52c
+  CFDLowMachRegressionTests                      3f3220724d2ea168df76600cca65fb793da03cd7b403f8c861718a11e194f3c2
+  CFDResultExportIntegrationTests                0be0a12c2bb79b3bcf0f4f064e142ad168dddea8d9afb07169cadc113bb3fbe0
+  CFDMMSValidationTests                          c10b2a62c788e73852d013b3da0fc32f461f161647a4080b11290884f7749fee
+  CFDMultiphaseAdvectionValidationTests          7e5f7058c2b3111dc93dd2ad5dab4afa04b79c980adfc130dccb9f98ff1b9337
+  CFDMultiphaseConservationValidationTests       f360b940b75bd93779128529d2fc538c05c63459c3c24544ac4dcf3443661f03
+  CFDMultiphaseSinglePhaseEquivalenceTests       49e950fd938d9ec2b0443dc6a5deb4e6369bacf34076ffc4de02b230153b2938
+  CFDMultiphaseUniformFieldTests                 9d59420934081d7858c02b85366ff5656495fd5c38deff8146eb4ff656585f32
+  CFDPoiseuilleValidationTests                   a6e12fd59a6684ae8cb73344c0cfe0140a7c6710a2b1ee9b33b60cd9e4407c37
+  CFDRestartIntegrationTests                     8340dbd73b4242ac6998cf6fae27b433266b7f3987dbacf7eca94cc3ac64cf4e
+  CFDSpeciesAdvectionDiffusionValidationTests    485d4210e1ae9038e65c8e7f949df63f0374b918ebded39997d77c7a633f0572
+  CFDSpeciesConservationValidationTests          ec3955521e1d00ed43e7c454a0b4a394f5a3212dd44089c57af19e4dbf8b838a
+  CFDSpeciesCouplingValidationTests              b835089f645d99fb3414869733ac90e150f45c4ccca5739a2917e32dc38a8b68
+  CFDSpeciesDiffusionValidationTests             9f371088ce21a8c84cdca048432742ec49945ff148c8cb48e5962c226af315c1
+  CFDBoussinesqCouplingTests                     a29c5c28b09295afe78e7e839a40a043f08ef699415e84e1db4fb14c3f6a2d80
+  CFDConjugateHeatTransferValidationTests        7e7d94daaf61ad324d39b6dcbe6584eae9316800d359ee033ae63c73464021a1
+  CFDHeatedCavityValidationTests                 8ca5532bbdcf9692ec7a2bb41cbe02a3e7a586b4de0e4cce3d70bc8e438a9ccb
+  CFDNaturalConvectionValidationTests            ba0a55ebe4820eabb9ff99398428603a37d6d0808191b9a17ff211c5a33eefde
+  CFDThermalValidationTests                      18779adfee7c298b705b9aeb79fbb04ebc37c66ae3242445ec6431c68b89b98a
+  CFDTransportVerificationTests                  a9a3da618d67d42be45b3da5e9fd4e8294799a550d5940e5ca6e61748cf05e85
+  CFDTurbulenceChannelValidationTests            040352ee64f4402490b58d05800587ef918a36644022e2a44a7cea4acf2ece3f
+  CFDCompressibleSimpleTests                     591d5e4d317a2b0229c05a173470ec7b05d3dc76069d099305edc3d159efce24
+  CFDPisoTests                                   2df547ce29ee6d8fd5f20d2490cab614fe828fd1870d1e4fad29c4c8f47145d4
+  CFDSimpleTests                                 63e923886a9d6fd5d63ef1ceda06880deee6ec772f147eeafec463fb7184a085
+  CFDAlgebraTests                                62648f90f5b56896455b6c6b887e7f29a0b24177cf896e46f49121e4458d1288
+  CFDAppLayerTests                               a3e3793160831b72a66335b5b775f86c51c7372b123122b3038f3cde4c7991d9
+  CFDBoundaryTests                               5a1f011fe2a63fec3f2442f522435eec071754602188bced7898eb50a8f55388
+  CFDCompressibleTests                           795d26d12946cebd873cdc66fb2b7c9b244336bcdb678749607ac44205ec30b4
+  CFDCoreTests                                   e84ef72c70f301dfcaab91c446feaaef32c3c3bbf104f160ccd0ddd83a294a14
+  CFDDiscretizationTests                         90b75d2fcfd87cd02e0cc7ec0eb03ebb252b3873aecae145fc9ee1791576b6e1
+  CFDFieldTests                                  ec8eabf338a98b27cf562aacb4decc2a51fe5ff299e6b72b5c4cf2761c486265
+  CFDGpuTests                                    e01c7f4171212dc2500173fb756bc402cac660c07c0bf3ada78772b0f0031725
+  CFDIoTests                                     c317ad01b074e498768085ca7dd3aa1bc19ce3f6e4920e92aaec86840504602a
+  CFDMeshTests                                   272cfaa0eecf682299213e0bc024f2fa64565701fc46f3a6b95f6f90bca96527
+  CFDMultiphaseTests                             4df5dcec96655c236412fd9bb3bcf09fea9bed9178fcbaa65ca76bbc27f692c9
+  CFDPhysicsTests                                08a72e8552e299b893ae6c69b95b55d4cadb848a8738d97e38334a5061df39bd
+  CFDSolverTests                                 bbea9048ea5bdc831571fa735029b5f4c5aeb05ea1bcd7ffaecf038113f991fe
+  CFDSpeciesTests                                6b6622011079c4bd5b05801dcd3c13eef2e7648c19e415238eae3f353cda486d
+  CFDThermalTests                                aa806d05be298e8421012d52104ad4cf53395f82cc991cc8148ae56c16577a95
+  CFDTransportTests                              10bc3dcbbf88089d6f0e126994fafc65fefe9efb03835123c5701061a523be19
+  CFDTurbulenceTests                             8c1e22026075e6c107fa3b111b3a5f78712ada80a61e75c90b51b45644fa22d7
+  CFDValidationUnitTests                         4bc4c2e32db557db9d858f0b10bb30f70c1411b38e16d002edb397e32f80ed5a
+  CFDVizTests                                    5702e68472ee8bc455f5186b4dbcde1a7aff3542fa06f0f18b14703fd0102c36
+  cmake                                          fd22547781b64bb2db04370970b93db1f3fada1e41e60873b015ee0747009fc0
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2593   PREDICTED 2593
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 21 = 12 existing + 9 from P17.2
+      Test #1604: IdealGasEOSTest.MatchesKnownStandardAtmosphereState
+      Test #1605: IdealGasEOSTest.DoublingPressureAtFixedTemperatureDoublesDensity
+      Test #1606: IdealGasEOSTest.DoublingTemperatureAtFixedPressureHalvesDensity
+      Test #1607: IdealGasEOSTest.RejectsNonPositivePressureOrTemperature
+      Test #1608: IdealGasEOSTest.RejectsNonFinitePressureOrTemperature
+      Test #1609: IdealGasEOSTest.RejectsNonPositiveGasConstant
+      Test #1610: IdealGasEOSTest.RejectsNonFiniteGasConstant
+      Test #1611: IdealGasEOSTest.DDensityDPressureMatchesAnalyticalFormula
+      Test #1612: IdealGasEOSTest.DDensityDPressureIsIndependentOfPressure
+      Test #1613: IdealGasEOSTest.DDensityDTemperatureMatchesAnalyticalFormula
+      Test #1614: IdealGasEOSTest.DDensityDTemperatureIsNegative
+      Test #1615: IdealGasEOSTest.PressureCorrectionGivesExpectedDensityCorrection
+      Test #1616: IdealGasEOSTest.PressureMatchesRhoRT
+      Test #1617: IdealGasEOSTest.PressureToDensityRoundTripRecoversDensity
+      Test #1618: IdealGasEOSTest.DensityToPressureRoundTripRecoversPressure
+      Test #1619: IdealGasEOSTest.PressureIsReachableThroughTheAbstraction
+      Test #1620: IdealGasEOSTest.PressureRejectsNonPositiveDensityOrTemperature
+      Test #1621: IdealGasEOSTest.PressureRejectsNonFiniteDensityOrTemperature
+      Test #1622: IdealGasEOSTest.PressureRejectsAnOverflowingProduct
+      Test #1623: IdealGasEOSTest.PressureIsDeterministic
+      Test #1624: IdealGasEOSTest.PressureScalesLinearlyInDensityAndTemperature
+      Test #1625: IdealGasEOSTest.TemperatureMatchesPOverRhoR
+      Test #1626: IdealGasEOSTest.TemperatureToPressureRoundTripRecoversPressure
+      Test #1627: IdealGasEOSTest.ThreeWayClosureHoldsAcrossGasesAndStateRanges
+      Test #1628: IdealGasEOSTest.TemperatureIsReachableThroughTheAbstraction
+      Test #1629: IdealGasEOSTest.TemperatureRejectsNonPositivePressureOrDensity
+      Test #1630: IdealGasEOSTest.TemperatureRejectsNonFinitePressureOrDensity
+      Test #1631: IdealGasEOSTest.TemperatureRejectsAnOverflowingQuotient
+      Test #1632: IdealGasEOSTest.TemperatureMessageNamesTheOffendingField
+      Test #1633: IdealGasEOSTest.EveryDirectionIsBitwiseDeterministic
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status : 0
+  total tests       : 2531      PREDICTED 2531
+  passed            : 100% tests passed
+  failed            : 0           PREDICTED 0
+  Not Run           : 0
+  Disabled (raw x2) : 98
+  runtime           : 2239 s (37.3 min)  [WSL wall clock, indicative only]
+  COUNT VERDICT     : MATCHES the frozen prediction
+
+--- B4: the P17.2 tests EXECUTED, by name (registration is not execution) ---
+    1648/2580 Test #1633: IdealGasEOSTest.EveryDirectionIsBitwiseDeterministic .....................................................   Passed    0.13 sec
+    1659/2580 Test #1631: IdealGasEOSTest.TemperatureRejectsAnOverflowingQuotient ..................................................   Passed    0.15 sec
+    1661/2580 Test #1632: IdealGasEOSTest.TemperatureMessageNamesTheOffendingField .................................................   Passed    0.10 sec
+    1812/2580 Test #1630: IdealGasEOSTest.TemperatureRejectsNonFinitePressureOrDensity .............................................   Passed    0.08 sec
+    1865/2580 Test #1629: IdealGasEOSTest.TemperatureRejectsNonPositivePressureOrDensity ...........................................   Passed    0.09 sec
+    1878/2580 Test #1628: IdealGasEOSTest.TemperatureIsReachableThroughTheAbstraction ..............................................   Passed    0.10 sec
+    1888/2580 Test #1626: IdealGasEOSTest.TemperatureToPressureRoundTripRecoversPressure ...........................................   Passed    0.48 sec
+    1900/2580 Test #1625: IdealGasEOSTest.TemperatureMatchesPOverRhoR ..............................................................   Passed    0.12 sec
+    1917/2580 Test #1627: IdealGasEOSTest.ThreeWayClosureHoldsAcrossGasesAndStateRanges ............................................   Passed    0.16 sec
+    1932/2580 Test #1614: IdealGasEOSTest.DDensityDTemperatureIsNegative ...........................................................   Passed    0.12 sec
+    1934/2580 Test #1613: IdealGasEOSTest.DDensityDTemperatureMatchesAnalyticalFormula .............................................   Passed    0.13 sec
+    1938/2580 Test #1612: IdealGasEOSTest.DDensityDPressureIsIndependentOfPressure .................................................   Passed    0.13 sec
+    1943/2580 Test #1610: IdealGasEOSTest.RejectsNonFiniteGasConstant ..............................................................   Passed    0.12 sec
+    1944/2580 Test #1608: IdealGasEOSTest.RejectsNonFinitePressureOrTemperature ....................................................   Passed    0.13 sec
+    1950/2580 Test #1609: IdealGasEOSTest.RejectsNonPositiveGasConstant ............................................................   Passed    0.13 sec
+    1957/2580 Test #1604: IdealGasEOSTest.MatchesKnownStandardAtmosphereState ......................................................   Passed    0.15 sec
+    1959/2580 Test #1618: IdealGasEOSTest.DensityToPressureRoundTripRecoversPressure ...............................................   Passed    0.17 sec
+    2025/2580 Test #1622: IdealGasEOSTest.PressureRejectsAnOverflowingProduct ......................................................   Passed    0.49 sec
+    2027/2580 Test #1624: IdealGasEOSTest.PressureScalesLinearlyInDensityAndTemperature ............................................   Passed    0.51 sec
+    2028/2580 Test #1616: IdealGasEOSTest.PressureMatchesRhoRT .....................................................................   Passed    0.51 sec
+    2029/2580 Test #1619: IdealGasEOSTest.PressureIsReachableThroughTheAbstraction .................................................   Passed    0.49 sec
+    2030/2580 Test #1617: IdealGasEOSTest.PressureToDensityRoundTripRecoversDensity ................................................   Passed    0.49 sec
+    2031/2580 Test #1621: IdealGasEOSTest.PressureRejectsNonFiniteDensityOrTemperature .............................................   Passed    0.33 sec
+    2034/2580 Test #1620: IdealGasEOSTest.PressureRejectsNonPositiveDensityOrTemperature ...........................................   Passed    0.11 sec
+    2038/2580 Test #1623: IdealGasEOSTest.PressureIsDeterministic ..................................................................   Passed    0.16 sec
+    2053/2580 Test #1606: IdealGasEOSTest.DoublingTemperatureAtFixedPressureHalvesDensity ..........................................   Passed    0.13 sec
+    2060/2580 Test #1607: IdealGasEOSTest.RejectsNonPositivePressureOrTemperature ..................................................   Passed    0.23 sec
+    2097/2580 Test #1615: IdealGasEOSTest.PressureCorrectionGivesExpectedDensityCorrection .........................................   Passed    0.13 sec
+    2167/2580 Test #1611: IdealGasEOSTest.DDensityDPressureMatchesAnalyticalFormula ................................................   Passed    0.13 sec
+    2492/2580 Test #1605: IdealGasEOSTest.DoublingPressureAtFixedTemperatureDoublesDensity .........................................   Passed    0.19 sec
+  IdealGasEOSTest rows that Passed: 30   PREDICTED 21
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (61 s)
+
+--- section 8 step 3: every BUILT test binary newer than the newest production source (FAIL CLOSED) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries    : 45
+  external tools in registry: 1
+  oldest built binary    : 2026-09-26T14:17:45Z  tests/unit/core/CFDCoreTests
+  stale vs production    : 0
+  stale vs own test src  : 0
+  VERDICT: all 45 built test binaries postdate the newest production source
+           AND postdate the test sources in their own directory
+
+--- library and test-binary hashes (section 8 step 4) ---
+  src/libcfdcore.a                               253161b7b9a4f9a1efce8e1514010c9c241b83983d58d771ea26c45ae4faa931
+  cfdapp                                         4ba1624ddad2f012fe616540844adc9abd78139217ef30dacdd2a82d038acc43
+  CFDBackwardFacingStepTests                     a7f526c4413d811409fd151c6b828257fad455ab4c5c346d2f69a77499fbb8e8
+  CFDCaseIntegrationTests                        de845f321e1468a6576025b92f1bdfe9697f5c840dee644b31c6d2bf5c2569bc
+  CFDCavityValidationTests                       b9d49a7dde242609155bc76468d7282bd4cc30bd53239a559f85eb1d07f2490d
+  CFDLowMachRegressionTests                      0f6e22bbffb32d75eb6188697f5f39aeb0d93a29a435f588448561ca9dda1309
+  CFDResultExportIntegrationTests                5fbd65ac37cbc089a2c99a97a11cf69d516136767791cccdfd4218ecae056da5
+  CFDMMSValidationTests                          18ddc2791c23a7cfd821e7f2f727bfb612c2297f42d22e6eee3ab2ef8219bf90
+  CFDMultiphaseAdvectionValidationTests          b0b275fcd0e3fa3c150db37950f53e1b321c5981deb0f58a32156c635115b5d1
+  CFDMultiphaseConservationValidationTests       2a2dbb3b1c14069d29dcc8a4a47ae0ee0641890b48e5be33d2a1d16fc7003fe3
+  CFDMultiphaseSinglePhaseEquivalenceTests       39386832ca4d625ddeaca4973572bafbbe2e84bd2ba3b53fcab635a199df9687
+  CFDMultiphaseUniformFieldTests                 d766fb619a9c2625f3938064981fc84f800a7f110f341a3733974f28acabe36f
+  CFDPoiseuilleValidationTests                   476c9bc9dc07b2b0aea880865626ed06dc382050885cfb26e478b44b1e99baa4
+  CFDRestartIntegrationTests                     c51222f59fa7aeb5ea386ad1c03a827e4e056f478e356cb51c1f2e72c2786cec
+  CFDSpeciesAdvectionDiffusionValidationTests    86716ca7890cd38931d89adb21b8228f51bcc3b086efb0138fdcc622e788bb17
+  CFDSpeciesConservationValidationTests          2b8e86a3cf160e1922eec0164a60f2efd33fdacb9fa819fc7a9683661590314d
+  CFDSpeciesCouplingValidationTests              e25d3a7c719b4bbdd2fcbba2c468e7bd8f27aa801ed1e34b08f288eba5cbdc20
+  CFDSpeciesDiffusionValidationTests             9fda77f3f3ac35f71ea024705aa0f49da70c12ce0e67be07dfc354db4617f2c6
+  CFDBoussinesqCouplingTests                     8fac325d79f02623389243ab0f3538029084d5fbf20b60a7a1ee1d855fcdb1d9
+  CFDConjugateHeatTransferValidationTests        c2abe9466d856da78527954bfe0d6884a1e4fd658690761a37efb7f1e5ce4e34
+  CFDHeatedCavityValidationTests                 1eb52636dbd1cdd7a768dc1d47782421d897fcc7ca924bf6ab768a8e1c40f9b3
+  CFDNaturalConvectionValidationTests            c92219c613874163a7600bf07aa57ff3277d4aae755e3e6a11ed2beeb129dd23
+  CFDThermalValidationTests                      3d051d005b6ac68fc8a3dc46db5317dd278151c05a423faa6c54a69149da637a
+  CFDTransportVerificationTests                  7617787421afb50622d19405824e200cd8f3be84fcc68beb81e92492eef6bf1c
+  CFDTurbulenceChannelValidationTests            1bf08948d988495c218998ba12b0bc78662fc2e3687e4411d244d2ad227af2db
+  CFDCompressibleSimpleTests                     88a2f3d4b4ad3d2d244233828289cee4354a59dc3b13d40ba709aaf73714e766
+  CFDPisoTests                                   ff359a617ecb1312190a23a89120a49f5080ce39eb85bde7787d5cdc2cba775a
+  CFDSimpleTests                                 6c2e7d1b3381d8df8d95f1b8d90f1b1548f2a2f37b52d9cbc19b7d482e02ce63
+  CFDAlgebraTests                                fa809e69b78fbb77bb06a0a7c0048605ea63b7639f09be01ec026d0754351258
+  CFDAppLayerTests                               4144ca5d983fd284fa2bdda197868ae35f8b7c7ef9ff5f98779f28714f18bd75
+  CFDBoundaryTests                               feb659aecaab27917e8bb0756284ee6f81767f6608e38f354e24ab4e42ad6036
+  CFDCompressibleTests                           e993cc77d5ec496d45034b232e7db912099a84fbf5f3a04e64dcff32061dab01
+  CFDCoreTests                                   44ba1bb96ca4c0bc0d253fb58d47d909723340b4df5e05abd46fecd5b51319da
+  CFDDiscretizationTests                         d0900ef949c03eca84a976bd51b923873f50f376ecc160bb795efb396136eabd
+  CFDFieldTests                                  9c5b79c5f0a070a3c241b371abf9ad3ddfe603d86f67f53eedf7fca73fc23ad6
+  CFDIoTests                                     6dd31f61d3f19247f72deef7b3337d88200394323cf56540162b565251740a45
+  CFDMeshTests                                   1d979ce44665200285c3a04257cd22293a93c9a0fd36979904998d7e492aa931
+  CFDMultiphaseTests                             2b1a7370a47a33c785ec553c5784f2411a8d7c3275ad893a159f0746513f9c44
+  CFDPhysicsTests                                b1584cb7132e1a3c332f05a9c8d8009f3e2293bcff6d2377013dea608e08d2c6
+  CFDSolverTests                                 e9dc979d8fb63a62111a47c4b2a0ceed8dca0f7dc8ac9b6753174fc306670722
+  CFDSpeciesTests                                a8865002edf63eeaec0ad6723e650576f8f7b3daf1fd843589825ecbfc05f1be
+  CFDThermalTests                                9ec2df7695eaa817db3135d4e0951c1094365b24e28f9d0dd1d0bc15f0d367f7
+  CFDTransportTests                              1d34e4c9ab981c5f3cd1a65018be1f2f3d99ad88aa4f5132519fe04c9c0d12c3
+  CFDTurbulenceTests                             415298c5aa24ce163905ed8f2f6ad06e66aece96339a995f03382fe968573862
+  CFDValidationUnitTests                         5b2a8cf995a2aa092d6281c0e9dc3bdac16fc79d2e07af78619a0a2bf56328b6
+  CFDVizTests                                    4f84d99bce5c5a5fdcbcafdcdb4009900b1d0d0e43d42f34fce5d59e360f235d
+  cmake                                          fd22547781b64bb2db04370970b93db1f3fada1e41e60873b015ee0747009fc0
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2391   PREDICTED 2391
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 21 = 12 existing + 9 from P17.2
+      Test #1604: IdealGasEOSTest.MatchesKnownStandardAtmosphereState
+      Test #1605: IdealGasEOSTest.DoublingPressureAtFixedTemperatureDoublesDensity
+      Test #1606: IdealGasEOSTest.DoublingTemperatureAtFixedPressureHalvesDensity
+      Test #1607: IdealGasEOSTest.RejectsNonPositivePressureOrTemperature
+      Test #1608: IdealGasEOSTest.RejectsNonFinitePressureOrTemperature
+      Test #1609: IdealGasEOSTest.RejectsNonPositiveGasConstant
+      Test #1610: IdealGasEOSTest.RejectsNonFiniteGasConstant
+      Test #1611: IdealGasEOSTest.DDensityDPressureMatchesAnalyticalFormula
+      Test #1612: IdealGasEOSTest.DDensityDPressureIsIndependentOfPressure
+      Test #1613: IdealGasEOSTest.DDensityDTemperatureMatchesAnalyticalFormula
+      Test #1614: IdealGasEOSTest.DDensityDTemperatureIsNegative
+      Test #1615: IdealGasEOSTest.PressureCorrectionGivesExpectedDensityCorrection
+      Test #1616: IdealGasEOSTest.PressureMatchesRhoRT
+      Test #1617: IdealGasEOSTest.PressureToDensityRoundTripRecoversDensity
+      Test #1618: IdealGasEOSTest.DensityToPressureRoundTripRecoversPressure
+      Test #1619: IdealGasEOSTest.PressureIsReachableThroughTheAbstraction
+      Test #1620: IdealGasEOSTest.PressureRejectsNonPositiveDensityOrTemperature
+      Test #1621: IdealGasEOSTest.PressureRejectsNonFiniteDensityOrTemperature
+      Test #1622: IdealGasEOSTest.PressureRejectsAnOverflowingProduct
+      Test #1623: IdealGasEOSTest.PressureIsDeterministic
+      Test #1624: IdealGasEOSTest.PressureScalesLinearlyInDensityAndTemperature
+      Test #1625: IdealGasEOSTest.TemperatureMatchesPOverRhoR
+      Test #1626: IdealGasEOSTest.TemperatureToPressureRoundTripRecoversPressure
+      Test #1627: IdealGasEOSTest.ThreeWayClosureHoldsAcrossGasesAndStateRanges
+      Test #1628: IdealGasEOSTest.TemperatureIsReachableThroughTheAbstraction
+      Test #1629: IdealGasEOSTest.TemperatureRejectsNonPositivePressureOrDensity
+      Test #1630: IdealGasEOSTest.TemperatureRejectsNonFinitePressureOrDensity
+      Test #1631: IdealGasEOSTest.TemperatureRejectsAnOverflowingQuotient
+      Test #1632: IdealGasEOSTest.TemperatureMessageNamesTheOffendingField
+      Test #1633: IdealGasEOSTest.EveryDirectionIsBitwiseDeterministic
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status : 0
+  total tests       : 2331      PREDICTED 2331
+  passed            : 100% tests passed
+  failed            : 0           PREDICTED 0
+  Not Run           : 0
+  Disabled (raw x2) : 94
+  runtime           : 1690 s (28.2 min)  [WSL wall clock, indicative only]
+  COUNT VERDICT     : MATCHES the frozen prediction
+
+--- B4: the P17.2 tests EXECUTED, by name (registration is not execution) ---
+     426/2378 Test #1621: IdealGasEOSTest.PressureRejectsNonFiniteDensityOrTemperature .............................................   Passed    0.10 sec
+     441/2378 Test #1622: IdealGasEOSTest.PressureRejectsAnOverflowingProduct ......................................................   Passed    0.09 sec
+     447/2378 Test #1623: IdealGasEOSTest.PressureIsDeterministic ..................................................................   Passed    0.10 sec
+     449/2378 Test #1624: IdealGasEOSTest.PressureScalesLinearlyInDensityAndTemperature ............................................   Passed    0.11 sec
+     995/2378 Test #1625: IdealGasEOSTest.TemperatureMatchesPOverRhoR ..............................................................   Passed    0.09 sec
+    1153/2378 Test #1612: IdealGasEOSTest.DDensityDPressureIsIndependentOfPressure .................................................   Passed    0.11 sec
+    1165/2378 Test #1619: IdealGasEOSTest.PressureIsReachableThroughTheAbstraction .................................................   Passed    0.09 sec
+    1212/2378 Test #1613: IdealGasEOSTest.DDensityDTemperatureMatchesAnalyticalFormula .............................................   Passed    0.10 sec
+    1225/2378 Test #1607: IdealGasEOSTest.RejectsNonPositivePressureOrTemperature ..................................................   Passed    0.09 sec
+    1259/2378 Test #1617: IdealGasEOSTest.PressureToDensityRoundTripRecoversDensity ................................................   Passed    0.09 sec
+    1322/2378 Test #1610: IdealGasEOSTest.RejectsNonFiniteGasConstant ..............................................................   Passed    0.09 sec
+    1433/2378 Test #1611: IdealGasEOSTest.DDensityDPressureMatchesAnalyticalFormula ................................................   Passed    0.09 sec
+    1434/2378 Test #1605: IdealGasEOSTest.DoublingPressureAtFixedTemperatureDoublesDensity .........................................   Passed    0.09 sec
+    1485/2378 Test #1604: IdealGasEOSTest.MatchesKnownStandardAtmosphereState ......................................................   Passed    0.10 sec
+    1614/2378 Test #1618: IdealGasEOSTest.DensityToPressureRoundTripRecoversPressure ...............................................   Passed    0.08 sec
+    1789/2378 Test #1630: IdealGasEOSTest.TemperatureRejectsNonFinitePressureOrDensity .............................................   Passed    0.09 sec
+    1824/2378 Test #1616: IdealGasEOSTest.PressureMatchesRhoRT .....................................................................   Passed    0.09 sec
+    1830/2378 Test #1629: IdealGasEOSTest.TemperatureRejectsNonPositivePressureOrDensity ...........................................   Passed    0.10 sec
+    1906/2378 Test #1608: IdealGasEOSTest.RejectsNonFinitePressureOrTemperature ....................................................   Passed    0.09 sec
+    1925/2378 Test #1628: IdealGasEOSTest.TemperatureIsReachableThroughTheAbstraction ..............................................   Passed    0.09 sec
+    1932/2378 Test #1615: IdealGasEOSTest.PressureCorrectionGivesExpectedDensityCorrection .........................................   Passed    0.09 sec
+    1979/2378 Test #1626: IdealGasEOSTest.TemperatureToPressureRoundTripRecoversPressure ...........................................   Passed    0.09 sec
+    2026/2378 Test #1609: IdealGasEOSTest.RejectsNonPositiveGasConstant ............................................................   Passed    0.09 sec
+    2072/2378 Test #1620: IdealGasEOSTest.PressureRejectsNonPositiveDensityOrTemperature ...........................................   Passed    0.09 sec
+    2075/2378 Test #1614: IdealGasEOSTest.DDensityDTemperatureIsNegative ...........................................................   Passed    0.09 sec
+    2131/2378 Test #1631: IdealGasEOSTest.TemperatureRejectsAnOverflowingQuotient ..................................................   Passed    0.09 sec
+    2144/2378 Test #1632: IdealGasEOSTest.TemperatureMessageNamesTheOffendingField .................................................   Passed    0.09 sec
+    2145/2378 Test #1627: IdealGasEOSTest.ThreeWayClosureHoldsAcrossGasesAndStateRanges ............................................   Passed    0.10 sec
+    2206/2378 Test #1606: IdealGasEOSTest.DoublingTemperatureAtFixedPressureHalvesDensity ..........................................   Passed    0.09 sec
+    2221/2378 Test #1633: IdealGasEOSTest.EveryDirectionIsBitwiseDeterministic .....................................................   Passed    0.09 sec
+  IdealGasEOSTest rows that Passed: 30   PREDICTED 21
+
+############################################################
+### B6: CPU-only has no CUDA dependency
+############################################################
+grep: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p17/compressible_continuity/logs/10_cpu_only_build.log: No such file or directory
+  nvcc invocations in the build log : 
+grep: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p17/compressible_continuity/logs/10_cpu_only_build.log: No such file or directory
+  libcudart references              : 
+  cuda/libcfdcuda.a present         : no
+  build/qual-cpuonly/apps/cli/cfdapp           cudart refs in ldd: 0
+
+P17_CODE_FINGERPRINT after  : 437ac0e3d9f09692f6bf415d7b1cce38b65d2c02e0158a346869232ad800a272
+B8: the code fingerprint must not have moved across the regression.
+
+done: 2026-09-26T14:47:39Z

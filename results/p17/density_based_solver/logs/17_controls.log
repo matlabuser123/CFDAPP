@@ -1,0 +1,67 @@
+P17.8 NON-VACUITY CONTROLS
+date: 2026-09-27T21:51:07Z
+pristine src/compressible/DensityBasedSolver.cpp sha256: 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+
+--- N1: the neighbour's -F contribution dropped
+    planted sha256: 62946e67c26cfd6eab1141579f8bc7664e10ee041384487fa335482fa58e93a5
+    MUST BREAK  R1b   FAIL   detected
+    MUST BREAK  G1    FAIL   detected
+    MUST BREAK  G1m   FAIL   detected
+    MUST BREAK  G2    FAIL   detected
+    MUST BREAK  C1    FAIL   detected
+    must pass   Q1    PASS
+    must pass   K1    PASS
+    restored, sha256 verified
+
+--- N2: the update uses dt instead of dt/V
+    planted sha256: 1548cfd8b077101779d0006a9f0274c0a610a12cbe06974f8cb443806918b05e
+    MUST BREAK  U1    FAIL   detected
+    MUST BREAK  G1g   FAIL   detected
+    must pass   R1b   PASS
+    REPORT ONLY C1    PASS   (gate prediction settled by algebra -- see the amendment)
+    REPORT ONLY G1    PASS   (gate prediction settled by algebra -- see the amendment)
+    restored, sha256 verified
+
+--- N3: the acoustic term +a_f dropped from the CFL
+    planted sha256: 341459d00e990c35ab03fd49e440069dda3bf8c7786804d240ed9db49da9696d
+    MUST BREAK  K4    FAIL   detected
+    must pass   K1    PASS
+    REPORT ONLY K3    FAIL   (gate prediction settled by algebra -- see the amendment)
+    restored, sha256 verified
+
+--- N4: density clamped to a floor instead of retrying
+    planted sha256: 06972c10a81b390ad4b72b39a718fe39df848388099cf2f9c3a417e352b0e883
+    MUST BREAK  G1    FAIL   detected
+    MUST BREAK  G2    FAIL   detected
+    MUST BREAK  P4    FAIL   detected
+    must pass   C1    PASS
+    restored, sha256 verified
+
+--- N5: the residual reference re-captured every iteration
+    planted sha256: 27465b6fd10f926909d93467e196bb35dac72648b6e34e298bc72335a3c2e17e
+    MUST BREAK  M3    FAIL   detected
+    must pass   K1    PASS
+    restored, sha256 verified
+
+--- N6: the wall exterior state does not mirror the normal velocity
+    planted sha256: 768401aaebfe47192c84f11587f375fba53fbd46430cb36211010e50527bbb1b
+    MUST BREAK  WALL  FAIL   detected
+    MUST BREAK  G1m   FAIL   detected
+    must pass   C1    PASS
+    restored, sha256 verified
+
+--- N7: min_P dt_P replaced by the first cell's dt
+    planted sha256: 200020b7a899e81c3d9e41316c34dea23c57be9dc5477ad4adf5bcf9c7944f31
+    MUST BREAK  U2    FAIL   detected
+    must pass   K1    PASS
+    must pass   K3    PASS
+    restored, sha256 verified
+
+### final restore verification ###
+  src/compressible/DensityBasedSolver.cpp sha256 : 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  pristine     : 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  RESTORED: yes
+  rebuilding the pristine tree so no planted binary survives
+  rebuild exit: 0
+
+CONTROLS WITH AN UNEXPECTED RESULT: 0   (must be 0)

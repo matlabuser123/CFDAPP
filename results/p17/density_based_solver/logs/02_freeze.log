@@ -1,0 +1,26 @@
+P17.8 GATE FREEZE
+date: 2026-09-27T09:07:37Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### the frozen documents ###
+a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e  acceptance_gate.md
+b4afbd8f2bc97244aa99809abd8173e5faa3a4b2336abe74fa6c74c505c17e56  architecture.md
+bd3e7212a3fa1594ccd61b3e9d3286a5d1d25efc2a21a9258303a9f6b65e8073  audit.md
+6158471f2f46280b4766183870e8707d25b9b638e30ecd9020ab077e2217391d  tools/audit.sh
+
+### proof that no implementation exists yet ###
+  include/cfd/compressible/DensityBasedSolver.hpp                absent, as required
+  src/compressible/DensityBasedSolver.cpp                        absent, as required
+  tests/unit/compressible/test_density_based_solver.cpp          absent, as required
+  tests/integration/compressible/test_density_based_canonical.cpp absent, as required
+
+### A1/A2/A5: the files that MUST stay untouched -- the dispatch and both SIMPLE paths ###
+3f8214b4412f1877bbd2c98446ac08b00ea6c2662c98aea9e7b2970b7d714a4a  src/app/ProjectRunner.cpp
+b0109552ffd6b8eedbba6a5ab274b3771fd89373a27bf21bf0619cc4e93f0ff7  include/cfd/app/ProjectRunner.hpp
+34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1  src/pressure_velocity/SIMPLE.cpp
+325a7f380be58144794538cd64d0fd4f1324a46b1bc9fa2727d5fa899e2eb9da  include/cfd/pressure_velocity/SIMPLE.hpp
+f95f760bbe2abb284ec33161209bf33f25ec9a0fb4a02e170a2232bd17d6d8ed  src/compressible/CompressibleSIMPLE.cpp
+102879c99bd54e89591bab34cdaa2ebd9da80fd8a6b1cddd927f195bfbb79898  include/cfd/compressible/CompressibleSIMPLE.hpp
+
+### A5: the EXISTING CFL and transient facilities -- extended, never modified ###
+25f7e5a46bb6f2da447f29b5d23ac9fd1a8f5988627d755f5715e26913f73001  include/cfd/solver/CFL.hpp

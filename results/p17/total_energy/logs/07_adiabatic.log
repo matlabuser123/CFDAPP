@@ -1,0 +1,26 @@
+P17.5 -- adiabatic compression and the static thermal limit
+gamma = 1.3998189288947698   R = 287.05000000000001   cp = 1005
+
+### 22. adiabatic compression: p / rho^gamma held constant
+  start: rho 1  T 300  p 86115   p/rho^gamma 86115
+  rho2/rho1 T2 [K]       p2 [Pa]          p2/rho2^gamma    rel dev of inv   T recovered err [K]
+  1.25     327.99537    117688.8385      86115            1.69e-16         5.684e-14
+  1.5      352.7978     151905.9145      86115            1.69e-16         5.684e-14
+  2        395.80269    227230.3262      86115            0                5.684e-14
+  4        522.19924    599589.1676      86115            1.69e-16         0
+  8        688.95955    1582126.716      86115            1.69e-16         1.137e-13
+  worst relative deviation of p/rho^gamma   1.68982e-16  = 0.76 eps
+  worst T recovery error along the isentrope 1.13687e-13 K
+  NOTE: this verifies the STATE relations along an isentrope. P17.5 does not
+        SOLVE a compression, and no shock capability is claimed from it.
+
+### 23. static thermal limit: U = 0 leaves conduction alone
+  U = 0, zero mass flux:
+    worst |convective outflow|   0   (must be exactly 0)
+    worst |body-force power|     0   (must be exactly 0)
+    worst |conductive outflow|   17.4827   (must be LARGE -- else vacuous)
+    sum(conductive outflow)      -5.32907e-15   = 1.37 eps of the worst cell
+  => with U = 0 the total-energy equation IS the conduction equation, and the
+     conduction still sums to zero across a zero-gradient boundary.
+
+done

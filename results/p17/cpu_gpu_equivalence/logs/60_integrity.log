@@ -1,0 +1,102 @@
+P17.10 integrity audit -- 2026-09-28T14:25:22Z
+
+### 1. The frozen documents of THIS phase
+  PASS  P17.10 acceptance_gate.md unmoved (c5b86211dce2128152f5fe8d5a93b8ba739fc596da562f485af18d3ce6efbb51)
+  PASS  P17.10 tolerance_policy.md unmoved (e69d8ef2b8cb5f8c7bac320ab7b153dd0b914a7f658718f2f774845863b8d116)
+  PASS  P17.10 kernel_inventory.md unmoved (953efdeeaa91e67195a6472d206476d0fe5e5f946c435b9134c4a11fba1e7536)
+  PASS  P17.10 audit.md unmoved (478933fcc859d8f2f9a3d618dfce371690e272b5e1bd52370dc504f086c98fc9)
+
+### 2. The INHERITED frozen gates, which P17.10 must not have touched
+  PASS  P17.8 gate unmoved (a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e)
+  PASS  P17.9 gate unmoved (b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40)
+  PASS  P17.9 amendment present: A1_stationary_contact_width.md
+  PASS  P17.9 amendment present: A2_rarefaction_head_scaling.md
+  PASS  P17.9 amendment present: A3_plateau_contamination.md
+  PASS  P17.9 amendment present: coverage_map.md
+
+### 3. Production sources P17.10 must NOT have modified
+  PASS  DensityBasedSolver.cpp unmoved (53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326)
+  PASS  HllcFlux.hpp unmoved (fc4a8db5f98568923ffe320b6adb3b6574f855cf538bb238ba9385bd046b61f0)
+  PASS  TotalEnergy.cpp unmoved (23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5)
+
+### 4. The sources P17.10 DID add exist and are non-trivial
+  PASS  include/cfd/gpu/DeviceThermodynamics.hpp (230 lines)
+  PASS  include/cfd/gpu/DeviceDensityBasedSolver.hpp (143 lines)
+  PASS  cuda/kernels/DeviceDensityBasedKernel.cu (985 lines)
+  PASS  tests/integration/compressible/EquivalenceCompare.hpp (224 lines)
+  PASS  tests/integration/compressible/test_p17_10_dryrun.cpp (467 lines)
+  PASS  tests/unit/compressible/test_device_thermodynamics_equivalence.cpp (389 lines)
+  PASS  tests/unit/gpu/test_density_based_gpu_equivalence.cpp (982 lines)
+
+### 5. Test counts -- the numbers regression.md predicts from
+  PASS  dryrun TEST macros = 8
+  PASS  thermo-equivalence TEST macros = 6
+  PASS  gpu-equivalence TEST macros = 17
+
+### 6. The six kernels are all present, and the gather really has no atomics
+  PASS  kernel recoverKernel defined = 1 (positive)
+  PASS  kernel faceFluxKernel defined = 1 (positive)
+  PASS  kernel gatherResidualKernel defined = 1 (positive)
+  PASS  kernel localTimeStepKernel defined = 1 (positive)
+  PASS  kernel minReduceKernel defined = 1 (positive)
+  PASS  kernel minIndexReduceKernel defined = 1 (positive)
+  PASS  kernel applyUpdateKernel defined = 1 (positive)
+  PASS  kernel fillKernel defined = 1 (positive)
+  PASS  atomic operations in the new kernel file = 0
+  PASS  other cuda/kernels files that DO contain atomics (proves the pattern works) = 2 (positive)
+
+### 7. --fmad=false is applied to the new translation unit
+  PASS  kernel referenced in cuda/CMakeLists.txt = 2 (positive)
+  PASS  --fmad=false set on DeviceDensityBasedKernel.cu
+
+### 8. Every log the evidence cites exists and is non-empty
+  PASS  logs/00_audit.log (89 lines)
+  PASS  logs/01_dryrun.log (42 lines)
+  PASS  logs/02_freeze.log (20 lines)
+  PASS  logs/04_thermo_equiv.log (32 lines)
+  PASS  logs/05_gpu_equiv.log (86 lines)
+  PASS  logs/07_dryrun_and_finding.log (58 lines)
+  PASS  logs/08_new_criteria.log (18 lines)
+  PASS  logs/24_sanitizers_summary.log (52 lines)
+  PASS  logs/34_fma_summary.log (36 lines)
+  PASS  logs/50_p17_10_regress.log (214 lines)
+
+### 9. Headline numbers quoted in the evidence are actually IN the logs
+  PASS  dry-run: 702 ascending cell-face references
+  PASS  A7: 1736 values, 0 differing
+  PASS  B4: the graded mesh's 6849:1 volume ratio
+  PASS  D2: no divergence through 50 steps
+  PASS  V3: the reversed-gather control ran
+  PASS  trap 6: both backends refuse
+  PASS  N1 control fired
+  PASS  N2 control fired
+  PASS  V7: the fmad experiment restored cleanly
+  PASS  the flux finding reproduced
+
+### 10. The finding is recorded AND has an executable reproducer
+  PASS  BLOCKING_FINDINGS.md present
+  PASS  reproducer test present = 1 (positive)
+
+### 11. The coverage map admits the gaps rather than only listing passes
+  PASS  coverage_map.md contains NOT MEASURED rows = 4 (positive)
+
+### 12. The FINAL regression, and the two preserved earlier runs
+  PASS  STALENESS_FAILURE.md present
+  PASS  HARNESS_FINDINGS.md present
+  PASS  regression.md present
+  PASS  logs/41_r3_summary.log present
+  PASS  logs/55_runtime_noise.log present
+  PASS  logs/50_p17_10_regress.log present
+  PASS  logs/50_p17_10_regress_FAILED_STALENESS.log present
+  PASS  logs/50_p17_10_regress_INVALID_DEBUG_CPUONLY.log present
+  PASS  R3 separate-process determinism
+  PASS  R3's control fired
+  PASS  runtime-noise audit
+  PASS  release_cuda libcfdcore.a unchanged
+  PASS  cpu_only libcfdcore.a unchanged
+  PASS  configurations reporting 0 failures in the FINAL run = 2
+  PASS  the preserved INVALID run still shows its failing configuration = 1
+
+############################################################
+INTEGRITY: 0 failures
+############################################################

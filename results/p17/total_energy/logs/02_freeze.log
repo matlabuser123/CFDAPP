@@ -1,0 +1,62 @@
+P17.5 GATE FREEZE
+date: 2026-09-27T01:06:01Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### the frozen documents ###
+ca84e432a277a2724f0c94a8ccc46294ff405b5b8168b66327690a01ba72a04b  acceptance_gate.md
+d230209e9a903fed353467da0d6447acaade83f84d31860d65516eda336dc63d  audit.md
+cb999b044aae20dd8758c35331be9d2867bf7c0538596c2e40c1298681c8b47e  thermodynamic_contract.md
+e727889a06b2d52d79e371d86022d7ddbe6a13bafd8ad66433dcab1d7dc92922  tools/dryrun.cpp
+
+### NOT to be touched -- P15 thermodynamics (SHA-256, never git diff HEAD) ###
+8aebd9d8c693ae2066b225331f5e04860095b43da5ca2a80ac050eca14b82666  include/cfd/thermal/Enthalpy.hpp
+9e7e758fba65f7c22e91f1624df8d4d71f8c4d818da4a295f5e43a0485fb1dee  src/thermal/Enthalpy.cpp
+6fa846217f09cafb982cbe01690e8e0aa6a61f35105babc3894f4d6e0ac5876e  include/cfd/thermal/EnergyEquation.hpp
+910214817717b6e8f95ff7c0f8c0294c875b9c316244320a4cdb04a24db2b3e5  src/thermal/EnergyEquation.cpp
+f429b79bc9b8bf2c2ed711946f317ea58730beb6cc6e1042a35d2bb37b4c19bd  include/cfd/thermal/ThermalProperties.hpp
+e72f53ca3c83324377d94a8b67997f416e26bc810d91e981dc4606581d98721e  include/cfd/thermal/TemperatureDependentProperty.hpp
+
+### NOT to be touched -- P17.2 EOS and P17.3 mass flux ###
+bdd096490437ee602de31695184035e2ce28f0ab4d2da6187e45c709e919324e  include/cfd/compressible/IdealGasEOS.hpp
+daa27c5fc7e296482fd29fd93a0b4b6185fc7f3d39bc72855aa6240aad3bfe24  src/compressible/IdealGasEOS.cpp
+1dd39383f5d87eb77a5b69252737db0cd0640121ea6e19eb5ec3916377008335  include/cfd/compressible/ThermodynamicProperties.hpp
+27d74d9e535f8e716421ce24e7f955f32dc8200c5ae5a3ddfd1c9cbdb4da3a88  src/compressible/ThermodynamicProperties.cpp
+d376375ce2308b2ffe16968d2a063bda595d70194de9d6eb8faa147e1c1a0ea3  include/cfd/compressible/CompressibleMassFlux.hpp
+2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7  src/compressible/CompressibleMassFlux.cpp
+
+### NOT to be touched -- P17.4 momentum ###
+842b927fb63f9cff4306fa8d1f1c8bbc3e06088dffd8e9b88308513e253dcc5b  include/cfd/compressible/DilatationalStress.hpp
+fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af  include/cfd/physics/MomentumEquation.hpp
+e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59  src/physics/MomentumEquation.cpp
+
+### files P17.5 MAY create or touch ###
+  NEW  include/cfd/compressible/TotalEnergy.hpp
+  NEW  src/compressible/TotalEnergy.cpp
+  NEW  include/cfd/compressible/TotalEnergyEquation.hpp
+  NEW  src/compressible/TotalEnergyEquation.cpp
+  NEW  tests/unit/compressible/test_total_energy.cpp
+  EDIT src/CMakeLists.txt        (one line, in the MAIN list, before
+                                  if(NOT CFDAPP_ENABLE_CUDA) -- the CPU-only blind spot)
+  EDIT tests/unit/compressible/CMakeLists.txt  (if the test list is explicit)
+  current src/CMakeLists.txt sha256:
+    803978fab662ee51473c1f351794e42d3277457d976b5f0643a46d5430fdfbb7  src/CMakeLists.txt
+
+### baselines P17.5 must preserve ###
+  P17_CODE_FINGERPRINT at the P17.4 close : 4e253ce4ce955f629002a0e6102bb864ff564c1492d007ed7300fc05a019cc87
+  Release+CUDA 2608 registered / 2546 executed
+  CPU-only     2406 registered / 2346 executed
+  compressible 176 · P14 68 · P15 161 · P16 315
+  tests/unit/thermal/test_enthalpy_properties.cpp            13 TESTs
+  tests/unit/compressible/test_thermodynamic_properties.cpp  18 TESTs
+  tests/unit/compressible/test_ideal_gas_eos.cpp             30 TESTs
+  tests/unit/compressible/test_compressible_momentum.cpp     22 TESTs
+
+### derived thresholds, from logs/01_dryrun.log ###
+  algebraic identities (T1-T5, T8, C1, C4, E5, E7, G5)  : EXACTLY 0
+  identities through a division or product (T6, T7, C7) : <= 4 eps * |quantity|
+  round trips (C2, C5, C6, E3, E8)                      : <= 8 eps relative
+  temperature recovery (C3, C5)                         : <= 1e-12 K, INHERITED from P15
+  conservation (G2, G3, G4)                             : kAccum * eps * N * scale, kAccum = 8 EMPIRICAL
+
+done: 2026-09-27T01:06:09Z

@@ -1,0 +1,411 @@
+=== configuration under test ===
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=OFF
+  CMAKE_BUILD_TYPE:STRING=Release
+
+=== build ===
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/gtest-death-test.h:43,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/gtest.h:64,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_mass_fraction_state.cpp:12:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_mass_fraction_state.cpp:441:27: warning: ignoring return value of ‘const cfd::fields::ScalarField& cfd::species::MassFractionState::field(cfd::Index) const’, declared with attribute ‘nodiscard’ [-Wunused-result]
+  441 |   EXPECT_THROW(state.field(2), InvalidArgumentError);
+      |                ~~~~~~~~~~~^~~
+In file included from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_mass_fraction_state.cpp:21:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/MassFractionState.hpp:91:44: note: declared here
+   91 |   [[nodiscard]] const fields::ScalarField& field(Index speciesIndex) const;
+      |                                            ^~~~~
+In file included from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/gtest-printers.h:122,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/gtest-matchers.h:49,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/internal/gtest-death-test-internal.h:47,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/gtest-death-test.h:43,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/include/gtest/gtest.h:64,
+                 from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_mass_fraction_state.cpp:12:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_mass_fraction_state.cpp:443:36: warning: ignoring return value of ‘cfd::Real cfd::species::MassFractionState::compositionSum(cfd::Index) const’, declared with attribute ‘nodiscard’ [-Wunused-result]
+  443 |   EXPECT_THROW(state.compositionSum(2), InvalidArgumentError);
+      |                ~~~~~~~~~~~~~~~~~~~~^~~
+In file included from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_mass_fraction_state.cpp:21:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/MassFractionState.hpp:120:22: note: declared here
+  120 |   [[nodiscard]] Real compositionSum(Index cell) const;
+      |                      ^~~~~~~~~~~~~~
+[ 96%] Linking CXX executable CFDSpeciesTests
+[100%] Built target CFDSpeciesTests
+
+binary sha256: 1c470e72183e9d4542fe3e30b681883ee869cb71fb24b7182b85548b5df7569d
+
+=== P18.1 focused tests ===
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SpeciesRegistryTest.*:MassFractionStateTest.*
+[==========] Running 60 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 12 tests from SpeciesRegistryTest
+[ RUN      ] SpeciesRegistryTest.StoresNamesInOrderAndMapsBothWays
+[       OK ] SpeciesRegistryTest.StoresNamesInOrderAndMapsBothWays (0 ms)
+[ RUN      ] SpeciesRegistryTest.NameIndexMappingIsBijective
+[       OK ] SpeciesRegistryTest.NameIndexMappingIsBijective (0 ms)
+[ RUN      ] SpeciesRegistryTest.LookupIsIndependentOfDeclarationOrder
+[       OK ] SpeciesRegistryTest.LookupIsIndependentOfDeclarationOrder (0 ms)
+[ RUN      ] SpeciesRegistryTest.EqualityDistinguishesDifferentSpecies
+[       OK ] SpeciesRegistryTest.EqualityDistinguishesDifferentSpecies (0 ms)
+[ RUN      ] SpeciesRegistryTest.SupportsOneSpecies
+[       OK ] SpeciesRegistryTest.SupportsOneSpecies (0 ms)
+[ RUN      ] SpeciesRegistryTest.SupportsManySpeciesWithoutAFixedLimit
+[       OK ] SpeciesRegistryTest.SupportsManySpeciesWithoutAFixedLimit (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsDuplicateNames
+[       OK ] SpeciesRegistryTest.RejectsDuplicateNames (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsEmptyName
+[       OK ] SpeciesRegistryTest.RejectsEmptyName (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsEmptyRegistry
+[       OK ] SpeciesRegistryTest.RejectsEmptyRegistry (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsUnknownSpeciesLookup
+[       OK ] SpeciesRegistryTest.RejectsUnknownSpeciesLookup (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsOutOfRangeIndex
+[       OK ] SpeciesRegistryTest.RejectsOutOfRangeIndex (0 ms)
+[ RUN      ] SpeciesRegistryTest.DiagnosticNamesTheOffendingEntry
+[       OK ] SpeciesRegistryTest.DiagnosticNamesTheOffendingEntry (0 ms)
+[----------] 12 tests from SpeciesRegistryTest (1 ms total)
+
+[----------] 48 tests from MassFractionStateTest
+[ RUN      ] MassFractionStateTest.SingleSpeciesMustBeUnity
+[       OK ] MassFractionStateTest.SingleSpeciesMustBeUnity (0 ms)
+[ RUN      ] MassFractionStateTest.SingleSpeciesRejectsAnythingButUnity
+[       OK ] MassFractionStateTest.SingleSpeciesRejectsAnythingButUnity (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsValidBinaryMixture
+[       OK ] MassFractionStateTest.AcceptsValidBinaryMixture (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsValidTernaryMixture
+[       OK ] MassFractionStateTest.AcceptsValidTernaryMixture (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsZeroValuedSpeciesWithinAValidMixture
+[       OK ] MassFractionStateTest.AcceptsZeroValuedSpeciesWithinAValidMixture (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsASpeciesAtExactlyOne
+[       OK ] MassFractionStateTest.AcceptsASpeciesAtExactlyOne (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsNearBoundValidValues
+[       OK ] MassFractionStateTest.AcceptsNearBoundValidValues (0 ms)
+[ RUN      ] MassFractionStateTest.SupportsDifferentCompositionsPerCell
+[       OK ] MassFractionStateTest.SupportsDifferentCompositionsPerCell (0 ms)
+[ RUN      ] MassFractionStateTest.CellCompositionRoundTrips
+[       OK ] MassFractionStateTest.CellCompositionRoundTrips (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsNegativeMassFraction
+[       OK ] MassFractionStateTest.RejectsNegativeMassFraction (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsATinyNegativeMassFraction
+[       OK ] MassFractionStateTest.RejectsATinyNegativeMassFraction (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsMassFractionAboveOne
+[       OK ] MassFractionStateTest.RejectsMassFractionAboveOne (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsNaN
+[       OK ] MassFractionStateTest.RejectsNaN (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsInf
+[       OK ] MassFractionStateTest.RejectsInf (0 ms)
+[ RUN      ] MassFractionStateTest.BoundsDiagnosticNamesSpeciesCellAndValue
+[       OK ] MassFractionStateTest.BoundsDiagnosticNamesSpeciesCellAndValue (0 ms)
+[ RUN      ] MassFractionStateTest.ToleranceIsTheFrozenFourEpsN
+[       OK ] MassFractionStateTest.ToleranceIsTheFrozenFourEpsN (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsASumOfExactlyOne
+[       OK ] MassFractionStateTest.AcceptsASumOfExactlyOne (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsASumWithinRoundOff
+[       OK ] MassFractionStateTest.AcceptsASumWithinRoundOff (0 ms)
+[ RUN      ] MassFractionStateTest.AThirdsCompositionHappensToSumExactly
+[       OK ] MassFractionStateTest.AThirdsCompositionHappensToSumExactly (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsASumMeaningfullyAboveOne
+[       OK ] MassFractionStateTest.RejectsASumMeaningfullyAboveOne (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsASumMeaningfullyBelowOne
+[       OK ] MassFractionStateTest.RejectsASumMeaningfullyBelowOne (0 ms)
+[ RUN      ] MassFractionStateTest.SumCriterionIsNonVacuousJustInsideAndJustOutside
+[       OK ] MassFractionStateTest.SumCriterionIsNonVacuousJustInsideAndJustOutside (0 ms)
+[ RUN      ] MassFractionStateTest.SumDiagnosticNamesCellSumAndTolerance
+[       OK ] MassFractionStateTest.SumDiagnosticNamesCellSumAndTolerance (0 ms)
+[ RUN      ] MassFractionStateTest.DetectsExactlyOneInvalidCellAmongManyValidOnes
+[       OK ] MassFractionStateTest.DetectsExactlyOneInvalidCellAmongManyValidOnes (0 ms)
+[ RUN      ] MassFractionStateTest.AValidThousandCellStatePasses
+[       OK ] MassFractionStateTest.AValidThousandCellStatePasses (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsWrongCompositionLength
+[       OK ] MassFractionStateTest.RejectsWrongCompositionLength (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsWrongFieldCount
+[       OK ] MassFractionStateTest.RejectsWrongFieldCount (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsMismatchedFieldSizes
+[       OK ] MassFractionStateTest.RejectsMismatchedFieldSizes (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsZeroCells
+[       OK ] MassFractionStateTest.RejectsZeroCells (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsUnknownSpeciesAndOutOfRangeAccess
+[       OK ] MassFractionStateTest.RejectsUnknownSpeciesAndOutOfRangeAccess (0 ms)
+[ RUN      ] MassFractionStateTest.SetCellCompositionAcceptsAValidComposition
+[       OK ] MassFractionStateTest.SetCellCompositionAcceptsAValidComposition (0 ms)
+[ RUN      ] MassFractionStateTest.ARejectedMutationLeavesTheStateUnchanged
+[       OK ] MassFractionStateTest.ARejectedMutationLeavesTheStateUnchanged (0 ms)
+[ RUN      ] MassFractionStateTest.SetCellCompositionRejectsAnOutOfRangeCell
+[       OK ] MassFractionStateTest.SetCellCompositionRejectsAnOutOfRangeCell (0 ms)
+[ RUN      ] MassFractionStateTest.ValidationIsDeterministicAcrossRepeats
+[       OK ] MassFractionStateTest.ValidationIsDeterministicAcrossRepeats (0 ms)
+[ RUN      ] MassFractionStateTest.SumIsIdenticalAcrossCopies
+[       OK ] MassFractionStateTest.SumIsIdenticalAcrossCopies (0 ms)
+[ RUN      ] MassFractionStateTest.CopyPreservesIdentityValuesAndOrdering
+[       OK ] MassFractionStateTest.CopyPreservesIdentityValuesAndOrdering (0 ms)
+[ RUN      ] MassFractionStateTest.CopyIsIndependentOfTheOriginal
+[       OK ] MassFractionStateTest.CopyIsIndependentOfTheOriginal (0 ms)
+[ RUN      ] MassFractionStateTest.MovePreservesIdentityAndValues
+[       OK ] MassFractionStateTest.MovePreservesIdentityAndValues (0 ms)
+[ RUN      ] MassFractionStateTest.ConstructionNeverNormalisesSilently
+[       OK ] MassFractionStateTest.ConstructionNeverNormalisesSilently (0 ms)
+[ RUN      ] MassFractionStateTest.ExplicitNormalisationSumsToOne
+[       OK ] MassFractionStateTest.ExplicitNormalisationSumsToOne (0 ms)
+[ RUN      ] MassFractionStateTest.NormalisedCompositionIsAcceptedByTheState
+[       OK ] MassFractionStateTest.NormalisedCompositionIsAcceptedByTheState (0 ms)
+[ RUN      ] MassFractionStateTest.NormalisationAcceptsEntriesGreaterThanOne
+[       OK ] MassFractionStateTest.NormalisationAcceptsEntriesGreaterThanOne (0 ms)
+[ RUN      ] MassFractionStateTest.NormalisationRejectsPathologicalInputs
+[       OK ] MassFractionStateTest.NormalisationRejectsPathologicalInputs (0 ms)
+[ RUN      ] MassFractionStateTest.HoldsAnExistingPassiveScalarFieldBitwise
+[       OK ] MassFractionStateTest.HoldsAnExistingPassiveScalarFieldBitwise (0 ms)
+[ RUN      ] MassFractionStateTest.FieldAccessorReturnsTheWholeFieldForExport
+[       OK ] MassFractionStateTest.FieldAccessorReturnsTheWholeFieldForExport (0 ms)
+[ RUN      ] MassFractionStateTest.ShippedPassiveCaseValuesAreAllWithinBounds
+[       OK ] MassFractionStateTest.ShippedPassiveCaseValuesAreAllWithinBounds (0 ms)
+[ RUN      ] MassFractionStateTest.ShippedPassiveCaseIsNotByItselfAValidMixture
+[       OK ] MassFractionStateTest.ShippedPassiveCaseIsNotByItselfAValidMixture (0 ms)
+[ RUN      ] MassFractionStateTest.ShippedPassiveCaseBecomesAValidMixtureWithACarrier
+[       OK ] MassFractionStateTest.ShippedPassiveCaseBecomesAValidMixtureWithACarrier (0 ms)
+[----------] 48 tests from MassFractionStateTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 60 tests from 2 test suites ran. (2 ms total)
+[  PASSED  ] 60 tests.
+
+=== the whole pre-existing species unit suite (preservation) ===
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 97 tests from 11 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from SpeciesPropertiesTest
+[ RUN      ] SpeciesPropertiesTest.StoresNameAndDiffusivity
+[       OK ] SpeciesPropertiesTest.StoresNameAndDiffusivity (2 ms)
+[ RUN      ] SpeciesPropertiesTest.AllowsZeroDiffusivityForPureAdvection
+[       OK ] SpeciesPropertiesTest.AllowsZeroDiffusivityForPureAdvection (0 ms)
+[ RUN      ] SpeciesPropertiesTest.RejectsEmptyName
+[       OK ] SpeciesPropertiesTest.RejectsEmptyName (0 ms)
+[ RUN      ] SpeciesPropertiesTest.RejectsNegativeDiffusivity
+[       OK ] SpeciesPropertiesTest.RejectsNegativeDiffusivity (0 ms)
+[ RUN      ] SpeciesPropertiesTest.RejectsNonFiniteDiffusivity
+[       OK ] SpeciesPropertiesTest.RejectsNonFiniteDiffusivity (0 ms)
+[ RUN      ] SpeciesPropertiesTest.TwoIndependentSpeciesKeepSeparateIdentityAndDiffusivity
+[       OK ] SpeciesPropertiesTest.TwoIndependentSpeciesKeepSeparateIdentityAndDiffusivity (0 ms)
+[----------] 6 tests from SpeciesPropertiesTest (3 ms total)
+
+[----------] 5 tests from SpeciesEquationDiffusionTest
+[ RUN      ] SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients
+[       OK ] SpeciesEquationDiffusionTest.TwoCellSystemMatchesHandDerivedCoefficients (1 ms)
+[ RUN      ] SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric
+[       OK ] SpeciesEquationDiffusionTest.InternalFaceCoefficientsAreSymmetric (0 ms)
+[ RUN      ] SpeciesEquationDiffusionTest.ConstantConcentrationGivesZeroContributionEverywhere
+[       OK ] SpeciesEquationDiffusionTest.ConstantConcentrationGivesZeroContributionEverywhere (0 ms)
+[ RUN      ] SpeciesEquationDiffusionTest.ZeroDiffusionCoefficientGivesZeroDiffusiveContribution
+[       OK ] SpeciesEquationDiffusionTest.ZeroDiffusionCoefficientGivesZeroDiffusiveContribution (0 ms)
+[ RUN      ] SpeciesEquationDiffusionTest.MismatchedConcentrationSizeThrows
+[       OK ] SpeciesEquationDiffusionTest.MismatchedConcentrationSizeThrows (0 ms)
+[----------] 5 tests from SpeciesEquationDiffusionTest (2 ms total)
+
+[----------] 4 tests from SpeciesEquationConvectionTest
+[ RUN      ] SpeciesEquationConvectionTest.PositiveInternalFluxSelectsOwnerNegativeSelectsNeighbor
+[       OK ] SpeciesEquationConvectionTest.PositiveInternalFluxSelectsOwnerNegativeSelectsNeighbor (0 ms)
+[ RUN      ] SpeciesEquationConvectionTest.BoundaryOutflowUsesOwnerUnknownNotBoundaryValue
+[       OK ] SpeciesEquationConvectionTest.BoundaryOutflowUsesOwnerUnknownNotBoundaryValue (0 ms)
+[ RUN      ] SpeciesEquationConvectionTest.BoundaryInflowUsesBoundaryValueOnRhs
+[       OK ] SpeciesEquationConvectionTest.BoundaryInflowUsesBoundaryValueOnRhs (0 ms)
+[ RUN      ] SpeciesEquationConvectionTest.ConstantConcentrationWithDivergenceFreeFluxGivesZeroNetContribution
+[       OK ] SpeciesEquationConvectionTest.ConstantConcentrationWithDivergenceFreeFluxGivesZeroNetContribution (0 ms)
+[----------] 4 tests from SpeciesEquationConvectionTest (0 ms total)
+
+[----------] 2 tests from SpeciesEquationSourceTest
+[ RUN      ] SpeciesEquationSourceTest.AddsSTimesVolumeExactly
+[       OK ] SpeciesEquationSourceTest.AddsSTimesVolumeExactly (0 ms)
+[ RUN      ] SpeciesEquationSourceTest.RejectsNonFiniteSource
+[       OK ] SpeciesEquationSourceTest.RejectsNonFiniteSource (0 ms)
+[----------] 2 tests from SpeciesEquationSourceTest (0 ms total)
+
+[----------] 6 tests from SpeciesEquationAssemblyTest
+[ RUN      ] SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient
+[       OK ] SpeciesEquationAssemblyTest.CombinedAssemblyUsesDensityTimesDiffusivityAsCoefficient (0 ms)
+[ RUN      ] SpeciesEquationAssemblyTest.ProducesCorrectDimensions
+[       OK ] SpeciesEquationAssemblyTest.ProducesCorrectDimensions (0 ms)
+[ RUN      ] SpeciesEquationAssemblyTest.MismatchedConcentrationSizeThrows
+[       OK ] SpeciesEquationAssemblyTest.MismatchedConcentrationSizeThrows (0 ms)
+[ RUN      ] SpeciesEquationAssemblyTest.MismatchedMassFluxSizeThrows
+[       OK ] SpeciesEquationAssemblyTest.MismatchedMassFluxSizeThrows (0 ms)
+[ RUN      ] SpeciesEquationAssemblyTest.NonFiniteConcentrationAtGradientBoundaryThrowsNumericalError
+[       OK ] SpeciesEquationAssemblyTest.NonFiniteConcentrationAtGradientBoundaryThrowsNumericalError (0 ms)
+[ RUN      ] SpeciesEquationAssemblyTest.RepeatedAssemblyIsDeterministic
+[       OK ] SpeciesEquationAssemblyTest.RepeatedAssemblyIsDeterministic (0 ms)
+[----------] 6 tests from SpeciesEquationAssemblyTest (0 ms total)
+
+[----------] 2 tests from SpeciesBoundaryConditionTest
+[ RUN      ] SpeciesBoundaryConditionTest.FixedValueActsAsDirichletInflowSource
+[       OK ] SpeciesBoundaryConditionTest.FixedValueActsAsDirichletInflowSource (0 ms)
+[ RUN      ] SpeciesBoundaryConditionTest.ZeroGradientGivesNoDiffusiveFluxThroughAnImpermeableWall
+[       OK ] SpeciesBoundaryConditionTest.ZeroGradientGivesNoDiffusiveFluxThroughAnImpermeableWall (0 ms)
+[----------] 2 tests from SpeciesBoundaryConditionTest (0 ms total)
+
+[----------] 2 tests from ConcentrationBoundsTest
+[ RUN      ] ConcentrationBoundsTest.ReportsMinAndMax
+[       OK ] ConcentrationBoundsTest.ReportsMinAndMax (0 ms)
+[ RUN      ] ConcentrationBoundsTest.DoesNotModifyTheField
+[       OK ] ConcentrationBoundsTest.DoesNotModifyTheField (0 ms)
+[----------] 2 tests from ConcentrationBoundsTest (0 ms total)
+
+[----------] 8 tests from SpeciesSolverTest
+[ RUN      ] SpeciesSolverTest.ConvergesAndMatchesAnalytical1DDiffusionProfile
+[       OK ] SpeciesSolverTest.ConvergesAndMatchesAnalytical1DDiffusionProfile (15 ms)
+[ RUN      ] SpeciesSolverTest.InvalidConfigurationForMismatchedConcentrationSize
+[       OK ] SpeciesSolverTest.InvalidConfigurationForMismatchedConcentrationSize (0 ms)
+[ RUN      ] SpeciesSolverTest.InvalidConfigurationForMismatchedMassFluxSize
+[       OK ] SpeciesSolverTest.InvalidConfigurationForMismatchedMassFluxSize (0 ms)
+[ RUN      ] SpeciesSolverTest.MaxIterationsWhenOuterBudgetTooSmall
+[       OK ] SpeciesSolverTest.MaxIterationsWhenOuterBudgetTooSmall (0 ms)
+[ RUN      ] SpeciesSolverTest.LinearSolveFailureWhenInnerSolverIsStarved
+[       OK ] SpeciesSolverTest.LinearSolveFailureWhenInnerSolverIsStarved (0 ms)
+[ RUN      ] SpeciesSolverTest.InvalidConfigurationForZeroOuterMaxIterations
+[       OK ] SpeciesSolverTest.InvalidConfigurationForZeroOuterMaxIterations (0 ms)
+[ RUN      ] SpeciesSolverTest.NonFiniteStateForNonFiniteInitialConcentration
+[       OK ] SpeciesSolverTest.NonFiniteStateForNonFiniteInitialConcentration (0 ms)
+[ RUN      ] SpeciesSolverTest.RepeatedSolveIsDeterministic
+[       OK ] SpeciesSolverTest.RepeatedSolveIsDeterministic (31 ms)
+[----------] 8 tests from SpeciesSolverTest (46 ms total)
+
+[----------] 2 tests from SpeciesNonOrthogonalTest
+[ RUN      ] SpeciesNonOrthogonalTest.NonOrthogonalDiffusion
+
+Species balance sum(A c - b), distorted 0.45h n=8: uncorrected 4.42e-10, corrected 2.18e-10
+Species balance sum(A c - b), distorted 0.45h n=16: uncorrected -9.34e-10, corrected 3.81e-10
+Species balance sum(A c - b), distorted 0.45h n=32: uncorrected 5.82e-10, corrected 1.5e-09
+Species diffusion, distorted 0.45h, L2: uncorrected 0.08597 0.04671 0.02396 (p 0.880 0.963), corrected 0.001932 0.0002969 5.825e-05 (p 2.702 2.349)
+[       OK ] SpeciesNonOrthogonalTest.NonOrthogonalDiffusion (49 ms)
+[ RUN      ] SpeciesNonOrthogonalTest.CartesianSolveIsBitIdentical
+[       OK ] SpeciesNonOrthogonalTest.CartesianSolveIsBitIdentical (15 ms)
+[----------] 2 tests from SpeciesNonOrthogonalTest (64 ms total)
+
+[----------] 12 tests from SpeciesRegistryTest
+[ RUN      ] SpeciesRegistryTest.StoresNamesInOrderAndMapsBothWays
+[       OK ] SpeciesRegistryTest.StoresNamesInOrderAndMapsBothWays (0 ms)
+[ RUN      ] SpeciesRegistryTest.NameIndexMappingIsBijective
+[       OK ] SpeciesRegistryTest.NameIndexMappingIsBijective (0 ms)
+[ RUN      ] SpeciesRegistryTest.LookupIsIndependentOfDeclarationOrder
+[       OK ] SpeciesRegistryTest.LookupIsIndependentOfDeclarationOrder (0 ms)
+[ RUN      ] SpeciesRegistryTest.EqualityDistinguishesDifferentSpecies
+[       OK ] SpeciesRegistryTest.EqualityDistinguishesDifferentSpecies (0 ms)
+[ RUN      ] SpeciesRegistryTest.SupportsOneSpecies
+[       OK ] SpeciesRegistryTest.SupportsOneSpecies (0 ms)
+[ RUN      ] SpeciesRegistryTest.SupportsManySpeciesWithoutAFixedLimit
+[       OK ] SpeciesRegistryTest.SupportsManySpeciesWithoutAFixedLimit (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsDuplicateNames
+[       OK ] SpeciesRegistryTest.RejectsDuplicateNames (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsEmptyName
+[       OK ] SpeciesRegistryTest.RejectsEmptyName (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsEmptyRegistry
+[       OK ] SpeciesRegistryTest.RejectsEmptyRegistry (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsUnknownSpeciesLookup
+[       OK ] SpeciesRegistryTest.RejectsUnknownSpeciesLookup (0 ms)
+[ RUN      ] SpeciesRegistryTest.RejectsOutOfRangeIndex
+[       OK ] SpeciesRegistryTest.RejectsOutOfRangeIndex (0 ms)
+[ RUN      ] SpeciesRegistryTest.DiagnosticNamesTheOffendingEntry
+[       OK ] SpeciesRegistryTest.DiagnosticNamesTheOffendingEntry (0 ms)
+[----------] 12 tests from SpeciesRegistryTest (1 ms total)
+
+[----------] 48 tests from MassFractionStateTest
+[ RUN      ] MassFractionStateTest.SingleSpeciesMustBeUnity
+[       OK ] MassFractionStateTest.SingleSpeciesMustBeUnity (0 ms)
+[ RUN      ] MassFractionStateTest.SingleSpeciesRejectsAnythingButUnity
+[       OK ] MassFractionStateTest.SingleSpeciesRejectsAnythingButUnity (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsValidBinaryMixture
+[       OK ] MassFractionStateTest.AcceptsValidBinaryMixture (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsValidTernaryMixture
+[       OK ] MassFractionStateTest.AcceptsValidTernaryMixture (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsZeroValuedSpeciesWithinAValidMixture
+[       OK ] MassFractionStateTest.AcceptsZeroValuedSpeciesWithinAValidMixture (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsASpeciesAtExactlyOne
+[       OK ] MassFractionStateTest.AcceptsASpeciesAtExactlyOne (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsNearBoundValidValues
+[       OK ] MassFractionStateTest.AcceptsNearBoundValidValues (0 ms)
+[ RUN      ] MassFractionStateTest.SupportsDifferentCompositionsPerCell
+[       OK ] MassFractionStateTest.SupportsDifferentCompositionsPerCell (0 ms)
+[ RUN      ] MassFractionStateTest.CellCompositionRoundTrips
+[       OK ] MassFractionStateTest.CellCompositionRoundTrips (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsNegativeMassFraction
+[       OK ] MassFractionStateTest.RejectsNegativeMassFraction (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsATinyNegativeMassFraction
+[       OK ] MassFractionStateTest.RejectsATinyNegativeMassFraction (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsMassFractionAboveOne
+[       OK ] MassFractionStateTest.RejectsMassFractionAboveOne (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsNaN
+[       OK ] MassFractionStateTest.RejectsNaN (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsInf
+[       OK ] MassFractionStateTest.RejectsInf (0 ms)
+[ RUN      ] MassFractionStateTest.BoundsDiagnosticNamesSpeciesCellAndValue
+[       OK ] MassFractionStateTest.BoundsDiagnosticNamesSpeciesCellAndValue (0 ms)
+[ RUN      ] MassFractionStateTest.ToleranceIsTheFrozenFourEpsN
+[       OK ] MassFractionStateTest.ToleranceIsTheFrozenFourEpsN (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsASumOfExactlyOne
+[       OK ] MassFractionStateTest.AcceptsASumOfExactlyOne (0 ms)
+[ RUN      ] MassFractionStateTest.AcceptsASumWithinRoundOff
+[       OK ] MassFractionStateTest.AcceptsASumWithinRoundOff (0 ms)
+[ RUN      ] MassFractionStateTest.AThirdsCompositionHappensToSumExactly
+[       OK ] MassFractionStateTest.AThirdsCompositionHappensToSumExactly (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsASumMeaningfullyAboveOne
+[       OK ] MassFractionStateTest.RejectsASumMeaningfullyAboveOne (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsASumMeaningfullyBelowOne
+[       OK ] MassFractionStateTest.RejectsASumMeaningfullyBelowOne (0 ms)
+[ RUN      ] MassFractionStateTest.SumCriterionIsNonVacuousJustInsideAndJustOutside
+[       OK ] MassFractionStateTest.SumCriterionIsNonVacuousJustInsideAndJustOutside (0 ms)
+[ RUN      ] MassFractionStateTest.SumDiagnosticNamesCellSumAndTolerance
+[       OK ] MassFractionStateTest.SumDiagnosticNamesCellSumAndTolerance (0 ms)
+[ RUN      ] MassFractionStateTest.DetectsExactlyOneInvalidCellAmongManyValidOnes
+[       OK ] MassFractionStateTest.DetectsExactlyOneInvalidCellAmongManyValidOnes (0 ms)
+[ RUN      ] MassFractionStateTest.AValidThousandCellStatePasses
+[       OK ] MassFractionStateTest.AValidThousandCellStatePasses (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsWrongCompositionLength
+[       OK ] MassFractionStateTest.RejectsWrongCompositionLength (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsWrongFieldCount
+[       OK ] MassFractionStateTest.RejectsWrongFieldCount (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsMismatchedFieldSizes
+[       OK ] MassFractionStateTest.RejectsMismatchedFieldSizes (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsZeroCells
+[       OK ] MassFractionStateTest.RejectsZeroCells (0 ms)
+[ RUN      ] MassFractionStateTest.RejectsUnknownSpeciesAndOutOfRangeAccess
+[       OK ] MassFractionStateTest.RejectsUnknownSpeciesAndOutOfRangeAccess (0 ms)
+[ RUN      ] MassFractionStateTest.SetCellCompositionAcceptsAValidComposition
+[       OK ] MassFractionStateTest.SetCellCompositionAcceptsAValidComposition (0 ms)
+[ RUN      ] MassFractionStateTest.ARejectedMutationLeavesTheStateUnchanged
+[       OK ] MassFractionStateTest.ARejectedMutationLeavesTheStateUnchanged (0 ms)
+[ RUN      ] MassFractionStateTest.SetCellCompositionRejectsAnOutOfRangeCell
+[       OK ] MassFractionStateTest.SetCellCompositionRejectsAnOutOfRangeCell (0 ms)
+[ RUN      ] MassFractionStateTest.ValidationIsDeterministicAcrossRepeats
+[       OK ] MassFractionStateTest.ValidationIsDeterministicAcrossRepeats (0 ms)
+[ RUN      ] MassFractionStateTest.SumIsIdenticalAcrossCopies
+[       OK ] MassFractionStateTest.SumIsIdenticalAcrossCopies (0 ms)
+[ RUN      ] MassFractionStateTest.CopyPreservesIdentityValuesAndOrdering
+[       OK ] MassFractionStateTest.CopyPreservesIdentityValuesAndOrdering (0 ms)
+[ RUN      ] MassFractionStateTest.CopyIsIndependentOfTheOriginal
+[       OK ] MassFractionStateTest.CopyIsIndependentOfTheOriginal (0 ms)
+[ RUN      ] MassFractionStateTest.MovePreservesIdentityAndValues
+[       OK ] MassFractionStateTest.MovePreservesIdentityAndValues (0 ms)
+[ RUN      ] MassFractionStateTest.ConstructionNeverNormalisesSilently
+[       OK ] MassFractionStateTest.ConstructionNeverNormalisesSilently (0 ms)
+[ RUN      ] MassFractionStateTest.ExplicitNormalisationSumsToOne
+[       OK ] MassFractionStateTest.ExplicitNormalisationSumsToOne (0 ms)
+[ RUN      ] MassFractionStateTest.NormalisedCompositionIsAcceptedByTheState
+[       OK ] MassFractionStateTest.NormalisedCompositionIsAcceptedByTheState (0 ms)
+[ RUN      ] MassFractionStateTest.NormalisationAcceptsEntriesGreaterThanOne
+[       OK ] MassFractionStateTest.NormalisationAcceptsEntriesGreaterThanOne (0 ms)
+[ RUN      ] MassFractionStateTest.NormalisationRejectsPathologicalInputs
+[       OK ] MassFractionStateTest.NormalisationRejectsPathologicalInputs (0 ms)
+[ RUN      ] MassFractionStateTest.HoldsAnExistingPassiveScalarFieldBitwise
+[       OK ] MassFractionStateTest.HoldsAnExistingPassiveScalarFieldBitwise (0 ms)
+[ RUN      ] MassFractionStateTest.FieldAccessorReturnsTheWholeFieldForExport
+[       OK ] MassFractionStateTest.FieldAccessorReturnsTheWholeFieldForExport (0 ms)
+[ RUN      ] MassFractionStateTest.ShippedPassiveCaseValuesAreAllWithinBounds
+[       OK ] MassFractionStateTest.ShippedPassiveCaseValuesAreAllWithinBounds (0 ms)
+[ RUN      ] MassFractionStateTest.ShippedPassiveCaseIsNotByItselfAValidMixture
+[       OK ] MassFractionStateTest.ShippedPassiveCaseIsNotByItselfAValidMixture (0 ms)
+[ RUN      ] MassFractionStateTest.ShippedPassiveCaseBecomesAValidMixtureWithACarrier
+[       OK ] MassFractionStateTest.ShippedPassiveCaseBecomesAValidMixtureWithACarrier (0 ms)
+[----------] 48 tests from MassFractionStateTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 97 tests from 11 test suites ran. (120 ms total)
+[  PASSED  ] 97 tests.
+
+P18.1 focused rc=0   full species unit suite rc=0

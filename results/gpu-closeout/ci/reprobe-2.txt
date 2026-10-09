@@ -1,0 +1,60 @@
+CI blocker re-probe -- read-only, no repository change
+probed at: 2026-09-21T09:05:30Z
+repo:      matlabuser123/CFDAPP
+
+PURPOSE: look for NEW evidence before continuing to treat this as an
+external Actions-allocation blocker. Nothing was modified.
+
+--- no new run exists ---
+35579942600  3bd32f91  failure  2026-09-21T08:49:49Z
+35385979133  548401ae  success  2026-09-18T19:26:50Z
+35352132866  c1355eaa  success  2026-09-18T13:45:54Z
+
+--- run 35579942600, unchanged ---
+run_attempt=3  status=completed  conclusion=failure  created=2026-09-21T08:49:49Z  updated=2026-09-21T08:56:43Z
+
+--- per-job signature, re-confirmed on attempt 3 ---
+runner=""  steps=0  concl=failure  clang-tidy
+runner=""  steps=0  concl=failure  sanitizers (shard 5/5)
+runner=""  steps=0  concl=failure  sanitizers (shard 1/5)
+runner=""  steps=0  concl=failure  sanitizers (shard 3/5)
+runner=""  steps=0  concl=failure  python
+runner=""  steps=0  concl=failure  format
+runner=""  steps=0  concl=failure  build-test (gcc-debug 2/3)
+runner=""  steps=0  concl=failure  build-test (gcc-debug 3/3)
+runner=""  steps=0  concl=failure  build-test (clang-debug 3/3)
+runner=""  steps=0  concl=failure  build-test (gcc-debug 1/3)
+runner=""  steps=0  concl=failure  build-test (gcc-release 1/1)
+runner=""  steps=0  concl=failure  build-test (clang-debug 1/3)
+runner=""  steps=0  concl=failure  sanitizers (shard 4/5)
+runner=""  steps=0  concl=failure  build-test (clang-debug 2/3)
+runner=""  steps=0  concl=failure  sanitizers (shard 2/5)
+runner=""  steps=0  concl=failure  sanitizer-coverage
+runner=""  steps=0  concl=failure  build-test-coverage
+
+--- repository Actions permissions ---
+{"enabled":true,"allowed_actions":"all","sha_pinning_required":false}
+--- NEW EVIDENCE: check-suites on 3bd32f9 ---
+app=sourcery-ai  status=queued  conclusion=null  created=2026-09-21T08:49:48Z
+app=github-actions  status=completed  conclusion=failure  created=2026-09-21T08:49:49Z
+
+  A SECOND, UNRELATED GitHub App check suite (sourcery-ai) has been
+  status=queued since 08:49:48Z and has never been allocated either.
+  It is a third-party app, not GitHub Actions, and this lineage does not
+  configure it. Two independent check providers stalling on the same
+  commit at the same instant is further evidence that the condition is
+  account/allocation scoped rather than anything in the pushed tree.
+  It is NOT proof: sourcery-ai queuing forever has other explanations
+  (app installation suspended, app-side outage). Recorded as an
+  observation, not a diagnosis.
+
+--- why billing cannot be checked from this session ---
+token scopes: - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+users/<login>/settings/billing/actions -> HTTP 404, needs the "user" scope.
+No scope was added: granting this session account-wide user scope to read
+a billing page the account owner can open directly is not warranted.
+
+--- conclusion, unchanged ---
+No new evidence contradicts the external-allocation diagnosis.
+No source file, no ci.yml, no threshold and no test was touched.
+KNOWN-GOOD remains 548401a / CI 35385979133.

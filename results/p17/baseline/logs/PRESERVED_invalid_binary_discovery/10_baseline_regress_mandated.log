@@ -1,0 +1,567 @@
+P17.0 -- baseline regression   stage: mandated
+date: 2026-09-26T04:14:07Z
+gate: results/p17/baseline/baseline_gate.md
+      sha256 a147f79c4dc2aac21bae6a39f5afa135cf15921545c32c4537938c3f08c7dfbd
+
+FROZEN exclusions (5 patterns, verbatim from G10_regress.sh):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200   (debug_gui: 14400)
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+expected at gate freeze     : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+
+newest production source: 2026-09-26T03:44:26Z  src/compressible/IdealGasEOS.cpp
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (4 s)
+
+--- section 8 step 3: every test binary newer than the newest production source (FAIL CLOSED) ---
+    STALE: build/qual-final/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_backward_facing_step.cpp.o
+    STALE: build/qual-final/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_driver_seegmiller.cpp.o
+    STALE: build/qual-final/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_driver_seegmiller_inlet.cpp.o
+    STALE: build/qual-final/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_sst_separation.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_3d_production_cases.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_case_lid_driven_cavity.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_checkpoint_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_compressible_coupled_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_compressible_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_graded_mesh_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_heated_species_diffusion_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_mesh_quality_campaign.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_multiblock_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_multiphase_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_species_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_structured_quad_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_turbulent_heat_transfer_benchmark.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_turbulent_thermal_conservation.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_turbulent_thermal_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/case/CMakeFiles/CFDCaseIntegrationTests.dir/test_variable_property_production_case.cpp.o
+    STALE: build/qual-final/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_cavity_ghia.cpp.o
+    STALE: build/qual-final/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_cavity_production_validation.cpp.o
+    STALE: build/qual-final/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_scheme_validation.cpp.o
+    STALE: build/qual-final/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_transient_cavity.cpp.o
+    STALE: build/qual-final/tests/integration/compressible/CMakeFiles/CFDLowMachRegressionTests.dir/test_low_mach_regression.cpp.o
+    STALE: build/qual-final/tests/integration/io/CMakeFiles/CFDResultExportIntegrationTests.dir/test_export_write_failure.cpp.o
+    STALE: build/qual-final/tests/integration/io/CMakeFiles/CFDResultExportIntegrationTests.dir/test_paraview_smoke.cpp.o
+    STALE: build/qual-final/tests/integration/io/CMakeFiles/CFDResultExportIntegrationTests.dir/test_result_export.cpp.o
+    STALE: build/qual-final/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_3d.cpp.o
+    STALE: build/qual-final/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_compressible.cpp.o
+    STALE: build/qual-final/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_momentum.cpp.o
+    STALE: build/qual-final/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_scalar.cpp.o
+    STALE: build/qual-final/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_simple.cpp.o
+    STALE: build/qual-final/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_simple3d.cpp.o
+    STALE: build/qual-final/tests/integration/multiphase/CMakeFiles/CFDMultiphaseAdvectionValidationTests.dir/test_alpha_advection.cpp.o
+    STALE: build/qual-final/tests/integration/multiphase/CMakeFiles/CFDMultiphaseConservationValidationTests.dir/test_phase_conservation.cpp.o
+    STALE: build/qual-final/tests/integration/multiphase/CMakeFiles/CFDMultiphaseSinglePhaseEquivalenceTests.dir/test_single_phase_equivalence.cpp.o
+    STALE: build/qual-final/tests/integration/multiphase/CMakeFiles/CFDMultiphaseUniformFieldTests.dir/test_uniform_alpha.cpp.o
+    STALE: build/qual-final/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_poiseuille_production_validation.cpp.o
+    STALE: build/qual-final/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_poiseuille_validation.cpp.o
+    STALE: build/qual-final/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_temporal_refinement.cpp.o
+    STALE: build/qual-final/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_transient_poiseuille.cpp.o
+    STALE: build/qual-final/tests/integration/restart/CMakeFiles/CFDRestartIntegrationTests.dir/test_restart_io.cpp.o
+    STALE: build/qual-final/tests/integration/restart/CMakeFiles/CFDRestartIntegrationTests.dir/test_restart_resume.cpp.o
+    STALE: build/qual-final/tests/integration/restart/CMakeFiles/CFDRestartIntegrationTests.dir/test_simple_checkpoint.cpp.o
+    STALE: build/qual-final/tests/integration/species/CMakeFiles/CFDSpeciesAdvectionDiffusionValidationTests.dir/test_species_advection_diffusion.cpp.o
+    STALE: build/qual-final/tests/integration/species/CMakeFiles/CFDSpeciesConservationValidationTests.dir/test_species_conservation.cpp.o
+    STALE: build/qual-final/tests/integration/species/CMakeFiles/CFDSpeciesCouplingValidationTests.dir/test_species_solver_coupling.cpp.o
+    STALE: build/qual-final/tests/integration/species/CMakeFiles/CFDSpeciesDiffusionValidationTests.dir/test_species_diffusion.cpp.o
+    STALE: build/qual-final/tests/integration/thermal/CMakeFiles/CFDBoussinesqCouplingTests.dir/test_boussinesq_coupling.cpp.o
+    STALE: build/qual-final/tests/integration/thermal/CMakeFiles/CFDConjugateHeatTransferValidationTests.dir/test_two_material_conduction.cpp.o
+    STALE: build/qual-final/tests/integration/thermal/CMakeFiles/CFDHeatedCavityValidationTests.dir/test_heated_cavity_validation.cpp.o
+    STALE: build/qual-final/tests/integration/thermal/CMakeFiles/CFDNaturalConvectionValidationTests.dir/test_natural_convection_validation.cpp.o
+    STALE: build/qual-final/tests/integration/thermal/CMakeFiles/CFDThermalValidationTests.dir/test_thermal_validation.cpp.o
+    STALE: build/qual-final/tests/integration/transport/CMakeFiles/CFDTransportVerificationTests.dir/test_transport_verification.cpp.o
+    STALE: build/qual-final/tests/integration/turbulence_channel/CMakeFiles/CFDTurbulenceChannelValidationTests.dir/test_channel_flow_validation.cpp.o
+    STALE: build/qual-final/tests/integration/turbulence_channel/CMakeFiles/CFDTurbulenceChannelValidationTests.dir/test_wall_function_channel.cpp.o
+    STALE: build/qual-final/tests/solver/compressible_simple/CMakeFiles/CFDCompressibleSimpleTests.dir/test_compressible_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/solver/compressible_simple/CMakeFiles/CFDCompressibleSimpleTests.dir/test_compressible_pressure_correction.cpp.o
+    STALE: build/qual-final/tests/solver/compressible_simple/CMakeFiles/CFDCompressibleSimpleTests.dir/test_compressible_relaxed_momentum.cpp.o
+    STALE: build/qual-final/tests/solver/compressible_simple/CMakeFiles/CFDCompressibleSimpleTests.dir/test_compressible_robustness.cpp.o
+    STALE: build/qual-final/tests/solver/compressible_simple/CMakeFiles/CFDCompressibleSimpleTests.dir/test_compressible_simple.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_ale_piso.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_correction_application.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_final_correction.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_piso.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_piso_turbulence.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_pressure_correction.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_second_pressure_correction.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_transient_integration.cpp.o
+    STALE: build/qual-final/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_transient_momentum.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_flux_correction.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_momentum_predictor.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_pressure_correction.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_pressure_correction_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple3d.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_buoyancy.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_continuity.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_convergence.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_determinism.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_failure.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_gpu_residency.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_gpu_solver.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_kepsilon.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_komega.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_nonfinite.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_robustness.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_settings.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_sst.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_turbulence.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_turbulence_models.cpp.o
+    STALE: build/qual-final/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_velocity_correction.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_bicgstab.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_bicgstab_breakdown.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_cg.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_gmres.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_jacobi.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_linear_solver_factory.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_linear_solver_fallback.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_linear_system.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_solver_determinism.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_solver_failures.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_sparse_matrix.cpp.o
+    STALE: build/qual-final/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_vector.cpp.o
+    STALE: build/qual-final/tests/unit/app/CMakeFiles/CFDAppLayerTests.dir/test_case_session.cpp.o
+    STALE: build/qual-final/tests/unit/app/CMakeFiles/CFDAppLayerTests.dir/test_project_runner.cpp.o
+    STALE: build/qual-final/tests/unit/app/CMakeFiles/CFDAppLayerTests.dir/test_visualization_snapshot.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_adiabatic.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_boundary_validation.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_fixed_gradient.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_fixed_temperature.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_fixed_value.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_heat_flux.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_inlet.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_moving_wall.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_outlet.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_symmetry.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_wall.cpp.o
+    STALE: build/qual-final/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_wall_omega.cpp.o
+    STALE: build/qual-final/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_compressible_continuity.cpp.o
+    STALE: build/qual-final/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_compressible_mass_flux.cpp.o
+    STALE: build/qual-final/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_compressible_momentum.cpp.o
+    STALE: build/qual-final/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_ideal_gas_eos.cpp.o
+    STALE: build/qual-final/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_thermodynamic_properties.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_constants.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_exception.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_gpu_backend.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_gpu_residency_manager.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_logger.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_timer.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_types.cpp.o
+    STALE: build/qual-final/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_vector3.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_ale_operators.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_boundary_reconstruction.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_convection.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_diffusion.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_divergence.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_gradient.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_gradient_boundary_consistency.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_grid_refinement.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_interpolation.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_laplacian.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_oblique_neumann_gradient.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_operators3d.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_time_derivative.cpp.o
+    STALE: build/qual-final/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_vector_gradient.cpp.o
+    STALE: build/qual-final/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_field.cpp.o
+    STALE: build/qual-final/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_fields3d.cpp.o
+    STALE: build/qual-final/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_field_arithmetic.cpp.o
+    STALE: build/qual-final/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_scalar_field.cpp.o
+    STALE: build/qual-final/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_surface_field.cpp.o
+    STALE: build/qual-final/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_vector_field.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_boundary_encoding.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_cuda_spmv.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_buffer.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_effective_viscosity.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_epsilon_transport.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_kepsilon_correction.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_k_transport.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_max_abs_difference.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_scalar_transport_semantics.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_turbulence_algebra.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_wall_face_viscosity.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_gpu_linear_solver.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_gpu_residency_manager.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_krylov_blocker_reproducer.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_production_kepsilon_backend.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_resident_channel_production.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_resident_kepsilon_entry.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_resident_turbulent_simple.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_resident_wall_exchange.cpp.o
+    STALE: build/qual-final/tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_turbulence_backend_trace.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_boussinesq_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case3d.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_builder.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_diagnostic.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_reader.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_validation.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_writer.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_compressible_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_csv_writer.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_graded_mesh_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_json_writer.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_mesh_quality_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_multiblock_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_multiphase_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_physics_compatibility.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_robustness_config.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_species_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_structured_quad_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_thermal_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_thermal_property_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_turbulence_case.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_vtk3d.cpp.o
+    STALE: build/qual-final/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_vtk_writer.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_boundary_patch.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_cartesian3d_mesh.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_cartesian_mesh.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_cell.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_face.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_graded_mesh.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_fingerprint.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_geometry.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_grading.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_motion.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_quality.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_quality_report.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_multiblock_mesh.cpp.o
+    STALE: build/qual-final/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_structured_quad_mesh.cpp.o
+    STALE: build/qual-final/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_multiphase_properties.cpp.o
+    STALE: build/qual-final/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_phase_properties.cpp.o
+    STALE: build/qual-final/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_volume_fraction_equation.cpp.o
+    STALE: build/qual-final/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_volume_fraction_solver.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_boussinesq_buoyancy.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_continuity_equation.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_fluid_properties.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_mass_flux.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_assembly.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_convection.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_diffusion.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_pressure.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_variable_viscosity.cpp.o
+    STALE: build/qual-final/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_temperature_property.cpp.o
+    STALE: build/qual-final/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_cfl.cpp.o
+    STALE: build/qual-final/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_restart_snapshot.cpp.o
+    STALE: build/qual-final/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_solver_robustness.cpp.o
+    STALE: build/qual-final/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_time_controller.cpp.o
+    STALE: build/qual-final/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_transient_solver.cpp.o
+    STALE: build/qual-final/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_equation.cpp.o
+    STALE: build/qual-final/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_properties.cpp.o
+    STALE: build/qual-final/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_solver.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_conjugate_boundary_equivalence.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_convective_boundary.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_energy_equation.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_energy_equation_variable_properties.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_enthalpy_properties.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_sparse_assembly3d.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_boundary_consistency.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_properties.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_region.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_solver.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_solver_variable_properties.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_transient.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_wall_function.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_turbulent_conductivity.cpp.o
+    STALE: build/qual-final/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_turbulent_thermal_coupling.cpp.o
+    STALE: build/qual-final/tests/unit/transport/CMakeFiles/CFDTransportTests.dir/test_scalar_transport.cpp.o
+    STALE: build/qual-final/tests/unit/transport/CMakeFiles/CFDTransportTests.dir/test_transport_characterization.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_automatic_wall_treatment.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_kepsilon_coefficients.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_kepsilon_equation.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_kepsilon_model.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_komega_coefficients.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_komega_equation.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_komega_model.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_laminar_model.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_momentum_wall_flux.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_p14_migration_equivalence.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_spalding_wall_law.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_coefficients.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_equation.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_model.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_wall_functions.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_model.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_model_factory.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_non_orthogonal.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_production.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_distance.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_functions.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_function_wiring.cpp.o
+    STALE: build/qual-final/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_treatment.cpp.o
+    STALE: build/qual-final/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_grid_convergence.cpp.o
+    STALE: build/qual-final/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_grid_convergence_study.cpp.o
+    STALE: build/qual-final/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_manufactured_solutions.cpp.o
+    STALE: build/qual-final/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_production_validation.cpp.o
+    STALE: build/qual-final/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_derived_fields.cpp.o
+    STALE: build/qual-final/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_field_probe.cpp.o
+    STALE: build/qual-final/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_marching_squares.cpp.o
+    STALE: build/qual-final/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_vector_sampling.cpp.o
+    STALE: build/qual-final/_deps/nlohmann_json-src/tests/src/test_utils.hpp
+  test binaries found : 285
+  oldest binary       : 2026-09-24T01:52:31Z  build/qual-final/_deps/nlohmann_json-src/tests/src/test_utils.hpp
+  stale binaries      : 285
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (110 s)
+
+--- section 8 step 3: every test binary newer than the newest production source (FAIL CLOSED) ---
+    STALE: build/qual-cpuonly/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_backward_facing_step.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_driver_seegmiller.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_driver_seegmiller_inlet.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/backward_facing_step/CMakeFiles/CFDBackwardFacingStepTests.dir/test_sst_separation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_cavity_ghia.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_cavity_production_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_scheme_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/cavity/CMakeFiles/CFDCavityValidationTests.dir/test_transient_cavity.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/io/CMakeFiles/CFDResultExportIntegrationTests.dir/test_export_write_failure.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/io/CMakeFiles/CFDResultExportIntegrationTests.dir/test_result_export.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_3d.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_compressible.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_momentum.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_scalar.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_simple.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/mms/CMakeFiles/CFDMMSValidationTests.dir/test_mms_simple3d.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/multiphase/CMakeFiles/CFDMultiphaseAdvectionValidationTests.dir/test_alpha_advection.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/multiphase/CMakeFiles/CFDMultiphaseConservationValidationTests.dir/test_phase_conservation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/multiphase/CMakeFiles/CFDMultiphaseSinglePhaseEquivalenceTests.dir/test_single_phase_equivalence.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/multiphase/CMakeFiles/CFDMultiphaseUniformFieldTests.dir/test_uniform_alpha.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_poiseuille_production_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_poiseuille_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_temporal_refinement.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/poiseuille/CMakeFiles/CFDPoiseuilleValidationTests.dir/test_transient_poiseuille.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/restart/CMakeFiles/CFDRestartIntegrationTests.dir/test_restart_io.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/restart/CMakeFiles/CFDRestartIntegrationTests.dir/test_restart_resume.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/restart/CMakeFiles/CFDRestartIntegrationTests.dir/test_simple_checkpoint.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/species/CMakeFiles/CFDSpeciesAdvectionDiffusionValidationTests.dir/test_species_advection_diffusion.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/species/CMakeFiles/CFDSpeciesConservationValidationTests.dir/test_species_conservation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/species/CMakeFiles/CFDSpeciesCouplingValidationTests.dir/test_species_solver_coupling.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/species/CMakeFiles/CFDSpeciesDiffusionValidationTests.dir/test_species_diffusion.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/thermal/CMakeFiles/CFDBoussinesqCouplingTests.dir/test_boussinesq_coupling.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/thermal/CMakeFiles/CFDConjugateHeatTransferValidationTests.dir/test_two_material_conduction.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/thermal/CMakeFiles/CFDHeatedCavityValidationTests.dir/test_heated_cavity_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/thermal/CMakeFiles/CFDNaturalConvectionValidationTests.dir/test_natural_convection_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/thermal/CMakeFiles/CFDThermalValidationTests.dir/test_thermal_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/transport/CMakeFiles/CFDTransportVerificationTests.dir/test_transport_verification.cpp.o
+    STALE: build/qual-cpuonly/tests/integration/turbulence_channel/CMakeFiles/CFDTurbulenceChannelValidationTests.dir/test_channel_flow_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/compressible_simple/CMakeFiles/CFDCompressibleSimpleTests.dir/test_compressible_relaxed_momentum.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_ale_piso.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_correction_application.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_final_correction.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_piso.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_piso_turbulence.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_pressure_correction.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_second_pressure_correction.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_transient_integration.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/piso/CMakeFiles/CFDPisoTests.dir/test_transient_momentum.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_flux_correction.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_momentum_predictor.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_pressure_correction.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_pressure_correction_non_orthogonal.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple3d.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_buoyancy.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_continuity.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_convergence.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_determinism.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_failure.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_gpu_residency.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_gpu_solver.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_kepsilon.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_komega.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_nonfinite.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_non_orthogonal.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_robustness.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_settings.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_sst.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_turbulence.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_simple_turbulence_models.cpp.o
+    STALE: build/qual-cpuonly/tests/solver/simple/CMakeFiles/CFDSimpleTests.dir/test_velocity_correction.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_bicgstab.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_bicgstab_breakdown.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_cg.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_gmres.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_jacobi.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_linear_solver_factory.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_linear_solver_fallback.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_linear_system.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_solver_determinism.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_solver_failures.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_sparse_matrix.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/algebra/CMakeFiles/CFDAlgebraTests.dir/test_vector.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_adiabatic.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_boundary_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_fixed_gradient.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_fixed_temperature.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_fixed_value.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_heat_flux.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_inlet.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_moving_wall.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_outlet.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_symmetry.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_wall.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/boundary/CMakeFiles/CFDBoundaryTests.dir/test_wall_omega.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_compressible_continuity.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/compressible/CMakeFiles/CFDCompressibleTests.dir/test_compressible_momentum.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_constants.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_exception.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_gpu_backend.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_gpu_residency_manager.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_logger.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_timer.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_types.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/core/CMakeFiles/CFDCoreTests.dir/test_vector3.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_ale_operators.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_boundary_reconstruction.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_convection.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_diffusion.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_divergence.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_gradient.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_gradient_boundary_consistency.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_grid_refinement.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_interpolation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_laplacian.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_oblique_neumann_gradient.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_time_derivative.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/discretization/CMakeFiles/CFDDiscretizationTests.dir/test_vector_gradient.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_field.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_fields3d.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_field_arithmetic.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_scalar_field.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_surface_field.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/fields/CMakeFiles/CFDFieldTests.dir/test_vector_field.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_diagnostic.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_reader.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_case_writer.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_csv_writer.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_json_writer.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_vtk3d.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/io/CMakeFiles/CFDIoTests.dir/test_vtk_writer.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_boundary_patch.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_cartesian3d_mesh.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_cartesian_mesh.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_cell.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_face.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_graded_mesh.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_fingerprint.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_geometry.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_grading.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_motion.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_quality.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_mesh_quality_report.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_multiblock_mesh.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/mesh/CMakeFiles/CFDMeshTests.dir/test_structured_quad_mesh.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_multiphase_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_phase_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_volume_fraction_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/multiphase/CMakeFiles/CFDMultiphaseTests.dir/test_volume_fraction_solver.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_boussinesq_buoyancy.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_continuity_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_fluid_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_mass_flux.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_assembly.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_convection.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_diffusion.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_non_orthogonal.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_pressure.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_momentum_variable_viscosity.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/physics/CMakeFiles/CFDPhysicsTests.dir/test_temperature_property.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_cfl.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_restart_snapshot.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_solver_robustness.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_time_controller.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/solver/CMakeFiles/CFDSolverTests.dir/test_transient_solver.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_non_orthogonal.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_species_solver.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_conjugate_boundary_equivalence.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_convective_boundary.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_energy_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_energy_equation_variable_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_enthalpy_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_sparse_assembly3d.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_boundary_consistency.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_non_orthogonal.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_region.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_solver.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_solver_variable_properties.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_transient.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_thermal_wall_function.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_turbulent_conductivity.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/thermal/CMakeFiles/CFDThermalTests.dir/test_turbulent_thermal_coupling.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/transport/CMakeFiles/CFDTransportTests.dir/test_scalar_transport.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/transport/CMakeFiles/CFDTransportTests.dir/test_transport_characterization.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_automatic_wall_treatment.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_kepsilon_coefficients.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_kepsilon_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_kepsilon_model.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_komega_coefficients.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_komega_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_komega_model.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_laminar_model.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_momentum_wall_flux.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_p14_migration_equivalence.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_spalding_wall_law.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_coefficients.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_equation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_model.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_sst_wall_functions.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_model.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_model_factory.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_non_orthogonal.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_turbulence_production.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_distance.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_functions.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_function_wiring.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/turbulence/CMakeFiles/CFDTurbulenceTests.dir/test_wall_treatment.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_grid_convergence.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_grid_convergence_study.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/validation/CMakeFiles/CFDValidationUnitTests.dir/test_production_validation.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_derived_fields.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_field_probe.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_marching_squares.cpp.o
+    STALE: build/qual-cpuonly/tests/unit/viz/CMakeFiles/CFDVizTests.dir/test_vector_sampling.cpp.o
+    STALE: build/qual-cpuonly/_deps/nlohmann_json-src/tests/src/test_utils.hpp
+  test binaries found : 265
+  oldest binary       : 2026-09-24T02:09:24Z  build/qual-cpuonly/_deps/nlohmann_json-src/tests/src/test_utils.hpp
+  stale binaries      : 219
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### B6: CPU-only has no CUDA dependency
+############################################################
+  nvcc invocations in the build log : 0
+  libcudart references              : 0
+  cuda/libcfdcuda.a present         : no
+  build/qual-cpuonly/apps/cli/cfdapp           cudart refs in ldd: 0
+
+P17_CODE_FINGERPRINT after  : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+B8: the code fingerprint must not have moved across the regression.
+
+done: 2026-09-26T04:16:29Z

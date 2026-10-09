@@ -1,0 +1,132 @@
+P18.3 -- POST-CHANGE regression, three configurations
+date: 2026-09-30T04:25:02Z
+P18 start fingerprint: 60cf951bde2a4eb2fc32d21470377090fa3453c6b5b435c130b2247164f89318
+newest production source: 2026-09-30T04:15:30Z  src/CMakeLists.txt
+
+### PREDICTIONS -- DECLARED BEFORE THIS RUN ###
+
+P18.3 adds ONE test file (tests/unit/species/test_mixture_thermodynamics.cpp, 34 gtest
+tests: 30 MixtureThermodynamicsTest + 4 SpeciesThermodynamicsTest, counted from
+--gtest_list_tests at logs/02_test_counts.log) and ONE production translation unit
+(src/species/MixtureThermodynamics.cpp).
+
+P18.3 MODIFIES NO EXISTING PRODUCTION SOURCE. It adds two new files plus one
+target_sources block; every existing result is therefore unchanged by construction, and
+logs/01_preservation.log measures it: thermal 163/163, compressible 215/215,
+transport 22/22, turbulence 246/246, species 165/165.
+
+gtest_discover_tests registers ONE CTEST ROW PER GTEST TEST, so 34 rows are added to every
+configuration. None matches the 5 frozen exclusion patterns, so selected rises by 34 too.
+Skipped and DISABLED must NOT move.
+
+  P18.2 CLOSE (the baseline)              PREDICTED (P18.3 = baseline + 34)
+  release_cuda 2857 sel 2806 P 0 F  ->  2891 selected, 2840 Passed, 0 FAILED, 2 Skipped, 49 DISABLED
+  cpu_only     2634 sel 2587 P 0 F  ->  2668 selected, 2621 Passed, 0 FAILED, 0 Skipped, 47 DISABLED
+  debug_gui    2919 sel 2864 P 4 F  ->  2953 selected, 2898 Passed, 4 FAILED, 2 Skipped, 49 DISABLED
+
+  DEBUG+GUI FAILURES PREDICTED AS 3 OR 4, for the third phase running -- and it is measured,
+  not hedged. DriverSeegmiller.MeshSequence sits at ~99% of the frozen 7200 s cap: it PASSED
+  at 7123 s in the P18.1 run and TIMED OUT at 7201.94 s in the P18.2 run, on trees differing
+  only by additive changes it cannot reach. So 2898 Passed with 4 FAILED, or 2899 with 3,
+  both reproduce the known behaviour. The other three are reliable timeouts:
+    DriverSeegmiller.CorrectedSequenceIsDeterministic
+    DriverSeegmillerInlet.MappedInletPreservesTheMassFlow
+    DriverSeegmillerInlet.MediumGridAB
+  The 7200 s timeout is NOT raised.
+
+  ANY DEVIATION OTHER THAN THE MARGINAL TIMEOUT IS A P18.3 FINDING.
+
+############################################################
+### release_cuda   (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final)
+############################################################
+  configure exit: 0
+  CONFIG ASSERT  build=Release  gui=OFF  cuda=ON   openmp=ON  
+  build exit: 0   (59 s)
+  --- staleness (P17.7 staleness.py, unchanged; fail closed) ---
+      oldest built binary       : 2026-09-30T04:25:31Z  tests/unit/transport/CFDTransportTests
+      stale vs production       : 0
+      stale vs its own sources  : 0
+      unverifiable (fail closed): 0
+      VERDICT: all 50 built test binaries postdate the newest production source AND every
+               source they actually compile, per CMake's own object lists
+    staleness exit: 0
+  --- library hashes ---
+    libcfdcore.a                   439bd52793a05b724207115339b9d39daa4d9d2555a2758fb98fcfb55b04c38a
+    libcfdcuda.a                   1e2e0f914afd40ef1f624f03cdb2bbee8aa141d46d780ad1bbcc3c29c404290a
+  registered              : 2904
+  matching the exclusions : 13
+  selected                : 2891
+  --- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status       : 0
+  result lines            : 2891
+    Passed                : 2840
+    FAILED                : 0
+    Skipped               : 2
+    Not Run (DISABLED)    : 49
+  ctest 'out of'          : 2842
+  runtime                 : 2141 s
+
+############################################################
+### cpu_only   (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-cpuonly)
+############################################################
+  configure exit: 0
+  CONFIG ASSERT  build=Release  gui=OFF  cuda=OFF  openmp=ON  
+  build exit: 0   (82 s)
+  --- staleness (P17.7 staleness.py, unchanged; fail closed) ---
+      oldest built binary       : 2026-09-30T05:02:53Z  tests/unit/transport/CFDTransportTests
+      stale vs production       : 0
+      stale vs its own sources  : 0
+      unverifiable (fail closed): 0
+      VERDICT: all 49 built test binaries postdate the newest production source AND every
+               source they actually compile, per CMake's own object lists
+    staleness exit: 0
+  --- library hashes ---
+    libcfdcore.a                   af7a40193cd87b3fb3a87f975d4aa5bff0256e74bdb353f8e44aa86d27eb3bc4
+  registered              : 2681
+  matching the exclusions : 13
+  selected                : 2668
+  --- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status       : 0
+  result lines            : 2668
+    Passed                : 2621
+    FAILED                : 0
+    Skipped               : 0
+    Not Run (DISABLED)    : 47
+  ctest 'out of'          : 2621
+  runtime                 : 1402 s
+
+############################################################
+### debug_gui   (/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-debug)
+############################################################
+  configure exit: 0
+  CONFIG ASSERT  build=Debug    gui=ON   cuda=ON   openmp=OFF 
+  build exit: 0   (260 s)
+  --- staleness (P17.7 staleness.py, unchanged; fail closed) ---
+      oldest built binary       : 2026-09-30T05:28:41Z  tests/unit/core/CFDCoreTests
+      stale vs production       : 0
+      stale vs its own sources  : 0
+      unverifiable (fail closed): 0
+      VERDICT: all 51 built test binaries postdate the newest production source AND every
+               source they actually compile, per CMake's own object lists
+    staleness exit: 0
+  --- library hashes ---
+    libcfdcore.a                   3dbf0df97356e2b1ffb8a921ab877f4243ba7ccd94287084fd8e9b796e00201c
+    libcfdcuda.a                   9fc788477760c6c1a2022a45abcd03942b09fbb6999af93c6ebaf1ae0e74d042
+  registered              : 2966
+  matching the exclusions : 13
+  selected                : 2953
+  --- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status       : 8
+  result lines            : 2953
+    Passed                : 2899
+    FAILED                : 3
+    Skipped               : 2
+    Not Run (DISABLED)    : 49
+  ctest 'out of'          : 2904
+  runtime                 : 7973 s
+  --- every non-passing test ---
+    	2887 - DriverSeegmiller.CorrectedSequenceIsDeterministic (Timeout)
+    	2889 - DriverSeegmillerInlet.MappedInletPreservesTheMassFlow (Timeout)
+    	2890 - DriverSeegmillerInlet.MediumGridAB (Timeout)
+
+done: 2026-09-30T07:44:55Z

@@ -1,0 +1,32 @@
+cfd_benchmark_cuda_end_to_end -- CFDApp version 0.2.0-dev
+cuda_available_at_runtime: yes
+
+Cold GPU warm-up (CUDA context init, first kernel load) -- untimed for the per-grid results below, reported separately.
+cold_gpu_first_use_seconds: 0.422713
+
+grid | cells | backend | outer_iters | total_min_s | total_median_s | total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged
+20x20 | 400 | CPU | 200 | 0.756957 | 1.07627 | 2.02381 | 1.57123 | 5.38135 | n/a | yes
+20x20 | 400 | GPU | 200 | 5.71167 | 6.498 | 6.58012 | 0.744879 | 32.49 | 50.3396 | yes
+40x40 | 1600 | CPU | 200 | 3.14941 | 3.20529 | 3.21576 | 0.0589104 | 16.0264 | n/a | yes
+40x40 | 1600 | GPU | 200 | 13.7303 | 14.6037 | 14.5356 | 0.631539 | 73.0185 | 46.9833 | yes
+80x80 | 6400 | CPU | 200 | 10.1433 | 10.5715 | 10.4896 | 0.255934 | 52.8576 | n/a | yes
+80x80 | 6400 | GPU | 200 | 20.0786 | 20.4624 | 20.5573 | 0.434824 | 102.312 | 41.8821 | yes
+160x160 | 25600 | CPU | 60 | 13.4545 | 18.2188 | 16.6534 | 2.26213 | 303.646 | n/a | yes
+160x160 | 25600 | GPU | 60 | 14.1673 | 15.704 | 15.2585 | 0.775952 | 261.734 | 31.1079 | yes
+320x320 | 102400 | CPU | 20 | 29.2049 | 31.1493 | 31.189 | 1.63648 | 1557.46 | n/a | yes
+320x320 | 102400 | GPU | 20 | 14.1592 | 14.2553 | 14.2654 | 0.0910573 | 712.765 | 21.6463 | yes
+640x640 | 409600 | CPU | 8 | 80.6829 | 80.6829 | 80.6829 | 0 | 10085.4 | n/a | yes
+640x640 | 409600 | GPU | 8 | 25.4735 | 25.4735 | 25.4735 | 0 | 3184.18 | 9.35249 | yes
+
+=== Summary ===
+Grid | Cells | CPU Median | GPU Median | Speedup | Transfer % | Converged
+20x20 | 400 | 1.07627s | 6.498s | 0.165631x | 50.3396% | yes
+40x40 | 1600 | 3.20529s | 14.6037s | 0.219485x | 46.9833% | yes
+80x80 | 6400 | 10.5715s | 20.4624s | 0.516631x | 41.8821% | yes
+160x160 | 25600 | 18.2188s | 15.704s | 1.16013x | 31.1079% | yes
+320x320 | 102400 | 31.1493s | 14.2553s | 2.1851x | 21.6463% | yes
+640x640 | 409600 | 80.6829s | 25.4735s | 3.16733x | 9.35249% | yes
+
+cold_gpu_first_use_seconds: 0.422713
+gpu_break_even_grid: 160x160
+max_measured_speedup: 3.16733x at 640x640

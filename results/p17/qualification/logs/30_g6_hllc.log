@@ -1,0 +1,248 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = Hllc*
+[==========] Running 35 tests from 16 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from HllcStateTest
+[ RUN      ] HllcStateTest.D3_ConservedEnergyMatchesTheZeroReferenceForm
+[       OK ] HllcStateTest.D3_ConservedEnergyMatchesTheZeroReferenceForm (0 ms)
+[ RUN      ] HllcStateTest.D4_FactoryAgreesWithDirectConstruction
+[       OK ] HllcStateTest.D4_FactoryAgreesWithDirectConstruction (0 ms)
+[ RUN      ] HllcStateTest.D4_ConservedRoundTripIsExact
+[       OK ] HllcStateTest.D4_ConservedRoundTripIsExact (0 ms)
+[----------] 3 tests from HllcStateTest (1 ms total)
+
+[----------] 3 tests from HllcPhysicalFluxTest
+[ RUN      ] HllcPhysicalFluxTest.F1_XNormalIsTheTextbookOneDimensionalFlux
+[       OK ] HllcPhysicalFluxTest.F1_XNormalIsTheTextbookOneDimensionalFlux (0 ms)
+[ RUN      ] HllcPhysicalFluxTest.F2_AxisNormalsPermuteTheFluxBitwise
+[       OK ] HllcPhysicalFluxTest.F2_AxisNormalsPermuteTheFluxBitwise (0 ms)
+[ RUN      ] HllcPhysicalFluxTest.F3_MatchesTheIndependentReference
+
+  F3 worst |diff|/scale vs the 60-digit reference: 1.114e-17  (bound 1.776e-15)
+[       OK ] HllcPhysicalFluxTest.F3_MatchesTheIndependentReference (0 ms)
+[----------] 3 tests from HllcPhysicalFluxTest (1 ms total)
+
+[----------] 1 test from HllcConsistencyTest
+[ RUN      ] HllcConsistencyTest.C1_C2_UniformStateReturnsThePhysicalFlux
+  C2 worst subsonic |diff|/scale: 0.000e+00  (derived bound 32 eps = 7.105e-15)
+  C1 bitwise-exact supersonic selections: 2
+[       OK ] HllcConsistencyTest.C1_C2_UniformStateReturnsThePhysicalFlux (0 ms)
+[----------] 1 test from HllcConsistencyTest (0 ms total)
+
+[----------] 4 tests from HllcWaveSpeedTest
+[ RUN      ] HllcWaveSpeedTest.W1_W2_W3_MatchTheReferenceAndAreWellConditioned
+
+  case                                S_L             S*            S_R |den|/bound
+  uniform_x                      -313.798             30        373.798   1.000000
+  uniform_oblique                -324.084        19.7143        363.512   1.000000
+  sod_literature                 -1.18314       0.610304        2.33228   1.121069
+  sod_atmospheric                -376.612         194.27        742.402   1.121069
+  sod_y                          -1.18314       0.610304        2.33228   1.121069
+  sod_z                          -1.18314       0.610304        2.33228   1.121069
+  stationary_contact             -376.612             -0        1065.22   1.000000
+  moving_contact                 -326.612             50        1115.22   1.000000
+  tangential_shear               -376.612             -0        376.612   1.000000
+  supersonic_right                523.388        984.201        1350.14   1.065079
+  supersonic_left                -1276.61       -815.799       -449.859   1.065079
+  strong_pressure_ratio          -3766.12        2635.84        77968.7   1.020601
+  strong_density_ratio           -11.9095             -0        11909.5   1.000000
+  near_sonic_left             9.99989e-10        376.612        753.224   1.000000
+  low_pressure                   -10.8314        7.23313        27.0757   1.109449
+  W1 worst wave-speed error: 2.172e-16 (bound 1.776e-15)   W3 smallest |den|/bound: 1.000000000000000
+[       OK ] HllcWaveSpeedTest.W1_W2_W3_MatchTheReferenceAndAreWellConditioned (0 ms)
+[ RUN      ] HllcWaveSpeedTest.W4_EstimatorBoundsTheTrueSignalSpeeds
+
+  W4: the production estimator bounds the true signal speeds in 14 of 14 cases
+[       OK ] HllcWaveSpeedTest.W4_EstimatorBoundsTheTrueSignalSpeeds (0 ms)
+[ RUN      ] HllcWaveSpeedTest.W4_NonVacuity_DavisFailsTheSameCriterion
+  W4 non-vacuity: Davis FAILS the bounding criterion in 8 of 14 cases
+[       OK ] HllcWaveSpeedTest.W4_NonVacuity_DavisFailsTheSameCriterion (0 ms)
+[ RUN      ] HllcWaveSpeedTest.W5_NearSonicStaysFiniteAndPicksTheRightBranch
+
+  W5 near-sonic: S_L = 9.999894e-10 (placed within 1e-9 of 0), branch F_L
+[       OK ] HllcWaveSpeedTest.W5_NearSonicStaysFiniteAndPicksTheRightBranch (0 ms)
+[----------] 4 tests from HllcWaveSpeedTest (1 ms total)
+
+[----------] 3 tests from HllcBranchTest
+[ RUN      ] HllcBranchTest.B1_B2_SupersonicBranchesReturnTheOneSidedFluxBitwise
+[       OK ] HllcBranchTest.B1_B2_SupersonicBranchesReturnTheOneSidedFluxBitwise (0 ms)
+[ RUN      ] HllcBranchTest.B5_EveryBranchIsEnteredAndMatchesTheReference
+
+  case                     branch     reference 
+  uniform_x                F_star_L   F_star_L  
+  uniform_oblique          F_star_L   F_star_L  
+  sod_literature           F_star_L   F_star_L  
+  sod_atmospheric          F_star_L   F_star_L  
+  sod_y                    F_star_L   F_star_L  
+  sod_z                    F_star_L   F_star_L  
+  stationary_contact       F_star_L   F_star_L  
+  moving_contact           F_star_L   F_star_L  
+  tangential_shear         F_star_L   F_star_L  
+  supersonic_right         F_L        F_L       
+  supersonic_left          F_R        F_R       
+  strong_pressure_ratio    F_star_L   F_star_L  
+  strong_density_ratio     F_star_L   F_star_L  
+  near_sonic_left          F_L        F_L       
+  low_pressure             F_star_L   F_star_L  
+  subsonic_left_moving     F_star_R   (constructed)
+  branch coverage: F_L=2  F*_L=12  F*_R=1  F_R=1
+[       OK ] HllcBranchTest.B5_EveryBranchIsEnteredAndMatchesTheReference (0 ms)
+[ RUN      ] HllcBranchTest.B3_B4_StarBranchFluxMatchesTheReference
+
+  B3/B4 worst star-branch |diff|/scale over 12 cases: 1.955e-16  (bound 7.105e-15)
+[       OK ] HllcBranchTest.B3_B4_StarBranchFluxMatchesTheReference (0 ms)
+[----------] 3 tests from HllcBranchTest (1 ms total)
+
+[----------] 1 test from HllcStarStateTest
+[ RUN      ] HllcStarStateTest.S1_S2_S3_S4_StarStatesAreAdmissibleAndMatchTheReference
+
+  S4 worst star-density error: 2.220e-16 (bound 7.105e-15)
+  S1 minimum star density over every case : 1.314130e-05
+  S3 minimum star internal energy         : 2.171533e+00
+[       OK ] HllcStarStateTest.S1_S2_S3_S4_StarStatesAreAdmissibleAndMatchTheReference (0 ms)
+[----------] 1 test from HllcStarStateTest (0 ms total)
+
+[----------] 4 tests from HllcContactTest
+[ RUN      ] HllcContactTest.T1_StationaryContactCarriesNoMassOrEnergyBitwise
+
+  T1 stationary contact: rho_L=1.0000 rho_R=0.1250  S*=-0
+     mass flux = 0   energy flux = 0   (both must be exactly 0)
+[       OK ] HllcContactTest.T1_StationaryContactCarriesNoMassOrEnergyBitwise (0 ms)
+[ RUN      ] HllcContactTest.T2_MovingContactMatchesTheReference
+  T2 moving contact: S* = 50, u_n = 50, worst |diff|/scale = 0.000e+00
+[       OK ] HllcContactTest.T2_MovingContactMatchesTheReference (0 ms)
+[ RUN      ] HllcContactTest.T3_TangentialShearCarriesNoMassOrTangentialMomentum
+
+  T3 tangential shear: v_L=20.0 v_R=-35.0  mass flux=0  tangential mom=0
+[       OK ] HllcContactTest.T3_TangentialShearCarriesNoMassOrTangentialMomentum (0 ms)
+[ RUN      ] HllcContactTest.T4_NonVacuity_DeletingTheContactWaveBreaksTheContact
+
+  T4 contact wave DELETED: spurious mass flux = 243.4595971727 kg/(m^2 s)
+     the true flux is exactly 0; the 60-digit reference gives 243.4595971727
+     and HLLC itself gives 0 -- so T1 is not vacuous
+[       OK ] HllcContactTest.T4_NonVacuity_DeletingTheContactWaveBreaksTheContact (0 ms)
+[----------] 4 tests from HllcContactTest (1 ms total)
+
+[----------] 3 tests from HllcRotationTest
+[ RUN      ] HllcRotationTest.R1_DyadicRotationRotatesTheFluxBitwise
+
+  R1 dyadic rotations (z90, z180, y90): mass and energy flux BITWISE equal
+[       OK ] HllcRotationTest.R1_DyadicRotationRotatesTheFluxBitwise (0 ms)
+[ RUN      ] HllcRotationTest.R2_ObliqueNormalIsRotationallyConsistent
+  R2 oblique normal (2,-3,6)/7 under an axis cycle: mass diff 1.421e-14 (bound 2.548e-12)
+[       OK ] HllcRotationTest.R2_ObliqueNormalIsRotationallyConsistent (0 ms)
+[ RUN      ] HllcRotationTest.R3_AreaScalesTheFluxAndNeverTheWaveSpeeds
+
+  R3 area scaling exact for 0.25, 1, 4, 1024; wave speeds unchanged bitwise
+[       OK ] HllcRotationTest.R3_AreaScalesTheFluxAndNeverTheWaveSpeeds (0 ms)
+[----------] 3 tests from HllcRotationTest (1 ms total)
+
+[----------] 2 tests from HllcConservationTest
+[ RUN      ] HllcConservationTest.N1_FluxIsBitwiseAntisymmetricUnderReversal
+
+  N1 exact antisymmetry F(L,R,n) = -F(R,L,-n) over 15 cases, BITWISE, all 5 components
+[       OK ] HllcConservationTest.N1_FluxIsBitwiseAntisymmetricUnderReversal (0 ms)
+[ RUN      ] HllcConservationTest.N1_OneFluxEvaluationConservesAcrossTwoCells
+
+  conservation across one face: mass sum 0, energy sum 0 (exactly 0)
+[       OK ] HllcConservationTest.N1_OneFluxEvaluationConservesAcrossTwoCells (0 ms)
+[----------] 2 tests from HllcConservationTest (0 ms total)
+
+[----------] 3 tests from HllcExactSolverTest
+[ RUN      ] HllcExactSolverTest.X1_MatchesTheExactGodunovFluxWhereHllcIsExact
+
+  case                     worst        (|diff|/scale vs the EXACT solution)
+  uniform_x                0.000e+00
+  uniform_oblique          1.114e-17
+  stationary_contact       0.000e+00
+  moving_contact           0.000e+00
+  supersonic_right         0.000e+00
+  supersonic_left          0.000e+00
+  strong_density_ratio     0.000e+00
+  near_sonic_left          3.254e-16
+  X1 worst: 3.254e-16  (bound 32 eps = 7.105e-15) over 8 algebraically exact cases
+[       OK ] HllcExactSolverTest.X1_MatchesTheExactGodunovFluxWhereHllcIsExact (0 ms)
+[ RUN      ] HllcExactSolverTest.X2_MatchesTheSixtyDigitHllcEverywhere
+
+  X2 worst implementation error vs the 60-digit HLLC: 3.254e-16 at near_sonic_left (bound 7.105e-15)
+[       OK ] HllcExactSolverTest.X2_MatchesTheSixtyDigitHllcEverywhere (0 ms)
+[ RUN      ] HllcExactSolverTest.X3_X4_StrongDiscontinuitiesAreReportedNotGatedOnAccuracy
+
+  THE SCHEME'S OWN ERROR against the exact solution. NOT a gated accuracy claim:
+  for a strong discontinuity a single HLLC interface flux is O(1) away from the
+  exact Godunov flux, and no tight tolerance is derivable. Full Sod validation is
+  P17.9's, not P17.7's.
+
+  case                         mass      x-mom     energy     branch
+  sod_literature             0.0061     0.0609     0.0125   F_star_L
+  sod_atmospheric            0.0061     0.0609     0.0125   F_star_L
+  strong_pressure_ratio      0.0768     0.1026     0.0254   F_star_L
+  low_pressure               0.0301     0.0617     0.0067   F_star_L
+
+  SOD INITIAL STATE (rho 1.0/0.125, p 1.0/0.1, u 0), gamma = 1.399818928894770
+    S_L    = -1.1831394376381719
+    S*     = 0.61030420670458674
+    S_R    = 2.332279832079847
+    rho*_L = 0.65970260140053394
+    rho*_R = 0.16930261654920251
+    F      = [0.40261927280870508, 0.52364525998681899, 0, 0, 1.118902001448622]
+    the exact solution's leftmost/rightmost waves: -1.1831394376381719 / 1.7520928142199601
+[       OK ] HllcExactSolverTest.X3_X4_StrongDiscontinuitiesAreReportedNotGatedOnAccuracy (0 ms)
+[----------] 3 tests from HllcExactSolverTest (1 ms total)
+
+[----------] 2 tests from HllcNegativeTest
+[ RUN      ] HllcNegativeTest.P1_P2_P3_InadmissibleInputsAreRefusedWithANamedReason
+
+  P1 11 inadmissible states each refused with a typed, named reason
+[       OK ] HllcNegativeTest.P1_P2_P3_InadmissibleInputsAreRefusedWithANamedReason (0 ms)
+[ RUN      ] HllcNegativeTest.P2_InvalidNormalsAreRefused
+  P2 5 invalid normals and 2 invalid gammas refused; an AREA VECTOR is rejected
+[       OK ] HllcNegativeTest.P2_InvalidNormalsAreRefused (0 ms)
+[----------] 2 tests from HllcNegativeTest (2 ms total)
+
+[----------] 1 test from HllcExtremeStateTest
+[ RUN      ] HllcExtremeStateTest.P4_ExtremeButValidStatesStayFiniteAndAdmissible
+
+  case                         min rho*       min e*      max |F|
+  strong_pressure_ratio      1.0350e-02   3.7307e+06   3.9615e+11
+  strong_density_ratio       1.0000e-03   2.5343e+02   1.0132e+05
+  low_pressure               1.3141e-05   2.1686e+02   1.3411e-01
+  supersonic_right           6.1505e-01   2.3432e+05   6.8378e+08
+  near_sonic_left            1.0000e+00   2.5343e+05   1.6031e+08
+[       OK ] HllcExtremeStateTest.P4_ExtremeButValidStatesStayFiniteAndAdmissible (0 ms)
+[----------] 1 test from HllcExtremeStateTest (0 ms total)
+
+[----------] 1 test from HllcDeterminismTest
+[ RUN      ] HllcDeterminismTest.G4_RepeatedEvaluationIsBitwiseIdentical
+
+  G4 CPU determinism: 15 cases, flux/speeds/branch/star states BITWISE identical
+[       OK ] HllcDeterminismTest.G4_RepeatedEvaluationIsBitwiseIdentical (0 ms)
+[----------] 1 test from HllcDeterminismTest (0 ms total)
+
+[----------] 2 tests from HllcReconstructionTest
+[ RUN      ] HllcReconstructionTest.FirstOrderModeIsOwnerAndNeighbour
+[       OK ] HllcReconstructionTest.FirstOrderModeIsOwnerAndNeighbour (0 ms)
+[ RUN      ] HllcReconstructionTest.BoundaryFaceTakesAnExteriorStateFromTheCaller
+
+  a symmetric opposed boundary pair gives mass flux -2.132e-14 (a wall-like state)
+[       OK ] HllcReconstructionTest.BoundaryFaceTakesAnExteriorStateFromTheCaller (0 ms)
+[----------] 2 tests from HllcReconstructionTest (0 ms total)
+
+[----------] 1 test from HllcGalileanTest
+[ RUN      ] HllcGalileanTest.AddingAConstantVelocityTransformsTheFluxConsistently
+
+  Galilean: boost.n = 19.571429   mass flux 70.23750556 -> 91.82012025  predicted 91.82012025
+    |measured - predicted| / (rho_m a_m) = 6.711e-17   (bound 7.105e-15)
+[       OK ] HllcGalileanTest.AddingAConstantVelocityTransformsTheFluxConsistently (0 ms)
+[----------] 1 test from HllcGalileanTest (0 ms total)
+
+[----------] 1 test from HllcAnalyticTest
+[ RUN      ] HllcAnalyticTest.ZeroVelocityUniformPressureCarriesOnlyPressure
+
+  16B gas at rest, 4 normals: mass and energy flux exactly 0, momentum exactly p n
+[       OK ] HllcAnalyticTest.ZeroVelocityUniformPressureCarriesOnlyPressure (0 ms)
+[----------] 1 test from HllcAnalyticTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 35 tests from 16 test suites ran. (26 ms total)
+[  PASSED  ] 35 tests.

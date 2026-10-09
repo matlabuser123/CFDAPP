@@ -1,0 +1,37 @@
+=== P18.8 FIRST FAILURE, PRESERVED VERBATIM (CLAUDE.md 1.5) ===
+date: 2026-10-02T01:17:08Z
+
+A REAL DEFECT IN THE DEVICE CODE, found by control N11.
+
+The device status was LAST-WRITE-WINS. A state with T = -5 was correctly refused, but the
+reason reported was NonFiniteEnergy (12) -- a DOWNSTREAM CONSEQUENCE -- where the CPU, which
+throws at the FIRST invalid thing, reports NonPositiveTemperature (2), the ROOT CAUSE.
+
+WHY THAT IS A GATE FAILURE AND NOT COSMETIC: E11 requires the DECISION AND THE REASON to
+agree, because two backends rejecting the same state for different reasons is a divergence
+in the admissible set. G9 asks for 'the same first-offending cell'. A consequence masking a
+cause is exactly that divergence.
+
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from P188InvalidStateTest
+[ RUN      ] P188InvalidStateTest.N11_SilentlyAcceptingAnInvalidStateIsDetected
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_device_species_equivalence.cpp:896: Failure
+Expected equality of these values:
+  accepted.status
+    Which is: 4-byte object <0C-00 00-00>
+  DeviceSpeciesStatus::NonPositiveTemperature
+    Which is: 4-byte object <02-00 00-00>
+
+[  FAILED  ] P188InvalidStateTest.N11_SilentlyAcceptingAnInvalidStateIsDetected (0 ms)
+[----------] 1 test from P188InvalidStateTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+
+=== THE FIX ===
+setStatusOnce() -- the status is written only while it is still Ok, so FIRST FAILURE WINS.
+Every status write in the header is routed through it. NO THRESHOLD CHANGED and no test
+expectation was relaxed: the test asserted the correct semantics and the code was wrong.

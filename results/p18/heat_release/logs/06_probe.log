@@ -1,0 +1,97 @@
+=== P18.6 measurement probe ===
+date      : 2026-10-01T05:47:06Z
+compiler  : g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+library   : build/final/src/libcfdcore.a
+lib sha256: bb607a5a93cbcb1b37d223b1002fd524d95e78a0d9e5e6cf3e3fb6ed833724c1
+probe sha : b213dd831ec7b476ceaeb9510009ef7d81d67a6a86525428c0dfcbec96438ee9
+command   : g++ -std=c++20 -O2 -Wall -Wextra -I include results/p18/heat_release/tools/heat_release_probe.cpp build/final/src/libcfdcore.a -o /tmp/hrprobe
+
+=== P18.6 quantitative evidence (section 60) ===
+eps = 2.2204460492503131e-16
+expected values from tools/heat_release_reference.py (mpmath dps=60)
+
+--- max species-enthalpy reference error ---
+  hbar_f,0 = 0   expected 0   rel 0.000e+00
+  hbar_f,1 = -125000   expected -125000   rel 0.000e+00
+  hbar_f,2 = 187500   expected 187500   rel 0.000e+00
+  MAX species-enthalpy error : 0.000e+00  (0.00 eps)
+
+--- max reaction-enthalpy error ---
+  Delta H(A->B) = -125000   expected -125000   rel 0.000e+00
+  Delta H(A->C) = 187500   expected  187500   rel 0.000e+00
+  Delta H(A->B, T=   400) = -124615.70721875   expected -124615.70721875   rel 0.000e+00 (0.00 eps)
+  Delta H(A->B, T=   800) = -125615.70721875   expected -125615.70721875   rel 0.000e+00 (0.00 eps)
+  Delta H(A->B, T=  1500) = -136990.70721875   expected -136990.70721875   rel 0.000e+00 (0.00 eps)
+  Delta H(A->B, T=  2500) = -174490.70721875   expected -174490.70721875   rel 0.000e+00 (0.00 eps)
+  MAX reaction-enthalpy error : 0.000e+00  (0.00 eps)
+
+--- Kirchhoff: d(Delta H_r)/dT vs Delta Cp_r ---
+  eps^(2/3) = 3.6668528625010315e-11, bound 8 x that
+  T=   400  Delta Cp =     2.500000  fd =     2.500000  rel 6.890e-14 (0.00 x eps^(2/3))
+  T=   700  Delta Cp =    -5.000000  fd =    -5.000000  rel 9.580e-14 (0.00 x eps^(2/3))
+  T=  1200  Delta Cp =   -17.500000  fd =   -17.500000  rel 4.234e-14 (0.00 x eps^(2/3))
+  T=  1800  Delta Cp =   -32.500000  fd =   -32.500000  rel 5.241e-14 (0.00 x eps^(2/3))
+  T=  2500  Delta Cp =   -50.000000  fd =   -50.000000  rel 0.000e+00 (0.00 x eps^(2/3))
+  MAX Kirchhoff disagreement : 9.580e-14  (0.00 x eps^(2/3))
+
+--- max reaction-energy-source error, and the two routes ---
+  q=     0.00  S_E(molar)=                 0  expected                  0  rel 0.000e+00   routes agree 0.000e+00
+  q=     1.00  S_E(molar)=            125000  expected             125000  rel 0.000e+00   routes agree 0.000e+00
+  q=     2.00  S_E(molar)=            250000  expected             250000  rel 0.000e+00   routes agree 0.000e+00
+  q=     7.50  S_E(molar)=            937500  expected             937500  rel 0.000e+00   routes agree 0.000e+00
+  q=  1000.00  S_E(molar)=          1.25e+08  expected           1.25e+08  rel 0.000e+00   routes agree 0.000e+00
+  MAX source error  : 0.000e+00  (0.00 eps)
+  MAX route disagreement : 0.000e+00  (0.00 eps)
+
+--- max source linearity error: S_E(c q) = c S_E(q) ---
+  c=       2.0  S_E=            812500   c*S_E=            812500   rel 0.000e+00   BITWISE
+  c=       0.5  S_E=            203125   c*S_E=            203125   rel 0.000e+00   BITWISE
+  c= 1000000.0  S_E=        4.0625e+11   c*S_E=        4.0625e+11   rel 0.000e+00   BITWISE
+  c=      -1.0  S_E=           -406250   c*S_E=           -406250   rel 0.000e+00   BITWISE
+  c=       0.0  S_E=                 0   c*S_E=                 0   rel 0.000e+00   BITWISE
+  MAX linearity error : 0.000e+00  (0.00 eps)
+
+--- max |sum_i omega_i| (P18.4's invariant, which P18.6 depends on) ---
+  q=     1.00  max|sum omega| = 0.000e+00   scale 0.0625
+  q=     7.50  max|sum omega| = 0.000e+00   scale 0.46875
+  q=  1000.00  max|sum omega| = 0.000e+00   scale 62.5
+  MAX |sum omega| : 0.000e+00   relative to scale 0.000e+00
+
+--- max one-step energy-balance error: Delta u_sens = dt S_E ---
+  q=    1.00 dt=  1.0e-03  measured 125  expected 125  rel 0.000e+00
+  q=  100.00 dt=  1.0e-05  measured 125  expected 125.00000000000001  rel 1.137e-16
+  q=    0.50 dt=  2.0e+00  measured 125000  expected 125000  rel 0.000e+00
+  MAX one-step balance error : 1.137e-16  (0.51 eps)
+
+--- max temperature-recovery error ---
+  constant cp : MAX 0.000e+00  (0.00 eps)
+  cp(T), a root find : MAX 0.000e+00  (0.00 eps)
+
+--- closed-reactor total-energy drift (THE PRIMARY G7 MEASUREMENT) ---
+  cells 16, 50 steps, q = 128, dt = 1e-3
+  E_initial  = 32000000 J   (sensible 32000000, chemical 0)
+  E_final    = 31999999.999999955 J   (sensible 57599999.99999997, chemical -25600000.000000015)
+  abs drift  = 4.470348e-08 J
+  rel drift  = 1.396984e-15  (6.29 eps);  WORST over the march 1.513399e-15 (6.82 eps)
+  G7 allows 8 eps N_cells = 2.842171e-14  (128.0 eps)
+  T: 1000 -> 1800.000000 K   Y_A: 1 -> 0.600000
+  the two pools moved oppositely: d(sensible) = +2.560000e+07, d(chemical) = -2.560000e+07
+
+--- final temperature vs the INDEPENDENT adiabatic balance ---
+  50% conversion : T = 2000   independent balance 2000   rel 0.000e+00 (0.00 eps)
+  complete       : T = 3000   independent balance 3000   rel 0.000e+00 (0.00 eps)
+
+--- max non-reacting thermal difference (section 34) ---
+  10 zero-rate steps, 32 cells, non-uniform state
+  max |dT|   = 0 K
+  max |dY|   = 0
+  values differing bitwise : 0   (MUST be 0)
+
+--- max determinism difference ---
+  200 repeats x 64 cells x (S_E + T + 3 Y) + total energy, REBUILDING the
+  mixture, formation enthalpies and mechanism each time
+  bitwise differences : 0
+
+--- max chemistry-feedback rate error (section 21) ---
+  measured in the test suite against exp(-(Ea/R)(1/T1 - 1/T0));
+  see TemperatureFeedbackTest.N3_HeatReleaseRaisesTheRateAtTheNextEvaluation

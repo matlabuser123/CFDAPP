@@ -1,0 +1,35 @@
+=== P18.5 focused test counts and frozen-hash re-verification ===
+date: 2026-10-01T01:12:06Z
+
+--- THE FROZEN GATE, re-verified NOW (not at freeze time) ---
+expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+--- the P18.5 frozen formulation (A1 amends it; the original must be UNCHANGED) ---
+audit.md             b65712699ce11adae46dcec65aaf6a8d23aab10d77e91d651ae2a34f4880abb8
+units.md             481525f8f56d718da7ce348ea738add35676d6bf3c57ef0ffcecfe703a13812e
+formulation.md       9362c7289979a8494f2c9b3b4a76b83e6d3a109dd8448177c1b07c90a0ea1da5
+formulation_A1.md    bb439f15376a0fb951e086b66bbb0bae11812d88cb22a843bb072472036109d0
+
+--- P18.5 test counts, from --gtest_list_tests ---
+  ArrheniusTest            24
+  ArrheniusKineticsTest    14
+  ----------------------------------
+  P18.5 TOTAL              38
+
+--- the whole species binary ---
+  registered tests         241
+  P18.1-P18.4 baseline     203
+  203 + 38 = 241
+
+--- the P18.5 changeset ---
+ M src/CMakeLists.txt
+ M tests/unit/species/CMakeLists.txt
+?? include/cfd/species/ArrheniusKinetics.hpp
+?? src/species/ArrheniusKinetics.cpp
+?? tests/unit/species/test_arrhenius_kinetics.cpp
+
+--- production file hashes ---
+include/cfd/species/ArrheniusKinetics.hpp        44d6561f14bf23c1d81a4013cb641e281c65464da0c880bf39db517ffc7e5e58
+src/species/ArrheniusKinetics.cpp                ba095f0e5ec785bf89f70834bf9359455bd3a901600372890ceceae6722af795
+tests/unit/species/test_arrhenius_kinetics.cpp   f3788fb9b2dbbc9588a2484fb0ac9e8ec2c6cd978184cc44a8f0455ec6413747

@@ -1,0 +1,120 @@
+P17.7 AUDIT -- existing Riemann / Euler-flux surface
+date: 2026-09-27T06:05:33Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+searched roots: include src cuda tests apps
+
+### 1a. the section 1 term list, case-insensitive, FILE counts then LINE counts ###
+  TERM                          FILES    LINES
+  Euler flux                        0        0
+  Riemann                           1        1
+  HLLC                              0        0
+  HLL                               0        0
+  Roe                              11       16
+  Rusanov                           0        0
+  Lax-Friedrichs                    0        0
+  LaxFriedrichs                     0        0
+  Godunov                           0        0
+  shock                             0        0
+  ConservedState                    0        0
+  conserved state                   4        4
+  PrimitiveState                    0        0
+  primitive state                   1        1
+  face reconstruction               0        0
+  reconstruct                      83      167
+  wave speed                        0        0
+  waveSpeed                         0        0
+  contact speed                     0        0
+  contactSpeed                      0        0
+  MUSCL                             1        1
+  WENO                              0        0
+  slope limiter                     0        0
+  minmod                            0        0
+  vanLeer                           7       32
+  superbee                          0        0
+
+### 1b. every hit for the DECISIVE terms, in full -- these decide MISSING vs EXTEND ###
+  --- HLLC (0) ---
+  --- Riemann (1) ---
+      include/cfd/compressible/EquationOfState.hpp:51:  // code -- the energy equation and the Riemann flux to come -- never has to know
+  --- Rusanov (0) ---
+  --- Godunov (0) ---
+  --- Lax-Friedrichs (0) ---
+  --- MUSCL (1) ---
+      include/cfd/discretization/Convection.hpp:120:// central" scheme (equivalent to van Leer's MUSCL). For LinearUpwind and
+  --- WENO (0) ---
+
+### 1c. HLL as a WHOLE WORD (so 'HLLC' and prose do not inflate it) ###
+  word-boundary HLL: 0
+
+### 1d. 'Roe' -- P17.0 called these FALSE POSITIVES. Verify that directly. ###
+  total 'Roe' lines: 16
+  as a whole word  : 0
+  the whole-word hits:
+  (a Roe-average or Roe-flux implementation would appear as an identifier, not inside a word)
+
+### 1e. 'Euler' -- 107 hits were called false positives. Classify them. ###
+  total 'Euler' lines: 101
+  breakdown by what they actually are:
+    backward/forward Euler TIME integration    95
+    Euler EQUATIONS / Euler flux (what P17.7 needs) 0
+    Euler as an identifier (eulerStep etc.)    0
+  any 'Euler equation/flux/system/state' hits, in full:
+
+### 1f. what a conserved-state / primitive-state type would look like ###
+  struct ConservedState          0
+  class ConservedState           0
+  struct PrimitiveState          0
+  class PrimitiveState           0
+  rhoU                           4
+  rhoE                           101
+  conservedTotalEnergy           26
+  recoverPrimitive               6
+
+  WHERE rhoE / conserved-energy machinery already lives (P17.5):
+    include/cfd/compressible/TotalEnergy.hpp
+    src/compressible/TotalEnergy.cpp
+    tests/integration/compressible/test_low_mach_family.cpp
+    tests/unit/compressible/test_total_energy.cpp
+
+### 1g. the P17.2/P17.5 pieces P17.7 must REUSE, not duplicate ###
+  soundSpeed                         declared in: 
+  machNumber                         declared in: include/cfd/app/ProjectRunner.hpp include/cfd/compressible/ThermodynamicProperties.hpp 
+  IdealGasEOS                        declared in: include/cfd/app/ProjectRunner.hpp include/cfd/compressible/CompressiblePressureCorrection.hpp include/cfd/compressible/EquationOfState.hpp include/cfd/compressible/IdealGasEOS.hpp include/cfd/compressible/ThermodynamicProperties.hpp 
+  ThermodynamicProperties            declared in: include/cfd/app/ProjectRunner.hpp include/cfd/compressible/CompressibleMassFlux.hpp include/cfd/compressible/CompressiblePressureCorrection.hpp include/cfd/compressible/CompressibleSIMPLE.hpp include/cfd/compressible/ThermodynamicProperties.hpp include/cfd/compressible/TotalEnergy.hpp include/cfd/io/SimulationSetup.hpp 
+  TotalEnergyState                   declared in: include/cfd/compressible/TotalEnergy.hpp 
+  specificInternalEnergy             declared in: include/cfd/compressible/TotalEnergy.hpp 
+  temperatureFromInternalEnergy      declared in: include/cfd/compressible/TotalEnergy.hpp 
+  conservedTotalEnergyField          declared in: include/cfd/compressible/TotalEnergy.hpp 
+  recoverPrimitiveFields             declared in: include/cfd/compressible/TotalEnergy.hpp 
+
+### 1h. existing FLUX vocabulary -- is there a numerical-flux abstraction to extend? ###
+  numericalFlux                      0
+  NumericalFlux                      0
+  faceFlux                           78
+  FaceFlux                           135
+  interfaceFlux                      0
+  fluxFunction                       0
+  calculateCompressibleMassFlux      48
+  massFlux                           1256
+
+### 1i. the GPU surface -- is there any compressible/flux device code? ###
+  HLLC                 files in cuda/ + include/cfd/gpu/: 0
+  Riemann              files in cuda/ + include/cfd/gpu/: 0
+  ConservedState       files in cuda/ + include/cfd/gpu/: 0
+  rhoE                 files in cuda/ + include/cfd/gpu/: 0
+  soundSpeed           files in cuda/ + include/cfd/gpu/: 0
+  compressible         files in cuda/ + include/cfd/gpu/: 1
+  IdealGas             files in cuda/ + include/cfd/gpu/: 0
+  Euler                files in cuda/ + include/cfd/gpu/: 2
+
+  every 'Euler' or 'compressible' line in the GPU tree, in full:
+    cuda/kernels/DeviceScalarTransportKernel.cu:70:// Conservative implicit Euler:
+    include/cfd/gpu/DevicePressureCorrection.hpp:6:// (PressureCorrectionEquation.cpp:181), the body behind the incompressible
+    include/cfd/gpu/DeviceScalarTransport.hpp:22://   * the conservative implicit-Euler transient contribution, on device;
+    include/cfd/gpu/DeviceScalarTransport.hpp:93:// Conservative implicit Euler on device. Adds nothing when `time.transient` is
+
+### 1j. is there a Vector3/3D state at all? (the scope asks for rho w and n_z) ###
+  Vector2 alias of Vector3     include/cfd/core/Vector2.hpp:12:using Vector2 = Vector3; 
+  Vector3 definition           include/cfd/core/Vector3.hpp 
+
+done: 2026-09-27T06:10:39Z

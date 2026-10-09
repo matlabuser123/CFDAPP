@@ -1,0 +1,84 @@
+P17.5 dry-run -- the UNCHANGED tree
+date: 2026-09-27T01:03:25Z
+HEAD: 3bd32f918656
+
+  P17.5 dry-run -- the UNCHANGED tree
+  R = 287.05000000000001   cp = 1005   cv = cp - R = 717.95000000000005   gamma = 1.3998189288947698
+  eps = 2.2204460492503131e-16
+  
+  ### A. SensibleEnthalpy, ZERO reference (T_ref = 0, h_ref = 0): is h == cp*T?
+    T 200.0    h = 201000                  cp*T = 201000                  diff 0
+    T 300.0    h = 301500                  cp*T = 301500                  diff 0
+    T 500.0    h = 502500                  cp*T = 502500                  diff 0
+    T 1000.0   h = 1005000                 cp*T = 1005000                 diff 0
+    T 2000.0   h = 2010000                 cp*T = 2010000                 diff 0
+    worst |h - cp*T|              0
+    worst relative                0   (0 eps)
+    => under the ZERO reference, h == cp*T is EXACT. This is the calorically
+       perfect convention in which e = cv*T and the gamma relation are exact.
+  
+  ### B. NONZERO reference (T_ref = 298.15): how far is h from cp*T?
+    T 300.0    h = 1859.25                 cp*T = 301500                  diff -299640.75
+    T 500.0    h = 202859.25               cp*T = 502500                  diff -299640.75
+    T 1000.0   h = 705359.25               cp*T = 1005000                 diff -299640.75
+    predicted offset -cp*T_ref =  -299640.75
+    => h != cp*T by exactly the reference offset. Any formula assuming e = cv*T
+       or p = (gamma-1)(rhoE - ke) is WRONG under a nonzero reference.
+  
+  ### C. the proposed e(T) = h(T) - R*T
+    T_ref = 0.00      worst |(h-e) - R T| = 0             worst |e - cv T| = 0
+                      de/dT at 800 K = 717.94999996200204      cv = 717.95000000000005   diff 3.8e-08
+    T_ref = 298.15    worst |(h-e) - R T| = 0             worst |e - cv T| = 299640.75
+                      de/dT at 800 K = 717.94999967096373      cv = 717.95000000000005   diff 3.29e-07
+    => h - e = R T holds BY CONSTRUCTION for any reference, and de/dT = cv always.
+       e = cv*T holds ONLY under the zero reference. That is the whole contract.
+  
+  ### D. T(h) round trip, against the documented 1e-12 K
+    T 250.0   -> h -> T = 249.9999999999998       err -1.9895196601282805e-13
+    T 300.0   -> h -> T = 300.00000000000034      err 3.4106051316484809e-13
+    T 700.0   -> h -> T = 699.99999999999955      err -4.5474735088646412e-13
+    T 1500.0  -> h -> T = 1500                    err 0
+    worst |T(h(T)) - T|           4.5474735088646412e-13   documented bound 1e-12
+  
+  ### E. cp(T) LINEAR: the magnitude of the cp*T defect the thermal path carries
+    T 400.0    h = 189000                closed form = 189000                cp(T)*T = 384000              
+              |h - closed form| = 0              cp(T)*T is off by 195000 (103.2%)
+    T 800.0    h = 585000                closed form = 585000                cp(T)*T = 816000              
+              |h - closed form| = 0              cp(T)*T is off by 231000 (39.5%)
+    T 1500.0   h = 1335750               closed form = 1335750               cp(T)*T = 1687500             
+              |h - closed form| = 0              cp(T)*T is off by 351750 (26.3%)
+    => the closed form matches to round-off; cp(T)*T is off by tens of percent.
+  
+  ### F. p = (gamma-1)(rhoE - 0.5 rho |U|^2)  vs  p = rho R T
+    T_ref = 0.00      p(gamma) = 172229.99999999997    rho R T = 172230                diff -2.91038e-11
+    T_ref = 298.15    p(gamma) = 28467.547538129387    rho R T = 172230                diff -143762
+    => the gamma form is EXACT only under the zero reference. Under a nonzero
+       reference it is wrong by (gamma-1) rho (h_ref - cp T_ref), not by round-off.
+  
+  ### G. cancellation in e = rhoE/rho - 0.5|U|^2 at low Mach (section 25)
+    e at 300 K = 215385   (this is the quantity being recovered)
+    |U|        Mach           ke                     ke/e                   recovered e error
+    0.1        0.000288021    0.005000000000000001   2.32142e-08            0
+    1.0        0.00288021     0.5                    2.32142e-06            0
+    10.0       0.0288021      50                     0.000232142            0
+    100.0      0.288021       5000                   0.0232142              0
+    300.0      0.864064       45000                  0.208928               0
+    => at low Mach ke/e is TINY, so rhoE/rho is dominated by e and the
+       subtraction is benign. Cancellation would bite at ke >> e, i.e. HYPERsonic,
+       which is the opposite end from this solver's low-Mach regime.
+  
+  ### H. floating-point FLOORS of the composite identities (threshold basis)
+    rho 1.20   T 300.0    |U| 11.18     rho*hTotal-(rhoE+p) = 0             0.00 eps rel
+    rho 0.35   T 1200.0   |U| 262.49    rho*hTotal-(rhoE+p) = 0             0.00 eps rel
+    rho 8.00   T 250.0    |U| 0.50      rho*hTotal-(rhoE+p) = 0             0.00 eps rel
+    rho 1.00   T 500.0    |U| 0.00      rho*hTotal-(rhoE+p) = 0             0.00 eps rel
+    worst |rho hTotal - (rhoE+p)|         0
+    worst RELATIVE                       0 = 0.00 eps
+    worst T round trip prim-cons-prim    4.5474735088646412e-13 K
+    worst rhoE round trip relative       4.8644853019923305e-16 = 2.19 eps
+    => these are the FLOORS. A threshold below them fails a correct
+       implementation; one far above them does not discriminate.
+  
+  done
+
+done: 2026-09-27T01:03:30Z

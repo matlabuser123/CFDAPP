@@ -1,0 +1,30 @@
+P18.8 §57 -- THREE-CONFIGURATION REGRESSION (attempt 2)
+started (WSL): 2026-10-02T07:32:17Z
+host: nproc=32, 31Gi RAM visible to WSL
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+EXECUTION POLICY (inherited verbatim, see the header):
+  OMP_NUM_THREADS=1  ctest -j 8  --timeout 7200  -E <5 frozen exclusions>
+  exclusions: SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+  build jobs: 16
+
+newest production source at start: 1790909766.7083267000 cuda/CMakeLists.txt
+
+BASELINE, from P18.7's own recorded log (results/p18/conservation_validation/logs/):
+  release_cuda  registered 3041  ran 2979  passed 2977  failed 0  skipped 2  exit 0
+  cpu_only      registered 2818  ran 2758  passed 2758  failed 0  skipped 0  exit 0
+  debug_gui     registered 3103  ran 3041  passed 3036  failed 3  skipped 2  exit 8
+
+release_cuda:  registered 3081  ran 3016  passed 3014  failed 0  skipped 2  disabled 52
+    build 253 s   ctest 2226 s   ctest exit 0
+cpu_only:  registered 2835  ran 2775  passed 2775  failed 0  skipped 0  disabled 47
+    build 247 s   ctest 1495 s   ctest exit 0
+debug_gui:  registered 3143  ran 3078  passed 3072  failed 4  skipped 2  disabled 52
+    build 477 s   ctest 8478 s   ctest exit 8
+
+finished (WSL): 2026-10-02T11:13:14Z
+newest production source at end: 1790909766.7083267000 cuda/CMakeLists.txt
+
+NOTE: a nonzero ctest exit is EXPECTED for debug_gui, which has 3 known failures.
+Whether those are the known ones is decided by comparing the named rows above against
+P18.7's recorded baseline, never by the exit code.

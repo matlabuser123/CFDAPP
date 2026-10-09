@@ -1,0 +1,38 @@
+=== before ===
+  source : 3f7a6bc7f8576cb0d7791eaf66ace0994e0d7b0dcb7ea8c6ef6df7247e1b700c
+  object : e258b1a6c36598d1f4451fce6b85cfb478390c5897e26fa3b02b28152c2dc3af
+
+comment replaced
+
+=== the diff, which must contain no non-comment line ===
+  122,123c122,130
+  <   // sum without changing the number this returns, and validate() must use
+  <   // this same function so the two can never disagree.
+  ---
+  >   // sum without changing the number this returns.
+  >   //
+  >   // validateCell() accumulates its OWN sum, over the composition vector it
+  >   // is handed rather than over fields_. The two agree because validate()
+  >   // builds that vector from fields_ in this same ascending order
+  >   // immediately before summing it, so both perform the identical sequence
+  >   // of additions on the identical values -- but that is an agreement of
+  >   // construction, NOT something this function enforces. Change the order in
+  >   // either loop and the other must change with it.
+
+  changed lines that are NOT comments: 0
+
+=== format ===
+  clang-format: clean
+
+=== rebuild and compare the object ===
+  source : 429321301b079cd80b26b8a2dcef4929fbf85ece08f28cbe7ff08179cffa1f4f
+  object : e258b1a6c36598d1f4451fce6b85cfb478390c5897e26fa3b02b28152c2dc3af
+
+  OBJECT FILE IS BYTE-IDENTICAL.
+  PROVED: the change emitted not one different instruction. The three-configuration
+  regression remains authoritative for this source.
+
+=== focused tests, to close the loop ===
+[----------] Global test environment tear-down
+[==========] 97 tests from 11 test suites ran. (112 ms total)
+[  PASSED  ] 97 tests.

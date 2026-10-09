@@ -1,0 +1,79 @@
+P17.6 GATE FREEZE
+date: 2026-09-27T03:57:12Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### the frozen documents ###
+f275c4ac3fab31509b9f80036e1c8b4b6f4f3e8c9ec20cf8b8ae7a1d8b303c9a  acceptance_gate.md
+7846fc846d3947ffa618d1f7df53f44fb13d9a6518492c81cc631ef0e48cee0f  audit.md
+77ba7968d02c9c4e2054897a1b86cfb090cc607bdfc92d627bae2c7be942b4c4  tools/dryrun.cpp
+
+### NOT to be touched -- P15 thermodynamics (SHA-256, never git diff HEAD) ###
+8aebd9d8c693ae2066b225331f5e04860095b43da5ca2a80ac050eca14b82666  include/cfd/thermal/Enthalpy.hpp
+9e7e758fba65f7c22e91f1624df8d4d71f8c4d818da4a295f5e43a0485fb1dee  src/thermal/Enthalpy.cpp
+6fa846217f09cafb982cbe01690e8e0aa6a61f35105babc3894f4d6e0ac5876e  include/cfd/thermal/EnergyEquation.hpp
+910214817717b6e8f95ff7c0f8c0294c875b9c316244320a4cdb04a24db2b3e5  src/thermal/EnergyEquation.cpp
+f429b79bc9b8bf2c2ed711946f317ea58730beb6cc6e1042a35d2bb37b4c19bd  include/cfd/thermal/ThermalProperties.hpp
+e72f53ca3c83324377d94a8b67997f416e26bc810d91e981dc4606581d98721e  include/cfd/thermal/TemperatureDependentProperty.hpp
+
+### NOT to be touched -- P17.2 EOS and P17.3 mass flux ###
+bdd096490437ee602de31695184035e2ce28f0ab4d2da6187e45c709e919324e  include/cfd/compressible/IdealGasEOS.hpp
+daa27c5fc7e296482fd29fd93a0b4b6185fc7f3d39bc72855aa6240aad3bfe24  src/compressible/IdealGasEOS.cpp
+1dd39383f5d87eb77a5b69252737db0cd0640121ea6e19eb5ec3916377008335  include/cfd/compressible/ThermodynamicProperties.hpp
+27d74d9e535f8e716421ce24e7f955f32dc8200c5ae5a3ddfd1c9cbdb4da3a88  src/compressible/ThermodynamicProperties.cpp
+d376375ce2308b2ffe16968d2a063bda595d70194de9d6eb8faa147e1c1a0ea3  include/cfd/compressible/CompressibleMassFlux.hpp
+2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7  src/compressible/CompressibleMassFlux.cpp
+
+### NOT to be touched -- P17.4 momentum ###
+842b927fb63f9cff4306fa8d1f1c8bbc3e06088dffd8e9b88308513e253dcc5b  include/cfd/compressible/DilatationalStress.hpp
+fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af  include/cfd/physics/MomentumEquation.hpp
+e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59  src/physics/MomentumEquation.cpp
+
+### files P17.6 MAY create or touch ###
+  NEW  tests/integration/compressible/test_low_mach_family.cpp
+  EDIT tests/integration/compressible/CMakeLists.txt   (one line)
+  NOTHING ELSE. P17.6 is a VALIDATION phase: no production source is expected to change.
+
+### the EXISTING low-Mach and MMS tests, which G5 requires UNCHANGED ###
+593165a1a2fff9ccbad8b3675ccbdff093bcf22c82b5daad90462fe228949acc  tests/integration/compressible/test_low_mach_regression.cpp
+9c3ad6502e65543422e95c21e99354380c2cffeedeafd2d8b4b9fa3c83793796  tests/integration/mms/test_mms_compressible.cpp
+
+### the incompressible SIMPLE references, which must not move ###
+c33143bfc886b0695e8a11b852f0035575f8f8389ee24e4d60a47888e863d674  tests/integration/poiseuille/test_poiseuille_validation.cpp
+8a6061c30da34bff819beca7c563126e636b505dca4c074c85ee6503ccd949a0  tests/integration/cavity/test_cavity_ghia.cpp
+34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1  src/pressure_velocity/SIMPLE.cpp
+325a7f380be58144794538cd64d0fd4f1324a46b1bc9fa2727d5fa899e2eb9da  include/cfd/pressure_velocity/SIMPLE.hpp
+
+### P17.1-P17.5 production files, which must not move ###
+f95f760bbe2abb284ec33161209bf33f25ec9a0fb4a02e170a2232bd17d6d8ed  src/compressible/CompressibleSIMPLE.cpp
+2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7  src/compressible/CompressibleMassFlux.cpp
+5396726d935905d450df2bdb01d215ed29136f23d2f0f78f6dae4563b0b1f267  src/compressible/CompressibleContinuity.cpp
+daa27c5fc7e296482fd29fd93a0b4b6185fc7f3d39bc72855aa6240aad3bfe24  src/compressible/IdealGasEOS.cpp
+27d74d9e535f8e716421ce24e7f955f32dc8200c5ae5a3ddfd1c9cbdb4da3a88  src/compressible/ThermodynamicProperties.cpp
+fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5  src/compressible/TotalEnergy.cpp
+2df1c9f54d5186fb5f22cf1f74fbb3c3aaaaddbbebef929df1853441b2c1956e  src/compressible/TotalEnergyEquation.cpp
+0bdff82ec3e717bc8fc8aac01f5bf06914153039673bcf43cfcfe8902532007d  src/compressible/CompressibleRelaxedMomentum.cpp
+
+### baselines P17.6 must preserve -- the P17.5 CLOSE, not an earlier phase ###
+  P17_CODE_FINGERPRINT at the P17.5 close : d2e65555534bde2208cb7affd9caac7c7b4406c3f1cd17dfd473d441b882364a
+  Release+CUDA 2642 registered / 2580 executed
+  CPU-only     2440 registered / 2380 executed
+  compressible 210 (176 + P17.5's 34) · P14 68 · P15 161 · P16 315
+  tests/integration/compressible/test_low_mach_regression.cpp    7 TESTs
+  tests/integration/poiseuille/test_poiseuille_validation.cpp    5 TESTs
+  tests/integration/cavity/test_cavity_ghia.cpp                  5 TESTs
+
+### derived thresholds, from logs/01_dryrun.log ###
+  INHERITED VERBATIM from G5: machMax<0.1, >1.25*inletMach, drho/rho<1e-2,
+                              maxEosError<1e-9, fluxRelDiff<0.15, massImbalance<=bound
+  DERIVED here:
+    keRelDiff < 1e-3 at every level            measured 1.6233e-4 .. 1.9409e-5
+    drho/rho exponent in [0.80, 1.25]          theory = 1, measured 1.0178
+    every other error exponent > 0.5           measured 0.88 .. 1.04
+    all error metrics strictly DECREASING      monotone across 4 levels
+    momentum viscous/Poiseuille within 10%     measured 1.0713 .. 1.0559, approaching 1
+    T recovery error == 0                      measured exactly 0
+    energy BALANCE reported, NOT gated below S/N 1  measured S/N 46.97 .. 0.82
+
+done: 2026-09-27T03:57:21Z

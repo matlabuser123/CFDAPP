@@ -1,0 +1,36 @@
+=== build/final ===
+  LastTest.log         : 2026-09-21T14:04:23Z
+  Test Passed. records : 2083
+  Test Failed records  : 0
+  '(Failed)' markers   : 0
+  LastTestsFailed.log  : 2026-09-21T13:54:29Z  <- older than LastTest.log means it is from an EARLIER run
+      20:CFDAppCliLogLinesNeverReachStdout
+=== build/debug ===
+  LastTest.log         : 2026-09-21T14:48:16Z
+  Test Passed. records : 2077
+  Test Failed records  : 0
+  '(Failed)' markers   : 0
+  LastTestsFailed.log  : 2026-09-21T11:44:34Z  <- older than LastTest.log means it is from an EARLIER run
+      2072:CliGuiCheckpointTest.TheGuiCanCheckpointAndTheFileMatchesTheClis
+      2073:CliGuiCheckpointTest.ACheckpointCrossesBetweenTheClients
+=== build/cpuonly ===
+  LastTest.log         : 2026-09-21T14:57:35Z
+  Test Passed. records : 2017
+  Test Failed records  : 0
+  '(Failed)' markers   : 0
+  LastTestsFailed.log  : absent (ctest writes it only when a test fails)
+
+--- how to read this ---
+final.sh's own "RC=0" lines are NOT evidence: they capture `tail`'s exit
+status, not ctest's, and are 0 whether or not a test failed. The numbers above
+come from ctest's own per-test record instead, which is stronger: it says how
+many tests ran, not merely that none failed.
+
+All three LastTest.log timestamps fall inside this regression run
+(14:04, 14:48, 14:57 on 2026-09-21), so all three are this tree's result.
+
+The two LastTestsFailed.log files are both OLDER than their LastTest.log and
+are from earlier runs:
+  build/final 13:54  -- control N5, which deliberately broke
+                        CFDAppCliLogLinesNeverReachStdout and restored it
+  build/debug 11:44  -- a P13-003 run, before those two tests were fixed

@@ -1,0 +1,46 @@
+=== P17 CUDA translation units and their kernels ===
+  cuda/kernels/DeviceHllcFluxKernel.cu
+      hllcKernel
+      hllKernel
+  cuda/kernels/DeviceDensityBasedKernel.cu
+      recoverKernel
+      faceFluxKernel
+      gatherResidualKernel
+      localTimeStepKernel
+      minReduceKernel
+      minIndexReduceKernel
+      applyUpdateKernel
+      fillKernel
+      sanitizerOobKernel
+      sanitizerRaceKernel
+  TOTAL P17 __global__ kernels: 12
+
+=== tracer availability ===
+  nsys : absent
+  ncu : absent
+
+=== measured launches ===
+  NO TRACER AVAILABLE on this machine.
+  Coverage below is therefore ARGUED FROM CALL SITES, not measured, and is labelled so.
+
+=== per-kernel: the entry point that drives it, and the test that exercises that entry ===
+    hllcKernel            evaluateHllcOnDevice()               HllcGpuEquivalenceTest (17 rows)
+    hllKernel             evaluateHllOnDeviceForControlOnly()  HllcGpuEquivalenceTest V2 control
+    recoverKernel         recoverPrimitives(), every pipeline  DensityBasedGpuEquivalence A7, C4
+    faceFluxKernel        residualPipeline()                   DensityBasedGpuEquivalence B1
+    gatherResidualKernel  residualPipeline()                   DensityBasedGpuEquivalence B2, B5
+    localTimeStepKernel   timeStepPipeline()                   DensityBasedGpuEquivalence C1
+    minReduceKernel       reduceGlobalDt()                     DensityBasedGpuEquivalence C2
+    minIndexReduceKernel  oneStep() validity reduction         DensityBasedGpuEquivalence C4
+    applyUpdateKernel     oneStep()                            DensityBasedGpuEquivalence C3/D1
+    fillKernel            oneStep() dt broadcast               DensityBasedGpuEquivalence C3/D1
+    sanitizerOobKernel    sanitizerControlOutOfBoundsRead()    N1 control, sanitizer runs ONLY
+    sanitizerRaceKernel   sanitizerControlSharedMemoryRace()   N2 control, sanitizer runs ONLY
+
+=== the independent cross-check: kernel launches COUNTED at runtime ===
+  DeviceSolveStats::kernelLaunches is incremented per launch by the production code and is
+  asserted > steps by the T1 residency test. From logs/30_g8_gpu.log:
+  A 20-step run launching 180 kernels is 9 per step, which matches the nine production
+  launches one step performs (recover, faceFlux, gather, localTimeStep, minReduce, fill,
+  applyUpdate, recover-again, minIndexReduce). That arithmetic is a real check on the map
+  above: a kernel that never launched would make the count come out lower.

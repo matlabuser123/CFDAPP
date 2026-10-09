@@ -1,0 +1,38 @@
+P17.8 R2 -- independent two-cell residual (mpmath, 50 digits, no CFDApp code)
+gamma = 1.3998189288947698308
+internal face branch: LeftStar
+  branch LeftStar         S_L   -278.582999503  S*    96.2433221594  S_R    393.409758962
+  branch LeftStar         S_L   -438.582999503  S*              0.0  S_R    438.582999503
+  branch LeftStar         S_L   -358.582999503  S*              0.0  S_R    358.582999503
+  branch LeftStar         S_L   -358.582999503  S*              0.0  S_R    358.582999503
+  branch LeftStar         S_L   -365.423682215  S*              0.0  S_R    365.423682215
+  branch LeftStar         S_L   -335.423682215  S*              0.0  S_R    335.423682215
+  branch LeftStar         S_L   -335.423682215  S*              0.0  S_R    335.423682215
+the defining property F*_energy == S*(rhoE* + p*) held for every star branch above
+
+cell 0
+  R_rho   128.90158456479763
+  R_rhoU  44412.801819919674
+  R_rhoV  0.0
+  R_rhoW  0.0
+  R_rhoE  41283940.377882551
+cell 1
+  R_rho   -128.90158456479763
+  R_rhoU  -69569.745295403153
+  R_rhoV  0.0
+  R_rhoW  0.0
+  R_rhoE  -41283940.377882551
+
+C++ literals (double), for the test:
+  // cell 0: rho, rhoU, rhoV, rhoW, rhoE
+  {128.90158456479763, 44412.801819919674, 0.0, 0.0, 41283940.377882551},
+  // cell 1: rho, rhoU, rhoV, rhoW, rhoE
+  {-128.90158456479763, -69569.745295403153, 0.0, 0.0, -41283940.377882551},
+accumulation scale sum_f |F_f| A, per component -- what R2's 8 eps bound multiplies:
+  // cell 0 scale: rho, rhoU, rhoV, rhoW, rhoE
+  {128.90158456479763, 221287.00993125096, 257196.8, 0.0, 41283940.377882551},
+  // cell 1 scale: rho, rhoU, rhoV, rhoW, rhoE
+  {128.90158456479763, 196130.06645576748, 144673.2, 0.0, 41283940.377882551},
+
+  cell 0 8 eps bounds: 2.28975e-13, 3.93085e-10, 4.56873e-10, 0.0, 7.3335e-8
+  cell 1 8 eps bounds: 2.28975e-13, 3.48397e-10, 2.56991e-10, 0.0, 7.3335e-8

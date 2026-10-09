@@ -1,0 +1,90 @@
+P13 G7 -- control half
+date: 2026-09-24T21:31:46Z
+
+### this wrapper's independent pre-control hashes ###
+  aaf69feda5e4ee33896981980f7b3018179074e991030811590628de5038c448  cmake/PackageNaming.cmake
+  4ba3937f907d213302ba3134d865c401f68eb2ee8b82d974cbb4b9410a6f6692  cmake/Packaging.cmake
+  04a6d05626a3f2ece4d623076d2f669358e062c8ec2f28d8125691b42d82e31c  tests/cmake/test_package_naming.cmake
+  3e5ae3cf7efd6897d03da913eaf7e896e82b3d3de652b7d85f179a2366ecb3e0  tests/cmake/test_package_naming_refuses.cmake
+
+### the fresh G7 artifacts, hashed BEFORE the controls run ###
+  so a control that leaves an artifact behind cannot be mistaken for them:
+  build/pkg/CFDApp-0.2.0-dev-Linux-x64.sh
+  build/pkg/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.sh
+  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+
+############ controls.sh -- NV1..NV6 ############
+  aaf69feda5e4ee33896981980f7b3018179074e991030811590628de5038c448  cmake/PackageNaming.cmake
+  4ba3937f907d213302ba3134d865c401f68eb2ee8b82d974cbb4b9410a6f6692  cmake/Packaging.cmake
+  
+  ########## NV1 -- hardcode the Windows name again; N1/N4 must break
+    -- CFDApp package: CFDApp-0.2.0-dev-Windows-x64 (TGZ;STGZ)
+    NV1: DETECTED -- a Linux build is named Windows again
+    ctest naming test now:
+    NV1-test: DETECTED -- the naming test fails
+    RESTORED (sha256 verified)
+  
+  ########## NV2 -- drop the suffix from the package version; N3 must break
+    -- CFDApp package: CFDApp-0.2.0-Linux-x64 (TGZ;STGZ)
+    NV2: DETECTED -- the package no longer carries the binary's version
+    RESTORED (sha256 verified)
+  
+  ########## NV3 -- force NSIS on Linux; G1 must break
+    cpack exit status: 1
+      CPack Error: Cannot find NSIS compiler makensis: likely it is not installed, or not in your PATH
+      CPack Error: Could not read NSIS registry value. This is usually caused by NSIS not being installed. Please install NSIS from http://nsis.sourceforge.net
+    NV3: DETECTED -- cpack exits 1
+    RESTORED (sha256 verified)
+  
+  ########## NV4 -- restore the GUI-only guard; C1 must break
+    NV4: DETECTED -- no CPackConfig.cmake for a CLI-only build
+    RESTORED (sha256 verified)
+  
+  ########## NV5 -- an unknown system must refuse
+    NV5: DETECTED -- refused with exit 1
+  
+  ########## NV6 -- the cleanliness check must be able to fail
+    the same check pointed at a BUILD tree finds: 498
+    NV6: DETECTED -- 498 build-only artifacts found
+  
+  ########## restored tree reconfigures
+    -- CFDApp package: CFDApp-0.2.0-dev-Linux-x64 (TGZ;STGZ)
+  cmake/PackageNaming.cmake: OK
+  cmake/Packaging.cmake: OK
+   M cmake/Packaging.cmake
+  ?? cmake/PackageNaming.cmake
+  controls.sh rc=0
+
+### FINAL wrapper restore check -- the watched cmake files ###
+  cmake/PackageNaming.cmake: OK
+  cmake/Packaging.cmake: OK
+  tests/cmake/test_package_naming.cmake: OK
+  tests/cmake/test_package_naming_refuses.cmake: OK
+
+### control markers left behind? ###
+  none -- clean
+
+### Step 11 -- filesystem hygiene after the controls ###
+  repo-root package strays:
+    none
+  control build trees left behind (expected: they are scratch, under build/):
+    none
+  the four G7 artifacts, re-hashed -- must be UNCHANGED by the controls:
+    build/pkg/CFDApp-0.2.0-dev-Linux-x64.sh: OK
+    build/pkg/CFDApp-0.2.0-dev-Linux-x64.tar.gz: OK
+    build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.sh: OK
+    build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.tar.gz: OK
+  every CFDApp-* archive now under build/, with mtime:
+    2026-09-25_07:30      933895  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    2026-09-25_07:30      937829  build/pkgcli/CFDApp-0.2.0-dev-Linux-x64.sh
+    2026-09-25_07:30     1994954  build/pkg/CFDApp-0.2.0-dev-Linux-x64.tar.gz
+    2026-09-25_07:30     1998898  build/pkg/CFDApp-0.2.0-dev-Linux-x64.sh
+
+### the tree is back: re-measure the naming contract at baseline ###
+  -- cfdapp_package_naming: all expectations met
+    exit status: 0
+    exit status: 1
+  100% tests passed, 0 tests failed out of 2
+
+done: 2026-09-24T21:38:45Z

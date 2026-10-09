@@ -1,0 +1,34 @@
+P17.4 conservation probe -- C2 and C4
+date: 2026-09-26T22:47:45Z
+
+  P17.4 conservation probe -- gate criteria C2 and C4
+  kAccum = 8.0  (EMPIRICAL)   eps = 2.2204460492503131e-16
+  
+  ### C2. uniform rho, U, p  ->  residual A u - b at round-off
+    cells N                              64
+    scale = max|diag * u|                11
+    worst |A u - b|                      1.7763568394002505e-15
+    bound = kAccum * eps * N * scale     1.2505552149377763e-12
+    verdict                              WITHIN the derived bound
+    margin (bound / measured)            704
+    CONTROL: one cell perturbed by 1e-3
+      worst |A u - b|                    0.0054499999999997328
+      exceeds the bound by               4.35806e+09 x
+      verdict                            DETECTED (the criterion can fail)
+  
+  ### C4. global conservation: internal faces cancel, closed box -> sum = 0
+    cells N                              35
+    faces N_f                            82
+    worst PER-CELL |contribution|        2.42472970985897   <- non-vacuity: must be >> 0
+    GLOBAL sum over all cells            1.7763568394002505e-15
+    bound = kAccum * eps * N_f * scale   3.5318918671200724e-13
+    verdict                              WITHIN the derived bound
+    ratio worstCell / |global sum|       1.365e+15   <- how much cancelled
+    CONTROL: one boundary face given flux 1.7
+      GLOBAL sum                         2.0260093662508583
+      exceeds the bound by               5.73633e+12 x
+      verdict                            DETECTED (the criterion can fail)
+  
+  done
+
+done: 2026-09-26T22:47:50Z

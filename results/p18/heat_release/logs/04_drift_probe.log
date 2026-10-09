@@ -1,0 +1,33 @@
+command: g++ -std=c++20 -O2 -Wall -Wextra results/p18/heat_release/tools/drift_probe.cpp -o /tmp/drift
+=== P18.6 drift probe: sum(Y) and energy over an explicit march ===
+eps = 2.2204460492503131e-16
+P18.1 tolerance for 3 species: 4 eps N = 2.6645352591003757e-15  (= 12.0 eps)
+
+omega_A = -0.03125   omega_B = 0.03125   sum = 0
+increment_A = -3.1250000000000001e-05   increment_B = 3.1250000000000001e-05   sum = 0
+S_E = 62500 W/m^3   dt*S_E = 62.5 J/m^3
+
+    step                sum(Y) - 1        in eps          energy drift rel        in eps
+       1                         0          0.00              0.000000e+00          0.00
+       2   -1.1102230246251565e-16         -0.50              0.000000e+00          0.00
+       3   -1.1102230246251565e-16         -0.50              0.000000e+00          0.00
+       4   -1.1102230246251565e-16         -0.50              0.000000e+00          0.00
+       5   -2.2204460492503131e-16         -1.00              0.000000e+00          0.00
+      72   -2.7755575615628914e-15        -12.50              0.000000e+00          0.00   <-- FIRST sum(Y) VIOLATION
+     200   -7.6605388699135801e-15        -34.50              0.000000e+00          0.00
+    1000   -3.8191672047105385e-14       -172.00              0.000000e+00          0.00
+   10000    -3.851363672424668e-13      -1734.50              6.402843e-15         28.84
+   20000   -4.9604764740251994e-13      -2234.00              9.126961e-14        411.04
+   30000   -7.9825035470548755e-14       -359.50              8.551870e-13       3851.42
+
+species A exhausted at step 32000
+
+first step at which |sum(Y)-1| exceeds 4 eps N : 72
+
+--- is the drift linear or a random walk? ---
+re-marching and sampling the drift at decade step counts:
+       100 steps  |sum(Y)-1| =    17.00 eps   linear would predict    17.00   sqrt would predict     1.00
+       400 steps  |sum(Y)-1| =    69.00 eps   linear would predict   276.00   sqrt would predict     2.00
+      1600 steps  |sum(Y)-1| =   284.50 eps   linear would predict  4552.00   sqrt would predict     4.00
+      6400 steps  |sum(Y)-1| =  1034.50 eps   linear would predict 66208.00   sqrt would predict     8.00
+     25600 steps  |sum(Y)-1| =  1034.50 eps   linear would predict 264832.00   sqrt would predict    16.00

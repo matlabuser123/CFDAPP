@@ -1,0 +1,73 @@
+P17.6 REPOSITORY INTEGRITY
+date: 2026-09-27T05:55:02Z
+
+### 1. nothing was committed, pushed, reset or stashed ###
+  HEAD                     : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD at the P17.6 freeze : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD unchanged           : YES
+  branch                   : main
+  stash entries            : 0   (expected 0)
+
+### 2. the frozen documents are unchanged ###
+  f275c4ac3fab31509b9f80036e1c8b4b6f4f3e8c9ec20cf8b8ae7a1d8b303c9a  acceptance_gate.md
+  7846fc846d3947ffa618d1f7df53f44fb13d9a6518492c81cc631ef0e48cee0f  audit.md
+  77ba7968d02c9c4e2054897a1b86cfb090cc607bdfc92d627bae2c7be942b4c4  tools/dryrun.cpp
+  expected, from logs/02_freeze.log:
+    f275c4ac3fab31509b9f80036e1c8b4b6f4f3e8c9ec20cf8b8ae7a1d8b303c9a  acceptance_gate.md
+    7846fc846d3947ffa618d1f7df53f44fb13d9a6518492c81cc631ef0e48cee0f  audit.md
+    77ba7968d02c9c4e2054897a1b86cfb090cc607bdfc92d627bae2c7be942b4c4  tools/dryrun.cpp
+
+### 3. upstream files UNTOUCHED -- SHA-256, never git diff HEAD ###
+  P17.6 is a VALIDATION phase: it changes NO production source at all.
+  UNTOUCHED: 17    TOUCHED: 0   (TOUCHED must be 0)
+
+### 4. no planted control marker survived ###
+  surviving // N<id> markers in include/ src/ cuda/ TESTS/ : 0   (expected 0)
+  sanity -- the pattern DOES match a trailing marker, so 0 means absent, not blind:
+    matches on a synthetic marker line: 1   (must be 1)
+  and the harness IS inside the scanned set:
+    tests/integration/compressible/test_low_mach_family.cpp  604 non-empty lines, scanned under tests/
+  control scratch files left : 0   (expected 0)
+  harness sha256 now         : 01838fd3a113420641ef878550dde080adb9d39a0326b046a7ca4ea4fee895c5
+  at the controls baseline   : 01838fd3a113420641ef878550dde080adb9d39a0326b046a7ca4ea4fee895c5
+
+### 5. clang-format on everything P17.6 touched ###
+  exit: 0   (0 = clean)
+  (tests/integration/compressible/CMakeLists.txt is CMake, not C++ -- not clang-format's input)
+
+### 6. the harness drives the REAL solver and duplicates nothing ###
+  CompressibleSIMPLE mentions        : 14   (the real production solver)
+  incompressible SIMPLE mentions     : 4
+  hand-rolled EOS in the harness     : 0   (0 required)
+  rho_ref taken FROM the EOS         : 1   (1 required, not a literal)
+  hard-coded rho_ref literal         : 0   (0 required -- control N2 plants exactly this)
+  P17.5 conservedTotalEnergyField    : 1   (builds rhoE from the primitives)
+  P17.5 recoverPrimitiveFields       : 1   (the exact inverse, rhoE -> T)
+  production files changed by P17.6  : 0   (section 3 proves it by SHA-256, file by file)
+
+### 7. the code fingerprint ###
+  P17_CODE_FINGERPRINT now              : cf4d53a2e6b090228f68d58bc9b452d324abd3dde03539a53a70f44542c70bdf
+  at the P17.5 close (the P17.6 freeze) : d2e65555534bde2208cb7affd9caac7c7b4406c3f1cd17dfd473d441b882364a
+  NOTE: this MUST differ -- P17.6 added a test file and a CMake line. It is an identifier, not
+        a pass/fail; its pass/fail use is that it must not move DURING a regression run (B8).
+
+### 8. what P17.6 introduced ###
+    tests/integration/compressible/test_low_mach_family.cpp  untracked, as expected for a new file
+  modified TRACKED file attributable to P17.6:
+    tests/integration/compressible/CMakeLists.txt  +19 -0  (the second add_executable)
+  P17.6 new files                : 1
+  ALL untracked in the tree      : 130
+  attributable to EARLIER phases : 129
+  (explicit enumeration, not a listing: nothing since P12 is committed, so the untracked set is
+   the union of every uncommitted phase. That is also why git diff --numstat HEAD is NOT used as
+   an 'untouched by this phase' predicate anywhere above -- only as a line count on ONE named
+   file whose change is expected.)
+
+### 9. the suite size, derived ###
+  TESTs in the harness                      : 15   (derived, not hard-coded)
+  add_executable targets in that CMakeLists : 2   (2: the existing one, untouched, plus P17.6's)
+
+### 10. stray build artefacts in the evidence tree ###
+  __pycache__ dirs under results/p17/low_mach : 0   (expected 0)
+
+done: 2026-09-27T05:55:18Z

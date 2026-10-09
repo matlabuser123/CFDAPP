@@ -1,0 +1,95 @@
+P17.5 GROUP N -- non-vacuity controls
+date: 2026-09-27T01:34:32Z
+baseline src/compressible/TotalEnergy.cpp sha256: 23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5
+baseline src/compressible/TotalEnergyEquation.cpp   sha256: 2df1c9f54d5186fb5f22cf1f74fbb3c3aaaaddbbebef929df1853441b2c1956e
+probe set: -R 'TotalEnergy'  = all 34 tests of the phase
+
+=== N1 -- e = h + R T instead of h - R T (the defining relation, sign flipped) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (11 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyConversionTest.ConservedPrimitiveConservedRoundTrip
+      TotalEnergyConversionTest.ConservedToPrimitiveRecoversTheWholeState
+      TotalEnergyConversionTest.GammaPressureFormAgreesUnderTheZeroReference
+      TotalEnergyConversionTest.PrimitiveConservedPrimitiveRoundTrip
+      TotalEnergyConversionTest.PrimitiveToConservedMatchesHandComputedValue
+      TotalEnergyEquationTest.ConvectiveFluxCarriesPressureWorkAndMatchesRhoEPlusP
+      TotalEnergyStateTest.CaloricallyPerfectShortcutsHoldUnderTheZeroReference
+      TotalEnergyStateTest.DensityTimesTotalEnthalpyEqualsRhoEPlusPressure
+      TotalEnergyStateTest.EnthalpyMinusInternalEnergyIsExactlyRT
+      TotalEnergyStateTest.InternalEnergyInverseAgreesWithTheForwardModel
+      TotalEnergyStateTest.StaticEnthalpyEqualsInternalEnergyPlusPOverRho
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N2 -- ke = |U|^2, dropping the factor 0.5 ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyConversionTest.GammaPressureFormAgreesUnderTheZeroReference
+      TotalEnergyConversionTest.PrimitiveToConservedMatchesHandComputedValue
+      TotalEnergyStateTest.KineticEnergyIsHalfVelocityMagnitudeSquared
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N3 -- the energy flux carries eTotal instead of hTotal, i.e. NO pressure work ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyEquationTest.ConvectiveFluxCarriesPressureWorkAndMatchesRhoEPlusP
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N4 -- the conductive flux sign is flipped ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyEquationTest.ConductiveTermMatchesAnalyticalQuadraticTemperature
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N5 -- the transient term differences rhoE_new against ITSELF (no old state) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyEquationTest.TransientTermUsesSeparateOldAndNewDensity
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N6 -- rhoE = rho e, omitting the kinetic energy ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (8 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyConversionTest.ConservedPrimitiveConservedRoundTrip
+      TotalEnergyConversionTest.ConservedToPrimitiveRecoversTheWholeState
+      TotalEnergyConversionTest.GammaPressureFormAgreesUnderTheZeroReference
+      TotalEnergyConversionTest.PrimitiveConservedPrimitiveRoundTrip
+      TotalEnergyConversionTest.PrimitiveToConservedMatchesHandComputedValue
+      TotalEnergyEquationTest.ConvectiveFluxCarriesPressureWorkAndMatchesRhoEPlusP
+      TotalEnergyStateTest.DensityTimesTotalEnthalpyEqualsRhoEPlusPressure
+      TotalEnergyStateTest.StateComponentsComposeExactly
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N7 -- an inadmissible recovered internal energy is ACCEPTED instead of throwing ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyInvalidStateTest.RejectsKineticEnergyExceedingTotalEnergy
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== N8 -- h = cp*T instead of P15's closed-form enthalpy integral ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (5 of 34 tests)
+  DETECTION          DETECTED, by:
+      TotalEnergyContractTest.EnthalpyComesFromTheModelNotTheEosSpecificHeat
+      TotalEnergyStateTest.CaloricallyPerfectShortcutsAreWrongUnderANonzeroReference
+      TotalEnergyStateTest.DensityTimesTotalEnthalpyEqualsRhoEPlusPressure
+      TotalEnergyStateTest.EnthalpyMinusInternalEnergyIsExactlyRT
+      TotalEnergyStateTest.StaticEnthalpyEqualsInternalEnergyPlusPOverRho
+  RESTORE            VERIFIED by SHA-256 (both files)
+
+=== restored, and proved back at baseline ===
+  23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5  src/compressible/TotalEnergy.cpp
+  2df1c9f54d5186fb5f22cf1f74fbb3c3aaaaddbbebef929df1853441b2c1956e  src/compressible/TotalEnergyEquation.cpp
+  expected: 23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5
+            2df1c9f54d5186fb5f22cf1f74fbb3c3aaaaddbbebef929df1853441b2c1956e
+  N-markers left: 0  (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 34
+
+done: 2026-09-27T01:46:24Z

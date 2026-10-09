@@ -1,0 +1,15 @@
+G5 -- every production writer, written to /dev/full
+opens succeed; every write fails ENOSPC
+
+-- the four the frozen probe already covers --
+  CSVWriter::writeFields           -> threw IOError: Failed while writing output file (the file may be incomplete): /dev/full
+  CSVWriter::writeResiduals        -> RETURNED NORMALLY
+  JSONWriter::writeMetadata        -> threw IOError: Failed while writing output file (the file may be incomplete): /dev/full
+  VTKWriter::writeCellFields       -> threw IOError: Failed while writing output file (the file may be incomplete): /dev/full
+
+-- the two it does not --
+  CSVWriter::writeFields3D         -> threw IOError: Failed while writing output file (the file may be incomplete): /dev/full
+  VTKWriter::writeSolution         -> threw IOError: Failed while writing output file (the file may be incomplete): /dev/full
+
+  returned normally: 1    threw: 5
+probe exit code (= number of writers that silently succeeded): 1
