@@ -64,7 +64,12 @@ TD-004          locator fix APPLIED and RETAINED: the front now sits 0.039 cells
                 C5 now PASSES (2026-10-09) under the GATE_A3 amendment. Three of its four
                 clauses had been transcribed from a PRINTED TABLE and failed on the BASELINE
                 too, so none was a regression; they are replaced by bounds derived from named
-                constants, each shown able to fail. The gate now stands at C6, never run.
+                constants, each shown able to fail.
+                C6 then PASSED (properties 2, 3, 5) and **C6a FAILED** (2026-10-09). Its two
+                clauses fail differently: the observed order left the frozen [1.5, 2.5] band
+                (2.057 -> 2.693, a REAL regression), while its fuel-balance clause fails on
+                the BASELINE at all three levels -- a fourth un-dry-run criterion. The gate
+                STOPS at C6a; C6b and C7 were not evaluated. TD-004 now has TWO blockers.
 re-measured     TD-028's alternation is measured GONE (status is a decision).
                 TD-030 — the reaction excess is HALF its recorded size and no longer the larger
                 term. The inlet diffusive flux (~5.5 %) is a flame-ANCHORING effect and has been
@@ -157,7 +162,16 @@ current blocker   TD-040  recentring is not conservation-neutral; it carries TD-
                   NEW: the dead-band ladder shows the composition SUM tracks the recentring
                   count (8.82e-07 -> 1.24e-06 at deadBand 1) while min Y does NOT. The
                   fill-count explanation for min Y is REFUTED and nothing replaces it
-to re-measure     TD-027, TD-028, TD-029, TD-030, TD-031 — all were measured on the alternating
+to re-measure     TD-028, TD-030 — still on the alternating
+re-measured       TD-029   signs still opposite, but the TEMPORAL error collapsed 4.24 % ->
+                  0.068 % (62x) and both signs FLIPPED. 'They cancel' now oversells a 10:1
+                  asymmetry. Candidate: TD-032's stale level WAS the temporal defect
+re-measured       TD-031   CONFIRMED and strengthened: the front SAWTOOTHS (drift to the
+                  3-cell dead band, reset, repeat), so NO relaxT reports a settled front
+re-measured       TD-027   C4 PASSES on a parity-CROSSING ladder (2026-10-09), by 24.5x,
+                  and S_L is identical to 6 decimals across both parities. Item still OPEN:
+                  C2's Richardson limit 4.67589 is PRE-FIX and now +5.98 % from the measured
+                  eigenvalue. Needs TD-040's dt ladder on the fixed tree
                   field, each needs re-measuring under its own gate
 also open         TD-033, TD-035, TD-036, TD-038, TD-039, TD-040, TD-042 — none authorized
                   TD-042   reactionHeatRelease at :1086 is computed every step and DISCARDED;

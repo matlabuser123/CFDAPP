@@ -1,0 +1,53 @@
+=== ENVIRONMENT
+date  2026-10-09T20:05:26+10:00
+nproc 32  load 0.00 0.00 0.00 2/568 763
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE -- the TD-032-fixed, A3-verified tree
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+2bf9019e424f852c456e6b9b7944d87796bd5922bd29a8b1cf53bad340d9cf78  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD029_error_cancellation/tools/dt_dx_separation_probe.cpp
+  expected source fa815c97..., library 852555cf...
+
+=== the cap and the budget ceiling this run depends on
+267:  Real maximumCellDiffusionNumber{5.0};
+359:  Index finalMarchSteps{200000};     // ceiling; the derived bound normally stops the march
+632:  Index finalMarchSteps{};     // steps the final steady march actually took
+
+TD-029 RE-MEASURE -- SPATIAL and TEMPORAL error SIGNS, separated
+
+  RECORDED PRE-TD-032 (dry_run.md §L.3), on the alternating field:
+    spatial  (dx -> 2dx at fixed dt)   -0.81 %   i.e. refining dx RAISES S_L
+    temporal (dt -> dt/2 at fixed dx)  -4.24 %   i.e. refining dt LOWERS S_L
+    -> opposite directions, so they CANCEL under coupled refinement
+
+  base dt here is 9.424300e-06 (cell diffusion number 5.0, TD-027's shipped cap).
+  TD-029's own 3.770e-05 is D = 20, the cap TD-027 REMOVED, so the MAGNITUDES are
+  not comparable and are not targets. The SIGNS are what TD-029 claims.
+
+ leg    cells             dt     S_L cm/s      steps     fuel bal   front mm   wall s
+   A      500   9.424300e-06     4.955332      15283   6.3028e-03   3.499220      940
+   B      250   9.424300e-06     4.988989      15078   6.3390e-03   3.559875      362
+   C      500   4.712150e-06     4.958687      30526   2.0261e-03   3.497621     1844
+
+=== THE TWO ERRORS, SEPARATED
+
+  reference  A  500 cells, dt 9.424300e-06        S_L 4.955332
+  SPATIAL    B  250 cells, dt FIXED        S_L 4.988989   +0.679 %
+  TEMPORAL   C  500 cells, dt HALVED       S_L 4.958687   +0.068 %
+
+  refining dx (250 -> 500 at fixed dt) moves S_L -0.679 %
+  refining dt (dt -> dt/2 at fixed dx) moves S_L +0.068 %
+
+=== THE VERDICT ON TD-029's CLAIM
+
+  SIGNS ARE OPPOSITE. Cancellation STANDS on the TD-032-fixed march.
+    -> TD-029's finding survives: no mesh family that ties dt to dx is
+       self-similar, and a combined-refinement order mixes the two.
+    -> C6a's p = 2.693 is CONSISTENT with the coupling. Consistent is not
+       proven: this shows the mechanism is present, not that it accounts for
+       the whole 2.057 -> 2.693 shift.
+
+  The ratio |temporal| / |spatial| is 0.10 (recorded pre-fix: 5.23).
+
+DONE 2026-10-09T20:57:57+10:00
