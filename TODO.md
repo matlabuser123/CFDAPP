@@ -160,12 +160,12 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   46 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
+register totals   47 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
                   2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043), 2 BLOCKED, 2 INHERITED,
-                  32 open. NOT CLOSED: 38. P0s still open: 5 (TD-003, TD-006, TD-007,
+                  33 open. NOT CLOSED: 39. P0s still open: 5 (TD-003, TD-006, TD-007,
                   TD-027, TD-029), down from 6 when TD-040 was reclassified.
                   2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement),
-                  TD-045 and TD-046 added, so the count went 43 -> 46 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
+                  TD-045, TD-046 and TD-047 added, so the count went 43 -> 47 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
                   and are not repeated below; the frontier block is the CURRENT frontier
                   only. NOTE when counting by grep: TD-004's status contains the word
                   UNRESOLVED, so a /RESOLVED/ match counts it by mistake -- use
@@ -234,6 +234,20 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+audited           TD-003   P0, AUDITED 2026-10-11, still OPEN. **C2 ANSWERED**: the
+                  pure-upwind (lower-bidiagonal) class is solvable iff r = s/d <= 1. At
+                  r = 1.05 -- kappa 7.09e5, still well-posed -- BiCGSTAB BREAKS DOWN and
+                  GMRES(30) stagnates at 5000 iterations with true error 0.80, while forward
+                  substitution is EXACT. So a direct triangular solve is adequate and the
+                  repository HAS none (CG/BiCGSTAB/GMRES only). Jacobi is provably useless on
+                  this class: the diagonal is constant, so it is a scalar rescaling. r > 1 is
+                  ill-posed (kappa 4.8e60 at n=200) and excluded. C1 SATISFIED; its escalation
+                  gap is TD-047. C3: the 1e-8 gate IS reachable and fails at 88x (8.823e-07);
+                  mechanism is residual-vs-error, candidate fix is ONE constant that :625
+                  already intends -- BLOCKED on measuring the flame's own kappa
+also open         TD-047   a reacting run whose every linear solve FAILED exits 0:
+                  out.status is set from the FLOW solve at :501, the reacting block never
+                  revisits it, and anyLinearSolveFailed has one writer and ZERO readers
 also open         TD-046   the SOLE test of lambda(T) in the flame solver dies in its own
                   setup assertion at 6 ms (0.11 vs the 0.15 it demands) and has NEVER run its
                   solves, so "lambda(T) is really consumed" is UNTESTED, not failing. It is one

@@ -1,0 +1,159 @@
+=== probe source sha256
+e0e5b81e41f301788fdca001c0436b7fa900a42f8526b8dfce332fd2c5dfbe08  results/technical_debt/TD003_linear_solver/tools/plugflow_matrix_class_probe.cpp
+
+=== library identity (recorded, not gated)
+0d0dfaa96ac97d5fbcfe61c9b2cdef7382d9ec488e73452906ffd51566915605  build/release/src/libcfdcore.a
+
+=== compile
+compile rc=0
+
+=== run
+TD-003 criterion 2 -- the plug-flow (pure-upwind) matrix class
+A is LOWER BIDIAGONAL: a_ii = d = 2.0, a_{i,i-1} = -s, r = s/d.
+Reference = forward substitution (exact, O(n), no tolerance).
+Errors are TRUE relative errors against that, NOT residuals.
+
+CONTROL 3 (exactness of the reference, n=10, r=0.5): worst |x - x*| = 0.000e+00
+  EXPECT <= 1e-15 -> PASS
+
+================ n = 10
+      r    kappa_inf           solver  status  iters     residual   TRUE error
+   0.50    2.997e+00    BiCGSTAB/none Converged     10    1.372e-18    2.048e-16
+                         BiCGSTAB/jac Converged     10    1.372e-18    2.048e-16
+                           GMRES/none Converged     10    2.793e-15    6.355e-16
+                            GMRES/jac Converged     10    2.793e-15    6.355e-16
+                         CG/jac [NEG] MaxIterations   5000    5.445e+02    8.809e+01
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   0.90    1.238e+01    BiCGSTAB/none Converged     10    1.864e-11    1.022e-11
+                         BiCGSTAB/jac Converged     10    1.864e-11    1.022e-11
+                           GMRES/none Converged     10    3.256e-15    4.670e-16
+                            GMRES/jac Converged     10    3.256e-15    4.670e-16
+                         CG/jac [NEG] MaxIterations   5000    9.263e+03    2.079e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   1.00    2.000e+01    BiCGSTAB/none Converged     12    2.467e-13    5.638e-14
+                         BiCGSTAB/jac Converged     12    2.467e-13    5.638e-14
+                           GMRES/none Converged     10    1.858e-15    7.718e-16
+                            GMRES/jac Converged     10    1.858e-15    7.718e-16
+                         CG/jac [NEG] MaxIterations   5000    1.850e+04    4.482e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   1.05    2.578e+01    BiCGSTAB/none Converged     12    2.635e-13    1.860e-13
+                         BiCGSTAB/jac Converged     12    2.635e-13    1.860e-13
+                           GMRES/none Converged     10    1.844e-15    4.759e-16
+                            GMRES/jac Converged     10    1.844e-15    4.759e-16
+                         CG/jac [NEG] MaxIterations   5000    2.209e+04    5.442e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   2.00    3.069e+03    BiCGSTAB/none Converged     27    1.276e-11    3.353e-10
+                         BiCGSTAB/jac Converged     27    1.276e-11    3.353e-10
+                           GMRES/none Converged     10    2.095e-15    4.589e-14
+                            GMRES/jac Converged     10    2.095e-15    4.589e-14
+                         CG/jac [NEG] Breakdown    452    1.655e+19    1.510e+18
+                      fwd-subst [REF]   exact      n            -    3.192e-16
+
+  16.00    1.246e+12    BiCGSTAB/none Converged   2069    2.716e-10    7.175e-01
+                         BiCGSTAB/jac Converged   2069    2.716e-10    7.175e-01
+                           GMRES/none Converged     10    2.488e-14    2.876e-06
+                            GMRES/jac Converged     10    2.488e-14    2.876e-06
+                         CG/jac [NEG] Breakdown   4323    2.607e+21    2.561e+19
+                      fwd-subst [REF]   exact      n            -    2.983e-07
+
+================ n = 50
+      r    kappa_inf           solver  status  iters     residual   TRUE error
+   0.50    3.000e+00    BiCGSTAB/none Converged     20    2.662e-11    1.936e-12
+                         BiCGSTAB/jac Converged     20    2.662e-11    1.936e-12
+                           GMRES/none Converged     35    7.320e-11    7.454e-12
+                            GMRES/jac Converged     35    7.320e-11    7.454e-12
+                         CG/jac [NEG] MaxIterations   5000    7.055e+02    5.203e+01
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   0.90    1.890e+01    BiCGSTAB/none Breakdown     11    5.144e+00    3.493e-01
+                         BiCGSTAB/jac Breakdown     11    5.144e+00    3.493e-01
+                           GMRES/none Converged    138    2.901e-11    1.175e-11
+                            GMRES/jac Converged    138    2.901e-11    1.175e-11
+                         CG/jac [NEG] MaxIterations   5000    1.762e+04    1.791e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   1.00    1.000e+02    BiCGSTAB/none Converged     62    3.686e-12    4.226e-13
+                         BiCGSTAB/jac Converged     62    3.686e-12    4.226e-13
+                           GMRES/none Converged    516    2.314e-11    3.062e-11
+                            GMRES/jac Converged    516    2.314e-11    3.062e-11
+                         CG/jac [NEG] MaxIterations   5000    2.636e+04    2.730e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   1.05    4.292e+02    BiCGSTAB/none Breakdown     13    5.859e+01    6.236e+00
+                         BiCGSTAB/jac Breakdown     13    5.859e+01    6.236e+00
+                           GMRES/none MaxIterations   5000    2.014e-01    1.463e+00
+                            GMRES/jac MaxIterations   5000    2.014e-01    1.463e+00
+                         CG/jac [NEG] MaxIterations   5000    4.262e+04    4.660e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   2.00    3.378e+15    BiCGSTAB/none Breakdown     15    6.472e+01    2.497e+00
+                         BiCGSTAB/jac Breakdown     15    6.472e+01    2.497e+00
+                           GMRES/none MaxIterations   5000    5.630e+00    2.883e-01
+                            GMRES/jac MaxIterations   5000    5.630e+00    2.883e-01
+                         CG/jac [NEG] Breakdown    216    8.562e+18    3.432e+17
+                      fwd-subst [REF]   exact      n            -    1.553e-04
+
+  16.00    1.821e+60    BiCGSTAB/none Breakdown     12    1.858e+03    7.972e+00
+                         BiCGSTAB/jac Breakdown     12    1.858e+03    7.972e+00
+                           GMRES/none MaxIterations   5000    3.430e+01    1.482e-01
+                            GMRES/jac MaxIterations   5000    3.430e+01    1.482e-01
+                         CG/jac [NEG] Breakdown   4292    6.518e+19    2.809e+17
+                      fwd-subst [REF]   exact      n            -    1.921e+41
+
+================ n = 200
+      r    kappa_inf           solver  status  iters     residual   TRUE error
+   0.50    3.000e+00    BiCGSTAB/none Converged     19    1.214e-10    5.006e-12
+                         BiCGSTAB/jac Converged     19    1.214e-10    5.006e-12
+                           GMRES/none Converged     35    8.062e-11    4.177e-12
+                            GMRES/jac Converged     35    8.062e-11    4.177e-12
+                         CG/jac [NEG] MaxIterations   5000    1.135e+03    4.617e+01
+                      fwd-subst [REF]   exact      n            -    2.184e-17
+
+   0.90    1.900e+01    BiCGSTAB/none Converged    158    4.525e-11    4.919e-12
+                         BiCGSTAB/jac Converged    158    4.525e-11    4.919e-12
+                           GMRES/none Converged    214    4.295e-11    6.791e-12
+                            GMRES/jac Converged    214    4.295e-11    6.791e-12
+                         CG/jac [NEG] MaxIterations   5000    3.353e+04    1.827e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   1.00    4.000e+02    BiCGSTAB/none Converged    311    1.192e-11    9.929e-12
+                         BiCGSTAB/jac Converged    311    1.192e-11    9.929e-12
+                           GMRES/none Converged    988    3.965e-11    8.008e-12
+                            GMRES/jac Converged    988    3.965e-11    8.008e-12
+                         CG/jac [NEG] MaxIterations   5000    4.510e+04    2.325e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   1.05    7.090e+05    BiCGSTAB/none Breakdown     14    4.968e+01    2.996e+00
+                         BiCGSTAB/jac Breakdown     14    4.968e+01    2.996e+00
+                           GMRES/none MaxIterations   5000    1.469e+00    7.984e-01
+                            GMRES/jac MaxIterations   5000    1.469e+00    7.984e-01
+                         CG/jac [NEG] MaxIterations   5000    7.863e+04    4.403e+03
+                      fwd-subst [REF]   exact      n            -    0.000e+00
+
+   2.00    4.821e+60    BiCGSTAB/none Breakdown     12    4.652e+01    8.802e-01
+                         BiCGSTAB/jac Breakdown     12    4.652e+01    8.802e-01
+                           GMRES/none MaxIterations   5000    5.628e+00    1.459e-01
+                            GMRES/jac MaxIterations   5000    5.628e+00    1.459e-01
+                         CG/jac [NEG] MaxIterations   5000    5.492e+19    1.108e+18
+                      fwd-subst [REF]   exact      n            -    1.121e+41
+
+  16.00   7.557e+240    BiCGSTAB/none Breakdown     10    2.264e+03    4.900e+00
+                         BiCGSTAB/jac Breakdown     10    2.264e+03    4.900e+00
+                           GMRES/none MaxIterations   5000    3.429e+01    7.495e-02
+                            GMRES/jac MaxIterations   5000    3.429e+01    7.495e-02
+                         CG/jac [NEG] MaxIterations   5000    4.452e+20    9.702e+17
+                      fwd-subst [REF]   exact      n            -          inf
+
+READ THIS OUTPUT AS:
+  * r = 0.5 is CONTROL 1 (positive): strictly diagonally dominant. Every solver
+    must converge with a small TRUE error. If one does not, the class is worse
+    than TD-003 describes.
+  * CG is CONTROL 2 (negative): A is NOT symmetric. CG must fail or be wrong.
+  * A small residual beside a large TRUE error is the kappa effect, and it is
+    exactly what TD-003's criterion 3 turns on: |sum Y - 1| is an ERROR, while
+    residualAcceptanceFraction bounds a RESIDUAL.
+run rc=0
