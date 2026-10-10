@@ -4,9 +4,9 @@ Planar Poiseuille channel L = 8H, Re = 10, SIMPLE (upwind convection, central di
 
 | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
 |---|---|---|---|---|---|---|
-| coarse | 64 x 8 | 512 | 0.125 | 14.0 | Converged (1524 it) | yes |
-| medium | 96 x 12 | 1152 | 0.0833333 | 25.8 | Converged (1135 it) | yes |
-| fine | 144 x 18 | 2592 | 0.0555556 | 57.0 | Converged (856 it) | yes |
+| coarse | 64 x 8 | 512 | 0.125 | 11.0 | Converged (1524 it) | yes |
+| medium | 96 x 12 | 1152 | 0.0833333 | 24.5 | Converged (1135 it) | yes |
+| fine | 144 x 18 | 2592 | 0.0555556 | 48.4 | Converged (856 it) | yes |
 
 **centerline_velocity** -- u(0.75 L, H/2), fully developed; exact 1.5 U_mean
 

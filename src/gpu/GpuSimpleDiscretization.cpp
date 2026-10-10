@@ -93,6 +93,17 @@ void GpuSimpleDiscretization::beginIterationResident() {
 
 void GpuSimpleDiscretization::setViscosity(const cfd::fields::ScalarField&) {}
 
+// P16 Step 4. A no-op, not a throw, and for the same reason setViscosity above
+// is one: SIMPLE calls this unconditionally on its GPU-discretization branch,
+// and in a CPU-only build that branch is never taken because
+// `useGpuDiscretization` is already false. Making it throw would turn a build
+// configuration into a runtime failure.
+//
+// The vector overload and clearWallFaceViscosity are NOT stubbed here: nothing
+// compiled into a CPU-only build calls them, and adding stubs nobody links
+// would only invite someone to call them.
+void GpuSimpleDiscretization::setWallFaceViscosity(const cfd::fields::SurfaceField*) {}
+
 void GpuSimpleDiscretization::updatePressure(cfd::Real) {
   unreachableWithoutCuda("updatePressure");
 }

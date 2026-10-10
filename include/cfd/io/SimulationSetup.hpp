@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -12,7 +13,13 @@
 #include "cfd/multiphase/MultiphaseProperties.hpp"
 #include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/physics/FluidProperties.hpp"
+#include "cfd/physics/TemperatureProperty.hpp"
 #include "cfd/pressure_velocity/SIMPLESettings.hpp"
+#include "cfd/species/ArrheniusKinetics.hpp"
+#include "cfd/species/HeatRelease.hpp"
+#include "cfd/species/MassFractionState.hpp"
+#include "cfd/species/MixtureThermodynamics.hpp"
+#include "cfd/species/ReactionMechanism.hpp"
 #include "cfd/species/SpeciesProperties.hpp"
 #include "cfd/thermal/ThermalProperties.hpp"
 #include "cfd/turbulence/KEpsilonModel.hpp"
@@ -32,6 +39,47 @@ struct SpeciesSetup {
   cfd::species::SpeciesProperties properties;
   cfd::fields::ScalarField initialConcentration;
   cfd::boundary::BoundaryConditionSet concentrationBoundaries;
+};
+
+// G8: everything the reacting path needs, as the ACTUAL runtime types -- the same convention
+// every other block in this struct follows ("already the actual runtime types the solver takes").
+//
+// THIS IS THE OBJECT THAT CLOSES THE CASE-REACHABILITY GAP. Before it the whole P18 stack
+// (MassFractionState, MixtureThermodynamics, FormationEnthalpies, ReactionMechanism,
+// ReactionKinetics) was constructible only from a test: 0 files outside species/ referenced the
+// chemistry and 0 case keys produced it, so under CLAUDE.md section 9 it was a verified library
+// rather than production capability. Building it HERE, from physics.json's "reacting" block, is
+// what makes a mechanism declarable in a case file.
+//
+// NOTE what is deliberately absent: no solver instance and no time step. CaseBuilder builds DATA;
+// the caller orchestrates the solve -- the same split MultiphaseSetup documents below.
+struct ReactingSetup {
+  cfd::species::SpeciesRegistry registry;
+  cfd::species::MixtureThermodynamics mixture;
+  cfd::species::FormationEnthalpies formation;
+  cfd::species::ReactionMechanism mechanism;
+  cfd::species::ReactionKinetics kinetics;
+  cfd::species::MassFractionState initialComposition;
+  std::vector<cfd::species::SpeciesProperties> transport;
+  cfd::fields::ScalarField initialTemperature;
+
+  // TD-001 amendment A1: the single dt of the operator-split reacting advance, straight from
+  // physics.json's reacting.time_step.
+  Real timeStep{};
+
+  // TD-002: how many of those steps to take. 1 is TD-001's single advance, bitwise.
+  Index steps{1};
+
+  // TD-001: one boundary set per species, in SPECIES-INDEX ORDER, so index i here is species i in
+  // `registry` and in `initialComposition`. `speciesTransportAssembly` takes exactly this, one set
+  // at a time, and a mismatch between this ordering and the registry's would silently apply one
+  // species' boundary to another -- which is why the ordering is stated rather than implied.
+  //
+  // The shared `sum Y_i = 1` constraint across a patch is enforced at PARSE time (see
+  // BoundaryConfigParser's compositionSpecies branch), not here: by the time these objects exist
+  // the per-species sets are independent again, and the relation between them has to have been
+  // checked while they were still one JSON object.
+  std::vector<cfd::boundary::BoundaryConditionSet> compositionBoundaries;
 };
 
 // P6-PHYS-002: everything `cfd::multiphase::VolumeFractionSolver::step()`
@@ -98,6 +146,22 @@ struct SimulationSetup {
   std::optional<cfd::boundary::BoundaryConditionSet> temperatureBoundaries;
   std::optional<cfd::fields::ScalarField> initialTemperature;
 
+  // P15: present iff physics.json gave the OBJECT form for that property
+  // (a temperature-dependent model) rather than a plain number. Independent
+  // of each other -- a case may make conductivity vary and leave specific
+  // heat constant.
+  //
+  // Empty is the pre-existing constant case and must stay bit-for-bit what it
+  // was: `thermal` above already holds the value, and a caller that ignores
+  // these two members entirely behaves exactly as it did before P15.
+  //
+  // shared_ptr, not optional-by-value: cfd::physics::TemperatureProperty is a
+  // polymorphic interface, and a case may later select a linear or tabulated
+  // model alongside the polynomial one. Const because a built setup is
+  // configuration, never mutated by a solve.
+  std::shared_ptr<const cfd::physics::TemperatureProperty> conductivityModel;
+  std::shared_ptr<const cfd::physics::TemperatureProperty> specificHeatModel;
+
   // P3-PHYS-001: present iff physics.json configured a "buoyancy" block
   // (which itself requires "thermal" to also be present -- see
   // PhysicsConfigParser.cpp's own cross-block check). Unlike the
@@ -159,6 +223,19 @@ struct SimulationSetup {
   // cfd::boundary::WallOmega, since SST already computes a real wall
   // distance field and KOmegaModel's simplification is not silently
   // reused (see WallOmega.hpp's own header comment).
+  // P16: the resolved turbulent Prandtl number for k_t = mu_t c_p / Pr_t.
+  //
+  // Populated exactly when one of the three turbulence configs below is --
+  // i.e. when a model exists to supply mu_t. Empty for a laminar case, which
+  // is what stops the thermal path inventing a turbulent conductivity for a
+  // flow that has no turbulence (P16 section 12).
+  //
+  // RESOLVED, not optional-at-the-point-of-use: CaseBuilder applies
+  // cfd::turbulence::kDefaultTurbulentPrandtl here when physics.json omitted
+  // the key, so every consumer downstream sees a concrete value and no
+  // component gets to supply a second default of its own.
+  std::optional<Real> turbulentPrandtl;
+
   std::optional<cfd::turbulence::KEpsilonConfig> kEpsilonConfig;
   std::optional<cfd::turbulence::KOmegaConfig> kOmegaConfig;
   std::optional<cfd::turbulence::SSTConfig> sstConfig;
@@ -177,6 +254,9 @@ struct SimulationSetup {
   // to keep in sync with it, same convention as PhysicsConfig::species
   // itself (see PhysicsConfig.hpp's own header comment).
   std::vector<SpeciesSetup> species;
+
+  // G8: the reacting mixture. Mutually exclusive with `species` above, enforced at parse time.
+  std::optional<ReactingSetup> reacting;
 
   // P6-PHYS-002/003: present iff physics.json configured the
   // corresponding block -- same convention as thermal/buoyancy above.

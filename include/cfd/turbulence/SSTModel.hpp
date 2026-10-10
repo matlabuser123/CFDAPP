@@ -10,6 +10,7 @@
 #include "cfd/physics/FluidProperties.hpp"
 #include "cfd/turbulence/SSTCoefficients.hpp"
 #include "cfd/turbulence/TurbulenceModel.hpp"
+#include "cfd/turbulence/WallTreatment.hpp"
 
 namespace cfd::turbulence {
 
@@ -35,7 +36,7 @@ struct SSTConfig {
   // P12-NUM-003: non-orthogonal correction of the k/omega diffusion terms
   // (default disabled -- exactly the pre-existing operator). Evaluated once
   // per model correct() call from the lagged field; SIMPLE's outer
-  // iteration converges the lag. See assembleScalarDiffusionContribution.
+  // iteration converges the lag. See cfd::transport.
   cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonal{};
 
   // Patankar implicit under-relaxation, same mechanism/semantics as
@@ -47,6 +48,35 @@ struct SSTConfig {
 
   Real kFloor{1e-10};
   Real omegaFloor{1e-10};
+
+  // P16: the high-Re wall treatment, DEFAULT OFF for the same reason as
+  // KEpsilonConfig's -- turning it on by default would change every existing
+  // SST result including the preserved baseline.
+  //
+  // When enabled the wall-adjacent cell gets:
+  //   * omega IMPOSED at u_tau*/(sqrt(C_mu) kappa y_P), not transported;
+  //   * production REPLACED by the equilibrium tau_w u_tau*/(kappa y_P);
+  //   * k left zero-gradient.
+  //
+  // Reuses cfd::turbulence::WallTreatment unchanged. There is no SST-specific
+  // wall function: the equilibrium wall state is model-independent, and
+  // WallFunctions' own tests prove omega_P = epsilon_P/(C_mu k_P) for it, so
+  // the SST and k-epsilon wall cells describe the same physics rather than two
+  // conventions.
+  bool wallFunctions{false};
+  WallFunctionCoefficients wallFunctionCoefficients{};
+
+  // P16b: WHICH near-wall treatment the wallFunctions flag turns on.
+  //
+  // Defaults to the validated high-Re path, so this field changes nothing
+  // for any existing configuration or preserved result. Set to Automatic to
+  // get Menter blended treatment, which is defined at tau_w = 0 and is
+  // therefore the only one of the two admissible in separated flow.
+  //
+  // beta1 for the sublayer omega branch is taken from this model own SST
+  // coefficients rather than configured here -- it is SST physics, not a
+  // wall-treatment tuning knob.
+  WallTreatmentMode wallTreatmentMode{WallTreatmentMode::HighReWallFunction};
 };
 
 // Menter SST k-omega (1994 original formulation -- see SSTCoefficients.hpp's
@@ -148,6 +178,43 @@ class SSTModel final : public TurbulenceModel {
   // KEpsilonModel/KOmegaModel::convergenceResidual().
   [[nodiscard]] std::optional<Real> convergenceResidual() const override;
 
+  // P16 -- the same momentum bridge and diagnostics k-epsilon exposes, through
+  // the same TurbulenceModel interface. nullptr when wall functions are off.
+  [[nodiscard]] const cfd::fields::SurfaceField* wallViscosity() const override;
+  [[nodiscard]] const cfd::fields::ScalarField& yPlus() const noexcept { return yPlus_; }
+  [[nodiscard]] const cfd::fields::ScalarField& wallShearStress() const noexcept {
+    return wallShearStress_;
+  }
+  [[nodiscard]] Index wallFacesOutsideValidBand() const noexcept {
+    return wallFacesOutsideValidBand_;
+  }
+  [[nodiscard]] Index wallFacesWithFlooredViscosity() const noexcept {
+    return wallFacesWithFlooredViscosity_;
+  }
+  // P16-TWF: transport this model's own wall state to the thermal wall
+  // function. Null unless the wall treatment actually ran.
+  [[nodiscard]] const cfd::fields::ScalarField* wallShearStressField() const override {
+    return config_.wallFunctions ? &wallShearStress_ : nullptr;
+  }
+  [[nodiscard]] const cfd::fields::ScalarField* wallYPlusField() const override {
+    return config_.wallFunctions ? &yPlus_ : nullptr;
+  }
+
+  [[nodiscard]] Real minimumWallYPlus() const noexcept { return minimumWallYPlus_; }
+  [[nodiscard]] Real maximumWallYPlus() const noexcept { return maximumWallYPlus_; }
+
+  // P16b: branch populations from the last correct(). Under the automatic
+  // treatment these REPLACE wallFacesOutsideValidBand() as the near-wall
+  // acceptance evidence -- a sublayer face is not a violation there. In
+  // HighReWallFunction mode every face reports LogLayer, so the counts are
+  // (0, 0, all) and carry no information; read the y+ band diagnostics
+  // instead, which stay meaningful in both modes.
+  [[nodiscard]] Index wallViscousSublayerFaces() const noexcept {
+    return wallViscousSublayerFaces_;
+  }
+  [[nodiscard]] Index wallBlendedFaces() const noexcept { return wallBlendedFaces_; }
+  [[nodiscard]] Index wallLogLayerFaces() const noexcept { return wallLogLayerFaces_; }
+
  private:
   const cfd::mesh::Mesh& mesh_;
   const cfd::physics::FluidProperties& fluid_;
@@ -163,6 +230,19 @@ class SSTModel final : public TurbulenceModel {
   cfd::fields::ScalarField f1_;
   cfd::fields::ScalarField f2_;
   std::optional<Real> lastConvergenceResidual_;
+
+  // P16. Wall faces are geometry: collected once, like wallDistance_.
+  std::vector<WallFace> wallFaces_;
+  cfd::fields::SurfaceField wallViscosity_;
+  cfd::fields::ScalarField yPlus_;
+  cfd::fields::ScalarField wallShearStress_;
+  Index wallFacesOutsideValidBand_{};
+  Index wallFacesWithFlooredViscosity_{};
+  Real minimumWallYPlus_{};
+  Real maximumWallYPlus_{};
+  Index wallViscousSublayerFaces_{};
+  Index wallBlendedFaces_{};
+  Index wallLogLayerFaces_{};
 };
 
 }  // namespace cfd::turbulence

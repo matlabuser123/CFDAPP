@@ -74,6 +74,9 @@ void CSVWriter::writeFields(const std::filesystem::path& path, const Mesh& mesh,
     }
     out << '\n';
   }
+  // P13-004: opening the file proved nothing about whether the bytes
+  // reached it. See DeterministicOstream.hpp.
+  detail::requireDeterministicOutputWritten(out, path);
 }
 
 void CSVWriter::writeFields3D(const std::filesystem::path& path, const Mesh& mesh,
@@ -100,6 +103,9 @@ void CSVWriter::writeFields3D(const std::filesystem::path& path, const Mesh& mes
         << ',' << velocity.y << ',' << velocity.z << ',' << magnitude(velocity) << ',' << pressure
         << '\n';
   }
+  // P13-004: opening the file proved nothing about whether the bytes
+  // reached it. See DeterministicOstream.hpp.
+  detail::requireDeterministicOutputWritten(out, path);
 }
 
 void CSVWriter::writeResiduals(const std::filesystem::path& path, const SIMPLEResult& result) {
@@ -139,6 +145,9 @@ void CSVWriter::writeResiduals(const std::filesystem::path& path, const SIMPLERe
         << result.pressureResidualHistory[k] << ',' << result.continuityHistory[k] << ','
         << result.globalMassImbalance << '\n';
   }
+  // P13-004: opening the file proved nothing about whether the bytes
+  // reached it. See DeterministicOstream.hpp.
+  detail::requireDeterministicOutputWritten(out, path);
 }
 
 }  // namespace cfd::io

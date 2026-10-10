@@ -1,0 +1,684 @@
+#include "cfd/compressible/DensityBasedSolver.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <string>
+#include <utility>
+
+#include "cfd/core/Exception.hpp"
+
+// P17.8 -- the density-based compressible solver.
+//
+// Every physical formula in here is composed from P17.2, P17.5 and P17.7. Search this file for an
+// equation of state, a sound-speed expression, an energy relation or a Riemann solver and you will
+// not find one: they are called, not restated.
+
+namespace cfd::compressible {
+
+using cfd::fields::ScalarField;
+using cfd::fields::VectorField;
+using cfd::mesh::Mesh;
+
+namespace {
+
+constexpr const char* kSolver = "DensityBasedSolver";
+
+void requirePositiveFinite(Real value, const char* what) {
+  if (!std::isfinite(value) || !(value > 0.0)) {
+    throw InvalidArgumentError(std::string(kSolver) + ": " + what + " must be finite and > 0");
+  }
+}
+
+// The outward unit normal of a face as seen from `fromOwner`. A face's areaVector points from owner
+// to neighbour by the mesh's convention, so the neighbour sees the opposite direction.
+Vector3 outwardNormal(const cfd::mesh::Face& face, bool fromOwner) {
+  const Vector3 a = face.areaVector();
+  const Real area = face.area();
+  const Real s = fromOwner ? 1.0 : -1.0;
+  return Vector3{s * a.x / area, s * a.y / area, s * a.z / area};
+}
+
+// The arithmetic mean of two primitive states, used ONLY for the CFL face speed. It is not a
+// reconstruction and never feeds the flux -- the flux takes the two cell states through P17.7's
+// first-order reconstruction, unaveraged.
+PrimitiveState meanForCfl(const PrimitiveState& a, const PrimitiveState& b) {
+  PrimitiveState m{};
+  m.density = 0.5 * (a.density + b.density);
+  m.velocity = Vector3{0.5 * (a.velocity.x + b.velocity.x), 0.5 * (a.velocity.y + b.velocity.y),
+                       0.5 * (a.velocity.z + b.velocity.z)};
+  m.pressure = 0.5 * (a.pressure + b.pressure);
+  m.temperature = 0.5 * (a.temperature + b.temperature);
+  m.speedOfSound = 0.5 * (a.speedOfSound + b.speedOfSound);
+  m.totalEnergyDensity = 0.5 * (a.totalEnergyDensity + b.totalEnergyDensity);
+  return m;
+}
+
+// Every boundary face -> its treatment. Built once per call and FAILING CLOSED on an unmapped
+// patch: silently treating an unmapped boundary as a wall is exactly the kind of default that makes
+// a wrong answer look plausible.
+std::vector<const DensityBasedBoundary*> boundaryByFace(const Mesh& mesh,
+                                                        const DensityBasedBoundaries& boundaries) {
+  std::vector<const DensityBasedBoundary*> byFace(mesh.numberOfFaces(), nullptr);
+  for (const auto& patch : mesh.boundaryPatches()) {
+    const auto it = boundaries.find(std::string(patch.name()));
+    if (it == boundaries.end()) {
+      throw InvalidArgumentError(std::string(kSolver) + ": boundary patch \"" +
+                                 std::string(patch.name()) +
+                                 "\" has no density-based boundary treatment; every patch must be "
+                                 "given one explicitly (an unmapped patch is not assumed to be a "
+                                 "wall)");
+    }
+    for (const Index faceId : patch.faceIds()) {
+      byFace[faceId] = &it->second;
+    }
+  }
+  for (Index f = 0; f < mesh.numberOfFaces(); ++f) {
+    if (mesh.face(f).isBoundary() && byFace[f] == nullptr) {
+      throw InvalidArgumentError(std::string(kSolver) + ": boundary face " + std::to_string(f) +
+                                 " belongs to no boundary patch, so it has no treatment");
+    }
+  }
+  return byFace;
+}
+
+}  // namespace
+
+Real ResidualNorms::maximum() const noexcept {
+  return std::max(std::max(std::max(density, momentumX), std::max(momentumY, momentumZ)),
+                  totalEnergy);
+}
+
+Real DensityBasedResult::physicalTime() const {
+  if (!hasPhysicalTime) {
+    throw InvalidArgumentError(
+        "DensityBasedResult::physicalTime: this solve ran in LocalPseudoTime mode, where cells "
+        "advance different amounts of physical time. There is no single physical time to report, "
+        "and "
+        "returning one would be meaningless -- use the iteration count instead");
+  }
+  return time_;
+}
+
+const ResidualNorms& DensityBasedResult::finalAbsoluteResiduals() const {
+  if (history.empty()) {
+    throw InvalidArgumentError("DensityBasedResult::finalAbsoluteResiduals: no step was taken");
+  }
+  return history.back().absolute;
+}
+
+const ResidualNorms& DensityBasedResult::finalRelativeResiduals() const {
+  if (history.empty()) {
+    throw InvalidArgumentError("DensityBasedResult::finalRelativeResiduals: no step was taken");
+  }
+  return history.back().relative;
+}
+
+// ---------------------------------------------------------------------------------------------
+
+DensityBasedSolver::DensityBasedSolver(DensityBasedSettings settings,
+                                       TotalEnergyState thermodynamics)
+    : settings_(settings), thermodynamics_(std::move(thermodynamics)) {
+  requirePositiveFinite(settings_.cfl, "cfl");
+  requirePositiveFinite(settings_.residualTolerance, "residualTolerance");
+  requirePositiveFinite(settings_.massImbalanceTolerance, "massImbalanceTolerance");
+  requirePositiveFinite(settings_.stateChangeTolerance, "stateChangeTolerance");
+  if (settings_.maxIterations == 0) {
+    throw InvalidArgumentError(std::string(kSolver) + ": maxIterations must be > 0");
+  }
+  if (!std::isfinite(settings_.retryReductionFactor) || !(settings_.retryReductionFactor > 0.0) ||
+      !(settings_.retryReductionFactor < 1.0)) {
+    throw InvalidArgumentError(std::string(kSolver) +
+                               ": retryReductionFactor must be finite and in (0, 1)");
+  }
+  if (settings_.mode == TimeSteppingMode::GlobalPhysical) {
+    requirePositiveFinite(settings_.endTime, "endTime (required in GlobalPhysical mode)");
+  }
+}
+
+ConservedField DensityBasedSolver::fromPrimitive(const Mesh& mesh, const ScalarField& density,
+                                                 const VectorField& velocity,
+                                                 const ScalarField& temperature) const {
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  if (density.size() != n || velocity.size() != n || temperature.size() != n) {
+    throw InvalidArgumentError(std::string(kSolver) +
+                               "::fromPrimitive: every field must have one value per cell");
+  }
+  ConservedField q{ScalarField(n), VectorField(n), ScalarField(n)};
+  for (Index i = 0; i < n; ++i) {
+    // makePrimitiveState routes through P17.2's EOS and P17.5's conservedTotalEnergy and validates
+    // as it goes; toConserved is P17.7's. No conversion arithmetic is written here.
+    const PrimitiveState s =
+        makePrimitiveState(thermodynamics_, density[i], velocity[i], temperature[i]);
+    const ConservedState c = toConserved(s);
+    q.density[i] = c.density;
+    q.momentumDensity[i] = c.momentumDensity;
+    q.totalEnergyDensity[i] = c.totalEnergyDensity;
+  }
+  return q;
+}
+
+std::vector<PrimitiveState> DensityBasedSolver::toPrimitive(const ConservedField& q) const {
+  const Index n = q.size();
+  std::vector<PrimitiveState> out;
+  out.reserve(n);
+  for (Index i = 0; i < n; ++i) {
+    ConservedState c{};
+    c.density = q.density[i];
+    c.momentumDensity = q.momentumDensity[i];
+    c.totalEnergyDensity = q.totalEnergyDensity[i];
+    try {
+      // P17.5's recover(), the only inverse in the project. It clamps nothing.
+      out.push_back(makePrimitiveStateFromConserved(thermodynamics_, c));
+    } catch (const cfd::Error& e) {
+      throw NumericalError(std::string(kSolver) + "::toPrimitive: cell " + std::to_string(i) +
+                           " is not a valid thermodynamic state: " + e.what());
+    }
+  }
+  return out;
+}
+
+PrimitiveState exteriorState(const DensityBasedBoundary& boundary, const PrimitiveState& interior,
+                             const Vector3& outwardUnitNormal) {
+  switch (boundary.kind) {
+    case BoundaryKind::SupersonicInflow:
+      // every characteristic enters: the prescribed state, used as given
+      return boundary.prescribed;
+    case BoundaryKind::SupersonicOutflow:
+      // every characteristic leaves: zero-gradient extrapolation
+      return interior;
+    case BoundaryKind::InviscidWall:
+      break;
+  }
+  // U_ext = U_int - 2 (U_int . n) n. rho, p, T and a are unchanged, so the two states differ ONLY
+  // in the sign of the normal velocity. That makes the HLLC contact speed vanish, so no mass and no
+  // energy cross the face and only the pressure force remains -- section 15's requirement, obtained
+  // from the state rather than from a special case inside the flux.
+  //
+  // rhoE is NOT carried over unchanged: it contains the kinetic energy, and although |U| is
+  // unchanged by a reflection, rebuilding it keeps the state internally consistent by construction.
+  // |U_ext| == |U_int| exactly is not guaranteed in floating point, so recomputing rhoE from the
+  // mirrored velocity is the honest choice.
+  const Real un = hllc_detail::dotHD(interior.velocity, outwardUnitNormal);
+  PrimitiveState ext = interior;
+  ext.velocity = Vector3{interior.velocity.x - 2.0 * un * outwardUnitNormal.x,
+                         interior.velocity.y - 2.0 * un * outwardUnitNormal.y,
+                         interior.velocity.z - 2.0 * un * outwardUnitNormal.z};
+  const Real keInt =
+      0.5 * interior.density *
+      (interior.velocity.x * interior.velocity.x + interior.velocity.y * interior.velocity.y +
+       interior.velocity.z * interior.velocity.z);
+  const Real keExt = 0.5 * ext.density *
+                     (ext.velocity.x * ext.velocity.x + ext.velocity.y * ext.velocity.y +
+                      ext.velocity.z * ext.velocity.z);
+  ext.totalEnergyDensity = interior.totalEnergyDensity - keInt + keExt;
+  return ext;
+}
+
+ResidualField DensityBasedSolver::assembleResidual(const Mesh& mesh,
+                                                   const std::vector<PrimitiveState>& primitives,
+                                                   const DensityBasedBoundaries& boundaries) const {
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  if (static_cast<Index>(primitives.size()) != n) {
+    throw InvalidArgumentError(std::string(kSolver) +
+                               "::assembleResidual: one primitive state per cell is required");
+  }
+  const auto byFace = boundaryByFace(mesh, boundaries);
+  const Real gamma = thermodynamics_.thermodynamics().specificHeatRatio();
+
+  ResidualField r{ScalarField(n), VectorField(n), ScalarField(n)};
+
+  for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
+    const auto& face = mesh.face(faceId);
+    const Index owner = face.owner();
+    const Vector3 normal = outwardNormal(face, /*fromOwner=*/true);
+
+    // ONE flux evaluation per face, producing all five components at once. Section 6 forbids
+    // recomputing mass, momentum and energy convective fluxes independently, and this is where that
+    // is either honoured or not.
+    ReconstructedFaceState faceState{};
+    if (face.isBoundary()) {
+      faceState = reconstructFirstOrderBoundary(
+          primitives[owner], exteriorState(*byFace[faceId], primitives[owner], normal));
+    } else {
+      faceState = reconstructFirstOrder(primitives[owner], primitives[*face.neighbor()]);
+    }
+    // hllcFluxChecked is P17.7's guard: it throws when the flux is not finite for inputs that
+    // passed validation (an overflow, not an inadmissible state). It reports the quantity but has
+    // no mesh, so it cannot say WHERE. The loop runs in face-id order, so the first face to throw
+    // is the first offender in deterministic order, and naming it here is what makes section 20's
+    // "include cell ID" achievable at all. Nothing is swallowed -- the error still propagates.
+    HllcResult hllc{};
+    try {
+      hllc = hllcFluxChecked(faceState.left, faceState.right, normal, gamma);
+    } catch (const cfd::Error& e) {
+      throw NumericalError(std::string(kSolver) + "::assembleResidual: face " +
+                           std::to_string(faceId) + " (owner cell " + std::to_string(owner) +
+                           (face.isBoundary()
+                                ? ", boundary"
+                                : ", neighbour cell " + std::to_string(*face.neighbor())) +
+                           "): " + e.what());
+    }
+    const FluxVector f = integrateOverArea(hllc.flux, face.area());
+
+    // The repository's convention: +F for the owner, -F for the neighbour
+    // (src/compressible/CompressibleContinuity.cpp, physics::evaluateContinuity). The SAME value is
+    // added and subtracted, so the cancellation is exact by construction, not to round-off.
+    r.density[owner] += f.mass;
+    r.momentum[owner] += f.momentum;
+    r.totalEnergy[owner] += f.energy;
+    if (!face.isBoundary()) {
+      const Index neighbour = *face.neighbor();
+      r.density[neighbour] -= f.mass;
+      r.momentum[neighbour] -= f.momentum;
+      r.totalEnergy[neighbour] -= f.energy;
+    }
+  }
+  return r;
+}
+
+std::vector<Real> DensityBasedSolver::localTimeSteps(
+    const Mesh& mesh, const std::vector<PrimitiveState>& primitives) const {
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  if (static_cast<Index>(primitives.size()) != n) {
+    throw InvalidArgumentError(std::string(kSolver) +
+                               "::localTimeSteps: one primitive state per cell is required");
+  }
+  std::vector<Real> dt(n, 0.0);
+  for (Index i = 0; i < n; ++i) {
+    const auto& cell = mesh.cell(i);
+    Real speedSum = 0.0;
+    for (const Index faceId : cell.faceIds()) {
+      const auto& face = mesh.face(faceId);
+      const bool iAmOwner = face.owner() == i;
+      const Vector3 normal = outwardNormal(face, iAmOwner);
+      // The face state for the CFL is the mean of the two cell states; at a boundary face there is
+      // only the interior state. This is a SPEED estimate, not a reconstruction -- the flux never
+      // sees it.
+      PrimitiveState faceValue = primitives[i];
+      if (!face.isBoundary()) {
+        const Index other = iAmOwner ? *face.neighbor() : face.owner();
+        faceValue = meanForCfl(primitives[i], primitives[other]);
+      }
+      const Real un = hllc_detail::dotHD(faceValue.velocity, normal);
+      // |u.n| + a -- the acoustic signal speed an explicit compressible step is limited by. The
+      // existing solver::calculateCFL has no such term; see cfl.md for why the two still agree in
+      // the a -> 0 limit.
+      speedSum += (std::abs(un) + faceValue.speedOfSound) * face.area();
+    }
+    if (!(speedSum > 0.0) || !std::isfinite(speedSum)) {
+      throw NumericalError(std::string(kSolver) + "::localTimeSteps: cell " + std::to_string(i) +
+                           " has a non-positive or non-finite face speed sum (" +
+                           std::to_string(speedSum) + "), so no stable dt exists");
+    }
+    dt[i] = settings_.cfl * cell.volume() / speedSum;
+    if (!std::isfinite(dt[i]) || !(dt[i] > 0.0)) {
+      throw NumericalError(std::string(kSolver) + "::localTimeSteps: cell " + std::to_string(i) +
+                           " yielded a non-finite or non-positive dt");
+    }
+  }
+  return dt;
+}
+
+Real DensityBasedSolver::globalTimeStep(const Mesh& mesh,
+                                        const std::vector<PrimitiveState>& primitives) const {
+  const auto dt = localTimeSteps(mesh, primitives);
+  Real smallest = std::numeric_limits<Real>::infinity();
+  for (const Real v : dt) smallest = std::min(smallest, v);
+  if (!std::isfinite(smallest) || !(smallest > 0.0)) {
+    throw NumericalError(std::string(kSolver) +
+                         "::globalTimeStep: no cell yielded a finite positive dt");
+  }
+  return smallest;
+}
+
+ConservedField DensityBasedSolver::applyUpdate(const Mesh& mesh, const ConservedField& q,
+                                               const ResidualField& r,
+                                               const std::vector<Real>& dt) {
+  const Index n = q.size();
+  if (static_cast<Index>(dt.size()) != n) {
+    throw InvalidArgumentError(std::string(kSolver) + "::applyUpdate: one dt per cell is required");
+  }
+  ConservedField out = q;
+  for (Index i = 0; i < n; ++i) {
+    const Real scale = dt[i] / mesh.cell(i).volume();
+    out.density[i] = q.density[i] - scale * r.density[i];
+    out.momentumDensity[i] = Vector3{q.momentumDensity[i].x - scale * r.momentum[i].x,
+                                     q.momentumDensity[i].y - scale * r.momentum[i].y,
+                                     q.momentumDensity[i].z - scale * r.momentum[i].z};
+    out.totalEnergyDensity[i] = q.totalEnergyDensity[i] - scale * r.totalEnergy[i];
+  }
+  return out;
+}
+
+ResidualNorms DensityBasedSolver::residualNorms(const Mesh& mesh, const ResidualField& r) {
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  Real volumeTotal = 0.0;
+  Real sRho = 0.0;
+  Real sMx = 0.0;
+  Real sMy = 0.0;
+  Real sMz = 0.0;
+  Real sE = 0.0;
+  for (Index i = 0; i < n; ++i) {
+    const Real v = mesh.cell(i).volume();
+    volumeTotal += v;
+    // R_P / V_P is a per-unit-volume RATE, so the norm does not scale with mesh size -- section
+    // 16's explicit requirement. Volume weighting matches every other aggregated per-cell statistic
+    // here (ManufacturedFields::l2CellError, solver::CFLResult::meanCFL).
+    const Real rr = r.density[i] / v;
+    const Real mx = r.momentum[i].x / v;
+    const Real my = r.momentum[i].y / v;
+    const Real mz = r.momentum[i].z / v;
+    const Real ee = r.totalEnergy[i] / v;
+    sRho += rr * rr * v;
+    sMx += mx * mx * v;
+    sMy += my * my * v;
+    sMz += mz * mz * v;
+    sE += ee * ee * v;
+  }
+  ResidualNorms out{};
+  if (!(volumeTotal > 0.0)) return out;
+  out.density = std::sqrt(sRho / volumeTotal);
+  out.momentumX = std::sqrt(sMx / volumeTotal);
+  out.momentumY = std::sqrt(sMy / volumeTotal);
+  out.momentumZ = std::sqrt(sMz / volumeTotal);
+  out.totalEnergy = std::sqrt(sE / volumeTotal);
+  return out;
+}
+
+void DensityBasedSolver::throwIfRestartRequested() {
+  throw InvalidArgumentError(
+      "DensityBasedSolver: restart is NOT SUPPORTED for the density-based solver. The existing "
+      "restart format carries pressure, velocity_x, velocity_y and mass_flux only -- it has no "
+      "density, no momentumDensity (rhoU) and no totalEnergyDensity (rhoE), so a restarted "
+      "conserved state cannot be reconstructed. Refusing rather than producing an incorrect "
+      "state.");
+}
+
+namespace {
+
+// Is every conserved value finite and is the density positive? Returns the first offending cell in
+// deterministic id order, or -1. Nothing is clamped.
+struct StateCheck {
+  bool ok{true};
+  Index cell{};
+  std::string what;
+};
+
+StateCheck checkConserved(const ConservedField& q) {
+  for (Index i = 0; i < q.size(); ++i) {
+    if (!std::isfinite(q.density[i])) return {false, i, "density is not finite"};
+    if (!(q.density[i] > 0.0))
+      return {false, i, "density is not positive (" + std::to_string(q.density[i]) + ")"};
+    if (!cfd::isFinite(q.momentumDensity[i])) return {false, i, "momentum density is not finite"};
+    if (!std::isfinite(q.totalEnergyDensity[i]))
+      return {false, i, "total-energy density is not finite"};
+  }
+  return {};
+}
+
+// P17.5's recover() applied per cell, reporting the FIRST cell it refuses in deterministic id
+// order. toPrimitive() throws with the cell in its message, which is right for a caller but loses
+// the index for a caller that has to ACT on it -- the retry path needs the number, not the prose.
+StateCheck firstUnrecoverableCell(const TotalEnergyState& thermodynamics, const ConservedField& q) {
+  for (Index i = 0; i < q.size(); ++i) {
+    ConservedState c{};
+    c.density = q.density[i];
+    c.momentumDensity = q.momentumDensity[i];
+    c.totalEnergyDensity = q.totalEnergyDensity[i];
+    try {
+      (void)makePrimitiveStateFromConserved(thermodynamics, c);
+    } catch (const cfd::Error& e) {
+      return {false, i, e.what()};
+    }
+  }
+  return {};
+}
+
+StateCheck checkResidual(const ResidualField& r) {
+  for (Index i = 0; i < static_cast<Index>(r.density.size()); ++i) {
+    if (!std::isfinite(r.density[i])) return {false, i, "mass residual is not finite"};
+    if (!cfd::isFinite(r.momentum[i])) return {false, i, "momentum residual is not finite"};
+    if (!std::isfinite(r.totalEnergy[i])) return {false, i, "energy residual is not finite"};
+  }
+  return {};
+}
+
+ResidualNorms relativeTo(const ResidualNorms& absolute, const ResidualNorms& reference) {
+  // Guarded per component: a reference of exactly zero means that equation started at machine zero
+  // (a uniform state), in which case the ABSOLUTE norm is already the meaningful measure and
+  // dividing would manufacture either 0/0 or a spurious 1.
+  auto rel = [](Real a, Real ref) { return ref > 0.0 ? a / ref : a; };
+  ResidualNorms out{};
+  out.density = rel(absolute.density, reference.density);
+  out.momentumX = rel(absolute.momentumX, reference.momentumX);
+  out.momentumY = rel(absolute.momentumY, reference.momentumY);
+  out.momentumZ = rel(absolute.momentumZ, reference.momentumZ);
+  out.totalEnergy = rel(absolute.totalEnergy, reference.totalEnergy);
+  return out;
+}
+
+}  // namespace
+
+DensityBasedResult DensityBasedSolver::solve(const Mesh& mesh, ConservedField q,
+                                             const DensityBasedBoundaries& boundaries) const {
+  DensityBasedResult result{};
+  result.hasPhysicalTime = settings_.mode == TimeSteppingMode::GlobalPhysical;
+  result.state = q;
+
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  if (q.size() != n) {
+    result.status = DensityBasedStatus::InvalidConfiguration;
+    result.diagnostic = "the initial conserved field does not have one value per cell";
+    return result;
+  }
+
+  ResidualNorms reference{};
+  bool referenceCaptured = false;  // captured ONCE, at iteration 0, and never re-captured
+  Real time = 0.0;
+
+  for (Index iteration = 0; iteration < settings_.maxIterations; ++iteration) {
+    std::vector<PrimitiveState> primitives;
+    try {
+      primitives = toPrimitive(q);
+    } catch (const cfd::Error& e) {
+      result.status = DensityBasedStatus::InvalidState;
+      result.diagnostic = e.what();
+      result.iterations = iteration;
+      result.time_ = time;
+      return result;
+    }
+
+    // The residual has TWO ways to be non-finite and both must be reported the same way. A value
+    // that merely comes out NaN is caught by checkResidual below; a value that OVERFLOWS is caught
+    // inside P17.7's hllcFluxChecked, which throws. Leaving the second uncaught let a non-finite
+    // flux escape solve() as an exception instead of a NonFiniteState with a location -- found by
+    // criterion P5, which enumerates the residual components as one of the quantities that must be
+    // detected rather than propagated.
+    ResidualField r{ScalarField(n), VectorField(n), ScalarField(n)};
+    try {
+      r = assembleResidual(mesh, primitives, boundaries);
+    } catch (const NumericalError& e) {
+      ++result.nonFiniteDetections;
+      result.status = DensityBasedStatus::NonFiniteState;
+      result.diagnostic = "iteration " + std::to_string(iteration) + ": " + e.what();
+      result.iterations = iteration;
+      result.time_ = time;
+      return result;
+    }
+    const StateCheck rc = checkResidual(r);
+    if (!rc.ok) {
+      ++result.nonFiniteDetections;
+      result.status = DensityBasedStatus::NonFiniteState;
+      result.offendingCell = rc.cell;
+      result.diagnostic = "iteration " + std::to_string(iteration) + ", cell " +
+                          std::to_string(rc.cell) + ": " + rc.what;
+      result.iterations = iteration;
+      result.time_ = time;
+      return result;
+    }
+
+    const ResidualNorms absolute = residualNorms(mesh, r);
+    if (!referenceCaptured) {
+      reference = absolute;
+      referenceCaptured = true;
+    }
+    const ResidualNorms relative = relativeTo(absolute, reference);
+
+    // dt: one value per cell in both modes. GlobalPhysical fills every entry with min_P dt_P, so
+    // the update path is identical and U2 can assert the equality rather than trusting a branch.
+    std::vector<Real> dt;
+    try {
+      if (settings_.mode == TimeSteppingMode::GlobalPhysical) {
+        Real step = globalTimeStep(mesh, primitives);
+        // never overshoot the end time
+        if (time + step > settings_.endTime) step = settings_.endTime - time;
+        if (!(step > 0.0)) {
+          result.status = DensityBasedStatus::TimeComplete;
+          result.iterations = iteration;
+          result.time_ = time;
+          result.state = q;
+          return result;
+        }
+        dt.assign(n, step);
+      } else {
+        dt = localTimeSteps(mesh, primitives);
+      }
+    } catch (const cfd::Error& e) {
+      result.status = DensityBasedStatus::NonFiniteState;
+      result.diagnostic = std::string("time-step evaluation failed: ") + e.what();
+      result.iterations = iteration;
+      result.time_ = time;
+      return result;
+    }
+
+    // --- the candidate update, with a DETERMINISTIC retry on an inadmissible result -------------
+    ConservedField candidate;
+    Index retries = 0;
+    bool accepted = false;
+    while (true) {
+      candidate = applyUpdate(mesh, q, r, dt);
+      const StateCheck cc = checkConserved(candidate);
+      bool recoverable = cc.ok;
+      std::string why = cc.ok ? std::string() : cc.what;
+      Index offending = cc.cell;
+      if (recoverable) {
+        // The stronger test: can P17.5 recover a valid thermodynamic state? That checks p > 0, T in
+        // range and a valid internal energy through the AUTHORITATIVE model, not a second opinion.
+        //
+        // This used to call toPrimitive() and set `offending = 0` in the catch, because the
+        // exception carries the cell only inside its MESSAGE. The reported offendingCell was then
+        // 0 while the diagnostic named a different cell -- criterion P3 asserts the cell is named,
+        // and the message satisfied it, so the wrong FIELD went untested. firstUnrecoverableCell
+        // returns the index, so both now agree.
+        const StateCheck rec = firstUnrecoverableCell(thermodynamics_, candidate);
+        if (!rec.ok) {
+          recoverable = false;
+          why = rec.what;
+          offending = rec.cell;
+        }
+      }
+      if (recoverable) {
+        accepted = true;
+        break;
+      }
+      if (retries >= settings_.maxRetries) {
+        result.status = DensityBasedStatus::InvalidState;
+        result.offendingCell = offending;
+        // The cell goes in the MESSAGE as well as the field. Both inadmissibility paths reach here
+        // -- a non-positive/non-finite conserved value, and a state P17.5 cannot recover -- and
+        // only the second used to carry a cell in its text, so a reader of the diagnostic alone
+        // could not tell where a negative density appeared. offendingCell is the authoritative
+        // value and this string quotes it, so the two cannot drift apart.
+        result.diagnostic = "iteration " + std::to_string(iteration) + ", cell " +
+                            std::to_string(offending) +
+                            ": the update remained inadmissible after " + std::to_string(retries) +
+                            " dt reductions -- " + why;
+        result.iterations = iteration;
+        result.time_ = time;
+        result.state = q;  // the last ACCEPTED state, never the rejected candidate
+        result.totalRetries += retries;
+        ++result.rejectedSteps;
+        return result;
+      }
+      ++retries;
+      ++result.totalRetries;
+      for (Real& v : dt) v *= settings_.retryReductionFactor;
+    }
+    (void)accepted;
+
+    // --- history, measured on the ACCEPTED state ------------------------------------------------
+    DensityBasedStepRecord record{};
+    record.iteration = iteration;
+    record.dt = *std::min_element(dt.begin(), dt.end());
+    record.absolute = absolute;
+    record.relative = relative;
+    record.retries = retries;
+
+    Real massOld = 0.0;
+    Real massNew = 0.0;
+    Real maxStateChange = 0.0;
+    for (Index i = 0; i < n; ++i) {
+      const Real v = mesh.cell(i).volume();
+      massOld += q.density[i] * v;
+      massNew += candidate.density[i] * v;
+      const Real denom = std::max(std::abs(q.density[i]), 1e-300);
+      maxStateChange =
+          std::max(maxStateChange, std::abs(candidate.density[i] - q.density[i]) / denom);
+    }
+    record.massImbalance = massOld > 0.0 ? std::abs(massNew - massOld) / massOld : 0.0;
+
+    const auto newPrimitives = toPrimitive(candidate);
+    record.minDensity = std::numeric_limits<Real>::infinity();
+    record.minPressure = std::numeric_limits<Real>::infinity();
+    record.minTemperature = std::numeric_limits<Real>::infinity();
+    record.maxMach = 0.0;
+    for (const auto& s : newPrimitives) {
+      record.minDensity = std::min(record.minDensity, s.density);
+      record.minPressure = std::min(record.minPressure, s.pressure);
+      record.minTemperature = std::min(record.minTemperature, s.temperature);
+      const Real speed = std::sqrt(s.velocity.x * s.velocity.x + s.velocity.y * s.velocity.y +
+                                   s.velocity.z * s.velocity.z);
+      record.maxMach = std::max(record.maxMach, speed / s.speedOfSound);
+    }
+
+    q = std::move(candidate);
+    if (settings_.mode == TimeSteppingMode::GlobalPhysical) {
+      time += record.dt;
+    }
+    record.time = time;
+    result.history.push_back(record);
+    result.iterations = iteration + 1;
+    result.state = q;
+    result.time_ = time;
+
+    // --- stopping ------------------------------------------------------------------------------
+    if (settings_.mode == TimeSteppingMode::GlobalPhysical) {
+      // Reaching the end of a transient run is TimeComplete, NOT Converged. Steady criteria are not
+      // evaluated here at all -- section 17 warns against applying them to a transient run.
+      if (time >= settings_.endTime) {
+        result.status = DensityBasedStatus::TimeComplete;
+        return result;
+      }
+      continue;
+    }
+
+    // LocalPseudoTime: steady convergence needs ALL THREE signals (section 17).
+    const bool residualsConverged = relative.density <= settings_.residualTolerance &&
+                                    relative.momentumX <= settings_.residualTolerance &&
+                                    relative.momentumY <= settings_.residualTolerance &&
+                                    relative.momentumZ <= settings_.residualTolerance &&
+                                    relative.totalEnergy <= settings_.residualTolerance;
+    const bool massConverged = record.massImbalance <= settings_.massImbalanceTolerance;
+    const bool stateConverged = maxStateChange <= settings_.stateChangeTolerance;
+    if (residualsConverged && massConverged && stateConverged) {
+      result.status = DensityBasedStatus::Converged;
+      return result;
+    }
+  }
+
+  result.status = DensityBasedStatus::MaxIterations;
+  return result;
+}
+
+}  // namespace cfd::compressible

@@ -13,19 +13,21 @@
 
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/discretization/Gradient.hpp"
+#include "cfd/gpu/DeviceCsrMatrix.hpp"
 #include "cfd/gpu/DeviceFaceFlux.hpp"
 #include "cfd/gpu/DeviceFaceFluxCorrection.hpp"
 #include "cfd/gpu/DeviceGradient.hpp"
 #include "cfd/gpu/DeviceMomentumAssembly.hpp"
-#include "cfd/gpu/DeviceCsrMatrix.hpp"
-#include "cfd/gpu/DevicePersistentFields.hpp"
-#include "cfd/gpu/DeviceVectorOps.hpp"
-#include "cfd/gpu/GpuResidentSolve.hpp"
+#include "cfd/gpu/DeviceTurbulence.hpp"
 #include "cfd/gpu/DeviceMomentumResponse.hpp"
+#include "cfd/gpu/DevicePersistentFields.hpp"
 #include "cfd/gpu/DevicePressureCorrection.hpp"
+#include "cfd/gpu/DeviceVectorOps.hpp"
 #include "cfd/gpu/DeviceVelocityCorrection.hpp"
 #include "cfd/gpu/GPUBackend.hpp"
+#include "cfd/gpu/GpuResidentSolve.hpp"
 #include "cfd/gpu/GpuSimpleDiscretization.hpp"
+#include "cfd/gpu/GpuSimpleResidentTurbulence.hpp"
 #include "cfd/mesh/Cell.hpp"
 #include "cfd/mesh/Face.hpp"
 #include "cfd/mesh/Mesh.hpp"
@@ -99,11 +101,21 @@ struct GpuSimpleDiscretization::Impl {
   DeviceGradientPlan pressureGradient;
 
   // Iteration state, device-resident between stages.
-  DeviceVelocity velocity;       // start-of-iteration
-  DeviceVelocity velocityStar;   // the momentum predictor
+  DeviceVelocity velocity;      // start-of-iteration
+  DeviceVelocity velocityStar;  // the momentum predictor
   DeviceBuffer<Real> pressure;
   DeviceBuffer<Real> viscosity;
-  DeviceBuffer<Real> massFlux;   // carried between iterations, not the predictor
+  // P16 Phase 2: the wall-face viscosity override. Face-length and zero away
+  // from wall faces, matching the host SurfaceField exactly; EMPTY means no
+  // wall treatment is active, which is how a laminar assembly stays bitwise
+  // what it was. Filled by a COMPACT O(N_wall) upload, never a full field.
+  DeviceBuffer<Real> wallFaceViscosity;
+  // P16 Step 4: the compact upload staging buffers, persistent for the same
+  // reason as the correction's workspace -- they were two more of the 30
+  // steady-state allocations the production ledger measured.
+  DeviceBuffer<Index> wallFaceIds;
+  DeviceBuffer<cfd::Real> wallFaceValues;
+  DeviceBuffer<Real> massFlux;  // carried between iterations, not the predictor
   DeviceBuffer<Real> previousU, previousV, previousW;
   // Retained whole rather than copying out the diagonal: the response
   // coefficients need THIS assembly's diagonal, and keeping the system alive
@@ -252,10 +264,14 @@ void GpuSimpleDiscretization::uploadInitialState(
 GpuSimpleDiscretization::FieldAuthority GpuSimpleDiscretization::authority(
     PersistentField field) const noexcept {
   switch (field) {
-    case PersistentField::Velocity: return impl_->velocityAuthority;
-    case PersistentField::Pressure: return impl_->pressureAuthority;
-    case PersistentField::MassFlux: return impl_->massFluxAuthority;
-    case PersistentField::Viscosity: return impl_->viscosityAuthority;
+    case PersistentField::Velocity:
+      return impl_->velocityAuthority;
+    case PersistentField::Pressure:
+      return impl_->pressureAuthority;
+    case PersistentField::MassFlux:
+      return impl_->massFluxAuthority;
+    case PersistentField::Viscosity:
+      return impl_->viscosityAuthority;
   }
   return FieldAuthority::HostOnly;
 }
@@ -309,6 +325,70 @@ void GpuSimpleDiscretization::downloadPressure(cfd::fields::ScalarField& out) {
   impl_->pressureAuthority = FieldAuthority::Synchronized;
 }
 
+void GpuSimpleDiscretization::setWallFaceViscosity(const std::vector<Index>& faceIds,
+                                                   const std::vector<cfd::Real>& values) {
+  if (!impl_->ready) return;
+  if (faceIds.size() != values.size()) {
+    throw cfd::InvalidArgumentError(
+        "setWallFaceViscosity: face and value lists differ in length");
+  }
+  if (faceIds.empty()) {
+    clearWallFaceViscosity();
+    return;
+  }
+  for (const Index f : faceIds) {
+    if (f >= impl_->faceCount) {
+      throw cfd::InvalidArgumentError("setWallFaceViscosity: face index is outside the mesh");
+    }
+  }
+  // Zeroed first, then scattered: a face that stops carrying an override must
+  // revert to "no override" rather than keep last iteration's value. The
+  // scatter is reassertImposedValuesDevice, the already-qualified "write these
+  // values at these indices" primitive -- one kernel, not a second copy of it.
+  fillFieldDevice(impl_->faceCount, 0.0, impl_->wallFaceViscosity);
+  impl_->wallFaceIds.uploadFrom(faceIds.data(), static_cast<Index>(faceIds.size()));
+  impl_->wallFaceValues.uploadFrom(values.data(), static_cast<Index>(values.size()));
+  reassertImposedValuesDevice(impl_->wallFaceIds, impl_->wallFaceValues,
+                              impl_->wallFaceViscosity);
+}
+
+void GpuSimpleDiscretization::setWallFaceViscosity(
+    const cfd::fields::SurfaceField* wallViscosity) {
+  if (!impl_->ready) return;
+  if (wallViscosity == nullptr) {
+    clearWallFaceViscosity();
+    return;
+  }
+  // "Zero means no override" is the host convention, so only the non-zero
+  // entries are sent: the scan is O(N_face) on the host, the transfer is
+  // O(N_wall).
+  std::vector<Index> faces;
+  std::vector<cfd::Real> values;
+  for (Index f = 0; f < wallViscosity->size() && f < impl_->faceCount; ++f) {
+    const cfd::Real value = (*wallViscosity)[f];
+    if (value == 0.0) continue;
+    faces.push_back(f);
+    values.push_back(value);
+  }
+  setWallFaceViscosity(faces, values);
+}
+
+void GpuSimpleDiscretization::clearWallFaceViscosity() {
+  if (!impl_->ready) return;
+  // Empty, not zero-filled: the assembly checks `empty()` and passes nullptr,
+  // so a laminar solve does not even read the buffer.
+  impl_->wallFaceViscosity.resize(0);
+}
+
+void GpuSimpleDiscretization::downloadViscosity(cfd::fields::ScalarField& out) {
+  if (!impl_->ready) return;
+  requireResident(impl_->viscosity, impl_->cellCount, "the viscosity field");
+  const auto host = download(impl_->viscosity);
+  out = cfd::fields::ScalarField(impl_->cellCount);
+  for (Index c = 0; c < impl_->cellCount; ++c) out[c] = host[c];
+  impl_->viscosityAuthority = FieldAuthority::Synchronized;
+}
+
 void GpuSimpleDiscretization::downloadMassFlux(cfd::fields::SurfaceField& out) {
   if (!impl_->ready) return;
   requireResident(impl_->massFlux, impl_->faceCount, "the mass flux field");
@@ -336,9 +416,11 @@ cfd::algebra::LinearSystem GpuSimpleDiscretization::assembleMomentum(
   DeviceMomentumSystem& deviceSystem = component == kVelocityU   ? impl_->systemU
                                        : component == kVelocityV ? impl_->systemV
                                                                  : impl_->systemW;
-  assembleRelaxedMomentumDevice(impl_->momentum, impl_->velocity, impl_->pressure,
-                                impl_->viscosity, impl_->massFlux, previous, nullptr, options,
-                                deviceSystem);
+  assembleRelaxedMomentumDevice(impl_->momentum, impl_->velocity, impl_->pressure, impl_->viscosity,
+                                impl_->massFlux, previous, nullptr,
+                                impl_->wallFaceViscosity.empty() ? nullptr
+                                                                 : &impl_->wallFaceViscosity,
+                                options, deviceSystem);
 
   return toHostSystem(nc, downloadIndices(deviceSystem.rowOffsets),
                       downloadIndices(deviceSystem.columnIndices), download(deviceSystem.values),
@@ -386,9 +468,11 @@ void GpuSimpleDiscretization::assembleMomentumResident(Index component, Real rel
                                                                  : impl_->systemW;
   // The SAME call assembleMomentum makes. The only difference is what
   // follows it: nothing.
-  assembleRelaxedMomentumDevice(impl_->momentum, impl_->velocity, impl_->pressure,
-                                impl_->viscosity, impl_->massFlux, previous, nullptr, options,
-                                deviceSystem);
+  assembleRelaxedMomentumDevice(impl_->momentum, impl_->velocity, impl_->pressure, impl_->viscosity,
+                                impl_->massFlux, previous, nullptr,
+                                impl_->wallFaceViscosity.empty() ? nullptr
+                                                                 : &impl_->wallFaceViscosity,
+                                options, deviceSystem);
 }
 
 cfd::algebra::SolverResult GpuSimpleDiscretization::solveMomentumResident(
@@ -435,8 +519,7 @@ bool GpuSimpleDiscretization::residentMomentumPredictorAllFinite(bool threeDimen
   // W only in 3D -- see the header: on a 2D mesh nothing has written the W
   // predictor at this point in the iteration, and the host path's equivalent
   // value is an exact 0.0 that cannot be non-finite.
-  if (threeDimensional)
-    countNonFiniteDevice(nc, impl_->velocityStar.z, impl_->nonFiniteCounter);
+  if (threeDimensional) countNonFiniteDevice(nc, impl_->velocityStar.z, impl_->nonFiniteCounter);
   return readNonFiniteCounter(impl_->nonFiniteCounter);
 }
 
@@ -524,8 +607,7 @@ cfd::algebra::LinearSystem GpuSimpleDiscretization::assemblePressureCorrection(
 
   return toHostSystem(nc, downloadIndices(impl_->pressureSystem.rowOffsets),
                       downloadIndices(impl_->pressureSystem.columnIndices),
-                      download(impl_->pressureSystem.values),
-                      download(impl_->pressureSystem.rhs));
+                      download(impl_->pressureSystem.values), download(impl_->pressureSystem.rhs));
 }
 
 void GpuSimpleDiscretization::assemblePressureCorrectionResident(bool nonOrthogonal,
@@ -538,10 +620,9 @@ void GpuSimpleDiscretization::assemblePressureCorrectionResident(bool nonOrthogo
   // Identical to assemblePressureCorrection's call -- same kernels, same
   // arguments, same resulting device system. The ONLY difference is what
   // follows: no toHostSystem(), so nothing is downloaded.
-  assemblePressureCorrectionDevice(impl_->pressureCorrection, impl_->predictorFlux,
-                                   impl_->responseU, impl_->responseV,
-                                   threeDimensional ? &impl_->responseW : nullptr, nullptr, options,
-                                   impl_->pressureSystem);
+  assemblePressureCorrectionDevice(
+      impl_->pressureCorrection, impl_->predictorFlux, impl_->responseU, impl_->responseV,
+      threeDimensional ? &impl_->responseW : nullptr, nullptr, options, impl_->pressureSystem);
 }
 
 cfd::algebra::SolverResult GpuSimpleDiscretization::solvePressureCorrectionResident(
@@ -561,8 +642,8 @@ cfd::algebra::SolverResult GpuSimpleDiscretization::solvePressureCorrectionResid
   // vector -- bit for bit, which fill() with 0.0 gives.
   fill(impl_->krylov.x, nc, 0.0);
 
-  cfd::algebra::SolverResult result = solveBiCGSTABResident(settings, impl_->pressureMatrix,
-                                                            impl_->krylov);
+  cfd::algebra::SolverResult result =
+      solveBiCGSTABResident(settings, impl_->pressureMatrix, impl_->krylov);
   // p' into the buffer the two corrections already read from, device to device.
   copyWorkspaceSolution(impl_->krylov, nc, impl_->pPrime);
   return result;
@@ -582,7 +663,8 @@ std::size_t GpuSimpleDiscretization::residentSolveBytes() const noexcept {
   return impl_->krylov.residentBytes();
 }
 
-void GpuSimpleDiscretization::setPressureCorrection(const cfd::algebra::Vector& pressureCorrection) {
+void GpuSimpleDiscretization::setPressureCorrection(
+    const cfd::algebra::Vector& pressureCorrection) {
   if (!impl_->ready) return;
   const Index nc = impl_->cellCount;
   std::vector<Real> host(static_cast<std::size_t>(nc));
@@ -606,14 +688,12 @@ void GpuSimpleDiscretization::correctVelocity(Index gradientScheme, bool threeDi
   for (Index c = 0; c < nc; ++c) corrected[c] = cfd::Vector3{x[c], y[c], z[c]};
 }
 
-void GpuSimpleDiscretization::correctVelocityResident(Index gradientScheme,
-                                                      bool threeDimensional) {
+void GpuSimpleDiscretization::correctVelocityResident(Index gradientScheme, bool threeDimensional) {
   if (!impl_->ready) return;
   correctVelocityDevice(impl_->velocityCorrection, impl_->velocityStar, impl_->responseU,
                         impl_->responseV, threeDimensional ? &impl_->responseW : nullptr,
                         impl_->pPrime, gradientScheme, impl_->correctionGradX,
-                        impl_->correctionGradY, impl_->correctionGradZ,
-                        impl_->correctedVelocity);
+                        impl_->correctionGradY, impl_->correctionGradZ, impl_->correctedVelocity);
   // Carry the correction into the persistent velocity. Safe here because
   // `velocity` (the start-of-iteration state) has no reader left this
   // iteration: the corrections are the last stage, and both of them read
@@ -654,13 +734,58 @@ void GpuSimpleDiscretization::correctFaceMassFlux(bool withExplicitTerm,
                                                   cfd::fields::SurfaceField& corrected) {
   if (!impl_->ready) return;
   DeviceBuffer<Real>& result = impl_->correctedFlux;
-  correctFaceMassFluxDevice(impl_->pressureCorrection.mesh(), impl_->predictorFlux,
-                            impl_->pressureSystem.faceCoefficient, impl_->pPrime,
-                            withExplicitTerm ? &impl_->pressureSystem.explicitFaceFlux : nullptr,
-                            result);
+  correctFaceMassFluxDevice(
+      impl_->pressureCorrection.mesh(), impl_->predictorFlux, impl_->pressureSystem.faceCoefficient,
+      impl_->pPrime, withExplicitTerm ? &impl_->pressureSystem.explicitFaceFlux : nullptr, result);
   const auto host = download(result);
   corrected = cfd::fields::SurfaceField(impl_->faceCount);
   for (Index f = 0; f < impl_->faceCount; ++f) corrected[f] = host[f];
+}
+
+// P16-GPU-TURB Stage 7I. Borrows the resident flow state for the turbulence
+// correction. See GpuSimpleResidentTurbulence.hpp for which state and why.
+//
+// Nothing is copied and nothing crosses PCIe -- that is the entire point of
+// this function existing instead of a downloadVelocity() call.
+ResidentTurbulenceInputs residentTurbulenceInputs(GpuSimpleDiscretization& discretization) {
+  ResidentTurbulenceInputs inputs;
+  auto* impl = discretization.impl_.get();
+  if (impl == nullptr || !impl->ready || !impl->stateUploaded) return inputs;
+  inputs.velocity = &impl->velocity;
+  inputs.massFlux = &impl->massFlux;
+  inputs.convectionPlan = &impl->momentum.convectionPlan();
+  inputs.fluxPlan = &impl->faceFlux;
+  inputs.cellCount = impl->cellCount;
+  return inputs;
+}
+
+// P16 Phase 1. Computes mu_eff = mu + mu_t on the device, into the
+// discretization's own resident viscosity buffer, and hands authority to the
+// device. No download, no upload, no second full-field allocation: the buffer
+// written is the one assembleRelaxedMomentumDevice already reads.
+bool adoptDeviceEffectiveViscosity(GpuSimpleDiscretization& discretization,
+                                   const ResidentTurbulentViscosity& turbulent) {
+  if (!turbulent.usable()) {
+    throw cfd::InvalidArgumentError(
+        "adoptDeviceEffectiveViscosity: the resident turbulent-viscosity view is not usable");
+  }
+  auto* impl = discretization.impl_.get();
+  if (impl == nullptr || !impl->ready || !impl->stateUploaded) return false;
+  const DeviceBuffer<cfd::Real>& turbulentViscosity = *turbulent.turbulentViscosity;
+  if (turbulentViscosity.size() != impl->cellCount) {
+    throw cfd::InvalidArgumentError(
+        "adoptDeviceEffectiveViscosity: turbulentViscosity size does not match the resident cell "
+        "count");
+  }
+  // Throws on a non-finite or negative mu_t, exactly as the host
+  // validateTurbulentViscosityField would have -- from a 4-byte flag rather
+  // than from a field download.
+  computeEffectiveViscosityDevice(turbulent.molecularViscosity, turbulentViscosity,
+                                  impl->viscosity);
+  // The host mirror SIMPLE holds is now stale by construction, and saying so is
+  // the point: DeviceOwned is what stops any accessor returning it.
+  impl->viscosityAuthority = GpuSimpleDiscretization::FieldAuthority::DeviceOwned;
+  return true;
 }
 
 }  // namespace cfd::gpu

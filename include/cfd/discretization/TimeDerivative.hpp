@@ -54,6 +54,33 @@ struct TimeDerivativeCoefficients {
 // Throws InvalidArgumentError as implicitEulerTimeDerivative, and if
 // previousVolume.size() != mesh.numberOfCells() or a previous volume is not
 // finite and > 0.
+// P14 -- Phase B3: the same implicit Euler with a PER-CELL density, for a
+// generic transport equation whose density varies in space (and, between time
+// levels, in time).
+//
+// Conservative form of d(rho phi)/dt:
+//   diagonal[P] = rho^{n+1}_P * V_P / dt      <- the NEW density
+//   source[P]   = rho^n_P * phiOld[P] * V_P / dt   <- the OLD density
+//
+// The two density levels are separate parameters on purpose. The
+// non-conservative slip is to use rho^{n+1} on both, which is invisible in any
+// constant-density test and wrong the moment density changes; making the
+// caller name `densityOld` and `densityNew` separately is what turns that slip
+// into something you have to actively write.
+//
+// PURELY ADDITIVE (P14 compatibility constraint C2): the Real-density overload
+// above is untouched, and passing two constant fields equal to that Real
+// reproduces its coefficients exactly where the arithmetic is the same -- see
+// the equivalence test for the one place it is not.
+//
+// Throws InvalidArgumentError under the same conditions as the Real overload,
+// and if densityOld/densityNew size does not match the mesh cell count or any
+// entry is not finite and > 0.
+[[nodiscard]] TimeDerivativeCoefficients implicitEulerTimeDerivative(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phiOld,
+    const cfd::fields::ScalarField& densityOld, const cfd::fields::ScalarField& densityNew,
+    Real dt);
+
 [[nodiscard]] TimeDerivativeCoefficients aleImplicitEulerTimeDerivative(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phiOld,
     const cfd::fields::ScalarField& previousVolume, Real density, Real dt);

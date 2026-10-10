@@ -6,9 +6,9 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
 
 | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
 |---|---|---|---|---|---|---|
-| 8x8 | 64 | 0.125 | Converged | 903 | 3.2e-19 | 2.3 |
-| 16x16 | 256 | 0.0625 | Converged | 1740 | 7.95e-20 | 18.5 |
-| 32x32 | 1024 | 0.03125 | Converged | 3895 | 1.98e-20 | 134.6 |
+| 8x8 | 64 | 0.125 | Converged | 903 | 3.2e-19 | 3.0 |
+| 16x16 | 256 | 0.0625 | Converged | 1740 | 7.95e-20 | 19.3 |
+| 32x32 | 1024 | 0.03125 | Converged | 3895 | 1.98e-20 | 151.8 |
 
 **u**
 

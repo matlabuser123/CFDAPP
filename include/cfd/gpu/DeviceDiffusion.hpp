@@ -7,7 +7,7 @@
 // terms of cfd::discretization::NonOrthogonalDiffusion (the one implementation
 // behind momentum viscous, thermal conduction, species and turbulence scalar
 // diffusion) driven by the assembly of
-// turbulence::assembleScalarDiffusionContribution.
+// transport::assembleScalarDiffusionContribution.
 //
 // NOT a port of cfd::discretization::diffusion(), the explicit operator. That
 // one returns div(Gamma grad phi) as a field, has no production caller, and is

@@ -1,11 +1,15 @@
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "cfd/app/ProjectRunner.hpp"
+#include "cfd/core/Logger.hpp"
 #include "cfd/core/Types.hpp"
 #include "cfd/core/Version.hpp"
 #include "cfd/physics/ContinuityEquation.hpp"
@@ -25,11 +29,27 @@ using cfd::app::ProjectRunStatus;
 void printUsage(std::ostream& out) {
   out << cfd::core::projectName() << "\n\n"
       << "Usage:\n"
-      << "  cfdapp --case <case-directory>\n\n"
+      << "  cfdapp --case <case-directory>\n"
+      << "  cfdapp --case <dir> --checkpoint <file> [--checkpoint-every <n>]\n"
+      << "  cfdapp --case <dir> --resume <file>\n\n"
       << "Options:\n"
-      << "  --case <path>   Run a CFD case\n"
-      << "  --help          Show help\n"
-      << "  --version       Show version\n";
+      << "  --case <path>            Run a CFD case\n"
+      << "  --checkpoint <file>      Write a solver checkpoint to <file>\n"
+      << "  --checkpoint-every <n>   Also write it every n outer iterations\n"
+      << "                           (requires --checkpoint; n >= 1)\n"
+      << "  --resume <file>          Continue a solve from a checkpoint written\n"
+      << "                           earlier for this same case and mesh\n"
+      << "  --log-level <level>      Diagnostics verbosity on stderr: " << cfd::logLevelNames()
+      << "\n"
+      << "                           (default info; results always go to stdout)\n"
+      << "  --help                   Show help\n"
+      << "  --version                Show version\n\n"
+      << "A checkpoint stores solver state -- velocity, pressure, the corrected face\n"
+      << "mass flux, the completed iteration count and the residual history -- so a\n"
+      << "resumed run continues the same solve instead of starting a new one.\n"
+      << "Resuming needs the same mesh and the same case configuration; only\n"
+      << "solver.json max_iterations may differ, so a run can be given more\n"
+      << "iterations and finished.\n";
 }
 
 std::string_view statusLabel(cfd::pressure_velocity::SIMPLEStatus status) {
@@ -209,6 +229,16 @@ void printReport(std::ostream& out, const ProjectRunResult& run) {
     out << "Compressible evaluated: yes\n"
         << "Compressible max Mach number: " << run.compressibleResult->machMax << "\n\n";
   }
+  // P13-001: only printed when checkpointing was actually asked for, so the
+  // report of a plain run is unchanged.
+  if (run.resumedFromIteration > 0) {
+    out << "Resumed from iteration: " << run.resumedFromIteration << "\n";
+  }
+  if (run.checkpointsWritten > 0 && run.checkpointPath.has_value()) {
+    out << "Checkpoints written: " << run.checkpointsWritten << " -> "
+        << run.checkpointPath->string() << "\n";
+  }
+  if (run.resumedFromIteration > 0 || run.checkpointsWritten > 0) out << "\n";
   if (run.exportSummary.has_value()) {
     out << "Results:\n"
         << "  JSON:      " << run.exportSummary->metadataPath.string() << "\n"
@@ -222,15 +252,18 @@ void printReport(std::ostream& out, const ProjectRunResult& run) {
   }
 }
 
-int runCase(const std::string& caseDirectory) {
-  const ProjectRunResult run = cfd::app::ProjectRunner::run(caseDirectory);
+int runCase(const std::string& caseDirectory, const cfd::app::ProjectRunOptions& options) {
+  const ProjectRunResult run = cfd::app::ProjectRunner::run(caseDirectory, options);
 
   if (run.status == ProjectRunStatus::InvalidCase) {
     std::cerr << "Case configuration error: " << run.errorMessage << "\n";
     return cfd::app::exitCodeFor(run.status);
   }
   if (run.status == ProjectRunStatus::ApplicationError && !run.exportSummary.has_value()) {
-    std::cerr << "Result export error: " << run.errorMessage << "\n";
+    // P13-001: a checkpoint problem lands here too -- it is reported and the
+    // run fails, never silently ignored. The message names the file and the
+    // reason (ProjectRunner's own checkpointError text).
+    std::cerr << "Run error: " << run.errorMessage << "\n";
     return cfd::app::exitCodeFor(run.status);
   }
 
@@ -250,6 +283,24 @@ int main(int argc, char** argv) {
 
   std::string caseDirectory;
   bool haveCase = false;
+  cfd::app::ProjectRunOptions options;
+  // P13-005 (V4), amendment A1. The CLI reports everything itself -- the
+  // report on stdout, its own error lines on stderr -- so the diagnostic
+  // trail is opt-in via --log-level and a default run's stderr is byte-for-
+  // byte what it was. Warning rather than silent, so the two logging call
+  // sites that existed before this item (both warning()) still appear
+  // exactly as they did: criterion C3.
+  cfd::Logger::instance().setLevel(cfd::LogLevel::Warning);
+  // P13-001: an option that takes a value, resolved once so --case,
+  // --checkpoint and --resume all report a missing argument the same way.
+  const auto takeValue = [&args](std::size_t& i, const char* flag, std::string& target) {
+    if (i + 1 >= args.size()) {
+      std::cerr << "Error: " << flag << " requires an argument\n\n";
+      return false;
+    }
+    target = args[++i];
+    return true;
+  };
   for (std::size_t i = 0; i < args.size(); ++i) {
     const std::string& arg = args[i];
     if (arg == "--help" || arg == "-h") {
@@ -261,13 +312,70 @@ int main(int argc, char** argv) {
       return cfd::app::exitCodeFor(ProjectRunStatus::Converged);
     }
     if (arg == "--case") {
-      if (i + 1 >= args.size()) {
-        std::cerr << "Error: --case requires a directory argument\n\n";
+      if (!takeValue(i, "--case", caseDirectory)) {
         printUsage(std::cerr);
         return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
       }
-      caseDirectory = args[++i];
       haveCase = true;
+      continue;
+    }
+    if (arg == "--checkpoint") {
+      std::string value;
+      if (!takeValue(i, "--checkpoint", value)) {
+        printUsage(std::cerr);
+        return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+      }
+      options.checkpointPath = std::filesystem::path(value);
+      continue;
+    }
+    if (arg == "--resume") {
+      std::string value;
+      if (!takeValue(i, "--resume", value)) {
+        printUsage(std::cerr);
+        return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+      }
+      options.resumeFrom = std::filesystem::path(value);
+      continue;
+    }
+    if (arg == "--checkpoint-every") {
+      std::string value;
+      if (!takeValue(i, "--checkpoint-every", value)) {
+        printUsage(std::cerr);
+        return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+      }
+      // Rejected here rather than turned into a silent 0: "--checkpoint-every
+      // ten" meaning "never checkpoint" is exactly the kind of quiet
+      // misbehaviour a production run must not have.
+      char* end = nullptr;
+      const long long parsed = std::strtoll(value.c_str(), &end, 10);
+      if (end == value.c_str() || *end != '\0' || parsed < 1) {
+        std::cerr << "Error: --checkpoint-every requires a positive integer, got \"" << value
+                  << "\"\n\n";
+        printUsage(std::cerr);
+        return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+      }
+      options.checkpointInterval = static_cast<cfd::Index>(parsed);
+      continue;
+    }
+    if (arg == "--log-level") {
+      std::string value;
+      if (!takeValue(i, "--log-level", value)) {
+        printUsage(std::cerr);
+        return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+      }
+      // P13-005 (V1/V2). Rejected, not ignored: a run told to be quiet that
+      // was not would be a surprise, and one told to be verbose that silently
+      // was not would send a user hunting for diagnostics that were never
+      // going to appear. The valid names come from the logger, so there is one
+      // vocabulary rather than a second copy here that can drift.
+      const std::optional<cfd::LogLevel> level = cfd::parseLogLevel(value);
+      if (!level.has_value()) {
+        std::cerr << "Error: --log-level must be one of " << cfd::logLevelNames() << ", got \""
+                  << value << "\"\n\n";
+        printUsage(std::cerr);
+        return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+      }
+      cfd::Logger::instance().setLevel(*level);
       continue;
     }
     std::cerr << "Error: unrecognized argument \"" << arg << "\"\n\n";
@@ -280,6 +388,15 @@ int main(int argc, char** argv) {
     printUsage(std::cerr);
     return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
   }
+  // P13-001: --checkpoint-every says how often to write the file named by
+  // --checkpoint. Without a file to write there is nothing for it to mean,
+  // and silently accepting it would segment the solve for no observable
+  // reason, so it is an error rather than a no-op.
+  if (options.checkpointInterval > 0 && !options.checkpointPath.has_value()) {
+    std::cerr << "Error: --checkpoint-every requires --checkpoint <file>\n\n";
+    printUsage(std::cerr);
+    return cfd::app::exitCodeFor(ProjectRunStatus::ApplicationError);
+  }
 
-  return runCase(caseDirectory);
+  return runCase(caseDirectory, options);
 }

@@ -64,6 +64,24 @@ namespace cfd::compressible {
     // (cfd::physics::assembleMomentumSourceContribution), added to the RHS
     // with the pressure source, before relaxation. Null (default): the
     // assembly is structurally identical to before.
-    const cfd::fields::VectorField* momentumSource = nullptr);
+    const cfd::fields::VectorField* momentumSource = nullptr,
+    // P17.4: include the DILATATIONAL part of the compressible viscous stress,
+    // -(2/3) mu grad(div U), via assembleDilatationalStressContribution.
+    //
+    // DEFAULT FALSE -- exactly the pre-P17.4 assembly, bit for bit. The same convention
+    // nonOrthogonalCorrections{0} and robustness already use: a new numerical term arrives
+    // switched off so a qualified baseline is provably undisturbed.
+    //
+    // Off is not merely conservative here. The compressible system-level MMS manufactures
+    // its forcing as "f = (m.grad)U + grad p - mu lap U" and names
+    // "mu/3 grad(div U) stress term" in its own not_covered field, so enabling this term
+    // unconditionally would make that passing, validated study fail for a reason that is
+    // not a defect. Re-deriving its forcing is follow-on work with its own evidence burden.
+    //
+    // For incompressible flow div U = 0 and the term vanishes identically, which is why its
+    // absence was harmless through P16 -- and why enabling it cannot disturb a
+    // divergence-free field. See include/cfd/compressible/DilatationalStress.hpp for the
+    // formulation and its measured boundary-accuracy limit.
+    bool includeDilatationalStress = false);
 
 }  // namespace cfd::compressible

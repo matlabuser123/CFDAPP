@@ -38,6 +38,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../BenchmarkOutput.hpp"
 #include "cfd/algebra/BiCGSTAB.hpp"
 #include "cfd/algebra/CG.hpp"
 #include "cfd/algebra/LinearSolverFactory.hpp"
@@ -61,12 +62,6 @@
 using cfd::Index;
 using cfd::Real;
 using cfd::Vector2;
-using cfd::boundary::BoundaryConditionSet;
-using cfd::boundary::MovingWall;
-using cfd::boundary::Wall;
-using cfd::mesh::Mesh;
-using cfd::mesh::MeshGeometry;
-using cfd::physics::FluidProperties;
 using cfd::algebra::LinearSolverBackend;
 using cfd::algebra::LinearSolverSettings;
 using cfd::algebra::LinearSolverType;
@@ -77,6 +72,12 @@ using cfd::algebra::SolverResult;
 using cfd::algebra::SparseMatrix;
 using cfd::algebra::SparseMatrixBuilder;
 using cfd::algebra::Vector;
+using cfd::boundary::BoundaryConditionSet;
+using cfd::boundary::MovingWall;
+using cfd::boundary::Wall;
+using cfd::mesh::Mesh;
+using cfd::mesh::MeshGeometry;
+using cfd::physics::FluidProperties;
 using cfd::pressure_velocity::SIMPLE;
 using cfd::pressure_velocity::SIMPLEResult;
 using cfd::pressure_velocity::SIMPLESettings;
@@ -201,8 +202,9 @@ double median(std::vector<double> values) {
 }
 
 SolveRecord runOneConfiguration(const std::string& caseName, const SparseMatrix& matrix,
-                                const Vector& rhs, LinearSolverType type, LinearSolverBackend backend,
-                                PreconditionerType preconditioner, int repeats) {
+                                const Vector& rhs, LinearSolverType type,
+                                LinearSolverBackend backend, PreconditionerType preconditioner,
+                                int repeats) {
   LinearSolverSettings settings;
   settings.absoluteTolerance = 1e-10;
   settings.relativeTolerance = 1e-8;
@@ -251,8 +253,8 @@ void printRecord(const SolveRecord& r) {
             << " | iters=" << r.iterations << " | t0=" << r.initialResidual
             << " | tFinal=" << r.finalResidual << " | solve_s=" << r.solveSecondsMedian
             << " | precond_setup_s=" << r.preconditionerSetupSeconds
-            << " | precond_apply_s=" << r.preconditionerApplySeconds
-            << " | " << (r.converged ? "CONVERGED" : "FAILED") << "\n";
+            << " | precond_apply_s=" << r.preconditionerApplySeconds << " | "
+            << (r.converged ? "CONVERGED" : "FAILED") << "\n";
 }
 
 nlohmann::json toJson(const SolveRecord& r) {
@@ -291,17 +293,17 @@ void runLinearSystemBenchmarks(const std::string& outDir) {
       {"pressure_like_well_conditioned_40x40", makeSpdGridMatrix(40, 40, /*diagonalBoost=*/0.1)});
   spdCases.push_back({"pressure_like_poorly_conditioned_40x40",
                       makeSpdGridMatrix(40, 40, /*diagonalBoost=*/0.001)});
-  spdCases.push_back(
-      {"pressure_like_poorly_conditioned_80x80", makeSpdGridMatrix(80, 80, /*diagonalBoost=*/0.001)});
+  spdCases.push_back({"pressure_like_poorly_conditioned_80x80",
+                      makeSpdGridMatrix(80, 80, /*diagonalBoost=*/0.001)});
 
   for (const auto& spdCase : spdCases) {
     const Vector x = makeVector(spdCase.matrix.columns(), 0.37);
     const Vector rhs = spdCase.matrix.multiply(x);
     for (auto backend : backends) {
       for (auto preconditioner : {PreconditionerType::None, PreconditionerType::Jacobi}) {
-        const auto record = runOneConfiguration(spdCase.name, spdCase.matrix, rhs,
-                                                 LinearSolverType::CG, backend, preconditioner,
-                                                 kRepeats);
+        const auto record =
+            runOneConfiguration(spdCase.name, spdCase.matrix, rhs, LinearSolverType::CG, backend,
+                                preconditioner, kRepeats);
         printRecord(record);
         records.push_back(record);
       }
@@ -319,9 +321,9 @@ void runLinearSystemBenchmarks(const std::string& outDir) {
     const Vector rhs = nsCase.matrix.multiply(x);
     for (auto backend : backends) {
       for (auto preconditioner : {PreconditionerType::None, PreconditionerType::Jacobi}) {
-        const auto record = runOneConfiguration(nsCase.name, nsCase.matrix, rhs,
-                                                 LinearSolverType::BiCGSTAB, backend, preconditioner,
-                                                 kRepeats);
+        const auto record =
+            runOneConfiguration(nsCase.name, nsCase.matrix, rhs, LinearSolverType::BiCGSTAB,
+                                backend, preconditioner, kRepeats);
         printRecord(record);
         records.push_back(record);
       }
@@ -403,8 +405,8 @@ void runSimpleBenchmark(Index nx, Index ny, const std::string& outDir) {
 
   std::cout << "\nSIMPLE lid-driven cavity " << nx << "x" << ny
             << " -- preconditioner | total_s | per_iter_ms | outer_iters | status | "
-              "gpu_linear_solves | gpu_linear_iters | gpu_solve_s | precond_setup_s | "
-              "precond_apply_s | mass_imbalance\n";
+               "gpu_linear_solves | gpu_linear_iters | gpu_solve_s | precond_setup_s | "
+               "precond_apply_s | mass_imbalance\n";
 
   for (auto preconditioner : {PreconditionerType::None, PreconditionerType::Jacobi}) {
     cfd::fields::VectorField velocity(n, Vector2{0.0, 0.0});
@@ -419,12 +421,13 @@ void runSimpleBenchmark(Index nx, Index ny, const std::string& outDir) {
     const auto& stats = cfd::gpu::gpuExecutionStats();
 
     const double perIterationMs =
-        result.iterations > 0 ? 1000.0 * totalSeconds / static_cast<double>(result.iterations) : 0.0;
+        result.iterations > 0 ? 1000.0 * totalSeconds / static_cast<double>(result.iterations)
+                              : 0.0;
 
     const std::string preconditionerName =
         (preconditioner == PreconditionerType::Jacobi) ? "Jacobi" : "None";
-    const bool ranCleanly = (result.status == SIMPLEStatus::Converged ||
-                            result.status == SIMPLEStatus::MaxIterations);
+    const bool ranCleanly =
+        (result.status == SIMPLEStatus::Converged || result.status == SIMPLEStatus::MaxIterations);
 
     std::cout << preconditionerName << " | " << totalSeconds << " | " << perIterationMs << " | "
               << result.iterations << " | " << (ranCleanly ? "ok" : "FAILED") << " | "
@@ -461,19 +464,22 @@ void runSimpleBenchmark(Index nx, Index ny, const std::string& outDir) {
 
 }  // namespace
 
-int main() {
-  const std::string outDir = "results/performance/preconditioner";
+int main(int argc, char** argv) {
+  const std::string outDir =
+      cfd::benchmarks::benchmarkOutputDir(argc, argv, "results/performance/preconditioner")
+          .string();
 
   std::cout << "cfd_benchmark_gpu_preconditioner -- CFDApp version " << cfd::core::versionString()
             << "\n";
-  std::cout << "cuda_available_at_runtime: " << (cfd::gpu::cudaAvailable() ? "yes" : "no") << "\n\n";
+  std::cout << "cuda_available_at_runtime: " << (cfd::gpu::cudaAvailable() ? "yes" : "no")
+            << "\n\n";
 
   std::cout << "=== Linear-system-level: CG/BiCGSTAB x CPU/GPU x None/Jacobi ===\n";
   runLinearSystemBenchmarks(outDir);
 
   if (!cfd::gpu::cudaAvailable()) {
     std::cout << "\nno usable CUDA device at runtime -- skipping production SIMPLE GPU "
-                "benchmark.\n";
+                 "benchmark.\n";
     return 0;
   }
 

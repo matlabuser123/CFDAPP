@@ -76,6 +76,18 @@ namespace cfd::compressible {
 // or (propagated from `thermodynamics.density()`) if any boundary face's
 // evaluated absolute pressure or temperature is not finite and strictly
 // positive.
+//
+// P17.1 -- DENSITY PRECONDITION, now part of the contract rather than an
+// accident of the present callers: every `density[i]` must be finite and
+// strictly positive. A violation throws InvalidArgumentError naming the
+// offending cell index. The value is never clamped: a clamped density
+// yields a mass flux no thermodynamic state corresponds to (the same
+// reasoning thermal/Enthalpy.hpp gives for an out-of-range enthalpy).
+// This matters most for the FINITE violations -- a negative density
+// averaged against a valid neighbour gives a face density of exactly
+// zero, and a zero density gives a plausible non-zero flux, neither of
+// which a downstream finiteness check can detect. Measured on the
+// pre-P17.1 tree in `results/p17/variable_density/logs/00_dryrun.log`.
 [[nodiscard]] cfd::fields::SurfaceField calculateCompressibleMassFlux(
     const cfd::mesh::Mesh& mesh, const cfd::fields::VectorField& velocity,
     const cfd::fields::ScalarField& density,

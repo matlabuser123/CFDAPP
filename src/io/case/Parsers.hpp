@@ -60,9 +60,15 @@ namespace cfd::io::detail {
 // sourced from physics.json's "multiphase" presence) decides whether
 // each patch's "alpha" key is required or forbidden, same convention as
 // thermalEnabled.
+//
+// TD-001: `compositionSpecies` says whether `speciesNames` is a MIXTURE (a reacting case) or a set
+// of independent passive tracers. For a mixture the per-patch `fixed_value` entries must sum to 1,
+// because they are a composition; for tracers they are unrelated concentrations and no such
+// relation exists. Defaulted false, so every existing caller keeps the passive meaning unchanged.
 [[nodiscard]] cfd::io::BoundaryConfig parseBoundaryConfig(
     const nlohmann::json& json, const std::filesystem::path& path, bool thermalEnabled,
-    const std::vector<std::string>& speciesNames, bool multiphaseEnabled, int dimension = 2);
+    const std::vector<std::string>& speciesNames, bool multiphaseEnabled, int dimension = 2,
+    bool compositionSpecies = false);
 // P12-MESH-006: `dimension` (from geometry.json) is the component count of the
 // velocity "value" arrays: [u, v] in 2D (unchanged), [u, v, w] in 3D.
 

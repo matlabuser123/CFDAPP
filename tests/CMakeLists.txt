@@ -56,6 +56,135 @@ foreach(invalid_case IN ITEMS missing_mesh bad_physics bad_boundary bad_solver m
   set_tests_properties(CFDAppCli_${invalid_case} PROPERTIES WILL_FAIL TRUE LABELS "integration")
 endforeach()
 
+# --- P13-001 -- the CLI's checkpoint flags ---------------------------------
+# The binary's own argument handling. The checkpoint/resume ROUND TRIP is
+# covered in CI by tests/integration/case/test_checkpoint_production_case.cpp
+# (through ProjectRunner, the one execution path); these cover what only a real
+# process can: that the flags exist, are documented, and reject bad input
+# instead of silently doing nothing.
+add_test(
+  NAME CFDAppCliCheckpointFlagsAreDocumented
+  COMMAND "$<TARGET_FILE:cfdapp>" --help
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliCheckpointFlagsAreDocumented PROPERTIES
+  PASS_REGULAR_EXPRESSION "--checkpoint-every"
+  LABELS "integration"
+)
+
+# Each of these must exit nonzero. A silently-ignored flag is the failure mode
+# worth guarding: "--checkpoint-every ten" meaning "never checkpoint" would let
+# a production run believe it was protected when it was not.
+#   every_without_file  --checkpoint-every without --checkpoint
+#   every_not_a_number  a non-integer interval
+#   every_zero          an interval of 0
+#   resume_missing_arg  --resume with no argument
+#   resume_missing_file --resume pointing at a file that does not exist
+# Written out one at a time rather than looped: the argument lists contain
+# semicolons, which CMake flattens into list separators inside a set(), and the
+# first attempt at a loop here produced mangled test names and a broken
+# configure. Five explicit blocks cannot be mis-escaped.
+function(cfdapp_cli_rejection name)
+  add_test(
+    NAME CFDAppCliCheckpoint_${name}
+    COMMAND "$<TARGET_FILE:cfdapp>" ${ARGN}
+    WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+  )
+  set_tests_properties(CFDAppCliCheckpoint_${name} PROPERTIES
+    WILL_FAIL TRUE LABELS "integration")
+endfunction()
+
+set(CFDAPP_CLI_SMOKE_CASE tests/data/cases/valid_cavity_cli_smoke)
+
+# --checkpoint-every without --checkpoint: an interval with nothing to write.
+cfdapp_cli_rejection(every_without_file --case ${CFDAPP_CLI_SMOKE_CASE} --checkpoint-every 10)
+# A non-integer interval. "ten" must not silently mean "never".
+cfdapp_cli_rejection(every_not_a_number --case ${CFDAPP_CLI_SMOKE_CASE}
+                     --checkpoint x.ckpt --checkpoint-every ten)
+# An interval of 0 -- likewise not a silent "never".
+cfdapp_cli_rejection(every_zero --case ${CFDAPP_CLI_SMOKE_CASE}
+                     --checkpoint x.ckpt --checkpoint-every 0)
+# --resume with no argument at all.
+cfdapp_cli_rejection(resume_missing_arg --case ${CFDAPP_CLI_SMOKE_CASE} --resume)
+# --resume naming a checkpoint that does not exist.
+cfdapp_cli_rejection(resume_missing_file --case ${CFDAPP_CLI_SMOKE_CASE}
+                     --resume no_such_file.ckpt)
+
+# --- P13-006 -- the package's name and generator list ----------------------
+# cfdapp_package_naming() is a pure function of the system name, which is the
+# whole reason it is a function: the WINDOWS artifact name is a contract that
+# .github/workflows/release.yml globs (CFDApp-*-Windows-x64.zip / .exe) and
+# that was verified on real Windows hardware for 0.1.0 and v0.2.0 -- and no
+# Windows machine is available to routine testing here. Driving the function
+# with `cmake -P` asserts that contract from any host.
+#
+# Runs without configuring or building anything, so it costs milliseconds and
+# is not tied to CFDAPP_ENABLE_PACKAGING being on.
+add_test(
+  NAME CFDAppPackageNaming
+  COMMAND "${CMAKE_COMMAND}" -DCFDAPP_SOURCE_DIR=${CFDApp_SOURCE_DIR}
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_package_naming.cmake"
+)
+set_tests_properties(CFDAppPackageNaming PROPERTIES LABELS "unit")
+
+# An unsupported system must REFUSE rather than invent a plausible name:
+# "CFDApp-0.2.0-Haiku-x64.tar.gz" would be a claim that CFDApp runs on Haiku.
+# A separate process because a CMake script cannot catch its own FATAL_ERROR.
+add_test(
+  NAME CFDAppPackageNamingRefusesUnknownSystem
+  COMMAND "${CMAKE_COMMAND}" -DCFDAPP_SOURCE_DIR=${CFDApp_SOURCE_DIR}
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_package_naming_refuses.cmake"
+)
+set_tests_properties(CFDAppPackageNamingRefusesUnknownSystem PROPERTIES
+  WILL_FAIL TRUE LABELS "unit")
+
+# --- P13-005 -- the CLI's diagnostics channel ------------------------------
+# What only a real process can check: that --log-level exists, is documented,
+# rejects an unknown level instead of ignoring it, and -- the criterion the
+# whole item rests on -- that no log line ever reaches stdout. stdout is the
+# report; a diagnostic landing there corrupts a machine-readable run.
+add_test(
+  NAME CFDAppCliLogLevelIsDocumented
+  COMMAND "$<TARGET_FILE:cfdapp>" --help
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliLogLevelIsDocumented PROPERTIES
+  PASS_REGULAR_EXPRESSION "--log-level"
+  LABELS "integration"
+)
+
+# An unknown level must be refused, and the refusal must name the valid ones --
+# a user who guessed "verbose" needs to be told what to write instead.
+add_test(
+  NAME CFDAppCliLogLevelUnknownIsRejected
+  COMMAND "$<TARGET_FILE:cfdapp>" --case ${CFDAPP_CLI_SMOKE_CASE} --log-level shout
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliLogLevelUnknownIsRejected PROPERTIES
+  WILL_FAIL TRUE LABELS "integration")
+
+# --log-level with no argument at all.
+cfdapp_cli_rejection(log_level_missing_arg --case ${CFDAPP_CLI_SMOKE_CASE} --log-level)
+
+# The channel separation itself, at the most verbose level there is: the run
+# still prints its report and nothing else. FAIL_REGULAR_EXPRESSION catches a
+# bracketed log tag on stdout; PASS_REGULAR_EXPRESSION keeps it from passing by
+# printing nothing at all. ctest matches both against stdout+stderr combined,
+# so the check runs with stderr discarded -- see the wrapper below.
+add_test(
+  NAME CFDAppCliLogLinesNeverReachStdout
+  COMMAND "${CMAKE_COMMAND}"
+          -DCFDAPP=$<TARGET_FILE:cfdapp>
+          -DCASE=${CFDAPP_CLI_SMOKE_CASE}
+          -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/RunCliStdoutOnly.cmake"
+  WORKING_DIRECTORY "${CFDApp_SOURCE_DIR}"
+)
+set_tests_properties(CFDAppCliLogLinesNeverReachStdout PROPERTIES
+  PASS_REGULAR_EXPRESSION "Converged:"
+  FAIL_REGULAR_EXPRESSION "\\[(TRACE|DEBUG|INFO|WARNING|ERROR)\\]"
+  LABELS "integration"
+)
+
 # P12-MESH-004 -- the CLI's mesh-quality report. The two invalid fixtures
 # are rejected before any solver runs (they write no results, so their two
 # tests each may share the fixture); the error must name the defect and

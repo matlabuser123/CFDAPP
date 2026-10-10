@@ -90,21 +90,19 @@ bool DeviceDiffusionPlan::build(const Mesh& mesh,
     }
 
     const Index ownerId = face.owner();
-    const Real distance =
-        MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
+    const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
     bDistance[f] = distance;
 
     const auto& bc = cfd::boundary::boundaryConditionForFace(mesh, face.id(), boundaries);
     const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc);
     if (scalarBc == nullptr) {
-      unsupportedReason_ = "face " + std::to_string(f) + ": boundary condition is not scalar-valued";
+      unsupportedReason_ =
+          "face " + std::to_string(f) + ": boundary condition is not scalar-valued";
       return false;
     }
     if (!encodeBoundaryCondition(*scalarBc, distance, bA[f], bB[f], bKind[f])) {
-      unsupportedReason_ = "face " + std::to_string(f) + ": boundary condition '" +
-                           std::string(bc.name()) +
-                           "' is not bitwise-reproducible as a constant, a shift or an affine "
-                           "function of phi_P; mesh rejected for the device diffusion path";
+      unsupportedReason_ =
+          cfd::gpu::unsupportedEncodingReason(f, bc, "boundary condition", "diffusion");
       return false;
     }
     bPrescribed[f] = cfd::discretization::prescribesBoundaryValue(bc.type()) ? 1 : 0;

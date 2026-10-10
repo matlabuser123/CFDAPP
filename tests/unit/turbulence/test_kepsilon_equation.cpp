@@ -15,6 +15,7 @@
 #include "cfd/fields/ScalarField.hpp"
 #include "cfd/fields/SurfaceField.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
+#include "cfd/transport/ScalarTransport.hpp"
 #include "cfd/turbulence/KEpsilonEquation.hpp"
 
 using cfd::Index;
@@ -29,9 +30,9 @@ using cfd::fields::ScalarField;
 using cfd::fields::SurfaceField;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
-using cfd::turbulence::applyImplicitScalarSource;
-using cfd::turbulence::assembleScalarDiffusionContribution;
-using cfd::turbulence::assembleScalarTransportEquation;
+using cfd::transport::applyImplicitScalarSource;
+using cfd::transport::assembleScalarDiffusionContribution;
+using cfd::transport::assembleScalarTransportEquation;
 using cfd::turbulence::computeEffectiveDiffusivity;
 
 namespace {

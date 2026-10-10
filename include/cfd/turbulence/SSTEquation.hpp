@@ -40,7 +40,7 @@ namespace cfd::turbulence {
 // out-of-range F1 gets the algebraically-consistent (if unphysical)
 // extrapolated result, the same "this is pure algebra, the caller
 // supplies physically meaningful inputs" convention as
-// KEpsilonEquation.hpp's applyImplicitScalarSource.
+// cfd::transport::applyImplicitScalarSource (P14).
 [[nodiscard]] Real blendSSTCoefficient(Real F1, Real phi1, Real phi2);
 
 // CDkw = max(2*rho*sigmaOmega2*(gradK . gradOmega)/omega, minimum) --

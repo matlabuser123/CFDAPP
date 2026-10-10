@@ -4,9 +4,9 @@ Differentially heated square cavity, Ra = 1e3, Pr = 0.71, SIMPLE + ThermalSolver
 
 | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
 |---|---|---|---|---|---|---|
-| coarse | 10 x 10 | 100 | 0.1 | 14.6 | Converged (50 it) | yes |
-| medium | 15 x 15 | 225 | 0.0666667 | 60.8 | Converged (50 it) | yes |
-| fine | 20 x 20 | 400 | 0.05 | 99.6 | Converged (50 it) | yes |
+| coarse | 10 x 10 | 100 | 0.1 | 17.0 | Converged (50 it) | yes |
+| medium | 15 x 15 | 225 | 0.0666667 | 67.4 | Converged (50 it) | yes |
+| fine | 20 x 20 | 400 | 0.05 | 141.8 | Converged (50 it) | yes |
 
 **nu_avg** -- average hot-wall Nusselt number
 

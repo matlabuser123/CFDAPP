@@ -49,7 +49,18 @@ void throwConfigError(const std::filesystem::path& path, std::string_view field,
   std::ostringstream message;
   message << path.string() << ": " << fieldLabel(field) << "must satisfy " << constraint
           << "; received " << received;
-  throw CaseConfigurationError(message.str());
+  // P13-002: the same four things, carried as data. The message above is
+  // UNCHANGED -- byte for byte -- because a 2537-row corpus over 12 case
+  // families is a frozen gate criterion (acceptance_gate.md, V3), and because
+  // the message is what a user reads. What changes is that a consumer no
+  // longer has to parse it: every one of this function's ~140 call sites is
+  // instrumented here, without any of them being touched.
+  //
+  // `path.filename()` rather than the full path: the message carries the path
+  // for the human, and a consumer switching on "which file" wants the name.
+  throw CaseConfigurationError(message.str(),
+                               cfd::CaseDiagnostic{path.filename().string(), std::string(field),
+                                                   std::string(constraint), received});
 }
 
 std::string describeJsonValue(const nlohmann::json& value) {

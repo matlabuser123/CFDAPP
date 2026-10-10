@@ -66,20 +66,20 @@ SparseMatrix makeGridMatrix(Index nx, Index ny) {
 int main() {
   if (!cfd::gpu::cudaAvailable()) {
     std::cout << "cfd_benchmark_gpu_spmv: no usable CUDA device at runtime -- nothing to "
-                "benchmark, exiting.\n";
+                 "benchmark, exiting.\n";
     return 0;
   }
 
   std::cout << "cfd_benchmark_gpu_spmv -- 'stateless' is cfd::gpu::csrSpmvCuda(), a fresh "
-              "cudaMalloc+H2D-transfer+kernel+D2H-transfer *every call*; 'persistent' uploads "
-              "the matrix/vector once outside the timed loop and only launches the kernel "
-              "inside it (P6-PERF-001).\n";
+               "cudaMalloc+H2D-transfer+kernel+D2H-transfer *every call*; 'persistent' uploads "
+               "the matrix/vector once outside the timed loop and only launches the kernel "
+               "inside it (P6-PERF-001).\n";
   std::cout << "grid      | n      | cpu_s(30) | gpu_stateless_s(30) | gpu_persistent_s(30) | "
-              "speedup_stateless | speedup_persistent | stateless_h2d_calls | "
-              "persistent_h2d_calls\n";
+               "speedup_stateless | speedup_persistent | stateless_h2d_calls | "
+               "persistent_h2d_calls\n";
 
-  const std::vector<std::pair<Index, Index>> grids = {
-      {20, 20}, {50, 50}, {100, 100}, {200, 200}, {400, 400}, {800, 800}};
+  const std::vector<std::pair<Index, Index>> grids = {{20, 20},   {50, 50},   {100, 100},
+                                                      {200, 200}, {400, 400}, {800, 800}};
   constexpr int kRepeats = 30;
 
   for (const auto& [nx, ny] : grids) {
@@ -134,7 +134,7 @@ int main() {
   // proving operation 2 reuses everything operation 1 allocated.
   {
     std::cout << "\npersistent-path reuse evidence (300x300 grid, structure/vector uploaded "
-                "once):\n";
+                 "once):\n";
     const SparseMatrix matrix = makeGridMatrix(300, 300);
     Vector x(matrix.columns());
     for (Index i = 0; i < x.size(); ++i) x[i] = static_cast<Real>(i % 13) * 0.05;

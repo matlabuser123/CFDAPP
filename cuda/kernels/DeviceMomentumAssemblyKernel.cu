@@ -70,6 +70,10 @@ struct MomentumAssemblyView {
   const Real* bcNormalX;
   const Real* bcNormalY;
   const Real* bcNormalZ;
+  // P16 Phase 2: the sparse wall-face viscosity override, dense on device and
+  // zero away from wall faces. nullptr when no wall treatment is active, which
+  // is what makes a laminar assembly bitwise what it was.
+  const Real* wallViscosity;
 };
 
 namespace {
@@ -98,7 +102,8 @@ __device__ void diffusionPass(const View& p, Index c, Index column, bool collect
 
     if (neighbor == DeviceMesh::kNoNeighbor) {
       const DeviceFaceDiffusionTerms terms =
-          deviceBoundaryFaceDiffusionTerms(p.geometry, p.faceOwner, mu, gx, gy, gz, f);
+          deviceBoundaryFaceDiffusionTerms(p.geometry, p.faceOwner, mu, gx, gy, gz, f,
+                                           p.wallViscosity);
       if (collectRhs) {
         const Real phiB =
             boundaryComponent(p, f, ux[owner], uy[owner], uz[owner], component);
@@ -296,6 +301,7 @@ void fillMomentumAssemblyView(const DeviceMomentumAssemblyPlan& plan, MomentumAs
   p.bcNormalX = plan.convection_.boundaryNormalX();
   p.bcNormalY = plan.convection_.boundaryNormalY();
   p.bcNormalZ = plan.convection_.boundaryNormalZ();
+  p.wallViscosity = nullptr;
 }
 
 void assembleRelaxedMomentumDevice(const DeviceMomentumAssemblyPlan& plan,
@@ -305,6 +311,7 @@ void assembleRelaxedMomentumDevice(const DeviceMomentumAssemblyPlan& plan,
                                    const DeviceBuffer<cfd::Real>& massFlux,
                                    const DeviceBuffer<cfd::Real>& previousComponent,
                                    const DeviceBuffer<cfd::Real>* momentumSource,
+                                   const DeviceBuffer<cfd::Real>* wallFaceViscosity,
                                    const MomentumAssemblyOptions& options,
                                    DeviceMomentumSystem& system) {
   if (!plan.usable()) {
@@ -366,6 +373,19 @@ void assembleRelaxedMomentumDevice(const DeviceMomentumAssemblyPlan& plan,
 
   MomentumAssemblyView p{};
   fillMomentumAssemblyView(plan, p);
+  // P16 Phase 2. A wall-face override must be face-length: it is indexed by
+  // face id, exactly as the host SurfaceField is. An empty or absent buffer
+  // leaves it nullptr, and the assembly is then bitwise what it was.
+  if (wallFaceViscosity != nullptr && !wallFaceViscosity->empty()) {
+    // bDistance_ is the plan's face-length boundary array, so its size is the
+    // mesh face count without the plan needing to carry a second copy of it.
+    if (wallFaceViscosity->size() != plan.bDistance_.size()) {
+      throw cfd::InvalidArgumentError(
+          "assembleRelaxedMomentumDevice: wallFaceViscosity size does not match the mesh face "
+          "count");
+    }
+    p.wallViscosity = wallFaceViscosity->data();
+  }
 
   cfd::Timer timer;
   momentumAssemblyKernel<<<blockCountFor(nc), kThreadsPerBlock>>>(

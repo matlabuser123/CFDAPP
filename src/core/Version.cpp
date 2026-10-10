@@ -14,4 +14,6 @@ std::string versionString() {
   return result;
 }
 
+std::string_view buildIdentity() noexcept { return kBuildIdentity; }
+
 }  // namespace cfd::core

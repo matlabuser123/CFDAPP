@@ -20,6 +20,7 @@
 #include <cuda_runtime.h>
 
 #include <cmath>
+#include <utility>
 #include <cstddef>
 #include <vector>
 
@@ -78,6 +79,58 @@ __global__ void partialDotKernel(cfd::Index n, const cfd::Real* a, const cfd::Re
   }
   if (threadIdx.x == 0) {
     partialSums[blockIdx.x] = shared[0];
+  }
+}
+
+// P16 resident turbulence: two independent max|a - b| reductions over the same
+// length in ONE launch. Same shape as partialDot2Kernel -- two disjoint
+// shared-memory halves, one halving tree each -- with sum replaced by the
+// CPU's max rule.
+//
+// THE MAX RULE IS NOT `fmax`. KEpsilonModel's host loop is
+//
+//     maxChange = std::max(maxChange, std::abs(newK[i] - k_[i]));
+//
+// and std::max(a, b) is `(a < b) ? b : a`. When b is NaN, `a < NaN` is false,
+// so the accumulator is KEPT: a NaN difference is silently ignored, and since
+// the accumulator starts at 0.0 it can never become NaN. `fmax` would behave
+// the same for one NaN argument but this reduction combines accumulators with
+// each other, where fmax(NaN, x) == x would differ from std::max's
+// `(NaN < x) ? x : NaN` == NaN. Writing the comparison out keeps the host
+// contract exactly, and the induction is: every accumulator starts at 0.0 and
+// is only ever replaced by a value that compared GREATER, which NaN never
+// does -- so no accumulator is ever NaN and the tree can never see one.
+//
+// ORDER CANNOT MATTER HERE, unlike the dot products. max is exact: it selects
+// one of its inputs rather than computing a new value, so there is no rounding
+// to reassociate. A block/tree partition therefore returns bitwise the same
+// Real as the host's sequential loop, and each |a - b| is itself bitwise equal
+// to the host's (subtraction is exactly rounded; fabs only clears a sign bit;
+// neither admits an FMA contraction).
+__global__ void partialMaxAbsDiff2Kernel(cfd::Index n, const cfd::Real* a0, const cfd::Real* b0,
+                                         const cfd::Real* a1, const cfd::Real* b1,
+                                         cfd::Real* partials) {
+  extern __shared__ cfd::Real shared[];
+  cfd::Real* s0 = shared;
+  cfd::Real* s1 = shared + blockDim.x;
+  const cfd::Index i = static_cast<cfd::Index>(blockIdx.x) * blockDim.x + threadIdx.x;
+  s0[threadIdx.x] = (i < n) ? fabs(a0[i] - b0[i]) : 0.0;
+  s1[threadIdx.x] = (i < n) ? fabs(a1[i] - b1[i]) : 0.0;
+  // An out-of-range lane seeds 0.0, the same identity the host loop starts
+  // from, so a partial block cannot raise the maximum.
+  __syncthreads();
+  for (unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride) {
+      const cfd::Real o0 = s0[threadIdx.x + stride];
+      const cfd::Real o1 = s1[threadIdx.x + stride];
+      if (s0[threadIdx.x] < o0) s0[threadIdx.x] = o0;
+      if (s1[threadIdx.x] < o1) s1[threadIdx.x] = o1;
+    }
+    __syncthreads();
+  }
+  if (threadIdx.x == 0) {
+    partials[blockIdx.x] = s0[0];
+    partials[gridDim.x + blockIdx.x] = s1[0];
   }
 }
 
@@ -222,8 +275,13 @@ namespace {
 // Bytes are unchanged; calls and synchronizations fall by the group size. That
 // is the right target: Phase 1 measured the round trip at 79-101 us per call
 // regardless of payload, so the cost is paid per call, not per byte.
-template <typename LaunchPartials>
-void reduceToHost(cfd::Index n, int count, LaunchPartials&& launchPartials, cfd::Real* out) {
+// P16: the same round trip, with the HOST-SIDE combine left to the caller.
+// `reduceToHost` below forwards to it with the summing combine it always had,
+// evaluated in the same order over the same partials, so every existing caller
+// is bitwise unchanged -- the loop body moved into a lambda, nothing else.
+template <typename LaunchPartials, typename Combine>
+void reduceToHostWith(cfd::Index n, int count, LaunchPartials&& launchPartials, cfd::Real* out,
+                      cfd::Real identity, Combine&& combine) {
   const int blocks = blockCountFor(n);
 
   // Persistent high-water-mark buffer, same rationale (and the same
@@ -253,10 +311,16 @@ void reduceToHost(cfd::Index n, int count, LaunchPartials&& launchPartials, cfd:
   // the individual calls it replaces.
   for (int q = 0; q < count; ++q) {
     const cfd::Real* slice = hostPartials.data() + static_cast<std::size_t>(q) * blocks;
-    cfd::Real sum = 0.0;
-    for (int i = 0; i < blocks; ++i) sum += slice[i];
-    out[q] = sum;
+    cfd::Real accumulator = identity;
+    for (int i = 0; i < blocks; ++i) accumulator = combine(accumulator, slice[i]);
+    out[q] = accumulator;
   }
+}
+
+template <typename LaunchPartials>
+void reduceToHost(cfd::Index n, int count, LaunchPartials&& launchPartials, cfd::Real* out) {
+  reduceToHostWith(n, count, std::forward<LaunchPartials>(launchPartials), out, 0.0,
+                   [](cfd::Real a, cfd::Real b) { return a + b; });
 }
 
 }  // namespace
@@ -284,6 +348,41 @@ cfd::Real dot(const DeviceVector& a, const DeviceVector& b) {
 // 16-byte download -- instead of two of each. Bitwise identical to calling
 // dot(a0,b0) and dot(a1,b1): same terms, same block partition, same per-product
 // tree, same final summation order. Requires all four vectors to share a length.
+void maxAbsDifference2(const DeviceBuffer<cfd::Real>& a0, const DeviceBuffer<cfd::Real>& b0,
+                       const DeviceBuffer<cfd::Real>& a1, const DeviceBuffer<cfd::Real>& b1,
+                       cfd::Real& out0, cfd::Real& out1) {
+  checkSameSize(a0.size(), b0.size(), "maxAbsDifference2");
+  checkSameSize(a1.size(), b1.size(), "maxAbsDifference2");
+  checkSameSize(a0.size(), a1.size(), "maxAbsDifference2");
+  const cfd::Index n = a0.size();
+  // Empty is 0.0, not an error and not a NaN: the host loop it replaces runs
+  // zero iterations and leaves its accumulator at its 0.0 seed.
+  if (n == 0) {
+    out0 = 0.0;
+    out1 = 0.0;
+    return;
+  }
+
+  cfd::Timer totalTimer;
+  cfd::Real results[2] = {0.0, 0.0};
+  reduceToHostWith(
+      n, 2,
+      [&](int blocks, cfd::Real* partials) {
+        partialMaxAbsDiff2Kernel<<<blocks, kThreadsPerBlock,
+                                   2 * kThreadsPerBlock * sizeof(cfd::Real)>>>(
+            n, a0.data(), b0.data(), a1.data(), b1.data(), partials);
+        checkCuda(cudaGetLastError(), "partialMaxAbsDiff2Kernel launch");
+      },
+      results, 0.0,
+      // std::max(a, b) exactly: keep the accumulator unless the candidate
+      // compares strictly greater, so a NaN partial is ignored rather than
+      // propagated. See partialMaxAbsDiff2Kernel's comment.
+      [](cfd::Real a, cfd::Real b) { return (a < b) ? b : a; });
+  out0 = results[0];
+  out1 = results[1];
+  gpuExecutionStats().dotSeconds += totalTimer.elapsedSeconds();
+}
+
 void dot2(const DeviceVector& a0, const DeviceVector& b0, const DeviceVector& a1,
           const DeviceVector& b1, cfd::Real& out0, cfd::Real& out1) {
   checkSameSize(a0.size(), b0.size(), "dot2");

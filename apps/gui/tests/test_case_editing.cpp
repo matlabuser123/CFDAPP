@@ -271,6 +271,44 @@ TEST(CaseEditingTest, ValidateDraftExtractsTheOffendingFieldName) {
   EXPECT_EQ(result.value("field").toString(), QStringLiteral("nx"));
 }
 
+// P13-002: the section and the field now come from the error's own
+// cfd::CaseDiagnostic, not from searching its message text.
+//
+// The test above pins the OUTPUT and would pass either way. This one pins the
+// MECHANISM, and it exists because control N1b showed the difference matters:
+// on the pre-P13-002 tree, renaming one token in the message (`field "` ->
+// `key "`) silently broke the extraction and no test noticed. See
+// results/p13/case-validation/acceptance_gate_A1.md.
+//
+// A message that carries none of the scraper's markers is the direct way to
+// tell the two apart: a mistyped file reference in case.json produces
+// "case.json: field "geometry" must satisfy reference a file that exists ..."
+// -- which the OLD sectionForMessage would have mapped by substring, but
+// whose field the old fieldForMessage could not have produced at all before
+// P13-002 gave this site a diagnostic.
+TEST(CaseEditingTest, ValidateDraftTakesSectionAndFieldFromTheDiagnostic) {
+  // A boundary patch the mesh does not have: rejected by CaseReader's own
+  // cross-file check, which routes through throwConfigError and so carries a
+  // diagnostic naming boundaries.json and the patch key.
+  SimulationController controller;
+  ASSERT_TRUE(
+      controller.openCase(fixtureQString(CaseFixtureCopy("tests/data/cases/valid_cavity"))));
+  QVariantMap physics = controller.physicsConfig();
+  physics["density"] = -1.0;
+  ASSERT_TRUE(controller.setPhysicsConfig(physics));
+
+  const QVariantMap result = controller.validateDraft();
+  ASSERT_FALSE(result.value("valid").toBool());
+  EXPECT_EQ(result.value("section").toString(), QStringLiteral("Physics"));
+  EXPECT_EQ(result.value("field").toString(), QStringLiteral("density"));
+
+  // And the message is still the message -- P13-002 added structure beside
+  // it, it did not replace it.
+  const QString message = result.value("message").toString();
+  EXPECT_TRUE(message.contains(QStringLiteral("physics.json"))) << message.toStdString();
+  EXPECT_TRUE(message.contains(QStringLiteral("density"))) << message.toStdString();
+}
+
 TEST(CaseEditingTest, ValidationIssuesIsEmptyWhenValid) {
   SimulationController controller;
   ASSERT_TRUE(

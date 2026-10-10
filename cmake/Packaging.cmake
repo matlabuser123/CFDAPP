@@ -6,12 +6,20 @@
 # disclosed, unverified-on-Windows status -- read that before treating
 # anything CPack produces here as a released artifact.
 
-if(NOT CFDAPP_BUILD_GUI)
-  message(WARNING
-    "CFDAPP_ENABLE_PACKAGING is ON but CFDAPP_BUILD_GUI is OFF -- "
-    "packaging is only meaningful for the GUI build. Skipping.")
-  return()
-endif()
+# P13-006: a CLI-only package is a real configuration, not a mistake.
+#
+# This used to warn and `return()`, so `-DCFDAPP_BUILD_GUI=OFF
+# -DCFDAPP_ENABLE_PACKAGING=ON` produced no CPackConfig.cmake at all
+# (measured -- results/p13/packaging/audit.md F4). The headless case -- a
+# cluster, a container, a CI image, anywhere without Qt -- was the one that
+# could not be packaged. The old comment's reasoning ("a CLI-only package
+# would just be the plain `cfdapp` executable, which needs none of this") is
+# not what the rules below say: examples, user documentation and the licence
+# are installed independently of the GUI, and a CLI user wants all three.
+#
+# What differs between the two packages is only the GUI executable and the Qt
+# runtime that must travel with it.
+set(CFDAPP_PACKAGE_INCLUDES_GUI ${CFDAPP_BUILD_GUI})
 
 # TODO.md P5 section 49: one authoritative version source -- the same
 # project(CFDApp VERSION ...) in the root CMakeLists.txt that
@@ -24,9 +32,36 @@ set(CPACK_PACKAGE_VERSION_MINOR ${CFDApp_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${CFDApp_VERSION_PATCH})
 set(CPACK_PACKAGE_VENDOR "CFDApp project")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${CFDApp_DESCRIPTION}")
-set(CPACK_PACKAGE_FILE_NAME "CFDApp-${CFDApp_VERSION}-Windows-x64")
+# P13-006: the name and the generator list are decided by one pure function,
+# from the system actually being built for -- see cmake/PackageNaming.cmake
+# for what this replaces and why it is a function (short version: the Windows
+# name is a contract release.yml depends on, and a function taking the system
+# as an argument can be tested for Windows from a Linux host).
+include(${CFDApp_SOURCE_DIR}/cmake/PackageNaming.cmake)
+cfdapp_package_naming(
+  SYSTEM  "${CMAKE_SYSTEM_NAME}"
+  ARCH    "${CMAKE_SYSTEM_PROCESSOR}"
+  VERSION "${CFDApp_VERSION}"
+  SUFFIX  "${CFDAPP_VERSION_SUFFIX}"
+  OUT_NAME       CPACK_PACKAGE_FILE_NAME
+  OUT_GENERATORS CPACK_GENERATOR
+)
+message(STATUS "CFDApp package: ${CPACK_PACKAGE_FILE_NAME} (${CPACK_GENERATOR})")
 
-set(CPACK_GENERATOR "ZIP;NSIS")
+# The version CPack advertises must be the version the binary reports.
+# CPACK_PACKAGE_VERSION_{MAJOR,MINOR,PATCH} above give CPack "0.2.0" and drop
+# CFDAPP_VERSION_SUFFIX, which cfd::core::versionString() includes -- so a
+# development build was named exactly like the released 0.2.0 while the
+# `cfdapp --version` inside it said 0.2.0-dev (measured -- audit.md F2).
+# A tagged release configures with -DCFDAPP_VERSION_SUFFIX="" (release.yml),
+# so a release package's version is unchanged by this.
+if(CFDAPP_VERSION_SUFFIX)
+  set(CPACK_PACKAGE_VERSION "${CFDApp_VERSION}-${CFDAPP_VERSION_SUFFIX}")
+else()
+  set(CPACK_PACKAGE_VERSION "${CFDApp_VERSION}")
+endif()
+
+# NSIS settings are inert wherever NSIS is not in CPACK_GENERATOR.
 set(CPACK_NSIS_PACKAGE_NAME "CFDApp")
 set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
 set(CPACK_NSIS_MODIFY_PATH ON)
@@ -37,9 +72,15 @@ set(CPACK_NSIS_MODIFY_PATH ON)
 # dependency), example cases, user docs, and licenses -- never the
 # build directory's own object files/CMakeCache/intermediate artifacts
 # (section 45's "do not package source/build garbage").
-install(TARGETS cfdapp cfdapp_gui
-  RUNTIME DESTINATION bin
-)
+if(CFDAPP_PACKAGE_INCLUDES_GUI)
+  install(TARGETS cfdapp cfdapp_gui
+    RUNTIME DESTINATION bin
+  )
+else()
+  install(TARGETS cfdapp
+    RUNTIME DESTINATION bin
+  )
+endif()
 
 # A real Windows package build exposed a genuine gap here: windeployqt
 # (apps/gui/CMakeLists.txt's own POST_BUILD step) drops Qt's runtime
@@ -56,17 +97,25 @@ install(TARGETS cfdapp cfdapp_gui
 # build-only artifacts (CMakeFiles/, *_autogen/, generated .cpp/.cmake,
 # and the test binary CFDGuiControllerTests.exe, which happens to link
 # into this same output directory but is never part of a release).
-install(DIRECTORY "$<TARGET_FILE_DIR:cfdapp_gui>/"
-  DESTINATION bin
-  PATTERN "CMakeFiles" EXCLUDE
-  PATTERN "*_autogen" EXCLUDE
-  PATTERN "*.cmake" EXCLUDE
-  PATTERN "*.cpp" EXCLUDE
-  PATTERN "*.depends" EXCLUDE
-  PATTERN "cfdapp_gui.exe" EXCLUDE
-  PATTERN "cfdapp.exe" EXCLUDE
-  PATTERN "CFDGuiControllerTests*" EXCLUDE
-)
+#
+# P13-006: guarded, because a CLI-only package has no cfdapp_gui target for
+# $<TARGET_FILE_DIR:> to name, and because there is no Qt runtime to carry
+# when there is no GUI. The exclusion patterns below are unchanged -- the
+# install tree they produce was measured clean before this item and must stay
+# that way (criterion P1).
+if(CFDAPP_PACKAGE_INCLUDES_GUI)
+  install(DIRECTORY "$<TARGET_FILE_DIR:cfdapp_gui>/"
+    DESTINATION bin
+    PATTERN "CMakeFiles" EXCLUDE
+    PATTERN "*_autogen" EXCLUDE
+    PATTERN "*.cmake" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.depends" EXCLUDE
+    PATTERN "cfdapp_gui.exe" EXCLUDE
+    PATTERN "cfdapp.exe" EXCLUDE
+    PATTERN "CFDGuiControllerTests*" EXCLUDE
+  )
+endif()
 install(DIRECTORY ${CFDApp_SOURCE_DIR}/cases/
   DESTINATION examples
   PATTERN "results" EXCLUDE  # section 45: no leftover run output in the package.

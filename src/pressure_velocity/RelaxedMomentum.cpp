@@ -35,7 +35,8 @@ MomentumAssembly assembleRelaxedMomentumComponent(
     const ScalarField* temperature, const BoussinesqBuoyancy* buoyancy,
     cfd::discretization::ConvectionScheme convectionScheme,
     cfd::discretization::GradientScheme gradientScheme, bool applyNonOrthogonalCorrection,
-    const VectorField* nonOrthogonalCorrectionVelocity, const VectorField* momentumSource) {
+    const VectorField* nonOrthogonalCorrectionVelocity, const VectorField* momentumSource,
+    const SurfaceField* wallViscosity) {
   const Index n = mesh.numberOfCells();
   if (velocity.size() != n || pressure.size() != n) {
     throw InvalidArgumentError(
@@ -71,7 +72,7 @@ MomentumAssembly assembleRelaxedMomentumComponent(
 
   assembleDiffusionContribution(mesh, effectiveViscosity, velocity, velocityBoundaries, component,
                                 builder, rhs, applyNonOrthogonalCorrection, gradientScheme,
-                                nonOrthogonalCorrectionVelocity);
+                                nonOrthogonalCorrectionVelocity, wallViscosity);
   assembleConvectionContribution(mesh, massFlux, velocity, velocityBoundaries, component, builder,
                                  rhs, convectionScheme);
   assemblePressureSourceContribution(mesh, pressure, pressureBoundaries, component, rhs,

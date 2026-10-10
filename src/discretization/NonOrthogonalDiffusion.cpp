@@ -23,6 +23,11 @@ bool prescribesBoundaryValue(BoundaryConditionType type) noexcept {
     case BoundaryConditionType::FixedGradient:
     case BoundaryConditionType::HeatFlux:
     case BoundaryConditionType::Adiabatic:
+    // P15: a convective wall prescribes NEITHER a value nor a gradient -- the
+    // face temperature depends on the local conductivity, so the second-order
+    // Dirichlet reconstruction does not apply to it and the thermal assembly
+    // builds its coefficient directly.
+    case BoundaryConditionType::ConvectiveHeatTransfer:
     case BoundaryConditionType::Outlet:
     case BoundaryConditionType::Symmetry:
       return false;

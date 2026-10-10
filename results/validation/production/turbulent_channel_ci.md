@@ -6,7 +6,7 @@ Reference: Kim, Moin & Moser (1987) J. Fluid Mech. 177; Moser, Kim & Mansour (19
 
 | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
 |---|---|---|---|---|---|---|---|---|---|
-| turbulent_channel_re_tau_180_SST/medium/upwind | 180 | medium | upwind | Converged | 1164 | 19418 / 121241 | 2.58e-08 | 31.0 | yes |
+| turbulent_channel_re_tau_180_SST/medium/upwind | 180 | medium | upwind | Converged | 1164 | 19418 / 121241 | 2.58e-08 | 30.0 | yes |
 
 **u_plus_log_region**
 

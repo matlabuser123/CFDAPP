@@ -86,12 +86,36 @@ class SparseMatrixBuilder {
 
   void add(Index row, Index column, Real value);
 
+  // P16: mark `row` as a FIXED-VALUE row. build() then discards every triplet
+  // in that row -- whenever they were added, before or after this call -- and
+  // writes a single 1.0 on the diagonal, so the assembled equation for that
+  // unknown is exactly
+  //
+  //     phi_row = rhs[row]
+  //
+  // The caller is responsible for setting rhs[row] to the value it wants; this
+  // class does not own the right-hand side. Columns in OTHER rows referring to
+  // this unknown are left alone, which is the point: neighbours still couple to
+  // the fixed value through their own equations.
+  //
+  // Needed because a wall function IMPOSES epsilon in the wall-adjacent cell
+  // rather than transporting it -- the epsilon equation is not valid in a cell
+  // that spans the log layer. The alternatives were a large-coefficient
+  // Patankar source (which needs an arbitrary magnitude and only approaches the
+  // value) or overwriting after the solve (which leaves neighbours coupled to
+  // the discarded value for an iteration). This is exact and well-conditioned.
+  //
+  // Idempotent. Calling it on no rows leaves build() byte-for-byte what it was,
+  // which is what keeps every existing assembly unchanged.
+  void fixRow(Index row);
+
   [[nodiscard]] SparseMatrix build() const;
 
  private:
   Index rows_{};
   Index columns_{};
   std::vector<Triplet> triplets_;
+  std::vector<Index> fixedRows_;
 };
 
 }  // namespace cfd::algebra

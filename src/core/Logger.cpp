@@ -23,11 +23,48 @@ std::string_view levelTag(LogLevel level) noexcept {
   return "UNKNOWN";
 }
 
-bool targetsStderr(LogLevel level) noexcept {
-  return level == LogLevel::Warning || level == LogLevel::Error;
-}
+// P13-005: EVERY level goes to stderr, not just Warning and Error.
+//
+// Diagnostics and results must not share a channel. stdout is the CLI's
+// report -- `Converged: yes`, the residuals, the paths of the exported files --
+// and scripts parse it; tests/CMakeLists.txt asserts on it. Routing Trace,
+// Debug and Info there too meant that turning logging on would corrupt a
+// machine-readable report, which is why the brief's diagnostics could not
+// simply be added at Info.
+//
+// Nothing changes for the two pre-existing call sites: both log at Warning,
+// which already went to stderr. What changes is that the other three levels
+// become usable at all.
+bool targetsStderr(LogLevel) noexcept { return true; }
 
 }  // namespace
+
+std::optional<LogLevel> parseLogLevel(std::string_view name) noexcept {
+  if (name == "trace") return LogLevel::Trace;
+  if (name == "debug") return LogLevel::Debug;
+  if (name == "info") return LogLevel::Info;
+  if (name == "warning") return LogLevel::Warning;
+  if (name == "error") return LogLevel::Error;
+  return std::nullopt;
+}
+
+std::string_view logLevelName(LogLevel level) noexcept {
+  switch (level) {
+    case LogLevel::Trace:
+      return "trace";
+    case LogLevel::Debug:
+      return "debug";
+    case LogLevel::Info:
+      return "info";
+    case LogLevel::Warning:
+      return "warning";
+    case LogLevel::Error:
+      return "error";
+  }
+  return "unknown";
+}
+
+std::string_view logLevelNames() noexcept { return "trace, debug, info, warning, error"; }
 
 Logger& Logger::instance() {
   static Logger logger;

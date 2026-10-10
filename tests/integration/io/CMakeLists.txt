@@ -3,6 +3,9 @@
 # determinism.
 add_executable(CFDResultExportIntegrationTests
   test_result_export.cpp
+  # P13-004: an export that cannot be written must say so. Uses /dev/full,
+  # and skips (loudly) where that does not exist.
+  test_export_write_failure.cpp
   test_paraview_smoke.cpp
   ${CFDApp_SOURCE_DIR}/tests/support/CaseFixtureCopy.cpp
 )

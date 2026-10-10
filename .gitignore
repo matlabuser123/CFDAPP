@@ -79,6 +79,14 @@ results/**/*.so
 results/p18/g8_closure/data/WestbrookDryerCST1981.pdf
 results/p18/g8_closure/data/WestbrookDryerCST1981_extracted.txt
 
+# LEAKED TEST WORKING DIRECTORIES at the repository root. A CLI test writes its case and
+# results into the CWD instead of a temp dir, so running the suite from the repo root drops a
+# full case tree (case.json, mesh.json, results/solution.vtk, ...) beside CMakeLists.txt. It is
+# run OUTPUT, not a fixture: the real fixture lives in tests/data/cases/valid_cavity_cli_smoke.
+# Ignored so a blanket `git add` cannot commit it. The underlying test should write to a temp
+# directory -- registered as debt rather than fixed inside an unrelated commit.
+/cli_log_level_*/
+
 # ...but NOT the compiled probe executables sitting beside their sources in those same
 # tools/ directories. They are build artifacts (ELF, ~2 MB each) that §11.5 forbids
 # committing, and they re-staged twice during one `git add results/technical_debt`.

@@ -134,6 +134,13 @@ bool SimulationController::canStop() const { return running_.load(); }
 bool SimulationController::isModified() const { return session_.isModified(); }
 
 QString SimulationController::lastError() const {
+  // P13-003: an argument error from setCheckpoint()/setResumeFrom() never
+  // reaches CaseSession -- it is rejected before any run begins -- so the
+  // controller keeps its own slot for one. Cleared by the next run(), so it
+  // can never outlive the mistake it describes and be mistaken for a solver
+  // error. CaseSession is deliberately NOT given a setter for this: widening
+  // a production API for a GUI convenience is how the two clients drift apart.
+  if (!controllerError_.isEmpty()) return controllerError_;
   return QString::fromStdString(session_.lastError());
 }
 
@@ -219,8 +226,16 @@ void SimulationController::run() {
   emit started();
   emit stateChanged();
 
-  worker_ = std::thread([this]() {
-    ProjectRunOptions options;
+  // P13-003: the checkpoint options set by setCheckpoint()/setResumeFrom(),
+  // read on the UI thread before the worker starts, so the worker never reads
+  // state the UI thread could still be writing.
+  controllerError_.clear();
+  const ProjectRunOptions checkpointOptions = checkpointOptions_;
+  resumedFromIteration_.store(0);
+  checkpointsWritten_.store(0);
+
+  worker_ = std::thread([this, checkpointOptions]() {
+    ProjectRunOptions options = checkpointOptions;
     // Called from this worker thread -- only ever stores plain atomics
     // and `emit`s (Qt auto-queues the cross-thread delivery onto this
     // controller's own UI thread, see this class's own header comment).
@@ -232,6 +247,12 @@ void SimulationController::run() {
     };
 
     const auto result = session_.run(options);
+    // P13-003: what the run's checkpointing actually did, taken straight from
+    // the ProjectRunResult the CLI reads the same fields from. Stored before
+    // resultsChanged is emitted below, so a QML binding or a test that reacts
+    // to that signal sees the final values.
+    resumedFromIteration_.store(static_cast<int>(result.resumedFromIteration));
+    checkpointsWritten_.store(static_cast<int>(result.checkpointsWritten));
     running_.store(false);
     emit stateChanged();
     emit errorChanged();
@@ -259,6 +280,69 @@ void SimulationController::run() {
 }
 
 void SimulationController::stop() { session_.requestCancel(); }
+
+// --- P13-003 -- checkpoint / resume -------------------------------------
+//
+// These set the same three ProjectRunOptions fields the CLI's --checkpoint,
+// --checkpoint-every and --resume set, and nothing else. There is deliberately
+// no checkpoint logic here: writing, reading, validating and refusing all
+// happen in ProjectRunner, which is the one place both clients reach.
+
+bool SimulationController::setCheckpoint(const QString& checkpointPath, int interval) {
+  if (interval < 0) {
+    controllerError_ = QStringLiteral("checkpoint interval must be >= 0");
+    emit errorChanged();
+    return false;
+  }
+  // The same combination `cfdapp --checkpoint-every N` without --checkpoint
+  // rejects. Accepting it silently would leave a user who asked for periodic
+  // checkpoints with none, and they would not find out until the run they
+  // needed to resume was already gone.
+  if (checkpointPath.isEmpty() && interval > 0) {
+    controllerError_ = QStringLiteral(
+        "a checkpoint interval needs a checkpoint path (as the CLI's "
+        "--checkpoint-every requires --checkpoint)");
+    emit errorChanged();
+    return false;
+  }
+  if (checkpointPath.isEmpty()) {
+    checkpointOptions_.checkpointPath.reset();
+  } else {
+    checkpointOptions_.checkpointPath = std::filesystem::path(checkpointPath.toStdString());
+  }
+  checkpointOptions_.checkpointInterval = static_cast<cfd::Index>(interval);
+  lastCheckpointPath_ = checkpointPath;
+  controllerError_.clear();
+  return true;
+}
+
+bool SimulationController::setResumeFrom(const QString& checkpointPath) {
+  if (checkpointPath.isEmpty()) {
+    checkpointOptions_.resumeFrom.reset();
+    return true;
+  }
+  // Existence is NOT checked here. ProjectRunner refuses a missing or invalid
+  // checkpoint with a message naming the file, and duplicating that check
+  // would create a second place where "is this checkpoint usable" is decided
+  // -- which is the class of divergence this whole item exists to remove.
+  checkpointOptions_.resumeFrom = std::filesystem::path(checkpointPath.toStdString());
+  return true;
+}
+
+void SimulationController::clearCheckpoint() {
+  checkpointOptions_.checkpointPath.reset();
+  checkpointOptions_.resumeFrom.reset();
+  checkpointOptions_.checkpointInterval = 0;
+  lastCheckpointPath_.clear();
+}
+
+std::optional<cfd::app::ProjectRunResult> SimulationController::lastRunResult() const {
+  return session_.lastRun();
+}
+
+int SimulationController::resumedFromIteration() const { return resumedFromIteration_.load(); }
+int SimulationController::checkpointsWritten() const { return checkpointsWritten_.load(); }
+QString SimulationController::lastCheckpointPath() const { return lastCheckpointPath_; }
 
 // --- P5 GUI visualization integration ---------------------------------
 

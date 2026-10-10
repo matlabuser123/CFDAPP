@@ -28,8 +28,8 @@
 #include <vector>
 
 #include "cfd/boundary/BoundaryCondition.hpp"
-#include "cfd/gpu/BoundaryEncoding.hpp"
 #include "cfd/discretization/NonOrthogonalDiffusion.hpp"
+#include "cfd/gpu/BoundaryEncoding.hpp"
 #include "cfd/gpu/DeviceGradient.hpp"
 #include "cfd/gpu/ObliqueNeumann.hpp"
 #include "cfd/mesh/Cell.hpp"
@@ -115,16 +115,15 @@ bool DeviceGradientPlan::build(const Mesh& mesh,
     const auto& bc = cfd::boundary::boundaryConditionForFace(mesh, face.id(), boundaries);
     const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc);
     if (scalarBc == nullptr) {
-      unsupportedReason_ = "face " + std::to_string(f) + ": boundary condition is not scalar-valued";
+      unsupportedReason_ =
+          "face " + std::to_string(f) + ": boundary condition is not scalar-valued";
       return false;
     }
     const Real distance =
         MeshGeometry::distance(mesh.cell(face.owner()).centroid(), face.centroid());
     if (!encodeBoundaryCondition(*scalarBc, distance, bA[f], bB[f], bKind[f])) {
-      unsupportedReason_ = "face " + std::to_string(f) + ": boundary condition '" +
-                           std::string(bc.name()) +
-                           "' is not bitwise-reproducible as a constant, a shift or an affine "
-                           "function of phi_P; mesh rejected for the device gradient path";
+      unsupportedReason_ =
+          cfd::gpu::unsupportedEncodingReason(f, bc, "boundary condition", "gradient");
       return false;
     }
     const ObliqueFace oblique = obliqueNeumannFaceRestated(mesh, face, boundaries);
@@ -317,13 +316,14 @@ std::size_t DeviceGradientPlan::residentBytes() const noexcept {
     return static_cast<std::size_t>(b.size()) * sizeof(*b.data());
   };
   return mesh_.residentBytes() + bytes(faceDPf_) + bytes(faceDNf_) + bytes(boundaryA_) +
-         bytes(boundaryB_) + bytes(boundaryKind_) + bytes(skewedFaceIds_) + bytes(skewVecX_) + bytes(skewVecY_) +
-         bytes(skewVecZ_) + bytes(skewTOfFace_) + bytes(obliqueFaceIds_) + bytes(obliqueA_) +
-         bytes(obliqueB_) + bytes(obliqueKind_) + bytes(obliqueTangentX_) + bytes(obliqueTangentY_) +
-         bytes(obliqueTangentZ_) + bytes(claimCell_) + bytes(claimTargetFace_) +
-         bytes(claimBoundaryFace_) + bytes(claimFarCell_) + bytes(claimFarDistance_) +
-         bytes(claimBackDistance_) + bytes(claimW_) + bytes(claimOffsetX_) + bytes(claimOffsetY_) +
-         bytes(claimOffsetZ_) + bytes(slotClaim_) + bytes(faceValues_) + bytes(claimValues_);
+         bytes(boundaryB_) + bytes(boundaryKind_) + bytes(skewedFaceIds_) + bytes(skewVecX_) +
+         bytes(skewVecY_) + bytes(skewVecZ_) + bytes(skewTOfFace_) + bytes(obliqueFaceIds_) +
+         bytes(obliqueA_) + bytes(obliqueB_) + bytes(obliqueKind_) + bytes(obliqueTangentX_) +
+         bytes(obliqueTangentY_) + bytes(obliqueTangentZ_) + bytes(claimCell_) +
+         bytes(claimTargetFace_) + bytes(claimBoundaryFace_) + bytes(claimFarCell_) +
+         bytes(claimFarDistance_) + bytes(claimBackDistance_) + bytes(claimW_) +
+         bytes(claimOffsetX_) + bytes(claimOffsetY_) + bytes(claimOffsetZ_) + bytes(slotClaim_) +
+         bytes(faceValues_) + bytes(claimValues_);
 }
 
 }  // namespace cfd::gpu

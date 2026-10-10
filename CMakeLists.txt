@@ -26,6 +26,44 @@ endif()
 set(CFDAPP_VERSION_SUFFIX "dev" CACHE STRING
   "Suffix appended after the project version (e.g. dev, rc1); empty for a release build.")
 
+# P13-004 -- build identity for exported results. A metadata.json that cannot
+# say which build produced it cannot be used to reproduce or interpret a run,
+# which is what the result metadata is for.
+#
+# Captured at configure time, and "unknown" is a legitimate answer: a build
+# from an exported tarball has no git, and a build from a dirty tree is marked
+# as such rather than claiming a commit it does not match. Saying "unknown"
+# honestly is the point -- a metadata file that guessed would be worse than
+# one that admits it does not know.
+#
+# ERROR_QUIET and the fallback mean a machine without git configures exactly as
+# before. The value is fixed per configure, so it never makes two runs of the
+# same binary differ -- which criterion M6, and P13-003's E8, both depend on.
+set(CFDAPP_BUILD_IDENTITY "unknown")
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --short=12 HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE CFDAPP_GIT_SHA
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET)
+  if(CFDAPP_GIT_SHA)
+    execute_process(
+      COMMAND "${GIT_EXECUTABLE}" status --porcelain --untracked-files=no
+      WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+      OUTPUT_VARIABLE CFDAPP_GIT_DIRTY
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_QUIET)
+    if(CFDAPP_GIT_DIRTY)
+      set(CFDAPP_BUILD_IDENTITY "${CFDAPP_GIT_SHA}-modified")
+    else()
+      set(CFDAPP_BUILD_IDENTITY "${CFDAPP_GIT_SHA}")
+    endif()
+  endif()
+endif()
+message(STATUS "CFDApp build identity: ${CFDAPP_BUILD_IDENTITY}")
+
 # --- Optional subsystems ---------------------------------------------------
 # None of these are required for the baseline build, and none are linked
 # into any target yet. Each turns on the corresponding cmake/*.cmake module

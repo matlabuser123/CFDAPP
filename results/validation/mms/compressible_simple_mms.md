@@ -6,9 +6,9 @@ Manufactured solution: p = cos(pi x) cos(pi y) + x y / 2 (gauge); rho = (P_ref +
 
 | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
 |---|---|---|---|---|---|---|
-| 8x8 | 64 | 0.125 | Converged | 978 | 6.26e-19 | 0.7 |
-| 16x16 | 256 | 0.0625 | Converged | 2424 | 1.69e-19 | 7.1 |
-| 32x32 | 1024 | 0.03125 | Converged | 3507 | 4.45e-20 | 38.9 |
+| 8x8 | 64 | 0.125 | Converged | 978 | 6.26e-19 | 0.8 |
+| 16x16 | 256 | 0.0625 | Converged | 2424 | 1.69e-19 | 7.0 |
+| 32x32 | 1024 | 0.03125 | Converged | 3507 | 4.45e-20 | 38.2 |
 
 **u**
 

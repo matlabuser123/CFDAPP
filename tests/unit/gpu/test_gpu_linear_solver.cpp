@@ -706,3 +706,228 @@ TEST(GpuLinearSolverInstrumentationTest, RecordsSolveTimingAndIterationCounts) {
   EXPECT_EQ(stats.gpuLinearSolves, 1u);
   EXPECT_EQ(stats.gpuLinearSolverIterations, static_cast<std::uint64_t>(result.iterations));
 }
+
+// ---------------------------------------------------------------------
+// DEBT-GPU-001 -- GPU BiCGSTAB Krylov restart parity with the CPU reference
+// ---------------------------------------------------------------------
+//
+// cfd::algebra::BiCGSTAB restarts the Krylov sequence when an inner product of
+// the recurrence has cancelled to the rounding level of its own terms. The GPU
+// solver returned Breakdown at that point instead, which is what blocked P16:
+// on bit-identical turbulence transport systems the CPU converged and the GPU
+// stopped mid-descent
+// (results/p16/turbulence/gpu_equivalence/krylov_blocker/findings.md).
+//
+// These tests pin the four properties that distinguish a faithful restart from
+// a retry loop: it is taken only when it can help, it costs no extra iteration
+// budget, it is inert on healthy systems, and it is deterministic. The
+// ladder-scale evidence that restarting actually rescues real systems lives in
+// test_krylov_blocker_reproducer.cpp.
+
+namespace {
+
+// A convection-dominated 2D grid operator: the symmetric 5-point diffusion
+// stencil plus an ANTISYMMETRIC east/west convection coupling of strength
+// kConvection. That antisymmetric part is what drives the recurrence into a
+// qualifying cancellation: s^T A s sees only the symmetric part, while
+// sum_i |(As)_i s_i| grows with the convection, so (t, s) eventually cancels to
+// the rounding level of its own terms while the iterate is still healthy --
+// exactly the situation a restart exists for. It is the same character of
+// system as the turbulence transport equations that exposed the defect
+// (strongly nonsymmetric, convection dominated), but built from nothing but a
+// grid, so this test does not depend on the turbulence code at all.
+//
+// The parameters below are not arbitrary: they were chosen so that BOTH
+// solvers converge AND both restart on the way. Weaker convection converges
+// without ever restarting (the test would be vacuous, which the assertions
+// below catch); much stronger convection breaks down on both.
+constexpr Index kRestartNx = 20;
+constexpr Real kRestartConvection = 8.0;
+constexpr Real kRestartDiagonalBoost = 0.1;
+
+SparseMatrix makeRestartingMatrix() {
+  const Index nx = kRestartNx;
+  const Index n = nx * nx;
+  SparseMatrixBuilder builder(n, n);
+  builder.reserve(5 * n);
+  const auto id = [&](Index i, Index j) { return j * nx + i; };
+  for (Index j = 0; j < nx; ++j) {
+    for (Index i = 0; i < nx; ++i) {
+      const Index p = id(i, j);
+      Real diagonal = kRestartDiagonalBoost;
+      if (i > 0) {
+        builder.add(p, id(i - 1, j), -1.0 - kRestartConvection);
+        diagonal += 1.0;
+      }
+      if (i + 1 < nx) {
+        builder.add(p, id(i + 1, j), -1.0 + kRestartConvection);
+        diagonal += 1.0;
+      }
+      if (j > 0) {
+        builder.add(p, id(i, j - 1), -1.0);
+        diagonal += 1.0;
+      }
+      if (j + 1 < nx) {
+        builder.add(p, id(i, j + 1), -1.0);
+        diagonal += 1.0;
+      }
+      builder.add(p, p, diagonal);
+    }
+  }
+  return builder.build();
+}
+
+LinearSystem makeRestartingSystem() {
+  const SparseMatrix matrix = makeRestartingMatrix();
+  return LinearSystem(matrix, makeVector(matrix.columns(), 0.37));
+}
+
+}  // namespace
+
+TEST(GpuBiCGSTABRestartTest, RestartsWhereTheCpuReferenceRestarts) {
+  skipIfNoDevice();
+  const LinearSystem system = makeRestartingSystem();
+
+  const auto gpu = cfd::gpu::makeGpuBiCGSTAB(strictSettings());
+  ASSERT_NE(gpu, nullptr);
+  const SolverResult gpuResult = gpu->solve(system);
+
+  const BiCGSTAB cpu(strictSettings());
+  const SolverResult cpuResult = cpu.solve(system);
+
+  // Non-vacuity: if this system stopped reaching the restart branch the test
+  // would pass while checking nothing, so the trigger is asserted first.
+  ASSERT_GE(cpuResult.restarts, Index{1})
+      << "the CPU reference no longer restarts on this system -- the trigger is gone and this "
+         "test proves nothing about the GPU";
+
+  EXPECT_GE(gpuResult.restarts, Index{1})
+      << "the CPU restarted " << cpuResult.restarts
+      << " time(s) on this system and the GPU restarted none -- status "
+      << static_cast<int>(gpuResult.status);
+  // The two solvers reduce in different orders, so they need not restart the
+  // same number of times or land on the same iteration. They must agree on the
+  // OUTCOME, which is the property the blocker violated.
+  // Both solvers CONVERGE on this system, and both need a restart to do it.
+  // That is the property the blocker violated: the GPU stopped where the CPU
+  // restarted and went on to converge.
+  EXPECT_EQ(cpuResult.status, SolverStatus::Converged);
+  EXPECT_EQ(gpuResult.status, SolverStatus::Converged);
+  EXPECT_LE(gpuResult.iterations, strictSettings().maxIterations);
+}
+
+TEST(GpuBiCGSTABRestartTest, RestartsDoNotBuyExtraIterationBudget) {
+  skipIfNoDevice();
+  const LinearSystem system = makeRestartingSystem();
+
+  // A budget below what this system needs, but large enough that restarts do
+  // happen inside it. A restart completes no iteration, so it must not become
+  // a way to keep working past maxIterations: the solver reports MaxIterations
+  // and stops, rather than restarting indefinitely at no cost to the budget.
+  constexpr Index kBudget = 250;
+  const auto gpu = cfd::gpu::makeGpuBiCGSTAB(strictSettings(kBudget));
+  ASSERT_NE(gpu, nullptr);
+  const SolverResult result = gpu->solve(system);
+
+  ASSERT_GE(result.restarts, Index{1})
+      << "no restart happened within the budget, so this does not test what a restart costs";
+  EXPECT_EQ(result.status, SolverStatus::MaxIterations);
+  EXPECT_LE(result.iterations, kBudget);
+  for (const Real residual : result.residualHistory) EXPECT_TRUE(std::isfinite(residual));
+}
+
+TEST(GpuBiCGSTABRestartTest, HealthySystemNeverRestarts) {
+  skipIfNoDevice();
+  const auto matrix = makeSpdGridMatrix(20, 20);
+  const Vector x = makeVector(matrix.columns(), 0.31);
+  const LinearSystem system(matrix, matrix.multiply(x));
+
+  const auto gpu = cfd::gpu::makeGpuBiCGSTAB(strictSettings());
+  ASSERT_NE(gpu, nullptr);
+  const SolverResult result = gpu->solve(system);
+
+  ASSERT_TRUE(result.converged());
+  // The restart must be inert where nothing breaks down: a system that never
+  // reaches a qualifying cancellation must solve exactly as it did before.
+  EXPECT_EQ(result.restarts, Index{0});
+
+  const BiCGSTAB cpu(strictSettings());
+  const SolverResult cpuResult = cpu.solve(system);
+  EXPECT_EQ(cpuResult.restarts, Index{0});
+}
+
+TEST(GpuBiCGSTABRestartTest, BreakdownIsStillReachable) {
+  skipIfNoDevice();
+  // A purely skew-symmetric system: (t, s) is identically zero from the very
+  // first iteration, before any progress has been made, so the restart is
+  // correctly REFUSED -- a restart from a sequence's own starting residual
+  // cannot cure anything and would be an unbounded retry. Breakdown keeps its
+  // meaning.
+  SparseMatrixBuilder builder(4, 4);
+  builder.add(0, 1, 1.0);
+  builder.add(1, 0, -1.0);
+  builder.add(2, 3, 1.0);
+  builder.add(3, 2, -1.0);
+  const LinearSystem system(builder.build(), makeVector(4, 1.0));
+
+  const auto gpu = cfd::gpu::makeGpuBiCGSTAB(strictSettings());
+  ASSERT_NE(gpu, nullptr);
+  const SolverResult result = gpu->solve(system);
+
+  const BiCGSTAB cpu(strictSettings());
+  const SolverResult cpuResult = cpu.solve(system);
+
+  EXPECT_EQ(cpuResult.status, SolverStatus::Breakdown);
+  EXPECT_EQ(result.status, SolverStatus::Breakdown);
+  EXPECT_EQ(result.restarts, Index{0});
+}
+
+TEST(GpuBiCGSTABRestartTest, RestartingSolveIsDeterministic) {
+  skipIfNoDevice();
+  const LinearSystem system = makeRestartingSystem();
+
+  const auto gpu = cfd::gpu::makeGpuBiCGSTAB(strictSettings());
+  ASSERT_NE(gpu, nullptr);
+
+  const SolverResult first = gpu->solve(system);
+  ASSERT_GE(first.restarts, Index{1}) << "this system no longer restarts; determinism is being "
+                                         "checked on a path that never restarts";
+
+  for (int repeat = 0; repeat < 3; ++repeat) {
+    const SolverResult again = gpu->solve(system);
+    EXPECT_EQ(again.status, first.status);
+    EXPECT_EQ(again.iterations, first.iterations);
+    EXPECT_EQ(again.restarts, first.restarts);
+    ASSERT_EQ(again.solution.size(), first.solution.size());
+    for (Index i = 0; i < first.solution.size(); ++i) {
+      // Bitwise, not "within tolerance": a restart recomputes b - A x on the
+      // device, and a nondeterministic reduction there would show up here.
+      EXPECT_EQ(again.solution[i], first.solution[i]) << "component " << i;
+    }
+  }
+}
+
+TEST(GpuBiCGSTABRestartTest, RestartAllocatesNothingInSteadyState) {
+  skipIfNoDevice();
+  const LinearSystem system = makeRestartingSystem();
+
+  const auto gpu = cfd::gpu::makeGpuBiCGSTAB(strictSettings());
+  ASSERT_NE(gpu, nullptr);
+
+  const SolverResult first = gpu->solve(system);  // warms the persistent buffers
+  ASSERT_GE(first.restarts, Index{1})
+      << "this system no longer restarts; the allocation gate would not cover the restart path";
+
+  cfd::gpu::resetGpuExecutionStats();
+  constexpr int kRepeats = 4;
+  for (int i = 0; i < kRepeats; ++i) {
+    const SolverResult result = gpu->solve(system);
+    EXPECT_GE(result.restarts, Index{1});
+  }
+
+  // The restart reuses v_ as its spmv target and zeroes the workspace vectors
+  // in place; it must not introduce a scratch buffer of its own.
+  const auto& stats = cfd::gpu::gpuExecutionStats();
+  EXPECT_EQ(stats.allocations, 0u);
+  EXPECT_EQ(stats.reallocations, 0u);
+}

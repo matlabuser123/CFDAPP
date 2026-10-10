@@ -76,6 +76,7 @@ target_sources(cfdcore
   PRIVATE
     boundary/BoundaryCondition.cpp
     boundary/FixedValue.cpp
+    boundary/ConvectiveHeatTransfer.cpp
     boundary/FixedGradient.cpp
     boundary/Wall.cpp
     boundary/MovingWall.cpp
@@ -133,6 +134,11 @@ target_sources(cfdcore
     pressure_velocity/RelaxedMomentum.cpp
     pressure_velocity/RhieChow.cpp
     pressure_velocity/SIMPLE.cpp
+    # P13-001 -- Restart / checkpointing: the solver-state model for one
+    # segment of a longer steady solve. No file I/O (cfd::io owns the
+    # format), the same layering the P2 restart lineage established.
+    pressure_velocity/SIMPLEContinuation.cpp
+    pressure_velocity/SIMPLECheckpoint.cpp
     # P2 -- Transient CFD, TASK P2-005: the transient momentum predictor
     # building block (PISO-A/B/C), plus the actual one-timestep PISO
     # class (PISO-H) composing it with the already-validated pressure-
@@ -156,6 +162,7 @@ target_sources(cfdcore
     solver/RestartSnapshot.cpp
     solver/SolverRobustness.cpp
     validation/GridConvergence.cpp
+    transport/ScalarTransport.cpp
     validation/GridConvergenceStudy.cpp
   validation/ErrorNorms.cpp
   validation/ManufacturedSolutionStudy.cpp
@@ -180,6 +187,11 @@ target_sources(cfdcore
     io/case/PhysicsConfigParser.cpp
     io/case/BoundaryConfigParser.cpp
     io/case/SolverConfigParser.cpp
+    # P13-001 -- Restart / checkpointing: the case-configuration fingerprint a
+    # checkpoint carries, so a resume refuses a case that is no longer the one
+    # the checkpoint came from. Lives here because it hashes the case's own
+    # JSON documents, which is what makes it complete by construction.
+    io/case/CaseFingerprint.cpp
 )
 
 # P1 -- Result Export: CSV/JSON/VTK writers plus the ResultExporter
@@ -205,6 +217,16 @@ target_sources(cfdcore
     io/RestartReader.cpp
 )
 
+# P13-001 -- Restart / checkpointing: the PRODUCTION checkpoint of a steady
+# SIMPLE solve. Separate from the P2 restart lineage above, which is the
+# transient/PISO time-step restart and is unchanged by this work -- two
+# formats, two version numbers, neither constraining the other.
+target_sources(cfdcore
+  PRIVATE
+    io/CheckpointWriter.cpp
+    io/CheckpointReader.cpp
+)
+
 # P2 -- Thermal: ThermalProperties (P2-THERMAL-001) and the standalone
 # energy-equation assembly (P2-THERMAL-002, mirrors
 # physics/MomentumEquation.cpp's contribution-level design). Thermal
@@ -212,8 +234,12 @@ target_sources(cfdcore
 # TODO.md "P2 -- Thermal").
 target_sources(cfdcore
   PRIVATE
+    thermal/Enthalpy.cpp
+    thermal/TemperatureDependentProperty.cpp
     thermal/ThermalProperties.cpp
     thermal/EnergyEquation.cpp
+    thermal/TurbulentConductivity.cpp
+    thermal/ThermalWallFunction.cpp
     thermal/ThermalSolver.cpp
     # P2-THERMAL-005: conjugate heat-transfer foundation (region model +
     # interface-conductance-aware conduction assembly).
@@ -249,6 +275,9 @@ target_sources(cfdcore
     # KEpsilonEquation.cpp's model-agnostic scalar-transport assembly
     # and TurbulenceProduction.cpp's strain/production machinery).
     turbulence/WallDistance.cpp
+    # P16: near-wall treatment -- friction velocity, y+, wall functions.
+    turbulence/WallFunctions.cpp
+    turbulence/WallTreatment.cpp
     turbulence/SSTEquation.cpp
     turbulence/SSTModel.cpp
     turbulence/TurbulenceModelFactory.cpp
@@ -262,6 +291,58 @@ target_sources(cfdcore
     species/SpeciesProperties.cpp
     species/SpeciesEquation.cpp
     species/SpeciesSolver.cpp
+)
+
+# P18.1: the multi-species mass-fraction state -- identity (SpeciesRegistry)
+# and the bounded, sum-to-one composition (MassFractionState). Additive: the
+# passive stack above is unchanged and does not depend on either.
+target_sources(cfdcore
+  PRIVATE
+    species/SpeciesRegistry.cpp
+    species/MassFractionState.cpp
+)
+
+# P18.2: conservative multi-species transport. Every per-species term is
+# assembled by cfd::transport (P14); the only new assembly here is the
+# cross-species diffusive closure, which no per-scalar assembler can express.
+target_sources(cfdcore
+  PRIVATE
+    species/SpeciesTransport.cpp
+)
+
+# P18.3: composition-dependent ideal-gas mixture thermodynamics. Computes only
+# R_mix and cp_mix; cv, gamma and the EOS are inherited by constructing the
+# existing cfd::compressible::ThermodynamicProperties from them.
+target_sources(cfdcore
+  PRIVATE
+    species/MixtureThermodynamics.cpp
+)
+
+# P18.4: reaction topology, stoichiometry and mass-conserving species sources.
+# No kinetics -- the progress rate q is supplied, and omega_i fills the Su field
+# of the SpeciesSources that P18.2 already consumes. No second assembly path.
+target_sources(cfdcore
+  PRIVATE
+    species/ReactionMechanism.cpp
+)
+
+# P18.5: Arrhenius kinetics. k = A T^n exp(-Ea/(R_u T)) evaluated directly where A T^n is finite
+# and in log space otherwise (amendment A1), plus elementary mass-action progress rates. Produces q
+# only -- the conversion q -> omega_i stays entirely in P18.4.
+target_sources(cfdcore
+  PRIVATE
+    species/ArrheniusKinetics.cpp
+    species/ChemistryIntegrator.cpp
+    species/PremixedFlame.cpp
+)
+
+# P18.6: heat release and the chemistry/energy coupling. Adds formation enthalpy -- the one
+# thermochemical quantity CFDApp lacked -- plus reaction enthalpy and the W/m^3 source that the
+# P15 thermal equation's EXISTING per-cell heat-source assembler consumes. No new energy equation,
+# and P17's TotalEnergyState refusal of a variable cp is NOT lifted.
+target_sources(cfdcore
+  PRIVATE
+    species/HeatRelease.cpp
 )
 
 # P3-PHYS-005: two-phase volume-fraction foundation -- PhaseProperties/
@@ -297,6 +378,20 @@ target_sources(cfdcore
     compressible/CompressibleMassFlux.cpp
     compressible/CompressibleContinuity.cpp
     compressible/CompressibleMomentum.cpp
+    compressible/DilatationalStress.cpp
+    # P17.5 -- the total-energy state and its conservative equation. In the MAIN list, before the
+    # if(NOT CFDAPP_ENABLE_CUDA) block below, so the CPU-only configuration compiles them too: a
+    # file added inside that block is built by no routine gate.
+    compressible/TotalEnergy.cpp
+    compressible/TotalEnergyEquation.cpp
+    # P17.7 -- the host-only half of the HLLC flux layer (the factory and the throwing wrappers).
+    # All of the numerics is in include/cfd/compressible/HllcFlux.hpp, which gcc and nvcc BOTH
+    # compile from one source. Same reason as above for being in the MAIN list.
+    compressible/HllcFlux.cpp
+    # P17.8 -- the density-based compressible solver. In the MAIN list so the CPU-only build
+    # compiles it too: a file added inside the if(NOT CFDAPP_ENABLE_CUDA) block is built by no
+    # routine gate. It is HOST-ONLY by design -- there is no GPU density-based solver in P17.8.
+    compressible/DensityBasedSolver.cpp
     compressible/CompressibleRelaxedMomentum.cpp
     compressible/CompressiblePressureCorrection.cpp
     compressible/CompressibleSIMPLE.cpp
@@ -315,6 +410,7 @@ if(NOT CFDAPP_ENABLE_CUDA)
       gpu/GpuResidencyManager.cpp
       gpu/GpuSimpleDiscretization.cpp
       gpu/GpuLinearSolver.cpp
+      gpu/GpuKEpsilonCorrection.cpp
   )
 endif()
 
@@ -326,6 +422,7 @@ endif()
 target_sources(cfdcore
   PRIVATE
     gpu/GPUExecutionStats.cpp
+    gpu/TurbulenceBackendTrace.cpp
 )
 
 # P5 -- Application: ProjectRunner, the one production solver-backend

@@ -11,6 +11,7 @@
 #include "cfd/physics/TemperatureProperty.hpp"
 #include "cfd/thermal/ThermalProperties.hpp"
 #include "cfd/thermal/ThermalRegionMap.hpp"
+#include "cfd/turbulence/WallFunctions.hpp"
 
 namespace cfd::thermal {
 
@@ -97,6 +98,56 @@ struct ThermalResult {
   std::vector<Real> outerChangeHistory;
 
   [[nodiscard]] bool converged() const noexcept { return status == ThermalStatus::Converged; }
+
+  // P16-TWF -- the PRODUCTION wall-function result, per face, evaluated at the
+  // converged temperature by the same cfd::thermal::computeThermalWallFace the
+  // assembly used. Empty unless the thermal wall function was active.
+  //
+  // Any diagnostic -- conservation, Nusselt, wall heat flux reporting -- must
+  // read `wallHeatFlux` rather than re-deriving it. Reconstructing it with an
+  // equivalent-looking formula is what produced a 13% error earlier in P16,
+  // and with a wall function active the error is far larger, because the
+  // k_eff cell-centre gradient no longer describes the wall treatment at all.
+  cfd::fields::SurfaceField wallHeatFlux;
+  cfd::fields::SurfaceField wallConductance;
+};
+
+// P16 -- the turbulent heat-transfer coupling.
+//
+// Carries the two things the energy equation needs from the turbulence side
+// and nothing else: the converged mu_t field and the RESOLVED Pr_t.
+//
+// Both members are required and neither has a default. That is deliberate --
+// a coupling that could be half-constructed, or that supplied its own Pr_t,
+// would be able to disagree silently with the configured value. A caller with
+// no turbulence model passes no coupling at all (the existing overloads),
+// which is what keeps laminar cases on exactly the path they were on before.
+struct TurbulentThermalCoupling {
+  // Non-owning. Must outlive the solve, and must be the mesh-sized mu_t field
+  // the turbulence model exposes -- see TurbulenceModel::turbulentViscosity().
+  const cfd::fields::ScalarField* turbulentViscosity;
+  // Resolved upstream (CaseBuilder, from the turbulence block's
+  // turbulent_prandtl or kDefaultTurbulentPrandtl). Must be finite and > 0.
+  Real turbulentPrandtl;
+
+  // P16-TWF -- the thermal wall function. INACTIVE unless all of the pointers
+  // below are non-null; when inactive the wall faces keep the molecular
+  // diffusive treatment, on the identical pre-P16 code path.
+  //
+  // These come from the turbulence model's OWN wall state, so the thermal wall
+  // law is driven by the same friction velocity the momentum wall function
+  // produced rather than by a second estimate of it.
+  const cfd::fields::ScalarField* wallShearStress = nullptr;  // per cell
+  const cfd::fields::ScalarField* yPlus = nullptr;            // per cell
+  const std::vector<cfd::Index>* wallFaceIds = nullptr;       // which faces are walls
+  Real density = 0.0;
+  Real dynamicViscosity = 0.0;
+  cfd::turbulence::WallFunctionCoefficients wallFunctionCoefficients{};
+
+  [[nodiscard]] bool thermalWallFunctionActive() const {
+    return wallShearStress != nullptr && yPlus != nullptr && wallFaceIds != nullptr &&
+           density > 0.0 && dynamicViscosity > 0.0;
+  }
 };
 
 class ThermalSolver {
@@ -161,6 +212,42 @@ class ThermalSolver {
       const cfd::physics::TemperatureProperty& specificHeatModel,
       const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
       Real volumetricHeatSource = 0.0) const;
+
+  // P16: the same variable-property solve, with the turbulent heat flux closed
+  // by the Reynolds analogy. Inside the SAME outer Picard loop and the SAME
+  // assemble lambda, the conductivity handed to the energy equation becomes
+  //
+  //   k_eff(T) = k_mol(T) + mu_t c_p(T) / Pr_t
+  //
+  // evaluated per cell from the CURRENT temperature iterate -- so k_mol and
+  // c_p are the runtime local values, not frozen references, and the turbulent
+  // part tracks c_p(T) as it must.
+  //
+  // LAMINAR COMPATIBILITY IS EXACT, not approximate. mu_t = 0 makes
+  // turbulentConductivity return exactly 0.0, and k_mol + 0.0 == k_mol for
+  // every finite k_mol in IEEE754, so this overload with a zero mu_t field
+  // produces a bitwise-identical matrix, RHS and solved field to the overload
+  // above. That is asserted, not assumed -- see
+  // tests/unit/thermal/test_turbulent_thermal_coupling.cpp.
+  //
+  // COUPLING DIRECTION, stated because it is a real limitation: mu_t is an
+  // INPUT here. It is the converged field from the flow solve and is not
+  // re-corrected against the temperature this solve produces, so the
+  // production path is one-way, (u, p, mu_t) -> T, not a fully coupled
+  // thermo-fluid solution. A case whose flow genuinely depends on T --
+  // buoyancy, strongly temperature-dependent viscosity -- needs an outer loop
+  // that does not exist in this codebase yet.
+  //
+  // Throws nothing for a legitimate numerical-failure outcome, same convention
+  // as every other solve() here. An invalid coupling (null field, wrong size,
+  // non-positive Pr_t) is InvalidConfiguration.
+  [[nodiscard]] ThermalResult solve(
+      const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& initialTemperature,
+      const cfd::fields::SurfaceField& massFlux,
+      const cfd::physics::TemperatureProperty& conductivityModel,
+      const cfd::physics::TemperatureProperty& specificHeatModel,
+      const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
+      const TurbulentThermalCoupling& turbulence, Real volumetricHeatSource = 0.0) const;
 
   // P2-THERMAL-005: the conjugate-heat-transfer counterpart of solve() --
   // assembles thermal::assembleConjugateConductionEquation (region-aware

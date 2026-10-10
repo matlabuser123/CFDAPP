@@ -27,6 +27,28 @@ struct RunMetadata {
   cfd::Real density{};
   cfd::Real dynamicViscosity{};
   std::string solverType;
+
+  // P13-004: the context a result needs to be reproduced or interpreted.
+  // Before this, metadata.json said which case and which solver, and nothing
+  // about HOW it was solved -- no schemes, no tolerances, no backend. A result
+  // file that cannot answer "what produced this" is a number without units.
+  //
+  // Held here rather than read from a CaseDefinition, so this header stays
+  // independent of the case-loading pipeline exactly as its own comment above
+  // promises. The caller (ProjectRunner) is the one layer that already has
+  // both.
+  //
+  // Every field is fixed for a given run, so two runs of the same case with
+  // the same binary still produce a byte-identical metadata.json -- the
+  // property P13-003's CLI/GUI export comparison depends on.
+  std::string convectionScheme;
+  std::string gradientScheme;
+  cfd::Index nonOrthogonalCorrections{};
+  std::string linearSolverBackend;  // the CONFIGURED backend, "CPU" or "GPU"
+  cfd::Real velocityTolerance{};
+  cfd::Real pressureTolerance{};
+  cfd::Real continuityTolerance{};
+  cfd::Index maxIterations{};
 };
 
 // P2-THERMAL-004: the small set of thermal::ThermalResult-derived fields

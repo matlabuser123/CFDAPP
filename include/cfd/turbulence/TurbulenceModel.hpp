@@ -5,8 +5,15 @@
 
 #include "cfd/core/Types.hpp"
 #include "cfd/fields/ScalarField.hpp"
+#include "cfd/fields/SurfaceField.hpp"
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/mesh/Mesh.hpp"
+
+namespace cfd::gpu {
+// P16 Step 4: a CUDA-free pimpl facade. Only its NAME crosses this header, so a
+// CPU-only translation unit including this file never sees a device type.
+class GpuSimpleDiscretization;
+}  // namespace cfd::gpu
 
 namespace cfd::turbulence {
 
@@ -37,6 +44,19 @@ namespace cfd::turbulence {
 // mu_t (and, in a later task, whatever model-internal transport fields a
 // concrete RANS model needs); effectiveViscosity() below combines the
 // two without either side needing to know about the other's storage.
+// P16: the default turbulent Prandtl number for the Reynolds analogy
+// k_t = mu_t c_p / Pr_t.
+//
+// 0.85 is the standard value for wall-bounded shear flows and is what the
+// wall-function architecture in this milestone is built around; it is not a
+// tuned quantity and nothing in this codebase fits it. A case may override it
+// through physics.json's turbulence block.
+//
+// It lives HERE, on the turbulence side, rather than in the thermal solver:
+// Pr_t exists only because mu_t does, and a thermal component that carried its
+// own default could silently disagree with the configured one.
+inline constexpr Real kDefaultTurbulentPrandtl = 0.85;
+
 class TurbulenceModel {
  public:
   virtual ~TurbulenceModel() = default;
@@ -95,6 +115,71 @@ class TurbulenceModel {
   // that U/V/P settling while k/epsilon are still visibly changing is
   // never reported as a converged RANS solve.
   [[nodiscard]] virtual std::optional<Real> convergenceResidual() const { return std::nullopt; }
+
+  // P16 Step 4 -- can this model be corrected from GPU-RESIDENT state, without
+  // reading the host velocity?
+  //
+  // WHY THIS IS A CAPABILITY AND NOT A MODEL NAME. The resident SIMPLE loop
+  // deliberately leaves the host velocity frozen at iteration 0. A model whose
+  // correct() reads it would therefore be fed stale data for the whole solve.
+  // That is the single fact the old `name() == "laminar"` guard was standing in
+  // for -- laminar happened to be immune because its correct() is a no-op.
+  //
+  // Answering true is a statement about EVERY link in the chain being present
+  // and qualified: resident velocity and corrected face flux, device gradient,
+  // GPU P_k, compact CPU wall treatment, resident k and epsilon solves, device
+  // mu_t and mu_eff, and the GPU wall-face viscosity override. A model that has
+  // only some of those must answer false -- there is no partially resident
+  // path, and a name comparison could not express the difference.
+  //
+  // The default is false, so a model added later is excluded until it says
+  // otherwise rather than being silently admitted.
+  [[nodiscard]] virtual bool supportsResidentGpuCorrection() const noexcept { return false; }
+
+  // The resident correction itself, driven from the discretization's own device
+  // state rather than from a host velocity field. Returns false when the model
+  // cannot do it, or when the discretization has no resident state yet -- the
+  // caller must then fall back to correct(), which is exactly what happens on
+  // the first outer iteration, before anything has been uploaded.
+  //
+  // Default: refuse. A model that does not implement this keeps the
+  // per-iteration host path it has today.
+  [[nodiscard]] virtual bool correctResidentGpu(const cfd::mesh::Mesh&,
+                                                cfd::gpu::GpuSimpleDiscretization&) {
+    return false;
+  }
+
+  // P16: a per-FACE effective viscosity for wall faces, or nullptr when this
+  // model applies no wall treatment.
+  //
+  // This is how a wall function reaches momentum. The momentum assembly keeps
+  // its existing mu*U_P/y_P boundary term and is handed a different mu at that
+  // face -- there is no second momentum discretisation, and nothing in the
+  // assembly needs to know a wall function exists.
+  //
+  // Not pure virtual, and nullptr by default, for the same reason
+  // convergenceResidual is optional: a model with no wall treatment (Laminar,
+  // and k-epsilon with wall functions off) should not be forced to implement a
+  // meaningless override, and a caller threading the result straight through
+  // provably changes nothing for those models.
+  [[nodiscard]] virtual const cfd::fields::SurfaceField* wallViscosity() const { return nullptr; }
+
+  // P16-TWF -- the wall state the THERMAL wall function needs, exposed on the
+  // same terms as wallViscosity() above: nullptr by default, non-null only
+  // when a model actually ran a wall treatment.
+  //
+  // Named with a `Field` suffix rather than reusing the concrete models' own
+  // wallShearStress()/yPlus() accessors, which return references and would be
+  // hidden by a virtual of the same name.
+  //
+  // These TRANSPORT the model's own wall state. A consumer must not
+  // reconstruct u_tau from a velocity secant -- the whole point is that the
+  // thermal law is driven by the same wall shear the momentum wall function
+  // produced.
+  [[nodiscard]] virtual const cfd::fields::ScalarField* wallShearStressField() const {
+    return nullptr;
+  }
+  [[nodiscard]] virtual const cfd::fields::ScalarField* wallYPlusField() const { return nullptr; }
 };
 
 // Throws InvalidArgumentError if turbulentViscosity.size() !=

@@ -7,8 +7,8 @@ Manufactured solution: mms::velocity: U = (psi_y, -psi_x), psi = e^{0.5x} sin(pi
 | grid | cells | h | status | iterations | mass imbalance | runtime (s) |
 |---|---|---|---|---|---|---|
 | 8x8 | 64 | 0.125 | Converged | 745 | 3.2e-19 | 0.6 |
-| 16x16 | 256 | 0.0625 | Converged | 2003 | 7.95e-20 | 6.1 |
-| 32x32 | 1024 | 0.03125 | Converged | 4353 | 1.98e-20 | 57.4 |
+| 16x16 | 256 | 0.0625 | Converged | 2003 | 7.95e-20 | 5.4 |
+| 32x32 | 1024 | 0.03125 | Converged | 4353 | 1.98e-20 | 44.4 |
 
 **u**
 

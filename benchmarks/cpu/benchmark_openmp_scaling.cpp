@@ -55,11 +55,17 @@
 
 #ifdef _OPENMP
 #include <omp.h>
+#include "../BenchmarkOutput.hpp"
 #endif
 
 using cfd::Index;
 using cfd::Real;
 using cfd::Vector2;
+using cfd::algebra::LinearSolverBackend;
+using cfd::algebra::LinearSolverSettings;
+using cfd::algebra::LinearSolverType;
+using cfd::algebra::makeLinearSolver;
+using cfd::algebra::PreconditionerType;
 using cfd::boundary::BoundaryConditionSet;
 using cfd::boundary::MovingWall;
 using cfd::boundary::Wall;
@@ -70,11 +76,6 @@ using cfd::mesh::MeshGeometry;
 using cfd::physics::calculateMassFlux;
 using cfd::physics::FluidProperties;
 using cfd::physics::VelocityComponent;
-using cfd::algebra::LinearSolverBackend;
-using cfd::algebra::LinearSolverSettings;
-using cfd::algebra::LinearSolverType;
-using cfd::algebra::makeLinearSolver;
-using cfd::algebra::PreconditionerType;
 using cfd::pressure_velocity::assemblePressureCorrection;
 using cfd::pressure_velocity::assembleRelaxedMomentumComponent;
 using cfd::pressure_velocity::computeMomentumResponseCoefficient;
@@ -85,9 +86,9 @@ using cfd::pressure_velocity::SIMPLEStatus;
 
 #ifndef _OPENMP
 
-int main() {
+int main(int, char**) {
   std::cout << "cfd_benchmark_openmp_scaling: built without OpenMP "
-              "(-DCFDAPP_ENABLE_OPENMP=OFF) -- nothing to scale, exiting.\n";
+               "(-DCFDAPP_ENABLE_OPENMP=OFF) -- nothing to scale, exiting.\n";
   return 0;
 }
 
@@ -235,7 +236,7 @@ BreakdownResult runBreakdown(const Mesh& mesh, const FluidProperties& fluid,
 
   cfd::Timer pressureAssemblyTimer;
   const auto pressureAssembly = assemblePressureCorrection(mesh, massFlux0, uResponse, vResponse,
-                                                            fluid.density(), 0, pressureBoundaries);
+                                                           fluid.density(), 0, pressureBoundaries);
   breakdown.pressureAssemblySeconds = pressureAssemblyTimer.elapsedSeconds();
 
   LinearSolverSettings pressureSettings;
@@ -256,11 +257,13 @@ BreakdownResult runBreakdown(const Mesh& mesh, const FluidProperties& fluid,
 
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
   omp_set_dynamic(0);  // section 5: never let OpenMP silently choose a different thread count.
 
-  const std::string outDir = "results/performance/openmp_scaling";
-  std::filesystem::create_directories(outDir);
+  // P13-007: --output-dir, defaulting to the historical path.
+  const std::string outDir =
+      cfd::benchmarks::benchmarkOutputDir(argc, argv, "results/performance/openmp_scaling")
+          .string();
 
   const int logicalProcessors = omp_get_num_procs();
   std::cout << "cfd_benchmark_openmp_scaling -- CFDApp version " << cfd::core::versionString()
@@ -295,8 +298,9 @@ int main() {
   const FluidProperties fluid(1.0, 0.01);
   const Index n = mesh.numberOfCells();
 
-  std::cout << "grid: " << nx << "x" << ny << " (" << n << " cells), outer_iterations="
-            << kOuterIterations << ", repeats=" << kRepeats << "\n\n";
+  std::cout << "grid: " << nx << "x" << ny << " (" << n
+            << " cells), outer_iterations=" << kOuterIterations << ", repeats=" << kRepeats
+            << "\n\n";
 
   std::ofstream runsCsv(outDir + "/runs.csv");
   runsCsv << "threads,repeat,total_seconds,outer_iterations,status,ran_cleanly,mass_imbalance\n";
@@ -306,7 +310,7 @@ int main() {
   bool haveBaseline = false;
 
   std::cout << "threads | median_s | min_s | mean_s | stddev_s | speedup | efficiency | "
-              "assembly_s | solve_s | max_abs_velocity_diff_from_1_thread\n";
+               "assembly_s | solve_s | max_abs_velocity_diff_from_1_thread\n";
 
   double baselineMedian = 0.0;
   for (const int threads : threadCounts) {
@@ -316,14 +320,16 @@ int main() {
 
     std::vector<RunResult> runs;
     for (int r = 0; r < kRepeats; ++r) {
-      runs.push_back(runOnce(mesh, fluid, velocityBoundaries, pressureBoundaries, kOuterIterations));
+      runs.push_back(
+          runOnce(mesh, fluid, velocityBoundaries, pressureBoundaries, kOuterIterations));
     }
 
     for (std::size_t r = 0; r < runs.size(); ++r) {
       const auto& run = runs[r];
       runsCsv << threads << "," << r << "," << run.totalSeconds << "," << run.outerIterations << ","
               << (run.status == SIMPLEStatus::MaxIterations ? "MaxIterations" : "Other") << ","
-              << (run.ranCleanly ? "yes" : "no") << "," << std::abs(run.globalMassImbalance) << "\n";
+              << (run.ranCleanly ? "yes" : "no") << "," << std::abs(run.globalMassImbalance)
+              << "\n";
     }
 
     std::vector<double> totals;
@@ -346,12 +352,12 @@ int main() {
     Real maxAbsVelocityDiff = 0.0;
     if (haveBaseline) {
       for (Index i = 0; i < runs.front().velocity.size(); ++i) {
-        maxAbsVelocityDiff = std::max(
-            maxAbsVelocityDiff,
-            std::abs(runs.front().velocity[i].x - firstThreadBaseline.velocity[i].x));
-        maxAbsVelocityDiff = std::max(
-            maxAbsVelocityDiff,
-            std::abs(runs.front().velocity[i].y - firstThreadBaseline.velocity[i].y));
+        maxAbsVelocityDiff =
+            std::max(maxAbsVelocityDiff,
+                     std::abs(runs.front().velocity[i].x - firstThreadBaseline.velocity[i].x));
+        maxAbsVelocityDiff =
+            std::max(maxAbsVelocityDiff,
+                     std::abs(runs.front().velocity[i].y - firstThreadBaseline.velocity[i].y));
       }
     }
 
@@ -391,16 +397,17 @@ int main() {
                 "efficiency,assembly_s,solve_s,max_abs_velocity_diff_from_1_thread,converged\n";
   for (const auto& j : summaryJson) {
     summaryCsv << j["threads"].get<int>() << "," << j["grid"].get<std::string>() << ","
-              << j["cells"].get<int>() << "," << j["outer_iterations"].get<int>() << ","
-              << j["min_seconds"].get<double>() << "," << j["median_seconds"].get<double>() << ","
-              << j["mean_seconds"].get<double>() << "," << j["stddev_seconds"].get<double>() << ","
-              << j["speedup"].get<double>() << "," << j["efficiency"].get<double>() << ","
-              << (j["momentum_assembly_seconds"].get<double>() +
-                  j["pressure_assembly_seconds"].get<double>())
-              << "," << (j["momentum_solve_seconds"].get<double>() +
-                        j["pressure_solve_seconds"].get<double>())
-              << "," << j["max_abs_velocity_diff_from_1_thread"].get<double>() << ","
-              << (j["ran_cleanly"].get<bool>() ? "yes" : "no") << "\n";
+               << j["cells"].get<int>() << "," << j["outer_iterations"].get<int>() << ","
+               << j["min_seconds"].get<double>() << "," << j["median_seconds"].get<double>() << ","
+               << j["mean_seconds"].get<double>() << "," << j["stddev_seconds"].get<double>() << ","
+               << j["speedup"].get<double>() << "," << j["efficiency"].get<double>() << ","
+               << (j["momentum_assembly_seconds"].get<double>() +
+                   j["pressure_assembly_seconds"].get<double>())
+               << ","
+               << (j["momentum_solve_seconds"].get<double>() +
+                   j["pressure_solve_seconds"].get<double>())
+               << "," << j["max_abs_velocity_diff_from_1_thread"].get<double>() << ","
+               << (j["ran_cleanly"].get<bool>() ? "yes" : "no") << "\n";
   }
 
   // Section 24: best-performing thread count by measured median runtime,

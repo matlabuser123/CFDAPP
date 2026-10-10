@@ -170,10 +170,15 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
                                    VelocityComponent component, SparseMatrixBuilder& builder,
                                    Vector& rhs, bool applyNonOrthogonalCorrection,
                                    cfd::discretization::GradientScheme correctionGradientScheme,
-                                   const VectorField* correctionVelocity) {
+                                   const VectorField* correctionVelocity,
+                                   const SurfaceField* wallViscosity) {
   if (velocity.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleDiffusionContribution: velocity size does not match mesh cell count");
+  }
+  if (wallViscosity != nullptr && wallViscosity->size() != mesh.numberOfFaces()) {
+    throw InvalidArgumentError(
+        "assembleDiffusionContribution: wallViscosity size does not match mesh face count");
   }
   if (correctionVelocity != nullptr && correctionVelocity->size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
@@ -221,7 +226,13 @@ void assembleDiffusionContribution(const Mesh& mesh, const ScalarField& effectiv
       // No neighbor cell to interpolate against at a boundary face -- use
       // the owner cell's own effective viscosity (see this overload's
       // header comment).
-      const Real muFace = effectiveViscosity[ownerId];
+      // P16: a wall face carries the wall function's own effective viscosity;
+      // everything else keeps the owner cell's value. A zero entry means "no
+      // override", so a mesh with no wall treatment is unaffected.
+      Real muFace = effectiveViscosity[ownerId];
+      if (wallViscosity != nullptr && (*wallViscosity)[faceId] != 0.0) {
+        muFace = (*wallViscosity)[faceId];
+      }
       const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
           mesh, face, muFace, distance, gradPhi,
           prescribesVelocity(mesh, face, velocityBoundaries));

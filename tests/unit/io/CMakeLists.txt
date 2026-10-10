@@ -2,8 +2,15 @@ add_executable(CFDIoTests
   test_case_reader.cpp
   test_case_writer.cpp
   test_case_validation.cpp
+  # P13-002: the case rejection carried as data, and the message left unchanged.
+  test_case_diagnostic.cpp
   test_case_builder.cpp
   test_thermal_case.cpp
+  # P15: the temperature-dependent property models, reachable from a case file.
+  test_thermal_property_case.cpp
+  # G8 closure step 2 -- physics.json's "reacting" block reaches the live P18 chemistry
+  # objects. Before this there were 0 case keys for a mechanism.
+  test_reacting_case.cpp
   test_turbulence_case.cpp
   test_boussinesq_case.cpp
   test_species_case.cpp

@@ -152,7 +152,12 @@ void assembleThermalBoundaryFaceContribution(
     const cfd::fields::ScalarField& temperature,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
     const cfd::fields::VectorField& gradT, cfd::algebra::SparseMatrixBuilder& builder,
-    cfd::algebra::Vector& rhs);
+    cfd::algebra::Vector& rhs,
+    // P16-TWF: a non-zero conductance REPLACES this face's diffusive
+    // treatment (a_P += G_w, b_P += G_w T_w). The default 0.0 is the
+    // pre-P16 path, taken by the identical branch, so every existing caller
+    // is unchanged.
+    Real wallConductance = 0.0);
 
 void assembleThermalDiffusionContribution(
     const cfd::mesh::Mesh& mesh, Real conductivity, const cfd::fields::ScalarField& temperature,
@@ -179,12 +184,28 @@ void assembleThermalDiffusionContribution(
 // temperature.size() or conductivity.size() != mesh.numberOfCells(), or if
 // any conductivity value is non-finite or <= 0. `nonOrthogonal`: as for
 // the scalar overload above.
+// P16-TWF -- the optional thermal wall-function conductance.
+//
+// `wallConductance` is a per-FACE field. Where it is non-zero at a boundary
+// face, that face's diffusive treatment is REPLACED by
+//
+//     a_P += G_w ;   b_P += G_w * T_w
+//
+// with G_w = h_w * A_f = rho cp u_tau A_f / T+. It is a replacement, never an
+// addition: adding it to k_eff A/d would count the turbulent wall transport
+// twice.
+//
+// nullptr, or a zero entry, leaves that face on exactly the pre-P16 path --
+// the SAME function calls in the SAME order, not an "equivalent" zero
+// correction. That is what makes the inactive path bitwise identical rather
+// than merely close.
 void assembleThermalDiffusionContribution(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& conductivity,
     const cfd::fields::ScalarField& temperature,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
     cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {},
+    const cfd::fields::SurfaceField* wallConductance = nullptr);
 
 // specificHeat * upwind-face-mass-flux convection contribution. massFlux
 // must already carry rho (see physics::calculateMassFlux) -- exactly like
@@ -312,6 +333,61 @@ void assembleThermalSourceContribution(const cfd::mesh::Mesh& mesh,
     const cfd::fields::ScalarField& specificHeat,
     const cfd::boundary::BoundaryConditionSet& temperatureBoundaries,
     Real volumetricHeatSource = 0.0,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {},
+    // P16-TWF: see assembleThermalDiffusionContribution above.
+    const cfd::fields::SurfaceField* wallConductance = nullptr);
+
+// P15 -- TRANSIENT energy.
+//
+// The audit found ZERO references to a time derivative anywhere in
+// EnergyEquation.cpp or ThermalSolver.cpp: the energy equation was steady-state
+// only. This adds the missing term, reusing P14's conservative implicit-Euler
+// machinery rather than deriving a second one.
+//
+// The conserved quantity is rho*cp*T (the transported quantity this equation
+// already uses -- see assembleThermalConvectionContribution, which scales the
+// mass flux by cp for exactly that reason), so the discrete term is
+//
+//   a_P += rho_P^{n+1} cp_P^{n+1} V_P / dt
+//   b_P += rho_P^n     cp_P^n     T_P^n V_P / dt
+//
+// Both density AND specific heat are carried at two time levels. Using the new
+// cp against the old temperature is the same non-conservative slip P14 guards
+// against for density, and it is worse here because cp(T) is exactly what P15
+// makes vary. Separate, separately-named fields make writing it deliberate.
+//
+// A steady solve passes `transient = false` and the assembled system is bitwise
+// what the existing overloads produce -- no zero-valued term is added, the code
+// is not executed at all.
+struct ThermalTimeState {
+  bool transient{false};
+  Real dt{0.0};
+  // State at time level n. All four are required when transient is true.
+  const cfd::fields::ScalarField* temperatureOld{nullptr};
+  const cfd::fields::ScalarField* densityOld{nullptr};
+  const cfd::fields::ScalarField* specificHeatOld{nullptr};
+  // State at time level n+1 (the level being solved for).
+  const cfd::fields::ScalarField* densityNew{nullptr};
+  const cfd::fields::ScalarField* specificHeatNew{nullptr};
+};
+
+// Adds the transient contribution in place. Does nothing at all when
+// `time.transient` is false. Throws InvalidArgumentError if dt is not finite
+// and > 0, any required field is missing or wrongly sized, or any density or
+// specific heat is not finite and > 0.
+void assembleThermalTransientContribution(const cfd::mesh::Mesh& mesh, const ThermalTimeState& time,
+                                          cfd::algebra::SparseMatrixBuilder& builder,
+                                          cfd::algebra::Vector& rhs);
+
+// The field-property energy equation with an optional transient term. The
+// steady path (default-constructed ThermalTimeState) is bitwise identical to
+// the overload above -- verified, not assumed.
+[[nodiscard]] EnergyAssembly assembleEnergyEquation(
+    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& temperature,
+    const cfd::fields::SurfaceField& massFlux, const cfd::fields::ScalarField& conductivity,
+    const cfd::fields::ScalarField& specificHeat,
+    const cfd::boundary::BoundaryConditionSet& temperatureBoundaries, Real volumetricHeatSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    const ThermalTimeState& time);
 
 }  // namespace cfd::thermal

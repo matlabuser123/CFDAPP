@@ -160,9 +160,12 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   43 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
-                  3 N/A (TD-013, TD-040, TD-041), 1 REOPENED, the rest open. P0s still
-                  open: 5, down from 6 when TD-040 was reclassified. TD-001/TD-002 closed before this phase
+register totals   45 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
+                  2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043), 2 BLOCKED, 2 INHERITED,
+                  31 open. NOT CLOSED: 37. P0s still open: 5 (TD-003, TD-006, TD-007,
+                  TD-027, TD-029), down from 6 when TD-040 was reclassified.
+                  2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement) and
+                  TD-045 added, so the count went 43 -> 45 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
                   and are not repeated below; the frontier block is the CURRENT frontier
                   only. NOTE when counting by grep: TD-004's status contains the word
                   UNRESOLVED, so a /RESOLVED/ match counts it by mistake -- use
@@ -226,8 +229,14 @@ re-measured       TD-027   C4 PASSES on a parity-CROSSING ladder (2026-10-09) by
 also open         TD-033, TD-035, TD-036, TD-038, TD-039, TD-040, TD-042 — none authorized
                   TD-042   reactionHeatRelease at :1086 is computed every step and DISCARDED;
                   found because patching it as a gate control would have been vacuous
-n/a as a defect   TD-041   CRLF growth — REFUTED 2026-10-09 by the CR/lines ratio: 1.000 on
-                  both sides for all 21 files. CRLF is the committed convention
+re-opened         TD-041   line endings. THREE successive claims, two broken probes. The
+                  measured state, 2026-10-11, by binary byte count: 102 tracked TEXT files
+                  contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
+                  gate). "CRLF is the committed convention" was FALSE and so was its
+                  replacement "the repo is pure LF". Whether the count GREW is unmeasured
+also open         TD-045   the repository has NO line-ending guard: `* -text` overrides
+                  core.autocrlf, clang-format DERIVES the ending per file (all 3 CRLF .cpp
+                  PASS), and git diff --check sees only staged files. Carved out of TD-041
 next              determined by TECHNICAL_DEBT.md; nothing is authorized
 ```
 
@@ -305,11 +314,15 @@ phase is authorized.
 PROJECT STATE          P17 PARTIAL · P18 PARTIAL
 BLOCKING ISSUE         P18 G8 — not closed; next is the re-measurement in §2
 ROADMAP AUTHORIZATION  NO NEW FUTURE PHASE AUTHORIZED
-PUSH BLOCKER           TD-035 — the §8 regression has NOT been run on this tree. A sanitizer
-                       FIXTURE now exists (150 cells, 348.75 s under ASan+UBSan, 20.6x
-                       headroom, 0 diagnostics) and the asan preset EXCLUDES the heavy G8
-                       cases. But the full 2860-test preset's cost is UNMEASURED, so the
-                       blocker STANDS -- its reason changed from infeasible to unmeasured.
+PUSH BLOCKER           TD-035 — the §8 regression is PARTIAL on this tree: 2 of 4
+                       configurations. RELEASE RAN 2026-10-11 (2840 tests, 7 failures, all
+                       known, 0 new, 5 G8 tests FIXED, 7144.02 s) and clang-format is clean,
+                       so those two now PASS. Debug+GUI and the five sanitizer configurations
+                       are NOT RUN. A sanitizer FIXTURE exists (150 cells, 348.75 s under
+                       ASan+UBSan, 20.6x headroom, 0 diagnostics) and the asan preset EXCLUDES
+                       the heavy G8 cases, but the full 2860-test preset's cost is UNMEASURED.
+                       The blocker STANDS for a PUSH. It does NOT block a commit, and the
+                       2026-10-11 production commit was authorized on this partial basis.
 
 STANDING SCOPE LIMIT   (CLAUDE.md §9) The heavy G8PremixedFlameTest cases, 500-1500 cells,
                        are EXCLUDED from `ctest --preset asan` and are exercised under NO
@@ -317,8 +330,12 @@ STANDING SCOPE LIMIT   (CLAUDE.md §9) The heavy G8PremixedFlameTest cases, 500-
                        same PROBLEM SIZES: a defect manifesting only above some allocation
                        size would be missed. Unavoidable -- the 1000-cell level was KILLED
                        at the real 7200 s cap, and §7 forbids inflating the limit.
-                       clang-format is CLEAN and git diff --check is 0 (TD-034 resolved
-                       2026-10-09); TD-041 was refuted, so neither blocks a commit
+                       clang-format is CLEAN (742 files, exit 0) and git diff --check is 0
+                       in source after four new files were converted CRLF -> LF; the 14
+                       remaining check lines are tab-indented ctest output inside one raw
+                       .log, committed verbatim by precedent. TD-041 is RE-OPENED but does
+                       not block this commit: it describes CRLF already in HEAD, which §2
+                       forbids repairing inside another item's commit
 ```
 
 ## Decisions waiting

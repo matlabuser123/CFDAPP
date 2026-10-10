@@ -35,6 +35,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/algebra/LinearSystem.hpp"
@@ -52,6 +53,12 @@ class BoundaryConditionSet;
 }
 
 namespace cfd::gpu {
+
+// Defined only in the CUDA-only GpuSimpleResidentTurbulence.hpp; see the friend
+// declaration at the bottom of GpuSimpleDiscretization for why it is opaque
+// here.
+struct ResidentTurbulenceInputs;
+struct ResidentTurbulentViscosity;
 
 class GpuSimpleDiscretization {
  public:
@@ -117,6 +124,35 @@ class GpuSimpleDiscretization {
   // solve, so on a laminar case this transfers once and never again.
   void setViscosity(const cfd::fields::ScalarField& effectiveViscosity);
 
+  // P16 Phase 2 -- the wall function's FACE-LOCAL viscosity override.
+  //
+  // `faceIds` and `values` are COMPACT: one entry per wall face, so the
+  // transfer is O(N_wall) and never a face-length field. They are scattered
+  // into a device buffer that is zero everywhere else, which reproduces the
+  // host SurfaceField's "zero means no override" convention exactly.
+  //
+  // It is deliberately NOT folded into setViscosity's cell field. A cell with
+  // one wall face and three interior faces must use the wall value on the wall
+  // face ALONE; folding it in would apply it to all four and silently change
+  // the finite-volume operator.
+  //
+  // clearWallFaceViscosity() returns the assembly to its no-override form, so a
+  // laminar solve is bitwise what it was.
+  void setWallFaceViscosity(const std::vector<cfd::Index>& faceIds,
+                            const std::vector<cfd::Real>& values);
+  void clearWallFaceViscosity();
+
+  // The same override, taken from the host SurfaceField a turbulence model
+  // publishes. Compacts to the non-zero entries internally, so the TRANSFER is
+  // still O(N_wall) even though the argument is face-length; a null or
+  // all-zero field clears the override.
+  //
+  // This exists because the wall override must reach the device on EVERY path
+  // that assembles momentum there, not only when the resident turbulence
+  // correction ran. A GPU solve whose turbulence took the host path would
+  // otherwise assemble momentum with no wall-function shear at all.
+  void setWallFaceViscosity(const cfd::fields::SurfaceField* wallViscosity);
+
   // Stage 7, on the device: pressure = pressure + (alpha * p'), bitwise
   // identical to SIMPLE.cpp's host loop. Keeps `pressure` resident instead of
   // round-tripping it through the host every iteration.
@@ -128,6 +164,12 @@ class GpuSimpleDiscretization {
   void downloadVelocity(cfd::fields::VectorField& out);
   void downloadPressure(cfd::fields::ScalarField& out);
   void downloadMassFlux(cfd::fields::SurfaceField& out);
+  // P16 Phase 1. Viscosity is the fourth tracked persistent field and was the
+  // only one with no explicit host access -- harmless while it was always
+  // Synchronized (the host had just uploaded it), and a real gap once
+  // adoptDeviceEffectiveViscosity makes it DeviceOwned, because then nothing
+  // could read it back at all.
+  void downloadViscosity(cfd::fields::ScalarField& out);
 
   // Stages 8 and 9 in their RESIDENT form: compute the correction and carry the
   // result into the persistent field, with no download. The non-resident
@@ -259,6 +301,35 @@ class GpuSimpleDiscretization {
  private:
   struct Impl;
   std::unique_ptr<Impl> impl_;
+
+  // P16-GPU-TURB Stage 7I -- the resident turbulence seam.
+  //
+  // The resident k-epsilon correction must read the SAME device state the CPU
+  // algorithm would have handed it: the corrected velocity and corrected face
+  // flux carried out of the previous outer iteration (see
+  // beginIterationResident's own comment -- "the corrections already carried
+  // their results into `velocity` and `massFlux`"). Both live in Impl, along
+  // with the DeviceMomentumConvectionPlan the qualified device velocity
+  // gradient needs.
+  //
+  // `ResidentTurbulenceInputs` is declared but NOT defined here: its members
+  // are CUDA types, and this header must stay includable from a CPU-only
+  // build. The definition lives in the CUDA-only
+  // GpuSimpleResidentTurbulence.hpp, so the device types never cross this
+  // boundary. A friend declaration of a function returning an incomplete type
+  // is legal precisely because nothing here can call it.
+  //
+  // This exists so the turbulence path does NOT download the velocity field.
+  // Exposing a borrowed view is the smaller change; the alternative was a full
+  // D2H every outer iteration, which is what the whole resident design exists
+  // to avoid.
+  friend struct ResidentTurbulenceInputs;
+  friend ResidentTurbulenceInputs residentTurbulenceInputs(GpuSimpleDiscretization& discretization);
+  // P16 Phase 1: the return direction. Its argument is an incomplete type
+  // here for the same reason ResidentTurbulenceInputs is -- the device buffer
+  // it carries must not be named by a header that CPU-only targets compile.
+  friend bool adoptDeviceEffectiveViscosity(GpuSimpleDiscretization& discretization,
+                                            const ResidentTurbulentViscosity& turbulent);
 };
 
 }  // namespace cfd::gpu

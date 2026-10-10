@@ -37,7 +37,7 @@ struct KOmegaConfig {
   // P12-NUM-003: non-orthogonal correction of the k/omega diffusion terms
   // (default disabled -- exactly the pre-existing operator). Evaluated once
   // per model correct() call from the lagged field; SIMPLE's outer
-  // iteration converges the lag. See assembleScalarDiffusionContribution.
+  // iteration converges the lag. See cfd::transport.
   cfd::discretization::NonOrthogonalCorrectionOptions nonOrthogonal{};
 
   // Patankar implicit under-relaxation (reusing

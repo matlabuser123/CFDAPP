@@ -39,6 +39,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../BenchmarkOutput.hpp"
 #include "cfd/algebra/LinearSolverFactory.hpp"
 #include "cfd/boundary/FixedGradient.hpp"
 #include "cfd/boundary/MovingWall.hpp"
@@ -59,6 +60,11 @@
 using cfd::Index;
 using cfd::Real;
 using cfd::Vector2;
+using cfd::algebra::LinearSolverBackend;
+using cfd::algebra::LinearSolverSettings;
+using cfd::algebra::LinearSolverType;
+using cfd::algebra::makeLinearSolver;
+using cfd::algebra::PreconditionerType;
 using cfd::boundary::BoundaryConditionSet;
 using cfd::boundary::MovingWall;
 using cfd::boundary::Wall;
@@ -69,11 +75,6 @@ using cfd::mesh::MeshGeometry;
 using cfd::physics::calculateMassFlux;
 using cfd::physics::FluidProperties;
 using cfd::physics::VelocityComponent;
-using cfd::algebra::LinearSolverBackend;
-using cfd::algebra::LinearSolverSettings;
-using cfd::algebra::LinearSolverType;
-using cfd::algebra::makeLinearSolver;
-using cfd::algebra::PreconditionerType;
 using cfd::pressure_velocity::assemblePressureCorrection;
 using cfd::pressure_velocity::assembleRelaxedMomentumComponent;
 using cfd::pressure_velocity::computeMomentumResponseCoefficient;
@@ -117,9 +118,9 @@ SIMPLESettings makeCavitySettings(Index outerIterations, LinearSolverBackend bac
   settings.maxIterations = outerIterations;
   settings.velocityRelaxation = 0.7;
   settings.pressureRelaxation = 0.3;
-  settings.velocityTolerance = 1e-10;   // effectively unreachable -- always runs the full budget,
-  settings.pressureTolerance = 1e-10;   // matching benchmark_runner.cpp's own "fixed iteration
-  settings.continuityTolerance = 1e-10; // budget" rationale (comparable runtime/iteration).
+  settings.velocityTolerance = 1e-10;    // effectively unreachable -- always runs the full budget,
+  settings.pressureTolerance = 1e-10;    // matching benchmark_runner.cpp's own "fixed iteration
+  settings.continuityTolerance = 1e-10;  // budget" rationale (comparable runtime/iteration).
 
   settings.momentumSolver.type = LinearSolverType::BiCGSTAB;
   settings.momentumSolver.backend = backend;
@@ -303,7 +304,7 @@ BreakdownResult runBreakdown(const Mesh& mesh, const FluidProperties& fluid,
 
   cfd::Timer pressureAssemblyTimer;
   const auto pressureAssembly = assemblePressureCorrection(mesh, massFlux0, uResponse, vResponse,
-                                                            fluid.density(), 0, pressureBoundaries);
+                                                           fluid.density(), 0, pressureBoundaries);
   breakdown.pressureAssemblySeconds = pressureAssemblyTimer.elapsedSeconds();
 
   LinearSolverSettings pressureSettings;
@@ -368,21 +369,30 @@ struct GridConfig {
 
 const char* statusName(SIMPLEStatus status) {
   switch (status) {
-    case SIMPLEStatus::Converged: return "Converged";
-    case SIMPLEStatus::MaxIterations: return "MaxIterations";
-    case SIMPLEStatus::MomentumFailure: return "MomentumFailure";
-    case SIMPLEStatus::PressureCorrectionFailure: return "PressureCorrectionFailure";
-    case SIMPLEStatus::NonFiniteState: return "NonFiniteState";
-    case SIMPLEStatus::InvalidConfiguration: return "InvalidConfiguration";
-    default: return "Cancelled";
+    case SIMPLEStatus::Converged:
+      return "Converged";
+    case SIMPLEStatus::MaxIterations:
+      return "MaxIterations";
+    case SIMPLEStatus::MomentumFailure:
+      return "MomentumFailure";
+    case SIMPLEStatus::PressureCorrectionFailure:
+      return "PressureCorrectionFailure";
+    case SIMPLEStatus::NonFiniteState:
+      return "NonFiniteState";
+    case SIMPLEStatus::InvalidConfiguration:
+      return "InvalidConfiguration";
+    default:
+      return "Cancelled";
   }
 }
 
 }  // namespace
 
-int main() {
-  const std::string outDir = "results/performance/cuda_end_to_end";
-  std::filesystem::create_directories(outDir);
+int main(int argc, char** argv) {
+  // P13-007: --output-dir, defaulting to the historical path.
+  const std::string outDir =
+      cfd::benchmarks::benchmarkOutputDir(argc, argv, "results/performance/cuda_end_to_end")
+          .string();
 
   std::cout << "cfd_benchmark_cuda_end_to_end -- CFDApp version " << cfd::core::versionString()
             << "\n";
@@ -390,7 +400,7 @@ int main() {
   std::cout << "cuda_available_at_runtime: " << (gpuAvailable ? "yes" : "no") << "\n";
   if (!gpuAvailable) {
     std::cout << "no usable CUDA device at runtime -- cannot measure a real CPU-vs-GPU "
-                "end-to-end comparison, exiting.\n";
+                 "end-to-end comparison, exiting.\n";
     return 0;
   }
 
@@ -400,7 +410,7 @@ int main() {
   // header comment; CPU and GPU always share the same budget at a given
   // grid.
   const std::vector<GridConfig> gridConfigs = {
-      {20, 20, 200, 3}, {40, 40, 200, 3}, {80, 80, 200, 3},
+      {20, 20, 200, 3},  {40, 40, 200, 3},  {80, 80, 200, 3},
       {160, 160, 60, 3}, {320, 320, 20, 3}, {640, 640, 8, 1},
   };
 
@@ -408,7 +418,7 @@ int main() {
   // initialization + first-kernel-load cost, reported separately, so it
   // does not distort every grid's own "warm" GPU numbers.
   std::cout << "\nCold GPU warm-up (CUDA context init, first kernel load) -- untimed for the "
-              "per-grid results below, reported separately.\n";
+               "per-grid results below, reported separately.\n";
   cfd::Timer coldTimer;
   (void)runOnceEndToEnd(20, 20, 5, LinearSolverBackend::GPU);
   const double coldGpuSeconds = coldTimer.elapsedSeconds();
@@ -424,7 +434,7 @@ int main() {
   std::vector<std::string> gridSummaryLines;
 
   std::cout << "\ngrid | cells | backend | outer_iters | total_min_s | total_median_s | "
-              "total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged\n";
+               "total_mean_s | total_stddev_s | per_iter_ms | transfer_pct | converged\n";
 
   for (const auto& cfg : gridConfigs) {
     const std::string gridLabel = std::to_string(cfg.nx) + "x" + std::to_string(cfg.ny);
@@ -445,10 +455,12 @@ int main() {
     std::vector<RunResult> gpuRuns;
 
     for (int r = 0; r < cfg.repeats; ++r) {
-      cpuRuns.push_back(runOnceEndToEnd(cfg.nx, cfg.ny, cfg.outerIterations, LinearSolverBackend::CPU));
+      cpuRuns.push_back(
+          runOnceEndToEnd(cfg.nx, cfg.ny, cfg.outerIterations, LinearSolverBackend::CPU));
     }
     for (int r = 0; r < cfg.repeats; ++r) {
-      gpuRuns.push_back(runOnceEndToEnd(cfg.nx, cfg.ny, cfg.outerIterations, LinearSolverBackend::GPU));
+      gpuRuns.push_back(
+          runOnceEndToEnd(cfg.nx, cfg.ny, cfg.outerIterations, LinearSolverBackend::GPU));
     }
 
     const auto writeRuns = [&](const std::vector<RunResult>& runs, const char* backendName) {
@@ -459,9 +471,9 @@ int main() {
                 << "," << run.simpleSolveSeconds << "," << statusName(run.status) << ","
                 << (run.ranCleanly ? "yes" : "no") << "," << std::abs(run.globalMassImbalance)
                 << "," << run.hostToDeviceCalls << "," << run.hostToDeviceBytes << ","
-                << run.deviceToHostCalls << "," << run.deviceToHostBytes << ","
-                << run.uploadSeconds << "," << run.downloadSeconds << "," << run.kernelSeconds
-                << "," << run.gpuSolveSeconds << "," << run.gpuLinearSolves << ","
+                << run.deviceToHostCalls << "," << run.deviceToHostBytes << "," << run.uploadSeconds
+                << "," << run.downloadSeconds << "," << run.kernelSeconds << ","
+                << run.gpuSolveSeconds << "," << run.gpuLinearSolves << ","
                 << run.gpuLinearSolverIterations << "\n";
         ++repeatIndex;
       }
@@ -480,18 +492,19 @@ int main() {
     const bool allGpuClean = std::all_of(gpuRuns.begin(), gpuRuns.end(),
                                          [](const RunResult& r) { return r.ranCleanly; });
 
-    const double cpuPerIterMs = cpuRuns.back().outerIterations > 0
-                                    ? 1000.0 * cpuStats.median /
-                                          static_cast<double>(cpuRuns.back().outerIterations)
-                                    : 0.0;
-    const double gpuPerIterMs = gpuRuns.back().outerIterations > 0
-                                    ? 1000.0 * gpuStats.median /
-                                          static_cast<double>(gpuRuns.back().outerIterations)
-                                    : 0.0;
+    const double cpuPerIterMs =
+        cpuRuns.back().outerIterations > 0
+            ? 1000.0 * cpuStats.median / static_cast<double>(cpuRuns.back().outerIterations)
+            : 0.0;
+    const double gpuPerIterMs =
+        gpuRuns.back().outerIterations > 0
+            ? 1000.0 * gpuStats.median / static_cast<double>(gpuRuns.back().outerIterations)
+            : 0.0;
 
     const double gpuTransferSeconds = gpuRuns.back().uploadSeconds + gpuRuns.back().downloadSeconds;
     const double gpuTransferPct =
-        gpuStats.median > 0.0 ? 100.0 * gpuTransferSeconds / gpuRuns.back().simpleSolveSeconds : 0.0;
+        gpuStats.median > 0.0 ? 100.0 * gpuTransferSeconds / gpuRuns.back().simpleSolveSeconds
+                              : 0.0;
 
     std::cout << gridLabel << " | " << cells << " | CPU | " << cpuRuns.back().outerIterations
               << " | " << cpuStats.min << " | " << cpuStats.median << " | " << cpuStats.mean
@@ -507,8 +520,8 @@ int main() {
 
     std::ostringstream lineStream;
     lineStream << gridLabel << " | " << cells << " | " << cpuStats.median << "s | "
-              << gpuStats.median << "s | " << speedup << "x | " << gpuTransferPct << "% | "
-              << ((allCpuClean && allGpuClean) ? "yes" : "NO");
+               << gpuStats.median << "s | " << speedup << "x | " << gpuTransferPct << "% | "
+               << ((allCpuClean && allGpuClean) ? "yes" : "NO");
     gridSummaryLines.push_back(lineStream.str());
 
     nlohmann::json j;
@@ -518,33 +531,36 @@ int main() {
     j["cells"] = static_cast<int>(cells);
     j["outer_iterations"] = static_cast<int>(cpuRuns.back().outerIterations);
     j["repeats"] = cfg.repeats;
-    j["cpu"] = {{"min_seconds", cpuStats.min},        {"median_seconds", cpuStats.median},
-               {"mean_seconds", cpuStats.mean},       {"stddev_seconds", cpuStats.stddev},
-               {"per_iteration_ms", cpuPerIterMs},    {"ran_cleanly", allCpuClean},
-               {"momentum_assembly_seconds", cpuBreakdown.momentumAssemblySeconds},
-               {"pressure_assembly_seconds", cpuBreakdown.pressureAssemblySeconds},
-               {"momentum_solve_seconds", cpuBreakdown.momentumSolveSeconds},
-               {"pressure_solve_seconds", cpuBreakdown.pressureSolveSeconds}};
+    j["cpu"] = {{"min_seconds", cpuStats.min},
+                {"median_seconds", cpuStats.median},
+                {"mean_seconds", cpuStats.mean},
+                {"stddev_seconds", cpuStats.stddev},
+                {"per_iteration_ms", cpuPerIterMs},
+                {"ran_cleanly", allCpuClean},
+                {"momentum_assembly_seconds", cpuBreakdown.momentumAssemblySeconds},
+                {"pressure_assembly_seconds", cpuBreakdown.pressureAssemblySeconds},
+                {"momentum_solve_seconds", cpuBreakdown.momentumSolveSeconds},
+                {"pressure_solve_seconds", cpuBreakdown.pressureSolveSeconds}};
     j["gpu"] = {{"min_seconds", gpuStats.min},
-               {"median_seconds", gpuStats.median},
-               {"mean_seconds", gpuStats.mean},
-               {"stddev_seconds", gpuStats.stddev},
-               {"per_iteration_ms", gpuPerIterMs},
-               {"ran_cleanly", allGpuClean},
-               {"momentum_assembly_seconds", gpuBreakdown.momentumAssemblySeconds},
-               {"pressure_assembly_seconds", gpuBreakdown.pressureAssemblySeconds},
-               {"momentum_solve_seconds", gpuBreakdown.momentumSolveSeconds},
-               {"pressure_solve_seconds", gpuBreakdown.pressureSolveSeconds},
-               {"transfer_seconds", gpuTransferSeconds},
-               {"transfer_pct_of_simple_solve", gpuTransferPct},
-               {"host_to_device_bytes", gpuRuns.back().hostToDeviceBytes},
-               {"device_to_host_bytes", gpuRuns.back().deviceToHostBytes},
-               {"host_to_device_calls", gpuRuns.back().hostToDeviceCalls},
-               {"device_to_host_calls", gpuRuns.back().deviceToHostCalls},
-               {"kernel_seconds", gpuRuns.back().kernelSeconds},
-               {"gpu_solve_seconds", gpuRuns.back().gpuSolveSeconds},
-               {"gpu_linear_solves", gpuRuns.back().gpuLinearSolves},
-               {"gpu_linear_solver_iterations", gpuRuns.back().gpuLinearSolverIterations}};
+                {"median_seconds", gpuStats.median},
+                {"mean_seconds", gpuStats.mean},
+                {"stddev_seconds", gpuStats.stddev},
+                {"per_iteration_ms", gpuPerIterMs},
+                {"ran_cleanly", allGpuClean},
+                {"momentum_assembly_seconds", gpuBreakdown.momentumAssemblySeconds},
+                {"pressure_assembly_seconds", gpuBreakdown.pressureAssemblySeconds},
+                {"momentum_solve_seconds", gpuBreakdown.momentumSolveSeconds},
+                {"pressure_solve_seconds", gpuBreakdown.pressureSolveSeconds},
+                {"transfer_seconds", gpuTransferSeconds},
+                {"transfer_pct_of_simple_solve", gpuTransferPct},
+                {"host_to_device_bytes", gpuRuns.back().hostToDeviceBytes},
+                {"device_to_host_bytes", gpuRuns.back().deviceToHostBytes},
+                {"host_to_device_calls", gpuRuns.back().hostToDeviceCalls},
+                {"device_to_host_calls", gpuRuns.back().deviceToHostCalls},
+                {"kernel_seconds", gpuRuns.back().kernelSeconds},
+                {"gpu_solve_seconds", gpuRuns.back().gpuSolveSeconds},
+                {"gpu_linear_solves", gpuRuns.back().gpuLinearSolves},
+                {"gpu_linear_solver_iterations", gpuRuns.back().gpuLinearSolverIterations}};
     j["speedup_cpu_over_gpu"] = speedup;
     j["equivalence"] = {{"max_abs_velocity_error", eq.maxAbsVelocityError},
                         {"max_rel_velocity_error", eq.maxRelVelocityError},
@@ -561,22 +577,22 @@ int main() {
                 "max_abs_velocity_error,max_abs_pressure_error,converged\n";
   for (const auto& j : summaryJson) {
     summaryCsv << j["grid"].get<std::string>() << "," << j["cells"].get<int>() << ","
-              << j["outer_iterations"].get<int>() << "," << j["cpu"]["min_seconds"].get<double>()
-              << "," << j["cpu"]["median_seconds"].get<double>() << ","
-              << j["cpu"]["mean_seconds"].get<double>() << ","
-              << j["cpu"]["stddev_seconds"].get<double>() << ","
-              << j["gpu"]["min_seconds"].get<double>() << ","
-              << j["gpu"]["median_seconds"].get<double>() << ","
-              << j["gpu"]["mean_seconds"].get<double>() << ","
-              << j["gpu"]["stddev_seconds"].get<double>() << ","
-              << j["speedup_cpu_over_gpu"].get<double>() << ","
-              << j["gpu"]["transfer_pct_of_simple_solve"].get<double>() << ","
-              << j["equivalence"]["max_abs_velocity_error"].get<double>() << ","
-              << j["equivalence"]["max_abs_pressure_error"].get<double>() << ","
-              << ((j["cpu"]["ran_cleanly"].get<bool>() && j["gpu"]["ran_cleanly"].get<bool>())
-                      ? "yes"
-                      : "no")
-              << "\n";
+               << j["outer_iterations"].get<int>() << "," << j["cpu"]["min_seconds"].get<double>()
+               << "," << j["cpu"]["median_seconds"].get<double>() << ","
+               << j["cpu"]["mean_seconds"].get<double>() << ","
+               << j["cpu"]["stddev_seconds"].get<double>() << ","
+               << j["gpu"]["min_seconds"].get<double>() << ","
+               << j["gpu"]["median_seconds"].get<double>() << ","
+               << j["gpu"]["mean_seconds"].get<double>() << ","
+               << j["gpu"]["stddev_seconds"].get<double>() << ","
+               << j["speedup_cpu_over_gpu"].get<double>() << ","
+               << j["gpu"]["transfer_pct_of_simple_solve"].get<double>() << ","
+               << j["equivalence"]["max_abs_velocity_error"].get<double>() << ","
+               << j["equivalence"]["max_abs_pressure_error"].get<double>() << ","
+               << ((j["cpu"]["ran_cleanly"].get<bool>() && j["gpu"]["ran_cleanly"].get<bool>())
+                       ? "yes"
+                       : "no")
+               << "\n";
   }
 
   // Break-even: smallest tested grid where GPU median beats CPU median.

@@ -16,6 +16,17 @@ add_executable(CFDCaseIntegrationTests
   MeshQualityCampaign.cpp
   # P12-MESH-006: the 3D solver through the production path (G5, G6, G7, G9.3).
   test_3d_production_cases.cpp
+  # P13-001: checkpoint / resume through the production path -- the same
+  # ProjectRunner entry point the CLI and the GUI both call.
+  test_checkpoint_production_case.cpp
+  # P15: a temperature-dependent property reaching the solver through the
+  # production path -- parse, solve, export, and a closed-form check that the
+  # model is not silently replaced by a constant.
+  test_variable_property_production_case.cpp
+  # P16: turbulent heat transfer through the real case path.
+  test_turbulent_thermal_production_case.cpp
+  test_turbulent_thermal_conservation.cpp
+  test_turbulent_heat_transfer_benchmark.cpp
   ${CFDApp_SOURCE_DIR}/tests/support/CaseFixtureCopy.cpp
 )
 

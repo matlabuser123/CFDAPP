@@ -112,7 +112,14 @@ class DeviceBuffer {
               "cudaMemcpy(DeviceBuffer download)");
     auto& stats = gpuExecutionStats();
     stats.downloadSeconds += timer.elapsedSeconds();
-    stats.deviceToHostBytes += static_cast<std::uint64_t>(count) * sizeof(T);
+    const std::uint64_t transferred = static_cast<std::uint64_t>(count) * sizeof(T);
+    stats.deviceToHostBytes += transferred;
+    if (transferred > stats.largestDeviceToHostBytes) {
+      stats.largestDeviceToHostBytes = transferred;
+      stats.deviceToHostCallsAtLargestSize = 1;
+    } else if (transferred == stats.largestDeviceToHostBytes) {
+      ++stats.deviceToHostCallsAtLargestSize;
+    }
     ++stats.deviceToHostCalls;
   }
 

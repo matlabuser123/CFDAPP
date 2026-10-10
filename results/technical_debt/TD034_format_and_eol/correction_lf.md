@@ -1,3 +1,10 @@
+> **INVALID AS AUTHORITATIVE (2026-10-11).** This file's central claim -- that there is no CRLF
+> anywhere in the repository -- is FALSE. Measured with a binary byte count: **102 tracked text
+> files contain CRLF, 21 621 lines.** The probe behind this correction failed the same way the
+> probe behind TD-041 did, in the opposite direction. Superseded by
+> [correction_2_crlf_in_head.md](correction_2_crlf_in_head.md). Retained unaltered below per
+> CLAUDE.md §4; nothing after this banner has been edited.
+
 # CORRECTION — the repository is PURE LF. The probe behind TD-041 was broken, and so was its refutation.
 
 ```text

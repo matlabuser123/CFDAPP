@@ -1,10 +1,12 @@
 // P12-NUM-003 continuation: non-orthogonal correction of the k / epsilon /
 // omega diffusion terms. Every turbulence model (KEpsilonModel,
 // KOmegaModel, SSTModel) assembles its diffusion through ONE function,
-// turbulence::assembleScalarDiffusionContribution, which now uses the
+// transport::assembleScalarDiffusionContribution, which now uses the
 // shared cfd::discretization::NonOrthogonalDiffusion.hpp formula -- no
 // per-model geometry. Operator-level verification plus model-level wiring.
 #include <gtest/gtest.h>
+
+#include "cfd/transport/ScalarTransport.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -48,8 +50,8 @@ Assembled assemble(const Mesh& mesh, const ScalarField& gamma, const ScalarField
                    const NonOrthogonalCorrectionOptions& options) {
   SparseMatrixBuilder builder(mesh.numberOfCells(), mesh.numberOfCells());
   Vector rhs(mesh.numberOfCells(), 0.0);
-  cfd::turbulence::assembleScalarDiffusionContribution(mesh, gamma, phi, boundaries, builder, rhs,
-                                                       options);
+  cfd::transport::assembleScalarDiffusionContribution(mesh, gamma, phi, boundaries, builder, rhs,
+                                                      options);
   return Assembled{builder.build(), rhs};
 }
 
