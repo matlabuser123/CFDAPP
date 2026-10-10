@@ -22,14 +22,14 @@ Priority   P0  qualification / correctness blocker
            P3  low / deferred
 ```
 
-**Register: 45 items.** Parsed from the table in §2 by the status column's leading token, not
+**Register: 46 items.** Parsed from the table in §2 by the status column's leading token, not
 asserted. Re-counted 2026-10-11; the block had read 25 items / OPEN 17, which the table outgrew.
 
 ```text
-OPEN           31     PARTIAL         2     BLOCKED       2
-INHERITED       2     RESOLVED        6     N/A           2     = 45
-NOT CLOSED     37     of which   P0 5  ·  P1 11  ·  P2 12  ·  P3 9
-all 45 rows                      P0 10 ·  P1 12  ·  P2 13  ·  P3 10
+OPEN           32     PARTIAL         2     BLOCKED       2
+INHERITED       2     RESOLVED        6     N/A           2     = 46
+NOT CLOSED     38     of which   P0 5  ·  P1 12  ·  P2 12  ·  P3 9
+all 46 rows                      P0 10 ·  P1 13  ·  P2 13  ·  P3 10
 P0 still open  TD-003  TD-006  TD-007  TD-027  TD-029
 ```
 
@@ -162,6 +162,7 @@ but it does not close the item.
 | TD-043 | P1 | **`S_L` is reported on a LATTICE of spacing ~3.356e-03 cm/s (0.0677 %).** Two dt values a factor of 2 apart returned a BIT-IDENTICAL eigenvalue, and the three distinct values in a four-level ladder are equally spaced to three digits. So the eigenvalue solver's own output resolution is **coarser than or equal to the dt-sensitivity it is used to measure**: any dt or dx convergence study of `S_L` at this fixture is resolution-limited, and an observed order computed from differences at or below one quantum is meaningless. Suspected cause is the bisection's termination (`bracket = 0.000677131`, "bisect 10"); the arithmetic from bracket width to lattice spacing is NOT closed | **MECHANISM CLOSED** 2026-10-10, with NO solver run. The lattice is **MULTIPLICATIVE**, ratio `2^(1/1024)`, spacing **0.067713 %** of S_L — derived from three source lines (bracketing ratio 2 at `:1821`, geometric midpoint at `:1834`/`:1861`, relative termination at `:1832`) and matching the solver's own reported `bracket = 0.000677131` to **0.0000 %**. Verified against 10 measurements across 4 cell counts, 4 dt values and both libraries — every one an integer lattice point, including the pre-fix eigenvalue at k = −87. It is RELATIVE, so resolution-independent. FIX: tighten `tolerance` (1e-4 → 8x finer, 3 extra bisections) — recommended, NOT authorized, and it would move every recorded S_L onto a new lattice | — | every convergence study of S_L: TD-029, TD-027 C2, TD-004 C6a, TD-005, TD-006 | `technical_debt/TD043_eigenvalue_lattice/audit.md` |
 | TD-044 | P3 | **A CLI test writes its working directory into the REPOSITORY ROOT.** Running the suite from the repo root leaves `cli_log_level_valid_cavity_cli_smoke/` beside `CMakeLists.txt` — a complete case tree (`case.json`, `mesh.json`, `physics.json`, …) plus `results/solution.vtk`, `fields.csv`, `metadata.json`, `residuals.csv`, 10 files. It is run OUTPUT, not a fixture: the real fixture is `tests/data/cases/valid_cavity_cli_smoke`. It was NOT gitignored, so a blanket `git add` would have committed it — found during step 9's §11.5 audit. Now ignored via `/cli_log_level_*/`; the test should write to a temp directory instead | OPEN | — | nothing; it pollutes the work tree and risks being committed | found in step 9's generated-file audit; `.gitignore` carries the exclusion and the reason |
 | TD-045 | P2 | **The repository has NO line-ending guard — not a weak one, none.** Three mechanisms each independently let CRLF through: `.gitattributes:9` `*  -text` disables all normalization and OVERRIDES `core.autocrlf=input`, so bytes are stored verbatim; `.clang-format` sets neither `LineEnding` nor `DeriveLineEnding`, so clang-format-18 DERIVES the ending per file and all 3 fully-CRLF `.cpp` files PASS inside the §7 742-file set; `git diff --check` does flag CRLF but only for files in the diff, and those 3 have not been re-staged since they landed. This is why a false claim about line endings stood through two commits | **OPEN** — carved out of TD-041 2026-10-11, which records the STATE; this records the MACHINERY | — | nothing (it is a detection gap, not a behaviour defect) | `technical_debt/TD034_format_and_eol/correction_2_crlf_in_head.md` §3 |
+| TD-046 | P1 | **The ONLY test of `lambda(T)` in the flame solver fails in its own setup and has NEVER run its solves.** `test_premixed_flame.cpp:627` asserts `risingConductivity.value(1800) > 3.0 * 0.05 = 0.15`, but the fixture `LinearProperty(0.05, 300, 4.0e-5)` yields `0.11` (2.2x, not 3x), so the test dies at **6 ms** and everything after that line -- both solves, the `1.3x` flame-speed comparison that IS the property, and the thickness check -- has never executed. The comment says "triples across the front", so the slope should be `6.667e-5`. lambda(T) IS correctly consumed as a per-cell field (`PremixedFlame.cpp:1052`), established by INSPECTION only | **OPEN** — found 2026-10-11 while auditing TD-006. This is one of the 2 remaining G8 failures and TD-007 had recorded it as UNEXPLAINED; it is now explained exactly. A TEST change inside BLOCKED TD-006's scope, so registered and NOT fixed (§2) | — | **TD-006** precondition 2 (freeze cp and lambda(T) with citations) | `technical_debt/TD006_g8_closure/audit.md` §3.2 · logs/01 |
 
 All paths are relative to `results/`.
 

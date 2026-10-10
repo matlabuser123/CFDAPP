@@ -85,6 +85,13 @@ finding, arriving through the suite.
 `AVariableConductivity…` is **not** explained by anything measured today and is recorded as an
 open known failure.
 
+> **FORWARD NOTE (2026-10-11, added after this file was committed in 1a70f0a).** The sentence above
+> was accurate when written and is NOT withdrawn. It is now SUPERSEDED: TD-006's audit explains the
+> failure exactly. The test dies in its own setup assertion at **6 ms** — `LinearProperty(0.05, 300,
+> 4.0e-5)` gives `lambda(1800) = 0.11` against the `> 0.15` it demands — so it has **never run its
+> solves**, and the property is untested rather than failing. Registered as **TD-046**. See
+> `technical_debt/TD006_g8_closure/audit.md` §3.2.
+
 ## 3. A CORRECTION TO MY OWN C6a WORK
 
 `tests/unit/species/test_premixed_flame.cpp:514` already reads:

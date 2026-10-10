@@ -160,12 +160,12 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   45 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
+register totals   46 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
                   2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043), 2 BLOCKED, 2 INHERITED,
-                  31 open. NOT CLOSED: 37. P0s still open: 5 (TD-003, TD-006, TD-007,
+                  32 open. NOT CLOSED: 38. P0s still open: 5 (TD-003, TD-006, TD-007,
                   TD-027, TD-029), down from 6 when TD-040 was reclassified.
-                  2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement) and
-                  TD-045 added, so the count went 43 -> 45 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
+                  2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement),
+                  TD-045 and TD-046 added, so the count went 43 -> 46 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
                   and are not repeated below; the frontier block is the CURRENT frontier
                   only. NOTE when counting by grep: TD-004's status contains the word
                   UNRESOLVED, so a /RESOLVED/ match counts it by mistake -- use
@@ -234,6 +234,11 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+also open         TD-046   the SOLE test of lambda(T) in the flame solver dies in its own
+                  setup assertion at 6 ms (0.11 vs the 0.15 it demands) and has NEVER run its
+                  solves, so "lambda(T) is really consumed" is UNTESTED, not failing. It is one
+                  of the 2 remaining G8 failures and TD-007 had it as UNEXPLAINED. Blocks
+                  TD-006's precondition 2. NOT fixed -- a test change in blocked TD-006's scope
 also open         TD-045   the repository has NO line-ending guard: `* -text` overrides
                   core.autocrlf, clang-format DERIVES the ending per file (all 3 CRLF .cpp
                   PASS), and git diff --check sees only staged files. Carved out of TD-041
@@ -312,7 +317,13 @@ phase is authorized.
 
 ```text
 PROJECT STATE          P17 PARTIAL · P18 PARTIAL
-BLOCKING ISSUE         P18 G8 — not closed; next is the re-measurement in §2
+BLOCKING ISSUE         P18 G8 — not closed. AUDITED 2026-10-11 (TD-006): still BLOCKED on 8
+                       of 11 declared dependencies, 3 of them P0. Its PRECISION PRECONDITION is
+                       now DISCHARGED -- method reproducibility 4.17 % -> 0.97 %, a 4.3x gain,
+                       crossing from "cannot resolve the +/-2.78 % band at all" to 2.86x inside
+                       it, with a +/-0.97 % undecidable zone at each edge. Preconditions 2 (cp
+                       and lambda(T) cited) and 3 (Westbrook & Dryer Set 3 wired to a case) are
+                       NOT met. No solver was run
 ROADMAP AUTHORIZATION  NO NEW FUTURE PHASE AUTHORIZED
 PUSH BLOCKER           TD-035 — the §8 regression is PARTIAL on this tree: 2 of 4
                        configurations. RELEASE RAN 2026-10-11 (2840 tests, 7 failures, all
