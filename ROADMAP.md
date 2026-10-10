@@ -104,6 +104,7 @@ qualification state — for which gates pass and which are open, see [TODO.md](T
 | CUDA | Qualified GPU solver/discretization infrastructure and resident scalar capabilities | Native Windows CUDA unqualified; some future physics still need GPU ports |
 | Application | CLI and Qt/QML GUI on shared production infrastructure | New capabilities must be integrated deliberately |
 | Restart | Steady-solver checkpointing foundation | Turbulence checkpointing unsupported |
+| Sanitizer coverage | ASan/UBSan over the suite at CI settings; a dedicated 150-cell premixed-flame fixture puts the reacting path (`recentre`, `locateFront`, `shiftField`, the reactor sub-stepping) under the sanitizers, clean | The heavy G8 premixed-flame cases, 500–1500 cells, are **excluded** from the `asan` preset — they exceed `ctest --timeout 7200` (the 1000-cell level was killed at the cap), so those problem sizes run under no sanitizer. The fixture covers the same functions, not the same sizes |
 
 ---
 

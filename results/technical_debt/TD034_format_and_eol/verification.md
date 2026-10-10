@@ -84,6 +84,14 @@ This is the fail-open pattern a seventh time, in a new shape: not a probe that p
 regardless, but a probe whose output was **ambiguous between the defect and the benign
 explanation**, read as the defect because that is what I was looking for.
 
+> **§3.2's CLAIM IS FALSE — corrected 2026-10-10, nothing deleted.** `TODO.md` in HEAD has ZERO
+> CRLF bytes. "416 of 416" and "366 of 366" were LINE counts matched against themselves, because
+> the probe `grep -c $''` was mangled to an EMPTY pattern and matched every line. **The
+> repository is pure LF**, in HEAD and in the tree, in every file. So "CRLF is this repository's
+> committed convention" is wrong, and so was §2's claim of CRLF growth AND §3's refutation of it
+> (a ratio of a number to itself). TD-041's conclusion survives — there is no CRLF defect — but
+> neither its claim nor its refutation measured anything. Full correction: `correction_lf.md`.
+
 ### 3.2 The thing that should have stopped me immediately
 
 `TODO.md` and `ROADMAP.md` are **fully CRLF in HEAD** — 416 of 416 lines and 366 of 366. So is every

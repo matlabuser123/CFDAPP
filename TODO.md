@@ -293,9 +293,18 @@ phase is authorized.
 PROJECT STATE          P17 PARTIAL · P18 PARTIAL
 BLOCKING ISSUE         P18 G8 — not closed; next is the re-measurement in §2
 ROADMAP AUTHORIZATION  NO NEW FUTURE PHASE AUTHORIZED
-PUSH BLOCKER           TD-035 — the §8 regression has NOT been run on this tree. The per-case
-                       ASan factor is now MEASURED at 12.6-14.7x, NOT the 38x on record; the
-                       heaviest tests still exceed the 7200 s cap, so the blocker stands.
+PUSH BLOCKER           TD-035 — the §8 regression has NOT been run on this tree. A sanitizer
+                       FIXTURE now exists (150 cells, 348.75 s under ASan+UBSan, 20.6x
+                       headroom, 0 diagnostics) and the asan preset EXCLUDES the heavy G8
+                       cases. But the full 2860-test preset's cost is UNMEASURED, so the
+                       blocker STANDS -- its reason changed from infeasible to unmeasured.
+
+STANDING SCOPE LIMIT   (CLAUDE.md §9) The heavy G8PremixedFlameTest cases, 500-1500 cells,
+                       are EXCLUDED from `ctest --preset asan` and are exercised under NO
+                       sanitizer. The 150-cell fixture covers the same FUNCTIONS, not the
+                       same PROBLEM SIZES: a defect manifesting only above some allocation
+                       size would be missed. Unavoidable -- the 1000-cell level was KILLED
+                       at the real 7200 s cap, and §7 forbids inflating the limit.
                        clang-format is CLEAN and git diff --check is 0 (TD-034 resolved
                        2026-10-09); TD-041 was refuted, so neither blocks a commit
 ```
