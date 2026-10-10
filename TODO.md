@@ -234,6 +234,23 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+SOLVED / STOP     TD-003   **C3 SOLVED 2026-10-11, AND ITS GATE IS MIS-DERIVED -- §12 STOP.**
+                  The closure test closes the chain to SEVEN DIGITS:
+                  max |A^-1 (sum_i b_i - A*1)| = 2.301527e-06 = max_c |sum_i y_EXACT - 1|,
+                  the same number. Per-species matrices BIT-IDENTICAL (0.0), so the
+                  telescoping holds exactly. The assembled RHS closes to 3.162982e-11 = 3.5x
+                  the round-off floor eps*||b||, and the final march's near-singular operator
+                  (||A^-1||_inf = 1.2e+05) amplifies it by 7.276e+04. **The 1e-8 gate would
+                  need the RHS to close to 1.374e-13 -- 65x BELOW double precision at this
+                  ||b||. Unachievable by construction.** Derived floor 6.503e-07 vs observed
+                  2.302e-06. NO source site injects anything: inlet, seed, chemistry,
+                  recentring fill and burnt composition all sum to 1 EXACTLY.
+                  **A §5.3 THRESHOLD AMENDMENT IS DUE AND IS NOT AUTHORIZED.** Options
+                  recorded in verification_closure_test.md §5: (A) amend to a derived
+                  relative bound, the form SpeciesTransport.hpp:149 already uses for this
+                  quantity class -- recommended; (B) reduce the 1.2e+05 amplification, a
+                  production change to the march; (C) enforce sum Y = 1 -- FORBIDDEN by the
+                  project's own no-clipping policy
 located           TD-003   **C3 CAUSE LOCATED 2026-10-11.** Instrumented run (pure-addition
                   patch on a copy outside the repo; reproduces S_L 4.955332 and
                   maxCompositionSumDeviation 8.822866e-07 EXACTLY). An exact Thomas solve of

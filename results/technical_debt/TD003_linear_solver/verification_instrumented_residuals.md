@@ -62,6 +62,14 @@ patch -p0 < tools/instrument_residuals.patch   applied to a pristine copy
 production src/species/PremixedFlame.cpp still fa815c97216584485e1c94842669fbf71976b9f...
 ```
 
+> **FORWARD NOTE (same day, added after this file was committed).** `instrument_residuals.patch`
+> has since been EXTENDED with the closure-test block and now reproduces
+> `90368768c2d66e002eb6b68a6555f5598d6f72c9b82663dcb24adc3cd3179e9e` rather than the
+> `d3e1f95c571a3727...` named above. The extended instrument is a strict superset and reproduced
+> every number in this file bit-identically (`2.302203e-06`, `2.301527e-06`, `2.396274e-08`,
+> `120000.010022`), so this file's measurements stand; only the patch's hash moved. See
+> [verification_closure_test.md](verification_closure_test.md).
+
 The FIRST version of this patch silently did nothing — absolute paths in its header, 5 of 5 hunks
 ignored, and the "patched" copy came back with the *original* hash. A patch file that is never
 applied looks exactly like evidence. It is checked here because this campaign has already been

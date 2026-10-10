@@ -1,6 +1,6 @@
 --- src/species/PremixedFlame.cpp
 +++ src/species/PremixedFlame.cpp
-@@ -23,6 +23,120 @@
+@@ -23,6 +23,143 @@
  #include "cfd/species/SpeciesTransport.hpp"
  #include "cfd/thermal/EnergyEquation.hpp"
  
@@ -28,6 +28,16 @@
 +  long long decompCalls = 0;
 +  std::vector<double> aW, aP, aE;
 +  bool haveBands = false;
++  // --- closure test: does sum_i b_i equal A*1 ?
++  double maxBandDiff = 0.0;        // max |A_species_i - A_species_0| over all bands
++  double maxClosureAbs = 0.0;      // max_c |sum_i b_i - (A*1)_c|
++  double maxClosureFirst = 0.0;    // the same, restricted to cell 0
++  double maxClosureLast = 0.0;     // the same, restricted to the last cell
++  double maxClosureInterior = 0.0; // the same, interior cells only
++  double maxPredictedDev = 0.0;    // max |A^-1 (sum_i b_i - A*1)| -- must equal maxSumExact
++  long long worstCell = -1;        // argmax cell of |closure residual|
++  long long interiorNonzero = 0;   // interior cells whose residual exceeds 1e-14
++  long long cellCount = 0;
 +};
 +inline Stats stats;
 +
@@ -113,6 +123,19 @@
 +  std::printf("  tridiagonal everywhere: %s\n",
 +              stats.sawNonTridiagonal ? "NO -- Thomas INVALID" : "yes");
 +  std::printf("  ||A^-1||_inf of the LAST assembled matrix  %.6f\n", normAinvInf());
++  std::printf("\n--- THE CLOSURE TEST: does sum_i b_i equal A*1 ?\n");
++  std::printf("  max |A_i - A_0| across species (all bands)  %.6e\n", stats.maxBandDiff);
++  std::printf("  max_c |sum_i b_i - (A*1)_c|                 %.6e   <- THE RAW DEFECT\n",
++              stats.maxClosureAbs);
++  std::printf("    at cell 0                                 %.6e\n", stats.maxClosureFirst);
++  std::printf("    at the last cell                          %.6e\n", stats.maxClosureLast);
++  std::printf("    interior cells only                       %.6e\n",
++              stats.maxClosureInterior);
++  std::printf("    interior cells with residual > 1e-14      %lld of %lld\n",
++              stats.interiorNonzero, stats.cellCount);
++  std::printf("  max |A^-1 (sum_i b_i - A*1)|                %.6e\n", stats.maxPredictedDev);
++  std::printf("    must equal max_c |sum_i y_EXACT - 1| =    %.6e\n", stats.maxSumExact);
++  std::printf("  worst cell index                            %lld\n", stats.worstCell);
 +  std::printf("=====================================================\n");
 +}
 +
@@ -121,7 +144,7 @@
  namespace cfd::species {
  namespace {
  
-@@ -698,6 +812,21 @@
+@@ -698,6 +835,21 @@
          raw.converged() || raw.finalResidual <= residualAcceptanceFraction * rhsNorm;
      worstLinearResidual =
          std::max(worstLinearResidual, (rhsNorm > 0.0) ? raw.finalResidual / rhsNorm : 0.0);
@@ -143,15 +166,19 @@
      return outcome;
    };
  
-@@ -1168,6 +1297,7 @@
+@@ -1168,6 +1320,11 @@
      speciesTime.rhoNew = &density;
  
      std::vector<ScalarField> nextComposition = composition;
 +    std::vector<ScalarField> td003exact = composition;  // TD-003 instrumentation
++    std::vector<std::vector<double>> td003bw(static_cast<std::size_t>(ns));
++    std::vector<std::vector<double>> td003bp(static_cast<std::size_t>(ns));
++    std::vector<std::vector<double>> td003be(static_cast<std::size_t>(ns));
++    std::vector<std::vector<double>> td003bb(static_cast<std::size_t>(ns));
      for (Index i = 0; i < ns; ++i) {
        // An EXPLICIT zero source: the reaction is not part of this equation at all. Stated as a
        // zero field rather than omitted, so what the transport step solves is unambiguous.
-@@ -1200,6 +1330,40 @@
+@@ -1200,6 +1357,90 @@
        for (Index c = 0; c < nc; ++c) {
          nextComposition[i][c] = solved.solution[c];
        }
@@ -174,6 +201,10 @@
 +        td003::stats.aP = bp;
 +        td003::stats.aE = be;
 +        td003::stats.haveBands = true;
++        td003bw[static_cast<std::size_t>(i)] = bw;
++        td003bp[static_cast<std::size_t>(i)] = bp;
++        td003be[static_cast<std::size_t>(i)] = be;
++        td003bb[static_cast<std::size_t>(i)] = bb;
 +      }
 +    }
 +    {  // TD-003: per-cell sums, iterative vs exact
@@ -189,10 +220,56 @@
 +        td003::stats.maxSumExact = std::max(td003::stats.maxSumExact, std::abs(se - 1.0));
 +        td003::stats.maxSolveDiff = std::max(td003::stats.maxSolveDiff, std::abs(si - se));
 +      }
++    }
++    {  // TD-003: THE CLOSURE TEST -- sum_i b_i against A*1
++      const std::size_t un = static_cast<std::size_t>(nc);
++      // (i) are the per-species matrices identical? If not, sum_i (A_i y_i) does not
++      //     telescope to A (sum_i y_i) and the constraint cannot close however exact
++      //     each solve is.
++      for (Index i = 1; i < ns; ++i) {
++        const std::size_t ui = static_cast<std::size_t>(i);
++        for (std::size_t c = 0; c < un; ++c) {
++          td003::stats.maxBandDiff = std::max(
++              td003::stats.maxBandDiff,
++              std::max(std::abs(td003bw[ui][c] - td003bw[0][c]),
++                       std::max(std::abs(td003bp[ui][c] - td003bp[0][c]),
++                                std::abs(td003be[ui][c] - td003be[0][c]))));
++        }
++      }
++      // (ii) the closure residual, per cell: sum_i b_i - (A*1)_c
++      std::vector<double> resid(un, 0.0);
++      for (std::size_t c = 0; c < un; ++c) {
++        double sb = 0.0;
++        for (Index i = 0; i < ns; ++i) sb += td003bb[static_cast<std::size_t>(i)][c];
++        const double rowSum = td003bw[0][c] + td003bp[0][c] + td003be[0][c];
++        resid[c] = sb - rowSum;
++        const double a = std::abs(resid[c]);
++        if (a > td003::stats.maxClosureAbs) {
++          td003::stats.maxClosureAbs = a;
++          td003::stats.worstCell = static_cast<long long>(c);
++        }
++        if (c == 0) {
++          td003::stats.maxClosureFirst = std::max(td003::stats.maxClosureFirst, a);
++        } else if (c + 1 == un) {
++          td003::stats.maxClosureLast = std::max(td003::stats.maxClosureLast, a);
++        } else {
++          td003::stats.maxClosureInterior = std::max(td003::stats.maxClosureInterior, a);
++          if (a > 1.0e-14) td003::stats.interiorNonzero++;
++        }
++      }
++      td003::stats.cellCount = static_cast<long long>(un);
++      // (iii) A^-1 resid must reproduce (sum_i y_exact - 1). If it does, the chain
++      //       b -> constraint -> deviation is understood; if not, something else acts.
++      const std::vector<double> pred =
++          td003::thomas(td003bw[0], td003bp[0], td003be[0], resid);
++      for (std::size_t c = 0; c < un; ++c) {
++        td003::stats.maxPredictedDev =
++            std::max(td003::stats.maxPredictedDev, std::abs(pred[c]));
++      }
      }
  
      // The field-property energy assembly carries lambda(T) and cp per cell but accepts only a
-@@ -1764,6 +1928,7 @@
+@@ -1764,6 +2005,7 @@
      result.totalTimeSteps = totalSteps;
      result.worstLinearResidual = worstLinearResidual;
      result.worstDensityChange = worstDensityChange;
