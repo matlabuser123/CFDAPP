@@ -1,0 +1,69 @@
+=== ENVIRONMENT
+date 2026-10-10T16:08:27+10:00
+nproc 32  load 0.00 0.00 0.00 3/577 747
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATE 1: is the frozen amendment still the frozen amendment?
+  GATE_A6.md 7bedb728db0332ab0a938188ef4055b722331251f98e2e3955ffaacd80b3f8fb
+  OK: matches logs/A6_00_freeze.log.
+
+=== GATE 2: tree and library
+  source  fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  library 852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK.
+
+eb3f70ecc0e0c62ba0272cfbdc28a0ba53d00bca7d379d32dfb7cd96d9c61444  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c6a_amended_probe.cpp
+
+=== FRESH RUN (reuses no earlier result, §5.3 step 6)
+TD-004 GATE_A6 -- POST-FREEZE VERIFICATION of C6a-bal and C6a-ord
+
+  lattice quantum (relative)  6.771306931e-04   = 0.067713 % of S_L   [TD-043]
+  C6a-bal bound  0.02 * (500/cells)^2 :  125 -> 0.3200   250 -> 0.0800   500 -> 0.0200
+  C6a-ord  floor 4 quanta per difference; band [1.5, 2.5] on the FULL interval
+
+  cells    S_L cm/s     fuel bal  res cells   converged    wall s
+     63     4.51340   5.1972e-01       5.07         yes         7
+    125     4.90527   1.5048e-01      12.62         yes        17
+    250     4.94863   2.8278e-02      29.06         yes        88
+    500     4.95533   6.3030e-03      59.82         yes       713
+
+=== C6a ADMISSIBILITY (carried over verbatim from GATE.md)
+
+  every level converged                         yes
+  every level > 4 cells of front               yes  (12.62, 29.06, 59.82)
+  differences shrink  |6.7040e-03| < |4.3356e-02|   yes
+  no sign change                                yes
+  -> ADMISSIBLE
+
+=== C6a-bal   fuel balance < 0.02 * (500/cells)^2
+
+  125 cells   1.5048e-01  <  0.3200   PASS
+  250 cells   2.8278e-02  <  0.0800   PASS
+  500 cells   6.3030e-03  <  0.0200   PASS
+  -> C6a-bal PASS
+
+=== C6a-ord   resolution precondition, then the full interval
+
+  quantum at the middle level   3.350868e-03 cm/s
+  differences in quanta         n1 = 12.94   n2 = 2.00   (floor 4)
+  -> C6a-ord UNRESOLVED. A difference is below the 4-quantum floor, so the
+     observed order cannot be determined at this tolerance. Per GATE_A6.md §3(a)
+     this is a STOP and NOT a pass.
+
+=== C6a OVERALL, in GATE_A6's order
+
+  admissibility  ADMISSIBLE
+  C6a-bal        PASS
+  C6a-ord        UNRESOLVED
+
+  C6a does NOT pass: its order clause is UNRESOLVED at this tolerance. The gate
+  STOPS at C6a, so C6b and C7 are NOT evaluated. Resolving it needs a finer
+  settings.tolerance (TD-043), which is a production change outside this gate.
+
+=== THE {63, 125, 250} TRIPLET, recorded not gated
+
+  diffs +3.9187e-01 +4.3356e-02 cm/s = 118.0 and 13.1 quanta
+  p = 3.176   -- dry_run_A6.md §4.2 found this triplet fails on BOTH libraries,
+  so the asymptotic range for this family starts ABOVE 63 cells.
+
+DONE 2026-10-10T16:22:17+10:00

@@ -1,0 +1,49 @@
+=== ENVIRONMENT
+date  2026-10-10T11:59:07+10:00
+nproc 32  load 0.24 0.05 0.02 2/569 772
+CFDAPP_ENABLE_CUDA:BOOL=OFF
+CFDAPP_ENABLE_OPENMP:BOOL=OFF
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATES
+  source  fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  library 852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK.
+
+=== TD-031's ORIGINAL probe is left untouched, at its recorded hash
+620013f0c92ff0863f4c62d315db969ffe04b96696b781d09c0f909df78aaf7c  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD031_final_march_length/tools/cell35_history_probe.cpp
+  (recorded: 620013f0c92ff086...)
+0e04f537903305438fc34f409b3476f2173056314ea06edfc75371d641105607  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD028_period2_alternation/tools/cell35_remeasure_probe.cpp
+
+TD-028 -- CELL 35 ACROSS CONSECUTIVE MARCH STEPS, on the TD-032-FIXED tree
+
+  500 cells / cap 5 / relaxT 18 -- the same configuration TD-031 logs/05 used.
+  cell 35 is x = 0.70 mm, in the cold preheat zone.
+  PRE-FIX this cell swung 1483.6 K EVERY STEP between 312.99 and 1796.61 K.
+
+  Budgets straddle the FIXED tree's derived bound of 27511, so each clips. The
+  original probe's 30945-30949 would all exceed it and give five IDENTICAL states.
+
+    budget   marchStp              T[35] K     dT from prev    worstChange    wall s
+     27507      27507      310.36007780984       0.0000e+00     5.0723e-02      1353
+     27508      27508      310.36011379303       3.5983e-05     5.0723e-02      1080
+     27509      27509      310.36014976697       3.5974e-05     5.0723e-02       908
+     27510      27510      310.36018570228       3.5935e-05     5.0723e-02       972
+     27511      27511      310.36022165688       3.5955e-05     5.0723e-02       937
+
+=== THE NEIGHBOURHOOD, cells 25 to 45, max spread across the five budgets
+
+  worst cell in 25..45 is cell 45, spread 2.169225e-04 K
+
+=== THE VERDICT ON TD-028's OWN OBSERVABLE
+
+  T[35] max            310.36022165688 K
+  T[35] min            310.36007780984 K
+  T[35] swing          1.438470e-04 K
+  as % of the full rise 9.589802e-06 %
+  PRE-FIX swing        1.4836e+03 K  (98.9 % of the full rise)
+
+  -> THE PERIOD-2 ALTERNATION IS GONE on its own observable. The swing fell from
+     1483.6 K to 1.4385e-04 K, a factor of 1.031e+07. TD-028 is resolved by TD-032.
+
+DONE 2026-10-10T13:26:48+10:00

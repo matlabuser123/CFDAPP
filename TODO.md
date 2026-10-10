@@ -70,6 +70,14 @@ TD-004          locator fix APPLIED and RETAINED: the front now sits 0.039 cells
                 (2.057 -> 2.693, a REAL regression), while its fuel-balance clause fails on
                 the BASELINE at all three levels -- a fourth un-dry-run criterion. The gate
                 STOPS at C6a; C6b and C7 were not evaluated. TD-004 now has TWO blockers.
+                C6a AMENDED and verified 2026-10-10 (GATE_A6 7bedb728, frozen after a
+                dry-run whose non-vacuity used BOTH libraries and BOTH triplets): the
+                balance clause now PASSES on an h^2-scaled bound -- the flat 0.02 failed on
+                the BASELINE at all three levels -- and the order clause reports UNRESOLVED
+                (fine difference 2.00 quanta vs a derived 4-quantum floor). The gate is in
+                the SAME PLACE and the record now says why. Also measured: the 1000-cell
+                level is KILLED at the real 7200 s cap, so C6a's cheap triplet is FORCED;
+                and 343/343 species tests PASS, so nothing else changed silently
 re-measured     TD-028's alternation is measured GONE (status is a decision).
                 TD-030 — the reaction excess is HALF its recorded size and no longer the larger
                 term. The inlet diffusive flux (~5.5 %) is a flame-ANCHORING effect and has been
@@ -152,9 +160,12 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   42 items: 5 RESOLVED (TD-001, TD-002, TD-032, TD-034, TD-037), 2 N/A,
-                  1 REOPENED, the rest open. TD-001/TD-002 closed before this phase and are
-                  not repeated below; the frontier block is the CURRENT frontier only.
+register totals   43 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
+                  2 N/A, 1 REOPENED, the rest open. TD-001/TD-002 closed before this phase
+                  and are not repeated below; the frontier block is the CURRENT frontier
+                  only. NOTE when counting by grep: TD-004's status contains the word
+                  UNRESOLVED, so a /RESOLVED/ match counts it by mistake -- use
+                  /\*\*RESOLVED\*\*/.
 resolved          TD-032   transient time level one step stale — RESOLVED 2026-10-07 (gate only)
 resolved          TD-037   driftWindow unguarded against trial length — RESOLVED 2026-10-07
 resolved          TD-034   clang-format clean — RESOLVED 2026-10-09 (741 files, exit 0)
@@ -162,7 +173,11 @@ current blocker   TD-040  recentring is not conservation-neutral; it carries TD-
                   NEW: the dead-band ladder shows the composition SUM tracks the recentring
                   count (8.82e-07 -> 1.24e-06 at deadBand 1) while min Y does NOT. The
                   fill-count explanation for min Y is REFUTED and nothing replaces it
-to re-measure     TD-028, TD-030 — still on the alternating
+to re-measure     TD-030 — still on the alternating
+resolved          TD-028   period-2 alternation GONE (2026-10-10). T[35] swing fell
+                  1.4836e+03 -> 1.4385e-04 K, a factor of 1.03e7, and the shape changed to
+                  a monotone drift. Verified on the FIELD, not on S_L. The period-14
+                  characterisation and both dt attributions STAY INVALID
 re-measured       TD-029   the TEMPORAL error collapsed 4.24 % -> <= ONE LATTICE QUANTUM
                   (0.0677 %). The 62x collapse is real; the VALUE is not, and the
                   'opposite signs' headline is UNSUPPORTED. See TD-043

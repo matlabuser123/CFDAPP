@@ -1,0 +1,30 @@
+=== ENVIRONMENT
+date  2026-10-10T13:37:51+10:00
+nproc 32  load 0.40 0.08 0.03 2/573 791
+CFDAPP_ENABLE_OPENMP:BOOL=OFF
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATES
+  source  fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  library 852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK.
+be75057d9da904eb4b2ee84a067d5367c82a413dcd04b1eb3a8edad9d3f926b4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/thousand_cell_probe.cpp
+
+
+=== RUN under timeout 7200, the REAL per-test cap.
+    The exit code is captured BEFORE any pipe -- logs/07 recorded a pipeline's exit 0 and
+    that is the defect being corrected here.
+TD-004 -- THE 1000-CELL LEVEL. Does it fit ctest's 7200 s cap?
+
+  logs/07 ruled this level out at 1750 s, not at the 7200 s cap, and its recorded
+  'exit 0' was a pipeline's exit rather than the timeout's. Both are corrected here.
+
+  cells 1000, dx 1.000e-05 m, trial cap 80000 (4x fixture_probe's 20000, for the 4x
+  smaller dt -- an unscaled cap would truncate the trials and corrupt S_L).
+
+
+=== HARNESS EXIT CODE (unmasked): 124
+    124 = KILLED BY timeout AT 7200 s. The 1000-cell level does NOT fit the real cap.
+    C6a's premise is justified.
+
+DONE 2026-10-10T15:38:03+10:00
