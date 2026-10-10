@@ -234,6 +234,16 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+eliminated        TD-003   C3 SOURCE HUNT 2026-10-11, no run needed: the transport step
+                  passes an EXPLICIT ZERO Patankar source, so my own hypothesis is REFUTED;
+                  sum_i omega_i cancels EXACTLY in IEEE (F->P, 1:1, equal molar weights); and
+                  the recentring fill {0.05, 1.0-0.05} sums to BIT-EXACTLY 1.0, so recentring
+                  cannot drift it despite being non-conservative for fuel and energy. All
+                  three eliminated. **And the observed 8.823e-07 EXCEEDS the transport solve's
+                  own upper bound (1.53e-07) by 5.8x, which is impossible** -- so a premise is
+                  false and which one is not settled. Next: instrument a copy outside the repo
+                  to print the ACTUAL per-solve ||r||/||b|| and ||b||. **C3's cause is not
+                  established as a linear-solver matter -- TD-003 may be the wrong owner**
 measured          TD-003   P0, KAPPA MEASURED 2026-10-11: **26.28, not the 1000 my audit
                   assumed** -- wrong by 38x. kappa x residual = 2.63e-08 against an observed
                   8.823e-07, a 33.6x SHORTFALL, so my mechanism is REFUTED in magnitude. It
