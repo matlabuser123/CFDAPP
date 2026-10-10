@@ -1,0 +1,202 @@
+--- src/species/PremixedFlame.cpp
++++ src/species/PremixedFlame.cpp
+@@ -23,6 +23,120 @@
+ #include "cfd/species/SpeciesTransport.hpp"
+ #include "cfd/thermal/EnergyEquation.hpp"
+ 
++// ==================== TD-003 INSTRUMENTATION (not production) ====================
++// Added to a COPY OUTSIDE THE REPOSITORY (CLAUDE.md section 2). Purpose: decompose
++// |sum Y - 1| into the part the linear SOLVE is responsible for and the part the assembled
++// RIGHT-HAND SIDE is responsible for, by solving the SAME system exactly with Thomas.
++#include <cstdio>
++namespace td003 {
++
++struct Stats {
++  long long solves = 0;
++  double maxRatio = 0.0;
++  double sumRatio = 0.0;
++  double minRhs = 1e300;
++  double maxRhs = 0.0;
++  long long byConverged = 0;
++  long long byFallback = 0;
++  long long notAcceptable = 0;
++  double maxSumIter = 0.0;
++  double maxSumExact = 0.0;
++  double maxSolveDiff = 0.0;
++  double maxSpeciesDiff = 0.0;
++  bool sawNonTridiagonal = false;
++  long long decompCalls = 0;
++  std::vector<double> aW, aP, aE;
++  bool haveBands = false;
++};
++inline Stats stats;
++
++inline bool extractBands(const cfd::algebra::SparseMatrix& m, std::vector<double>& aW,
++                         std::vector<double>& aP, std::vector<double>& aE) {
++  const cfd::Index n = m.rows();
++  aW.assign(static_cast<std::size_t>(n), 0.0);
++  aP.assign(static_cast<std::size_t>(n), 0.0);
++  aE.assign(static_cast<std::size_t>(n), 0.0);
++  const cfd::Index* off = m.rowOffsetsData();
++  const cfd::Index* col = m.columnIndicesData();
++  const double* val = m.valuesData();
++  bool tri = true;
++  for (cfd::Index r = 0; r < n; ++r) {
++    for (cfd::Index k = off[r]; k < off[r + 1]; ++k) {
++      const cfd::Index c = col[k];
++      if (c == r - 1) {
++        aW[static_cast<std::size_t>(r)] = val[k];
++      } else if (c == r) {
++        aP[static_cast<std::size_t>(r)] = val[k];
++      } else if (c == r + 1) {
++        aE[static_cast<std::size_t>(r)] = val[k];
++      } else if (val[k] != 0.0) {
++        tri = false;
++      }
++    }
++  }
++  return tri;
++}
++
++inline std::vector<double> thomas(const std::vector<double>& aW, const std::vector<double>& aP,
++                                  const std::vector<double>& aE, const std::vector<double>& b) {
++  const std::size_t n = aP.size();
++  std::vector<double> c(n, 0.0), d(n, 0.0), x(n, 0.0);
++  c[0] = aE[0] / aP[0];
++  d[0] = b[0] / aP[0];
++  for (std::size_t i = 1; i < n; ++i) {
++    const double mm = aP[i] - aW[i] * c[i - 1];
++    c[i] = aE[i] / mm;
++    d[i] = (b[i] - aW[i] * d[i - 1]) / mm;
++  }
++  x[n - 1] = d[n - 1];
++  for (std::size_t i = n - 1; i-- > 0;) {
++    x[i] = d[i] - c[i] * x[i + 1];
++  }
++  return x;
++}
++
++inline double normAinvInf() {
++  if (!stats.haveBands) return 0.0;
++  const std::size_t n = stats.aP.size();
++  std::vector<double> rowSum(n, 0.0);
++  for (std::size_t j = 0; j < n; ++j) {
++    std::vector<double> e(n, 0.0);
++    e[j] = 1.0;
++    const std::vector<double> colv = thomas(stats.aW, stats.aP, stats.aE, e);
++    for (std::size_t i = 0; i < n; ++i) rowSum[i] += std::abs(colv[i]);
++  }
++  double m = 0.0;
++  for (std::size_t i = 0; i < n; ++i) m = std::max(m, rowSum[i]);
++  return m;
++}
++
++inline void report() {
++  std::printf("\n========== TD-003 PER-SOLVE INSTRUMENTATION ==========\n");
++  std::printf("solves                      %lld\n", stats.solves);
++  std::printf("  accepted via converged()  %lld\n", stats.byConverged);
++  std::printf("  accepted via residual     %lld\n", stats.byFallback);
++  std::printf("  NOT acceptable            %lld\n", stats.notAcceptable);
++  std::printf("relative residual ||r||/||b||\n");
++  std::printf("  max                       %.6e\n", stats.maxRatio);
++  std::printf("  mean                      %.6e\n",
++              stats.solves ? stats.sumRatio / static_cast<double>(stats.solves) : 0.0);
++  std::printf("||b||_2   min %.6e   max %.6e\n", stats.minRhs, stats.maxRhs);
++  std::printf("\n--- THE DECOMPOSITION (transport steps measured: %lld)\n", stats.decompCalls);
++  std::printf("  max_c |sum_i y_iterative - 1|     %.6e   <- what the gate measures\n",
++              stats.maxSumIter);
++  std::printf("  max_c |sum_i y_EXACT - 1|         %.6e   <- the RHS's own inconsistency\n",
++              stats.maxSumExact);
++  std::printf("  max_c |sum_i (y_iter - y_exact)|  %.6e   <- the SOLVE's contribution\n",
++              stats.maxSolveDiff);
++  std::printf("  max |y_iter - y_exact| per species/cell  %.6e\n", stats.maxSpeciesDiff);
++  std::printf("  tridiagonal everywhere: %s\n",
++              stats.sawNonTridiagonal ? "NO -- Thomas INVALID" : "yes");
++  std::printf("  ||A^-1||_inf of the LAST assembled matrix  %.6f\n", normAinvInf());
++  std::printf("=====================================================\n");
++}
++
++}  // namespace td003
++
+ namespace cfd::species {
+ namespace {
+ 
+@@ -698,6 +812,21 @@
+         raw.converged() || raw.finalResidual <= residualAcceptanceFraction * rhsNorm;
+     worstLinearResidual =
+         std::max(worstLinearResidual, (rhsNorm > 0.0) ? raw.finalResidual / rhsNorm : 0.0);
++    {  // TD-003 instrumentation
++      td003::stats.solves++;
++      const double td003ratio = (rhsNorm > 0.0) ? raw.finalResidual / rhsNorm : 0.0;
++      td003::stats.maxRatio = std::max(td003::stats.maxRatio, td003ratio);
++      td003::stats.sumRatio += td003ratio;
++      td003::stats.minRhs = std::min(td003::stats.minRhs, rhsNorm);
++      td003::stats.maxRhs = std::max(td003::stats.maxRhs, rhsNorm);
++      if (raw.converged()) {
++        td003::stats.byConverged++;
++      } else if (outcome.acceptable) {
++        td003::stats.byFallback++;
++      } else {
++        td003::stats.notAcceptable++;
++      }
++    }
+     return outcome;
+   };
+ 
+@@ -1168,6 +1297,7 @@
+     speciesTime.rhoNew = &density;
+ 
+     std::vector<ScalarField> nextComposition = composition;
++    std::vector<ScalarField> td003exact = composition;  // TD-003 instrumentation
+     for (Index i = 0; i < ns; ++i) {
+       // An EXPLICIT zero source: the reaction is not part of this equation at all. Stated as a
+       // zero field rather than omitted, so what the transport step solves is unambiguous.
+@@ -1200,6 +1330,40 @@
+       for (Index c = 0; c < nc; ++c) {
+         nextComposition[i][c] = solved.solution[c];
+       }
++      {  // TD-003: solve the SAME assembled system EXACTLY
++        std::vector<double> bw, bp, be;
++        if (!td003::extractBands(assembly->system.matrix(), bw, bp, be)) {
++          td003::stats.sawNonTridiagonal = true;
++        }
++        const Vector& td003rhs = assembly->system.rhs();
++        std::vector<double> bb(static_cast<std::size_t>(nc));
++        for (Index c = 0; c < nc; ++c) bb[static_cast<std::size_t>(c)] = td003rhs[c];
++        const std::vector<double> ex = td003::thomas(bw, bp, be, bb);
++        for (Index c = 0; c < nc; ++c) {
++          td003exact[i][c] = ex[static_cast<std::size_t>(c)];
++          td003::stats.maxSpeciesDiff =
++              std::max(td003::stats.maxSpeciesDiff,
++                       std::abs(solved.solution[c] - ex[static_cast<std::size_t>(c)]));
++        }
++        td003::stats.aW = bw;
++        td003::stats.aP = bp;
++        td003::stats.aE = be;
++        td003::stats.haveBands = true;
++      }
++    }
++    {  // TD-003: per-cell sums, iterative vs exact
++      td003::stats.decompCalls++;
++      for (Index c = 0; c < nc; ++c) {
++        Real si = 0.0;
++        Real se = 0.0;
++        for (Index i = 0; i < ns; ++i) {
++          si += nextComposition[i][c];
++          se += td003exact[i][c];
++        }
++        td003::stats.maxSumIter = std::max(td003::stats.maxSumIter, std::abs(si - 1.0));
++        td003::stats.maxSumExact = std::max(td003::stats.maxSumExact, std::abs(se - 1.0));
++        td003::stats.maxSolveDiff = std::max(td003::stats.maxSolveDiff, std::abs(si - se));
++      }
+     }
+ 
+     // The field-property energy assembly carries lambda(T) and cp per cell but accepts only a
+@@ -1764,6 +1928,7 @@
+     result.totalTimeSteps = totalSteps;
+     result.worstLinearResidual = worstLinearResidual;
+     result.worstDensityChange = worstDensityChange;
++      td003::report();  // TD-003 instrumentation
+     return result;
+   };
+ 

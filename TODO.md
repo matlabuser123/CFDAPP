@@ -234,6 +234,18 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+located           TD-003   **C3 CAUSE LOCATED 2026-10-11.** Instrumented run (pure-addition
+                  patch on a copy outside the repo; reproduces S_L 4.955332 and
+                  maxCompositionSumDeviation 8.822866e-07 EXACTLY). An exact Thomas solve of
+                  the SAME assembled systems leaves |sum Y - 1| = 2.301527e-06 -- **230x the
+                  1e-8 gate with ZERO solver error**. The linear solve contributes
+                  2.396274e-08, **1.04 %**. So the tolerance remedy CANNOT work and my
+                  <= 3.8e-10 requirement is WITHDRAWN. worstLinearResidual 9.999987e-10
+                  confirms TD-003's 1e-9 record; all 221 049 solves cleared converged() and
+                  the fallback never fired. The ASSEMBLED ||A^-1||_inf is 120 000 against my
+                  reconstructed 2.4 -- wrong by 50 000x. **CRITERION 3 BELONGS WITH THE
+                  SPECIES RHS ASSEMBLY, NOT TD-003.** Leading candidate, NOT measured: the
+                  diffusive closure's sum_i J_i. A REGISTER-STRUCTURE DECISION IS NOW DUE
 eliminated        TD-003   C3 SOURCE HUNT 2026-10-11, no run needed: the transport step
                   passes an EXPLICIT ZERO Patankar source, so my own hypothesis is REFUTED;
                   sum_i omega_i cancels EXACTLY in IEEE (F->P, 1:1, equal molar weights); and

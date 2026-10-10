@@ -1,0 +1,53 @@
+=== the repository's production source is UNTOUCHED
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  src/species/PremixedFlame.cpp
+  expected: fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  OK unchanged
+
+=== instrumented source + driver
+d3e1f95c571a3727ca021bf6ba26d0ee6db7fa55ab28f86daff8558f18a0f9f6  /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/td003_instr/PremixedFlame_instrumented.cpp
+4d09b029eb2cd5ad3b03e68757209b7e91a45a202f29772270453725cd362f31  /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/td003_instr/driver.cpp
+
+=== library
+0d0dfaa96ac97d5fbcfe61c9b2cdef7382d9ec488e73452906ffd51566915605  build/release/src/libcfdcore.a
+
+=== compile
+compile rc=0
+
+=== run (the fixture takes roughly 700 s on this tree)
+2026-10-11T05:10:49+10:00
+TD-003 instrumented run -- the test fixture's own configuration
+  cells 500, domain 0.010 m, anchor 0.35, tolerance 1e-3,
+  maxOuterIterations 40, driftSettleTolerance 0.05, maximumStepsPerTrial 20000
+
+
+========== TD-003 PER-SOLVE INSTRUMENTATION ==========
+solves                      221049
+  accepted via converged()  221049
+  accepted via residual     0
+  NOT acceptable            0
+relative residual ||r||/||b||
+  max                       9.999987e-10
+  mean                      7.351215e-10
+||b||_2   min 2.388179e-05   max 4.025126e+04
+
+--- THE DECOMPOSITION (transport steps measured: 73683)
+  max_c |sum_i y_iterative - 1|     2.302203e-06   <- what the gate measures
+  max_c |sum_i y_EXACT - 1|         2.301527e-06   <- the RHS's own inconsistency
+  max_c |sum_i (y_iter - y_exact)|  2.396274e-08   <- the SOLVE's contribution
+  max |y_iter - y_exact| per species/cell  2.464101e-08
+  tridiagonal everywhere: yes
+  ||A^-1||_inf of the LAST assembled matrix  120000.010022
+=====================================================
+
+--- the solver's own reported quantities
+  status                        0  (0 = Converged)
+  S_L                           4.955332 cm/s
+  maxCompositionSumDeviation    8.822866e-07   <- THE GATED QUANTITY (bound 1e-8)
+  minMassFraction               -1.889798e-11
+  worstLinearResidual           9.999987e-10   <- TD-003 records this as 'pinned at 1e-9'
+  peakTemperature               1799.998974 K
+  recentrings                   223
+  finalMarchSteps               15283
+  totalTimeSteps                73683
+run rc=0
+2026-10-11T05:32:07+10:00
