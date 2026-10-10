@@ -181,6 +181,14 @@ current blocker   TD-004 C6a-ord is UNRESOLVED and is now its ONLY blocker. Need
                   NEW: the dead-band ladder shows the composition SUM tracks the recentring
                   count (8.82e-07 -> 1.24e-06 at deadBand 1) while min Y does NOT. The
                   fill-count explanation for min Y is REFUTED and nothing replaces it
+re-measured       TD-005   C3 NOW PASSES (2026-10-11): 0 of 12 configurations fail against a
+                  recorded 5 of 12; worst balance 1.0043e-02 vs the untouched 0.05 bound, 37x
+                  better. The thin-flame state is GONE -- delta 1.1945-1.1975 mm everywhere.
+                  Sweep A confirms TD-037 independently: S_L spread EXACTLY 0.000000 across
+                  driftWindow 16/32/64. BUT the consumption identity now EXCEEDS its 0.01 bound
+                  at 10 of 12 (0.01027 at the reference vs 0.00776 pre-fix), so **C6's premise is
+                  OBSOLETE** -- it existed to unmask a PASSING identity. C6 still FAIL, and its
+                  split needs a test change + authorization, in an UNTRACKED file
 to re-measure     TD-030 — still on the alternating
 resolved          TD-028   period-2 alternation GONE (2026-10-10). T[35] swing fell
                   1.4836e+03 -> 1.4385e-04 K, a factor of 1.03e7, and the shape changed to
