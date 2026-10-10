@@ -234,6 +234,17 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+measured          TD-003   P0, KAPPA MEASURED 2026-10-11: **26.28, not the 1000 my audit
+                  assumed** -- wrong by 38x. kappa x residual = 2.63e-08 against an observed
+                  8.823e-07, a 33.6x SHORTFALL, so my mechanism is REFUTED in magnitude. It
+                  survives in DIRECTION: 2.63e-08 still exceeds the 1e-8 gate by 2.6x, so a
+                  tolerance change IS needed, but to <= 3.8e-10 rather than 1e-11. The
+                  dominant source of the 33.6x is UNIDENTIFIED. **And C2 is reframed: neither
+                  the flame (dominance 1.0986, Peclet 0.028) nor the production case (10.92,
+                  Peclet 250) is in the r > 1 regime the probe characterised** -- both are
+                  strictly diagonally dominant. Candidate fix is to wire the EXISTING
+                  LinearSolverFallback (it escalates on exactly `Breakdown` to GMRES) into the
+                  reacting path, which is the one solve path that does not use it
 audited           TD-003   P0, AUDITED 2026-10-11, still OPEN. **C2 ANSWERED**: the
                   pure-upwind (lower-bidiagonal) class is solvable iff r = s/d <= 1. At
                   r = 1.05 -- kappa 7.09e5, still well-posed -- BiCGSTAB BREAKS DOWN and
