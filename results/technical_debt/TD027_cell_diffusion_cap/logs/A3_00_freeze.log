@@ -1,0 +1,44 @@
+=== TD-027 GATE_A3 FREEZE  (C2-A2)
+date 2026-10-10T18:02:59+10:00
+host Linux 6.18.33.2-microsoft-standard-WSL2
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== THE AMENDMENT, FROZEN AT THIS HASH. It must not be edited after this line.
+532e9bf1f59e34ad45d495c4ecf2a3c91342c802dc433c13c3517cb1a410e162  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE_A3.md
+
+=== the gate it amends, and the earlier amendment, unchanged
+56080f7ff3a0ad53655e05f13530bfb8f6ed898f5dc722d9f96cb351284b0e75  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE.md
+f5ac7f98a75378aab67c0337c24638c7f4bd2a713403c8941e3b6ad3a6f4883d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE_A1.md
+
+=== THE IDENTITY OF THE CODE UNDER TEST: the SOURCE hash, which is what is gated
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  verified equal to fa815c97... -- the post-fix tree
+267:  Real maximumCellDiffusionNumber{5.0};
+
+=== the library is RECORDED, not gated. See METHOD_library_hash_gates.md
+1c4d85026e0ab75960ef1a6c36176717344122bd78db4d5cfffe86f83e558b76  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+kBuildIdentity = "4b37d1107dee-modified"
+  libcfdcore.a EMBEDS the commit SHA via Version.hpp (P13-004), fixed per CONFIGURE.
+  So its hash tracks the commit at last configure and CANNOT anchor a claim about source.
+  An earlier freeze recorded 852555cf...; that value is unreachable after 8 commits and its
+  unreachability is NOT a defect. The source hash above is the stable identity.
+
+=== the dry-run, its non-vacuity check, and the ladders they read
+b78b8076e598c809e61868c43eae7805982ca9f546fa5313faaff24706b35cf2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/dry_run_A3.md
+6c9f6976eba3d44012670f3da80f8e681a1d84d411e4ca9dc7666c0dda26e3a4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/amendment_A3_proposal.md
+3c3f7219807f21ab60a3316aae5833604637b3412a96e3df8226224c660b4ada  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/verification_A2.md
+79492f16ca4f5121aa611900120b017d7aa0ecf56bd2430443bf2b8bba0905e7  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/logs/18_dt_ladder.log
+c5bd1ea2b6f2de474b857337f3944d0b9994337739df1ca6c76899c30b392c51  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD040_recentre_conservation/logs/03_dt_ladder_fixed_tree.log
+670c6912bebc76115cae9e38fe5ceafe0268b60da4bbc0ef98f1069f0f0ff7ea  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD043_eigenvalue_lattice/audit.md
+f18dc5562ca878a3658019c5cde1a9ed952b9c7dc8b7756270884739a5269b62  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/METHOD_library_hash_gates.md
+
+=== NON-VACUITY, as established in dry_run_A3.md section 3
+  FAIL  PRE-FIX cap 20, dt/1 -> dt/8:  4.0042 % + 0.0676 % = 4.0718 %  vs 0.28 %  by 14.5x
+  PASS  FIXED   cap 5,  dt   -> dt/8:  0.1353 % + 0.0677 % = 0.2030 %  vs 0.28 %  1.38x margin
+  The frozen C2 rejected cap 20 at 3.99 %; C2-A2 rejects it at 4.07 % on the same budget.
+
+=== WHAT REMAINS
+  The post-freeze verification has NOT been run. Section 5.3 step 6 requires a FRESH
+  four-level dt ladder at cap 5 on this tree; dry_run_A3.md's fixed-tree leg comes from
+  TD-040's logs/03 and does NOT serve as it.
+FROZEN 2026-10-10T18:02:59+10:00

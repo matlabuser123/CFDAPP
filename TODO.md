@@ -206,10 +206,14 @@ CLOSED (mechanism) TD-043  the lattice is MULTIPLICATIVE, ratio 2^(1/1024) = 0.0
                   authorized -- it moves every recorded S_L onto a new lattice
 re-measured       TD-031   CONFIRMED and strengthened: the front SAWTOOTHS (drift to the
                   3-cell dead band, reset, repeat), so NO relaxT reports a settled front
-re-measured       TD-027   C4 PASSES on a parity-CROSSING ladder (2026-10-09), by 24.5x,
-                  and S_L is identical to 6 decimals across both parities. Item still OPEN:
-                  C2's Richardson limit 4.67589 is PRE-FIX and now +5.98 % from the measured
-                  eigenvalue. Needs TD-040's dt ladder on the fixed tree
+re-measured       TD-027   C4 PASSES on a parity-CROSSING ladder (2026-10-09) by 24.5x, and
+                  C2 is AMENDED and PASSES (2026-10-10): its reference 4.67589 was never
+                  derivable -- the Richardson fine difference was ONE lattice quantum --
+                  and C2-A2 measures the error instead: 0.2030 % <= 0.28 %, 1.38x margin.
+                  **The open criterion MOVED to C3, which now FAILS at 4.06x vs <= 2**,
+                  because C3's numerator IS C2's error and the old reference understated it.
+                  THE FINDING: the reported precision understates the true temporal error by
+                  3-4x. Third time a correct fix has worsened a gate by unmasking
                   field, each needs re-measuring under its own gate
 also open         TD-033, TD-035, TD-036, TD-038, TD-039, TD-040, TD-042 — none authorized
                   TD-042   reactionHeatRelease at :1086 is computed every step and DISCARDED;
