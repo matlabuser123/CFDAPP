@@ -80,6 +80,13 @@ C6a does not pass. The frozen order is C6 -> C6a -> C6b -> C7, so the gate STOPS
 C6b and C7 are NOT evaluated.
 ```
 
+> **UPDATED 2026-10-10 — BLOCKER 1 IS DISCHARGED.** TD-040's premise was refuted by its own
+> dead-band ladder (`S_L` identical at every dead band including recentring OFF), so translation
+> does not bias the eigenvalue and the stop's chain breaks at its third link. The dt ladder then
+> excluded the pre-fix eigenvalue, so the +6.07 % move was TOWARD the verified limit. TD-040 is
+> reclassified N/A as a defect and **no longer carries this stop**. See
+> `TD040_recentre_conservation/verification_disposition.md` §4. ONE blocker remains: C6a-ord.
+
 TD-004 still carries **two** independent blockers:
 
 ```text

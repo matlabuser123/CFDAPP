@@ -161,7 +161,8 @@ chain. The currently actionable frontier:
 
 ```text
 register totals   43 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
-                  2 N/A, 1 REOPENED, the rest open. TD-001/TD-002 closed before this phase
+                  3 N/A (TD-013, TD-040, TD-041), 1 REOPENED, the rest open. P0s still
+                  open: 5, down from 6 when TD-040 was reclassified. TD-001/TD-002 closed before this phase
                   and are not repeated below; the frontier block is the CURRENT frontier
                   only. NOTE when counting by grep: TD-004's status contains the word
                   UNRESOLVED, so a /RESOLVED/ match counts it by mistake -- use
@@ -169,7 +170,14 @@ register totals   43 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, 
 resolved          TD-032   transient time level one step stale — RESOLVED 2026-10-07 (gate only)
 resolved          TD-037   driftWindow unguarded against trial length — RESOLVED 2026-10-07
 resolved          TD-034   clang-format clean — RESOLVED 2026-10-09 (741 files, exit 0)
-current blocker   TD-040  recentring is not conservation-neutral; it carries TD-004's stop
+n/a as a defect   TD-040   PREMISE REFUTED 2026-10-10 by its own dead-band ladder: S_L is
+                  4.955332 at EVERY dead band INCLUDING recentring OFF, so translation does
+                  NOT bias the eigenvalue. The fills are correct for a moving frame and the
+                  steady-state balance properly excludes the ledger. All three candidate
+                  fixes are wrong or unnecessary; 4.1 would break C3/C4/C6a-bal. CONDITIONAL:
+                  a future TIME-INTEGRATED conservation claim reopens it
+current blocker   TD-004 C6a-ord is UNRESOLVED and is now its ONLY blocker. Needs TD-043's
+                  finer tolerance -- which would likely make the band violation DEFINITE
                   NEW: the dead-band ladder shows the composition SUM tracks the recentring
                   count (8.82e-07 -> 1.24e-06 at deadBand 1) while min Y does NOT. The
                   fill-count explanation for min Y is REFUTED and nothing replaces it

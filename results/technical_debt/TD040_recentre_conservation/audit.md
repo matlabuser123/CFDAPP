@@ -47,6 +47,27 @@ side. Only the fabricated burnt cells register.
 two-library run only confirmed it and showed the per-event cost is identical across libraries to
 6e-05 relative, which is what rules out a mis-reporting ledger.
 
+> **§2's CENTRAL CLAIM IS REFUTED — marked in place 2026-10-10, nothing below is deleted.**
+> This section asserts that an uncounted flux biases `S_L` directly, and that this is why the
+> locator fix moved the eigenvalue. `logs/01_deadband_ladder.log`, run from this item's own §5(a),
+> measured **`S_L` = 4.955332 at EVERY dead band — including recentring entirely OFF, zero
+> translations, ledger exactly zero** — while the ledger rate swung from −2.80 % to 0. The
+> translation's non-conservation does **not** bias the eigenvalue at all.
+>
+> `S_L` comes from bisection on the SIGN of the trials' front drift. Translation moves the frame
+> and does not change the drift rate relative to it, so the quantity §2 assumed `mdot` must account
+> for is one the bisection never consults. §2.1 had already flagged that the arithmetic did not
+> close by a factor of 3.5; the real factor is zero.
+>
+> The +6.07 % came from the LOCATOR unblinding the trials' drift measurement, and
+> `logs/03_dt_ladder_fixed_tree.log` then EXCLUDED the pre-fix eigenvalue — so the move was toward
+> the truth. **All three candidate fixes in §4 are consequently wrong or unnecessary**, and §4.1
+> would actively break C3: the balance at `:1740` is three INSTANTANEOUS fluxes on the final field
+> (`:1718` — "integral identities that hold for a converged steady flame and nothing else"), while
+> the ledger is a CUMULATIVE mass per area. Adding one to the other is a units mismatch.
+>
+> Full derivation and the proposed disposition: `verification_disposition.md`.
+
 ## 2. It is NOT a coding slip, and that decides the fix
 
 The fills are **correct for their boundaries**: fresh unburnt entering upstream, zero-gradient
