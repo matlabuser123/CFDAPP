@@ -163,9 +163,24 @@ current blocker   TD-040  recentring is not conservation-neutral; it carries TD-
                   count (8.82e-07 -> 1.24e-06 at deadBand 1) while min Y does NOT. The
                   fill-count explanation for min Y is REFUTED and nothing replaces it
 to re-measure     TD-028, TD-030 — still on the alternating
-re-measured       TD-029   signs still opposite, but the TEMPORAL error collapsed 4.24 % ->
-                  0.068 % (62x) and both signs FLIPPED. 'They cancel' now oversells a 10:1
-                  asymmetry. Candidate: TD-032's stale level WAS the temporal defect
+re-measured       TD-029   the TEMPORAL error collapsed 4.24 % -> <= ONE LATTICE QUANTUM
+                  (0.0677 %). The 62x collapse is real; the VALUE is not, and the
+                  'opposite signs' headline is UNSUPPORTED. See TD-043
+ANSWERED          TD-040 §5b  the dt ladder on the fixed tree EXCLUDES 4.671937 by 6.0 %.
+                  The post-fix eigenvalue stands; TD-027's C2 reference is contaminated;
+                  TD-004's +6.07 % move was TOWARD the truth. No Richardson limit claimed
+                  -- two dt levels gave a bit-identical S_L, so the family is not asymptotic
+CLOSED (mechanism) TD-043  the lattice is MULTIPLICATIVE, ratio 2^(1/1024) = 0.067713 % of
+                  S_L, set by settings.tolerance=1e-3 and the bracketing ratio 2. Derived
+                  from 3 source lines, matches the solver's own reported bracket to 0.0000 %,
+                  and all 10 measured S_L are integer lattice points. It is RELATIVE, so
+                  resolution-independent -- no 125/250-cell run was needed.
+                  CONSEQUENCES: TD-029's opposite-signs claim REINSTATED (one full step does
+                  determine a sign); TD-004 C6a's order is UNDETERMINED, not regressed
+                  (true p in (2.00, 3.81) vs a band edge at 2.5); C6 property 2's quoted
+                  spread 0.000469 is a lattice ANCHOR offset, not a physical quantity.
+                  FIX available: tolerance 1e-4 -> 8x finer for 3 extra bisections. NOT
+                  authorized -- it moves every recorded S_L onto a new lattice
 re-measured       TD-031   CONFIRMED and strengthened: the front SAWTOOTHS (drift to the
                   3-cell dead band, reset, repeat), so NO relaxT reports a settled front
 re-measured       TD-027   C4 PASSES on a parity-CROSSING ladder (2026-10-09), by 24.5x,

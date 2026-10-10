@@ -143,6 +143,71 @@ from this one. So `p = 2.693` may be measuring the coupling rather than a defect
 **`CLAUDE.md` §6 forbids claiming an observed order whose family is not demonstrably asymptotic, and
 that cuts both ways: it also forbids me asserting this explanation without separating dt from dx.**
 
+### 2.2a SECOND UPDATE 2026-10-10 — C6a's order may be RESOLUTION-LIMITED, not a regression
+
+TD-040's dt ladder found `S_L` is reported on a **lattice of spacing 3.3565e-03 cm/s** (TD-043).
+C6a's two differences, measured against it:
+
+```text
+coarse diff  125 -> 250   4.336000e-02 cm/s  =  12.92 quanta
+fine   diff  250 -> 500   6.700000e-03 cm/s  =   2.00 quanta
+```
+
+**The fine difference is TWO lattice steps.** An order computed from it inherits a +/-1 quantum
+ambiguity, and that ambiguity is enormous:
+
+```text
+fine = 1 quantum  ->  p = 3.69
+fine = 2 quanta   ->  p = 2.69      <- what was measured
+fine = 3 quanta   ->  p = 2.11
+
+the frozen band is [1.5, 2.5]; the ambiguity spans 2.11 .. 3.69 and STRADDLES it
+```
+
+So C6a's `p = 2.693` rests on a difference the instrument can barely express, and **one lattice
+step either way moves the verdict across the band boundary.** That is a stronger candidate than
+§2.2's withdrawn dt/dx coupling: it explains why `p` moved without requiring anything about the
+solver's physics to have changed.
+
+**It is a CANDIDATE, not a finding, and two things block it:**
+
+```text
+the quantum was measured at 500 CELLS only. C6a's family spans 125-500 cells, where the
+bisection's bracket -- and therefore the lattice spacing -- may differ. Applying the 500-cell
+quantum to the 125 -> 250 difference is an APPROXIMATION, and 12.92 is suspiciously close to
+an integer 13 without being one.
+
+TD-043's mechanism is NOT closed. Until the arithmetic from bracket width to lattice spacing is
+derived, 'quantized by the bisection' is the leading explanation for the lattice itself.
+```
+
+**What this does NOT do is lift C6a's FAIL.** The frozen criterion was evaluated and the measured
+`p` is outside the frozen band; CLAUDE.md §5.3 is explicit that explaining a failure does not waive
+it. What it does is relocate the likely cause from the production change to the instrument -- which
+is the difference between amending a threshold and repairing a solver, and that decision needs the
+lattice measured at 125 and 250 cells first.
+
+### 2.2b THIRD UPDATE 2026-10-10 — C6a's order is UNDETERMINED, not regressed
+
+TD-043's mechanism is now closed exactly: the lattice is MULTIPLICATIVE with ratio `2^(1/1024)`,
+spacing `0.067713 %`, set by `settings.tolerance = 1e-3`. The reported value lies within ±0.5 step
+of the true root, so C6a's differences bound the true ones:
+
+```text
+coarse  125 -> 250   13 steps   ->  true in (12, 14)
+fine    250 -> 500    2 steps   ->  true in ( 1,  3)
+
+TRUE p in (2.00, 3.81)        frozen band [1.5, 2.5]        overlap (2.00, 2.50]
+```
+
+**The band's upper edge lies INSIDE the uncertainty interval**, so this instrument cannot determine
+whether `p` is inside or outside the band. The correct characterisation is **UNDETERMINED at this
+tolerance** — neither the pass §2.2a suggested nor the regression §2.2 recorded.
+
+The FAIL stands as a measurement (§5.3: explaining a failure does not waive it), but the remedy
+this points at is a **finer tolerance**, not a re-derived band: `tolerance = 1e-4` costs 3 extra
+bisections, gives 8x resolution, and would put the fine difference at ~16 steps instead of 2.
+
 ### 2.3 One thing the fix clearly repaired, visible in the same table
 
 ```text

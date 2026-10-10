@@ -33,6 +33,27 @@ C      500   4.712150e-06    4.958687     30526    2.0261e-03   3.497621
 Both fronts sit inside C5c's derived `0.08 mm` bound (worst `|3.559875 - 3.5| = 0.0599 mm`), so no
 leg is reporting a runaway front.
 
+> **QUALIFIED 2026-10-10 — §2's CONCLUSION IS WITHDRAWN.** TD-040's dt ladder found that `S_L` is
+> reported on a **lattice of spacing 3.356e-03 cm/s = 0.0677 %** (two dt values a factor of 2 apart
+> returned a bit-identical eigenvalue). The temporal error measured below, `+0.068 %`, **is exactly
+> one lattice step** — so it is indistinguishable from the instrument's resolution and **cannot
+> establish a direction**. The claim that the two errors have OPPOSITE SIGNS therefore rests on an
+> unresolved quantity and is **unsupported**. What survives: the temporal error collapsed from 4.24 %
+> (~62 quanta, resolvable) to <= 1 quantum, a real 62x reduction to the resolution floor; and the
+> spatial error -0.679 % (~10 quanta) is resolvable. What does not survive: the value "+0.068 %",
+> the ratio "0.10" (the true asymmetry is 10:1 OR MORE EXTREME), and the sign comparison itself.
+> Registered as TD-043. Everything below is kept as written.
+>
+> **RE-CORRECTED the same day — §2's CONCLUSION IS REINSTATED.** The withdrawal above was wrong in
+> its reasoning. The reported value is the terminal bracket's geometric centre, so it lies within
+> **±0.5 step** of the true root; an observed difference of N steps bounds the true difference to
+> `(N-1, N+1)` steps. A single FULL step is therefore strictly positive and **does** determine a
+> direction. Spatial was +10 steps and temporal +1 step, so **opposite signs HOLD** and the
+> cancellation claim stands. What does not survive is the VALUE: the temporal error is in
+> `(0, +0.135) %`, not `+0.068 %`, and the ratio is in `(0, 0.22)`, not `0.10`. The dt ladder's
+> separate `L1 -> L2` leg gave 0 steps and THAT halving's sign is undetermined — I conflated it
+> with this one. See `TD043_eigenvalue_lattice/audit.md` §3.
+
 ## 2. The signs are still opposite — and that is the WEAKEST reading of this data
 
 `refine dx` lowers `S_L`, `refine dt` raises it. Opposite directions, so under a coupled refinement
