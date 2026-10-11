@@ -215,6 +215,29 @@ void printReport(std::ostream& out, const ProjectRunResult& run) {
         << "Species " << speciesRun.name << " iterations: " << speciesRun.result.iterations
         << "\n\n";
   }
+  // TD-047: the REACTING block, which this report omitted entirely. The species loop above
+  // iterates `run.speciesResults` -- a field the reacting path does NOT fill, because it fills
+  // `ReactingRunResult::speciesResults` instead -- so a reacting run printed no species lines
+  // at all and its failures reached neither stdout nor the exit code. Reported in the same
+  // shape as the thermal and species blocks above.
+  if (run.reactingResult.has_value()) {
+    const auto& reacting = *run.reactingResult;
+    for (const auto& speciesRun : reacting.speciesResults) {
+      out << "Reacting species " << speciesRun.name
+          << " converged: " << speciesStatusLabel(speciesRun.result.status) << "\n"
+          << "Reacting species " << speciesRun.name
+          << " iterations: " << speciesRun.result.iterations << "\n";
+    }
+    out << "Reacting temperature converged: "
+        << (reacting.temperatureSolveConverged ? "yes" : "no (linear solve failed)") << "\n"
+        << "Reacting temperature iterations: " << reacting.temperatureIterations
+        << "\n"
+        // The aggregate is what the run STATUS is now derived from, so printing it keeps the
+        // report and the exit code from being able to disagree.
+        << "Reacting any linear solve failed: " << (reacting.anyLinearSolveFailed ? "yes" : "no")
+        << "\n"
+        << "Reacting steps taken: " << reacting.stepsTaken << "\n\n";
+  }
   // P6-PHYS-002: mirrors the thermal block above -- there is exactly one
   // multiphase block per case (unlike species' own list).
   if (run.multiphaseResult.has_value()) {

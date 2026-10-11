@@ -1,0 +1,39 @@
+=== build CFDAppLayerTests + cfdapp
+[8/10] Linking CXX static library src/libcfdcore.a
+[9/10] Linking CXX executable apps/cli/cfdapp
+[10/10] Linking CXX executable tests/unit/app/CFDAppLayerTests
+  build rc=0
+
+=== C1/C2: the new truth-table tests
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from ProjectRunnerReactingStatusTest
+[ RUN      ] ProjectRunnerReactingStatusTest.ASucceedingReactingMarchLeavesEveryFlowStatusUntouched
+[       OK ] ProjectRunnerReactingStatusTest.ASucceedingReactingMarchLeavesEveryFlowStatusUntouched (0 ms)
+[ RUN      ] ProjectRunnerReactingStatusTest.AFailedReactingSolveEscalatesToNumericalFailure
+[       OK ] ProjectRunnerReactingStatusTest.AFailedReactingSolveEscalatesToNumericalFailure (0 ms)
+[ RUN      ] ProjectRunnerReactingStatusTest.CancellationSurvivesAFailedReactingSolve
+[       OK ] ProjectRunnerReactingStatusTest.CancellationSurvivesAFailedReactingSolve (0 ms)
+[ RUN      ] ProjectRunnerReactingStatusTest.TheExitCodeChangesFromZeroToFour
+[       OK ] ProjectRunnerReactingStatusTest.TheExitCodeChangesFromZeroToFour (0 ms)
+[----------] 4 tests from ProjectRunnerReactingStatusTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 4 tests.
+  rc=0
+
+=== C5: does anyLinearSolveFailed now have a READER in src/?
+  src/app/ProjectRunner.cpp:1029:    run.anyLinearSolveFailed = reactingSolveFailed;
+  src/app/ProjectRunner.cpp:1058:    // consumer `anyLinearSolveFailed` has; it was written and never read.
+  src/app/ProjectRunner.cpp:1059:    out.status = statusWithReactingOutcome(out.status, out.reactingResult->anyLinearSolveFailed);
+  apps/cli/main.cpp:237:        << "Reacting any linear solve failed: " << (reacting.anyLinearSolveFailed ? "yes" : "no")
+
+=== C6 + full app-layer suite (regression on the touched target)
+[       OK ] VisualizationSnapshotTest.TwoDimensionalResultHasNoThirdComponent (112 ms)
+[----------] 5 tests from VisualizationSnapshotTest (3974 ms total)
+
+[----------] Global test environment tear-down
+[==========] 36 tests from 6 test suites ran. (6492 ms total)
+[  PASSED  ] 36 tests.
+  rc=0

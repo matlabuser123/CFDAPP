@@ -110,6 +110,32 @@ enum class ProjectRunStatus {
 
 [[nodiscard]] int exitCodeFor(ProjectRunStatus status) noexcept;
 
+// TD-047: fold the REACTING march's linear-solve outcome into the run status.
+//
+// WHY THIS EXISTS. `out.status` is set once, from the FLOW solve, before the reacting march
+// runs; the march then never revisited it. So a reacting case whose every species and energy
+// solve FAILED still exited 0, and the CLI -- which reports
+// `ProjectRunResult::speciesResults`, a field the reacting path does not fill (it fills
+// `ReactingRunResult::speciesResults`) -- said nothing either. The failure was invisible in
+// both channels.
+//
+// THE RULE IS NOT INVENTED. `statusFor(SIMPLEStatus)` already maps the FLOW's own
+// linear-solve failures, `MomentumFailure` and `PressureCorrectionFailure`, to
+// `NumericalFailure`. A reacting linear-solve failure is the same kind of event and maps the
+// same way; this extends an existing mapping to a path it was never applied to.
+//
+// `Cancelled` is PRESERVED: a cancelled run's reacting failure is a consequence of the
+// cancellation rather than an independent fault, and `Cancelled` is the more informative
+// verdict. Every other status escalates, including `DidNotConverge` -- a numerical failure is
+// the stronger statement, and reporting the weaker one would understate what happened.
+//
+// A pure function rather than an inline branch, because no test drives the reacting path
+// end-to-end and engineering a genuinely failing reacting solve is not a fixture task. This
+// shape makes the rule exhaustively testable over its 6 x 2 input space. See
+// results/technical_debt/TD047_reacting_failure_escalation/GATE.md.
+[[nodiscard]] ProjectRunStatus statusWithReactingOutcome(ProjectRunStatus flowStatus,
+                                                         bool reactingSolveFailed) noexcept;
+
 // P6-PHYS-001: one physics.json-declared species's solve outcome, in
 // declaration order -- `name` lets a caller (CLI report, GUI, export)
 // identify which species a given cfd::species::SpeciesResult belongs to

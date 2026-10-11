@@ -180,3 +180,60 @@ TEST(ProjectRunnerTest, MeshQualityWarningDoesNotStopTheRun) {
   EXPECT_NE(text.find("\"valid_with_warnings\""), std::string::npos);
   EXPECT_NE(text.find("\"severity\": \"warning\""), std::string::npos);
 }
+
+// =================================================================================================
+// TD-047 -- a failed REACTING linear solve must reach the run status, and therefore the exit code.
+//
+// Before this, `out.status` was set once from the FLOW solve and the reacting march could not
+// change it, so a reacting case whose every species and energy solve FAILED exited 0. The rule
+// lives in a pure function precisely so it can be covered exhaustively here: no test drives the
+// reacting path end-to-end, and engineering a reacting solve that genuinely fails is not a fixture
+// task. Gate: results/technical_debt/TD047_reacting_failure_escalation/GATE.md
+// =================================================================================================
+
+TEST(ProjectRunnerReactingStatusTest, ASucceedingReactingMarchLeavesEveryFlowStatusUntouched) {
+  // C1, the `false` half: the escalation must fire ONLY on failure. Without this row the fix
+  // could be a blanket downgrade and still pass the failure rows.
+  for (const ProjectRunStatus flow :
+       {ProjectRunStatus::Converged, ProjectRunStatus::DidNotConverge,
+        ProjectRunStatus::NumericalFailure, ProjectRunStatus::Cancelled,
+        ProjectRunStatus::InvalidCase, ProjectRunStatus::ApplicationError}) {
+    EXPECT_EQ(cfd::app::statusWithReactingOutcome(flow, /*reactingSolveFailed=*/false), flow)
+        << "a reacting march with no failed solve changed the flow's verdict";
+  }
+}
+
+TEST(ProjectRunnerReactingStatusTest, AFailedReactingSolveEscalatesToNumericalFailure) {
+  // C1, the `true` half. NumericalFailure is not invented: statusFor(SIMPLEStatus) already maps
+  // the FLOW's own MomentumFailure and PressureCorrectionFailure to it.
+  for (const ProjectRunStatus flow :
+       {ProjectRunStatus::Converged, ProjectRunStatus::DidNotConverge,
+        ProjectRunStatus::NumericalFailure, ProjectRunStatus::InvalidCase,
+        ProjectRunStatus::ApplicationError}) {
+    EXPECT_EQ(cfd::app::statusWithReactingOutcome(flow, /*reactingSolveFailed=*/true),
+              ProjectRunStatus::NumericalFailure)
+        << "a failed reacting linear solve did not reach the run status";
+  }
+}
+
+TEST(ProjectRunnerReactingStatusTest, CancellationSurvivesAFailedReactingSolve) {
+  // C1's one exception. A cancelled run's reacting failure is a consequence of the cancellation,
+  // so Cancelled is the more informative verdict and must not be overwritten.
+  EXPECT_EQ(cfd::app::statusWithReactingOutcome(ProjectRunStatus::Cancelled,
+                                                /*reactingSolveFailed=*/true),
+            ProjectRunStatus::Cancelled);
+}
+
+TEST(ProjectRunnerReactingStatusTest, TheExitCodeChangesFromZeroToFour) {
+  // C2 -- the defect's headline, stated as the two numbers that differ. A converged flow with a
+  // failed reacting march exited 0 before; it must now exit 4, the code the flow's own
+  // linear-solve failures already produce.
+  const ProjectRunStatus escalated =
+      cfd::app::statusWithReactingOutcome(ProjectRunStatus::Converged, true);
+  EXPECT_EQ(cfd::app::exitCodeFor(escalated), 4);
+
+  // And the no-failure path still exits 0, so the change cannot turn a good run bad.
+  const ProjectRunStatus untouched =
+      cfd::app::statusWithReactingOutcome(ProjectRunStatus::Converged, false);
+  EXPECT_EQ(cfd::app::exitCodeFor(untouched), 0);
+}

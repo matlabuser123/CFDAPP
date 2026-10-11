@@ -41,6 +41,18 @@ namespace cfd::app {
 using cfd::pressure_velocity::SIMPLEResult;
 using cfd::pressure_velocity::SIMPLEStatus;
 
+ProjectRunStatus statusWithReactingOutcome(ProjectRunStatus flowStatus,
+                                           bool reactingSolveFailed) noexcept {
+  if (!reactingSolveFailed) {
+    return flowStatus;
+  }
+  // Cancelled survives: see the header for why it is the more informative verdict.
+  if (flowStatus == ProjectRunStatus::Cancelled) {
+    return ProjectRunStatus::Cancelled;
+  }
+  return ProjectRunStatus::NumericalFailure;
+}
+
 int exitCodeFor(ProjectRunStatus status) noexcept {
   switch (status) {
     case ProjectRunStatus::Converged:
@@ -1038,6 +1050,13 @@ ProjectRunResult ProjectRunner::run(const std::filesystem::path& caseDirectory,
 
     reactingRun = std::move(run);
     out.reactingResult = reactingRun;
+
+    // TD-047: the reacting march's own linear-solve outcome reaches the run status, and
+    // therefore exitCodeFor(), here. Before this, `out.status` was whatever the FLOW solve
+    // produced at the top of this function and the march could not change it -- so a reacting
+    // case whose every species and energy solve FAILED exited 0. This read is also the only
+    // consumer `anyLinearSolveFailed` has; it was written and never read.
+    out.status = statusWithReactingOutcome(out.status, out.reactingResult->anyLinearSolveFailed);
   }
 
   // P6-PHYS-002: same one-way, best-available policy as thermal/species

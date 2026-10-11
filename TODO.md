@@ -160,9 +160,9 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   47 items: 7 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
-                  TD-046), 2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043), 2 BLOCKED,
-                  2 INHERITED, 32 open. NOT CLOSED: 38. P0s still open: 5 (TD-003, TD-006, TD-007,
+register totals   47 items: 8 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
+                  TD-046, TD-047), 2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043),
+                  2 BLOCKED, 2 INHERITED, 31 open. NOT CLOSED: 37. P0s still open: 5 (TD-003, TD-006, TD-007,
                   TD-027, TD-029), down from 6 when TD-040 was reclassified.
                   2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement),
                   TD-045, TD-046 and TD-047 added, so the count went 43 -> 47 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
@@ -318,9 +318,18 @@ audited           TD-003   P0, AUDITED 2026-10-11, still OPEN. **C2 ANSWERED**: 
                   gap is TD-047. C3: the 1e-8 gate IS reachable and fails at 88x (8.823e-07);
                   mechanism is residual-vs-error, candidate fix is ONE constant that :625
                   already intends -- BLOCKED on measuring the flame's own kappa
-also open         TD-047   a reacting run whose every linear solve FAILED exits 0:
-                  out.status is set from the FLOW solve at :501, the reacting block never
-                  revisits it, and anyLinearSolveFailed has one writer and ZERO readers
+resolved          TD-047   **RESOLVED 2026-10-11.** A reacting run whose every linear solve
+                  FAILED exited 0, and the CLI printed NO reacting lines at all -- worse than
+                  registered, because printReport iterates ProjectRunResult::speciesResults
+                  while the reacting path fills ReactingRunResult::speciesResults. All six
+                  frozen criteria pass: exit code 0 -> 4 on failure and still 0 on success,
+                  10 reacting report lines where there were none, and anyLinearSolveFailed now
+                  has 2 readers (was 0). Rule DERIVED from statusFor's existing
+                  MomentumFailure -> NumericalFailure mapping, in a PURE function so the 6x2
+                  space is exhaustively tested without engineering a failing solve.
+                  **Also the first end-to-end reacting run there has ever been.**
+                  STILL OPEN as a separate concern: no automated test drives the reacting
+                  path, so a regression in it would be caught by nothing -- worth its own item
 resolved          TD-046   **RESOLVED 2026-10-11.** The sole test of lambda(T) died in its
                   own setup at 6 ms (0.11 against the 0.15 it demands) and had NEVER run its
                   solves. Slope DERIVED from the untouched assertions and set to 1.0e-4 = 4x,
