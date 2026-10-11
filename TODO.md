@@ -234,6 +234,18 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+provenance        TD-003   **the 1e-8 was NEVER REACHABLE, checked 2026-10-11.** 0 of 81
+                  recorded |sumY-1| measurements fall below it (9.54994e-08 .. 4.00526e-06).
+                  It sits in NO frozen gate; it was never derived (every neighbour on this
+                  quantity class is relative, and the same constant passes with 529x margin on
+                  minMassFraction while failing by 88x here); and TD-004's own frozen GATE.md
+                  §3.2 ALREADY recorded it as "already failing" and routed around it -- while
+                  attributing it to a "tolerance-limited solve", now refuted at 1.04 %.
+                  So a §5.3 amendment would REPLACE AN UNDERIVED CONSTANT, not fix a stale one.
+                  **But Option B is not futile:** the 9.55e-08 minimum is 6.8x BELOW the
+                  derived floor, so the floor is state-dependent and ~10x less amplification
+                  would bring 1e-8 into reach. WHICH configuration produced 9.55e-08 is NOT
+                  identified, and that is the measurement that decides A vs B
 SOLVED / STOP     TD-003   **C3 SOLVED 2026-10-11, AND ITS GATE IS MIS-DERIVED -- §12 STOP.**
                   The closure test closes the chain to SEVEN DIGITS:
                   max |A^-1 (sum_i b_i - A*1)| = 2.301527e-06 = max_c |sum_i y_EXACT - 1|,
