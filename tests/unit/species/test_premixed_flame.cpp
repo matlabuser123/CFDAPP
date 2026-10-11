@@ -621,8 +621,19 @@ TEST(G8PremixedFlameTest, AVariableConductivityChangesTheAnswerAndIsNotFrozenAtT
   // A law that EQUALS the constant at the unburnt temperature and rises with T. If lambda were
   // evaluated once at the inlet and frozen -- the easiest possible defect -- these two would agree
   // exactly. The flame lives at high temperature, so a correct solver must report a FASTER flame.
+  //
+  // THE SLOPE IS DERIVED FROM THE TWO ASSERTIONS BELOW, not chosen (TD-046). With
+  // lambda(T) = kConductivity + s (T - kUnburntT), the precondition lambda(T_ad) > 3 kConductivity
+  // needs s > 2 kConductivity / (T_ad - T_u) = 6.667e-05, and the 1.3x flame-speed assertion needs
+  // only s > 4.6e-05 (from S_L ~ sqrt(alpha) at the front's midpoint lambda). So the precondition
+  // binds. s = 1.0e-4 gives lambda(T_ad) = 0.2 = 4x, clearing it by 33 %, and an expected S_L
+  // ratio near 1.58, clearing 1.3 by 22 % -- while a frozen lambda would give exactly 1.0, which
+  // is 23 % BELOW the threshold. The threshold therefore sits between the two with margin on both
+  // sides. The previous 4.0e-5 gave only 2.2x, so this test FAILED AT THE PRECONDITION in 6 ms and
+  // had never once run its solves: evidence in
+  // results/technical_debt/TD046_lambda_t_fixture/GATE.md.
   const ConstantProperty constantConductivity(kConductivity);
-  const LinearProperty risingConductivity(kConductivity, kUnburntT, 4.0e-5);
+  const LinearProperty risingConductivity(kConductivity, kUnburntT, 1.0e-4);
   ASSERT_NEAR(risingConductivity.value(kUnburntT), kConductivity, 1.0e-15);
   ASSERT_GT(risingConductivity.value(kExpectedAdiabatic), 3.0 * kConductivity);
 
@@ -637,7 +648,7 @@ TEST(G8PremixedFlameTest, AVariableConductivityChangesTheAnswerAndIsNotFrozenAtT
   ASSERT_EQ(flameRising.status, PremixedFlameStatus::Converged);
 
   EXPECT_GT(flameRising.flameSpeed, 1.3 * flameConstant.flameSpeed)
-      << "a conductivity that triples across the front produced the same flame speed as a "
+      << "a conductivity that quadruples across the front produced the same flame speed as a "
          "constant one, so lambda(T) is being evaluated once and frozen";
   // ... and a thicker front, which is the other signature of a larger diffusivity.
   EXPECT_GT(flameRising.flameThickness, flameConstant.flameThickness);

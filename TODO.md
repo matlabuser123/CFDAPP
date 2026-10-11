@@ -160,9 +160,9 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   47 items: 6 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037),
-                  2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043), 2 BLOCKED, 2 INHERITED,
-                  33 open. NOT CLOSED: 39. P0s still open: 5 (TD-003, TD-006, TD-007,
+register totals   47 items: 7 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
+                  TD-046), 2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043), 2 BLOCKED,
+                  2 INHERITED, 32 open. NOT CLOSED: 38. P0s still open: 5 (TD-003, TD-006, TD-007,
                   TD-027, TD-029), down from 6 when TD-040 was reclassified.
                   2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement),
                   TD-045, TD-046 and TD-047 added, so the count went 43 -> 47 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
@@ -321,11 +321,15 @@ audited           TD-003   P0, AUDITED 2026-10-11, still OPEN. **C2 ANSWERED**: 
 also open         TD-047   a reacting run whose every linear solve FAILED exits 0:
                   out.status is set from the FLOW solve at :501, the reacting block never
                   revisits it, and anyLinearSolveFailed has one writer and ZERO readers
-also open         TD-046   the SOLE test of lambda(T) in the flame solver dies in its own
-                  setup assertion at 6 ms (0.11 vs the 0.15 it demands) and has NEVER run its
-                  solves, so "lambda(T) is really consumed" is UNTESTED, not failing. It is one
-                  of the 2 remaining G8 failures and TD-007 had it as UNEXPLAINED. Blocks
-                  TD-006's precondition 2. NOT fixed -- a test change in blocked TD-006's scope
+resolved          TD-046   **RESOLVED 2026-10-11.** The sole test of lambda(T) died in its
+                  own setup at 6 ms (0.11 against the 0.15 it demands) and had NEVER run its
+                  solves. Slope DERIVED from the untouched assertions and set to 1.0e-4 = 4x,
+                  clearing the precondition by 33 %. All five frozen criteria PASS in 2866 s:
+                  a 4x conductivity gives a **1.81x** faster flame (a frozen lambda would give
+                  exactly 1.00x) and a 1.59x thicker front. 0 assertion lines changed, no
+                  production file touched. **G8 drops from 2 failures to 1.** Two unsought
+                  confirmations: dt fell exactly 4.0000x (confirming :718) and |sumY-1| rose
+                  4.75x where TD-003's floor model predicts ~4x -- its first independent check
 also open         TD-045   the repository has NO line-ending guard: `* -text` overrides
                   core.autocrlf, clang-format DERIVES the ending per file (all 3 CRLF .cpp
                   PASS), and git diff --check sees only staged files. Carved out of TD-041
