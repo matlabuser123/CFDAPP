@@ -234,6 +234,17 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+A vs B SETTLED    TD-003   **OPTION B's PREMISE REFUTED 2026-10-11 -- it was my own
+                  counter-argument, and it does not survive.** The 9.54994e-08 minimum came
+                  from TheFlameSpeedConvergesUnderMeshRefinement at **125 cells**, a state
+                  whose consumption integral is off by **51 %** (S_L 4.40773 vs S_c 2.15465,
+                  fuel balance 0.4999, final march 334 NOT steady). Not a better-conditioned
+                  flame -- a WORSE SOLUTION on a coarser mesh, so it is no evidence that 1e-8
+                  is reachable where the flame is resolved. **Option A now stands unopposed**,
+                  with FORM C*eps*||b||*||A^-1||_inf measured per state (a plain C*eps*N does
+                  not fit: the quotient rises 3.44e6 -> 5.37e6). I also WITHDREW the "N ~ 23
+                  cells" extrapolation -- §6 forbids an order claim when two of three levels
+                  are 51-55 % inconsistent. **THE §5.3 AUTHORIZATION IS THE ONLY THING LEFT**
 provenance        TD-003   **the 1e-8 was NEVER REACHABLE, checked 2026-10-11.** 0 of 81
                   recorded |sumY-1| measurements fall below it (9.54994e-08 .. 4.00526e-06).
                   It sits in NO frozen gate; it was never derived (every neighbour on this
