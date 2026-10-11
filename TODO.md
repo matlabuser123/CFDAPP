@@ -428,8 +428,14 @@ ROADMAP AUTHORIZATION  NO NEW FUTURE PHASE AUTHORIZED
 PUSH BLOCKER           TD-035 — the §8 regression is PARTIAL on this tree: 2 of 4
                        configurations. RELEASE RAN 2026-10-11 (2840 tests, 7 failures, all
                        known, 0 new, 5 G8 tests FIXED, 7144.02 s) and clang-format is clean,
-                       so those two now PASS. Debug+GUI and the five sanitizer configurations
-                       are NOT RUN. A sanitizer FIXTURE exists (150 cells, 348.75 s under
+                       so those two now PASS. **DEBUG+GUI AND THE SANITIZERS RAN 2026-10-12:
+                       sanitizers 2832 tests / 14 failed / 7.13 h with ZERO sanitizer
+                       diagnostics; Debug+GUI 2906 tests / 18 failed / 4.31 h. All 32 failures
+                       accounted for, 0 unexplained.** CORRECTION to this block's own wording:
+                       there are not "five sanitizer configurations" -- ci.yml has ONE preset
+                       in five SHARDS, so one full run covers their union. RELEASE IS
+                       RE-RUNNING (TD-046/TD-047 invalidated its 2840/7/7144 s counts), so
+                       §11.4 is still NOT discharged and no push is justified yet. A sanitizer FIXTURE exists (150 cells, 348.75 s under
                        ASan+UBSan, 20.6x headroom, 0 diagnostics) and the asan preset EXCLUDES
                        the heavy G8 cases, but the full 2860-test preset's cost is UNMEASURED.
                        The blocker STANDS for a PUSH. It does NOT block a commit, and the
