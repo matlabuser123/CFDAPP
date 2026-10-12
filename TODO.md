@@ -160,8 +160,8 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   47 items: 8 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
-                  TD-046, TD-047), 2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043),
+register totals   48 items: 9 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
+                  TD-046, TD-047, TD-048), 2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043),
                   2 BLOCKED, 2 INHERITED, 31 open. NOT CLOSED: 37. P0s still open: 5 (TD-003, TD-006, TD-007,
                   TD-027, TD-029), down from 6 when TD-040 was reclassified.
                   2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement),

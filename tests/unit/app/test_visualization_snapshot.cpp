@@ -92,11 +92,17 @@ TEST(LoadSnapshotFromResultsTest, MissingDirectoryProducesAnInvalidSnapshot) {
 }
 
 TEST(LoadSnapshotFromResultsTest, ThermalCaseExposesTemperatureField) {
-  const auto run = ProjectRunner::run("cases/heated_cavity");
+  // TD-048: a PRIVATE copy, like every other run in this file (and like
+  // test_cli_gui_equivalence.cpp's own use of this same case). Running the tracked
+  // `cases/heated_cavity` directly rewrote its committed results/, which churned
+  // `build_identity` -- the configure-time SHA from Version.hpp -- on every regression, and
+  // CLAUDE.md §9 wants a committed case's outputs byte-identical. CaseFixtureCopy.hpp's own
+  // header states the rule: make every test's copy of the fixture private, full stop.
+  const CaseFixtureCopy fixture("cases/heated_cavity");
+  const auto run = ProjectRunner::run(fixture.path());
   ASSERT_TRUE(run.exportSummary.has_value());
 
-  const auto reloaded =
-      loadSnapshotFromResults(std::filesystem::path("cases/heated_cavity") / "results");
+  const auto reloaded = loadSnapshotFromResults(fixture.path() / "results");
   ASSERT_TRUE(reloaded.valid);
   ASSERT_TRUE(reloaded.temperature.has_value());
   const auto fields = reloaded.availableScalarFields();

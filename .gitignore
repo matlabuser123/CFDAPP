@@ -126,3 +126,13 @@ tidy_output.txt
 # aqtinstall (P5-J Windows packaging) writes its own log to the current
 # working directory by default -- never project content.
 aqtinstall.log
+
+# TD-048: a raw ctest add_test runs a real `cfdapp` process against its own permanent private
+# fixture directory (tests/CMakeLists.txt:21-28 explains why it cannot use CaseFixtureCopy), so
+# the CLI writes results/ INTO a git-tracked path and churns `build_identity` -- the configure-time
+# SHA from Version.hpp, written by JSONWriter.cpp:150 -- on every full regression. These outputs
+# are pure byproducts: measured, ZERO files in tests/, apps/ or src/ read them. They were first
+# committed in 3d26930 alongside the fixture directories themselves rather than curated, and have
+# needed "regeneration chores" (9dc2b50) since. Untracked here so they cannot churn again.
+# NOTE: cases/*/results/ stay TRACKED -- those are production-case deliverables under §9.
+tests/data/cases/*/results/
