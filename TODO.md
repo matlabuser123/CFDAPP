@@ -234,6 +234,18 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+SEED NARROWED     TD-003   **the initial condition is NOT the seed (2026-10-12):** the seeded
+                  profile's closure is 1.110223e-16 (0.5 ulp), yet d = 4.633173e-09 by the end
+                  of step 1 -- a 4e+07 jump inside ONE step. A MODEL fits everything:
+                  d_new = gain*d_old + A^-1 r_solve, driven by the per-step SOLVE error
+                  (2.46e-08 measured) and carried by the transient, settling ~40x the
+                  injection. **NOT ESTABLISHED** -- gain ~0.975 is back-solved from the
+                  observed value, and the only gain figure available (1.2391) mixes a global
+                  norm with a local coefficient and would imply growth the data contradicts.
+                  The instrument also failed its main job: the two halves' samples agree to
+                  ~7 digits so they do not separate, and the history is from the first TRIAL.
+                  NEXT: predict the fixed point from an INDEPENDENTLY measured gain and
+                  injection, then check against 8.822866e-07 WITHOUT adjusting either
 ATTRIBUTED        TD-003   **C3's residual is ATTRIBUTED 2026-10-12: the TRANSIENT term is
                   98.79 % of it** (2.376e-11 of 2.406e-11), charged by isolation with the
                   decomposition CLOSING (sum/total 1.0263). Closure 3.85 %, diffusion 6.8e-21,
