@@ -15,7 +15,7 @@
   **0 sanitizer diagnostics** · format 742/0); register re-parsed at 49 items, 38 unresolved.
 - **Next Priority:** a **user decision**, not a task — see *Decisions Required*. Nothing is
   authorized to start.
-- **Git:** branch `td-campaign-evidence`, 30 commits ahead of `main`, **nothing pushed**.
+- **Git:** branch `td-campaign-evidence`, ahead of `main`, **nothing pushed** (push blocked below).
 
 ## Active Tasks
 
