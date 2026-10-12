@@ -26,9 +26,14 @@ its own authorization before work starts (CLAUDE.md §2).
       *Deliverable:* a measured mechanism, plus a §5.3-derived threshold or proof the existing one
       is met. *Verification:* the mechanism must predict, not fit; 7 hypotheses are already refuted
       and none may be re-attempted without naming what is new.
-- [ ] **TD-027 C3 — derive `maximumCellDiffusionNumber`:** currently `20.0`, unvalidated.
-      *Deliverable:* the cap derived from the diffusion limit. *Verification:* C3 currently fails by
-      4.06× — it must pass without the threshold moving.
+- [ ] **TD-027 C3 — amend C3's instrument, then size the cap.** AUDITED 2026-10-12: C3's
+      numerator and denominator are both set by `settings.tolerance`, so the ratio only takes
+      `m × (q/B)` with `q/B ∈ (1,2]`; the threshold 2 is unreachable as a boundary and the
+      criterion scores best (0) on a ladder that resolved nothing. *Deliverable:* a §5.3 amendment
+      measuring the temporal error at a research tolerance while judging the bracket the shipped
+      configuration publishes — **derived in `audit_C3.md` §6, NOT authorized.**
+      *Verification:* the replacement must still reject cap 20 at 80× and cap 10 at 8.4× while
+      returning a resolved value at cap 5. The threshold 2 does **not** move.
 - [ ] **TD-004 C6a — the observed-order clause:** reports UNRESOLVED, 2.00 quanta against a derived
       4-quantum floor. *Deliverable:* a refinement triplet that resolves the order, or a recorded
       finding that this fixture cannot. *Verification:* TD-043's 0.0677 % lattice bounds it.
@@ -66,7 +71,12 @@ its own authorization before work starts (CLAUDE.md §2).
 These block progress and are not mine to make.
 
 ```text
-1  TD-027 C3        fails by 4.06x. Fix, amend under §5.3, or accept and record?
+1  TD-027 C3        AUDITED: the criterion cannot express its own threshold (see audit_C3.md).
+                    Authorize the derived §5.3 instrument amendment? It needs a design choice:
+                    the finest ladder level would breach ctest --timeout 7200 at the required
+                    tolerance, so fewer levels, a coarser starting dt, or a DISABLED_ run.
+                    SEPARATELY: the shipped default tolerance 1e-4 reads 40.63x, and the
+                    production comment justifying the cap argues coherence at 1e-3 instead.
 2  TD-004 C6a       order UNRESOLVED on this fixture. Accept the limit, or build a fixture
                     that can resolve it against TD-043's lattice?
 3  TD-049 threshold a §5.3 amendment is DUE and NOT AUTHORIZED. It would REPLACE an underived
