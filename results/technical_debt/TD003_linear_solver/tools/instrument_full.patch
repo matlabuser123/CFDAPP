@@ -1,6 +1,6 @@
 --- src/species/PremixedFlame.cpp
 +++ src/species/PremixedFlame.cpp
-@@ -23,6 +23,308 @@
+@@ -23,6 +23,369 @@
  #include "cfd/species/SpeciesTransport.hpp"
  #include "cfd/thermal/EnergyEquation.hpp"
  
@@ -66,6 +66,12 @@
 +  long long firstAbove1e15 = -1;
 +  long long firstAbove1e12 = -1;
 +  long long firstAbove1e09 = -1;
++  // GAIN + INJECTION, measured independently of the observed deviation
++  double spectralRadius = -1.0;     // rho(M), M = A^-1 diag(rho V/dt), power iteration
++  long long powerIters = 0;
++  std::vector<double> injectHist;   // max_c |s[c]| per sampled step
++  std::vector<double> prevDev;      // d_old[c], the previous step's per-cell deviation
++  std::vector<double> transCoef;    // rho_c V/dt at the worst step
 +  std::string attributionError;
 +};
 +inline Stats stats;
@@ -125,6 +131,38 @@
 +    m = std::max(m, std::abs(s - 1.0));
 +  }
 +  return m;
++}
++
++// rho(M) for M = A^-1 diag(d), by power iteration. One Thomas solve per iteration, so this
++// is exact arithmetic on the assembled operator -- no fitting, no reference to the observed
++// deviation. Returns -1 if it does not settle.
++inline double spectralRadiusOf(const std::vector<double>& aW, const std::vector<double>& aP,
++                               const std::vector<double>& aE, const std::vector<double>& diag,
++                               long long* itersOut) {
++  const std::size_t n = aP.size();
++  if (n == 0) return -1.0;
++  std::vector<double> v(n, 0.0);
++  for (std::size_t i = 0; i < n; ++i) v[i] = 1.0 + 0.01 * static_cast<double>(i % 7);
++  double lam = 0.0;
++  double lamPrev = -1.0;
++  long long it = 0;
++  for (; it < 500; ++it) {
++    std::vector<double> w(n, 0.0);
++    for (std::size_t i = 0; i < n; ++i) w[i] = diag[i] * v[i];
++    const std::vector<double> z = thomas(aW, aP, aE, w);
++    double nz = 0.0;
++    for (std::size_t i = 0; i < n; ++i) nz = std::max(nz, std::abs(z[i]));
++    if (!(nz > 0.0) || !std::isfinite(nz)) return -1.0;
++    lam = nz;  // v is normalised to max-norm 1 below, so ||z||_inf IS the Rayleigh estimate
++    for (std::size_t i = 0; i < n; ++i) v[i] = z[i] / nz;
++    if (it > 10 && std::abs(lam - lamPrev) <= 1e-12 * std::abs(lam)) {
++      ++it;
++      break;
++    }
++    lamPrev = lam;
++  }
++  if (itersOut != nullptr) *itersOut = it;
++  return lam;
 +}
 +
 +inline double normAInf(const std::vector<double>& aW, const std::vector<double>& aP,
@@ -226,6 +264,29 @@
 +  const double noAmp = static_cast<double>(T) * eps * 1.0 * scale;
 +  std::printf("  NV2 bound with ||A^-1|| replaced by 1 = %.6e -> must FAIL: %s\n",
 +              noAmp, (stats.maxSumExact > noAmp) ? "YES, it fails" : "*** NO ***");
++  std::printf("%s", "\n--- GAIN, INJECTION, AND THE PREDICTED FIXED POINT\n");
++  std::printf("  rho(M), M = A^-1 diag(rho V/dt)   %.6f   (power iteration, %lld iters)\n",
++              stats.spectralRadius, stats.powerIters);
++  double sMin = 1e300, sMax = 0.0, sLast = -1.0;
++  for (double v : stats.injectHist) { sMin = std::min(sMin, v); sMax = std::max(sMax, v); sLast = v; }
++  std::printf("  injection max|s| over %zu steps     %.6e .. %.6e  (spread %.2fx)\n",
++              stats.injectHist.size(), sMin, sMax, (sMin > 0.0) ? sMax / sMin : 0.0);
++    std::printf("    SECOND CHECK: s must be roughly CONSTANT if the recursion is real\n");
++  const double rho = stats.spectralRadius;
++  if (rho >= 1.0) {
++    std::printf("  rho >= 1 -> the model predicts UNBOUNDED GROWTH, which the step history\n");
++    std::printf("  contradicts. MODEL REFUTED.\n");
++  } else if (rho > 0.0 && sMax > 0.0) {
++    const double pred = sMax / (1.0 - rho);
++    const double meas = 8.822866e-07;
++    std::printf("  PREDICTED fixed point max|s|/(1-rho)  %.6e\n", pred);
++    std::printf("  MEASURED maxCompositionSumDeviation   %.6e\n", meas);
++    std::printf("  ratio predicted/measured              %.4f\n", pred / meas);
++    std::printf("  PRE-REGISTERED: PASS iff 1/3 <= ratio <= 3  ->  %s\n",
++                (pred / meas >= 1.0 / 3.0 && pred / meas <= 3.0) ? "PASS" : "*** FAIL ***");
++  } else {
++    std::printf("  *** not computable: rho=%.3e sMax=%.3e\n", rho, sMax);
++  }
 +  std::printf("%s", "\n--- SEED HUNT: where does sum(Y) first depart from 1?\n");
 +  std::printf("  seeded profile closure            %.6e\n", stats.dSeeded);
 +  std::printf("  seedProfile() calls               %lld\n", stats.seedCalls);
@@ -309,7 +370,7 @@
  namespace cfd::species {
  namespace {
  
-@@ -527,6 +829,11 @@
+@@ -527,6 +890,11 @@
                              (burnt[i] - conditions.unburntComposition[i]) * blend;
        }
      }
@@ -321,7 +382,7 @@
    };
  
    // A PROVISIONAL SEED, at the mesh-derived ramp, so that no field is ever read zero-initialised.
-@@ -698,6 +1005,21 @@
+@@ -698,6 +1066,21 @@
          raw.converged() || raw.finalResidual <= residualAcceptanceFraction * rhsNorm;
      worstLinearResidual =
          std::max(worstLinearResidual, (rhsNorm > 0.0) ? raw.finalResidual / rhsNorm : 0.0);
@@ -343,7 +404,7 @@
      return outcome;
    };
  
-@@ -1168,6 +1490,11 @@
+@@ -1168,6 +1551,11 @@
      speciesTime.rhoNew = &density;
  
      std::vector<ScalarField> nextComposition = composition;
@@ -355,7 +416,7 @@
      for (Index i = 0; i < ns; ++i) {
        // An EXPLICIT zero source: the reaction is not part of this equation at all. Stated as a
        // zero field rather than omitted, so what the transport step solves is unambiguous.
-@@ -1200,6 +1527,209 @@
+@@ -1200,6 +1588,272 @@
        for (Index c = 0; c < nc; ++c) {
          nextComposition[i][c] = solved.solution[c];
        }
@@ -382,6 +443,33 @@
 +        td003bp[static_cast<std::size_t>(i)] = bp;
 +        td003be[static_cast<std::size_t>(i)] = be;
 +        td003bb[static_cast<std::size_t>(i)] = bb;
++      }
++    }
++    if (td003::stats.injectHist.size() < 40 && !td003::stats.prevDev.empty() &&
++        !td003::stats.transCoef.empty()) {
++      // s = d_new - A^-1 D d_old, per cell. MEASURED, not back-solved.
++      std::vector<double> Dd(static_cast<std::size_t>(nc), 0.0);
++      for (Index c7 = 0; c7 < nc; ++c7) {
++        Dd[static_cast<std::size_t>(c7)] =
++            td003::stats.transCoef[static_cast<std::size_t>(c7)] *
++            td003::stats.prevDev[static_cast<std::size_t>(c7)];
++      }
++      const std::vector<double> Md =
++          td003::thomas(td003bw[0], td003bp[0], td003be[0], Dd);
++      double ms = 0.0;
++      for (Index c7 = 0; c7 < nc; ++c7) {
++        double sy2 = 0.0;
++        for (Index i7 = 0; i7 < ns; ++i7) sy2 += nextComposition[i7][c7];
++        ms = std::max(ms, std::abs((sy2 - 1.0) - Md[static_cast<std::size_t>(c7)]));
++      }
++      td003::stats.injectHist.push_back(ms);
++    }
++    {  // remember d_old for the next step
++      td003::stats.prevDev.assign(static_cast<std::size_t>(nc), 0.0);
++      for (Index c8 = 0; c8 < nc; ++c8) {
++        double sy3 = 0.0;
++        for (Index i8 = 0; i8 < ns; ++i8) sy3 += nextComposition[i8][c8];
++        td003::stats.prevDev[static_cast<std::size_t>(c8)] = sy3 - 1.0;
 +      }
 +    }
 +    if (td003::stats.histTran.size() < 40) {
@@ -511,6 +599,42 @@
 +              td003::stats.attributionError = e.what();
 +            }
 +          }
++          {  // GAIN: rho(M) on THIS state's operator, and the transient diagonal it uses.
++            // The transient diagonal is taken FROM THE ASSEMBLER, by assembling with only the
++            // transient enabled and reading its a_P. Reconstructing rho*V/dt by hand is how I
++            // got the face area wrong by 1e4 earlier; this cannot repeat that error.
++            std::vector<double> dcoef(static_cast<std::size_t>(nc), 0.0);
++            {
++              cfd::species::SpeciesTransportOptions tOpt;
++              tOpt.diffusion = false;
++              tOpt.convection = false;
++              tOpt.closureCorrection = false;
++              SpeciesTimeState tTs;
++              tTs.transient = true;
++              tTs.dt = dt;
++              tTs.fieldsOld = &compositionOld;
++              tTs.rhoOld = &density;
++              tTs.rhoNew = &density;
++              cfd::transport::ScalarSourceFields zSrc;
++              zSrc.Su = ScalarField(nc);
++              zSrc.Sp = ScalarField(nc);
++              try {
++                const auto tOnly = speciesTransportAssembly(
++                    mesh, 0, registry, composition, faceMassFlux, diffusivities,
++                    compositionBoundaries[0], zSrc, tTs, &closure, tOpt);
++                std::vector<double> tw, tp, te;
++                td003::extractBands(tOnly.system.matrix(), tw, tp, te);
++                dcoef = tp;  // a_P of a transient-ONLY assembly IS rho V/dt
++              } catch (const Error&) {
++                dcoef.assign(static_cast<std::size_t>(nc), 0.0);
++              }
++            }
++            td003::stats.transCoef = dcoef;
++            long long pit = 0;
++            td003::stats.spectralRadius =
++                td003::spectralRadiusOf(td003bw[0], td003bp[0], td003be[0], dcoef, &pit);
++            td003::stats.powerIters = pit;
++          }
 +          td003::stats.worstStep = td003::stats.decompCalls;
 +          td003::stats.recomputes++;
 +        }
@@ -565,7 +689,7 @@
      }
  
      // The field-property energy assembly carries lambda(T) and cp per cell but accepts only a
-@@ -1293,6 +1823,9 @@
+@@ -1293,6 +1947,9 @@
            mechanism, mixture, *chemistry.formation, *chemistry.kinetics, conditions.pressure, cp,
            dt, settings.chemistryFractionalChange, settings.maximumChemistrySubSteps, composition,
            temperature, density);
@@ -575,7 +699,7 @@
        result.chemistrySubSteps += chemistryOutcome.subSteps;
        if (chemistryOutcome.failed) {
          result.diagnostic =
-@@ -1764,6 +2297,7 @@
+@@ -1764,6 +2421,7 @@
      result.totalTimeSteps = totalSteps;
      result.worstLinearResidual = worstLinearResidual;
      result.worstDensityChange = worstDensityChange;

@@ -234,6 +234,19 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+C3 STOPPED        TD-003   **C3's hypothesis cycle STOPS 2026-10-12 after a SEVENTH
+                  refutation.** The recursion model d = M d + s failed its own pre-registered
+                  test: the injection s spans 8.31e-09 .. 1.68e-07 (20.28x spread) where the
+                  model needs it CONSTANT, and its top end is within 5x of the whole deviation.
+                  The loud "ratio 1.17e+10" is division by (1 - rho) with rho = 1.000000 from a
+                  power iteration that HIT ITS 500-ITERATION CAP -- my instrument reported a
+                  non-convergence as a value, so that number is an instrument defect, not
+                  evidence. **3 of the 7 failures came from instruments measuring something
+                  DERIVED from their own subject** -- a method signal, so no eighth instrument.
+                  **THE DECISION IS NOW YOURS, not a measurement:** either (a) re-derive what
+                  sum(Y) closure an ITERATE can be held to -- the repo already says an iterate's
+                  "closure is the linear solve's" -- and gate on that, or (b) move C3 to the
+                  species RHS assembly where the measurement says it belongs
 SEED NARROWED     TD-003   **the initial condition is NOT the seed (2026-10-12):** the seeded
                   profile's closure is 1.110223e-16 (0.5 ulp), yet d = 4.633173e-09 by the end
                   of step 1 -- a 4e+07 jump inside ONE step. A MODEL fits everything:
