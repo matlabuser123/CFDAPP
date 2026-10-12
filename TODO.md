@@ -435,7 +435,15 @@ PUSH BLOCKER           TD-035 — the §8 regression is PARTIAL on this tree: 2 
                        there are not "five sanitizer configurations" -- ci.yml has ONE preset
                        in five SHARDS, so one full run covers their union. RELEASE IS
                        RE-RUNNING (TD-046/TD-047 invalidated its 2840/7/7144 s counts), so
-                       §11.4 is still NOT discharged and no push is justified yet. A sanitizer FIXTURE exists (150 cells, 348.75 s under
+                       **RELEASE RE-RAN 2026-10-12: 2844 tests, 6 failed, ALL KNOWN, 6908 s.
+                       THE §8 LADDER IS 4 OF 4 ON THIS TREE.** 49 of 53 rewritten tracked
+                       files were classified timing-only and RESTORED; the 4 build_identity
+                       files are kept and UNSTAGED pending a decision (the embedded SHA moved
+                       with HEAD, which §7's timing-only licence does not cover). The ladder
+                       carries recorded cost limits: 10 ASan timeouts and 14 Debug timeouts
+                       whose Release durations exceed the 7200 s cap once slowed; the cap was
+                       NOT raised. Whether those limits are acceptable is the remaining
+                       judgement before a push. A sanitizer FIXTURE exists (150 cells, 348.75 s under
                        ASan+UBSan, 20.6x headroom, 0 diagnostics) and the asan preset EXCLUDES
                        the heavy G8 cases, but the full 2860-test preset's cost is UNMEASURED.
                        The blocker STANDS for a PUSH. It does NOT block a commit, and the

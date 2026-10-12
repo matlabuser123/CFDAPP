@@ -5,10 +5,11 @@ STATUS:      **TWO OF THE THREE MISSING RUNGS ARE DONE, and the push blocker's o
              discharged.** TD-035 said the blocker stood because "the full 2860-test asan
              preset's cost is UNMEASURED". It is now measured: **25 673.72 s = 7.13 h**, and
              the sanitizers report **ZERO diagnostics**.
-               sanitizers (ASan+UBSan)  2832 tests, 14 failed, 7.13 h, 0 sanitizer findings
-               Debug + GUI              2906 tests, 18 failed, 4.31 h
-               Release re-run           IN FLIGHT at the time of writing -- see section 5
+               Release                  2844 tests,  6 failed, 6908.34 s -- ALL KNOWN
+               Debug + GUI              2906 tests, 18 failed, 15526.38 s
+               sanitizers (ASan+UBSan)  2832 tests, 14 failed, 25673.72 s, 0 sanitizer findings
                clang-format             742 files, 0 offending (recorded with TD-046)
+             **THE SECTION 8 LADDER IS 4 OF 4 ON THIS TREE.**
              **All 32 failures across both runs are accounted for. None is a sanitizer finding
              and none is unexplained.**
              AND A CORRECTION TO TD-035's OWN TEXT, which I wrote: there are not "five
@@ -157,13 +158,99 @@ ci.yml's comment:  "Modelled worst shard: 93 min of tests (+ ~6 min configure/bu
 Within 8 % of CI's own estimate, from an independent measurement. That is a cross-check on the
 number TD-035 called unmeasurable.
 
-## 5. WHAT IS NOT ESTABLISHED
+## 5. RELEASE, RE-RUN -- and two of three predictions were exact
 
 ```text
-NOT COMPLETE     the §8 ladder. Release is re-running as this is written, because TD-046 (the
-                 lambda(T) test now executes, 2866 s, where it died at 6 ms) and TD-047 (+4
-                 tests) invalidated the 2026-10-11 counts of 2840/7/7144 s. Until it lands,
-                 §11.4 is NOT discharged and no push is justified.
+cmake --preset release   Release · CUDA OFF · GUI OFF · OpenMP OFF
+library                  48b3dfb02b05836330477012ad80f9887218ca6146cc9016dff7ebf2477fdf5f
+ctest --preset release --timeout 7200 -j 16
+  99% tests passed, 6 tests failed out of 2844
+  Total Test time 6908.34 s      ctest rc=8 (unmasked)
+
+  1862 G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue  (Failed)  known, TD-003
+  2755 SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate         (Failed)  known, TD-032
+  2759 SSTAutomaticWallChannel.StaysWellBehavedOnMeshes...                (Failed)  known, TD-032
+  2762 SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590             (Failed)  known, TD-032
+  2764 SSTMomentumFluxChannel.FourWayComparisonAtReTau590                 (Failed)  known, TD-032
+  2891 DriverSeegmiller.CorrectedMeshSequence                             (Failed)  known, TD-032
+```
+
+**`AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue` is GONE from the failure
+list** -- TD-046 confirmed in the full suite rather than only in its own focused run.
+
+### 5.1 The predictions, scored
+
+Recorded before the run: *"Expect roughly 2844 tests, 6 failures, and ~2860 s longer."*
+
+```text
+tests      predicted 2844   measured 2844     EXACT
+failures   predicted 6      measured 6        EXACT
+wall time  predicted +2860 s   measured -236 s   WRONG
+```
+
+**The timing prediction was wrong because the model was wrong.** I summed the lambda(T) test's
+2866 s onto the total, but at `-j 16` the wall clock follows the CRITICAL PATH, not the sum: a test
+that runs in parallel with others adds nothing to it. The run came in 236 s SHORTER than the
+2026-10-11 run's 7144 s, within run-to-run contention variance. The counts were right for the
+right reason; the time was wrong for a reason worth recording.
+
+## 6. THE RUNTIME NOISE, CLASSIFIED AND RESTORED -- and waiting mattered
+
+The three runs rewrote **53 tracked files**. Section 7 licenses restoring *timing-only* changes,
+so each was classified rather than assumed, by a **fail-closed** probe
+(`scratchpad/classify_noise.py`): anything it cannot PROVE is timing-only is reported as SUSPECT.
+
+```text
+49  TIMING-ONLY   restored with `git checkout --`, rc=0
+ 4  BUILD STAMP   KEPT, not restored: "458457542a2e-modified" -> "b4b206f96b8d-modified"
+                  cases/heated_cavity/results/metadata.json
+                  tests/data/cases/{does_not_converge,mesh_quality_warning_cli,
+                                    valid_cavity_cli_smoke}/results/metadata.json
+                  each contains EXACTLY 2 changed lines, both build_identity, nothing else
+```
+
+`build_identity` is the commit SHA embedded at configure time via `Version.hpp`; it moved because
+HEAD moved. **That is not timing noise, so section 7's licence does not cover it** -- restoring
+would re-assert a stale SHA. Section 9 requires committed case outputs to stay byte-identical or
+every change to be explained: this one is explained, and whether these four should track HEAD or be
+pinned is a decision left to the user, not taken here.
+
+### 6.1 CLASSIFYING MID-RUN WOULD HAVE PRODUCED A FALSE REGRESSION REPORT
+
+A provisional classification run *while the Release suite was still executing* flagged three files
+with ~294 lines of apparent floating-point regressions in MMS error norms:
+
+```text
+distorted_mesh_mms.json           l1 0.001908553421221324 -> 0.0019085534139583096   (75 lines)
+distorted_mesh_momentum_mms.json  l1 0.002401926286882332 -> 0.0024019262869527298  (146 lines)
+curved_channel_multiblock_...     velocity_l2_error 0.004837588904357929 -> ...9150  (73 lines)
+```
+
+With `OpenMP OFF` and `CUDA OFF` the solver should be bit-deterministic, so these looked like a
+real regression worth a two-library attribution. **On the COMPLETED run all three are
+timing-only.** They were an artifact of reading files while tests were writing them. Restoring or
+investigating on the provisional read would have chased a phantom and risked reporting a numerical
+regression that does not exist.
+
+### 6.2 TWO BUGS IN MY OWN CLASSIFIER, both found and fixed
+
+```text
+BUG 1  the timing-key regex required a closing quote immediately after "runtime", so
+       "runtime_seconds" fell through as unclassified -- ~20 FALSE POSITIVES.
+BUG 2  the markdown column lookup picks the wrong header index, labelling runtime cells as
+       "status" or "(col 7)" -- 4 FALSE POSITIVES, confirmed by hand against each table header:
+       every one has `runtime (s)` as its last column and only that column changed, with grid,
+       cells, h, Converged, iterations and mass imbalance all identical.
+```
+
+Both inflated the SUSPECT list. Neither could cause a real change to be restored away, because the
+probe fails closed in that direction only.
+
+## 7. WHAT IS NOT ESTABLISHED
+
+```text
+NOT established  that the 4 build-stamp files should be committed. They are left MODIFIED and
+                 unstaged; the decision is the user's (section 6).
 NOT established  that TD-035 can close. Its premise -- unmeasured cost -- is discharged, and the
                  sanitizers are clean, but closing it needs the full ladder including Release,
                  and a decision about whether 10 cost-driven ASan timeouts and 14 in Debug are
