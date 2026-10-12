@@ -190,6 +190,17 @@ Requiring the lattice to be at most one tenth of `E` gives, with `E ~ 0.2 %`, a 
 needs `tolerance ~ 3e-05` (`k = 15`, `q = 2.1e-05`). Both are measurement-only settings and
 change no default.
 
+> **CORRECTION, 2026-10-12, same day, before the amendment was designed.** The paragraph below
+> asserts that the finest ladder level "would breach `ctest --timeout 7200`". **That is WRONG.** The
+> C2-A2 ladder is not a gtest case: it is a standalone probe, `tools/c2a2_probe.cpp` built to
+> `tools/td027_c2a2` and invoked by a shell script, so no ctest timeout governs it at all — the
+> recorded 4 h run already exceeds any per-test cap and was never subject to one. I conflated the
+> gtest cap that binds `G8PremixedFlameTest` with a harness that is not under ctest, which is the
+> same class of error TD-035 recorded in the other direction. **The consequence: there is no design
+> choice to make between "fewer levels / coarser dt / a DISABLED_ run" — the amendment simply runs
+> the probe at a finer tolerance and takes longer.** Wall-clock cost remains a real constraint and
+> is sized in `amendment_A4_proposal.md` §4. The paragraph is left below as written, per §4 and §10.
+
 **The cost, stated because it constrains the choice.** Each tightening step adds one bisection, so
 one trial per ladder level. The A3 ladder cost 788 / 2504 / 3871 / 6496 s at `k = 10`. Going to
 `k = 15` is +5 trials per level, and **the finest level would breach `ctest --timeout 7200`** — so
