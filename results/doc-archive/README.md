@@ -14,4 +14,15 @@ TODO-2026-10-07-pre-normalisation.md       446 lines. normalisation pass of 2026
                                            into results/ and TECHNICAL_DEBT.md.
 ```
 
+```text
+ROADMAP-2026-10-12-pre-rewrite.md          580 lines.  Taken before the 2026-10-12 concision
+TODO-2026-10-12-pre-rewrite.md             568 lines.  rewrite, which reduced the three control
+TECHNICAL_DEBT-2026-10-12-pre-rewrite.md  1050 lines.  documents to 84 / 97 / 82 lines by moving
+                                                       narrative, chronology, derivations and
+                                                       refuted hypotheses out of them. All 49
+                                                       debt IDs survive in the live register; the
+                                                       detail they carried is here and under
+                                                       results/technical_debt/<item>/.
+```
+
 An earlier precedent: `results/todo-archive/TODO-2026-09-17-pre-restructure.md`.
