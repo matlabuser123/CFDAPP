@@ -147,6 +147,15 @@ measured at ~1 %, so option (a) would have to re-derive the clause rather than c
 
 ## 7. A DEFECT FOUND WHILE WRITING THIS, and NOT fixed here
 
+> **RESOLVED FORWARD 2026-10-12, after this document was committed.** The user authorized the
+> comment fix and it is done: see `verification_comment_fix.md`. Five lines replaced by five lines,
+> the line count preserved so that none of the 60 citations below line 619 shifted, and the
+> compiled object is **BIT-IDENTICAL** at `-O3 -DNDEBUG` with a determinism control and a
+> perturbation control. The production hash is now
+> `19db4b6b3b5279055899d1051763b6f5ae85926aa1f4fe2d4d0c5038b405fe9d`, so the `fa815c97…` stated
+> below was correct when written and is now superseded. The text below is left exactly as
+> committed, per CLAUDE.md §4 and §10.
+
 `src/species/PremixedFlame.cpp:615-619` carries a production comment asserting the refuted cause:
 
 > "...the per-species systems must be solved tightly for sum_i Y_i to stay at 1 ... that

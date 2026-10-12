@@ -237,6 +237,23 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+comment fixed     TD-049   **the stale production comment is CORRECTED 2026-10-12 (authorized).**
+                  PremixedFlame.cpp:615-619 justified relativeTolerance = 1e-11 by claiming the
+                  sum_i Y_i cancellation "only holds to the tolerance each one is solved to" --
+                  this item's own refuted hypothesis #1. It now states the measured position: the
+                  telescoping is EXACT (bit-identical matrices at Le=1), the solve contributes
+                  ~1 %, an exact solve still misses by 230x, and tightness is kept rather than
+                  justified because the tolerance dependence is non-monotonic. COMMENT ONLY: no
+                  constant, threshold or test changed, and test_premixed_flame.cpp:471 still
+                  fails. FIVE LINES IN, FIVE OUT deliberately -- 60 of 70 PremixedFlame.cpp:NNN
+                  citations are below line 619, most in frozen evidence, so a changed line count
+                  would have falsified them (the mistake TD-047 made once already with
+                  ProjectRunner.cpp:816 -> :828). Proven inert: the compiled object is
+                  BIT-IDENTICAL at -O3 -DNDEBUG, with a determinism control and a perturbation
+                  control that moves 7 bytes -- so no test run is needed or claimed. Hash
+                  fa815c97... -> 19db4b6b...; instrument_full.patch still reproduces 4482d819...
+                  from the old source. REPORTED NOT FIXED: METHOD_library_hash_gates.md:60
+                  prescribes gating on the now-stale hash, and six TD-004 harnesses record it
 C3 MOVED          TD-049   **C3 LEFT TD-003 on 2026-10-12, by user decision**, taking option
                   (b) of verification_model_refuted.md §5. It is now TD-049, owned at the
                   species RHS assembly -- where the measurement put it: the linear solve

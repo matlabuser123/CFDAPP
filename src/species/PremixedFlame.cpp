@@ -612,11 +612,11 @@ PremixedFlameResult solvePremixedFlame(const PremixedFlameChemistry& chemistry,
   // is the scale-free statement actually wanted when the same solver handles both a temperature
   // field O(1e3) and a mass fraction O(1).
   //
-  // The relative tolerance stays tight. It is not an accuracy knob for the flame -- the outer march
-  // re-solves every step -- but the per-species systems must be solved tightly for sum_i Y_i to
-  // stay at 1: with unity Lewis number every species shares the same matrix, so the N systems sum
-  // to the mixture continuity equation, and that cancellation only holds to the tolerance each one
-  // is solved to. maxCompositionSumDeviation is what reports whether it held.
+  // The relative tolerance stays tight, but the SOLVE is not what limits sum_i Y_i - 1. The
+  // telescoping is real and measured -- at unity Lewis number the per-species matrices are
+  // bit-identical, so sum_i (A y_i) = A (sum_i y_i) holds exactly -- yet the solve contributes
+  // only ~1 %: an EXACT solve still misses the bound by 230x. Tightness is kept, not justified,
+  // here; the dependence is non-monotonic. Reported by maxCompositionSumDeviation. See TD-049.
   //
   // Jacobi preconditioning, because the chemistry's Patankar Sp term spans orders of magnitude
   // across the front and unpreconditioned BiCGSTAB stagnated on it.
