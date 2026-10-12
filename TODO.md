@@ -234,6 +234,19 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+ATTRIBUTED        TD-003   **C3's residual is ATTRIBUTED 2026-10-12: the TRANSIENT term is
+                  98.79 % of it** (2.376e-11 of 2.406e-11), charged by isolation with the
+                  decomposition CLOSING (sum/total 1.0263). Closure 3.85 %, diffusion 6.8e-21,
+                  convection and zero source EXACTLY zero. The algebra then follows:
+                  r^trans = rho V/dt * d_old, so **the transient CARRIES the deviation rather
+                  than creating it** -- the correct non-conservative rho dY/dt form, so "fix
+                  the transient" is probably the WRONG conclusion. **Corrects my own NV1
+                  control**, which disabled the CLOSURE (near-inert at Le=1, rawSum ~ 0) and
+                  was read as refuting feedback in general. **ORIGIN STILL UNKNOWN** -- every
+                  source site sums to 1 exactly. The 1.2391 "loop gain" is NOT claimed: global
+                  norm x local coefficient, the same cross-scope error as the round-off claim.
+                  NEXT: hunt the SEED -- track max_c |sum Y - 1| from step 1 and find where it
+                  first departs from zero
 AMENDMENT FAILED  TD-003   **AMENDMENT A1 WITHDRAWN 2026-10-12: it failed its OWN dry-run,
                   and it took a committed finding with it.** Option A was authorized and §5.3
                   run in order; the derived bound is short by 6.2e+06 (3.72e-13 vs 2.30e-06).
