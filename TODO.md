@@ -142,7 +142,8 @@ Evidence: `results/p18/FINAL_QUALIFICATION.md` · limits: `results/p18/KNOWN_LIM
 
 ```text
 1  re-measure the premixed-flame items           on the fixed march, each under its own gate
-3  qualify the reacting-flow linear solver       TD-003
+3  qualify the reacting-flow linear solver       TD-003  (C1 + C2 only; C3 moved out 2026-10-12)
+3b explain and gate the species RHS SigmaY       TD-049  (was TD-003's C3)
 4  deterministic flame-speed extraction          TD-005
 5  run G8's controls and close G8                TD-006
 6  re-run P18.9, record a new fingerprint        TD-007
@@ -160,10 +161,12 @@ priority, dependencies, acceptance gate and evidence. The dependency model is a 
 chain. The currently actionable frontier:
 
 ```text
-register totals   48 items: 9 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
+register totals   49 items: 9 RESOLVED (TD-001, TD-002, TD-028, TD-032, TD-034, TD-037,
                   TD-046, TD-047, TD-048), 2 N/A (TD-013, TD-040), 2 PARTIAL (TD-035, TD-043),
-                  2 BLOCKED, 2 INHERITED, 31 open. NOT CLOSED: 37. P0s still open: 5 (TD-003, TD-006, TD-007,
-                  TD-027, TD-029), down from 6 when TD-040 was reclassified.
+                  2 BLOCKED, 2 INHERITED, 32 open. NOT CLOSED: 38. P0s still open: 6 (TD-003, TD-006, TD-007,
+                  TD-027, TD-029, TD-049).
+                  2026-10-12: 48 -> 49 and P0 5 -> 6 by CARVE-OUT, not discovery. TD-003's C3
+                  became TD-049; no defect was found, fixed or closed by that change.
                   2026-10-11: TD-041 RE-OPENED (its N/A rested on a false measurement),
                   TD-045, TD-046 and TD-047 added, so the count went 43 -> 47 and N/A 3 -> 2. TD-001/TD-002 closed before this phase
                   and are not repeated below; the frontier block is the CURRENT frontier
@@ -234,6 +237,20 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+C3 MOVED          TD-049   **C3 LEFT TD-003 on 2026-10-12, by user decision**, taking option
+                  (b) of verification_model_refuted.md §5. It is now TD-049, owned at the
+                  species RHS assembly -- where the measurement put it: the linear solve
+                  contributes ~1 %, and an exact Thomas solve of the SAME systems still fails
+                  the gate by 230x. Register structure ONLY: no production file, no test file
+                  and no threshold was touched, no evidence moved on disk, and the 1e-8 at
+                  test_premixed_flame.cpp:471 still fails. TD-049 inherits the established
+                  facts and all SEVEN refutations so neither is repeated, plus the unresolved
+                  threshold question. TD-003 keeps C1 (satisfied) and C2 (audited, fix
+                  identified, NOT applied) and stays OPEN on C2. **The completion-block on
+                  TD-004 moved with the criterion**, applying TD-003's own recorded wording
+                  that C3 was "why this item blocks TD-004's completion rather than merely
+                  preceding it". NOT ESTABLISHED, and a decision for the user: whether C2's
+                  unwired fallback independently blocks TD-004's completion
 C3 STOPPED        TD-003   **C3's hypothesis cycle STOPS 2026-10-12 after a SEVENTH
                   refutation.** The recursion model d = M d + s failed its own pre-registered
                   test: the injection s spans 8.31e-09 .. 1.68e-07 (20.28x spread) where the
@@ -531,4 +548,4 @@ STANDING SCOPE LIMIT   (CLAUDE.md §9) The heavy G8PremixedFlameTest cases, 500-
 
 ## Not authorized, and not to be started implicitly
 
-TD-003 and every later debt item · every phase in §7 · any commit or push.
+TD-003 and every later debt item, **TD-049 included** · every phase in §7 · any commit or push.
