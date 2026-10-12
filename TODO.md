@@ -234,6 +234,19 @@ re-opened         TD-041   line endings. THREE successive claims, two broken pro
                   contain CRLF, 21 621 lines (91 results/, 11 tests/, 3 .cpp under the format
                   gate). "CRLF is the committed convention" was FALSE and so was its
                   replacement "the repo is pure LF". Whether the count GREW is unmeasured
+AMENDMENT FAILED  TD-003   **AMENDMENT A1 WITHDRAWN 2026-10-12: it failed its OWN dry-run,
+                  and it took a committed finding with it.** Option A was authorized and §5.3
+                  run in order; the derived bound is short by 6.2e+06 (3.72e-13 vs 2.30e-06).
+                  T was NOT adjusted -- the amendment pre-registered that. The scale was wrong:
+                  the assembly is in FLUX units, ||A||_inf = 2.73e-04, not the ~1e0..1e4 I
+                  assumed. The FEEDBACK hypothesis is also REFUTED by a causal control
+                  (closureCorrection=false leaves r at 2.73e-11 vs 3.16e-11, S_L bit-identical,
+                  because rawSum ~ 0 at Le=1). **AND verification_closure_test.md's committed
+                  claim is WRONG both ways**: condition number is 33 (well-conditioned, not
+                  near-singular) and ||r|| is 5.6e+08 x eps*||b||_inf (not round-off) -- the
+                  original compared ||b||_2 from a DIFFERENT state. That file is marked INVALID
+                  in place. **C3's cause is UNKNOWN; six hypotheses dead.** 1e-8 untouched, test
+                  still fails. NEXT: attribute r per assembler rather than hypothesise
 A vs B SETTLED    TD-003   **OPTION B's PREMISE REFUTED 2026-10-11 -- it was my own
                   counter-argument, and it does not survive.** The 9.54994e-08 minimum came
                   from TheFlameSpeedConvergesUnderMeshRefinement at **125 cells**, a state

@@ -1,3 +1,15 @@
+> **INVALID AS AUTHORITATIVE (2026-10-12).** This file's central claim -- that `|sum Y - 1|` is
+> "round-off in the RHS amplified by a near-singular operator" -- is **WRONG ON BOTH HALVES**.
+> Measured at the worst state: `||A||_inf = 2.733828e-04` and `||A^-1||_inf = 1.200002e+05`, so the
+> condition number is **33** -- the operator is WELL-CONDITIONED, and `||A^-1||` is large only
+> because the coefficients are small (flux units, ~1e-4). And `||r||_inf ~ 1.9179e-11` against
+> `eps * ||b||_inf = 3.4230e-20` is a factor of **5.60e+08**, so it is not rounding of these terms
+> by eight orders. The error was comparing a residual at ONE state against `||b||_2` taken as the
+> maximum over the WHOLE march. Superseded by
+> [verification_amendment_withdrawn.md](verification_amendment_withdrawn.md) §4. The §12 STOP this
+> file records still STANDS -- the threshold is still not met and still not derived -- but its
+> stated MECHANISM is withdrawn. Retained unaltered below per CLAUDE.md §4.
+
 # TD-003 C3 — SOLVED. `|ΣY−1|` is round-off in the RHS amplified by a near-singular operator, and the 1e-8 gate asks for closure 65× BELOW double precision. §12 STOP: the gate is MIS-DERIVED.
 
 ```text
