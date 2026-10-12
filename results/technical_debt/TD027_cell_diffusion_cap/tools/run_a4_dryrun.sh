@@ -18,7 +18,16 @@ grep -E '^CMAKE_BUILD_TYPE|^CFDAPP_ENABLE_CUDA' "$BUILD/CMakeCache.txt"
 echo
 
 echo "=== NOTHING HEAVY MAY RUN ALONGSIDE (hardware policy)"
-busy=$(pgrep -c -f 'ctest|CFDSpeciesTests|G8PremixedFlame|td027_' 2>/dev/null || echo 0)
+# Count heavy competitors. NOT `pgrep -c ... || echo 0`: when nothing matches, `pgrep -c`
+# prints a zero AND exits non-zero, so the `|| echo 0` fires as well and $busy ends up as TWO
+# lines, each a zero. The arithmetic test below then dies with 'integer expression expected'
+# instead of comparing anything. Piping the PID list through `wc -l` always yields exactly one
+# integer and ignores pgrep's exit status. Self is excluded by PID, not by relying on this
+# pattern's lowercase td027_ failing to match the uppercase TD027_ in the script's own path,
+# which was accidental. `pgrep -c` is avoided outright: during testing it also disagreed with
+# `pgrep -af` on the same pattern, which is unexplained and reason enough not to depend on it.
+busy=$(pgrep -f 'ctest|CFDSpeciesTests|G8PremixedFlame|tools/td027_' 2>/dev/null \
+        | grep -vx "$$" | wc -l)
 echo "competing heavy processes: $busy"
 if [ "$busy" -gt 0 ]; then
   echo "*** ABORT: something heavy is running; this run would be unreliable and would"
