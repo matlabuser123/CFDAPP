@@ -35,6 +35,12 @@ its own authorization before work starts (CLAUDE.md §2).
       **GATE_A4 FROZEN 2026-10-13 (`33dc8c94…`); fresh §5.3 step-6 run IN PROGRESS (~9.5 h).**
       *Verification:* the replacement must still reject cap 20 at 80× and cap 10 at 8.4× while
       returning a resolved value at cap 5. The threshold 2 does **not** move.
+- [ ] **TD-004 C6a-ord — amendment A7 AUTHORIZED 2026-10-13**, instrument built and compiling;
+      dry-run waits on GATE_A4's machine time. Substitutes the resolution UNIT (the quantum is
+      the terminal bisection bracket at the probe's own tolerance, not a hardcoded
+      `2^(1/1024)-1`); floor, band, formula and triplet all UNCHANGED. Predicted to turn
+      UNRESOLVED into a definite FAIL at `[2.593, 2.801]`. ~1.3–1.8 h.
+      *Will not settle* whether 125 cells is asymptotic. See `amendment_A7_proposal.md`.
 - [ ] **TD-004 C6a — the observed-order clause:** reports UNRESOLVED, 2.00 quanta against a derived
       4-quantum floor. *Deliverable:* a refinement triplet that resolves the order, or a recorded
       finding that this fixture cannot. *Verification:* TD-043's 0.0677 % lattice bounds it.
