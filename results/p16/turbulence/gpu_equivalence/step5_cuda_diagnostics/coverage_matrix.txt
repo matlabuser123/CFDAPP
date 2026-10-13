@@ -1,0 +1,64 @@
+P16 Step 5 -- CUDA KERNEL COVERAGE MATRIX
+Measured by interposing cudaLaunchKernel and resolving names with
+cudaFuncGetName. No production source modified; the traced binary is the
+same one the sanitizer gate runs.
+
+KERNEL                         SCOPED SUITES THAT LAUNCH IT
+------                         ----------------------------
+csrSpmvKernel                  DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity GpuBiCGSTABRestartTest GpuJacobiTest
+massFluxKernel                 ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple
+claimValuesKernel              DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics DeviceWallFaceViscosity ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+skewCorrectKernel              DeviceScalarTransportSemantics
+greenGaussSumKernel            DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics DeviceWallFaceViscosity ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+obliqueNeumannKernel           DeviceScalarTransportSemantics
+boundaryFaceValuesKernel       DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics DeviceWallFaceViscosity ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+interiorFaceValuesKernel       DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics DeviceWallFaceViscosity ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+fillKernel                     DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity GpuBiCGSTABRestartTest GpuJacobiTest
+waxpbyKernel                   DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity GpuBiCGSTABRestartTest GpuJacobiTest
+partialDotKernel               DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity GpuBiCGSTABRestartTest GpuJacobiTest
+partialDot2Kernel              DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity GpuBiCGSTABRestartTest GpuJacobiTest
+partialAbsDotKernel            ResidentWallExchange KrylovRestartParity GpuBiCGSTABRestartTest
+partialMaxAbsDiff2Kernel       DeviceKEpsilonCorrection DeviceMaxAbsDifference ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple
+assembleKernel                 DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+kSourceKernel                  DeviceKTransport DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+productionKernel               DeviceTurbulenceAlgebra DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+scalarFloorKernel              DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple
+epsilonSourceKernel            DeviceEpsilonTransport DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+gatherByIndexKernel            ResidentWallExchange
+reassertImposedKernel          DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceWallFaceViscosity ProductionKEpsilonBackend ResidentWallExchange
+strainRateSquaredKernel        DeviceTurbulenceAlgebra DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+effectiveViscosityKernel       DeviceEffectiveViscosity ResidentTurbulentSimple
+turbulentViscosityKernel       DeviceTurbulenceAlgebra DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple
+effectiveDiffusivityKernel     DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+assembleKernel                 DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+countNonFiniteKernel           DeviceKEpsilonCorrection ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+jacobiApplyKernel              GpuJacobiTest
+fixRowsKernel                  DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentWallExchange
+addValuesKernel                DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+underRelaxKernel               DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+scalarSourceKernel             DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+comparePatternKernel           DeviceKTransport DeviceEpsilonTransport DeviceKEpsilonCorrection DeviceScalarTransportSemantics ProductionKEpsilonBackend ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+responseKernel                 ResidentTurbulentSimple
+momentumAssemblyKernel         DeviceWallFaceViscosity ResidentTurbulentSimple
+fillFieldKernel                DeviceWallFaceViscosity ResidentTurbulentSimple
+countNonFiniteKernel           ResidentTurbulentSimple
+relaxedPressureUpdateKernel    ResidentTurbulentSimple
+faceVelocityKernel             DeviceWallFaceViscosity ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+greenGaussSumKernel            DeviceWallFaceViscosity ResidentKEpsilonEntry ResidentWallExchange ResidentTurbulentSimple KrylovRestartParity
+correctVelocityKernel          ResidentTurbulentSimple
+assembleKernel                 ResidentTurbulentSimple
+faceTermsKernel                ResidentTurbulentSimple
+correctFaceMassFluxKernel      ResidentTurbulentSimple
+
+NOTE: countNonFiniteKernel, assembleKernel and greenGaussSumKernel each
+appear more than once -- distinct kernels sharing a short name across
+translation units. The join key is the MANGLED name, so they are counted
+and covered separately.
+
+=== DECISIVE CHECK ===
+kernels in FULL suite                 : 44
+kernels in SCOPED set                 : 44
+kernels in ResidentChannelProduction  : 41
+
+full \ scoped     = 0   (must be 0)
+channel \ scoped  = 0   (must be 0)

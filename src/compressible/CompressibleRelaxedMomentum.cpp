@@ -4,6 +4,7 @@
 
 #include "cfd/algebra/SparseMatrix.hpp"
 #include "cfd/compressible/CompressibleMomentum.hpp"
+#include "cfd/compressible/DilatationalStress.hpp"
 #include "cfd/core/Exception.hpp"
 #include "cfd/pressure_velocity/UnderRelaxation.hpp"
 
@@ -31,7 +32,8 @@ MomentumAssembly assembleRelaxedCompressibleMomentumComponent(
     const BoundaryConditionSet& pressureBoundaries, VelocityComponent component,
     const ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep,
     const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
-    cfd::discretization::GradientScheme pressureGradientScheme, const VectorField* momentumSource) {
+    cfd::discretization::GradientScheme pressureGradientScheme, const VectorField* momentumSource,
+    bool includeDilatationalStress) {
   cfd::mesh::requireTwoDimensional(mesh, "assembleRelaxedCompressibleMomentumComponent");
   const Index n = mesh.numberOfCells();
   if (velocity.size() != n || pressure.size() != n) {
@@ -64,6 +66,14 @@ MomentumAssembly assembleRelaxedCompressibleMomentumComponent(
                                      pressureGradientScheme);
   if (momentumSource != nullptr) {
     cfd::physics::assembleMomentumSourceContribution(mesh, *momentumSource, component, rhs);
+  }
+  // P17.4: the dilatational part of the compressible viscous stress, -(2/3) mu grad(div U).
+  // DEFAULT FALSE, so the pre-P17.4 assembly is reproduced bit for bit -- and for a
+  // divergence-free field the term is identically zero, so enabling it cannot disturb the
+  // incompressible limit either. See DilatationalStress.hpp.
+  if (includeDilatationalStress) {
+    assembleDilatationalStressContribution(mesh, velocity, velocityBoundaries, dynamicViscosity,
+                                           component, rhs, nonOrthogonal.gradientScheme);
   }
 
   // compressibleMomentumTimeDerivative validates velocityOldComponent/

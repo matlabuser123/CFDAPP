@@ -1,0 +1,62 @@
+=== P18.6: results/validation noise classification ===
+date  : 2026-10-01T09:29:35Z
+files modified by the P18.6 regression : 50
+
+--- by directory ---
+        4 results/validation/grid_convergence
+       20 results/validation/mms
+        1 results/validation/natural_convection/Ra1e3/10x10
+        1 results/validation/natural_convection/Ra1e3/10x10_det_a
+        1 results/validation/natural_convection/Ra1e3/10x10_det_b
+        1 results/validation/natural_convection/Ra1e3/10x10_refinement_pair
+        1 results/validation/natural_convection/Ra1e3/10x10_sign_check
+        1 results/validation/natural_convection/Ra1e3/10x10_variable_property_regression
+        1 results/validation/natural_convection/Ra1e3/10x10_zero_beta
+        1 results/validation/natural_convection/Ra1e3/15x15
+        1 results/validation/natural_convection/Ra1e3/20x20
+        1 results/validation/natural_convection/Ra1e3/20x20_variable_property_regression
+        9 results/validation/production
+        1 results/validation/production/cavity_re100/20x20_quick
+        1 results/validation/turbulence/channel_flow/k_epsilon/coarse
+        1 results/validation/turbulence/channel_flow/k_epsilon/medium
+        1 results/validation/turbulence/channel_flow/k_omega/coarse
+        1 results/validation/turbulence/channel_flow/k_omega/medium
+        1 results/validation/turbulence/channel_flow/sst/coarse
+        1 results/validation/turbulence/channel_flow/sst/medium
+
+--- every distinct changed key, against the allow-list ---
+  distinct keys : 37
+  all keys are timing or iteratively-converged quantities (L36)  ok
+
+--- physics fields that MUST NOT change (each must be 0) ---
+  wall_shear               0    ok
+  u_tau                    0    ok
+  y_plus                   0    ok
+  nusselt                  0    ok
+  reattachment             0    ok
+  cf_                      0    ok
+  pressure_coefficient     0    ok
+  mass_flow                0    ok
+  max_divergence           0    ok
+  mass_imbalance           0    ok
+
+--- POSITIVE CONTROL: the classification actually read a diff ---
+  changed lines inspected : 1074
+  ok (a zero here would make every check above vacuous)
+
+--- magnitude: measured KEY BY KEY, not by pairing diff lines ---
+  files compared     : 35
+  numeric keys compared : 4527
+  keys absent from the new file : 0  (a structural change, not drift)
+  
+  max relative change, NON-TIMING : 5.609e-02
+    at results/validation/mms/distorted_mesh_simple_mms.json
+       levels[2].errors.continuity.l1
+  max relative change, TIMING     : 9.146e+00  (expected, meaningless)
+    at results/validation/production/curved_channel_multiblock_grid_convergence.json :: grids[2].runtime_seconds
+  
+  KNOWN_LIMITATIONS L36 records raw norms moving <= 4.1e-07 relative and
+  Richardson-extrapolated quantities <= 1.1e-05, between Release and Debug builds.
+
+restored.  modified before: 50   after: 0
+results/validation is back to its tracked, Release-generated state.

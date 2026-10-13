@@ -17,12 +17,12 @@ namespace cfd::turbulence {
 // Every other piece of k-omega's scalar-transport assembly (diffusion
 // contribution given a per-cell diffusivity field, convection, the
 // implicit Su+Sp*phi source linearization, and the combining
-// assembleScalarTransportEquation) is genuinely model-agnostic and is
+// cfd::transport::assembleScalarTransportEquation) is model-agnostic and is
 // reused directly from KEpsilonEquation.hpp -- see that file's own
 // header comment, which already documents this exact reuse as the
 // intended purpose of that assembly layer (KOmegaModel.cpp includes
-// KEpsilonEquation.hpp and calls assembleScalarDiffusionContribution/
-// applyImplicitScalarSource/assembleScalarTransportEquation directly, no
+// KEpsilonEquation.hpp, which since the P14 migration calls
+// cfd::transport for the whole assembly triple. No
 // second copy of any of them exists here).
 //
 // Throws InvalidArgumentError if molecularViscosity is not finite and

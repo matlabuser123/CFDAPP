@@ -1,0 +1,60 @@
+*** SUPERSEDED by 19_structural.log -- run against an earlier source ***
+
+P17.8 STRUCTURAL CRITERIA
+date: 2026-09-27T20:51:48Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+probe inputs: include/cfd/compressible/DensityBasedSolver.hpp (254 lines), src/compressible/DensityBasedSolver.cpp (571 lines)
+
+### Group A -- SIMPLE preservation ###
+-- A1/A2: the dispatch and both SIMPLE paths, against logs/02_freeze.log
+-- A5: the EXISTING CFL and transient facilities -- extended, never modified
+    02_freeze.log recorded CFL.hpp only. The other three A5 files are TRACKED, so git is
+    authoritative for them and is what is checked:
+  git-clean vs HEAD: src/solver/CFL.cpp                      0   OK
+    sha256 now                                               8c5013110fde62dbf1af97a8025d87f4adf25f2d0ee481f1abb1ac1cd4203307
+  git-clean vs HEAD: include/cfd/solver/TransientSolver.hpp  0   OK
+    sha256 now                                               8efc4d60421a71945782cb2114ee646a384fe139fe58b8307995e34bcd52c8b1
+  git-clean vs HEAD: src/solver/TransientSolver.cpp          0   OK
+    sha256 now                                               4b349515c21bd85adaf6d639746894dd77d31faa73c489f44fd833aeb83c62ee
+-- A6: every P17.1-P17.7 production source UNTOUCHED (P17.7's own list, verbatim)
+-- A6 EXCEPTION, declared: HllcFlux.hpp, corrected by AMENDMENT_star_energy_sign.md
+  include/cfd/compressible/HllcFlux.hpp now                  05cf1c2870509149d3aaefc0ec2a63830440ac93efbdcf675b181769cf16c318
+    at the P17.7 close (hllc/logs/20_integrity.log)          98885f49b987d1ec09b93492aa12231277296b1cb6f34bb4a1e92cf08b5c0cdd
+    CHANGED?                                                 YES -- the star-energy sign correction, amended and re-verified
+  UNTOUCHED: 27    TOUCHED: 0
+  (HllcFlux.hpp is counted NEITHER way -- it is the declared exception, on its own line above.)
+  A1/A2/A5/A6 TOUCHED count                                  0   OK
+
+-- A4: references to the density-based solver from any SIMPLE / pressure-based path
+  files under a SIMPLE path naming the solver                0   OK
+  SANITY: those same paths DO match a control pattern        7 files match SIMPLE (must be > 0)
+
+### Group Q -- no duplicated upstream physics ###
+  Q2: EOS / sound-speed / gamma-arithmetic / p=rho R T       0   OK
+  SANITY: the same pattern on HllcFlux.hpp                   1 hits (must be > 0, else the 0 is blind)
+  SANITY: the same pattern on IdealGasEOS.cpp                8 hits (must be > 0, else the 0 is blind)
+  SANITY: the same pattern on TotalEnergy.cpp                3 hits (must be > 0, else the 0 is blind)
+  Q3: makePrimitiveStateFromConserved call sites (>=1)       1
+  Q3: makePrimitiveState call sites (>=1)                    1
+  Q3: toConserved call sites (>=1)                           1
+  Q4: primitives STORED as a member beside Q                 0   OK
+  SANITY: the member-declaration pattern matches in the header 4 members (must be > 0)
+
+### Group R -- the residual ###
+  R3: hllcFlux call sites in the solver (exactly 1)          1   OK
+  R5: +F owner assignment                                    1   OK
+  R5: -F neighbour assignment                                1   OK
+  R5 reference: CompressibleContinuity.cpp +=/-= lines       6 (repository convention, > 0)
+
+### Group U / M / P / S ###
+  U4: mode assignments outside construction                  0   OK
+  SANITY: settings_.mode is READ in the solver               5 reads (must be > 0)
+  M1: five per-equation norms in ResidualNorms               5   OK
+  M3: the capture-once guard appears                         3 times (must be > 0)
+  M3: assignments to the reference scale (exactly 1)         1   OK
+  P4: clamp / floor idioms on a state quantity               0   OK
+  SANITY: the clamp pattern matches a synthetic clamp line   1 (must be 1, else the 0 is blind)
+  S3: viscous / conduction mentions, comments included       1
+  S3: viscous / conduction mentions in CODE, not comments    0   OK
+
+STRUCTURAL FAILURES: 0   (must be 0)

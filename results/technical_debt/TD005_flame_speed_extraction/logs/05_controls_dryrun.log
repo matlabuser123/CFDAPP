@@ -1,0 +1,53 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T00:47:02+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+738f7b555b2a22fb19632eb5b742feda86114dcd6afb2f4bb996c77e342e2303  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+b52fc24c703bc9df51e0671b735e29c2099cba15012ceef4e4b36cb3c0eae635  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+765fbee924693d8d49967318b4386f10b548160819aa69585b3fd00d3d9fce61  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-04 22:04:30.447988200
+  src  2026-10-04 22:04:10.954950700
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/controls_probe.cpp -o /tmp/td005_controls /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 -- C5 negative controls, dry-run on the unchanged tree
+
+POSITIVE CONTROL -- the unmodified fixture
+  status Converged       S_L 4.86230 cm/s  massFluxResidual 6.7713e-04  tolerance 1e-03
+  EXPECT Converged -> PASS
+
+CONTROL 1 -- THE ORIGINAL CONSTRUCTION IS INVALID, and this records why
+  REFUSED, as it should be: solvePremixedFlame: anchorTemperatureFraction is 1.5; must be within (0, 1)
+  So T_anchor cannot be placed above T_ad, and this route to a flame-free
+  domain does not exist. The no-flame control is reachable ONLY via
+  reactionsEnabled = false, which is control 3 -- so the register's "no flame"
+  and "reaction disabled" are the SAME control here. C5 has TWO controls.
+
+CONTROL 2 -- UNCONVERGED (maxOuterIterations 1 cannot narrow a 2x bracket to 1e-3)
+  status MaxIterations   massFluxResidual 4.1421e-01  bisections 1
+  EXPECT MaxIterations            -> PASS
+  EXPECT massFluxResidual > 1e-3  -> PASS
+  BOTH are required: a status is one enum assignment, and this campaign has
+  already found a reported field that was an echoed input.
+
+CONTROL 3 -- REACTIONS DISABLED: not run here, and it is now also CONTROL 1.
+  TD-020's cost problem may consume the full 7200 s cap, so it has its own run
+  (run_noflame_control_at_repo_cap.sh). Until it is measured, C5 has exactly ONE
+  demonstrated control -- the unconverged one -- and the gate must say so.
+
+ALL CONTROLS BEHAVED. C5's non-vacuity is demonstrated for 1 and 2.
+
+probe exit: 0

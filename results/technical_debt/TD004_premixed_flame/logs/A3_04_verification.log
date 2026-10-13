@@ -1,0 +1,65 @@
+=== ENVIRONMENT
+date   2026-10-09T02:38:44+10:00
+host   Linux 6.18.33.2-microsoft-standard-WSL2
+nproc  32   load 0.00 0.00 0.00 2/573 729
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATE 1: is the frozen amendment still the frozen amendment?
+  GATE_A3.md  8a11ad39a147830ce5e2d1e91310c85212a881222ba143bde177a2771e6fb113
+  OK: matches logs/A3_00_freeze.log.
+
+=== GATE 2: is the tree the post-fix source, with no control patch left behind?
+  PremixedFlame.cpp  fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  OK.
+  662:  const Real residualAcceptanceFraction = 1.0e-9;
+  (must read 1.0e-9 -- M5 raised it to 1.0e-6 and the EXIT trap restored it)
+
+=== GATE 3: is the library the uncorrupted post-fix archive?
+  libcfdcore.a  852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK.
+
+0034b3e16862d032d46064d96d12d61a2ff9c670cc39389d0a525a8804a8d055  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c5_amended_probe.cpp
+
+############################################################ FRESH VERIFICATION RUN
+=== GATE_A3  C5a..C5d   label=A3_VERIFY  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15283
+  peakTemperature            1799.998974446609736 K
+  minMassFraction            -1.889798074490678e-11
+  flamePosition              3.499219221840 mm  (-0.039 cells off anchor)
+  maxCompositionSumDeviation 8.822866316426925e-07
+  flameSpeed                 4.955332027 cm/s
+  fuelBalanceResidual        6.302972231e-03
+  recentrings                223 (final march 3)
+  wall                       693 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  1.025553e-03 <= 1.800000e-03 K     PASS
+  C5b  |min Y_i|        1.889798e-11 <= 5.000000e-11       PASS
+  C5c  |x_front - x_a|  7.807782e-07 <= 8.000000e-05 m     PASS
+  C5d  |sum Y - 1|      8.822866e-07 <= 1.200000e-06       PASS
+
+  MACHINE-READABLE: label=A3_VERIFY C5a=PASS C5b=PASS C5c=PASS C5d=PASS
+
+############################################################ THE STOP RULE, IN FROZEN ORDER
+
+    MACHINE-READABLE: label=A3_VERIFY C5a=PASS C5b=PASS C5c=PASS C5d=PASS
+
+  C5a  PASS
+  C5b  PASS
+  C5c  PASS
+  C5d  PASS
+
+  C5a..C5d ALL PASS on the frozen amendment.
+  This advances the gate to C6. It does NOT close TD-004: C6, C6a and C7 have never been
+  run, and TD-040 carries the S_L +6.07 % stop independently of C5.
+
+DONE 2026-10-09T02:50:21+10:00

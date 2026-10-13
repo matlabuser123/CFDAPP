@@ -1,0 +1,108 @@
+P17.2 dry-run -- the UNCHANGED tree
+date: 2026-09-26T08:40:50Z
+HEAD: 3bd32f918656
+P17_CODE_FINGERPRINT at the P17.1 close: eba3d7023f8c2516884e260ca946f4440b82e2557e5dbbaa3cce32f7c6432935
+
+### the EquationOfState interface as it stands ###
+    24:  [[nodiscard]] virtual Real density(Real pressure, Real temperature) const = 0;
+    30:  [[nodiscard]] virtual Real dDensityDPressure(Real pressure, Real temperature) const = 0;
+    33:  [[nodiscard]] virtual Real dDensityDTemperature(Real pressure, Real temperature) const = 0;
+    57:  [[nodiscard]] virtual Real pressure(Real density, Real temperature) const = 0;
+  temperature() present? 0  (0 = absent, the baseline)
+  implementations of EquationOfState:
+    include/cfd/compressible/IdealGasEOS.hpp
+
+### GPU EOS arithmetic (0 everywhere = no duplication) ###
+    gasConstant      0
+    speedOfSound     0
+    idealGas         0
+
+### existing EOS + thermodynamics test counts ###
+    tests/unit/compressible/test_ideal_gas_eos.cpp           21
+    tests/unit/compressible/test_thermodynamic_properties.cpp 13
+
+### measured behaviour ###
+  P17.2 dry-run -- thermodynamic closure on the UNCHANGED tree
+  
+  ### A. property identities, per gas -- cp-cv=R and gamma=cp/cv
+  gas            R                      cp                     cv                     (cp-cv)-R                gamma-cp/cv             
+  air            287.05000000000001     1005                   717.95000000000005     -5.6843418860808015e-14  0                       
+  helium         2077.0999999999999     5193                   3115.9000000000001     0                        0                       
+  water vapour   461.5                  1996                   1534.5                 0                        0                       
+  
+  ### B. gamma > 1 must hold for every admissible (R, cp)
+    air            gamma = 1.3998189288947698      gamma > 1 ? yes
+    helium         gamma = 1.6666131775730928      gamma > 1 ? yes
+    water vapour   gamma = 1.3007494297816879      gamma > 1 ? yes
+  
+  ### C. p = rho R T, and the two directions that EXIST
+  gas            p                T                rho=density(p,T)       p-rho*R*T (abs)          pressure(rho,T)-p (rel) 
+  air            1000             200              0.017418568193694479   -2.2737367544323206e-13  2.2737367544323206e-16  
+  air            101325           288.15           1.2250122659906946     -1.4551915228366852e-11  1.4361623714154308e-16  
+  air            5e+06            1500             11.612378795796319     0                        0                       
+  helium         1000             200              0.0024072023494294929  2.2737367544323206e-13   -2.2737367544323206e-16 
+  helium         101325           288.15           0.16929361655800343    -1.4551915228366852e-11  1.4361623714154308e-16  
+  helium         5e+06            1500             1.6048015662863286     0                        0                       
+  water vapour   1000             200              0.010834236186348862   0                        0                       
+  water vapour   101325           288.15           0.76194966620287952    -1.4551915228366852e-11  1.4361623714154308e-16  
+  water vapour   5e+06            1500             7.2228241242325746     0                        0                       
+  
+  ### D. THE GAP: the third direction (p,rho) -> T
+    EquationOfState pure virtuals present on the UNCHANGED tree:
+      density(p,T)            YES
+      dDensityDPressure(p,T)  YES
+      dDensityDTemperature    YES
+      pressure(rho,T)         YES   (earlier P17.2)
+      temperature(p,rho)      ABSENT  <- the gate criterion is NON-VACUOUS
+    Recovering T today requires the CALLER to divide by R itself, i.e. to
+    duplicate the EOS relation outside the EOS. Demonstrated:
+      air            hand-computed T = 288.14999999999992      (target 288.14999999999998)
+      helium         hand-computed T = 288.14999999999992      (target 288.14999999999998)
+      water vapour   hand-computed T = 288.14999999999992      (target 288.14999999999998)
+  
+  ### E. speed of sound: sqrt(gamma R T) vs sqrt(gamma p / rho)
+  gas            T                a=sqrt(gamma R T)      sqrt(gamma p/rho)      relative difference     
+  air            200              283.4847521611149      283.48475216111484     -2.005166712758568e-16  
+  air            288.15           340.27028004636702     340.27028004636702     0                       
+  air            1500             776.35496733702007     776.35496733702007     0                       
+  helium         200              832.07238040173775     832.07238040173775     0                       
+  helium         288.15           998.74684525266309     998.74684525266298     -1.1382948367947587e-16 
+  helium         1500             2278.7240611152561     2278.7240611152565     1.9956227199527663e-16  
+  water vapour   200              346.49555894534899     346.49555894534899     0                       
+  water vapour   288.15           415.90293650131918     415.90293650131918     0                       
+  water vapour   1500             948.91716854864285     948.91716854864296     1.1980691412243985e-16  
+  
+  ### F. a increases with T, at fixed gamma and R
+      T = 100         a = 200.45399061611212    
+      T = 200         a = 283.4847521611149     
+      T = 300         a = 347.19649632704113    
+      T = 600         a = 491.00999391412205    
+      T = 1200        a = 694.39299265408226    
+      T = 2400        a = 982.0199878282441     
+      strictly increasing: yes
+  
+  ### G. determinism of the EXISTING entry points, 64 repeats, bitwise
+      density / pressure / speedOfSound bitwise stable: yes
+      rho = 1.2250122659906946   p = 101325.00000000001   a = 340.27028004636702
+  
+  ### H. existing invalid-state rejection
+      density(p = 0     ) THREW: IdealGasEOS: pressure must be finite and > 0
+      density(p < 0     ) THREW: IdealGasEOS: pressure must be finite and > 0
+      density(p = NaN   ) THREW: IdealGasEOS: pressure must be finite and > 0
+      density(p = +Inf  ) THREW: IdealGasEOS: pressure must be finite and > 0
+      density(T = 0     ) THREW: IdealGasEOS: temperature must be finite and > 0
+      density(T < 0     ) THREW: IdealGasEOS: temperature must be finite and > 0
+      density(T = NaN   ) THREW: IdealGasEOS: temperature must be finite and > 0
+      density(T = +Inf  ) THREW: IdealGasEOS: temperature must be finite and > 0
+      IdealGasEOS(R = 0       ) THREW: IdealGasEOS: gasConstant must be finite and > 0
+      IdealGasEOS(R = -1      ) THREW: IdealGasEOS: gasConstant must be finite and > 0
+      IdealGasEOS(R = nan     ) THREW: IdealGasEOS: gasConstant must be finite and > 0
+      IdealGasEOS(R = inf     ) THREW: IdealGasEOS: gasConstant must be finite and > 0
+      ThermodynamicProperties(R=287.05, cp = 287.1   ) THREW: ThermodynamicProperties: specificHeatPressure (cp) must be finite and > gasConstant (R), so that cv = cp - R > 0
+      ThermodynamicProperties(R=287.05, cp = 100     ) THREW: ThermodynamicProperties: specificHeatPressure (cp) must be finite and > gasConstant (R), so that cv = cp - R > 0
+      ThermodynamicProperties(R=287.05, cp = 0       ) THREW: ThermodynamicProperties: specificHeatPressure (cp) must be finite and > gasConstant (R), so that cv = cp - R > 0
+      ThermodynamicProperties(R=287.05, cp = -1      ) THREW: ThermodynamicProperties: specificHeatPressure (cp) must be finite and > gasConstant (R), so that cv = cp - R > 0
+  
+  done
+
+done: 2026-09-26T08:40:54Z

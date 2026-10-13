@@ -1,0 +1,42 @@
+=== P18.6 FIRST FAILURE, PRESERVED VERBATIM (CLAUDE.md 1.5) ===
+date: 2026-10-01T05:23:29Z
+
+A TEST-INSTRUMENT ERROR, NOT A PRODUCTION DEFECT, and the distinction is the point:
+P18.4's guard refused a negative progress rate on an IRREVERSIBLE reaction, which is exactly
+what it exists to do. The test fed q = -2.0 to A->B, declared Irreversible.
+
+The diagnostic named the reaction, the cell and the value, and said what to do instead --
+so the preserved failure is self-explaining rather than needing a debugger.
+
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = HeatSourceTest.TheMolarAndMassRoutesAgree
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from HeatSourceTest
+[ RUN      ] HeatSourceTest.TheMolarAndMassRoutesAgree
+unknown file: Failure
+C++ exception with description "reactionSpeciesSources: progress rate for IRREVERSIBLE reaction "A->B" at cell 0 is -2; an irreversible reaction cannot run backwards. Declare it Reversible if a net negative rate is intended." thrown in the test body.
+
+[  FAILED  ] HeatSourceTest.TheMolarAndMassRoutesAgree (8 ms)
+[----------] 1 test from HeatSourceTest (10 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (15 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] HeatSourceTest.TheMolarAndMassRoutesAgree
+
+ 1 FAILED TEST
+
+=== WHY THE TEST WAS WRONG, AND WHAT CHANGED ===
+P18.6's MOLAR route (reactionHeatRelease) needs only q and Delta H_r, so it accepts any
+finite q -- it deliberately does NOT duplicate P18.4's direction validation. The MASS route
+goes through reactionSpeciesSources, which DOES validate. So a negative q is representable
+in one route and refused in the other, for a reaction declared Irreversible.
+
+That asymmetry is correct: validating direction in two places would be a duplicated
+invariant. The TEST was wrong to compare the two routes at a rate only one of them accepts.
+
+FIX: the negative-rate comparison moves to a REVERSIBLE reaction, where a net negative rate
+is legitimate and both routes accept it. The irreversible cases keep q >= 0.
+NO THRESHOLD CHANGED and no guard was weakened.

@@ -1,0 +1,27 @@
+P13-003 gate dry-run -- UNCHANGED tree
+date:     2026-09-21T11:34:32Z
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+=== A: one execution path (PRESERVATION) ===
+  A1 solver constructions in apps/cli + apps/gui (excluding tests): 0   (must be 0)
+  A2 solver entry points from the clients: 2
+       apps/cli/main.cpp:251:  const ProjectRunResult run = cfd::app::ProjectRunner::run(caseDirectory, options);
+       apps/gui/SimulationController.cpp:234:    const auto result = session_.run(options);
+  A3 options fields CaseSession rewrites: 1   (documented: cancellationCheck only)
+
+=== P: capability parity (DETECTION -- baseline expected to be absent) ===
+  P1 GUI references to checkpoint/resume: 0   (0 = not reachable)
+     CLI references to checkpoint/resume: 34
+
+=== V: validation and error parity ===
+  V2 validateDraft references to CaseReader/CaseBuilder: 11   (>0 = shared core)
+     GUI calls into the private parsers directly: 0   (must be 0)
+  V3 ctest entries covering the CLI checkpoint flags: 0
+0   (baseline, expected 0)
+
+=== E: numerical equivalence (DETECTION) ===
+  E1..E8  no harness exists on this tree, so the baseline is NOT MEASURABLE.
+          Recorded as such. It is not a pass, and it is not a failure.
+  the existing 'CLI/GUI Round-Trip Gate' assertions: 1   (status only -- audit section 3)
+
+dry-run complete. Every number above is measured, not inferred.

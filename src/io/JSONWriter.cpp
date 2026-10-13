@@ -1,5 +1,7 @@
 #include "cfd/io/JSONWriter.hpp"
 
+#include "cfd/core/Version.hpp"
+
 #include <cmath>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -142,6 +144,10 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
 
   nlohmann::json doc;
   doc["application"] = "CFDApp";
+  // P13-004: which build produced this. Fixed per binary, so repeated runs
+  // stay byte-identical -- see RunMetadata and criterion M6.
+  doc["version"] = cfd::core::versionString();
+  doc["build_identity"] = std::string(cfd::core::buildIdentity());
   doc["format_version"] = 1;
   doc["case"]["name"] = metadata.caseName;
   doc["mesh"]["cells"] = mesh.numberOfCells();
@@ -174,6 +180,20 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
   doc["physics"]["density"] = metadata.density;
   doc["physics"]["dynamic_viscosity"] = metadata.dynamicViscosity;
   doc["solver"]["type"] = metadata.solverType;
+  // P13-004: HOW it was solved, not just that it was. Without these a
+  // result cannot be reproduced from its own metadata.
+  doc["solver"]["convection_scheme"] = metadata.convectionScheme;
+  doc["solver"]["gradient_scheme"] = metadata.gradientScheme;
+  doc["solver"]["non_orthogonal_corrections"] = metadata.nonOrthogonalCorrections;
+  doc["solver"]["linear_solver_backend"] = metadata.linearSolverBackend;
+  doc["solver"]["max_iterations"] = metadata.maxIterations;
+  doc["solver"]["tolerances"]["velocity"] = metadata.velocityTolerance;
+  doc["solver"]["tolerances"]["pressure"] = metadata.pressureTolerance;
+  doc["solver"]["tolerances"]["continuity"] = metadata.continuityTolerance;
+  // The backend actually USED, which is not always the one configured:
+  // a GPU request falls back to CPU when no device is available
+  // (P6-GPU-002), and a reader needs to know which one ran.
+  doc["solver"]["gpu_discretization_used"] = result.gpuDiscretization;
   doc["solver"]["converged"] = result.converged();
   doc["solver"]["status"] = std::string(statusName(result.status));
   doc["solver"]["iterations"] = result.iterations;
@@ -289,6 +309,16 @@ void JSONWriter::writeMetadata(const std::filesystem::path& path, const RunMetad
   // 2-space indentation, single trailing newline -- the one convention
   // (section 15), not left to whatever dump()'s default happens to be.
   out << doc.dump(2) << '\n';
+  // P13-004: opening the file proved nothing about whether the bytes reached
+  // it. A full disk leaves the stream in a failed state and the destructor
+  // closes it without complaint, so this function ran to completion and the
+  // caller reported success over an empty file. Measured against /dev/full:
+  // results/p13/export/logs/00_partial_write_BASELINE.log.
+  out.flush();
+  if (!out) {
+    throw IOError("Failed while writing output file (the file may be incomplete): " +
+                  path.string());
+  }
 }
 
 }  // namespace cfd::io

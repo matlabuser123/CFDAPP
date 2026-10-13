@@ -1,0 +1,70 @@
+P17.3 dry-run -- the UNCHANGED tree
+date: 2026-09-26T12:57:19Z
+HEAD: 3bd32f918656
+P17_CODE_FINGERPRINT at the P17.2 close: 4d08c2367c1d24fca640f2c4d3ec47084cfdc6ba52788972edaf2a19d3704491
+
+### the continuity evaluators as they stand ###
+  globalNetFlux in CompressibleContinuityResult: 0  (0 = absent, the baseline)
+  value checks in evaluateCompressibleContinuity: 0  (0 = absent)
+  value checks in physics::evaluateContinuity   : 0  (0 = absent)
+  production caller of evaluateCompressibleContinuity: 0  (0 = diagnostic only)
+
+### GPU continuity arithmetic (0 everywhere = no duplication) ###
+    compressible     1
+    continuity       8
+    massFlux         149
+
+### existing continuity test counts ###
+    tests/unit/compressible/test_compressible_continuity.cpp 6
+    tests/unit/compressible/test_compressible_mass_flux.cpp  20
+
+### measured behaviour ###
+  P17.3 dry-run -- compressible continuity on the UNCHANGED tree
+  eps = 2.2204460492503131e-16
+  
+  ### A/B/C/E. row-varying density, 4x3 mesh -- the EXACT construction
+    cells 12 faces 31   rho_bottom 2  rho_top 1  ratio 2
+    A. steady vs transient(rhoOld==rhoNew) cellImbalance:
+       cells differing bitwise  0 of 12
+       max absolute difference  0
+    B. steady   maxCellImbalance 0   totalAbs 0   globalNetFlux 0
+       transient maxCellImbalance 0   totalAbs 0
+       totalMassOld 20   totalMassNew 20
+    C. internal faces 17   worst |(+F) + (-F)| = 0  (must be exactly 0)
+    E. MassBalance: inflow 10  outflow 10  net 0
+       relativeImbalance 0  fluxScale 10  normalizedContinuity 0
+       maxCellImbalance 0  rmsCellImbalance 0
+    D. boundary flux by patch (outward-positive):
+         left     faces  3   sum -10
+         right    faces  3   sum 10
+         bottom   faces  4   sum 0
+         top      faces  4   sum 0
+    F. transient integral relation, boundary sum computed BY HAND:
+       sum_boundary(m_dot) = 0
+       CompressibleContinuityResult exposes globalNetFlux?  NO -- a caller must
+       re-loop the boundary patches itself, as this probe just did.
+  
+  ### D2. closed box, all walls -- sum_boundary must be exactly 0
+    inflow 0  outflow 0  net 0
+    maxCellImbalance 4
+  
+  ### G. rho(x)U(x) = const -- a REFINEMENT study, NOT an exactness claim
+    the discrete flux uses mean(rho)*mean(U) != mean(rho*U), so the imbalance is
+    O(h^2), not zero. Measured decay:
+    nx     maxCellImbalance         normalizedContinuity     ratio vs previous
+    8      0.0075960497835497187    0.010418324324846793     0.000
+    16     0.0019244223593570531    0.0037897426111169735    3.947
+    32     0.00048458280630511719   0.0013599913865735792    3.971
+    64     0.00012160083245853909   0.00048451148048800531   3.985
+    (a ratio near 4 per halving of h indicates second order)
+  
+  ### H. invalid states currently ACCEPTED by evaluateCompressibleContinuity
+    rhoNew[0] = -2.0       RETURNED  maxImbalance 4                        totalMassNew 0
+    rhoNew[0] =  0.0       RETURNED  maxImbalance 2                        totalMassNew 2
+    rhoNew[0] =  NaN       RETURNED  maxImbalance 0                        totalMassNew nan
+    rhoNew[0] = +Inf       RETURNED  maxImbalance inf                      totalMassNew inf
+    massFlux[0] = NaN      RETURNED  maxImbalance 0
+  
+  done
+
+done: 2026-09-26T12:57:33Z

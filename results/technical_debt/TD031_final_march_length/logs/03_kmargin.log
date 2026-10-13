@@ -1,0 +1,57 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-06T15:54:49+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-06 02:35:44.854329800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD031_final_march_length/tools/kmargin_probe.cpp -o /tmp/td031_kmargin /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-031 -- FIXING kMargin BY MEASUREMENT
+
+  floor = eps * S_L * dt / delta,  eps = sqrt(1 + massFluxResidual) - 1
+  CONVERGED / NON-CONVERGED is classified from logs/01 and logs/02, not from the
+  per-step changes measured here -- otherwise fixing kMargin would be circular.
+
+configuration               relaxT  conv     residual        floor      RATIO    wall s
+500 cells / cap  5              10    no   3.5264e-01   1.5176e-07 2323591.265       703
+500 cells / cap  5              18   YES   9.8937e-01   1.1661e-07 8484183.482       808
+500 cells / cap  5              26   YES   9.8944e-01   1.1663e-07 8483799.634      1167
+250 cells / cap  5              10    no   6.2385e-01   7.7897e-07 800860.771       103
+250 cells / cap  5              18    no   9.8951e-01   4.9874e-07 1984005.804       155
+250 cells / cap  5              26    no   9.8966e-01   1.5199e-06 651126.136       185
+500 cells / cap 10              10    no   5.6083e-01   2.3600e-07 2376422.030       477
+500 cells / cap 10              18    no   9.8942e-01   7.5339e-07 1313288.994       560
+500 cells / cap 10              26    no   9.8932e-01   6.8352e-07 1447376.492       763
+
+=== BRACKETING kMargin
+    max ratio over CONVERGED states      8484183.482   (500 cells / cap  5 relaxT 18)
+    min ratio over NON-CONVERGED states  651126.136   (250 cells / cap  5 relaxT 26)
+
+    kMargin must be >= 8484183.482 to admit every converged state
+    kMargin must be <  651126.136 to exclude every non-converged state
+
+    *** THE BRACKET IS EMPTY. The per-step change does NOT discriminate:
+        a non-converged state achieves a ratio at or below a converged one.
+        Clause (a) therefore cannot carry the criterion on its own, and (b)
+        (consecutive windows) and (c) (the front on anchor) must. That is a
+        finding about the DESIGN, not a value to choose -- and it means the
+        margin cannot be fixed by this measurement.
+
+probe exit: 0

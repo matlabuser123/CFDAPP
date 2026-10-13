@@ -1,0 +1,49 @@
+=== C7: NO production file changed
+  (nothing above = no production change)
+  JSONWriter.cpp unchanged: 6f2454a6202c57b8 (frozen 6f2454a6202c57b8)
+
+=== §7 clang-format on the changed test
+  OK
+
+=== build
+  build rc=0
+
+=== C2: cases/heated_cavity/results still TRACKED?
+  tracked files: 4  (expect 4)
+
+=== C4: run the visualization suite (the test that used to dirty the tracked case)
+[----------] 5 tests from VisualizationSnapshotTest (2723 ms total)
+
+[----------] Global test environment tear-down
+[==========] 11 tests from 3 test suites ran. (3297 ms total)
+[  PASSED  ] 11 tests.
+  rc=0
+
+=== C1: did cases/heated_cavity stay byte-identical?
+  (EMPTY = C1 PASS)
+
+=== C4b: the whole app-layer suite
+
+[----------] Global test environment tear-down
+[==========] 36 tests from 6 test suites ran. (3686 ms total)
+[  PASSED  ] 36 tests.
+  rc=0
+
+=== C5: the CMake CLI smoke tests (they now write into ignored dirs)
+100% tests passed, 0 tests failed out of 27
+
+Label Time Summary:
+integration    =   8.25 sec*proc (27 tests)
+
+Total Test time (real) =  11.88 sec
+  rc=0
+
+=== C3/C6: are the fixture results/ now IGNORED, so a run cannot re-dirty them?
+  does_not_converge          check-ignore: IGNORED
+  mesh_quality_warning_cli   check-ignore: IGNORED
+  valid_cavity_cli_smoke     check-ignore: IGNORED
+
+=== final tree (only the intended changes should remain)
+   M .gitignore
+   M tests/unit/app/test_visualization_snapshot.cpp
+  ?? results/technical_debt/TD048_build_stamp_churn/

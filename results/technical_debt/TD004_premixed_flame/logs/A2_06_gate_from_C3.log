@@ -1,0 +1,40 @@
+=== ENVIRONMENT
+date        2026-10-08T22:16:14+10:00
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE -- the gate and the tree
+43a2488314395ca5479c54adafd0aa2007e9aa80d029c7eb06713de07935e9db  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+3c2263cd34f3ae93e7605fa56b4c7823f077b567c5ed9cc8ebd3b95da30204a9  PremixedFlame.cpp
+  confirmed: post-locator-fix
+GATE.md  12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73
+  (GATE.md's frozen hash is recorded in logs/00_freeze.log; compared there, not here)
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  results/technical_debt/TD004_premixed_flame/GATE.md
+0749efbf1120db1fa6689a5b86be2e5045a20722413e6c2770e4605d5c7c319b  results/technical_debt/TD001_reacting_production/GATE.md
+
+=== COMPILE
+compile exit: 0
+
+=== RUN  (3 solves; relaxT 90 is ~9x the relaxT 10 march, expect 1.5-2 h)
+TD-004 -- THE FROZEN GATE FROM C3
+
+  500 cells, PRODUCTION dt (cap 5), anchor 3.500 mm. Thresholds quoted from GATE.md.
+  C3 balance < 0.02 at relaxT 10 | C4 same at 10/30/90 | C5 preservation | C6b S_c
+
+  relaxT      steps      balance      T_peak     front mm        min Y     |sumY-1|        S_L        S_c   wall s
+      10      15283 6.302972e-03  1799.99897     3.499219  -1.8898e-11   8.8229e-07    4.95533    4.90442      702
+      30      45851 6.235249e-03  1799.99887     3.485637  -2.3938e-11   9.8135e-07    4.95533    4.90438     1601
+      90     137555 6.032130e-03  1799.99914     3.448426  -1.5846e-11   1.6224e-06    4.95533    4.90427     2400
+
+=== THE CRITERIA, IN FROZEN ORDER, STOPPING AT THE FIRST FAILURE
+
+C3   balance 6.302972e-03 < 0.02 at relaxT 10                        PASS
+C4   balance < 0.02 at relaxT 10/30/90: 6.3030e-03 / 6.2352e-03 / 6.0321e-03   PASS
+C5   preservation, clause by clause at relaxT 10:
+       T_peak    1799.99897 == 1800.00 exactly                        FAIL
+       x_front   3.499219 == 3.50000 mm exactly                   FAIL
+       min Y_i   -1.8898e-11 >= 0                                FAIL
+       |sumY-1|  8.8229e-07 <= 1.2e-06                           PASS
+
+*** STOPPED AT C5. C6b is NOT evaluated.
+probe exit: 0
+DONE 2026-10-08T23:34:43+10:00

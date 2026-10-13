@@ -1,0 +1,223 @@
+P17.9 -- regression
+date: 2026-09-28T06:26:45Z
+gate: results/p17/shock_validation/acceptance_gate.md
+      frozen sha256 b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40
+      live   sha256 b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40
+      GATE INTEGRITY: MATCHES the freeze
+      configuration.md 0b463149053b5523cc82ac4b0e0aaeb654860bc4a30453749cb414ba61178e2b
+      riemann_reference.py f8c2388623ad6ec759267adb0a380609957115c08750a70d3faa0df8aaf1e898
+      (both must match logs/02_freeze.log; they are re-hashed at the START of every
+       evidence-producing step, because a frozen-doc check that only runs at phase end
+       hides a post-freeze edit for the whole phase.)
+
+FROZEN exclusions (5 patterns, verbatim):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200
+  build/qual-debug is NOT run -- deferred to P17.11 by standing decision
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 24c617f33336cca09c83c3065556ead7bdefbfc8bf198b82899989057f20865f
+
+### THE PREDICTION, declared before the run ###
+  P17.8 close: release_cuda 2732 registered / 2670 executed
+               cpu_only     2526 registered / 2466 executed
+  P17.9 adds 13 tests and no others:
+    tests/integration/compressible/test_shock_validation.cpp   13 TEST macros
+  Both files are pure CPU, so the delta is IDENTICAL in both configurations:
+    release_cuda 2732+13 = 2745 registered   2670+13 = 2683 executed
+    cpu_only     2526+13 = 2539 registered   2466+13 = 2479 executed
+  A test count is an arithmetic consequence of the suite, not a tolerance.
+
+newest PRODUCTION source: 2026-09-28T06:22:07Z  src/compressible/DensityBasedSolver.cpp
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- configure + build (every target) ---
+  configure exit: 0
+  build exit: 0   (52 s)
+
+--- section 8 step 3: staleness, FAIL CLOSED (P17.7's staleness.py, unchanged) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries       : 49
+  external tools in registry: 1
+  objects inspected         : 305   mapped to a repo source: 305   generated: 0
+  oldest built binary       : 2026-09-28T06:26:41Z  tests/integration/compressible/CFDShockValidationTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 49 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+
+--- library hashes (section 8 step 4) ---
+  src/libcfdcore.a                               188e50397ed13718f449f369ef996768cc4011ac1048955dc312da92716390f6
+  cuda/libcfdcuda.a                              fc97ea4e87aec23c385358f347e7589ec47dcf24698cd8afaa6391e3b8c125de
+  (libcfdcuda.a's hash MOVES across identical rebuilds -- nvcc is not bit-reproducible.
+   It is recorded, never used as an identity check.)
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2745   PREDICTED 2745
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 30
+  P17.9 shock rows        : 13   PREDICTED 13
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status : 0
+  total tests       : 2683      PREDICTED 2683
+  passed            : 100% tests passed
+  failed            : 0           PREDICTED 0
+  Not Run           : 0
+  runtime           : 2239 s  [WSL wall clock, indicative only]
+  COUNT VERDICT     : MATCHES the frozen prediction
+
+--- the P17.8 tests EXECUTED, by name (registration is not execution) ---
+  P17.9 shock rows that Passed: 17   PREDICTED 13
+     890/2732 Test #2676: DensityBasedCanonicalIntegration.G1_ClosedDomainMomentumMatchesTheIntegratedWallForce ....................   Passed    0.11 sec
+    1841/2732 Test #2674: DensityBasedCanonicalIntegration.C4_SmoothAdvectedPulseConvergesToTheAnalyticSolution ....................   Passed    0.17 sec
+    1851/2732 Test #1799: DensityBasedConservationTest.G1_ClosedDomainConservesOnAGradedMeshToo ....................................   Passed    0.15 sec
+    1858/2732 Test #1802: DensityBasedConvergenceTest.M4_EverySignalIsActuallyConsulted ............................................   Passed    0.14 sec
+    1938/2732 Test #2677: DensityBasedCanonicalIntegration.LowMachRemainsValidAndItsConditioningIsReported .........................   Passed    0.15 sec
+    1948/2732 Test #1786: DensityBasedResidualTest.R2_TwoCellResidualMatchesAnIndependentReference .................................   Passed    0.16 sec
+    1949/2732 Test #2675: DensityBasedCanonicalIntegration.G2_OpenDomainBalancesAgainstTheIntegratedBoundaryFlux ...................   Passed    0.16 sec
+    1976/2732 Test #1806: DensityBasedRobustnessTest.P3_TerminalFailureReportsTheOffendingCellInTheFieldToo ........................   Passed    0.13 sec
+    2034/2732 Test #1809: DensityBasedRobustnessTest.P5_EveryEnumeratedQuantityIsCheckedForNonFiniteness ...........................   Passed    0.13 sec
+    2137/2732 Test #1791: DensityBasedCflTest.K6_EdgeCasesGiveFinitePositiveTimeSteps ..............................................   Passed    0.09 sec
+    2138/2732 Test #1797: DensityBasedCanonicalTest.C3_AdvectedContactKeepsPressureAndVelocityUniform ..............................   Passed    0.10 sec
+    2140/2732 Test #1800: DensityBasedConservationTest.InviscidWallCarriesNoMassOrEnergy ...........................................   Passed    0.09 sec
+    2144/2732 Test #1793: DensityBasedUpdateTest.U2_GlobalModeUsesOneDtForEveryCell ................................................   Passed    0.10 sec
+    2151/2732 Test #1784: DensityBasedResidualTest.M2_NormDoesNotScaleWithMeshSize .................................................   Passed    0.13 sec
+    2152/2732 Test #1781: DensityBasedStateTest.Q1_PrimitiveConservedRoundTripIsExact ..............................................   Passed    0.13 sec
+    2155/2732 Test #1811: DensityBasedScopeTest.S1_S2_RestartIsUnsupportedAndRefuses ...............................................   Passed    0.12 sec
+    2182/2732 Test #1782: DensityBasedResidualTest.R1_OwnerAndNeighbourContributionsCancelExactly ..................................   Passed    0.19 sec
+    2193/2732 Test #1794: DensityBasedUpdateTest.U3_LocalPseudoTimeRefusesToReportAPhysicalTime ....................................   Passed    0.11 sec
+    2195/2732 Test #1812: DensityBasedScopeTest.AnUnmappedBoundaryPatchIsRefusedNotAssumedToBeAWall ................................   Passed    0.11 sec
+    2199/2732 Test #1790: DensityBasedCflTest.K5_InvalidCflIsRefused ...............................................................   Passed    0.14 sec
+    2201/2732 Test #1801: DensityBasedConvergenceTest.M5_ReachingTheEndTimeIsTimeCompleteNotConverged ..............................   Passed    0.14 sec
+    2205/2732 Test #1792: DensityBasedUpdateTest.U1_UpdateIsExactlyQMinusDtOverVTimesR .............................................   Passed    0.18 sec
+    2215/2732 Test #1810: DensityBasedDeterminismTest.D1_RepeatedSolveIsBitwiseIdentical ...........................................   Passed    0.18 sec
+    2223/2732 Test #1783: DensityBasedResidualTest.R4_UniformStateGivesZeroResidual ................................................   Passed    0.16 sec
+    2224/2732 Test #1808: DensityBasedRobustnessTest.P4_NothingIsEverClamped .......................................................   Passed    0.21 sec
+    2249/2732 Test #1798: DensityBasedConservationTest.G1_ClosedDomainConservesMassMomentumAndEnergy ...............................   Passed    0.19 sec
+    2261/2732 Test #1803: DensityBasedConvergenceTest.M3_TheResidualReferenceScaleIsCapturedOnceAtIterationZero ....................   Passed    0.17 sec
+    2278/2732 Test #1789: DensityBasedCflTest.K4_AgreesWithTheExistingCalculateCflInTheZeroSoundSpeedLimit .........................   Passed    0.14 sec
+    2293/2732 Test #1788: DensityBasedCflTest.K2_TimeStepFallsWithSpeedSoundSpeedAndCellSize .......................................   Passed    0.15 sec
+    2299/2732 Test #1804: DensityBasedConvergenceTest.M6_SteadyCriteriaAreNotEvaluatedInGlobalPhysicalMode .........................   Passed    0.15 sec
+    2320/2732 Test #1805: DensityBasedRobustnessTest.P1_P3_AnInadmissibleStateIsRefusedNamingTheCell ...............................   Passed    0.12 sec
+    2417/2732 Test #1796: DensityBasedCanonicalTest.C2_UniformObliqueFlowIsPreserved ...............................................   Passed    0.20 sec
+    2445/2732 Test #1807: DensityBasedRobustnessTest.P2_P6_RetriesAreDeterministicAndCounted .......................................   Passed    0.12 sec
+    2477/2732 Test #1787: DensityBasedCflTest.K1_TimeStepIsExactlyLinearInCfl ......................................................   Passed    0.12 sec
+    2572/2732 Test #1785: DensityBasedResidualTest.R1_ResidualIsExactlyPlusFOwnerMinusFNeighbourBitwise ............................   Passed    0.14 sec
+    2595/2732 Test #1795: DensityBasedCanonicalTest.C1_UniformGridAlignedFlowIsPreserved ...........................................   Passed    0.11 sec
+
+--- preservation: P17.7 HLLC and P17.2 EOS rows EXECUTED ---
+  Hllc rows that Passed          : 39
+  IdealGasEOSTest rows Passed    : 30   PREDICTED 30
+  LowMach rows Passed            : 25
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- configure + build (every target) ---
+  configure exit: 0
+  build exit: 0   (60 s)
+
+--- section 8 step 3: staleness, FAIL CLOSED (P17.7's staleness.py, unchanged) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries       : 48
+  external tools in registry: 1
+  objects inspected         : 284   mapped to a repo source: 284   generated: 0
+  oldest built binary       : 2026-09-28T07:06:13Z  tests/unit/core/CFDCoreTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 48 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+
+--- library hashes (section 8 step 4) ---
+  src/libcfdcore.a                               1305a82aa18ba3a5f139a08d4d165c131a7eb3c3881fcb3f454cc99acc68762a
+  (libcfdcuda.a's hash MOVES across identical rebuilds -- nvcc is not bit-reproducible.
+   It is recorded, never used as an identity check.)
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2539   PREDICTED 2539
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 30
+  P17.9 shock rows        : 13   PREDICTED 13
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status : 0
+  total tests       : 2479      PREDICTED 2479
+  passed            : 100% tests passed
+  failed            : 0           PREDICTED 0
+  Not Run           : 0
+  runtime           : 1699 s  [WSL wall clock, indicative only]
+  COUNT VERDICT     : MATCHES the frozen prediction
+
+--- the P17.8 tests EXECUTED, by name (registration is not execution) ---
+  P17.9 shock rows that Passed: 17   PREDICTED 13
+     174/2526 Test #1812: DensityBasedScopeTest.AnUnmappedBoundaryPatchIsRefusedNotAssumedToBeAWall ................................   Passed    0.03 sec
+     178/2526 Test #1810: DensityBasedDeterminismTest.D1_RepeatedSolveIsBitwiseIdentical ...........................................   Passed    0.03 sec
+     180/2526 Test #1811: DensityBasedScopeTest.S1_S2_RestartIsUnsupportedAndRefuses ...............................................   Passed    0.04 sec
+     182/2526 Test #1809: DensityBasedRobustnessTest.P5_EveryEnumeratedQuantityIsCheckedForNonFiniteness ...........................   Passed    0.05 sec
+     183/2526 Test #1808: DensityBasedRobustnessTest.P4_NothingIsEverClamped .......................................................   Passed    0.05 sec
+     357/2526 Test #2468: DensityBasedCanonicalIntegration.C4_SmoothAdvectedPulseConvergesToTheAnalyticSolution ....................   Passed    0.10 sec
+     474/2526 Test #2470: DensityBasedCanonicalIntegration.G1_ClosedDomainMomentumMatchesTheIntegratedWallForce ....................   Passed    0.04 sec
+     524/2526 Test #2471: DensityBasedCanonicalIntegration.LowMachRemainsValidAndItsConditioningIsReported .........................   Passed    0.13 sec
+     593/2526 Test #2469: DensityBasedCanonicalIntegration.G2_OpenDomainBalancesAgainstTheIntegratedBoundaryFlux ...................   Passed    0.09 sec
+     744/2526 Test #1802: DensityBasedConvergenceTest.M4_EverySignalIsActuallyConsulted ............................................   Passed    0.15 sec
+    1242/2526 Test #1791: DensityBasedCflTest.K6_EdgeCasesGiveFinitePositiveTimeSteps ..............................................   Passed    0.09 sec
+    1317/2526 Test #1785: DensityBasedResidualTest.R1_ResidualIsExactlyPlusFOwnerMinusFNeighbourBitwise ............................   Passed    0.08 sec
+    1344/2526 Test #1792: DensityBasedUpdateTest.U1_UpdateIsExactlyQMinusDtOverVTimesR .............................................   Passed    0.11 sec
+    1346/2526 Test #1783: DensityBasedResidualTest.R4_UniformStateGivesZeroResidual ................................................   Passed    0.10 sec
+    1354/2526 Test #1784: DensityBasedResidualTest.M2_NormDoesNotScaleWithMeshSize .................................................   Passed    0.10 sec
+    1490/2526 Test #1788: DensityBasedCflTest.K2_TimeStepFallsWithSpeedSoundSpeedAndCellSize .......................................   Passed    0.07 sec
+    1924/2526 Test #1782: DensityBasedResidualTest.R1_OwnerAndNeighbourContributionsCancelExactly ..................................   Passed    0.11 sec
+    2049/2526 Test #1790: DensityBasedCflTest.K5_InvalidCflIsRefused ...............................................................   Passed    0.09 sec
+    2411/2526 Test #1807: DensityBasedRobustnessTest.P2_P6_RetriesAreDeterministicAndCounted .......................................   Passed    0.06 sec
+    2439/2526 Test #1789: DensityBasedCflTest.K4_AgreesWithTheExistingCalculateCflInTheZeroSoundSpeedLimit .........................   Passed    0.07 sec
+    2445/2526 Test #1795: DensityBasedCanonicalTest.C1_UniformGridAlignedFlowIsPreserved ...........................................   Passed    0.06 sec
+    2446/2526 Test #1794: DensityBasedUpdateTest.U3_LocalPseudoTimeRefusesToReportAPhysicalTime ....................................   Passed    0.06 sec
+    2447/2526 Test #1781: DensityBasedStateTest.Q1_PrimitiveConservedRoundTripIsExact ..............................................   Passed    0.06 sec
+    2449/2526 Test #1786: DensityBasedResidualTest.R2_TwoCellResidualMatchesAnIndependentReference .................................   Passed    0.06 sec
+    2451/2526 Test #1793: DensityBasedUpdateTest.U2_GlobalModeUsesOneDtForEveryCell ................................................   Passed    0.07 sec
+    2454/2526 Test #1796: DensityBasedCanonicalTest.C2_UniformObliqueFlowIsPreserved ...............................................   Passed    0.07 sec
+    2455/2526 Test #1787: DensityBasedCflTest.K1_TimeStepIsExactlyLinearInCfl ......................................................   Passed    0.08 sec
+    2456/2526 Test #1797: DensityBasedCanonicalTest.C3_AdvectedContactKeepsPressureAndVelocityUniform ..............................   Passed    0.07 sec
+    2457/2526 Test #1800: DensityBasedConservationTest.InviscidWallCarriesNoMassOrEnergy ...........................................   Passed    0.08 sec
+    2458/2526 Test #1798: DensityBasedConservationTest.G1_ClosedDomainConservesMassMomentumAndEnergy ...............................   Passed    0.09 sec
+    2459/2526 Test #1801: DensityBasedConvergenceTest.M5_ReachingTheEndTimeIsTimeCompleteNotConverged ..............................   Passed    0.09 sec
+    2500/2526 Test #1799: DensityBasedConservationTest.G1_ClosedDomainConservesOnAGradedMeshToo ....................................   Passed    0.51 sec
+    2501/2526 Test #1804: DensityBasedConvergenceTest.M6_SteadyCriteriaAreNotEvaluatedInGlobalPhysicalMode .........................   Passed    0.51 sec
+    2502/2526 Test #1803: DensityBasedConvergenceTest.M3_TheResidualReferenceScaleIsCapturedOnceAtIterationZero ....................   Passed    0.50 sec
+    2503/2526 Test #1806: DensityBasedRobustnessTest.P3_TerminalFailureReportsTheOffendingCellInTheFieldToo ........................   Passed    0.50 sec
+    2504/2526 Test #1805: DensityBasedRobustnessTest.P1_P3_AnInadmissibleStateIsRefusedNamingTheCell ...............................   Passed    0.50 sec
+
+--- preservation: P17.7 HLLC and P17.2 EOS rows EXECUTED ---
+  Hllc rows that Passed          : 35
+  IdealGasEOSTest rows Passed    : 30   PREDICTED 30
+  LowMach rows Passed            : 25
+
+############################################################
+### CPU-only has no CUDA dependency
+############################################################
+  build log read                    : 50_cpu_only_build.log (54 lines)
+  nvcc invocations in the build log : 0
+  libcudart references              : 0
+  cuda/libcfdcuda.a present         : no
+
+P17_CODE_FINGERPRINT after  : 24c617f33336cca09c83c3065556ead7bdefbfc8bf198b82899989057f20865f
+  the code fingerprint must not have moved ACROSS the regression.
+
+done: 2026-09-28T07:35:30Z

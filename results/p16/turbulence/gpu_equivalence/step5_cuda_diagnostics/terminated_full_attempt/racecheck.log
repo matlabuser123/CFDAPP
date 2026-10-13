@@ -1,0 +1,172 @@
+========= COMPUTE-SANITIZER
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/cuda/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DeviceTurbulence*:DeviceKEpsilon*:DeviceKTransport*:DeviceEpsilonTransport*:DeviceScalarTransport*:DeviceEffectiveViscosity*:DeviceWallFaceViscosity*:DeviceMaxAbsDifference*
+[==========] Running 60 tests from 8 test suites.
+[----------] Global test environment set-up.
+[----------] 10 tests from DeviceScalarTransportSemantics
+[ RUN      ] DeviceScalarTransportSemantics.ComposedPathMatchesTheHostOnEveryFrozenConfiguration
+  1 no imposed, alpha=1                    structure host->device OK, device->host OK (0 device-only entries), values 486/498 bitwise, max value 1 ulp (0.000000), max rhs 0 ulp (0.000000); first difference: row 9 col 9: host 5.191389 device 5.191389
+  1b no imposed, alpha=0.7                 structure host->device OK, device->host OK (0 device-only entries), values 489/498 bitwise, max value 1 ulp (0.000000), max rhs 2 ulp (0.000000); first difference: row 9 col 9: host 7.416270 device 7.416270
+  2 imposed cell 0, alpha=1                structure host->device OK, device->host OK (2 device-only entries), values 484/496 bitwise, max value 1 ulp (0.000000), max rhs 0 ulp (0.000000); first difference: row 9 col 9: host 5.191389 device 5.191389
+  3 imposed {0,interior,last}, alpha=1     structure host->device OK, device->host OK (8 device-only entries), values 479/490 bitwise, max value 1 ulp (0.000000), max rhs 0 ulp (0.000000); first difference: row 9 col 9: host 5.191389 device 5.191389
+  4 imposed {0,interior,last}, alpha=0.7   structure host->device OK, device->host OK (8 device-only entries), values 482/490 bitwise, max value 1 ulp (0.000000), max rhs 2 ulp (0.000000); first difference: row 9 col 9: host 7.416270 device 7.416270
+  5 imposed + non-orthogonal, alpha=0.7    structure host->device OK, device->host OK (8 device-only entries), values 483/490 bitwise, max value 1 ulp (0.000000), max rhs 2 ulp (0.000000); first difference: row 14 col 14: host 7.350738 device 7.350738
+[       OK ] DeviceScalarTransportSemantics.ComposedPathMatchesTheHostOnEveryFrozenConfiguration (613 ms)
+[ RUN      ] DeviceScalarTransportSemantics.RelaxationAndImposedRowsAreBitwiseIdenticalToTheHost
+[       OK ] DeviceScalarTransportSemantics.RelaxationAndImposedRowsAreBitwiseIdenticalToTheHost (109 ms)
+[ RUN      ] DeviceScalarTransportSemantics.UnderRelaxationChangesTheSystemSoTheComparisonIsNotVacuous
+[       OK ] DeviceScalarTransportSemantics.UnderRelaxationChangesTheSystemSoTheComparisonIsNotVacuous (33 ms)
+[ RUN      ] DeviceScalarTransportSemantics.UsingTheRelaxedDiagonalInTheRhsIsDetected
+[       OK ] DeviceScalarTransportSemantics.UsingTheRelaxedDiagonalInTheRhsIsDetected (14 ms)
+[ RUN      ] DeviceScalarTransportSemantics.DroppingOrPerturbingAnImposedRowBreaksTheComparison
+[       OK ] DeviceScalarTransportSemantics.DroppingOrPerturbingAnImposedRowBreaksTheComparison (31 ms)
+[ RUN      ] DeviceScalarTransportSemantics.AnImposedRowIsAUnitDiagonalAndExplicitZeros
+[       OK ] DeviceScalarTransportSemantics.AnImposedRowIsAUnitDiagonalAndExplicitZeros (29 ms)
+[ RUN      ] DeviceScalarTransportSemantics.ImposingBeforeRelaxingProducesADifferentSystem
+[       OK ] DeviceScalarTransportSemantics.ImposingBeforeRelaxingProducesADifferentSystem (35 ms)
+[ RUN      ] DeviceScalarTransportSemantics.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceScalarTransportSemantics.TheSameInputsProduceTheSameBytesTwice (34 ms)
+[ RUN      ] DeviceScalarTransportSemantics.InvalidInputsAreRefused
+[       OK ] DeviceScalarTransportSemantics.InvalidInputsAreRefused (14 ms)
+[ RUN      ] DeviceScalarTransportSemantics.ReplicaReproducesTheProductionSolve
+[       OK ] DeviceScalarTransportSemantics.ReplicaReproducesTheProductionSolve (0 ms)
+[----------] 10 tests from DeviceScalarTransportSemantics (926 ms total)
+
+[----------] 7 tests from DeviceTurbulenceAlgebra
+[ RUN      ] DeviceTurbulenceAlgebra.StrainRateProductionAndViscosityAreBitwise
+[       OK ] DeviceTurbulenceAlgebra.StrainRateProductionAndViscosityAreBitwise (10 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.ExactlyThreeOperationsReportGpu
+[       OK ] DeviceTurbulenceAlgebra.ExactlyThreeOperationsReportGpu (2 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.BothFloorsActivateAndMatchTheHost
+[       OK ] DeviceTurbulenceAlgebra.BothFloorsActivateAndMatchTheHost (0 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.AForcedFallbackIsDetectedForEachOperation
+[       OK ] DeviceTurbulenceAlgebra.AForcedFallbackIsDetectedForEachOperation (5 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.PerturbingOneInputCellChangesOnlyThatOutput
+[       OK ] DeviceTurbulenceAlgebra.PerturbingOneInputCellChangesOnlyThatOutput (1 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceTurbulenceAlgebra.TheSameInputsProduceTheSameBytesTwice (5 ms)
+[ RUN      ] DeviceTurbulenceAlgebra.PromotedViscosityMatchesTheProductionModel
+[       OK ] DeviceTurbulenceAlgebra.PromotedViscosityMatchesTheProductionModel (0 ms)
+[----------] 7 tests from DeviceTurbulenceAlgebra (31 ms total)
+
+[----------] 9 tests from DeviceKTransport
+[ RUN      ] DeviceKTransport.EffectiveDiffusivityIsBitwise
+[       OK ] DeviceKTransport.EffectiveDiffusivityIsBitwise (2 ms)
+[ RUN      ] DeviceKTransport.EffectiveDiffusivityFailsClosedLikeTheHost
+[       OK ] DeviceKTransport.EffectiveDiffusivityFailsClosedLikeTheHost (1 ms)
+[ RUN      ] DeviceKTransport.SourceCoefficientsAreBitwise
+[       OK ] DeviceKTransport.SourceCoefficientsAreBitwise (1 ms)
+[ RUN      ] DeviceKTransport.MatrixStructureCoefficientsAndRhsMatchTheHost
+  k matrix: 473/498 bitwise, max value 2 ulp, max rhs 2 ulp
+[       OK ] DeviceKTransport.MatrixStructureCoefficientsAndRhsMatchTheHost (16 ms)
+[ RUN      ] DeviceKTransport.SolvedKMatchesTheProductionSolve
+  solved k relative L2 = 2.385e-16
+[       OK ] DeviceKTransport.SolvedKMatchesTheProductionSolve (15 ms)
+[ RUN      ] DeviceKTransport.TheFloorIsAppliedAndBinds
+[       OK ] DeviceKTransport.TheFloorIsAppliedAndBinds (1 ms)
+[ RUN      ] DeviceKTransport.KHasNoImposedRowsAndTheWallEntersThroughProduction
+[       OK ] DeviceKTransport.KHasNoImposedRowsAndTheWallEntersThroughProduction (27 ms)
+[ RUN      ] DeviceKTransport.ThePerturbedSystemIsDetected
+[       OK ] DeviceKTransport.ThePerturbedSystemIsDetected (15 ms)
+[ RUN      ] DeviceKTransport.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceKTransport.TheSameInputsProduceTheSameBytesTwice (28 ms)
+[----------] 9 tests from DeviceKTransport (116 ms total)
+
+[----------] 8 tests from DeviceEpsilonTransport
+[ RUN      ] DeviceEpsilonTransport.EffectiveDiffusivityIsBitwiseAtProductionSigma
+[       OK ] DeviceEpsilonTransport.EffectiveDiffusivityIsBitwiseAtProductionSigma (0 ms)
+[ RUN      ] DeviceEpsilonTransport.SourceCoefficientsAreBitwiseIncludingFlooredCells
+[       OK ] DeviceEpsilonTransport.SourceCoefficientsAreBitwiseIncludingFlooredCells (2 ms)
+[ RUN      ] DeviceEpsilonTransport.MatrixRhsAndImposedRowsMatchTheHost
+  epsilon matrix: 478/490 bitwise, max value 2 ulp, max rhs 2 ulp
+[       OK ] DeviceEpsilonTransport.MatrixRhsAndImposedRowsMatchTheHost (21 ms)
+[ RUN      ] DeviceEpsilonTransport.DroppingOrCorruptingAnImposedRowIsDetected
+[       OK ] DeviceEpsilonTransport.DroppingOrCorruptingAnImposedRowIsDetected (21 ms)
+[ RUN      ] DeviceEpsilonTransport.SolvedEpsilonMatchesTheProductionSolve
+  solved epsilon relative L2 = 9.107e-17
+[       OK ] DeviceEpsilonTransport.SolvedEpsilonMatchesTheProductionSolve (24 ms)
+[ RUN      ] DeviceEpsilonTransport.ReversedPostSolveOrderIsDetected
+[       OK ] DeviceEpsilonTransport.ReversedPostSolveOrderIsDetected (2 ms)
+[ RUN      ] DeviceEpsilonTransport.ProductionTraceEntriesRemainNotAttempted
+[       OK ] DeviceEpsilonTransport.ProductionTraceEntriesRemainNotAttempted (21 ms)
+[ RUN      ] DeviceEpsilonTransport.TheSameInputsProduceTheSameBytesTwice
+[       OK ] DeviceEpsilonTransport.TheSameInputsProduceTheSameBytesTwice (39 ms)
+[----------] 8 tests from DeviceEpsilonTransport (140 ms total)
+
+[----------] 6 tests from DeviceKEpsilonCorrection
+[ RUN      ] DeviceKEpsilonCorrection.OneCorrectionMatchesTheProductionModel
+  wall functions OFF   k 3.610e-16  epsilon 3.356e-16  mu_t 7.726e-16
+  wall functions ON    k 3.115e-16  epsilon 3.647e-16  mu_t 6.023e-16
+[       OK ] DeviceKEpsilonCorrection.OneCorrectionMatchesTheProductionModel (1592 ms)
+[ RUN      ] DeviceKEpsilonCorrection.MultipleCorrectionsStayInStep
+  correction 1: k 3.115e-16  epsilon 3.647e-16  mu_t 6.023e-16
+  correction 2: k 5.014e-16  epsilon 2.095e-15  mu_t 9.370e-16
+  correction 3: k 6.994e-16  epsilon 9.591e-16  mu_t 1.362e-15
+  correction 4: k 2.293e-15  epsilon 5.665e-16  mu_t 1.163e-14
+  correction 5: k 2.748e-15  epsilon 8.071e-16  mu_t 8.319e-15
+[       OK ] DeviceKEpsilonCorrection.MultipleCorrectionsStayInStep (4925 ms)
+[ RUN      ] DeviceKEpsilonCorrection.BypassingTheWallProductionReplacementIsDetected
+  bypassed wall production: k relative L2 = 5.253e-02 (must exceed 2.1e-12)
+[       OK ] DeviceKEpsilonCorrection.BypassingTheWallProductionReplacementIsDetected (1606 ms)
+[ RUN      ] DeviceKEpsilonCorrection.TraceReportsExactlyWhatRanOnTheDevice
+[       OK ] DeviceKEpsilonCorrection.TraceReportsExactlyWhatRanOnTheDevice (788 ms)
+[ RUN      ] DeviceKEpsilonCorrection.SharingTheKPlanWithEpsilonIsDetected
+  shared plans: epsilon relative L2 = 2.114e-01 (must exceed 2.1e-12)
+[       OK ] DeviceKEpsilonCorrection.SharingTheKPlanWithEpsilonIsDetected (797 ms)
+[ RUN      ] DeviceKEpsilonCorrection.RepeatedCorrectionsAreBitwiseIdentical
+[       OK ] DeviceKEpsilonCorrection.RepeatedCorrectionsAreBitwiseIdentical (1577 ms)
+[----------] 6 tests from DeviceKEpsilonCorrection (11292 ms total)
+
+[----------] 8 tests from DeviceMaxAbsDifference
+[ RUN      ] DeviceMaxAbsDifference.MatchesTheHostLoopBitwiseAcrossBlockPartitions
+[       OK ] DeviceMaxAbsDifference.MatchesTheHostLoopBitwiseAcrossBlockPartitions (31 ms)
+[ RUN      ] DeviceMaxAbsDifference.EmptyFieldsReduceToZeroNotToAnError
+[       OK ] DeviceMaxAbsDifference.EmptyFieldsReduceToZeroNotToAnError (0 ms)
+[ RUN      ] DeviceMaxAbsDifference.NaNDifferencesAreIgnoredExactlyAsStdMaxIgnoresThem
+[       OK ] DeviceMaxAbsDifference.NaNDifferencesAreIgnoredExactlyAsStdMaxIgnoresThem (4 ms)
+[ RUN      ] DeviceMaxAbsDifference.AnInfiniteDifferenceIsCarriedThroughLikeTheHostLoop
+[       OK ] DeviceMaxAbsDifference.AnInfiniteDifferenceIsCarriedThroughLikeTheHostLoop (5 ms)
+[ RUN      ] DeviceMaxAbsDifference.PerturbingTheMaximumCellMovesTheMetricInEachField
+[       OK ] DeviceMaxAbsDifference.PerturbingTheMaximumCellMovesTheMetricInEachField (21 ms)
+[ RUN      ] DeviceMaxAbsDifference.PerturbingBelowTheMaximumLeavesTheMetricUnchanged
+[       OK ] DeviceMaxAbsDifference.PerturbingBelowTheMaximumLeavesTheMetricUnchanged (10 ms)
+[ RUN      ] DeviceMaxAbsDifference.RepeatedReductionIsBitwiseReproducible
+[       OK ] DeviceMaxAbsDifference.RepeatedReductionIsBitwiseReproducible (28 ms)
+[ RUN      ] DeviceMaxAbsDifference.DownloadsOnlyTheReductionPartialsNotTheFields
+[       OK ] DeviceMaxAbsDifference.DownloadsOnlyTheReductionPartialsNotTheFields (5 ms)
+[----------] 8 tests from DeviceMaxAbsDifference (110 ms total)
+
+[----------] 7 tests from DeviceEffectiveViscosity
+[ RUN      ] DeviceEffectiveViscosity.MatchesTheHostReferenceBitwise
+[       OK ] DeviceEffectiveViscosity.MatchesTheHostReferenceBitwise (13 ms)
+[ RUN      ] DeviceEffectiveViscosity.RejectsInvalidInputsExactlyAsTheHostDoes
+[       OK ] DeviceEffectiveViscosity.RejectsInvalidInputsExactlyAsTheHostDoes (1 ms)
+[ RUN      ] DeviceEffectiveViscosity.PerturbingOneCellChangesExactlyThatCell
+[       OK ] DeviceEffectiveViscosity.PerturbingOneCellChangesExactlyThatCell (1 ms)
+[ RUN      ] DeviceEffectiveViscosity.ChangingMolecularViscosityShiftsEveryCell
+[       OK ] DeviceEffectiveViscosity.ChangingMolecularViscosityShiftsEveryCell (1 ms)
+[ RUN      ] DeviceEffectiveViscosity.RepeatedComputationIsBitwiseReproducible
+[       OK ] DeviceEffectiveViscosity.RepeatedComputationIsBitwiseReproducible (4 ms)
+[ RUN      ] DeviceEffectiveViscosity.ResidentHandoffTakesDeviceAuthorityWithoutTransfer
+[       OK ] DeviceEffectiveViscosity.ResidentHandoffTakesDeviceAuthorityWithoutTransfer (9 ms)
+[ RUN      ] DeviceEffectiveViscosity.ResidentViscosityFollowsDeviceMuTAndIgnoresTheHostMirror
+[       OK ] DeviceEffectiveViscosity.ResidentViscosityFollowsDeviceMuTAndIgnoresTheHostMirror (11 ms)
+[----------] 7 tests from DeviceEffectiveViscosity (46 ms total)
+
+[----------] 5 tests from DeviceWallFaceViscosity
+[ RUN      ] DeviceWallFaceViscosity.NoOverrideReproducesTheHostAssemblyBitwise
+[       OK ] DeviceWallFaceViscosity.NoOverrideReproducesTheHostAssemblyBitwise (17 ms)
+[ RUN      ] DeviceWallFaceViscosity.OverrideReproducesTheHostAssemblyBitwise
+[       OK ] DeviceWallFaceViscosity.OverrideReproducesTheHostAssemblyBitwise (17 ms)
+[ RUN      ] DeviceWallFaceViscosity.WallValueDoesNotLeakToInteriorFaces
+[       OK ] DeviceWallFaceViscosity.WallValueDoesNotLeakToInteriorFaces (17 ms)
+[ RUN      ] DeviceWallFaceViscosity.TurningTheOverrideOffMeasurablyChangesMomentum
+[       OK ] DeviceWallFaceViscosity.TurningTheOverrideOffMeasurablyChangesMomentum (29 ms)
+[ RUN      ] DeviceWallFaceViscosity.ClearingTheOverrideRestoresTheLaminarAssemblyExactly
+[       OK ] DeviceWallFaceViscosity.ClearingTheOverrideRestoresTheLaminarAssemblyExactly (40 ms)
+[----------] 5 tests from DeviceWallFaceViscosity (126 ms total)
+
+[----------] Global test environment tear-down
+[==========] 60 tests from 8 test suites ran. (12796 ms total)
+[  PASSED  ] 60 tests.
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)

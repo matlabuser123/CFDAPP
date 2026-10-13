@@ -1,0 +1,50 @@
+P18.9 -- runtime noise from the ASan ctest run, classified then restored (CLAUDE.md §7, §50).
+date (WSL): 2026-10-02T16:59:27Z
+
+The ASan suite is a full ctest run, so it regenerates the same two tracked sets the P18.8
+regression did. Tracked modifications rose 126 -> 180, which is 50 + 4 exactly. Classified
+with the same instruments, then restored.
+
+files before restoring:
+  results/validation : 50
+  metadata.json      : 4
+
+=== results/validation -- P18.7's fail-closed classifier ===
+  distinct keys : 37
+  all keys are timing or iteratively-converged quantities (L36)  ok
+  wall_shear               0    ok
+  u_tau                    0    ok
+  y_plus                   0    ok
+  nusselt                  0    ok
+  reattachment             0    ok
+  cf_                      0    ok
+  pressure_coefficient     0    ok
+  mass_flow                0    ok
+  max_divergence           0    ok
+  mass_imbalance           0    ok
+  changed lines inspected : 1078
+  keys absent from the new file : 0  (a structural change, not drift)
+  max relative change, NON-TIMING : 3.513e-06
+    max ABSOLUTE change among them : 1.328e-08
+  max relative change, TIMING     : 3.588e+01  (expected, meaningless)
+restored.  modified before: 50   after: 0
+
+=== case metadata -- every changed key, then the must-not-move check ===
++    }, +  }, -  } build_identity continuity convection_scheme gpu_discretization_used gradient_scheme linear_solver_backend max_iterations non_orthogonal_corrections pressure tolerances velocity version 
+  numerical result fields (each must be 0):
+    final_residual     0
+    iterations         0
+    converged          0
+    nusselt            0
+    mass_imbalance     0
+    max_divergence     0
+    wall_shear         0
+    l2                 0
+    linf               0
+  changed lines inspected (positive control): 68
+  metadata restored -> 0 modified
+
+=== after restoring ===
+  results/validation modified : 0
+  tracked modifications       : 126
+  (the candidate freeze recorded 126)

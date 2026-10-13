@@ -1,0 +1,113 @@
+=== the repository's production source is UNTOUCHED
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  src/species/PremixedFlame.cpp
+  expected: fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  OK unchanged
+
+=== instrumented source + driver
+7cffbf3ea6c67df93de651872ac2bb0a1f5ae45427a7b452bbd501038420b728  /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/td003_instr/PremixedFlame_instrumented.cpp
+4d09b029eb2cd5ad3b03e68757209b7e91a45a202f29772270453725cd362f31  /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/td003_instr/driver.cpp
+
+=== library
+c127923f28acb0a2be5a4ca393a3300dbc1b6a7360ff95b3fd8ecfbc4ed2a050  build/release/src/libcfdcore.a
+
+=== compile
+compile rc=0
+
+=== run (the fixture takes roughly 700 s on this tree)
+2026-10-12T16:28:48+10:00
+TD-003 instrumented run -- the test fixture's own configuration
+  cells 500, domain 0.010 m, anchor 0.35, tolerance 1e-3,
+  maxOuterIterations 40, driftSettleTolerance 0.05, maximumStepsPerTrial 20000
+
+
+========== TD-003 PER-SOLVE INSTRUMENTATION ==========
+solves                      221049
+  accepted via converged()  221049
+  accepted via residual     0
+  NOT acceptable            0
+relative residual ||r||/||b||
+  max                       9.999987e-10
+  mean                      7.351215e-10
+||b||_2   min 2.388179e-05   max 4.025126e+04
+
+--- THE DECOMPOSITION (transport steps measured: 73683)
+  max_c |sum_i y_iterative - 1|     2.302203e-06   <- what the gate measures
+  max_c |sum_i y_EXACT - 1|         2.301527e-06   <- the RHS's own inconsistency
+  max_c |sum_i (y_iter - y_exact)|  2.396274e-08   <- the SOLVE's contribution
+  max |y_iter - y_exact| per species/cell  2.464101e-08
+  tridiagonal everywhere: yes
+  ||A^-1||_inf of the LAST assembled matrix  120000.010022
+
+--- THE CLOSURE TEST: does sum_i b_i equal A*1 ?
+  max |A_i - A_0| across species (all bands)  0.000000e+00
+  max_c |sum_i b_i - (A*1)_c|                 3.162982e-11   <- THE RAW DEFECT
+    at cell 0                                 1.177771e-11
+    at the last cell                          1.781599e-11
+    interior cells only                       3.162982e-11
+    interior cells with residual > 1e-14      36019193 of 500
+  max |A^-1 (sum_i b_i - A*1)|                2.301527e-06
+    must equal max_c |sum_i y_EXACT - 1| =    2.301527e-06
+  worst cell index                            115
+
+--- AMENDMENT A1: the DERIVED bound, evaluated at the WORST state
+  N_s 2   A 5   T = (N_s+3)(A-1)+N_s+2 = 24      (T from the source, not fitted)
+  at the worst step (44608 of 73683):
+    ||A||_inf      2.733828e-04
+    ||b||_inf      1.541582e-04
+    ||A^-1||_inf   1.200002e+05   (recomputed 2936 times)
+    N_s*||b||+||A|| 5.816993e-04
+  DERIVED BOUND  T*eps*||A^-1||*(N_s||b||+||A||) = 3.719907e-13
+  MEASURED       max_c |sum_i y_EXACT - 1|       = 2.301527e-06
+  D1 amended bound HOLDS: *** NO ***   (margin 0.00x)
+  D2 original 1e-8 still FAILS: YES
+  NV2 bound with ||A^-1|| replaced by 1 = 3.099917e-18 -> must FAIL: YES, it fails
+
+--- ATTRIBUTION: which assembler produces r?
+  max_c |r[c]| with ONLY that assembler enabled:
+    diffusion            6.776264e-21
+    closure correction   9.252641e-13   (as (diff+clos) - diff)
+    convection           0.000000e+00
+    transient            2.376432e-11
+    source (Su=Sp=0)     0.000000e+00   exact by construction
+    ------------------------------------
+    sum of parts         2.468958e-11
+    PRODUCTION r_total   2.405621e-11
+    sum/total            1.0263
+    READ: ~1 means ONE assembler is responsible and is named above.
+          <<1 means NO single assembler is -- r comes from the
+          ACCUMULATION ORDER, a different defect.
+
+--- FEEDBACK vs ROUND-OFF: the per-cell test
+  cells with both r and d nonzero   500 of 500
+  Pearson corr(r, d)                0.894703
+    FEEDBACK predicts |corr| -> 1; ROUND-OFF predicts ~0
+  sign agreement                    98.8 %  (round-off predicts ~50 %)
+  |r/d| range                       7.0636e-06 .. 2.5275e-04  (spread 35.8x)
+    FEEDBACK predicts a NARROW spread near 1/||A^-1|| = 8.3333e-06
+  sample cells (index, r, d, r/d):
+       0   3.664167e-13   2.004712e-09   1.827777e-04
+      42  -1.881403e-12  -3.970975e-08   4.737888e-05
+      84  -1.285381e-11  -2.995140e-07   4.291554e-05
+     126   8.425143e-12   2.675566e-07   3.148919e-05
+     168   2.260662e-11   1.329732e-06   1.700089e-05
+     210   1.360466e-11   1.636034e-06   8.315632e-06
+     252   1.904486e-11   2.293708e-06   8.303087e-06
+     294   1.871811e-11   2.251210e-06   8.314691e-06
+     336   1.824419e-11   2.194396e-06   8.313994e-06
+     378   1.867601e-11   2.263416e-06   8.251249e-06
+     420   1.769105e-11   2.159716e-06   8.191376e-06
+     462   1.707326e-11   2.056442e-06   8.302332e-06
+=====================================================
+
+--- the solver's own reported quantities
+  status                        0  (0 = Converged)
+  S_L                           4.955332 cm/s
+  maxCompositionSumDeviation    8.822866e-07   <- THE GATED QUANTITY (bound 1e-8)
+  minMassFraction               -1.889798e-11
+  worstLinearResidual           9.999987e-10   <- TD-003 records this as 'pinned at 1e-9'
+  peakTemperature               1799.998974 K
+  recentrings                   223
+  finalMarchSteps               15283
+  totalTimeSteps                73683
+run rc=0
+2026-10-12T17:06:52+10:00

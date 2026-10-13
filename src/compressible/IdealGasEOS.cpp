@@ -44,4 +44,30 @@ Real IdealGasEOS::dDensityDTemperature(Real pressure, Real temperature) const {
   return -pressure / (gasConstant_ * temperature * temperature);
 }
 
+Real IdealGasEOS::temperature(Real pressure, Real density) const {
+  // Same validation, same order, same messages as density() and pressure(). The third
+  // direction has no reason to be laxer than the two it completes.
+  requirePositiveFinite(pressure, "pressure");
+  requirePositiveFinite(density, "density");
+  const Real T = pressure / (density * gasConstant_);
+  // Checked rather than assumed: rho and R can each be finite and positive while their
+  // product underflows to zero, making the quotient infinite -- the mirror of the
+  // overflow case pressure() guards.
+  requirePositiveFinite(T, "temperature");
+  return T;
+}
+
+Real IdealGasEOS::pressure(Real density, Real temperature) const {
+  // Same validation, same order, same messages as density() -- the inverse has no
+  // reason to be laxer than the forward direction, and a caller that has learned
+  // what density() rejects should not have to learn a second set of rules.
+  requirePositiveFinite(density, "density");
+  requirePositiveFinite(temperature, "temperature");
+  const Real p = density * gasConstant_ * temperature;
+  // Checked rather than assumed: rho and T can each be finite and positive while
+  // their product overflows to inf.
+  requirePositiveFinite(p, "pressure");
+  return p;
+}
+
 }  // namespace cfd::compressible

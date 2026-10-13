@@ -96,7 +96,11 @@ namespace cfd::pressure_velocity {
         cfd::discretization::GradientScheme::GreenGauss,
     bool applyNonOrthogonalCorrection = false,
     const cfd::fields::VectorField* nonOrthogonalCorrectionVelocity = nullptr,
-    const cfd::fields::VectorField* momentumSource = nullptr);
+    const cfd::fields::VectorField* momentumSource = nullptr,
+    // P16: per-FACE wall viscosity from a turbulence model's wall treatment,
+    // passed straight through to assembleDiffusionContribution. nullptr (the
+    // default) is bitwise the pre-P16 assembly.
+    const cfd::fields::SurfaceField* wallViscosity = nullptr);
 
 // P12-NUM-003 -- the ONE implementation of the explicit non-orthogonal
 // correction loop for the momentum predictor (SIMPLE calls it; nothing

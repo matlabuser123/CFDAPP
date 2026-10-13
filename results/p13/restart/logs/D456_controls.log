@@ -1,0 +1,21 @@
+P13-001 group D controls 4/5/6 -- each disables one production check
+date: 2026-09-21T10:22:55Z
+originals:
+  cd40c872417363fcb388734392edfc469d34e94193019990facf640d13a07860  src/pressure_velocity/SIMPLECheckpoint.cpp
+  52beee0a7b11eb550e223bf60d0a9d09206e92f7a9fed9d7bf2b847dbf5dd72d  src/io/CheckpointReader.cpp
+
+--- D4: the mesh-fingerprint comparison is disabled ---
+  DETECTED -- 'C6' now fails, so that row is guarded by this check
+      FAIL C6 different mesh, same counts -- did not throw
+--- D5: the case-fingerprint comparison is disabled ---
+  DETECTED -- 'C9' now fails, so that row is guarded by this check
+      FAIL C9 different case configuration -- did not throw
+--- D6: the pressure finiteness check is disabled ---
+  DETECTED -- RejectsInconsistentOrNonFiniteContent now fails
+
+--- restored ---
+  cd40c872417363fcb388734392edfc469d34e94193019990facf640d13a07860  src/pressure_velocity/SIMPLECheckpoint.cpp  IDENTICAL
+  52beee0a7b11eb550e223bf60d0a9d09206e92f7a9fed9d7bf2b847dbf5dd72d  src/io/CheckpointReader.cpp  IDENTICAL
+  A/C/E passes again: yes
+
+D4/D5/D6: ALL DETECTED

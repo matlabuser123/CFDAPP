@@ -1,4 +1,10 @@
 #include "cfd/io/CaseBuilder.hpp"
+#include "cfd/species/ArrheniusKinetics.hpp"
+#include "cfd/species/HeatRelease.hpp"
+#include "cfd/species/MassFractionState.hpp"
+#include "cfd/species/MixtureThermodynamics.hpp"
+#include "cfd/species/ReactionMechanism.hpp"
+#include "cfd/thermal/Enthalpy.hpp"
 
 #include <cmath>
 #include <memory>
@@ -20,6 +26,7 @@
 #include "cfd/discretization/Gradient.hpp"
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/mesh/MeshQuality.hpp"
+#include "cfd/thermal/TemperatureDependentProperty.hpp"
 
 namespace cfd::io {
 
@@ -43,6 +50,11 @@ using cfd::multiphase::TwoPhaseSystem;
 using cfd::physics::FluidProperties;
 using cfd::pressure_velocity::SIMPLESettings;
 using cfd::species::SpeciesProperties;
+
+// G8: the sensible-enthalpy reference temperature for a reacting mixture, 298.15 K -- the
+// temperature thermochemical formation enthalpies are tabulated at, so h_f and the sensible
+// integral share one reference and the energy accounting P18.6 froze stays consistent.
+constexpr Real kReactingReferenceTemperature = 298.15;
 using cfd::thermal::ThermalProperties;
 using cfd::turbulence::KEpsilonConfig;
 using cfd::turbulence::KOmegaConfig;
@@ -131,8 +143,18 @@ std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildTemperatureBoundary
 // runs, so this default path is unreachable in practice, not a silently
 // accepted new case.
 std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildTurbulenceKBoundary(
-    const VelocityBoundarySpec& velocitySpec, Real inletK) {
+    const VelocityBoundarySpec& velocitySpec, Real inletK, bool wallFunctions) {
   if (velocitySpec.type == "wall" || velocitySpec.type == "moving_wall") {
+    // P16: with a wall function, k is ZERO-GRADIENT at the wall and epsilon is
+    // the imposed quantity. Imposing k = 0 as well over-constrains the wall
+    // cell -- the standard Launder-Spalding arrangement fixes epsilon and lets
+    // k respond to the modified production.
+    //
+    // Without wall functions this stays the pre-P16 k = 0, so every existing
+    // case is unchanged.
+    if (wallFunctions) {
+      return std::make_unique<FixedGradient>(0.0);
+    }
     return std::make_unique<FixedValue>(0.0);
   }
   if (velocitySpec.type == "inlet") {
@@ -194,9 +216,20 @@ std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildTurbulenceOmegaBoun
 // cannot share one builder despite both populating "omegaBoundaries".
 // inlet/outlet/symmetry treatment is otherwise identical to k-omega's.
 std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildTurbulenceOmegaBoundarySST(
-    const VelocityBoundarySpec& velocitySpec, Real inletOmega, Real kinematicViscosity,
-    Real beta1) {
+    const VelocityBoundarySpec& velocitySpec, Real inletOmega, Real kinematicViscosity, Real beta1,
+    bool wallFunctions) {
   if (velocitySpec.type == "wall" || velocitySpec.type == "moving_wall") {
+    // P16: with a wall function, omega is IMPOSED in the wall CELL. Keeping
+    // WallOmega on the wall FACE would impose a second, different value for
+    // the same physics -- WallOmega is 60 nu/(beta1 y^2), Wilcox's viscous-
+    // sublayer asymptotic, while the wall function's omega is the log-layer
+    // equilibrium u_tau*/(sqrt(C_mu) kappa y_P). They disagree by orders of
+    // magnitude at log-layer spacing, which is exactly the point.
+    //
+    // WallOmega remains the low-Re path, unchanged, for wallFunctions = false.
+    if (wallFunctions) {
+      return std::make_unique<FixedGradient>(0.0);
+    }
     return std::make_unique<WallOmega>(kinematicViscosity, beta1);
   }
   if (velocitySpec.type == "inlet") {
@@ -216,11 +249,21 @@ std::unique_ptr<cfd::boundary::ScalarBoundaryCondition> buildTurbulenceOmegaBoun
 // small for this task (relaxation is still independently configurable
 // via "k_relaxation"/"epsilon_relaxation", since that is a turbulence-
 // specific stability concern the momentum solve has no equivalent of).
+// P16: absent means off, which is the pre-P16 behaviour.
+bool turbulenceWallFunctionsEnabled(const std::optional<TurbulencePhysicsConfig>& turbulence) {
+  return turbulence.has_value() && turbulence->wallFunctions.value_or(false);
+}
+
 KEpsilonConfig buildKEpsilonConfig(const TurbulencePhysicsConfig& turbulence,
                                    const SolverConfig& solver) {
   KEpsilonConfig config;
   config.initialK = turbulence.initialK;
   config.initialEpsilon = *turbulence.initialEpsilon;
+  // P16. The wall function forms u_tau* = C_mu^(1/4) sqrt(k) from the SAME
+  // C_mu the model uses for mu_t; KEpsilonModel refuses a mismatch, so they
+  // are tied together here rather than left to agree by luck.
+  config.wallFunctions = turbulence.wallFunctions.value_or(false);
+  config.wallFunctionCoefficients.cMu = config.coefficients.cMu;
   config.kRelaxation = turbulence.kRelaxation.value_or(config.kRelaxation);
   config.epsilonRelaxation = turbulence.epsilonRelaxation.value_or(config.epsilonRelaxation);
   config.kSolver.absoluteTolerance = solver.momentumSolver.absoluteTolerance;
@@ -258,6 +301,22 @@ KOmegaConfig buildKOmegaConfig(const TurbulencePhysicsConfig& turbulence,
 SSTConfig buildSSTConfig(const TurbulencePhysicsConfig& turbulence, const SolverConfig& solver) {
   SSTConfig config;
   config.initialK = turbulence.initialK;
+  // P16: tied to beta*, the constant SST uses where k-epsilon uses C_mu.
+  // SSTModel refuses a mismatch.
+  config.wallFunctions = turbulence.wallFunctions.value_or(false);
+  config.wallFunctionCoefficients.cMu = config.coefficients.betaStar;
+  // P16b. The parser has already rejected "automatic" on any other model
+  // and any wall_treatment without wall_functions, so this is a straight
+  // mapping with no silent fallback: an unrecognised string cannot reach
+  // here.
+  const std::string wallTreatment = turbulence.wallTreatment.value_or("high_re");
+  if (wallTreatment == "automatic") {
+    config.wallTreatmentMode = cfd::turbulence::WallTreatmentMode::Automatic;
+  } else if (wallTreatment == "automatic_spalding") {
+    config.wallTreatmentMode = cfd::turbulence::WallTreatmentMode::AutomaticSpalding;
+  } else if (wallTreatment == "automatic_momentum_flux") {
+    config.wallTreatmentMode = cfd::turbulence::WallTreatmentMode::AutomaticMomentumFlux;
+  }
   config.initialOmega = *turbulence.initialOmega;
   config.kRelaxation = turbulence.kRelaxation.value_or(config.kRelaxation);
   config.omegaRelaxation = turbulence.omegaRelaxation.value_or(config.omegaRelaxation);
@@ -452,8 +511,16 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
         detail += "\n  " + cfd::mesh::formatMeshQualityIssue(issue);
       }
     }
+    // P13-002: this rejection drives UI state. apps/gui's validateDraft used
+    // to detect it with message.contains("mesh is invalid") -- a panel's
+    // status decided by searching prose for a phrase, with no test of the
+    // coupling. The diagnostic gives the same signal as data: field "quality"
+    // on mesh.json is unambiguous and survives any rewording of the text.
+    // The message itself is unchanged.
     throw CaseConfigurationError("mesh.json: the " + definition.mesh.type + " mesh is invalid (" +
-                                 meshQuality.summaryLine() + "):" + detail);
+                                     meshQuality.summaryLine() + "):" + detail,
+                                 cfd::CaseDiagnostic{"mesh.json", "quality", "produce a valid mesh",
+                                                     meshQuality.summaryLine()});
   }
   FluidProperties fluid(definition.physics.density, definition.physics.dynamicViscosity);
 
@@ -475,13 +542,46 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
   // requires "temperature" precisely iff thermalEnabled was passed in as
   // definition.physics.thermal.has_value()), so .value() below cannot
   // throw std::bad_optional_access because of that guarantee.
+  // P16: whether this case asked for k-epsilon wall functions. Derived once,
+  // before the per-patch loop, because both the k wall condition and the model
+  // config have to agree about it.
+  const bool kEpsilonWallFunctions = turbulenceWallFunctionsEnabled(definition.physics.turbulence);
+  const bool sstWallFunctions = kEpsilonWallFunctions;
   const bool thermalEnabled = definition.physics.thermal.has_value();
   std::optional<ThermalProperties> thermal;
   std::optional<BoundaryConditionSet> temperatureBoundaries;
+  std::shared_ptr<const cfd::physics::TemperatureProperty> conductivityModel;
+  std::shared_ptr<const cfd::physics::TemperatureProperty> specificHeatModel;
   if (thermalEnabled) {
     thermal.emplace(definition.physics.thermal->conductivity,
                     definition.physics.thermal->specificHeat);
     temperatureBoundaries.emplace();
+    // P15: a property given as an object is a MODEL, and dropping it here
+    // would leave the case claiming a capability the solve does not deliver
+    // -- ProjectRunner selects the variable-property solve on exactly these
+    // two being present. A property given as a number produces no model, and
+    // that path is unchanged: `thermal` above already holds its value.
+    //
+    // TemperatureDependentProperty re-validates the coefficients and the
+    // range at construction and throws InvalidArgumentError naming the
+    // property; converted here to the case-facing error type, which is the
+    // second of the two validation layers this file's header describes (the
+    // parser checked structure, this checks the physics).
+    const auto buildModel =
+        [&](const std::optional<cfd::io::TemperaturePolynomialConfig>& config,
+            const char* propertyName) -> std::shared_ptr<const cfd::physics::TemperatureProperty> {
+      if (!config.has_value()) return nullptr;
+      try {
+        return std::make_shared<const cfd::thermal::TemperatureDependentProperty>(
+            config->coefficients, config->minimumTemperature, config->maximumTemperature,
+            propertyName);
+      } catch (const InvalidArgumentError& error) {
+        throw CaseConfigurationError(std::string("physics.json thermal.") + propertyName + ": " +
+                                     error.what());
+      }
+    };
+    conductivityModel = buildModel(definition.physics.thermal->conductivityModel, "conductivity");
+    specificHeatModel = buildModel(definition.physics.thermal->specificHeatModel, "specific_heat");
   }
 
   // P6-PHYS-001: built alongside thermal above -- one SpeciesSetup per
@@ -504,6 +604,129 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
         .initialConcentration =
             cfd::fields::ScalarField(mesh.numberOfCells(), speciesConfig.initialConcentration),
         .concentrationBoundaries = BoundaryConditionSet{}});
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // G8: the REACTING mixture, built from physics.json's "reacting" block.
+  //
+  // Every object here already exists and is qualified -- P18.1's MassFractionState, P18.3's
+  // MixtureThermodynamics, P18.4's ReactionMechanism, P18.5's ReactionKinetics, P18.6's
+  // FormationEnthalpies. What did not exist was any path from a case file to them. This is it.
+  //
+  // THE ORDER IS FORCED BY THE DEPENDENCIES and is not a style choice: the registry is the
+  // authority for species identity, the mixture needs the registry, the formation enthalpies need
+  // the mixture's molecular weights, the mechanism canonicalises against the registry, and the
+  // kinetics bind to the mechanism BY NAME. Each constructor validates its own inputs, so a bad
+  // case file is refused by the layer that owns the invariant rather than by a check here.
+  // ---------------------------------------------------------------------------------------
+  std::optional<ReactingSetup> reactingSetup;
+  if (definition.physics.reacting.has_value()) {
+    const cfd::io::ReactingPhysicsConfig& config = *definition.physics.reacting;
+
+    std::vector<std::string> names;
+    names.reserve(config.species.size());
+    for (const cfd::io::ReactingSpeciesConfig& species : config.species) {
+      names.push_back(species.name);
+    }
+    cfd::species::SpeciesRegistry registry(names);
+
+    std::vector<cfd::species::SpeciesThermodynamics> thermodynamics;
+    thermodynamics.reserve(config.species.size());
+    std::vector<Real> molarFormation;
+    molarFormation.reserve(config.species.size());
+    std::vector<cfd::species::SpeciesProperties> transport;
+    transport.reserve(config.species.size());
+    std::vector<Real> uniformComposition;
+    uniformComposition.reserve(config.species.size());
+
+    for (const cfd::io::ReactingSpeciesConfig& species : config.species) {
+      thermodynamics.push_back(cfd::species::SpeciesThermodynamics(
+          species.molecularWeight,
+          cfd::thermal::SensibleEnthalpy(cfd::thermal::TemperatureDependentProperty::constant(
+                                             species.specificHeat, "cp_" + species.name),
+                                         kReactingReferenceTemperature, 0.0)));
+      // physics.json carries h_f per MASS [J/kg]; FormationEnthalpies::fromMolar wants MOLAR
+      // [J/mol], which is the form thermochemical tables publish. hbar = M * h.
+      molarFormation.push_back(species.formationEnthalpy * species.molecularWeight);
+      transport.push_back(cfd::species::SpeciesProperties(species.name, species.diffusivity));
+      uniformComposition.push_back(species.initialMassFraction);
+    }
+
+    cfd::species::MixtureThermodynamics mixture(registry, std::move(thermodynamics));
+    cfd::species::FormationEnthalpies formation =
+        cfd::species::FormationEnthalpies::fromMolar(mixture, molarFormation);
+
+    std::vector<cfd::species::Reaction> reactions;
+    reactions.reserve(config.reactions.size());
+    std::vector<cfd::species::ReactionRateParameters> rateParameters;
+    rateParameters.reserve(config.reactions.size());
+
+    for (const cfd::io::ReactingReactionConfig& reaction : config.reactions) {
+      std::vector<cfd::species::ReactionTerm> reactants;
+      reactants.reserve(reaction.reactants.size());
+      for (const cfd::io::ReactionTermConfig& term : reaction.reactants) {
+        reactants.push_back(cfd::species::ReactionTerm{term.species, term.coefficient});
+      }
+      std::vector<cfd::species::ReactionTerm> products;
+      products.reserve(reaction.products.size());
+      for (const cfd::io::ReactionTermConfig& term : reaction.products) {
+        products.push_back(cfd::species::ReactionTerm{term.species, term.coefficient});
+      }
+      // The ORDERS travel as ReactionTerm too -- same shape, different meaning. Empty means mass
+      // action, which is what Reaction's constructor defaults to.
+      std::vector<cfd::species::ReactionTerm> orders;
+      orders.reserve(reaction.orders.size());
+      for (const cfd::io::ReactionOrderConfig& order : reaction.orders) {
+        orders.push_back(cfd::species::ReactionTerm{order.species, order.order});
+      }
+
+      reactions.push_back(cfd::species::Reaction(
+          reaction.name, registry, reactants, products,
+          reaction.reversible ? cfd::species::ReactionDirection::Reversible
+                              : cfd::species::ReactionDirection::Irreversible,
+          orders));
+
+      // Brace-initialised in one expression: ReactionRateParameters has no default constructor
+      // because ArrheniusParameters has none -- A, n and Ea are not defaultable.
+      //
+      // A reversible reaction REQUIRES reverse parameters and an irreversible one FORBIDS them
+      // (ReactionKinetics' own rule). The case schema carries one Arrhenius set per reaction, so a
+      // reversible reaction declared here is refused by ReactionKinetics -- deliberately, rather
+      // than silently reusing the forward parameters for the reverse direction.
+      rateParameters.push_back(cfd::species::ReactionRateParameters{
+          reaction.name,
+          cfd::species::ArrheniusParameters(reaction.preExponential, reaction.temperatureExponent,
+                                            reaction.activationEnergy),
+          std::nullopt});
+    }
+
+    cfd::species::ReactionMechanism mechanism(registry, std::move(reactions), mixture);
+    cfd::species::ReactionKinetics kinetics(mechanism, std::move(rateParameters));
+
+    // MassFractionState VALIDATES: bounds and sum-to-one, refusing rather than normalising. The
+    // parser already checked the declared set sums to 1, so this is the second of the two
+    // independent layers -- and it is the one that owns the invariant.
+    cfd::species::MassFractionState initialComposition(registry, mesh.numberOfCells(),
+                                                       uniformComposition);
+
+    reactingSetup = ReactingSetup{
+        .registry = registry,
+        .mixture = std::move(mixture),
+        .formation = std::move(formation),
+        .mechanism = std::move(mechanism),
+        .kinetics = std::move(kinetics),
+        .initialComposition = std::move(initialComposition),
+        .transport = std::move(transport),
+        .initialTemperature =
+            cfd::fields::ScalarField(mesh.numberOfCells(), config.initialTemperature),
+        .timeStep = config.timeStep,
+        .steps = config.steps,
+        // TD-001: one set per species, filled in the per-patch loop below, same two-step
+        // construction the passive `speciesSetups` already uses (declared empty here because the
+        // patch loop needs the mesh's patch names).
+        .compositionBoundaries =
+            std::vector<cfd::boundary::BoundaryConditionSet>(config.species.size()),
+    };
   }
 
   // P6-PHYS-002: built alongside species above -- system/initialAlpha
@@ -562,32 +785,52 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
           mesh, patch.name(),
           buildConcentrationBoundary(patchConfig.concentration.at(speciesSetup.properties.name())));
     }
+    // TD-001: the reacting path's per-species sets, built from the SAME per-patch "species" map and
+    // the SAME buildConcentrationBoundary as the passive path above -- a mass fraction and a tracer
+    // concentration are both a scalar with a fixed value or a fixed gradient, so reusing the
+    // builder is correct rather than merely convenient. Indexed by species order, matching
+    // ReactingSetup::compositionBoundaries' own contract.
+    if (reactingSetup.has_value()) {
+      const auto& reactingConfig = *definition.physics.reacting;
+      for (std::size_t i = 0; i < reactingConfig.species.size(); ++i) {
+        reactingSetup->compositionBoundaries[i].set(
+            mesh, patch.name(),
+            buildConcentrationBoundary(
+                patchConfig.concentration.at(reactingConfig.species[i].name)));
+      }
+    }
     if (multiphaseEnabled) {
       alphaBoundaries->set(mesh, patch.name(), buildAlphaBoundary(patchConfig.alpha.value()));
     }
     if (kEpsilonEnabled) {
       kBoundaries->set(
           mesh, patch.name(),
-          buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK));
+          buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK,
+                                   kEpsilonWallFunctions));
       epsilonBoundaries->set(
           mesh, patch.name(),
           buildTurbulenceEpsilonBoundary(patchConfig.velocity,
                                          *definition.physics.turbulence->initialEpsilon));
     } else if (kOmegaEnabled) {
+      // k-omega and SST keep the pre-P16 wall k: their near-wall treatment is
+      // their own and is deliberately untouched by P16's k-epsilon step.
       kBoundaries->set(
           mesh, patch.name(),
-          buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK));
+          buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK,
+                                   /*wallFunctions=*/false));
       omegaBoundaries->set(mesh, patch.name(),
                            buildTurbulenceOmegaBoundary(
                                patchConfig.velocity, *definition.physics.turbulence->initialOmega));
     } else if (sstEnabled) {
       kBoundaries->set(
           mesh, patch.name(),
-          buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK));
-      omegaBoundaries->set(mesh, patch.name(),
-                           buildTurbulenceOmegaBoundarySST(
-                               patchConfig.velocity, *definition.physics.turbulence->initialOmega,
-                               fluid.kinematicViscosity(), SSTConfig{}.coefficients.beta1));
+          buildTurbulenceKBoundary(patchConfig.velocity, definition.physics.turbulence->initialK,
+                                   sstWallFunctions));
+      omegaBoundaries->set(
+          mesh, patch.name(),
+          buildTurbulenceOmegaBoundarySST(
+              patchConfig.velocity, *definition.physics.turbulence->initialOmega,
+              fluid.kinematicViscosity(), SSTConfig{}.coefficients.beta1, sstWallFunctions));
     }
   }
 
@@ -610,6 +853,8 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                         .thermal = std::nullopt,
                         .temperatureBoundaries = std::nullopt,
                         .initialTemperature = std::nullopt,
+                        .conductivityModel = nullptr,
+                        .specificHeatModel = nullptr,
                         .buoyancy = std::nullopt,
                         .kEpsilonConfig = std::nullopt,
                         .kOmegaConfig = std::nullopt,
@@ -623,6 +868,8 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
                         .meshQuality = std::move(meshQuality)};
   if (thermalEnabled) {
     setup.thermal = thermal;
+    setup.conductivityModel = std::move(conductivityModel);
+    setup.specificHeatModel = std::move(specificHeatModel);
     setup.temperatureBoundaries = std::move(temperatureBoundaries);
     setup.initialTemperature =
         cfd::fields::ScalarField(numberOfCells, definition.physics.thermal->initialTemperature);
@@ -633,6 +880,10 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
   // SimulationSetup.hpp's own header comment on SpeciesSetup), so there is
   // no separate empty/non-empty branch needed here.
   setup.species = std::move(speciesSetups);
+
+  // G8: the reacting mixture, handed over at the same point and for the same reason as species
+  // above -- `setup` is constructed below the builders, so each block builds a local first.
+  setup.reacting = std::move(reactingSetup);
   // P3-PHYS-001: "buoyancy" requires "thermal" (PhysicsConfigParser.cpp's
   // own cross-block check), so thermalEnabled is always true whenever
   // this is -- referenceDensity comes from the same single-sourced
@@ -664,6 +915,18 @@ SimulationSetup CaseBuilder::build(const CaseDefinition& definition) const {
     setup.sstConfig->nonOrthogonal = turbulenceNonOrthogonal;
     setup.kBoundaries = std::move(kBoundaries);
     setup.omegaBoundaries = std::move(omegaBoundaries);
+  }
+
+  // P16: resolve Pr_t exactly once, and only when a model exists to supply
+  // mu_t. The parser has already rejected a non-positive value and refused the
+  // key outright on a laminar case, so this is a straight resolution with no
+  // silent fallback: an explicitly-given bad value never reaches here.
+  //
+  // A laminar case leaves this empty, which is what prevents the thermal path
+  // manufacturing a turbulent conductivity for a flow that has no turbulence.
+  if (kEpsilonEnabled || kOmegaEnabled || sstEnabled) {
+    setup.turbulentPrandtl = definition.physics.turbulence->turbulentPrandtl.value_or(
+        cfd::turbulence::kDefaultTurbulentPrandtl);
   }
   if (multiphaseEnabled) {
     setup.multiphase =

@@ -1,0 +1,99 @@
+P13 G8 -- production benchmarks, measurement half
+date: 2026-09-24T21:45:55Z
+
+### Step 10 (before) -- inventory of the TRACKED evidence that must not move ###
+  tracked files in results/performance + benchmarks: 46
+  recorded: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p13/final-qualification/2026-09-24/g8-benchmarks/data/immutable_before.sha256
+  NOTE: parts of results/ ARE tracked -- benchmarks/results.csv and 45 others.
+  The 5 file-writing benchmarks default to results/performance/{baseline,
+  openmp_scaling,cuda_end_to_end,preconditioner,large_grid_stress}, which is
+  exactly what O2 protects.
+
+### Step 7 -- the frozen threshold, unchanged ###
+  frozen value (acceptance_gate.md + amendment A1): 1.25x
+    135:        "--threshold",
+    136-        type=float,
+    137:        default=1.25,
+    138-        help="fail when current / baseline exceeds this (default 1.25, ~3x measured noise)",
+    139-    )
+  A1 did NOT raise it: the load guard controls the variable instead.
+
+### Step 6 (a) -- machine state, and the guard's own arithmetic ###
+  cores=32  loadavg(1m)=0.00  guard limit (25% of cores)=8.00
+  machine is QUIET -- the driver should proceed
+
+### Step 8 -- the ctest benchmark smoke entry, BY NAME ###
+    build/final: CFDAppBenchmarkSuiteSmoke registered = 1
+    build/debug: CFDAppBenchmarkSuiteSmoke registered = 1
+    build/cpuonly: CFDAppBenchmarkSuiteSmoke registered = 1
+  === run it in build/final ===
+  1/1 Test #2348: CFDAppBenchmarkSuiteSmoke ........   Passed   26.44 sec
+  
+  100% tests passed, 0 tests failed out of 1
+  
+  Label Time Summary:
+  integration    =  26.44 sec*proc (1 test)
+  
+  Total Test time (real) =  26.88 sec
+
+### Step 2/3 -- the suite driver, into this gate's directory ###
+  driver exit status: 1   (0 required)
+  per-benchmark result, as the driver reported it:
+      memory  : 31Gi
+      compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+      cfdapp  : CFDApp 0.2.0-dev
+      nvidia  : NVIDIA RTX 5000 Ada Generation Laptop GPU, 580.97
+      loadavg : 7.63 7.81 3.91 1/521 2920
+      loaded  : no
+    
+      cfd_benchmark_cpu: ok (24 s)
+      cfd_benchmark_cuda_end_to_end: MISSING (build/final/benchmarks/gpu/cfd_benchmark_cuda_end_to_end) -- not built in this configuration
+      cfd_benchmark_gpu_preconditioner: MISSING (build/final/benchmarks/gpu/cfd_benchmark_gpu_preconditioner) -- not built in this configuration
+    
+    SUITE FAILED: 2 benchmark(s) did not run successfully.
+  files the driver produced:
+    benchmark_20x20.json
+    benchmark_40x40.json
+    benchmark_80x80.json
+    cfd_benchmark_cpu.log
+    environment.json
+    suite_environment.txt
+  environment captured alongside (criterion S2, incl. A1's load keys):
+    captured: 2026-09-24T21:53:47Z
+    host    : Linux 6.18.33.2-microsoft-standard-WSL2 x86_64
+    cpu     : Intel(R) Core(TM) i9-14900HX
+    cores   : 32
+    memory  : 31Gi
+    compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+    cfdapp  : CFDApp 0.2.0-dev
+    nvidia  : NVIDIA RTX 5000 Ada Generation Laptop GPU, 580.97
+    loadavg : 7.63 7.81 3.91 1/521 2920
+    loaded  : no
+
+### Step 4 -- the comparator on genuine output: current vs the committed baseline ###
+  comparator exit status: 0   (0 required)
+    threshold: 1.25x   (measured worst-case run-to-run spread on an admitted metric: 7.9%)
+    
+      benchmark_20x20        runtime_per_iteration_ms   baseline     1.9442  current     1.6990   0.87x  ok
+      benchmark_40x40        runtime_per_iteration_ms   baseline     9.0337  current     7.7808   0.86x  ok
+      benchmark_80x80        runtime_per_iteration_ms   baseline    38.1676  current    31.3759   0.82x  ok
+    
+    
+    PASS: 3 metrics compared, none above 1.25x
+
+### Step 10 (after) -- the tracked evidence must be byte-identical ###
+  tracked evidence changed files = 0
+0   (0 required)
+  all 46 tracked files byte-identical
+
+### Step 11 -- filesystem hygiene ###
+  benchmark CSV/JSON in the repository root:
+    none
+  did anything land in the benchmarks' DEFAULT dirs during this run?
+    results/performance/baseline             files modified in the last 20 min: 0
+    results/performance/openmp_scaling       files modified in the last 20 min: 0
+    results/performance/cuda_end_to_end      files modified in the last 20 min: 0
+    results/performance/preconditioner       files modified in the last 20 min: 0
+    results/performance/large_grid_stress    files modified in the last 20 min: 0
+
+done: 2026-09-24T21:54:13Z

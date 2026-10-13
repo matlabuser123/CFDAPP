@@ -1,0 +1,86 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DensityBasedGpu*
+[==========] Running 17 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 15 tests from DensityBasedGpuEquivalence
+[ RUN      ] DensityBasedGpuEquivalence.A7_DeviceRecoveryMatchesProductionToPrimitiveBitwise
+  A7 recovery: 1736 values compared, 0 differing
+[       OK ] DensityBasedGpuEquivalence.A7_DeviceRecoveryMatchesProductionToPrimitiveBitwise (2043 ms)
+[ RUN      ] DensityBasedGpuEquivalence.B1_FaceFluxesAreBitwise
+  B1 face flux: 472 faces x 5 components, 0 differing
+[       OK ] DensityBasedGpuEquivalence.B1_FaceFluxesAreBitwise (1 ms)
+[ RUN      ] DensityBasedGpuEquivalence.B2_B4_ResidualIsBitwiseOnUniformAndGradedMeshes
+  B2 uniform_2d     cells=217 volumeRatio=1.000 compared=1085 differing=0
+  B2 graded_2d      cells=102 volumeRatio=6849.147 compared=510 differing=0
+  B2 cartesian_3d   cells=180 volumeRatio=1.000 compared=900 differing=0
+[       OK ] DensityBasedGpuEquivalence.B2_B4_ResidualIsBitwiseOnUniformAndGradedMeshes (4 ms)
+[ RUN      ] DensityBasedGpuEquivalence.C1_C2_LocalAndGlobalTimeStepsAreBitwise
+  C1/C2: 102 local dt bitwise; global dt cpu=5.55587098248344881e-08 gpu=5.55587098248344881e-08
+[       OK ] DensityBasedGpuEquivalence.C1_C2_LocalAndGlobalTimeStepsAreBitwise (1 ms)
+[ RUN      ] DensityBasedGpuEquivalence.C3_D1_D2_TrajectoryStaysBitwiseStepAfterStep
+  D1 step   1: compared=1025 differing=0 dt=3.38038832493589418e-06
+  D1 step   2: compared=1025 differing=0 dt=3.39237437508229838e-06
+  D1 step   5: compared=1025 differing=0 dt=3.40273577357818650e-06
+  D1 step  10: compared=1025 differing=0 dt=3.41482663654204133e-06
+  D1 step  25: compared=1025 differing=0 dt=3.44106118050838639e-06
+  D1 step  50: compared=1025 differing=0 dt=3.47554142476449206e-06
+  D2: no divergence through 50 steps
+[       OK ] DensityBasedGpuEquivalence.C3_D1_D2_TrajectoryStaysBitwiseStepAfterStep (22 ms)
+[ RUN      ] DensityBasedGpuEquivalence.D3_SodShockTubeIsBitwiseThroughTheWholeRun
+  D3 Sod: 500 steps, 3000 values bitwise, 101 cells at an intermediate state, max centreline jump 0.0233
+[       OK ] DensityBasedGpuEquivalence.D3_SodShockTubeIsBitwiseThroughTheWholeRun (264 ms)
+[ RUN      ] DensityBasedGpuEquivalence.B5_InteriorFaceContributionsCancelExactlyInTheGather
+  B5: 510 values rebuilt from the device face fluxes, 0 differing; 362 interior cell-face references
+[       OK ] DensityBasedGpuEquivalence.B5_InteriorFaceContributionsCancelExactlyInTheGather (2 ms)
+[ RUN      ] DensityBasedGpuEquivalence.C4_InadmissibleStatesAreRefusedByBothNamingTheSameCell
+  C4 kinetic_exceeds_total  cpu cell=9  gpu first=9 of 2 offenders  status=5
+  C4 non_positive_density   cpu cell=9  gpu first=9 of 2 offenders  status=2
+  C4 non_finite_energy      cpu cell=9  gpu first=9 of 2 offenders  status=4
+[       OK ] DensityBasedGpuEquivalence.C4_InadmissibleStatesAreRefusedByBothNamingTheSameCell (4 ms)
+[ RUN      ] DensityBasedGpuEquivalence.D4_DetectedWavePositionsAgreeOnBothBackends
+  D4 profile: n=200  rho in [0.12500, 1.00000]  max adjacent jump 0.02330
+  D4 sample: 1.0000 1.0000 1.0000 0.9697 0.7062 0.4319 0.4038 0.2655 0.1251 0.1250
+  D4: shock cpu=0.7649115536763863 gpu=0.7649115536763863 bitwise=YES, transition width cpu=7 gpu=7, 200 centreline cells
+[       OK ] DensityBasedGpuEquivalence.D4_DetectedWavePositionsAgreeOnBothBackends (259 ms)
+[ RUN      ] DensityBasedGpuEquivalence.R2_R5_GpuIsBitwiseRepeatableAndBlockSizeIndependent
+  R2/R5: 30 steps; repeat bitwise=YES; 64 vs 128 threads bitwise=YES
+[       OK ] DensityBasedGpuEquivalence.R2_R5_GpuIsBitwiseRepeatableAndBlockSizeIndependent (42 ms)
+[ RUN      ] DensityBasedGpuEquivalence.T2_TheUploadDownloadPairIsExactlyInverse
+  T2: 460 values round-tripped unchanged
+[       OK ] DensityBasedGpuEquivalence.T2_TheUploadDownloadPairIsExactlyInverse (1 ms)
+[ RUN      ] DensityBasedGpuEquivalence.T1_AResidentRunDoesNotRoundTripTheStatePerStep
+  T1: 20 steps, 180 kernel launches, H2D=0, D2H=40 (a per-step state round trip would be 100 D2H), resident bytes=50488
+[       OK ] DensityBasedGpuEquivalence.T1_AResidentRunDoesNotRoundTripTheStatePerStep (8 ms)
+[ RUN      ] DensityBasedGpuEquivalence.V_NegativeControls_EachBreaksItsNamedCriterion
+  production (all controls off) 0 of 1085 residual values differ
+  V1 HLL instead of HLLC       868 of 1085 residual values differ
+  V3 reversed gather order     821 of 1085 residual values differ
+  V4 neighbour's own normal    3 of 1085 residual values differ
+[       OK ] DensityBasedGpuEquivalence.V_NegativeControls_EachBreaksItsNamedCriterion (6 ms)
+[ RUN      ] DensityBasedGpuEquivalence.V6_CflSoundSpeedFromTheMeanTemperatureBreaksC1
+  V6 sound from mean T: 217 of 217 dt values differ
+[       OK ] DensityBasedGpuEquivalence.V6_CflSoundSpeedFromTheMeanTemperatureBreaksC1 (1 ms)
+[ RUN      ] DensityBasedGpuEquivalence.Trap6_AnUnmappedBoundaryPatchIsRefusedByBothBackends
+  trap6: cpu refused=YES, device refused=YES (boundary patch "right" has no density-based boundary treatment; every patch must be given one explicitly (an unmapped patch is not assumed to be a wall))
+[       OK ] DensityBasedGpuEquivalence.Trap6_AnUnmappedBoundaryPatchIsRefusedByBothBackends (1 ms)
+[----------] 15 tests from DensityBasedGpuEquivalence (2677 ms total)
+
+[----------] 2 tests from DensityBasedGpuSanitizerControl
+[ RUN      ] DensityBasedGpuSanitizerControl.N1_DeliberateOutOfBoundsRead
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:970: Skipped
+sanitizer control not enabled; set CFD_P17_10_SANITIZER_CONTROL=1 (tools/sanitizers.sh does)
+
+[  SKIPPED ] DensityBasedGpuSanitizerControl.N1_DeliberateOutOfBoundsRead (0 ms)
+[ RUN      ] DensityBasedGpuSanitizerControl.N2_DeliberateSharedMemoryRace
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:978: Skipped
+sanitizer control not enabled; set CFD_P17_10_SANITIZER_CONTROL=1 (tools/sanitizers.sh does)
+
+[  SKIPPED ] DensityBasedGpuSanitizerControl.N2_DeliberateSharedMemoryRace (0 ms)
+[----------] 2 tests from DensityBasedGpuSanitizerControl (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 2 test suites ran. (2681 ms total)
+[  PASSED  ] 15 tests.
+[  SKIPPED ] 2 tests, listed below:
+[  SKIPPED ] DensityBasedGpuSanitizerControl.N1_DeliberateOutOfBoundsRead
+[  SKIPPED ] DensityBasedGpuSanitizerControl.N2_DeliberateSharedMemoryRace

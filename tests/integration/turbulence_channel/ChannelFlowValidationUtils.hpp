@@ -85,11 +85,56 @@ struct ProfileSample {
 // benchmark's own "near-wall limitation" documentation in the P2-TURB-007
 // Final Report and TODO.md status note. Throws std::invalid_argument if
 // ny is zero.
+// P16 -- which wall treatment the run used. There is no default: a caller has
+// to say, because the two produce different numbers and picking the wrong one
+// is silent.
+enum class WallTreatmentKind {
+  // No velocity wall function. tau_w = mu * U(y_1)/y_1, the one-sided secant
+  // described above. Correct only when the first cell is at or inside the
+  // viscous sublayer.
+  NoWallFunction,
+  // A high-Re wall function is active, so the wall shear is the MODEL's --
+  // tau_w = rho u_tau^2, formed from the log law rather than from the local
+  // velocity gradient. The secant would under-report it, in the flattering
+  // direction.
+  WallFunction,
+};
+
+// tau_w at one wall.
+//
+// P16 CHANGED THIS SIGNATURE ON PURPOSE. The comment above was written when
+// "CFDApp's turbulence models have no velocity wall function" was true. It is
+// not any more, and on a wall-function mesh the laminar secant systematically
+// UNDER-reports tau_w -- which would make every derived metric (u_tau, y+,
+// Re_tau, u+) wrong in the direction that flatters the model.
+//
+// So the treatment is now a required argument and the pairing is enforced:
+//
+//   NoWallFunction  + modelWallShear == nullptr  -> the secant, unchanged
+//   WallFunction    + modelWallShear != nullptr  -> the model's own tau_w
+//   WallFunction    + modelWallShear == nullptr  -> THROWS
+//   NoWallFunction  + modelWallShear != nullptr  -> THROWS
+//
+// The third case is the one this exists for: a wall-function run that cannot
+// supply the model's wall shear is refused rather than quietly measured with
+// the wrong instrument. The fourth is refused too, because being handed a
+// model wall shear and ignoring it is equally silent.
+//
+// `modelWallShear` is a per-CELL field, zero away from walls -- exactly what
+// KEpsilonModel::wallShearStress() returns. The wall cells of the requested
+// wall are averaged, since a fully developed channel carries the same shear
+// along it and a single near-inlet cell should not dominate.
+//
+// Throws std::invalid_argument if ny is zero, or if the pairing above is
+// violated, or if WallFunction is requested and no wall cell carries a
+// positive shear.
 [[nodiscard]] cfd::Real computeWallShearStress(const cfd::mesh::Mesh& mesh, cfd::Index nx,
                                                cfd::Index ny,
                                                const cfd::fields::VectorField& velocity,
                                                cfd::Real xFixed, cfd::Real channelHeight,
-                                               cfd::Real dynamicViscosity, bool bottomWall);
+                                               cfd::Real dynamicViscosity, bool bottomWall,
+                                               WallTreatmentKind treatment,
+                                               const cfd::fields::ScalarField* modelWallShear);
 
 // u_tau = sqrt(|tau_w| / rho). Throws std::invalid_argument if density
 // is not finite and > 0.

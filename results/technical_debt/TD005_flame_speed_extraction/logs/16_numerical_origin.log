@@ -1,0 +1,72 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T14:17:48+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/numerical_origin_probe.cpp -o /tmp/td005_numorigin /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- IS THE LIMIT CYCLE NUMERICAL?
+
+  ladder relaxT {10, 18, 26, 32, 40, 46}; the period-14 model predicts GBGBGB
+  500-cell baseline measured exactly that (logs/14), amplitude ~3.30 mm
+  "BAD" is |offset| > 1.0 mm -- a PHYSICAL threshold, so it means the same thing
+  on both meshes.
+
+=== TEST N1 -- RECENTRING DISABLED (deadBand 200 cells, 500-cell mesh)
+    Collapse of the pattern => the moving frame IS the mechanism.
+    Same pattern => the frame is NOT the mechanism; suspicion moves to the
+    time integration or the discretisation.
+
+  relaxT  marchStp   offset mm  offset cel    fuel bal  S_L cm/s  delta mm  recentr   wall s  status  phase
+      10      3968      0.4403       22.02   1.130e-02   4.86230    1.2292        0      288       0   good
+      18      7143     -3.2157     -160.79   4.370e-01   4.86230    0.4322        0      342       0    BAD
+      26     10318      3.0103      150.51   6.014e-03   4.86230    1.2254        0      379       0    BAD
+      32     12699     -3.2177     -160.88   4.458e-01   4.86230    0.4314        0      377       0    BAD
+      40     15874      5.2801      264.01   5.789e-03   4.86230    1.2261        0      421       0    BAD
+      46     18255     -3.2177     -160.89   4.459e-01   4.86230    0.4314        0      573       0    BAD
+
+    pattern GBBBBB   (baseline GBGBGB)   final-march recentrings total: 0
+    => PATTERN CHANGED with recentring off. The moving frame IS implicated.
+
+=== TEST N2 -- THE MESH: 250 cells (dx 40 um, dt doubled) vs the 500-cell baseline
+    Same pattern in relaxT units => the period is set by the FLAME's clock.
+    Pattern moves => the period is set by dx or dt, i.e. NUMERICAL.
+    Amplitude is compared in MILLIMETRES: 3.30 mm at 500 cells.
+
+  relaxT  marchStp   offset mm  offset cel    fuel bal  S_L cm/s  delta mm  recentr   wall s  status  phase
+      10      1029     -1.4373      -35.93   5.255e-01   4.77424    0.5367       23       56       0    BAD
+      18      1852      0.0308        0.77   1.173e-01   4.77424    0.9930       32       67       0   good
+      26      2675     -3.2266      -80.66   4.858e-01   4.77424    0.3739       41       74       0    BAD
+      32      3293     -3.2218      -80.54   4.596e-01   4.77424    0.3723       48       85       0    BAD
+      40      4116      0.0640        1.60   1.177e-01   4.77424    0.9965       58       81       0   good
+      46      4733     -3.2312      -80.78   5.125e-01   4.77424    0.3760       65       86       0    BAD
+
+    pattern BGBBGB   (500-cell baseline GBGBGB)
+    peak |offset| 3.231 mm at 250 cells   against 3.300 mm at 500 cells
+    => THE PHASE MOVED WITH THE MESH. The period is set by the discretisation:
+       a NUMERICAL origin, and J.4's argument is corroborated.
+
+NOT RUN: the Lewis-number sweep (J.4.1's first test). Le is already 1.0 and the
+flame oscillates, so varying it upward would move TOWARD the physical instability
+threshold and could not distinguish a numerical cycle from a physical one appearing
+on top of it. It is the weakest of the three and is left for a later item.
+
+probe exit: 0

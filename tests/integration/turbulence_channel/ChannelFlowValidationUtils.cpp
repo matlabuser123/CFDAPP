@@ -126,9 +126,56 @@ Real interpolateProfile(const std::vector<ProfileSample>& profile, Real coordina
 }
 
 Real computeWallShearStress(const Mesh& mesh, Index nx, Index ny, const VectorField& velocity,
-                            Real xFixed, Real channelHeight, Real dynamicViscosity,
-                            bool bottomWall) {
+                            Real xFixed, Real channelHeight, Real dynamicViscosity, bool bottomWall,
+                            WallTreatmentKind treatment,
+                            const cfd::fields::ScalarField* modelWallShear) {
   if (ny == 0) throw std::invalid_argument("computeWallShearStress: ny must be > 0");
+
+  // P16: the pairing is enforced, not defaulted. See the header -- measuring a
+  // wall-function run with the laminar secant under-reports tau_w in the
+  // flattering direction, and being handed the model's value and ignoring it
+  // is equally silent.
+  if (treatment == WallTreatmentKind::WallFunction && modelWallShear == nullptr) {
+    throw std::invalid_argument(
+        "computeWallShearStress: a WallFunction run must supply the model's own wall shear "
+        "(KEpsilonModel::wallShearStress()). The laminar secant mu*U(y1)/y1 is not the wall "
+        "shear a wall-function solve produced and systematically under-reports it; refusing "
+        "rather than measuring with the wrong instrument");
+  }
+  if (treatment == WallTreatmentKind::NoWallFunction && modelWallShear != nullptr) {
+    throw std::invalid_argument(
+        "computeWallShearStress: a model wall shear was supplied for a NoWallFunction run. "
+        "Either the run used a wall function and the treatment is mislabelled, or the field "
+        "does not belong to this run -- both are silent errors if ignored");
+  }
+
+  if (treatment == WallTreatmentKind::WallFunction) {
+    // The model's own tau_w, averaged over the wall cells of the requested
+    // wall. A fully developed channel carries the same shear along its length,
+    // so the mean is a measurement rather than a smoothing, and it stops one
+    // near-inlet cell from dominating.
+    if (modelWallShear->size() != mesh.numberOfCells()) {
+      throw std::invalid_argument(
+          "computeWallShearStress: modelWallShear size does not match mesh cell count");
+    }
+    const Index row = bottomWall ? 0 : (ny - 1);
+    Real sum = 0.0;
+    Index count = 0;
+    for (Index i = 0; i < nx; ++i) {
+      const Real value = (*modelWallShear)[(row * nx) + i];
+      if (value > 0.0) {
+        sum += value;
+        ++count;
+      }
+    }
+    if (count == 0) {
+      throw std::invalid_argument(
+          "computeWallShearStress: no wall cell on this wall carries a positive model wall "
+          "shear -- the wall treatment did not run, or this is not a wall");
+    }
+    return sum / static_cast<Real>(count);
+  }
+
   const auto xCenters = columnCentersX(mesh, nx);
   const auto [i0, i1] = bracket(xCenters, xFixed);
   const Index row = bottomWall ? 0 : (ny - 1);

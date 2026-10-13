@@ -1,0 +1,33 @@
+=== A: WITH TD-002's carry parameter (production) ===
+  post: 140 swept states, sha256 23539956869a2f74
+
+=== B: carry parameter REMOVED (the pre-TD-002 library) ===
+  carry branch removed from the store
+  pre: 140 swept states, sha256 23539956869a2f74
+  restored HeatRelease.cpp, sha256 verified
+
+=== C8 VERDICT: bitwise comparison of the two libraries ===
+  BITWISE IDENTICAL over 140 swept states
+  C8 PASS -- advanceClosedReactor with no carry is the pre-TD-002 function
+
+=== rebuild production and run the regression ===
+  bc3384cdbe7f418b492071fafe9f073aaeb813e4f5ae5708544e0d5dbce74b8e  build/release/apps/cli/cfdapp
+  646a71a12886502f843514fac91cb36770972883d3836c016a4884e7796ad0b9  build/release/tests/unit/io/CFDIoTests
+  f195a2f9b4472cb4580bd3224e736879019f6e397995f458955cfc03ff14125e  build/release/tests/unit/app/CFDAppLayerTests
+  de924805951652c28237ca5ab8ddffb4ad54076dd8c1e0ac4d6271f1f5b6f348  build/release/tests/unit/species/CFDSpeciesTests
+
+---- CFDIoTests (TD-001 baseline 328) ----
+
+[----------] Global test environment tear-down
+[==========] 331 tests from 24 test suites ran. (230 ms total)
+[  PASSED  ] 331 tests.
+---- CFDAppLayerTests (baseline 32) ----
+
+[----------] Global test environment tear-down
+[==========] 32 tests from 5 test suites ran. (2471 ms total)
+[  PASSED  ] 32 tests.
+---- CFDSpeciesTests, baseline conditions (baseline 339) ----
+
+[----------] Global test environment tear-down
+[==========] 343 tests from 56 test suites ran. (14419 ms total)
+[  PASSED  ] 343 tests.

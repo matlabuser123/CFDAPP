@@ -1,0 +1,200 @@
+P17.7 G3 -- the FMA-contraction experiment
+date: 2026-09-27T06:42:45Z
+cuda/CMakeLists.txt sha256 before: 2a4a5376f69bbda46b1861d71ee539b8c3238cb4abadc175d66a2897194353c4
+
+### 1. the PRODUCTION setting, --fmad=false ###
+  40:  # gcc and nvcc compile that same source. See the --fmad=false property set below.
+  93:  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+  124:  COMPILE_OPTIONS "--fmad=false")
+  exit: 0
+  rows compared              : 17
+  rows BITWISE identical     : 17
+  branch-selection differences: 0   (must be 0)
+  max |flux difference|      : 0
+  max |wave-speed difference|: 0
+
+### 2. flip to --fmad=true and rebuild ONLY the kernel ###
+  40:  # gcc and nvcc compile that same source. See the --fmad=false property set below.
+  93:  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+  124:  COMPILE_OPTIONS "--fmad=true")
+  rebuild exit: 0
+
+### 3. measure WITH contraction ###
+  exit: 1 (a NONZERO exit here is the expected result -- bitwise equality should break)
+  rows compared              : 17
+  rows BITWISE identical     : 8
+  branch-selection differences: 0   (must be 0)
+  max |flux difference|      : 0.000152587890625
+  max |wave-speed difference|: 0
+  worst row: strong_pressure_ratio
+
+  per-row differences with contraction ON:
+    case                       branch     max|dF|      max|dS|     
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: -431.99999999999972
+    cf[k]
+    Which is: -432
+    uniform_x flux component 2 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 252.0000000000002
+    cf[k]
+    Which is: 252
+    uniform_x flux component 3 is not BITWISE equal
+    
+    uniform_x                  1          2.842e-13    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 29659.714285714283
+    cf[k]
+    Which is: 29659.714285714286
+    uniform_oblique flux component 1 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: -43708.885714285709
+    cf[k]
+    Which is: -43708.885714285716
+    uniform_oblique flux component 2 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 87015.599999999991
+    cf[k]
+    Which is: 87015.6
+    uniform_oblique flux component 3 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 7006615.2685296237
+    cf[k]
+    Which is: 7006615.2685296247
+    uniform_oblique flux component 4 is not BITWISE equal
+    
+    uniform_oblique            1          9.313e-10    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 0.31366345583121191
+    cf[k]
+    Which is: 0.31366345583121202
+    sod_literature flux component 4 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:165: Failure
+    Expected equality of these values:
+    g.starInternalEnergyLeft
+    Which is: 3.2032023754660175
+    cpu.starInternalEnergyLeft
+    Which is: 3.203202375466017
+    sod_literature e*_L
+    
+    sod_literature             1          1.110e-16    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 10116699.301755471
+    cf[k]
+    Which is: 10116699.301755475
+    sod_atmospheric flux component 4 is not BITWISE equal
+    
+    sod_atmospheric            1          3.725e-09    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 0.31366345583121191
+    cf[k]
+    Which is: 0.31366345583121202
+    sod_y flux component 4 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:165: Failure
+    Expected equality of these values:
+    g.starInternalEnergyLeft
+    Which is: 3.2032023754660175
+    cpu.starInternalEnergyLeft
+    Which is: 3.203202375466017
+    sod_y e*_L
+    
+    sod_y                      1          1.110e-16    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 0.31366345583121191
+    cf[k]
+    Which is: 0.31366345583121202
+    sod_z flux component 4 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:165: Failure
+    Expected equality of these values:
+    g.starInternalEnergyLeft
+    Which is: 3.2032023754660175
+    cpu.starInternalEnergyLeft
+    Which is: 3.203202375466017
+    sod_z e*_L
+    
+    sod_z                      1          1.110e-16    0.000e+00   
+    stationary_contact         1          0.000e+00    0.000e+00   
+    moving_contact             1          0.000e+00    0.000e+00   
+    tangential_shear           1          0.000e+00    0.000e+00   
+    supersonic_right           0          0.000e+00    0.000e+00   
+    supersonic_left            3          0.000e+00    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 81923478713.932755
+    cf[k]
+    Which is: 81923478713.932907
+    strong_pressure_ratio flux component 4 is not BITWISE equal
+    
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:165: Failure
+    Expected equality of these values:
+    g.starInternalEnergyLeft
+    Which is: 35908094.030113123
+    cpu.starInternalEnergyLeft
+    Which is: 35908094.030113116
+    strong_pressure_ratio e*_L
+    
+    strong_pressure_ratio      1          1.526e-04    0.000e+00   
+    strong_density_ratio       1          0.000e+00    0.000e+00   
+    near_sonic_left            0          0.000e+00    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 0.006051924428773438
+    cf[k]
+    Which is: 0.0060519244287734371
+    low_pressure flux component 1 is not BITWISE equal
+    
+    low_pressure               1          8.674e-19    0.000e+00   
+    constructed_right_star     2          0.000e+00    0.000e+00   
+    /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_hllc_gpu_equivalence.cpp:155: Failure
+    Expected equality of these values:
+    g.flux[k]
+    Which is: 0.30167470754041015
+    cf[k]
+    Which is: 0.30167470754041031
+    sod_davis_estimator flux component 4 is not BITWISE equal
+    
+    sod_davis_estimator        1          1.665e-16    0.000e+00   
+    
+    rows compared              : 17
+
+### 4. restore, rebuild, and PROVE the bitwise result is back ###
+  RESTORE: VERIFIED by SHA-256 (2a4a5376f69bbda46b1861d71ee539b8c3238cb4abadc175d66a2897194353c4)
+  40:  # gcc and nvcc compile that same source. See the --fmad=false property set below.
+  93:  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+  124:  COMPILE_OPTIONS "--fmad=false")
+  rebuild exit: 0
+  re-run exit: 0  (0 required)
+  rows BITWISE identical     : 17
+  max |flux difference|      : 0
+  [  PASSED  ] 4 tests.
+
+done: 2026-09-27T06:44:32Z

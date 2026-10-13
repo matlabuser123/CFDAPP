@@ -59,6 +59,26 @@ void fill(DeviceVector& v, cfd::Index count, cfd::Real value);
 // regardless of payload: the cost is per *call*, so halving the number of calls
 // is what helps. All four vectors must share a length; throws
 // InvalidArgumentError otherwise.
+// P16 resident turbulence -- max|a0 - b0| and max|a1 - b1| over the same
+// length, fused into ONE host round trip exactly as dot2 fuses two dots.
+//
+// It exists so that KEpsilonModel's convergence residual can be formed WITHOUT
+// downloading the fields it is formed from. Before this, correctKEpsilonDevice
+// downloaded kOld, epsilonOld, kNew and epsilonNew in full -- 4 * 8 * N bytes
+// per correction -- to run a host loop that produced one scalar.
+//
+// THE CONTRACT IT REPRODUCES is `std::max(accumulator, std::abs(x - y))`
+// seeded at 0.0, including its NaN behaviour: a NaN difference is ignored, not
+// propagated, and the result is never NaN. Unlike a dot product this is
+// bitwise reproducible regardless of block partition, because max selects an
+// input rather than computing a new value and so has nothing to reassociate.
+//
+// Takes DeviceBuffer rather than DeviceVector because the turbulence state is
+// held as DeviceBuffer<Real>; the two are the same storage.
+void maxAbsDifference2(const DeviceBuffer<cfd::Real>& a0, const DeviceBuffer<cfd::Real>& b0,
+                       const DeviceBuffer<cfd::Real>& a1, const DeviceBuffer<cfd::Real>& b1,
+                       cfd::Real& out0, cfd::Real& out1);
+
 void dot2(const DeviceVector& a0, const DeviceVector& b0, const DeviceVector& a1,
           const DeviceVector& b1, cfd::Real& out0, cfd::Real& out1);
 

@@ -6,10 +6,10 @@ Reference: Continuous planar Poiseuille solution u = 6U(y/H)(1-y/H), dp/dx = -12
 
 | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
 |---|---|---|---|---|---|---|---|---|---|
-| poiseuille_re10/64x8/upwind | 10 | 64x8 | upwind | Converged | 1524 | 22529 / 104638 | 1.19e-09 | 13.4 | yes |
-| poiseuille_re10/96x12/upwind | 10 | 96x12 | upwind | Converged | 1135 | 17050 / 106657 | 7.95e-10 | 24.5 | yes |
-| poiseuille_re10/144x18/upwind | 10 | 144x18 | upwind | Converged | 856 | 14183 / 111574 | 2.12e-09 | 56.0 | yes |
-| poiseuille_re10/216x27/upwind | 10 | 216x27 | upwind | Converged | 700 | 13408 / 128742 | 5.87e-09 | 77.5 | yes |
+| poiseuille_re10/64x8/upwind | 10 | 64x8 | upwind | Converged | 1524 | 22529 / 104638 | 1.19e-09 | 12.3 | yes |
+| poiseuille_re10/96x12/upwind | 10 | 96x12 | upwind | Converged | 1135 | 17050 / 106657 | 7.95e-10 | 21.6 | yes |
+| poiseuille_re10/144x18/upwind | 10 | 144x18 | upwind | Converged | 856 | 14183 / 111574 | 2.12e-09 | 45.4 | yes |
+| poiseuille_re10/216x27/upwind | 10 | 216x27 | upwind | Converged | 700 | 13408 / 128742 | 5.87e-09 | 109.0 | yes |
 
 **u_profile**
 
@@ -41,9 +41,9 @@ Poiseuille Re = 10, grids 64x8 / 96x12 / 144x18 (ny all even: centreline samplin
 
 | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
 |---|---|---|---|---|---|---|
-| 64x8 | 64 x 8 | 512 | 0.125 | 13.4 | Converged (1524 it) | yes |
-| 96x12 | 96 x 12 | 1152 | 0.0833333 | 24.5 | Converged (1135 it) | yes |
-| 144x18 | 144 x 18 | 2592 | 0.0555556 | 56.0 | Converged (856 it) | yes |
+| 64x8 | 64 x 8 | 512 | 0.125 | 12.3 | Converged (1524 it) | yes |
+| 96x12 | 96 x 12 | 1152 | 0.0833333 | 21.6 | Converged (1135 it) | yes |
+| 144x18 | 144 x 18 | 2592 | 0.0555556 | 45.4 | Converged (856 it) | yes |
 
 **centerline_velocity** -- u(0.75 L, H/2); exact 1.5 U
 
@@ -67,9 +67,9 @@ Poiseuille Re = 10, grids 96x12 / 144x18 / 216x27 (pressure-extraction bias <= 4
 
 | grid | nx x ny | cells | h | runtime (s) | solver | accepted |
 |---|---|---|---|---|---|---|
-| 96x12 | 96 x 12 | 1152 | 0.0833333 | 24.5 | Converged (1135 it) | yes |
-| 144x18 | 144 x 18 | 2592 | 0.0555556 | 56.0 | Converged (856 it) | yes |
-| 216x27 | 216 x 27 | 5832 | 0.037037 | 77.5 | Converged (700 it) | yes |
+| 96x12 | 96 x 12 | 1152 | 0.0833333 | 21.6 | Converged (1135 it) | yes |
+| 144x18 | 144 x 18 | 2592 | 0.0555556 | 45.4 | Converged (856 it) | yes |
+| 216x27 | 216 x 27 | 5832 | 0.037037 | 109.0 | Converged (700 it) | yes |
 
 **pressure_gradient** -- dp/dx, pair-averaged between 0.40 L and 0.75 L; exact -12 mu U / H^2
 

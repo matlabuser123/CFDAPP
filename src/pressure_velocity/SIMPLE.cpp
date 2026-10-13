@@ -1,5 +1,6 @@
 #include "cfd/pressure_velocity/SIMPLE.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <memory>
@@ -145,6 +146,12 @@ Index SIMPLE::referenceCell() const noexcept { return referenceCell_; }
 void SIMPLE::setMomentumSource(const VectorField* source) noexcept { momentumSource_ = source; }
 const VectorField* SIMPLE::momentumSource() const noexcept { return momentumSource_; }
 
+// P13-001 -- Restart / checkpointing. See SIMPLE.hpp's own comment.
+void SIMPLE::setContinuation(const SIMPLEContinuation* continuation) noexcept {
+  continuation_ = continuation;
+}
+const SIMPLEContinuation* SIMPLE::continuation() const noexcept { return continuation_; }
+
 SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
                            const BoundaryConditionSet& velocityBoundaries,
                            const BoundaryConditionSet& pressureBoundaries,
@@ -215,6 +222,18 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
         throw InvalidArgumentError("SIMPLE::solve: momentum source must be finite");
       }
     }
+    // P13-001: a continuation is validated against THIS mesh and this
+    // dimensionality before anything reads it, and a bad one is an
+    // InvalidConfiguration like every other configuration problem here --
+    // never an exception escaping solve(), never a partially-applied resume.
+    if (continuation_ != nullptr) {
+      validateSIMPLEContinuation(*continuation_, mesh, threeDimensional);
+      if (continuation_->completedIterations > settings_.maxIterations) {
+        throw InvalidArgumentError(
+            "SIMPLE::solve: continuation has already completed more iterations than "
+            "maxIterations allows");
+      }
+    }
     // P12-NUM-004: with robustness.linearSolverFallback disabled (default)
     // this is exactly makeLinearSolver(...); enabled, the same primary
     // solver wrapped in the one fallback policy (LinearSolverFallback.hpp).
@@ -235,7 +254,21 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
 
   VectorField velocity = std::move(initialVelocity);
   ScalarField pressure = std::move(initialPressure);
-  SurfaceField massFlux = calculateMassFlux(mesh, velocity, fluid, velocityBoundaries);
+  // P13-001 -- the one numerically load-bearing line of the restart work.
+  //
+  // F is loop-carried state: the next iteration's momentum assembly reads it
+  // (see the assembly calls below, which take `massFlux`). Regenerating it
+  // here from the cell velocity is right for a FRESH solve -- there is no
+  // corrected flux yet -- and wrong for a resumed one, because interpolating
+  // U discards the correction the previous segment applied and puts the solve
+  // on a different iteration path. So a continuation supplies the
+  // authoritative corrected F and this call accepts it unchanged.
+  //
+  // With no continuation this is byte-for-byte the previous behaviour.
+  const bool resuming = continuation_ != nullptr && continuation_->completedIterations > 0;
+  SurfaceField massFlux = resuming ? continuation_->massFlux
+                                   : calculateMassFlux(mesh, velocity, fluid, velocityBoundaries);
+  result.resumedFromContinuation = resuming;
 
   if (!allFinite(velocity) || !allFinite(pressure) || !allFinite(massFlux)) {
     result.status = SIMPLEStatus::NonFiniteState;
@@ -273,6 +306,55 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
           settings_.velocityTolerance, settings_.pressureTolerance, settings_.continuityTolerance,
           settings_.turbulenceTolerance},
       settings_.velocityRelaxation, settings_.pressureRelaxation);
+
+  // P13-001: replay what the earlier segments already recorded, so the monitor
+  // arrives in the state it had when the previous call stopped -- the
+  // normalization references, the stagnation and divergence windows, and the
+  // adaptive-relaxation factors and ceilings. record() is a pure function of
+  // the sample sequence (SolverRobustness.cpp) and the relaxation controller
+  // documents the same property, so replaying reconstructs the state exactly
+  // and nothing about the monitor's internals ever had to be serialized.
+  //
+  // Every replayed sample MUST return Continue. It already did once: a sample
+  // that had returned Converged, Stagnated or Diverging would have ended the
+  // previous segment, so it could not be followed by another recorded
+  // iteration. A terminal verdict here therefore means the continuation does
+  // not describe a run this configuration could have produced -- a corrupt or
+  // mismatched checkpoint -- and is refused rather than silently continued.
+  bool continuationConsistent = true;
+  if (resuming) {
+    for (const SIMPLEIterationRecord& record : continuation_->history) {
+      const cfd::solver::OuterIterationVerdict replayed = monitor.record(
+          cfd::solver::OuterResidualSample{record.u, record.v, record.pressure, record.continuity,
+                                           record.globalImbalance, record.turbulence, record.w});
+      if (replayed != cfd::solver::OuterIterationVerdict::Continue) {
+        continuationConsistent = false;
+        break;
+      }
+      result.uResidualHistory.push_back(record.u);
+      result.vResidualHistory.push_back(record.v);
+      result.pressureResidualHistory.push_back(record.pressure);
+      result.continuityHistory.push_back(record.continuity);
+      result.globalMassImbalanceHistory.push_back(record.globalImbalance);
+      if (record.w.has_value()) result.wResidualHistory.push_back(*record.w);
+      if (record.turbulence.has_value()) {
+        result.turbulenceResidualHistory.push_back(*record.turbulence);
+      }
+    }
+    if (!continuationConsistent) {
+      result.status = SIMPLEStatus::InvalidConfiguration;
+      result.robustness = monitor.takeDiagnostics();
+      result.robustness.statusDetail =
+          "continuation rejected: a replayed outer iteration would have ended the previous "
+          "segment, so this history is not one this configuration produced";
+      result.velocity = std::move(velocity);
+      result.pressure = std::move(pressure);
+      result.massFlux = std::move(massFlux);
+      return result;
+    }
+    result.iterations = continuation_->completedIterations;
+  }
+
   const auto failLinearSolve = [&](std::string_view equation,
                                    const cfd::algebra::LinearSolverSettings& solverSettings,
                                    const cfd::algebra::SolverResult& failed, Index iteration) {
@@ -373,8 +455,23 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
   // The solver fallback wrapper and the residency mirror are already excluded
   // by useResidentPressureSolve, for the same reasons it excludes them.
   // Loop-invariant, so it is decided once here.
+  //
+  // P16 Step 4 -- THE LAMINAR CONDITION IS NOW A CAPABILITY.
+  //
+  // The reason above is precise, and it is about the HOST VELOCITY, not about
+  // turbulence: a model whose correct() reads the host field would be fed a
+  // value frozen at iteration 0. Laminar was immune because its correct() is a
+  // no-op. A k-epsilon model that corrects from RESIDENT device state is immune
+  // for a better reason -- it never reads the host field at all.
+  //
+  // So the test is "can this model be corrected without the host velocity",
+  // asked of the model, and NOT a widened name comparison. Every other model
+  // inherits the default answer of false and keeps the path it has today, which
+  // is what keeps SST and anything added later out by construction rather than
+  // by an exclusion list that someone has to remember to extend.
+  const bool residentTurbulence = activeModel->supportsResidentGpuCorrection();
   const bool useResidentSimpleLoop =
-      useResidentPressureSolve && activeModel->name() == "laminar" &&
+      useResidentPressureSolve && (activeModel->name() == "laminar" || residentTurbulence) &&
       settings_.momentumSolver.backend == cfd::algebra::LinearSolverBackend::GPU &&
       settings_.momentumSolver.type == cfd::algebra::LinearSolverType::BiCGSTAB;
   result.residentSimpleLoop = useResidentSimpleLoop;
@@ -390,7 +487,27 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
   // is never read.
   ScalarField previousViscosity;
 
-  for (Index iteration = 0; iteration < settings_.maxIterations; ++iteration) {
+  // P13-001: how many outer iterations THIS call may run.
+  //
+  // `iteration` still counts from 0 within this call, deliberately: the GPU
+  // path keys its once-per-solve upload off `iteration == 0`, and a segment is
+  // a solve, so its first iteration is the one that uploads. The iteration
+  // NUMBER the rest of the solve reports (`outerIteration`, `result.iterations`
+  // and the diagnostics) adds `alreadyCompleted` back, so a resumed segment's
+  // numbering continues the run rather than restarting it.
+  //
+  // With no continuation, alreadyCompleted is 0 and `segmentBudget` is
+  // settings_.maxIterations -- the identical loop.
+  const Index alreadyCompleted = resuming ? continuation_->completedIterations : 0;
+  const Index remainingBudget = settings_.maxIterations - alreadyCompleted;
+  const Index requestedBudget = (continuation_ != nullptr && continuation_->iterationBudget > 0)
+                                    ? continuation_->iterationBudget
+                                    : remainingBudget;
+  const Index segmentBudget = std::min(remainingBudget, requestedBudget);
+
+  Index iterationsThisCall = 0;
+
+  for (Index iteration = 0; iteration < segmentBudget; ++iteration) {
     // P5-B section 13: checked at the top of the outer loop only, before
     // this iteration touches velocity/pressure/massFlux at all -- so a
     // cancellation always leaves `result` (assembled below from the last
@@ -419,7 +536,8 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     // whole iteration (the adaptive controller only updates them after a
     // completed iteration); equal to the settings unless it is enabled.
     const cfd::solver::RelaxationFactors relaxation = monitor.relaxation();
-    const Index outerIteration = iteration + 1;
+    // P13-001: the run-wide iteration number, not the within-segment one.
+    const Index outerIteration = alreadyCompleted + iteration + 1;
 
     std::optional<MomentumAssembly> uAssembly;
     std::optional<MomentumAssembly> vAssembly;
@@ -441,8 +559,31 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // epsilon linear solve that does not converge, or a non-finite
       // result) -- caught by the same try/catch as momentum assembly
       // below, not left to propagate out of solve() uncaught.
-      activeModel->correct(mesh, velocity, pressure);
-      effectiveViscosity = activeModel->effectiveViscosity(fluid.dynamicViscosity());
+      //
+      // P16 Step 4. On a qualified resident turbulent loop the correction is
+      // driven from the device's own U(N-1) and corrected face flux, and it
+      // publishes mu_eff and the wall-face viscosity overrides straight into
+      // the discretization. Nothing here reads the host velocity, and no
+      // effective-viscosity field is built on the host to be uploaded back.
+      //
+      // Iteration 0 is deliberately NOT resident: uploadInitialState has not
+      // run yet, so there is no device state to correct from -- and the host
+      // velocity IS current at that point, being the initial condition. The
+      // call returns false and the ordinary path runs, which is correct rather
+      // than merely safe.
+      bool correctedResident = false;
+      if (useResidentSimpleLoop && residentTurbulence && iteration > 0) {
+        correctedResident = activeModel->correctResidentGpu(mesh, gpuDiscretization);
+      }
+      if (!correctedResident) {
+        activeModel->correct(mesh, velocity, pressure);
+        effectiveViscosity = activeModel->effectiveViscosity(fluid.dynamicViscosity());
+      }
+      // P16: a turbulence model with a wall treatment supplies a per-FACE
+      // viscosity for its wall faces; every other model returns nullptr, and
+      // the momentum assembly is then bitwise what it was. Re-read every
+      // iteration because tau_w depends on the current velocity and k.
+      const cfd::fields::SurfaceField* wallViscosity = activeModel->wallViscosity();
       // GPU-DISC-001Q: momentum assembly starts here. On the device path this
       // includes beginIteration's per-iteration upload, which is the cost of
       // feeding that assembly and belongs with it rather than in `other`.
@@ -457,12 +598,30 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
       // only when the turbulence model actually changed it -- a laminar solve
       // transfers it once and never again.
       if (useGpuDiscretization) {
+        // P16 Step 4 -- THE WALL OVERRIDE MUST REACH THE DEVICE ON EVERY PATH.
+        //
+        // The resident turbulence correction pushes it itself, but a GPU solve
+        // whose turbulence took the HOST path -- iteration 0 always, since
+        // there is no resident state to correct from yet -- would otherwise
+        // assemble momentum with no wall-function shear at all. Measured
+        // before this line existed: from an identical mature state, one outer
+        // iteration differed by 2.4% in U and 277% in pressure while k,
+        // epsilon and mu_t agreed to 1e-16, and the same experiment with a
+        // laminar model agreed to 4e-16. A null field clears the override, so
+        // a laminar solve is unaffected.
+        if (!correctedResident) {
+          gpuDiscretization.setWallFaceViscosity(wallViscosity);
+        }
         if (iteration == 0) {
           gpuDiscretization.uploadInitialState(velocity, pressure, massFlux, *effectiveViscosity);
           previousViscosity = *effectiveViscosity;
         } else {
           gpuDiscretization.beginIterationResident();
-          if (!sameField(previousViscosity, *effectiveViscosity)) {
+          // A resident correction already wrote mu_eff on the device and holds
+          // authority over it; re-uploading a host copy would be the round trip
+          // this phase removed, and would overwrite the device's own value with
+          // one built from a stale mirror.
+          if (!correctedResident && !sameField(previousViscosity, *effectiveViscosity)) {
             gpuDiscretization.setViscosity(*effectiveViscosity);
             previousViscosity = *effectiveViscosity;
           }
@@ -518,20 +677,20 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
             pressureBoundaries, VelocityComponent::U, previousU, relaxation.velocity, temperature_,
             buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
             settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
-            momentumSource_);
+            momentumSource_, wallViscosity);
         vAssembly = assembleRelaxedMomentumComponent(
             mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
             pressureBoundaries, VelocityComponent::V, previousV, relaxation.velocity, temperature_,
             buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
             settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
-            momentumSource_);
+            momentumSource_, wallViscosity);
         if (threeDimensional) {
           wAssembly = assembleRelaxedMomentumComponent(
               mesh, velocity, pressure, massFlux, *effectiveViscosity, velocityBoundaries,
               pressureBoundaries, VelocityComponent::W, *previousW, relaxation.velocity,
               temperature_, buoyancy_, settings_.convectionScheme, settings_.gradientScheme,
               settings_.nonOrthogonalCorrections > 0, /*nonOrthogonalCorrectionVelocity=*/nullptr,
-              momentumSource_);
+              momentumSource_, wallViscosity);
         }
       }
       result.stageSeconds.momentumAssembly += stageTimer.elapsedSeconds();
@@ -1033,6 +1192,10 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     result.vResidualHistory.push_back(vResidual);
     result.pressureResidualHistory.push_back(pResidual);
     result.continuityHistory.push_back(continuityResidual);
+    // P13-001: the rest of the sample the monitor consumes, historised so a
+    // continuation can replay it. Pushed here, beside the others, so the
+    // "one entry per completed outer iteration" invariant is one rule.
+    result.globalMassImbalanceHistory.push_back(globalImbalance);
     // P12-MESH-006: the W residual (same definition as U/V), 3D only.
     const Real wResidual = threeDimensional ? wResult->initialResidual : 0.0;
     if (threeDimensional) result.wResidualHistory.push_back(wResidual);
@@ -1049,7 +1212,11 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     if (!useResidentSimpleLoop) velocity = velocityNew;
     if (!useGpuDiscretization) pressure = pressureNew;
     massFlux = fluxNew;
-    result.iterations = iteration + 1;
+    result.iterations = alreadyCompleted + iteration + 1;
+    // P13-001: iterations THIS call ran, which is what the device-state
+    // download below is really asking about. `result.iterations` stopped being
+    // able to answer that the moment it started counting earlier segments too.
+    iterationsThisCall = iteration + 1;
 
     result.finalUResidual = uResidual;
     result.finalVResidual = vResidual;
@@ -1075,6 +1242,10 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
     // reduces to `true`, exactly the prior behavior).
     const std::optional<Real> turbulenceResidual = activeModel->convergenceResidual();
     result.finalTurbulenceResidual = turbulenceResidual;
+    // P13-001: see SIMPLEResult.hpp -- zero entries, or one per iteration.
+    if (turbulenceResidual.has_value()) {
+      result.turbulenceResidualHistory.push_back(*turbulenceResidual);
+    }
 
     // P12-NUM-004: the convergence gate (default: exactly the absolute
     // comparisons u, v <= velocityTolerance, p <= pressureTolerance,
@@ -1109,7 +1280,7 @@ SIMPLEResult SIMPLE::solve(const Mesh& mesh, const FluidProperties& fluid,
   // host-visible is left stale. Skipped when the solve never ran an iteration
   // (an InvalidConfiguration or a first-iteration failure returns earlier, and
   // a zero-iteration budget leaves the host state exactly as it arrived).
-  if (useGpuDiscretization && result.iterations > 0) {
+  if (useGpuDiscretization && iterationsThisCall > 0) {
     gpuDiscretization.downloadVelocity(velocity);
     gpuDiscretization.downloadPressure(pressure);
   }

@@ -1,0 +1,164 @@
+=== ENVIRONMENT
+date        2026-10-07T18:38:54+10:00
+nproc       32
+
+=== STAGE A  rebuild, and prove the library CHANGED
+[1/2] Building CXX object src/CMakeFiles/cfdcore.dir/species/PremixedFlame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp: In function ‘cfd::species::PremixedFlameResult cfd::species::solvePremixedFlame(const cfd::species::PremixedFlameChemistry&, const cfd::species::PremixedFlameConditions&, const cfd::species::PremixedFlameSettings&)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp:708:14: warning: unused variable ‘seedSpeed’ [-Wunused-variable]
+  708 |   const Real seedSpeed = massFluxEstimate / rhoUnburnt;
+      |              ^~~~~~~~~
+[2/2] Linking CXX static library src/libcfdcore.a
+
+defective library (frozen)  a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf
+fixed     library (now)     be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5
+the two libraries differ -- this is a comparison between two real libraries
+
+8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  (pre-fix was f9f554bf9e1fe1fd29f6ce4c185e7d579fa5c5708958112bc83127e4a6717b6e)
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+  (MUST be unchanged: d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e)
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+  (MUST be unchanged: 8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd)
+
+probe source  d311d49f3eb49b27c98c79ae5a8a279adef60f53a3b2f5e4d06b90d440748122
+matches the frozen hash
+
+=== STAGE B  C0 / C1 / C2 / C3 / C4 -- the ladder
+08c597eb66f07c079f250db67955539193ac970f09328974f87c27cabcffe177  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/tools/td037_ladder_fixed
+
+TD-037 -- the driftWindow LADDER
+
+  fixture: the test's makeSettings(), production cap and march length
+  ladder STRADDLES the measured 40-step trial: 16, 32 below it; 64, 128 above
+
+=============== driftWindow 16
+  status 0 Converged   S_L 4.671937 cm/s   final mdot 0.0550371757
+  trials 15   bracketSteps 4
+  RECORD -- C4 compares this VERBATIM at window 32
+     #               mdot              drift     steps  meas  set  ext  big
+     0        0.696488454         1.93554914       128   yes    y    n    y
+     1        0.348244227        0.916198913       128   yes    y    n    y
+     2        0.174122113          0.3264627       528   yes    y    n    y
+     3       0.0870610567        0.191974024        40   yes    n    y    y
+     4       0.0435305284      -0.0429113235       264   yes    n    y    n
+     5       0.0615614636        0.049113906        83   yes    n    y    y
+     6        0.051766814      -0.0117610435      1135   yes    n    y    n
+     7        0.056452111       0.0112678664       175   yes    n    y    y
+     8       0.0540587267      -0.0082886275      2255   yes    n    y    n
+     9       0.0552424587      0.00348313825       350   yes    n    y    y
+    10       0.0546473876     -0.00742522161      2765   yes    n    y    n
+    11       0.0549441175     -0.00697620835      3083   yes    n    y    n
+    12       0.0550930862      0.00192646871       433   yes    n    y    y
+    13       0.0550185514     -0.00686158267      3172   yes    n    y    n
+    14       0.0550558062      0.00132878592       474   yes    n    y    y
+  unmeasured trials: 0
+  C3  13 sided trials checked, 2 skipped inside the bracket, 0 WRONG -> PASS
+
+=============== driftWindow 32
+  status 0 Converged   S_L 4.671937 cm/s   final mdot 0.0550371757
+  trials 15   bracketSteps 4
+  RECORD -- C4 compares this VERBATIM at window 32
+     #               mdot              drift     steps  meas  set  ext  big
+     0        0.696488454         1.92167068       160   yes    y    n    y
+     1        0.348244227        0.864981197       256   yes    y    n    y
+     2        0.174122113        0.326195928       544   yes    y    n    y
+     3       0.0870610567         0.20788889        40   yes    n    y    y
+     4       0.0435305284      -0.0432481462       264   yes    n    y    n
+     5       0.0615614636       0.0553479101        83   yes    n    y    y
+     6        0.051766814      -0.0117506819      1135   yes    n    y    n
+     7        0.056452111       0.0115821206       175   yes    n    y    y
+     8       0.0540587267     -0.00828564743      2255   yes    n    y    n
+     9       0.0552424587      0.00359064132       350   yes    n    y    y
+    10       0.0546473876     -0.00742403183      2765   yes    n    y    n
+    11       0.0549441175     -0.00697575844      3083   yes    n    y    n
+    12       0.0550930862      0.00202351134       433   yes    n    y    y
+    13       0.0550185514     -0.00686130034      3172   yes    n    y    n
+    14       0.0550558062      0.00142039094       474   yes    n    y    y
+  unmeasured trials: 0
+  C3  13 sided trials checked, 2 skipped inside the bracket, 0 WRONG -> PASS
+
+=============== driftWindow 64
+  status 0 Converged   S_L 4.671937 cm/s   final mdot 0.0550371757
+  trials 15   bracketSteps 4
+  RECORD -- C4 compares this VERBATIM at window 32
+     #               mdot              drift     steps  meas  set  ext  big
+     0        0.696488454         1.87262074       320   yes    y    n    y
+     1        0.348244227         0.83182795       448   yes    y    n    y
+     2        0.174122113        0.324959221       576   yes    y    n    y
+     3       0.0870610567        0.208439787        40   yes    n    y    y
+     4       0.0435305284      -0.0440278599       264   yes    n    y    n
+     5       0.0615614636       0.0774890198        83   yes    n    y    y
+     6        0.051766814      -0.0117289548      1135   yes    n    y    n
+     7        0.056452111       0.0125705754       175   yes    n    y    y
+     8       0.0540587267     -0.00827939425      2255   yes    n    y    n
+     9       0.0552424587      0.00380704688       350   yes    n    y    y
+    10       0.0546473876     -0.00742147142      2765   yes    n    y    n
+    11       0.0549441175     -0.00697472544      3083   yes    n    y    n
+    12       0.0550930862      0.00222091678       433   yes    n    y    y
+    13       0.0550185514      -0.0068606175      3172   yes    n    y    n
+    14       0.0550558062      0.00160738745       474   yes    n    y    y
+  unmeasured trials: 0
+  C3  13 sided trials checked, 2 skipped inside the bracket, 0 WRONG -> PASS
+
+=============== driftWindow 128
+  status 0 Converged   S_L 4.671937 cm/s   final mdot 0.0550371757
+  trials 15   bracketSteps 4
+  RECORD -- C4 compares this VERBATIM at window 32
+     #               mdot              drift     steps  meas  set  ext  big
+     0        0.696488454         1.82644304       640   yes    y    n    y
+     1        0.348244227        0.806186891       768   yes    y    n    y
+     2        0.174122113        0.305431037      1024   yes    y    n    y
+     3       0.0870610567        0.208439787        40   yes    n    y    y
+     4       0.0435305284      -0.0455911399       264   yes    n    y    n
+     5       0.0615614636       0.0868955993        83   yes    n    y    y
+     6        0.051766814      -0.0116039721      1135   yes    n    y    n
+     7        0.056452111       0.0208152953       175   yes    n    y    y
+     8       0.0540587267     -0.00826562551      2255   yes    n    y    n
+     9       0.0552424587       0.0042437326       350   yes    n    y    y
+    10       0.0546473876     -0.00741560484      2765   yes    n    y    n
+    11       0.0549441175     -0.00697209595      3083   yes    n    y    n
+    12       0.0550930862      0.00262633611       433   yes    n    y    y
+    13       0.0550185514     -0.00685873918      3172   yes    n    y    n
+    14       0.0550558062      0.00199503672       474   yes    n    y    y
+  unmeasured trials: 0
+  C3  13 sided trials checked, 2 skipped inside the bracket, 0 WRONG -> PASS
+
+=== CRITERIA AS MEASURED HERE
+  C0  driftWindow 64 fails AND has an unmeasured trial : NOT reproduced
+  C1  Converged at all four windows                    : PASS (4/4)
+  C3  no sided trial disagrees with the eigenvalue     : PASS
+  C2 and C4 are read from the numbers above; C5, C6 and C7 run separately.
+
+  ON THE UNCHANGED TREE, C0 REPRODUCED and C1 FAILING is the REQUIRED result.
+ladder elapsed 1425 s   <- C7 reports, does not bound
+
+=== C4  MECHANICAL diff of the window-32 trial record against the frozen baseline
+baseline rows: 15   post-fix rows: 15
+C4  IDENTICAL -- the normal path is untouched at driftWindow 32   PASS
+
+=== STAGE C  C5 -- the test TD-032 broke. Must PASS now.
+    [ RUN      ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial
+        16 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32219 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+        32 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32395 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+        64 drift window: S_L = 4.67194 cm/s (seed 59.1228), S_c = 4.87111 cm/s, T_peak = 1800 K, delta = 1.1844 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 32779 steps, minY = -8.45305e-12, |sumY-1| = 9.30026e-07
+        drift-window spread: 0
+    [       OK ] G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial (1018882 ms)
+    C5 elapsed 1019 s   against the 7200 s cap
+
+=== STAGE D  C6 -- regression outside the flame
+ok  tests/unit/io/CFDIoTests  646a71a12886502f...
+ok  tests/unit/app/CFDAppLayerTests  f195a2f9b4472cb4...
+ok  tests/unit/species/CFDSpeciesTests  8d8e73fdb8a0e234...
+
+--- CFDIoTests  (frozen expectation 331)
+    [==========] 331 tests from 24 test suites ran. (622 ms total)
+    [  PASSED  ] 331 tests.
+--- CFDAppLayerTests  (frozen expectation 32)
+    [==========] 32 tests from 5 test suites ran. (5471 ms total)
+    [  PASSED  ] 32 tests.
+--- CFDSpeciesTests excluding G8  (frozen expectation 343)
+    [==========] 343 tests from 56 test suites ran. (22577 ms total)
+    [  PASSED  ] 343 tests.
+
+DONE 2026-10-07T19:21:07+10:00

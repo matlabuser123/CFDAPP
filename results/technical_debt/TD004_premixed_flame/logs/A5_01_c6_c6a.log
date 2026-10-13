@@ -1,0 +1,182 @@
+=== ENVIRONMENT
+date   2026-10-09T16:28:55+10:00
+host   Linux 6.18.33.2-microsoft-standard-WSL2
+nproc  32   load 0.16 0.03 0.01 2/570 779
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATE: the named instrument must be the frozen one
+  fixture_probe.cpp  e9d83b3a0740b2a599fc1225b7e84b56294e1d5a419e243553ab0598ff76b403
+  OK: matches logs/00_freeze.log.
+
+=== GATE: the tree and library under test
+  PremixedFlame.cpp  fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  libcfdcore.a       852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK: post-fix source, uncorrupted post-fix library.
+
+############################################################ C6a / C6 property 5
+  rerunning the FROZEN fixture_probe.cpp, unmodified
+
+TD-004 -- refinement fixture selection, measured
+
+  the test's current triplet {250, 500, 1000} does not finish in 1750 s (logs/07)
+  resolution guard: flameThickness / cellSize > 4
+
+  cells    S_L cm/s thickness mm res cells     wall s     steps   status  fuel bal
+     63     4.51340     0.804304      5.07        8.9      2468       OK    0.5197
+    125     4.90527     1.009731     12.62       21.8      5422       OK    0.1505
+    250     4.94863     1.162471     29.06      139.7     19031       OK    0.0283
+    500     4.95533     1.196361     59.82     1071.7     73683       OK    0.0063
+
+SUCCESSIVE DIFFERENCES AND OBSERVED ORDER
+
+                   triplet    coarse diff      fine diff   order p
+            {63, 125, 250}  +3.918680e-03  +4.335550e-04     3.176
+           {125, 250, 500}  +4.335550e-04  +6.704005e-05     2.693
+
+HOW TO READ THIS
+  A triplet is admissible only if ALL of these hold:
+    * every level converged and spans > 4 cells of front;
+    * the differences SHRINK (|fine| < |coarse|) -- the test's own criterion;
+    * no sign change -- an observed order across a zero crossing is undefined;
+    * p is near the record's 1.93, which is the evidence that the cheaper family
+      is still in the asymptotic range rather than merely cheaper.
+  If the cheapest admissible triplet's p departs from 1.93, the family has left the
+  asymptotic range and shrinking the fixture is NOT a free substitution -- that
+  would have to be reported, not absorbed.
+
+############################################################ C6 properties 2 and 3
+  the project's own tests, on the fixed tree. Baseline for comparison, from
+  logs/06_flame_baseline_per_test.log (PRE-fix, PRE-TD-032):
+    mdot_0 = 0.1      S_L 4.86245     mdot_0 = 0.9   S_L 4.86017
+    anchor 0.30       S_L 4.85572     anchor 0.40    S_L 4.86230
+    C6's stated baseline S_L: 4.86230 cm/s
+
+  test binary: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+4786e9a44873e58e2a8b29c189d9ef5e6a4f96894ce69b59f1690fcfe23f29ed  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+  binary mtime 2026-10-09 16:50:05  vs source 2026-10-09 02:35:28
+  OK: binary is newer than the source it tests.
+
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess:G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from G8PremixedFlameTest
+[ RUN      ] G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess
+    mdot_0 = 0.1: S_L = 4.95548 cm/s (seed 59.1228), S_c = 4.90444 cm/s, T_peak = 1800 K, delta = 1.19635 mm, bracket = 0.000677131, bisect 10 after 1 brackets, 89394 steps, minY = -1.44563e-11, |sumY-1| = 6.19665e-07
+              fuel balance = 0.00633378, energy balance = 0.00633282, final march 15282 (NOT steady)
+        trial mdot = 0.03 drift = -0.0614612 dt = 9.4243e-06 steps = 17376 (measured, settled) -> too small
+        trial mdot = 0.06 drift = 0.00366889 dt = 9.4243e-06 steps = 4352 (measured, settled) -> too large
+        trial mdot = 0.0424264 drift = -0.0348715 dt = 9.4243e-06 steps = 8704 (measured, settled) -> too small
+        trial mdot = 0.0504538 drift = -0.0173754 dt = 9.4243e-06 steps = 6144 (measured, settled) -> too small
+        trial mdot = 0.0550202 drift = -0.00744567 dt = 9.4243e-06 steps = 5184 (measured, settled) -> too small
+        trial mdot = 0.0574562 drift = -0.00203121 dt = 9.4243e-06 steps = 4736 (measured, settled) -> too small
+        trial mdot = 0.0587143 drift = 0.000777027 dt = 9.4243e-06 steps = 4544 (measured, settled) -> too large
+        trial mdot = 0.0580819 drift = -0.000639001 dt = 9.4243e-06 steps = 4640 (measured, settled) -> too small
+        trial mdot = 0.0583972 drift = 7.05312e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too large
+        trial mdot = 0.0582393 drift = -0.000271583 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0583182 drift = -0.000102169 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0583577 drift = -1.62949e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+    mdot_0 = 0.9: S_L = 4.95316 cm/s (seed 59.1228), S_c = 4.90419 cm/s, T_peak = 1800 K, delta = 1.19668 mm, bracket = 0.000677131, bisect 10 after 3 brackets, 87105 steps, minY = -1.23926e-11, |sumY-1| = 9.17536e-07
+              fuel balance = 0.00587242, energy balance = 0.00587158, final march 15297 (NOT steady)
+        trial mdot = 0.25 drift = 0.573261 dt = 9.4243e-06 steps = 288 (measured, settled) -> too large
+        trial mdot = 0.125 drift = 0.174804 dt = 9.4243e-06 steps = 1024 (measured, settled) -> too large
+        trial mdot = 0.0625 drift = 0.00926076 dt = 9.4243e-06 steps = 4000 (measured, settled) -> too large
+        trial mdot = 0.03125 drift = -0.0587664 dt = 9.4243e-06 steps = 16000 (measured, settled) -> too small
+        trial mdot = 0.0441942 drift = -0.0307999 dt = 9.4243e-06 steps = 8000 (measured, settled) -> too small
+        trial mdot = 0.052556 drift = -0.0127014 dt = 9.4243e-06 steps = 5664 (measured, settled) -> too small
+        trial mdot = 0.0573128 drift = -0.00235962 dt = 9.4243e-06 steps = 4768 (measured, settled) -> too small
+        trial mdot = 0.0598502 drift = 0.00331037 dt = 9.4243e-06 steps = 4384 (measured, settled) -> too large
+        trial mdot = 0.0585677 drift = 0.000451876 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0579368 drift = -0.000963192 dt = 9.4243e-06 steps = 4672 (measured, settled) -> too small
+        trial mdot = 0.0582514 drift = -0.000245748 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0584094 drift = 9.73473e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too large
+        trial mdot = 0.0583304 drift = -7.58932e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0583699 drift = 1.02585e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too large
+    initial-guess spread: 0.000469
+[       OK ] G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess (2472812 ms)
+[ RUN      ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength
+    anchor 0.300000: S_L = 4.93859 cm/s (seed 59.1228), S_c = 4.90064 cm/s, T_peak = 1800 K, delta = 1.19482 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 73979 steps, minY = -7.3745e-12, |sumY-1| = 5.64397e-07
+              fuel balance = 0.000455366, energy balance = 0.00045592, final march 15387 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.0692343 dt = 9.4243e-06 steps = 2080 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.031875 dt = 9.4243e-06 steps = 8256 (measured, settled) -> too small
+        trial mdot = 0.0615615 drift = 0.00758744 dt = 9.4243e-06 steps = 4128 (measured, settled) -> too large
+        trial mdot = 0.0517668 drift = -0.0139914 dt = 9.4243e-06 steps = 5856 (measured, settled) -> too small
+        trial mdot = 0.0564521 drift = -0.00374678 dt = 9.4243e-06 steps = 4928 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.00172425 dt = 9.4243e-06 steps = 4512 (measured, settled) -> too large
+        trial mdot = 0.0576883 drift = -0.00107802 dt = 9.4243e-06 steps = 4704 (measured, settled) -> too small
+        trial mdot = 0.0583164 drift = 0.000334252 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too large
+        trial mdot = 0.0580015 drift = -0.000413651 dt = 9.4243e-06 steps = 4672 (measured, settled) -> too small
+        trial mdot = 0.0581588 drift = -1.27375e-05 dt = 9.4243e-06 steps = 4640 (measured, settled) -> too small
+        trial mdot = 0.0582375 drift = 0.000162405 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too large
+        trial mdot = 0.0581981 drift = 7.32191e-05 dt = 9.4243e-06 steps = 4640 (measured, settled) -> too large
+    anchor 0.400000: S_L = 4.95869 cm/s (seed 59.1228), S_c = 4.90576 cm/s, T_peak = 1800 K, delta = 1.1969 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 73631 steps, minY = -3.21382e-11, |sumY-1| = 7.6967e-07
+              fuel balance = 0.0086917, energy balance = 0.00869032, final march 15263 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.0691814 dt = 9.4243e-06 steps = 2080 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.0325272 dt = 9.4243e-06 steps = 8256 (measured, settled) -> too small
+        trial mdot = 0.0615615 drift = 0.00704723 dt = 9.4243e-06 steps = 4128 (measured, settled) -> too large
+        trial mdot = 0.0517668 drift = -0.0146807 dt = 9.4243e-06 steps = 5856 (measured, settled) -> too small
+        trial mdot = 0.0564521 drift = -0.00440831 dt = 9.4243e-06 steps = 4928 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.00120586 dt = 9.4243e-06 steps = 4512 (measured, settled) -> too large
+        trial mdot = 0.0576883 drift = -0.00164696 dt = 9.4243e-06 steps = 4704 (measured, settled) -> too small
+        trial mdot = 0.0583164 drift = -0.000222991 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0586331 drift = 0.000474546 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0584745 drift = 0.00013152 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0583954 drift = -5.10577e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.058435 drift = 4.52595e-05 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+    anchor 0.500000: S_L = 4.95869 cm/s (seed 59.1228), S_c = 4.90647 cm/s, T_peak = 1800 K, delta = 1.1975 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 73631 steps, minY = -2.15095e-11, |sumY-1| = 1.98289e-06
+              fuel balance = 0.0100426, energy balance = 0.0100408, final march 15263 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864981 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.326196 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.0691813 dt = 9.4243e-06 steps = 2080 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.0326916 dt = 9.4243e-06 steps = 8256 (measured, settled) -> too small
+        trial mdot = 0.0615615 drift = 0.00702899 dt = 9.4243e-06 steps = 4128 (measured, settled) -> too large
+        trial mdot = 0.0517668 drift = -0.0147233 dt = 9.4243e-06 steps = 5856 (measured, settled) -> too small
+        trial mdot = 0.0564521 drift = -0.00444303 dt = 9.4243e-06 steps = 4928 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.00118024 dt = 9.4243e-06 steps = 4512 (measured, settled) -> too large
+        trial mdot = 0.0576883 drift = -0.00167599 dt = 9.4243e-06 steps = 4704 (measured, settled) -> too small
+        trial mdot = 0.0583164 drift = -0.000251006 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0586331 drift = 0.000448056 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0584745 drift = 0.000104471 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0583954 drift = -7.917e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.058435 drift = 1.8782e-05 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+    anchor plateau: 4.93859 .. 4.95869 cm/s
+    domain 40 mm: S_L = 4.95869 cm/s (seed 59.1228), S_c = 4.90653 cm/s, T_peak = 1800 K, delta = 1.19725 mm, bracket = 0.000677131, bisect 10 after 4 brackets, 73631 steps, minY = -2.05807e-11, |sumY-1| = 2.08994e-06
+              fuel balance = 0.0101759, energy balance = 0.0101738, final march 15263 (NOT steady)
+        trial mdot = 0.696488 drift = 1.92167 dt = 9.4243e-06 steps = 160 (measured, settled) -> too large
+        trial mdot = 0.348244 drift = 0.864958 dt = 9.4243e-06 steps = 256 (measured, settled) -> too large
+        trial mdot = 0.174122 drift = 0.32616 dt = 9.4243e-06 steps = 544 (measured, settled) -> too large
+        trial mdot = 0.0870611 drift = 0.069219 dt = 9.4243e-06 steps = 2080 (measured, settled) -> too large
+        trial mdot = 0.0435305 drift = -0.0323995 dt = 9.4243e-06 steps = 8256 (measured, settled) -> too small
+        trial mdot = 0.0615615 drift = 0.00711577 dt = 9.4243e-06 steps = 4128 (measured, settled) -> too large
+        trial mdot = 0.0517668 drift = -0.0148368 dt = 9.4243e-06 steps = 5856 (measured, settled) -> too small
+        trial mdot = 0.0564521 drift = -0.00439016 dt = 9.4243e-06 steps = 4928 (measured, settled) -> too small
+        trial mdot = 0.0589515 drift = 0.00116559 dt = 9.4243e-06 steps = 4512 (measured, settled) -> too large
+        trial mdot = 0.0576883 drift = -0.00165599 dt = 9.4243e-06 steps = 4704 (measured, settled) -> too small
+        trial mdot = 0.0583164 drift = -0.000254461 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.0586331 drift = 0.000453168 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0584745 drift = 0.000105438 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+        trial mdot = 0.0583954 drift = -7.85801e-05 dt = 9.4243e-06 steps = 4608 (measured, settled) -> too small
+        trial mdot = 0.058435 drift = 1.80787e-05 dt = 9.4243e-06 steps = 4576 (measured, settled) -> too large
+[       OK ] G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength (3946038 ms)
+[----------] 2 tests from G8PremixedFlameTest (6418850 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (6418850 ms total)
+[  PASSED  ] 2 tests.
+  gtest exit: 0
+
+=== WHAT IS DELIBERATELY NOT RUN HERE
+  TheFlameSpeedConvergesUnderMeshRefinement -- {250,500,1000}, does not finish in 1750 s
+  (logs/07). C6a exists to re-derive that family; property 5 is judged from C6a's probe.
+  C6b -- needs consumptionSpeed, which fixture_probe does not report. Separate run.
+  C7  -- CFDSpeciesTests excluding G8PremixedFlameTest. Separate run, and it comes LAST
+         in the frozen order.
+
+DONE 2026-10-09T18:37:05+10:00

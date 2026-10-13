@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <random>
 #include <sstream>
 #include <vector>
@@ -91,11 +92,52 @@ QString fieldForMessage(const QString& message) {
   return message.mid(nameStart, nameEnd - nameStart);
 }
 
+// P13-002: the file -> editor-page mapping, now keyed on the diagnostic's own
+// file name instead of searched for inside the message text.
+QString sectionForFile(const QString& file) {
+  struct Entry {
+    const char* fileName;
+    const char* section;
+  };
+  static constexpr Entry kEntries[] = {
+      {"geometry.json", "Geometry"},     {"mesh.json", "Mesh"},     {"physics.json", "Physics"},
+      {"boundaries.json", "Boundaries"}, {"solver.json", "Solver"}, {"case.json", "Case"},
+  };
+  for (const auto& entry : kEntries) {
+    if (file == QString::fromUtf8(entry.fileName)) return QString::fromUtf8(entry.section);
+  }
+  return QStringLiteral("Case");
+}
+
 QVariantMap validResult() {
   return QVariantMap{
       {"valid", true}, {"section", QString()}, {"field", QString()}, {"message", QString()}};
 }
-QVariantMap invalidResult(const QString& section, const QString& message) {
+
+// P13-002: prefer the structured diagnostic the error carried; fall back to
+// scraping the message only when it carried none.
+//
+// The fallback is kept deliberately rather than deleted. ~140 of the case
+// pipeline's rejection sites now carry a diagnostic, but CaseBuilder raises a
+// handful directly during construction, and for those the scrape is still
+// better than nothing -- deleting it would turn "no payload" into "no field at
+// all" for exactly the errors that are hardest to diagnose. See
+// results/p13/case-validation/summary.md for that list.
+QVariantMap invalidResult(const QString& message,
+                          const std::optional<cfd::CaseDiagnostic>& diagnostic) {
+  const QString section = diagnostic.has_value()
+                              ? sectionForFile(QString::fromStdString(diagnostic->file))
+                              : sectionForMessage(message);
+  const QString field =
+      diagnostic.has_value() ? QString::fromStdString(diagnostic->field) : fieldForMessage(message);
+  return QVariantMap{
+      {"valid", false}, {"section", section}, {"field", field}, {"message", message}};
+}
+// Named differently from the overload above on purpose: both take a QString
+// first, and "which section" vs "the message" are easy to transpose. Used only
+// where there is no exception to carry a diagnostic -- a GUI-internal state
+// error such as "no case is loaded".
+QVariantMap invalidResultForSection(const QString& section, const QString& message) {
   return QVariantMap{{"valid", false},
                      {"section", section},
                      {"field", fieldForMessage(message)},
@@ -220,7 +262,8 @@ void SimulationController::refreshMeshQuality() {
 QVariantMap SimulationController::validateDraft() {
   const auto def = session_.caseDefinition();
   if (!def.has_value()) {
-    validationStatus_ = invalidResult(QStringLiteral("Case"), QStringLiteral("no case is loaded"));
+    validationStatus_ =
+        invalidResultForSection(QStringLiteral("Case"), QStringLiteral("no case is loaded"));
     emit validationChanged();
     return validationStatus_;
   }
@@ -234,8 +277,21 @@ QVariantMap SimulationController::validateDraft() {
     meshQuality_["dimension"] = built.mesh.dimension();  // P12-MESH-006: 2 or 3
   } catch (const cfd::Error& e) {
     const QString message = QString::fromStdString(e.what());
-    validationStatus_ = invalidResult(sectionForMessage(message), message);
-    if (message.contains(QStringLiteral("mesh is invalid"))) {
+    // P13-002: the rejection as data. `section` and `field` come from the
+    // diagnostic when the error carried one, instead of being searched for
+    // inside the message text.
+    const std::optional<cfd::CaseDiagnostic> diagnostic = cfd::caseDiagnosticOf(e);
+    validationStatus_ = invalidResult(message, diagnostic);
+    // P13-002: a mesh-quality refusal used to be detected with
+    // message.contains("mesh is invalid") -- a panel's status decided by
+    // searching prose for a phrase. CaseBuilder now labels that rejection
+    // field "quality" on mesh.json, which is unambiguous and survives any
+    // rewording. The message-substring test is kept only as the fallback for
+    // a build that has not been rebuilt against the labelled throw.
+    const bool meshQualityRefusal =
+        diagnostic.has_value() ? (diagnostic->file == "mesh.json" && diagnostic->field == "quality")
+                               : message.contains(QStringLiteral("mesh is invalid"));
+    if (meshQualityRefusal) {
       meshQuality_ = QVariantMap{{"status", QStringLiteral("invalid")}, {"summary", message}};
     }
     emit validationChanged();

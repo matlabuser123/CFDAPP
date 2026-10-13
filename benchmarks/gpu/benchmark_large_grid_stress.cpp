@@ -36,6 +36,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../BenchmarkOutput.hpp"
 #include "cfd/boundary/FixedGradient.hpp"
 #include "cfd/boundary/MovingWall.hpp"
 #include "cfd/boundary/Wall.hpp"
@@ -52,6 +53,9 @@
 using cfd::Index;
 using cfd::Real;
 using cfd::Vector2;
+using cfd::algebra::LinearSolverBackend;
+using cfd::algebra::LinearSolverType;
+using cfd::algebra::PreconditionerType;
 using cfd::boundary::BoundaryConditionSet;
 using cfd::boundary::MovingWall;
 using cfd::boundary::Wall;
@@ -60,9 +64,6 @@ using cfd::fields::VectorField;
 using cfd::mesh::Mesh;
 using cfd::mesh::MeshGeometry;
 using cfd::physics::FluidProperties;
-using cfd::algebra::LinearSolverBackend;
-using cfd::algebra::LinearSolverType;
-using cfd::algebra::PreconditionerType;
 using cfd::pressure_velocity::SIMPLE;
 using cfd::pressure_velocity::SIMPLEResult;
 using cfd::pressure_velocity::SIMPLESettings;
@@ -165,13 +166,20 @@ struct GridConfig {
 
 const char* statusName(SIMPLEStatus status) {
   switch (status) {
-    case SIMPLEStatus::Converged: return "Converged";
-    case SIMPLEStatus::MaxIterations: return "MaxIterations";
-    case SIMPLEStatus::MomentumFailure: return "MomentumFailure";
-    case SIMPLEStatus::PressureCorrectionFailure: return "PressureCorrectionFailure";
-    case SIMPLEStatus::NonFiniteState: return "NonFiniteState";
-    case SIMPLEStatus::InvalidConfiguration: return "InvalidConfiguration";
-    default: return "Cancelled";
+    case SIMPLEStatus::Converged:
+      return "Converged";
+    case SIMPLEStatus::MaxIterations:
+      return "MaxIterations";
+    case SIMPLEStatus::MomentumFailure:
+      return "MomentumFailure";
+    case SIMPLEStatus::PressureCorrectionFailure:
+      return "PressureCorrectionFailure";
+    case SIMPLEStatus::NonFiniteState:
+      return "NonFiniteState";
+    case SIMPLEStatus::InvalidConfiguration:
+      return "InvalidConfiguration";
+    default:
+      return "Cancelled";
   }
 }
 
@@ -237,17 +245,26 @@ StressRunResult runStress(Index nx, Index ny, Index outerIterations, LinearSolve
   for (Index i = 0; i < result.velocity.size(); ++i) {
     if (!std::isfinite(result.velocity[i].x)) {
       run.velocityFinite = false;
-      if (std::isnan(result.velocity[i].x)) ++run.nanCount; else ++run.infCount;
+      if (std::isnan(result.velocity[i].x))
+        ++run.nanCount;
+      else
+        ++run.infCount;
     }
     if (!std::isfinite(result.velocity[i].y)) {
       run.velocityFinite = false;
-      if (std::isnan(result.velocity[i].y)) ++run.nanCount; else ++run.infCount;
+      if (std::isnan(result.velocity[i].y))
+        ++run.nanCount;
+      else
+        ++run.infCount;
     }
   }
   for (Index i = 0; i < result.pressure.size(); ++i) {
     if (!std::isfinite(result.pressure[i])) {
       run.pressureFinite = false;
-      if (std::isnan(result.pressure[i])) ++run.nanCount; else ++run.infCount;
+      if (std::isnan(result.pressure[i]))
+        ++run.nanCount;
+      else
+        ++run.infCount;
     }
   }
 
@@ -278,9 +295,10 @@ void writeConvergenceHistory(const std::string& path, const StressRunResult& run
 
 }  // namespace
 
-int main() {
-  const std::string outDir = "results/performance/large_grid_stress";
-  std::filesystem::create_directories(outDir);
+int main(int argc, char** argv) {
+  const std::string outDir =
+      cfd::benchmarks::benchmarkOutputDir(argc, argv, "results/performance/large_grid_stress")
+          .string();
 
   const bool gpuAvailable = cfd::gpu::cudaAvailable();
   std::cout << "cfd_benchmark_large_grid_stress -- CFDApp version " << cfd::core::versionString()
@@ -292,8 +310,7 @@ int main() {
   // purely to keep this tool's own wall-clock time bounded -- see this
   // file's own header comment.
   const std::vector<GridConfig> gridConfigs = {
-      {160, 160, 60}, {320, 320, 20}, {480, 480, 10},
-      {640, 640, 8},  {800, 800, 5},  {1024, 1024, 3},
+      {160, 160, 60}, {320, 320, 20}, {480, 480, 10}, {640, 640, 8}, {800, 800, 5}, {1024, 1024, 3},
   };
 
   std::ofstream runsCsv(outDir + "/runs.csv");
@@ -307,7 +324,7 @@ int main() {
   nlohmann::json summaryJson = nlohmann::json::array();
 
   std::cout << "grid | cells | backend | runtime_s | outer_iters | status | host_hwm_mb | "
-              "gpu_used_mb | mass_imbalance | nan/inf | result\n";
+               "gpu_used_mb | mass_imbalance | nan/inf | result\n";
 
   std::string largestStableCpuGrid = "none";
   std::string largestStableGpuGrid = "none";
@@ -327,13 +344,15 @@ int main() {
     for (const auto& [backend, backendName] : backends) {
       const bool isCpu = (backend == LinearSolverBackend::CPU);
       if (isCpu && !cpuStillStable) {
-        std::cout << gridLabel << " | " << cells << " | CPU | -- | -- | SKIPPED | -- | -- | -- | "
-                    "-- | skipped (prior grid already unstable/impractical)\n";
+        std::cout << gridLabel << " | " << cells
+                  << " | CPU | -- | -- | SKIPPED | -- | -- | -- | "
+                     "-- | skipped (prior grid already unstable/impractical)\n";
         continue;
       }
       if (!isCpu && !gpuStillStable) {
-        std::cout << gridLabel << " | " << cells << " | GPU | -- | -- | SKIPPED | -- | -- | -- | "
-                    "-- | skipped (prior grid already unstable/impractical)\n";
+        std::cout << gridLabel << " | " << cells
+                  << " | GPU | -- | -- | SKIPPED | -- | -- | -- | "
+                     "-- | skipped (prior grid already unstable/impractical)\n";
         continue;
       }
 
@@ -349,35 +368,37 @@ int main() {
               << "," << run.gpuFreeAfterBytes << "," << run.gpuTotalBytes << ","
               << run.gpuHostToDeviceBytes << "," << run.gpuDeviceToHostBytes << "\n";
 
-      writeConvergenceHistory(outDir + "/convergence_" + std::string(backendName) + "_" +
-                                  gridLabel + ".csv",
-                              run);
+      writeConvergenceHistory(
+          outDir + "/convergence_" + std::string(backendName) + "_" + gridLabel + ".csv", run);
 
       const bool numericallyValid = run.velocityFinite && run.pressureFinite;
       const bool overallOk = run.ranCleanly && numericallyValid;
-      const double gpuUsedMb = isCpu ? 0.0
-                                     : static_cast<double>(run.gpuTotalBytes - run.gpuFreeAfterBytes) /
-                                           (1024.0 * 1024.0);
+      const double gpuUsedMb =
+          isCpu
+              ? 0.0
+              : static_cast<double>(run.gpuTotalBytes - run.gpuFreeAfterBytes) / (1024.0 * 1024.0);
 
-      std::cout << gridLabel << " | " << cells << " | " << backendName << " | "
-                << run.totalSeconds << " | " << run.outerIterations << " | "
-                << statusName(run.status) << " | "
+      std::cout << gridLabel << " | " << cells << " | " << backendName << " | " << run.totalSeconds
+                << " | " << run.outerIterations << " | " << statusName(run.status) << " | "
                 << (static_cast<double>(run.hostHwmAfterKb) / 1024.0) << " | "
                 << (isCpu ? 0.0 : gpuUsedMb) << " | " << std::abs(run.globalMassImbalance) << " | "
                 << run.nanCount << "/" << run.infCount << " | " << (overallOk ? "OK" : "FAILED")
                 << "\n";
 
       if (overallOk) {
-        if (isCpu) largestStableCpuGrid = gridLabel; else largestStableGpuGrid = gridLabel;
+        if (isCpu)
+          largestStableCpuGrid = gridLabel;
+        else
+          largestStableGpuGrid = gridLabel;
       } else {
         if (isCpu) {
           cpuStillStable = false;
-          cpuLimitingFactor = "solver instability at " + gridLabel + " (" +
-                              statusName(run.status) + (numericallyValid ? "" : ", NaN/Inf") + ")";
+          cpuLimitingFactor = "solver instability at " + gridLabel + " (" + statusName(run.status) +
+                              (numericallyValid ? "" : ", NaN/Inf") + ")";
         } else {
           gpuStillStable = false;
-          gpuLimitingFactor = "solver instability at " + gridLabel + " (" +
-                              statusName(run.status) + (numericallyValid ? "" : ", NaN/Inf") + ")";
+          gpuLimitingFactor = "solver instability at " + gridLabel + " (" + statusName(run.status) +
+                              (numericallyValid ? "" : ", NaN/Inf") + ")";
         }
       }
 
@@ -418,13 +439,13 @@ int main() {
                 "host_hwm_after_mb,gpu_used_after_mb,mass_imbalance,nan_count,inf_count\n";
   for (const auto& j : summaryJson) {
     summaryCsv << j["grid"].get<std::string>() << "," << j["cells"].get<int>() << ","
-              << j["backend"].get<std::string>() << "," << j["total_seconds"].get<double>() << ","
-              << j["outer_iterations"].get<int>() << "," << j["status"].get<std::string>() << ","
-              << (j["overall_ok"].get<bool>() ? "yes" : "no") << ","
-              << (static_cast<double>(j["host_hwm_after_kb"].get<long>()) / 1024.0) << ","
-              << (j.contains("gpu_used_after_mb") ? j["gpu_used_after_mb"].get<double>() : 0.0)
-              << "," << j["mass_imbalance"].get<double>() << "," << j["nan_count"].get<int>()
-              << "," << j["inf_count"].get<int>() << "\n";
+               << j["backend"].get<std::string>() << "," << j["total_seconds"].get<double>() << ","
+               << j["outer_iterations"].get<int>() << "," << j["status"].get<std::string>() << ","
+               << (j["overall_ok"].get<bool>() ? "yes" : "no") << ","
+               << (static_cast<double>(j["host_hwm_after_kb"].get<long>()) / 1024.0) << ","
+               << (j.contains("gpu_used_after_mb") ? j["gpu_used_after_mb"].get<double>() : 0.0)
+               << "," << j["mass_imbalance"].get<double>() << "," << j["nan_count"].get<int>()
+               << "," << j["inf_count"].get<int>() << "\n";
   }
 
   nlohmann::json metadata;

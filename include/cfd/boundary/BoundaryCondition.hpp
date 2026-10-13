@@ -29,6 +29,12 @@ enum class BoundaryConditionType {
   FixedTemperature,
   HeatFlux,
   Adiabatic,
+  // P15: the convective (Robin / mixed) wall, -k dT/dn = h_c (T - T_inf).
+  // Its own type because it is neither Dirichlet nor Neumann: the face value
+  // depends on the local conductivity, so prescribesBoundaryValue() below
+  // returns false for it and the thermal assembly computes the coefficient
+  // itself. See ConvectiveHeatTransfer.hpp.
+  ConvectiveHeatTransfer,
   // P2-TURB-006: SST's near-wall omega Dirichlet value (Wilcox's
   // asymptotic formula, evaluated at the owner cell's own distance to
   // the wall face) -- see WallOmega.hpp. Its own named type for the same

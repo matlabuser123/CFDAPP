@@ -1,0 +1,59 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T21:03:00+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c2a1_probe.cpp -o /tmp/td004_c2a1 /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-004 C2-A1 -- FRESH VERIFICATION
+
+  GATE.md fixture: 500 cells / 10 mm / anchor 0.35 / tolerance 1e-3, DEFAULT dt
+  admissibility bound 0.05, from test_premixed_flame.cpp:447
+  PREDICTED in GATE_A1 section 7: FAIL at (b). logs/14 pattern was GGBGGB.
+
+  relaxT   marchStp     fuel bal    admiss    S_L cm/s  delta mm   wall s
+      10       3968    1.531e-02       yes     4.86230    1.2289      231
+      14       5556    1.061e-02       yes     4.86230    1.2238      250
+      18       7143    6.751e-01        NO     4.86230    0.4111      269
+      22       8730    1.045e-02       yes     4.86230    1.2231      288
+      26      10318    1.093e-02       yes     4.86230    1.2231      308
+      30      11905    6.022e-01        NO     4.86230    0.4188      328
+
+  pattern GGBGGB      logs/14 measured GGBGGB
+  determinism confirmed: the signal reproduces logs/14 exactly.
+
+=== C2-A1
+  (a) REACHES  first admissible level: relaxT 10 (1.531e-02)   -> PASS
+  (b) STAYS    relaxT 18 LEAVES: 6.751e-01 >= 0.05
+  (b) STAYS    relaxT 30 LEAVES: 6.022e-01 >= 0.05
+  (b) STAYS                                                 -> FAIL
+  (c) SETTLES  max 6.751e-01  min 1.045e-02  mean 2.208e-01
+               max-min 6.647e-01 > mean 2.208e-01                 -> FAIL
+
+  C2-A1 VERDICT: FAIL
+
+  As predicted in GATE_A1 section 7. The criterion fails because TD-028 (the
+  limit cycle) and TD-030's candidate (the 8.48e-02 reaction-integral residual)
+  are both OPEN. A criterion that fails on two known open defects is a WORKING
+  criterion -- which is exactly the distinction the original C2 failed, since no
+  fix could have satisfied a bound on a trend that does not exist.
+
+probe exit: 0

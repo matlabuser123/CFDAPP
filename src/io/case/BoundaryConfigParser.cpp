@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <array>
+#include <cmath>
+#include <cstddef>
 
 #include "JsonUtil.hpp"
 #include "Parsers.hpp"
@@ -140,7 +142,7 @@ TemperatureBoundarySpec parseTemperatureSpec(const nlohmann::json& json,
 BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesystem::path& path,
                                    bool thermalEnabled,
                                    const std::vector<std::string>& speciesNames,
-                                   bool multiphaseEnabled, int dimension) {
+                                   bool multiphaseEnabled, int dimension, bool compositionSpecies) {
   requireObject(json, path);
   rejectUnknownKeys(json, path, "boundaries.json", {"patches"});
   requireField(json, path, "patches");
@@ -203,6 +205,51 @@ BoundaryConfig parseBoundaryConfig(const nlohmann::json& json, const std::filesy
           if (!known) {
             throwConfigError(path, speciesContext + "." + name,
                              "name a species declared in physics.json's \"species\" array", name);
+          }
+        }
+      }
+
+      // TD-001 / gate C11: THE SHARED MULTI-SPECIES BOUNDARY CONSTRAINT.
+      //
+      // For a reacting case the per-patch entries are a COMPOSITION, not a set of unrelated
+      // tracers, so the `fixed_value` ones must sum to 1. P18.2 recorded the gap this closes:
+      // "No multi-species boundary type, so sum Y_i = 1 is not enforced across a shared patch; the
+      // per-species boundary sets are independent objects."
+      //
+      // WHY IT IS CHECKED HERE, at parse time, rather than left to P18.1. MassFractionState does
+      // refuse an out-of-bounds composition -- but only at a STEP BOUNDARY, i.e. after a solve has
+      // already consumed the patch values. A patch declaring 0.1/0.0/0.8 would be used by the
+      // transport assembly first and refused afterwards, if at all. Refusing the FILE is the only
+      // point at which the user learns which patch is wrong.
+      //
+      // Only `fixed_value` entries are summed. A `fixed_gradient` entry states a flux, not a mass
+      // fraction, and summing it with compositions would be a category error -- an all-gradient
+      // patch (the usual outlet/wall case) therefore has no constraint to satisfy, which is why
+      // the all-gradient patches in the TD-001 case are accepted.
+      if (compositionSpecies) {
+        Real fixedSum = 0.0;
+        std::size_t fixedCount = 0;
+        for (const std::string& speciesName : speciesNames) {
+          const ConcentrationBoundarySpec& spec = patchConfig.concentration.at(speciesName);
+          if (spec.type == "fixed_value") {
+            fixedSum += spec.value;
+            ++fixedCount;
+          }
+        }
+        // A composition is only declared when EVERY species is fixed on the patch. A partial set
+        // (some fixed, some gradient) does not define one, and demanding it summed to 1 would
+        // reject a legitimate mixed patch.
+        if (fixedCount == speciesNames.size() && fixedCount > 0) {
+          // 1e-12, matching PhysicsConfigParser's own bound on the initial composition, so the
+          // boundary and the initial state are held to one tolerance rather than two.
+          if (std::abs(fixedSum - 1.0) > 1.0e-12) {
+            throwConfigError(path, speciesContext,
+                             "have fixed_value mass fractions summing to 1 across all " +
+                                 std::to_string(speciesNames.size()) +
+                                 " reacting species (a patch composition is a mixture; this "
+                                 "codebase refuses an out-of-bounds composition and never "
+                                 "normalises one)",
+                             std::to_string(fixedSum));
           }
         }
       }

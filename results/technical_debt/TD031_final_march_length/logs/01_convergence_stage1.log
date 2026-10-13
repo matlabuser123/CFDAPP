@@ -1,0 +1,60 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-06T14:03:24+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-06 02:35:44.854329800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD031_final_march_length/tools/convergence_point_probe.cpp -o /tmp/td031_conv /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-031 -- THE CONVERGENCE POINT, across a mesh pair and a cap pair
+
+  the current default is relaxT 10; TD-005 logs/19 measured 18 at 500 cells / cap 5
+  convergence point = smallest relaxT from which, at EVERY later level,
+     |front offset| <= 3.0 cells  AND  (max-min) <= mean on the balance
+  stage 1
+
+=== 250 cells (dx 40.0 um), maximumCellDiffusionNumber = 5.0
+   relaxT   marchStp  offset cell     fuel bal   delta mm   S_L cm/s    wall s
+       10       4033       -19.49   3.0888e-01     0.7901    4.82296       113
+       14       5647       -74.84   1.3789e-01     0.5003    4.82296       127
+       18       7260         1.09   2.5109e-02     1.2340    4.82296       136
+       22       8873       -81.61   7.7098e-01     0.4094    4.82296       130
+       26      10487       -81.80   8.2920e-01     0.4049    4.82296       141
+    *** NO CONVERGENCE POINT in this ladder -- the state never settles by
+        relaxT 26. The ladder is too short, or this configuration does not
+        converge at all.
+
+=== 500 cells (dx 20.0 um), maximumCellDiffusionNumber = 10.0
+   relaxT   marchStp  offset cell     fuel bal   delta mm   S_L cm/s    wall s
+       10       8655         2.73   7.5849e-02     1.2588    4.65615       455
+       14      12117         0.63   7.7734e-02     1.2589    4.65615       434
+       18      15580      -164.31   1.3238e+00     0.3943    4.65615       382
+       22      19042      -161.50   5.9947e-01     0.4373    4.65615       418
+       26      22504      -161.70   6.2256e-01     0.4346    4.65615       457
+    *** NO CONVERGENCE POINT in this ladder -- the state never settles by
+        relaxT 26. The ladder is too short, or this configuration does not
+        converge at all.
+
+=== STAGE 1 SUMMARY
+    250 cells / cap  5 : convergence point -1
+    500 cells / cap 10 : convergence point -1
+    500 cells / cap  5 : stage 2
+
+probe exit: 0

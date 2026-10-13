@@ -1,0 +1,1201 @@
+// P17.9 -- shock validation.
+//
+// Frozen gate: results/p17/shock_validation/acceptance_gate.md
+// Frozen configuration: results/p17/shock_validation/configuration.md
+// Independent reference: results/p17/shock_validation/tools/riemann_reference.py (60 digits, no
+// CFDApp code, cross-checked against P17.7's separate derivation and against eight defining
+// physical properties).
+//
+// The criterion ids in the test names are the frozen gate's.
+//
+// EVERY CASE RUNS THE SAME SOLVER CONFIGURATION -- first order, HLLC, explicit Euler, CFL 0.4,
+// GlobalPhysical, deterministic retry, nothing clamped. configuration.md §4 lists the only three
+// per-case differences (end time, boundary kind, and nx = 400 for the normal shock) and why each is
+// physical rather than a tuning knob. No benchmark is tuned to pass.
+//
+// THESE ARE 1D PROBLEMS ON 2D MESHES. The frozen G7 constraint note requires every claim to say so,
+// because CompressibleSIMPLE is 2D-only and the mesh factory is 2D. Each case uses ny = 1 with
+// dy = dx, walls top and bottom, and v = 0 -- so the mirrored wall state equals the interior state
+// exactly and the y-faces carry only pressure, which cancels between top and bottom.
+
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+#include <limits>
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
+
+#include "ShockDetectors.hpp"
+#include "cfd/compressible/DensityBasedSolver.hpp"
+#include "cfd/compressible/ThermodynamicProperties.hpp"
+#include "cfd/compressible/TotalEnergy.hpp"
+#include "cfd/core/Exception.hpp"
+#include "cfd/mesh/MeshGeometry.hpp"
+#include "cfd/thermal/Enthalpy.hpp"
+#include "cfd/thermal/TemperatureDependentProperty.hpp"
+#include "shock_reference_data.hpp"
+
+namespace {
+
+using cfd::Index;
+using cfd::Real;
+using cfd::Vector3;
+using cfd::compressible::BoundaryKind;
+using cfd::compressible::ConservedField;
+using cfd::compressible::DensityBasedBoundaries;
+using cfd::compressible::DensityBasedBoundary;
+using cfd::compressible::DensityBasedResult;
+using cfd::compressible::DensityBasedSettings;
+using cfd::compressible::DensityBasedSolver;
+using cfd::compressible::DensityBasedStatus;
+using cfd::compressible::makePrimitiveState;
+using cfd::compressible::PrimitiveState;
+using cfd::compressible::ThermodynamicProperties;
+using cfd::compressible::TimeSteppingMode;
+using cfd::compressible::TotalEnergyState;
+using cfd::fields::ScalarField;
+using cfd::fields::VectorField;
+using cfd::mesh::Mesh;
+using cfd::mesh::MeshGeometry;
+using cfd::thermal::SensibleEnthalpy;
+using cfd::thermal::TemperatureDependentProperty;
+
+namespace ref = cfd::shock_reference;
+namespace det = cfd::shock_detect;
+
+constexpr Real kEps = 2.2204460492503131e-16;
+
+// The project's gas, identical to the reference script and to every P17.8 suite.
+TotalEnergyState air() {
+  const TemperatureDependentProperty cp(std::vector<Real>{ref::kCp}, 0.0, 3000.0, "cp");
+  return TotalEnergyState(ThermodynamicProperties(ref::kGasConstant, ref::kCp),
+                          SensibleEnthalpy(cp, 0.0, 0.0));
+}
+
+// The FROZEN configuration. Every case uses this; only endTime and the boundaries differ, and
+// configuration.md §4 records why.
+DensityBasedSettings frozenSettings(Real endTime, Real cfl = 0.4) {
+  DensityBasedSettings s{};
+  s.cfl = cfl;
+  s.mode = TimeSteppingMode::GlobalPhysical;
+  s.endTime = endTime;
+  s.maxIterations = 20000;
+  return s;
+}
+
+DensityBasedBoundaries allWalls(const Mesh& mesh) {
+  DensityBasedBoundaries b;
+  for (const auto& patch : mesh.boundaryPatches()) {
+    DensityBasedBoundary e{};
+    e.kind = BoundaryKind::InviscidWall;
+    b[patch.name()] = e;
+  }
+  return b;
+}
+
+DensityBasedBoundaries throughFlow(const Mesh& mesh, const PrimitiveState& inflow) {
+  DensityBasedBoundaries b;
+  for (const auto& patch : mesh.boundaryPatches()) {
+    DensityBasedBoundary e{};
+    const std::string name(patch.name());
+    if (name == "left") {
+      e.kind = BoundaryKind::SupersonicInflow;
+      e.prescribed = inflow;
+    } else if (name == "right") {
+      e.kind = BoundaryKind::SupersonicOutflow;
+    } else {
+      e.kind = BoundaryKind::InviscidWall;
+    }
+    b[name] = e;
+  }
+  return b;
+}
+
+// A 1D-on-2D mesh: nx cells in x over [0, lx], one cell in y with dy = dx.
+Mesh oneDimensionalMesh(Index nx, Real lx) {
+  return MeshGeometry::createCartesian2D(nx, 1, lx, lx / static_cast<Real>(nx));
+}
+
+struct RunResult {
+  det::Profile profile;      // sorted by x
+  std::vector<Real> volume;  // matching order
+  DensityBasedResult result;
+  Real dx{};
+  Real minDensity{};
+  Real minPressure{};
+  Real minTemperature{};
+  Real massInitial{};
+  Real massFinal{};
+  Real energyInitial{};
+  Real energyFinal{};
+};
+
+// Extract the profile in ASCENDING x order. The mesh's cell order is not assumed.
+RunResult extract(const Mesh& mesh, const DensityBasedSolver& solver, const ConservedField& q0,
+                  const DensityBasedResult& res) {
+  RunResult out;
+  out.result = res;
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  std::vector<std::pair<Real, Index>> order;
+  order.reserve(n);
+  for (Index i = 0; i < n; ++i) order.emplace_back(mesh.cell(i).centroid().x, i);
+  std::sort(order.begin(), order.end());
+
+  const auto prim = solver.toPrimitive(res.state);
+  out.minDensity = std::numeric_limits<Real>::infinity();
+  out.minPressure = std::numeric_limits<Real>::infinity();
+  out.minTemperature = std::numeric_limits<Real>::infinity();
+  for (const auto& [x, i] : order) {
+    out.profile.x.push_back(x);
+    out.profile.density.push_back(prim[i].density);
+    out.profile.velocity.push_back(prim[i].velocity.x);
+    out.profile.pressure.push_back(prim[i].pressure);
+    out.volume.push_back(mesh.cell(i).volume());
+    out.minDensity = std::min(out.minDensity, prim[i].density);
+    out.minPressure = std::min(out.minPressure, prim[i].pressure);
+    out.minTemperature = std::min(out.minTemperature, prim[i].temperature);
+  }
+  out.dx = out.profile.x.size() > 1 ? out.profile.x[1] - out.profile.x[0] : 0.0;
+  for (Index i = 0; i < n; ++i) {
+    const Real v = mesh.cell(i).volume();
+    out.massInitial += q0.density[i] * v;
+    out.massFinal += res.state.density[i] * v;
+    out.energyInitial += q0.totalEnergyDensity[i] * v;
+    out.energyFinal += res.state.totalEnergyDensity[i] * v;
+  }
+  return out;
+}
+
+// Build and run the Sod shock tube exactly as configuration.md §2 fixes it.
+RunResult runSod(Index nx, Real cfl = 0.4) {
+  const DensityBasedSolver solver(frozenSettings(ref::kSodEndTime, cfl), air());
+  Mesh mesh = oneDimensionalMesh(nx, 1.0);
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  ScalarField rho(n);
+  VectorField u(n);
+  ScalarField t(n);
+  for (Index i = 0; i < n; ++i) {
+    const bool left = mesh.cell(i).centroid().x < ref::kSodDiaphragm;
+    const Real r = left ? ref::kSodLeftDensity : ref::kSodRightDensity;
+    const Real p = left ? ref::kSodLeftPressure : ref::kSodRightPressure;
+    rho[i] = r;
+    u[i] = Vector3{0.0, 0.0, 0.0};
+    t[i] = p / (r * ref::kGasConstant);  // p = rho R T, the EOS the solver itself uses
+  }
+  const ConservedField q0 = solver.fromPrimitive(mesh, rho, u, t);
+  const auto boundaries = allWalls(mesh);
+  const DensityBasedResult res = solver.solve(mesh, q0, boundaries);
+  RunResult out = extract(mesh, solver, q0, res);
+  return out;
+}
+
+struct SodMeasurement {
+  std::optional<double> contact;
+  std::optional<double> shock;
+  std::optional<double> head;
+  std::optional<double> tail;
+  int fanCells{0};
+  std::optional<double> pStarLeft, uStarLeft, rhoStarLeft;
+  std::optional<double> pStarRight, uStarRight, rhoStarRight;
+  std::optional<double> preShockDensity;
+  det::FieldError errDensity, errVelocity, errPressure;
+  int shockWidthCells{0};
+  int contactWidthCells{0};
+};
+
+// Run every detector, in the order the later ones depend on. No detector is given an expected
+// position (authorization §28).
+SodMeasurement measureSod(const RunResult& r) {
+  SodMeasurement m;
+  const auto& P = r.profile;
+  m.contact = det::crossingPosition(P.x, P.density, ref::kSodRhoStarLeft, ref::kSodRhoStarRight);
+  m.shock = det::crossingPosition(P.x, P.density, ref::kSodRhoStarRight, ref::kSodRightDensity);
+  const double xMax = m.contact ? *m.contact : P.x.back();
+  const auto fan = det::fanExtent(P.x, P.density, xMax, ref::kSodLeftDensity, ref::kSodRhoStarLeft);
+  m.head = fan.head;
+  m.tail = fan.tail;
+  m.fanCells = fan.cells;
+
+  if (m.tail && m.contact) {
+    m.rhoStarLeft = det::plateauMean(P.x, P.density, *m.tail, *m.contact, r.dx).mean;
+    m.pStarLeft = det::plateauMean(P.x, P.pressure, *m.tail, *m.contact, r.dx).mean;
+    m.uStarLeft = det::plateauMean(P.x, P.velocity, *m.tail, *m.contact, r.dx).mean;
+  }
+  if (m.contact && m.shock) {
+    m.rhoStarRight = det::plateauMean(P.x, P.density, *m.contact, *m.shock, r.dx).mean;
+    m.pStarRight = det::plateauMean(P.x, P.pressure, *m.contact, *m.shock, r.dx).mean;
+    m.uStarRight = det::plateauMean(P.x, P.velocity, *m.contact, *m.shock, r.dx).mean;
+  }
+  if (m.shock) {
+    m.preShockDensity = det::plateauMean(P.x, P.density, *m.shock, P.x.back() + r.dx, r.dx).mean;
+  }
+
+  std::vector<double> exRho, exU, exP;
+  exRho.reserve(P.size());
+  for (const double x : P.x) {
+    const auto e = det::sampleExactSodAt(x, ref::kSodEndTime);
+    exRho.push_back(e.density);
+    exU.push_back(e.velocity);
+    exP.push_back(e.pressure);
+  }
+  m.errDensity = det::fieldError(P.density, exRho, r.volume);
+  m.errVelocity = det::fieldError(P.velocity, exU, r.volume);
+  m.errPressure = det::fieldError(P.pressure, exP, r.volume);
+  m.shockWidthCells =
+      det::transitionWidthCells(P.density, ref::kSodRhoStarRight, ref::kSodRightDensity);
+  m.contactWidthCells =
+      det::transitionWidthCells(P.density, ref::kSodRhoStarLeft, ref::kSodRhoStarRight);
+  return m;
+}
+
+}  // namespace
+
+// =============================================================================================
+// The detectors themselves, cross-checked against the Python dry-run
+// =============================================================================================
+//
+// This runs FIRST and is the reason every later number can be believed. The gate's detectors were
+// dry-run in Python before the gate was frozen; this test puts the SAME synthetic inputs through
+// the C++ implementation and requires the same answers. Two implementations of a measurement
+// apparatus drifting apart silently is exactly how a validation suite starts reporting confident
+// nonsense.
+TEST(ShockDetectorTest, D0_CppSamplerReproducesThePythonReferenceProfile) {
+  double worst = 0.0;
+  for (int i = 0; i < ref::kSodSpotPointCount; ++i) {
+    const auto& s = ref::kSodSpotPoints[i];
+    const auto got = det::sampleExactSodAt(s.x, ref::kSodEndTime);
+    const double scale = std::abs(s.density) + std::abs(s.velocity) + std::abs(s.pressure);
+    const double d = (std::abs(got.density - s.density) + std::abs(got.velocity - s.velocity) +
+                      std::abs(got.pressure - s.pressure)) /
+                     scale;
+    worst = std::max(worst, d);
+    EXPECT_LE(d, 1e-12) << "spot point " << i << " at x = " << s.x;
+  }
+  std::printf(
+      "\n  D0 C++ exact sampler vs the 60-digit Python profile: worst relative %.3e over "
+      "%d spot points\n",
+      worst, ref::kSodSpotPointCount);
+}
+
+TEST(ShockDetectorTest, D1_DetectorsMeasureTheExactProfileAndCanFail) {
+  const int nx = 200;
+  const double dx = 1.0 / nx;
+  det::Profile P;
+  for (int i = 0; i < nx; ++i) {
+    const double x = (i + 0.5) * dx;
+    const auto e = det::sampleExactSodAt(x, ref::kSodEndTime);
+    P.x.push_back(x);
+    P.density.push_back(e.density);
+    P.velocity.push_back(e.velocity);
+    P.pressure.push_back(e.pressure);
+  }
+  const auto contact =
+      det::crossingPosition(P.x, P.density, ref::kSodRhoStarLeft, ref::kSodRhoStarRight);
+  const auto shock =
+      det::crossingPosition(P.x, P.density, ref::kSodRhoStarRight, ref::kSodRightDensity);
+  ASSERT_TRUE(contact.has_value());
+  ASSERT_TRUE(shock.has_value());
+  const auto fan =
+      det::fanExtent(P.x, P.density, *contact, ref::kSodLeftDensity, ref::kSodRhoStarLeft);
+  ASSERT_TRUE(fan.head.has_value());
+  ASSERT_TRUE(fan.tail.has_value());
+
+  std::printf("\n  D1 detectors on the EXACT profile (nx = %d, dx = %.4e)\n", nx, dx);
+  const struct {
+    const char* name;
+    double got;
+    double want;
+    double limitCells;
+  } rows[] = {
+      {"rarefaction head", *fan.head, ref::kSodRarefactionHeadPosition, 2.0},
+      {"rarefaction tail", *fan.tail, ref::kSodRarefactionTailPosition, 4.0},
+      {"contact", *contact, ref::kSodContactPosition, 2.0},
+      {"shock", *shock, ref::kSodShockPosition, 2.0},
+  };
+  for (const auto& row : rows) {
+    const double err = std::abs(row.got - row.want);
+    std::printf("      %-18s %.10f vs %.10f   err %.4e = %.4f dx (limit %.0f dx)\n", row.name,
+                row.got, row.want, err, err / dx, row.limitCells);
+    EXPECT_LE(err, row.limitCells * dx) << row.name;
+  }
+  std::printf("      fan spans %d cells (exact 44.5)\n", fan.cells);
+  EXPECT_GE(fan.cells, 3);
+
+  // CONTROL V4: a monotone ramp with NO jump must yield NO shock. Without this the detector
+  // reported a "shock" at x = 0.9176 on a straight line -- see the header of ShockDetectors.hpp.
+  std::vector<double> ramp(nx);
+  for (int i = 0; i < nx; ++i) {
+    ramp[static_cast<std::size_t>(i)] =
+        ref::kSodLeftDensity +
+        (ref::kSodRightDensity - ref::kSodLeftDensity) * i / static_cast<double>(nx - 1);
+  }
+  const auto ghost = det::crossingPosition(P.x, ramp, ref::kSodRhoStarRight, ref::kSodRightDensity);
+  EXPECT_FALSE(ghost.has_value()) << "the detector invented a shock in a jumpless ramp";
+  std::printf("      V4 jumpless ramp -> %s\n",
+              ghost ? "*** A SHOCK WAS INVENTED ***" : "no shock");
+
+  // CONTROL V3: shifting the profile by 3 dx must break the position criteria.
+  std::vector<double> shifted(P.density.size());
+  for (std::size_t i = 0; i < shifted.size(); ++i) {
+    const long j = static_cast<long>(i) - 3;
+    shifted[i] = P.density[static_cast<std::size_t>(
+        std::clamp<long>(j, 0, static_cast<long>(P.density.size()) - 1))];
+  }
+  const auto shiftedShock =
+      det::crossingPosition(P.x, shifted, ref::kSodRhoStarRight, ref::kSodRightDensity);
+  ASSERT_TRUE(shiftedShock.has_value());
+  const double shiftErr = std::abs(*shiftedShock - ref::kSodShockPosition);
+  std::printf("      V3 profile shifted 3 dx -> shock err %.4f dx (must exceed 2)\n",
+              shiftErr / dx);
+  EXPECT_GT(shiftErr, 2.0 * dx) << "a 3 dx shift was not detected";
+}
+
+// =============================================================================================
+// Group W and Group X -- the Sod shock tube: wave structure and wave positions
+// =============================================================================================
+
+TEST(SodShockTubeTest, WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly) {
+  const Index nx = 200;
+  const RunResult r = runSod(nx);
+  ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+  const SodMeasurement m = measureSod(r);
+
+  std::printf("\n  SOD, 2D mesh %zux1, dx = %.4e, CFL 0.4, t = %.3f, %zu steps\n",
+              static_cast<std::size_t>(nx), r.dx, ref::kSodEndTime,
+              static_cast<std::size_t>(r.result.iterations));
+
+  // W1: all three structures detected, in order
+  ASSERT_TRUE(m.head.has_value()) << "W1: no rarefaction head detected";
+  ASSERT_TRUE(m.tail.has_value()) << "W1: no rarefaction tail detected";
+  ASSERT_TRUE(m.contact.has_value()) << "W1: no contact detected";
+  ASSERT_TRUE(m.shock.has_value()) << "W1: no shock detected";
+  EXPECT_LT(*m.head, *m.tail);
+  EXPECT_LT(*m.tail, *m.contact);
+  EXPECT_LT(*m.contact, *m.shock);
+  std::printf("      W1 rarefaction -> contact -> shock, in order: yes\n");
+
+  // W2: the fan is a resolved smooth structure
+  std::printf("      W2 fan spans %d cells (exact 44.5, floor 3)\n", m.fanCells);
+  EXPECT_GE(m.fanCells, 3);
+
+  // X1-X4: positions.
+  //
+  // AMENDMENT A2 -- the rarefaction HEAD is no longer bounded by C*dx.
+  //
+  // The head is a DERIVATIVE discontinuity: density is continuous there and only its gradient
+  // jumps. A first-order scheme smooths it diffusively over a length sqrt(2 D t) with D ~ s dx/2,
+  // so a position detected at a fixed fraction of AMPLITUDE moves like sqrt(dx), not like dx. The
+  // frozen 2 dx bound was derived from "half the smear width of a JUMP", which this feature is not
+  // -- it fails a converging solver, and fails it WORSE the finer the mesh (11.8, 15.4, 19.9 dx at
+  // nx = 200, 400, 800 while the error itself HALVES). The replacement is a scaling law with no
+  // free constant, and it is gated in R_RefinementImprovesEveryError where a refinement family
+  // exists to test it. Here the head is REPORTED.
+  // See amendments/A2_rarefaction_head_scaling.md.
+  const struct {
+    const char* name;
+    double got;
+    double want;
+    double limitCells;
+    bool gated;
+  } rows[] = {
+      {"rarefaction head", *m.head, ref::kSodRarefactionHeadPosition, 0.0, false},
+      {"rarefaction tail", *m.tail, ref::kSodRarefactionTailPosition, 4.0, true},
+      {"contact", *m.contact, ref::kSodContactPosition, 2.0, true},
+      {"shock", *m.shock, ref::kSodShockPosition, 2.0, true},
+  };
+  std::printf("      %-18s %-14s %-14s %-12s %-10s %s\n", "wave", "numerical", "exact", "err",
+              "err/dx", "limit");
+  for (const auto& row : rows) {
+    const double err = std::abs(row.got - row.want);
+    if (row.gated) {
+      std::printf("      %-18s %-14.10f %-14.10f %-12.4e %-10.4f %.0f dx\n", row.name, row.got,
+                  row.want, err, err / r.dx, row.limitCells);
+      EXPECT_LE(err, row.limitCells * r.dx) << row.name;
+    } else {
+      std::printf(
+          "      %-18s %-14.10f %-14.10f %-12.4e %-10.4f A2: scaling gated in the\n"
+          "                         refinement test, not by a C*dx bound\n",
+          row.name, row.got, row.want, err, err / r.dx);
+    }
+  }
+
+  // W3: the contact carries a density jump but no pressure or velocity jump
+  ASSERT_TRUE(m.pStarLeft && m.pStarRight && m.uStarLeft && m.uStarRight && m.rhoStarLeft &&
+              m.rhoStarRight)
+      << "W3: a plateau window was too narrow";
+  const double dp = std::abs(*m.pStarRight - *m.pStarLeft) / ref::kSodPStar;
+  const double du = std::abs(*m.uStarRight - *m.uStarLeft) / ref::kSodUStar;
+  const double drho = std::abs(*m.rhoStarLeft - *m.rhoStarRight);
+  const double exactDrho = ref::kSodRhoStarLeft - ref::kSodRhoStarRight;
+  std::printf("      W3 contact: |dp|/p* %.4e, |du|/u* %.4e, drho %.6f vs exact %.6f\n", dp, du,
+              drho, exactDrho);
+  EXPECT_LE(dp, 0.05) << "W3: a spurious PRESSURE jump sits on the contact";
+  EXPECT_LE(du, 0.05) << "W3: a spurious VELOCITY jump sits on the contact";
+  EXPECT_GE(drho, 0.5 * exactDrho) << "W3: the contact carries no density jump";
+
+  // W4: the shock jumps in all three, in the right directions
+  ASSERT_TRUE(m.preShockDensity.has_value());
+  EXPECT_GT(*m.rhoStarRight, *m.preShockDensity) << "W4: density does not rise across the shock";
+  EXPECT_GT(*m.pStarRight, ref::kSodRightPressure) << "W4: pressure does not rise across the shock";
+  EXPECT_GT(*m.uStarRight, ref::kSodRightVelocity) << "W4: velocity does not rise across the shock";
+  std::printf("      W4 shock jumps in rho, p and u, all in the correct direction\n");
+
+  // §23 solver characterisation, reported not gated
+  std::printf("      §23 smeared width: shock %d cells, contact %d cells\n", m.shockWidthCells,
+              m.contactWidthCells);
+}
+
+// =============================================================================================
+// Group S -- the plateau states
+// =============================================================================================
+
+TEST(SodShockTubeTest, S_PlateauStatesMatchTheExactSolution) {
+  const Index nx = 200;
+  const RunResult r = runSod(nx);
+  ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+  const SodMeasurement m = measureSod(r);
+  ASSERT_TRUE(m.pStarLeft && m.uStarLeft && m.rhoStarLeft && m.rhoStarRight && m.preShockDensity);
+
+  // The tolerance is a fraction of the JUMP across the adjacent wave, not of the value --
+  // the error is caused by that wave's numerical tail leaking into the window.
+  const double pJump = ref::kSodPStar - ref::kSodRightPressure;
+  const double uJump = ref::kSodUStar - ref::kSodRightVelocity;
+  const double contactJump = ref::kSodRhoStarLeft - ref::kSodRhoStarRight;
+  const double shockJump = ref::kSodRhoStarRight - ref::kSodRightDensity;
+
+  const struct {
+    const char* name;
+    double got;
+    double want;
+    double jump;
+    double frac;
+  } rows[] = {
+      {"p_star (left plateau)", *m.pStarLeft, ref::kSodPStar, pJump, 0.10},
+      {"p_star (right plateau)", *m.pStarRight, ref::kSodPStar, pJump, 0.10},
+      {"u_star (left plateau)", *m.uStarLeft, ref::kSodUStar, uJump, 0.10},
+      {"u_star (right plateau)", *m.uStarRight, ref::kSodUStar, uJump, 0.10},
+      {"rho_star_left", *m.rhoStarLeft, ref::kSodRhoStarLeft, contactJump, 0.10},
+      {"rho_star_right", *m.rhoStarRight, ref::kSodRhoStarRight, shockJump, 0.10},
+      {"pre-shock rho", *m.preShockDensity, ref::kSodRightDensity, ref::kSodRightDensity, 0.02},
+  };
+  std::printf("\n  SOD plateau states, nx = %zu (sampled 5 cells clear of every detected wave)\n",
+              static_cast<std::size_t>(nx));
+  std::printf("      %-24s %-14s %-14s %-12s %-10s\n", "quantity", "numerical", "exact", "|err|",
+              "limit");
+  for (const auto& row : rows) {
+    const double err = std::abs(row.got - row.want);
+    const double limit = row.frac * std::abs(row.jump);
+    std::printf("      %-24s %-14.9f %-14.9f %-12.4e %-10.4e\n", row.name, row.got, row.want, err,
+                limit);
+    EXPECT_LE(err, limit) << row.name;
+  }
+}
+
+// Evidence, not a gate: the full numerical and exact profiles, written as CSV so every plot in the
+// evidence has numbers behind it (authorization §31) and so any detector question can be answered
+// from data rather than by re-reasoning.
+TEST(SodShockTubeTest, Z_WriteProfileEvidence) {
+  for (const Index nx : {200, 400, 800}) {
+    const RunResult r = runSod(nx);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    char path[256];
+    std::snprintf(path, sizeof(path), "results/p17/shock_validation/data/sod_profile_nx%zu.csv",
+                  static_cast<std::size_t>(nx));
+    std::FILE* fh = std::fopen(path, "w");
+    ASSERT_NE(fh, nullptr) << "could not write " << path;
+    std::fprintf(fh, "x,rho_num,u_num,p_num,rho_exact,u_exact,p_exact\n");
+    for (std::size_t i = 0; i < r.profile.size(); ++i) {
+      const auto e = det::sampleExactSodAt(r.profile.x[i], ref::kSodEndTime);
+      std::fprintf(fh, "%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n", r.profile.x[i],
+                   r.profile.density[i], r.profile.velocity[i], r.profile.pressure[i], e.density,
+                   e.velocity, e.pressure);
+    }
+    std::fclose(fh);
+    std::printf("\n  wrote %s  (%zu cells, %zu steps)\n", path, r.profile.size(),
+                static_cast<std::size_t>(r.result.iterations));
+  }
+}
+
+// =============================================================================================
+// Groups X5, S6, R -- refinement
+// =============================================================================================
+
+TEST(SodShockTubeTest, R_RefinementImprovesEveryError) {
+  struct Row {
+    Index nx;
+    double dx;
+    double head, tail, contact, shock;
+    double l1rho, l1u, l1p;
+    double linfRho;
+    int shockCells, contactCells;
+    double pStar, uStar, rhoStarL, rhoStarR;
+    double rhoStarRIsolated;  // AMENDMENT A3
+  };
+  std::vector<Row> rows;
+  for (const Index nx : {200, 400, 800}) {
+    const RunResult r = runSod(nx);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const SodMeasurement m = measureSod(r);
+    ASSERT_TRUE(m.head && m.tail && m.contact && m.shock) << "a wave was not detected at nx=" << nx;
+    ASSERT_TRUE(m.pStarLeft && m.uStarLeft && m.rhoStarLeft && m.rhoStarRight);
+    // AMENDMENT A3: the same plateau, measured by the flattest-window estimator, which isolates it
+    // from the contact's diffusive tail instead of averaging that tail in.
+    const auto flat =
+        det::flattestPlateau(r.profile.x, r.profile.density, *m.contact, *m.shock, r.dx);
+    ASSERT_TRUE(flat.mean.has_value()) << "A3: no flat sub-window between contact and shock";
+    rows.push_back({nx, r.dx, std::abs(*m.head - ref::kSodRarefactionHeadPosition),
+                    std::abs(*m.tail - ref::kSodRarefactionTailPosition),
+                    std::abs(*m.contact - ref::kSodContactPosition),
+                    std::abs(*m.shock - ref::kSodShockPosition), m.errDensity.l1, m.errVelocity.l1,
+                    m.errPressure.l1, m.errDensity.linf, m.shockWidthCells, m.contactWidthCells,
+                    std::abs(*m.pStarLeft - ref::kSodPStar),
+                    std::abs(*m.uStarLeft - ref::kSodUStar),
+                    std::abs(*m.rhoStarLeft - ref::kSodRhoStarLeft),
+                    std::abs(*m.rhoStarRight - ref::kSodRhoStarRight),
+                    std::abs(*flat.mean - ref::kSodRhoStarRight)});
+  }
+
+  std::printf("\n  SOD REFINEMENT (CFL 0.4, t = 0.2, 2D mesh nx x 1)\n");
+  std::printf("      %-6s %-10s %-11s %-11s %-11s %-11s\n", "nx", "dx", "head err", "tail err",
+              "contact err", "shock err");
+  for (const auto& r : rows) {
+    std::printf("      %-6zu %-10.3e %-11.4e %-11.4e %-11.4e %-11.4e\n",
+                static_cast<std::size_t>(r.nx), r.dx, r.head, r.tail, r.contact, r.shock);
+  }
+  std::printf("      %-6s %-10s %-11s %-11s %-11s %-11s\n", "nx", "dx", "head/dx", "tail/dx",
+              "contact/dx", "shock/dx");
+  for (const auto& r : rows) {
+    std::printf("      %-6zu %-10.3e %-11.4f %-11.4f %-11.4f %-11.4f\n",
+                static_cast<std::size_t>(r.nx), r.dx, r.head / r.dx, r.tail / r.dx,
+                r.contact / r.dx, r.shock / r.dx);
+  }
+  std::printf("      %-6s %-12s %-12s %-12s %-12s %-8s %-8s\n", "nx", "L1 rho", "L1 u", "L1 p",
+              "Linf rho", "shock w", "cont w");
+  for (const auto& r : rows) {
+    std::printf("      %-6zu %-12.5e %-12.5e %-12.5e %-12.5e %-8d %-8d\n",
+                static_cast<std::size_t>(r.nx), r.l1rho, r.l1u, r.l1p, r.linfRho, r.shockCells,
+                r.contactCells);
+  }
+  std::printf(
+      "      observed L1 rates (REPORTED, not gated -- a discontinuous solution has no\n"
+      "      single first-order rate; a contact converges ~dx^1/2, a fan ~dx):\n");
+  for (std::size_t k = 1; k < rows.size(); ++k) {
+    const double lr = std::log(rows[k - 1].dx / rows[k].dx);
+    std::printf("        nx %zu -> %zu : rho %.4f   u %.4f   p %.4f\n",
+                static_cast<std::size_t>(rows[k - 1].nx), static_cast<std::size_t>(rows[k].nx),
+                std::log(rows[k - 1].l1rho / rows[k].l1rho) / lr,
+                std::log(rows[k - 1].l1u / rows[k].l1u) / lr,
+                std::log(rows[k - 1].l1p / rows[k].l1p) / lr);
+  }
+  std::printf("      %-6s %-12s %-12s %-12s %-12s\n", "nx", "|dp*|", "|du*|", "|drho*_L|",
+              "|drho*_R|");
+  for (const auto& r : rows) {
+    std::printf("      %-6zu %-12.5e %-12.5e %-12.5e %-12.5e\n", static_cast<std::size_t>(r.nx),
+                r.pStar, r.uStar, r.rhoStarL, r.rhoStarR);
+  }
+  std::printf("      head error / sqrt(dx) -- the DIFFUSIVE scaling a weak wave should follow:\n");
+  for (const auto& r : rows) {
+    std::printf("        nx %-5zu  err/sqrt(dx) = %.5f\n", static_cast<std::size_t>(r.nx),
+                r.head / std::sqrt(r.dx));
+  }
+
+  // R2: every L1 error must decrease under refinement.
+  for (std::size_t k = 1; k < rows.size(); ++k) {
+    EXPECT_LT(rows[k].l1rho, rows[k - 1].l1rho) << "L1 rho did not improve at nx=" << rows[k].nx;
+    EXPECT_LT(rows[k].l1u, rows[k - 1].l1u) << "L1 u did not improve at nx=" << rows[k].nx;
+    EXPECT_LT(rows[k].l1p, rows[k - 1].l1p) << "L1 p did not improve at nx=" << rows[k].nx;
+  }
+  // X5: every position error must decrease in ABSOLUTE terms under refinement.
+  for (std::size_t k = 1; k < rows.size(); ++k) {
+    EXPECT_LT(rows[k].head, rows[k - 1].head) << "head position did not improve";
+    EXPECT_LT(rows[k].contact, rows[k - 1].contact) << "contact position did not improve";
+    EXPECT_LT(rows[k].shock, rows[k - 1].shock) << "shock position did not improve";
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // AMENDMENT A2 -- the rarefaction head's DERIVED scaling law, replacing the C*dx bound
+  // ---------------------------------------------------------------------------------------
+  //
+  // DERIVATION, and note it contains NO free constant, so nothing here can be tuned.
+  //   * the head is a jump in d(rho)/dx, not in rho;
+  //   * a monotone first-order scheme has numerical diffusion D ~ s dx / 2, so after time t a
+  //     derivative discontinuity is smoothed over sigma = sqrt(2 D t), i.e. sigma ~ sqrt(dx);
+  //   * the detector triggers where the profile has departed from the plateau by a fixed FRACTION
+  //     of amplitude, at a distance z* sigma where z* solves g(z*) = delta/(S sigma), with g the
+  //     ramp-Gaussian function and S the exact slope at the head;
+  //   * g decays super-exponentially, so z* ~ sqrt(2 ln(1/sigma)) grows only logarithmically.
+  //   => err ~ sigma sqrt(ln(1/sigma)), which decays slightly FASTER than sqrt(dx) and much more
+  //      slowly than dx. Hence err/dx MUST grow and err/sqrt(dx) MUST NOT.
+  //
+  // Both are falsifiable predictions made before the numbers were consulted, and a solver that did
+  // not converge, or converged like dx^0, would fail them.
+  {
+    std::printf("      A2 rarefaction-head scaling (the replacement for the 2 dx bound):\n");
+    for (const auto& r : rows) {
+      std::printf("        nx %-5zu  err %.5e   err/dx %8.4f   err/sqrt(dx) %.5f\n",
+                  static_cast<std::size_t>(r.nx), r.head, r.head / r.dx, r.head / std::sqrt(r.dx));
+    }
+    for (std::size_t k = 1; k < rows.size(); ++k) {
+      // (i) the error must fall in absolute terms -- the diffusion length shrinks with the mesh
+      EXPECT_LT(rows[k].head, rows[k - 1].head) << "A2: the head error did not decrease";
+      // (ii) err/sqrt(dx) must NOT grow -- this is the derived scaling, and it is what a
+      //      dimensionally correct bound looks like for a diffusively smoothed weak wave
+      const double a = rows[k - 1].head / std::sqrt(rows[k - 1].dx);
+      const double b = rows[k].head / std::sqrt(rows[k].dx);
+      EXPECT_LE(b, a) << "A2: err/sqrt(dx) grew, so the head is not converging diffusively";
+      // (iii) err/dx must grow -- the derived consequence, asserted so the evidence cannot later
+      //       claim O(dx) behaviour for this feature
+      EXPECT_GT(rows[k].head / rows[k].dx, rows[k - 1].head / rows[k - 1].dx)
+          << "A2: err/dx did not grow, which contradicts the diffusive derivation";
+    }
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // AMENDMENT A3 -- S6 for the DENSITY plateaus, measured without contact contamination
+  // ---------------------------------------------------------------------------------------
+  //
+  // S6 is UNCHANGED for p* and u*: they are sampled from the same window by the same policy and
+  // converge cleanly at rate ~1.1, which is exactly why the contamination argument is objective
+  // rather than a story -- a contact has a density jump but no pressure or velocity jump, so only
+  // the density measurement can be corrupted by it.
+  for (std::size_t k = 1; k < rows.size(); ++k) {
+    EXPECT_LT(rows[k].pStar, rows[k - 1].pStar) << "S6: p_star did not improve";
+    EXPECT_LT(rows[k].uStar, rows[k - 1].uStar) << "S6: u_star did not improve";
+  }
+  {
+    std::printf(
+        "      A3 density plateaus: contaminated (fixed 5-cell) vs isolated (flattest "
+        "window)\n");
+    std::printf("        %-6s %-16s %-16s %-10s\n", "nx", "rho*_R fixed-5", "rho*_R isolated",
+                "ratio");
+    std::vector<double> isolated;
+    for (const auto& r : rows) {
+      isolated.push_back(r.rhoStarRIsolated);
+      std::printf("        %-6zu %-16.5e %-16.5e %-10.1f\n", static_cast<std::size_t>(r.nx),
+                  r.rhoStarR, r.rhoStarRIsolated,
+                  r.rhoStarRIsolated > 0.0 ? r.rhoStarR / r.rhoStarRIsolated : 0.0);
+    }
+    // (i) isolation must WORK: at the finest mesh the isolated error must be at least 10x smaller
+    //     than the contaminated one. This is what distinguishes "removed the contamination" from
+    //     "found a smaller number".
+    EXPECT_LT(isolated.back() * 10.0, rows.back().rhoStarR)
+        << "A3: the isolated estimator is not materially cleaner than the contaminated one";
+    // (ii) and the isolated error must fall from the coarsest mesh to the finest.
+    EXPECT_LT(isolated.back(), isolated.front())
+        << "A3: the isolated rho*_R did not improve under refinement";
+    // (iii) rho*_L, which sits against the same contact, must also improve -- it does so at ~0.44,
+    //       the sqrt rate of contact diffusion, which is reported rather than gated on a value.
+    EXPECT_LT(rows.back().rhoStarL, rows.front().rhoStarL) << "A3: rho_star_left did not improve";
+  }
+}
+
+// =============================================================================================
+// Group N -- the normal shock, and the Rankine-Hugoniot jump conditions
+// =============================================================================================
+//
+// A STATIONARY shock at M1 = 2. The downstream state comes from the analytical relations, computed
+// in the frozen 60-digit reference, so the initial discontinuity satisfies Rankine-Hugoniot exactly
+// and a correct solver must leave it where it is.
+//
+// WHY THE BOUNDARIES ARE LEGITIMATE HERE even though the downstream flow is SUBSONIC (M2 = 0.577),
+// and P17.8 implements no subsonic outflow: the downstream region is UNIFORM and stays uniform, so
+// the zero-gradient ("supersonic outflow") exterior state equals the interior state exactly and
+// reflects nothing. The same argument the Sod walls rest on. A disturbance from the right boundary
+// would travel upstream at |u2 - a2| ~ 191 m/s and would need 2.6e-3 s to reach the shock; the run
+// ends at 5.0e-4 s, so no such disturbance exists within the measurement.
+TEST(NormalShockTest, N_JumpRelationsAndRankineHugoniot) {
+  const Index nx = 400;
+  const Real lx = 1.0;
+  const Real xShock = 0.5;
+  const Real endTime = 5.0e-4;
+
+  const Real rho1 = 1.2;
+  const Real t1 = 300.0;
+  const Real p1 = rho1 * ref::kGasConstant * t1;
+  const Real a1 = std::sqrt(ref::kGamma * p1 / rho1);
+  const Real u1 = ref::kNormalShockM1 * a1;
+  const Real rho2 = rho1 * ref::kNormalShockDensityRatio;
+  const Real p2 = p1 * ref::kNormalShockPressureRatio;
+  const Real u2 = u1 * ref::kNormalShockVelocityRatio;
+  const Real t2 = p2 / (rho2 * ref::kGasConstant);
+
+  const DensityBasedSolver solver(frozenSettings(endTime), air());
+  Mesh mesh = oneDimensionalMesh(nx, lx);
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  ScalarField rho(n);
+  VectorField u(n);
+  ScalarField t(n);
+  for (Index i = 0; i < n; ++i) {
+    const bool up = mesh.cell(i).centroid().x < xShock;
+    rho[i] = up ? rho1 : rho2;
+    u[i] = Vector3{up ? u1 : u2, 0.0, 0.0};
+    t[i] = up ? t1 : t2;
+  }
+  const ConservedField q0 = solver.fromPrimitive(mesh, rho, u, t);
+  const PrimitiveState inflow = makePrimitiveState(air(), rho1, Vector3{u1, 0.0, 0.0}, t1);
+  const auto boundaries = throughFlow(mesh, inflow);
+  const DensityBasedResult res = solver.solve(mesh, q0, boundaries);
+  ASSERT_EQ(res.status, DensityBasedStatus::TimeComplete) << res.diagnostic;
+  const RunResult r = extract(mesh, solver, q0, res);
+
+  // locate the shock from the numerical result alone
+  const auto pos = det::crossingPosition(r.profile.x, r.profile.density, rho1, rho2);
+  ASSERT_TRUE(pos.has_value()) << "N9: the shock was not detected at all";
+
+  // sample both plateaus 5 cells clear of the detected shock
+  const auto up = [&](const std::vector<double>& q) {
+    return det::plateauMean(r.profile.x, q, 0.0, *pos, r.dx).mean;
+  };
+  const auto dn = [&](const std::vector<double>& q) {
+    return det::plateauMean(r.profile.x, q, *pos, lx, r.dx).mean;
+  };
+  const auto rhoU = up(r.profile.density);
+  const auto rhoD = dn(r.profile.density);
+  const auto pU = up(r.profile.pressure);
+  const auto pD = dn(r.profile.pressure);
+  const auto uU = up(r.profile.velocity);
+  const auto uD = dn(r.profile.velocity);
+  ASSERT_TRUE(rhoU && rhoD && pU && pD && uU && uD) << "a plateau window was too narrow";
+
+  const double tU = *pU / (*rhoU * ref::kGasConstant);
+  const double tD = *pD / (*rhoD * ref::kGasConstant);
+  const double aD = std::sqrt(ref::kGamma * *pD / *rhoD);
+
+  std::printf("\n  NORMAL SHOCK, 2D mesh %zux1, M1 = %.4f, dx = %.4e, t = %.2e, %zu steps\n",
+              static_cast<std::size_t>(nx), ref::kNormalShockM1, r.dx, endTime,
+              static_cast<std::size_t>(res.iterations));
+  const struct {
+    const char* name;
+    double got;
+    double want;
+  } ratios[] = {
+      {"rho2/rho1", *rhoD / *rhoU, ref::kNormalShockDensityRatio},
+      {"p2/p1", *pD / *pU, ref::kNormalShockPressureRatio},
+      {"T2/T1", tD / tU, ref::kNormalShockTemperatureRatio},
+      {"u2/u1", *uD / *uU, ref::kNormalShockVelocityRatio},
+      {"M2", *uD / aD, ref::kNormalShockM2},
+  };
+  std::printf("      %-12s %-16s %-16s %-12s\n", "quantity", "numerical", "analytical", "rel err");
+  for (const auto& q : ratios) {
+    const double rel = std::abs(q.got - q.want) / std::abs(q.want);
+    std::printf("      %-12s %-16.10f %-16.10f %-12.4e\n", q.name, q.got, q.want, rel);
+    EXPECT_LE(rel, 0.02) << q.name;
+  }
+
+  // N6-N8: Rankine-Hugoniot across the numerical states, in the shock frame (S = 0, stationary)
+  const double s = 0.0;
+  const double m1flux = *rhoU * (*uU - s);
+  const double m2flux = *rhoD * (*uD - s);
+  const double mom1 = *pU + *rhoU * (*uU - s) * (*uU - s);
+  const double mom2 = *pD + *rhoD * (*uD - s) * (*uD - s);
+  const double g = ref::kGamma;
+  const double h1 = g / (g - 1.0) * *pU / *rhoU + 0.5 * (*uU - s) * (*uU - s);
+  const double h2 = g / (g - 1.0) * *pD / *rhoD + 0.5 * (*uD - s) * (*uD - s);
+  const double massRes = std::abs(m1flux - m2flux) / std::abs(m1flux);
+  const double momRes = std::abs(mom1 - mom2) / std::abs(mom1);
+  const double eneRes = std::abs(h1 - h2) / std::abs(h1);
+  std::printf("      Rankine-Hugoniot residuals: mass %.4e  momentum %.4e  total enthalpy %.4e\n",
+              massRes, momRes, eneRes);
+  EXPECT_LE(massRes, 0.02) << "N6 mass jump condition";
+  EXPECT_LE(momRes, 0.02) << "N7 momentum jump condition";
+  EXPECT_LE(eneRes, 0.02) << "N8 energy jump condition";
+
+  // N9: the shock must not drift
+  const double drift = std::abs(*pos - xShock);
+  std::printf("      N9 shock position %.8f vs initial %.4f -> drift %.4e = %.4f dx\n", *pos,
+              xShock, drift, drift / r.dx);
+  EXPECT_LE(drift, 2.0 * r.dx) << "N9: the stationary shock drifted";
+
+  std::printf("      min rho %.6f  min p %.2f  min T %.4f  retries %zu  rejected %zu\n",
+              r.minDensity, r.minPressure, r.minTemperature,
+              static_cast<std::size_t>(res.totalRetries),
+              static_cast<std::size_t>(res.rejectedSteps));
+  EXPECT_GT(r.minDensity, 0.0);
+  EXPECT_GT(r.minPressure, 0.0);
+  EXPECT_GT(r.minTemperature, 0.0);
+}
+
+// =============================================================================================
+// A generic two-state Riemann runner, used by the contact, compression and expansion cases
+// =============================================================================================
+
+namespace {
+
+struct TwoState {
+  Real rho, u, p;
+};
+
+RunResult runTwoState(Index nx, Real lx, Real x0, TwoState left, TwoState right, Real endTime,
+                      bool walls, Real cfl = 0.4) {
+  const DensityBasedSolver solver(frozenSettings(endTime, cfl), air());
+  Mesh mesh = oneDimensionalMesh(nx, lx);
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  ScalarField rho(n);
+  VectorField u(n);
+  ScalarField t(n);
+  for (Index i = 0; i < n; ++i) {
+    const TwoState& s = mesh.cell(i).centroid().x < x0 ? left : right;
+    rho[i] = s.rho;
+    u[i] = Vector3{s.u, 0.0, 0.0};
+    t[i] = s.p / (s.rho * ref::kGasConstant);
+  }
+  const ConservedField q0 = solver.fromPrimitive(mesh, rho, u, t);
+  const PrimitiveState inflow = makePrimitiveState(air(), left.rho, Vector3{left.u, 0.0, 0.0},
+                                                   left.p / (left.rho * ref::kGasConstant));
+  const auto boundaries = walls ? allWalls(mesh) : throughFlow(mesh, inflow);
+  const DensityBasedResult res = solver.solve(mesh, q0, boundaries);
+  return extract(mesh, solver, q0, res);
+}
+
+double spread(const std::vector<double>& v) {
+  return *std::max_element(v.begin(), v.end()) - *std::min_element(v.begin(), v.end());
+}
+
+}  // namespace
+
+// =============================================================================================
+// Contact discontinuity -- stationary and moving (authorization sections 15 and 44)
+// =============================================================================================
+
+TEST(ContactDiscontinuityTest, C_StationaryAndMovingContactsBehaveCorrectly) {
+  const Index nx = 200;
+
+  // --- STATIONARY: p and u equal on both sides, u = 0. Nothing may move. ------------------
+  {
+    const RunResult r =
+        runTwoState(nx, 1.0, 0.5, {1.0, 0.0, 1.0}, {0.125, 0.0, 1.0}, ref::kSodEndTime, true);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const auto pos = det::crossingPosition(r.profile.x, r.profile.density, 1.0, 0.125);
+    ASSERT_TRUE(pos.has_value()) << "the stationary contact was not detected";
+    const double posErr = std::abs(*pos - 0.5);
+    const double pVar = spread(r.profile.pressure) / 1.0;
+    const double uVar = spread(r.profile.velocity);
+    const int width = det::transitionWidthCells(r.profile.density, 1.0, 0.125);
+    const double massErr = std::abs(r.massFinal - r.massInitial) / r.massInitial;
+    std::printf("\n  STATIONARY CONTACT, 2D mesh %zux1, t = %.2f, %zu steps\n",
+                static_cast<std::size_t>(nx), ref::kSodEndTime,
+                static_cast<std::size_t>(r.result.iterations));
+    std::printf("      position %.10f vs 0.5 -> err %.4e = %.4f dx\n", *pos, posErr, posErr / r.dx);
+    std::printf("      pressure variation %.4e, velocity variation %.4e, width %d cells\n", pVar,
+                uVar, width);
+    std::printf("      mass %.12e -> %.12e   relative %.4e\n", r.massInitial, r.massFinal, massErr);
+    EXPECT_LE(posErr, 2.0 * r.dx) << "the stationary contact moved";
+    EXPECT_LE(pVar, 0.05) << "a spurious pressure signal appeared on a stationary contact";
+    EXPECT_LE(uVar, 0.05) << "a spurious velocity signal appeared on a stationary contact";
+    EXPECT_LE(massErr, 8.0 * kEps * static_cast<Real>(nx));
+    // AMENDMENT A1 -- the criterion that makes Group V non-vacuous.
+    //
+    // A stationary contact is an EXACT steady solution of the Euler equations, and HLLC's contact
+    // wave restores it identically -- P17.7 proved the flux carries exactly zero mass and energy
+    // across one, bitwise. So ZERO smeared cells is not a tolerance; it is the exact answer.
+    //
+    // Without this line the frozen gate was VACUOUS in precisely the way G7 warns of by name: HLL,
+    // which is HLLC with the contact wave DELETED, passed every single criterion in the suite
+    // (logs/07_controls.log). Measured widths: HLLC 0 cells, HLL 21, Rusanov 21.
+    // See amendments/A1_stationary_contact_width.md.
+    EXPECT_EQ(width, 0) << "A1: a stationary contact must be preserved EXACTLY; " << width
+                        << " smeared cells means the contact-restoring wave is absent or broken";
+  }
+
+  // --- MOVING, supersonically: u = 4 exceeds both sound speeds, so the open boundaries are
+  //     genuinely supersonic and well posed. a_L = 1.183, a_R = 3.347.
+  {
+    const Real u0 = 4.0;
+    const Real endTime = 0.1;
+    const RunResult r = runTwoState(nx, 1.0, 0.3, {1.0, u0, 1.0}, {0.125, u0, 1.0}, endTime, false);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const auto pos = det::crossingPosition(r.profile.x, r.profile.density, 1.0, 0.125);
+    ASSERT_TRUE(pos.has_value()) << "the moving contact was not detected";
+    const double expected = 0.3 + u0 * endTime;
+    const double posErr = std::abs(*pos - expected);
+    const double pVar = spread(r.profile.pressure) / 1.0;
+    const double uVar = spread(r.profile.velocity) / u0;
+    const int width = det::transitionWidthCells(r.profile.density, 1.0, 0.125);
+    std::printf("\n  MOVING CONTACT at u = %.1f (Ma_L %.2f, Ma_R %.2f), t = %.2f, %zu steps\n", u0,
+                u0 / std::sqrt(ref::kGamma * 1.0 / 1.0), u0 / std::sqrt(ref::kGamma * 1.0 / 0.125),
+                endTime, static_cast<std::size_t>(r.result.iterations));
+    std::printf("      position %.10f vs expected %.10f -> err %.4e = %.4f dx\n", *pos, expected,
+                posErr, posErr / r.dx);
+    std::printf("      pressure variation %.4e, velocity variation %.4e, width %d cells\n", pVar,
+                uVar, width);
+    EXPECT_LE(posErr, 2.0 * r.dx) << "the moving contact is in the wrong place";
+    EXPECT_LE(pVar, 0.05) << "a spurious pressure jump sits on the moving contact";
+    EXPECT_LE(uVar, 0.05) << "a spurious velocity jump sits on the moving contact";
+  }
+}
+
+// =============================================================================================
+// Compression and expansion waves -- reported SEPARATELY, as authorization section 46 requires
+// =============================================================================================
+
+TEST(CompressionExpansionTest, CE_SymmetricCompressionAndExpansionMatchTheExactSolution) {
+  const Index nx = 200;
+  const Real endTime = 0.12;
+
+  // --- COMPRESSION: two converging streams -> two shocks, p* > p -------------------------
+  {
+    const RunResult r = runTwoState(nx, 1.0, 0.5, {1.0, ref::kCompressionLeftVelocity, 1.0},
+                                    {1.0, ref::kCompressionRightVelocity, 1.0}, endTime, true);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const double xl = 0.5 + ref::kCompressionLeftWaveSpeed * endTime;
+    const double xr = 0.5 + ref::kCompressionRightWaveSpeed * endTime;
+    const auto pStar = det::plateauMean(r.profile.x, r.profile.pressure, xl, xr, r.dx).mean;
+    const auto rhoStar = det::plateauMean(r.profile.x, r.profile.density, xl, xr, r.dx).mean;
+    const auto uStar = det::plateauMean(r.profile.x, r.profile.velocity, xl, xr, r.dx).mean;
+    ASSERT_TRUE(pStar && rhoStar && uStar) << "the compressed plateau window was too narrow";
+    const auto shock =
+        det::crossingPosition(r.profile.x, r.profile.density, ref::kCompressionRhoStar, 1.0);
+    std::printf("\n  COMPRESSION WAVE (u_L = %+.1f, u_R = %+.1f), t = %.2f, %zu steps\n",
+                ref::kCompressionLeftVelocity, ref::kCompressionRightVelocity, endTime,
+                static_cast<std::size_t>(r.result.iterations));
+    std::printf("      p*   %.10f vs %.10f   rel %.4e   (p rises: %s)\n", *pStar,
+                ref::kCompressionPStar,
+                std::abs(*pStar - ref::kCompressionPStar) / ref::kCompressionPStar,
+                *pStar > 1.0 ? "yes" : "*** NO ***");
+    std::printf("      rho* %.10f vs %.10f   rel %.4e   (rho rises: %s)\n", *rhoStar,
+                ref::kCompressionRhoStar,
+                std::abs(*rhoStar - ref::kCompressionRhoStar) / ref::kCompressionRhoStar,
+                *rhoStar > 1.0 ? "yes" : "*** NO ***");
+    std::printf("      u*   %.10f vs %.10f   (symmetric, so exactly 0)\n", *uStar,
+                ref::kCompressionUStar);
+    if (shock) {
+      std::printf("      right shock %.10f vs %.10f -> %.4f dx\n", *shock, xr,
+                  std::abs(*shock - xr) / r.dx);
+      EXPECT_LE(std::abs(*shock - xr), 2.0 * r.dx);
+    }
+    EXPECT_GT(*pStar, 1.0) << "compression did not raise the pressure";
+    EXPECT_GT(*rhoStar, 1.0) << "compression did not raise the density";
+    EXPECT_LE(std::abs(*pStar - ref::kCompressionPStar) / ref::kCompressionPStar, 0.02);
+    EXPECT_LE(std::abs(*rhoStar - ref::kCompressionRhoStar) / ref::kCompressionRhoStar, 0.02);
+    EXPECT_LE(std::abs(*uStar), 0.02 * std::abs(ref::kCompressionLeftVelocity));
+  }
+
+  // --- EXPANSION: two diverging streams -> two rarefactions, p* < p ----------------------
+  {
+    const RunResult r = runTwoState(nx, 1.0, 0.5, {1.0, ref::kExpansionLeftVelocity, 1.0},
+                                    {1.0, ref::kExpansionRightVelocity, 1.0}, endTime, true);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const double xl = 0.5 + ref::kExpansionLeftTailSpeed * endTime;
+    const double xr = 0.5 + ref::kExpansionRightTailSpeed * endTime;
+    const auto pStar = det::plateauMean(r.profile.x, r.profile.pressure, xl, xr, r.dx).mean;
+    const auto rhoStar = det::plateauMean(r.profile.x, r.profile.density, xl, xr, r.dx).mean;
+    const auto uStar = det::plateauMean(r.profile.x, r.profile.velocity, xl, xr, r.dx).mean;
+    ASSERT_TRUE(pStar && rhoStar && uStar) << "the expanded plateau window was too narrow";
+    std::printf("\n  EXPANSION WAVE (u_L = %+.1f, u_R = %+.1f), t = %.2f, %zu steps\n",
+                ref::kExpansionLeftVelocity, ref::kExpansionRightVelocity, endTime,
+                static_cast<std::size_t>(r.result.iterations));
+    std::printf("      p*   %.10f vs %.10f   rel %.4e   (p falls: %s)\n", *pStar,
+                ref::kExpansionPStar,
+                std::abs(*pStar - ref::kExpansionPStar) / ref::kExpansionPStar,
+                *pStar < 1.0 ? "yes" : "*** NO ***");
+    std::printf("      rho* %.10f vs %.10f   rel %.4e   (rho falls: %s)\n", *rhoStar,
+                ref::kExpansionRhoStar,
+                std::abs(*rhoStar - ref::kExpansionRhoStar) / ref::kExpansionRhoStar,
+                *rhoStar < 1.0 ? "yes" : "*** NO ***");
+    std::printf("      u*   %.10f vs %.10f   (symmetric, so exactly 0)\n", *uStar,
+                ref::kExpansionUStar);
+    std::printf("      min rho %.6f, min p %.6f -- an expansion is where positivity is at risk\n",
+                r.minDensity, r.minPressure);
+    EXPECT_LT(*pStar, 1.0) << "expansion did not lower the pressure";
+    EXPECT_LT(*rhoStar, 1.0) << "expansion did not lower the density";
+    EXPECT_LE(std::abs(*pStar - ref::kExpansionPStar) / ref::kExpansionPStar, 0.02);
+    EXPECT_LE(std::abs(*rhoStar - ref::kExpansionRhoStar) / ref::kExpansionRhoStar, 0.02);
+    EXPECT_LE(std::abs(*uStar), 0.02 * std::abs(ref::kExpansionRightVelocity));
+    EXPECT_GT(r.minDensity, 0.0);
+    EXPECT_GT(r.minPressure, 0.0);
+  }
+}
+
+// =============================================================================================
+// Supersonic advection of a SMOOTH feature (authorization sections 16 and 45)
+// =============================================================================================
+//
+// The moving contact above is supersonic advection of a DISCONTINUITY. This is its smooth
+// counterpart: a Gaussian density pulse on a uniform supersonic uniform-PRESSURE background, which
+// is an exact Euler solution (an entropy wave) that advects rigidly at u. Its position is measured
+// by the density-weighted CENTROID of the perturbation -- an integral measure, so it has sub-cell
+// resolution and does not depend on locating a feature edge.
+TEST(SupersonicAdvectionTest, SA_SmoothPulseAdvectsAtTheFlowSpeed) {
+  const Index nx = 200;
+  const Real u0 = 700.0;
+  const Real rho0 = 1.2;
+  const Real t0 = 300.0;
+  const Real p0 = rho0 * ref::kGasConstant * t0;
+  const Real x0 = 0.30;
+  const Real sigma = 0.06;
+  const Real amp = 0.2;
+  const Real endTime = 3.0e-4;
+
+  const DensityBasedSolver solver(frozenSettings(endTime), air());
+  Mesh mesh = oneDimensionalMesh(nx, 1.0);
+  const Index n = static_cast<Index>(mesh.numberOfCells());
+  ScalarField rho(n);
+  VectorField u(n);
+  ScalarField t(n);
+  const auto pulse = [&](Real x) {
+    const Real d = (x - x0) / sigma;
+    return rho0 * (1.0 + amp * std::exp(-0.5 * d * d));
+  };
+  for (Index i = 0; i < n; ++i) {
+    const Real x = mesh.cell(i).centroid().x;
+    rho[i] = pulse(x);
+    u[i] = Vector3{u0, 0.0, 0.0};
+    t[i] = p0 / (rho[i] * ref::kGasConstant);  // UNIFORM pressure -> an entropy wave
+  }
+  const ConservedField q0 = solver.fromPrimitive(mesh, rho, u, t);
+  const PrimitiveState background =
+      makePrimitiveState(air(), rho0, Vector3{u0, 0.0, 0.0}, p0 / (rho0 * ref::kGasConstant));
+  const auto boundaries = throughFlow(mesh, background);
+  const DensityBasedResult res = solver.solve(mesh, q0, boundaries);
+  ASSERT_EQ(res.status, DensityBasedStatus::TimeComplete) << res.diagnostic;
+  const RunResult r = extract(mesh, solver, q0, res);
+
+  const auto centroid = [&](const std::vector<double>& d) {
+    double num = 0.0;
+    double den = 0.0;
+    for (std::size_t i = 0; i < d.size(); ++i) {
+      const double w = std::max(d[i] - rho0, 0.0);
+      num += w * r.profile.x[i];
+      den += w;
+    }
+    return den > 0.0 ? num / den : 0.0;
+  };
+  std::vector<double> initial(n);
+  for (Index i = 0; i < n; ++i) initial[static_cast<std::size_t>(i)] = pulse(r.profile.x[i]);
+
+  const double c0 = centroid(initial);
+  const double c1 = centroid(r.profile.density);
+  const double expected = c0 + u0 * res.physicalTime();
+  const double posErr = std::abs(c1 - expected);
+  const double pVar = spread(r.profile.pressure) / p0;
+  const double uVar = spread(r.profile.velocity) / u0;
+  const double massErr = std::abs(r.massFinal - r.massInitial) / r.massInitial;
+  const double energyErr = std::abs(r.energyFinal - r.energyInitial) / r.energyInitial;
+
+  std::printf("\n  SUPERSONIC ADVECTION, Ma = %.2f, 2D mesh %zux1, t = %.3e, %zu steps\n",
+              u0 / std::sqrt(ref::kGamma * p0 / rho0), static_cast<std::size_t>(nx), endTime,
+              static_cast<std::size_t>(res.iterations));
+  std::printf("      pulse centroid %.10f -> %.10f, expected %.10f\n", c0, c1, expected);
+  std::printf("      position err %.4e = %.4f dx\n", posErr, posErr / r.dx);
+  std::printf("      pressure variation %.4e, velocity variation %.4e (an entropy wave: both ~0)\n",
+              pVar, uVar);
+  std::printf(
+      "      mass rel change %.4e, energy rel change %.4e (open domain: flux carries them)\n",
+      massErr, energyErr);
+  EXPECT_LE(posErr, 2.0 * r.dx) << "the pulse did not advect at the flow speed";
+  EXPECT_LE(pVar, 1e-9) << "a spurious pressure signal rode on the entropy wave";
+  EXPECT_LE(uVar, 1e-9) << "a spurious velocity signal rode on the entropy wave";
+  EXPECT_GT(r.minDensity, 0.0);
+  EXPECT_GT(r.minPressure, 0.0);
+}
+
+// =============================================================================================
+// Conservation and positivity through a shock (Group C, Group P)
+// =============================================================================================
+
+TEST(ShockConservationTest, C_ClosedShockTubeConservesMassAndEnergy) {
+  for (const Index nx : {200, 400}) {
+    const RunResult r = runSod(nx);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const double massErr = std::abs(r.massFinal - r.massInitial) / r.massInitial;
+    const double energyErr = std::abs(r.energyFinal - r.energyInitial) / r.energyInitial;
+    const double bound = 8.0 * kEps * static_cast<Real>(nx);
+    std::printf("\n  SOD CONSERVATION (closed box, walls), nx = %zu, %zu steps\n",
+                static_cast<std::size_t>(nx), static_cast<std::size_t>(r.result.iterations));
+    std::printf("      mass   %.14e -> %.14e   relative %.4e  (bound %.4e)\n", r.massInitial,
+                r.massFinal, massErr, bound);
+    std::printf("      energy %.14e -> %.14e   relative %.4e  (bound %.4e)\n", r.energyInitial,
+                r.energyFinal, energyErr, bound);
+    std::printf("      min rho %.8f, min p %.8f, min T %.10f\n", r.minDensity, r.minPressure,
+                r.minTemperature);
+    std::printf("      retries %zu, rejected steps %zu, non-finite detections %zu\n",
+                static_cast<std::size_t>(r.result.totalRetries),
+                static_cast<std::size_t>(r.result.rejectedSteps),
+                static_cast<std::size_t>(r.result.nonFiniteDetections));
+    EXPECT_LE(massErr, bound) << "mass is not conserved at nx = " << nx;
+    EXPECT_LE(energyErr, bound) << "energy is not conserved at nx = " << nx;
+    EXPECT_GT(r.minDensity, 0.0);
+    EXPECT_GT(r.minPressure, 0.0);
+    EXPECT_GT(r.minTemperature, 0.0);
+  }
+}
+
+// =============================================================================================
+// Group D -- determinism through a shock (G9)
+// =============================================================================================
+
+TEST(ShockDeterminismTest, D_RepeatedShockRunsAreBitwiseIdentical) {
+  const RunResult a = runSod(200);
+  const RunResult b = runSod(200);
+  ASSERT_EQ(a.result.status, b.result.status);
+  ASSERT_EQ(a.result.iterations, b.result.iterations);
+  ASSERT_EQ(a.result.history.size(), b.result.history.size());
+  for (std::size_t i = 0; i < a.result.history.size(); ++i) {
+    EXPECT_EQ(a.result.history[i].dt, b.result.history[i].dt) << "dt history, step " << i;
+    EXPECT_EQ(a.result.history[i].time, b.result.history[i].time) << "time history, step " << i;
+    EXPECT_EQ(a.result.history[i].retries, b.result.history[i].retries) << "retries, step " << i;
+    EXPECT_EQ(a.result.history[i].absolute.density, b.result.history[i].absolute.density);
+    EXPECT_EQ(a.result.history[i].absolute.totalEnergy, b.result.history[i].absolute.totalEnergy);
+  }
+  for (std::size_t i = 0; i < a.profile.size(); ++i) {
+    EXPECT_EQ(a.profile.density[i], b.profile.density[i]) << "density, cell " << i;
+    EXPECT_EQ(a.profile.velocity[i], b.profile.velocity[i]) << "velocity, cell " << i;
+    EXPECT_EQ(a.profile.pressure[i], b.profile.pressure[i]) << "pressure, cell " << i;
+  }
+  const auto ma = measureSod(a);
+  const auto mb = measureSod(b);
+  ASSERT_TRUE(ma.shock && mb.shock && ma.contact && mb.contact);
+  EXPECT_EQ(*ma.shock, *mb.shock);
+  EXPECT_EQ(*ma.contact, *mb.contact);
+  EXPECT_EQ(a.result.totalRetries, b.result.totalRetries);
+  std::printf(
+      "\n  SOD DETERMINISM: %zu steps, %zu cells -- dt, time, residual, retry, full state,\n"
+      "      shock position and contact position ALL BITWISE identical across two runs\n",
+      a.result.history.size(), a.profile.size());
+}
+
+// =============================================================================================
+// CFL sensitivity (authorization section 21)
+// =============================================================================================
+
+TEST(SodShockTubeTest, CFL_ResultIsNotAnArtefactOfOneTimeStep) {
+  struct Row {
+    Real cfl;
+    std::size_t steps;
+    double shock, contact, head, l1rho, massErr;
+  };
+  std::vector<Row> rows;
+  for (const Real cfl : {0.4, 0.2}) {
+    const RunResult r = runSod(200, cfl);
+    ASSERT_EQ(r.result.status, DensityBasedStatus::TimeComplete) << r.result.diagnostic;
+    const SodMeasurement m = measureSod(r);
+    ASSERT_TRUE(m.shock && m.contact && m.head) << "a wave was not detected at CFL " << cfl;
+    rows.push_back({cfl, static_cast<std::size_t>(r.result.iterations),
+                    std::abs(*m.shock - ref::kSodShockPosition),
+                    std::abs(*m.contact - ref::kSodContactPosition),
+                    std::abs(*m.head - ref::kSodRarefactionHeadPosition), m.errDensity.l1,
+                    std::abs(r.massFinal - r.massInitial) / r.massInitial});
+  }
+  std::printf(
+      "\n  SOD CFL SENSITIVITY (nx = 200). Both values were declared in configuration.md\n"
+      "      BEFORE any run; neither was chosen after seeing an answer.\n");
+  std::printf("      %-6s %-8s %-12s %-12s %-12s %-12s %-12s\n", "CFL", "steps", "shock err",
+              "contact err", "head err", "L1 rho", "mass err");
+  for (const auto& r : rows) {
+    std::printf("      %-6.2f %-8zu %-12.4e %-12.4e %-12.4e %-12.4e %-12.4e\n", r.cfl, r.steps,
+                r.shock, r.contact, r.head, r.l1rho, r.massErr);
+  }
+  // Halving the CFL must not change the answer materially: the result is a property of the
+  // discretisation, not of one time step. 25 % is a loose DETECTION bound for a result that only
+  // works at one CFL, not an accuracy claim.
+  for (std::size_t k = 1; k < rows.size(); ++k) {
+    EXPECT_LE(std::abs(rows[k].shock - rows[0].shock), 0.25 * rows[0].shock + 2.0 * 5e-3)
+        << "the shock position depends on the CFL";
+    EXPECT_LE(std::abs(rows[k].l1rho - rows[0].l1rho) / rows[0].l1rho, 0.25)
+        << "the L1 density error depends on the CFL";
+  }
+}

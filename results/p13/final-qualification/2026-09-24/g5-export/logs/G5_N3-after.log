@@ -1,0 +1,16 @@
+G5 control N3 -- every production writer, written to a REAL directory
+destination: /tmp/g5_n3.FYB3De
+every writer must SUCCEED here
+
+-- the four the frozen probe already covers --
+  CSVWriter::writeFields           -> RETURNED NORMALLY
+  CSVWriter::writeResiduals        -> RETURNED NORMALLY
+  JSONWriter::writeMetadata        -> RETURNED NORMALLY
+  VTKWriter::writeCellFields       -> RETURNED NORMALLY
+
+-- the two it does not --
+  CSVWriter::writeFields3D         -> RETURNED NORMALLY
+  VTKWriter::writeSolution         -> RETURNED NORMALLY
+
+  returned normally: 6    threw: 0
+control N3 exit code (= writers that threw on a HEALTHY path): 0

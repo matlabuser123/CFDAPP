@@ -1,0 +1,60 @@
+*** INVALID AS AUTHORITATIVE -- superseded by 20_format_verified.log ***
+This run's verdict "TOKEN MULTISET CHANGED -- this is NOT a formatting-only change" was WRONG for
+three of the four files. The token comparison counted string DELIMITERS: clang-format splits a long
+string literal into two ADJACENT literals, which C++ concatenates, so the program is identical but
+the count of `"` rises. The replacement (tools/prove_format_only.py) compares the tokens OUTSIDE
+string literals and the concatenated string CONTENTS separately, which is invariant under splitting
+and still catches a single changed character. Preserved because the false alarm is the record of how
+the proof was got wrong the first time.
+
+P17.8 -- clang-format, proven formatting-only
+date: 2026-09-27T21:27:34Z
+
+  src/compressible/DensityBasedSolver.cpp             
+    sha256 before 3e9a07534ed19207a48950a439d98c153545ac61f688e74c392fb8f2484fcf0d
+    sha256 after  be0a4afd9864dc5f21d8d3ccf987d8efea68201a163de5735e7d4badb826d289
+    reformatted ( lines changed)
+    *** TOKEN MULTISET CHANGED -- this is NOT a formatting-only change ***
+      161a162,165
+      > "
+      > "
+      > "
+      > "
+  include/cfd/compressible/DensityBasedSolver.hpp     
+    sha256 before 43dfc606b947ce85f5cce57b72b94b1f7c07f32595e77fbfbfa925944087648b
+    sha256 after  e5efb0ad67fef38510e30b0bed11bb50f40d71024f3e98b40783e3936c807bdc
+    reformatted ( lines changed)
+    TOKEN MULTISET IDENTICAL (915 tokens) -- formatting only
+  tests/unit/compressible/test_density_based_solver.cpp
+    sha256 before e9a8f8cadad6d76618717076be3f77564c2f471774997a5ec4e5989c3198e60a
+    sha256 after  58c75125879b460f67738ef177970027305ffb5c3ccc035663410c270e25bdee
+    reformatted ( lines changed)
+    *** TOKEN MULTISET CHANGED -- this is NOT a formatting-only change ***
+      376a377,378
+      > "
+      > "
+  tests/integration/compressible/test_density_based_canonical.cpp
+    sha256 before dd0be50f5a923d28f1603f6f3c38aaf09d9edd2486cfacaead8d469878a48dd6
+    sha256 after  ecb29af088549c5377176f2724581cbc11e73a182cd334d0b98f4d5d8af2e631
+    reformatted ( lines changed)
+    TOKEN MULTISET IDENTICAL (4181 tokens) -- formatting only
+
+### clang-format-18 --dry-run --Werror over the whole tree ###
+  violations remain:
+                                                         :
+                                                     WallTreatmentKind:
+                                                  WallTreatmentKind:
+                                                const DeviceBuffer<cfd:
+                                                const DeviceVelocity&, const DeviceBuffer<cfd:
+    include/cfd/gpu/DeviceMomentumAssembly.hpp:
+    include/cfd/thermal/ThermalSolver.hpp:
+    include/cfd/turbulence/KEpsilonModel.hpp:
+    src/io/case/PhysicsConfigParser.cpp:
+    src/pressure_velocity/SIMPLE.cpp:
+    src/thermal/ThermalSolver.cpp:
+    src/turbulence/KEpsilonModel.cpp:
+    tests/integration/turbulence_channel/ChannelFlowValidationUtils.cpp:
+    tests/integration/turbulence_channel/test_channel_flow_validation.cpp:
+    using cfd:
+
+FORMAT PROOF FAILURES: 3   (must be 0)

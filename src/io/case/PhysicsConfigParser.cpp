@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cmath>
 #include <unordered_set>
 
 #include "JsonUtil.hpp"
@@ -27,6 +28,114 @@ namespace {
 // layers, matching this file's own precedent (see CaseBuilder.hpp's
 // header comment) and giving a parse-time error that names the exact
 // JSON field rather than a generic construction-time message.
+Real parseThermalProperty(const nlohmann::json& json, const std::filesystem::path& path,
+                          const std::string& context, const char* key, Real initialTemperature,
+                          std::optional<TemperaturePolynomialConfig>& model) {
+  const std::string field = context + "." + key;
+  if (!json.contains(key)) {
+    throwConfigError(path, field, "be present", "absent");
+  }
+  const nlohmann::json& node = json.at(key);
+
+  // Form 1: a number. The pre-existing constant, unchanged.
+  if (node.is_number()) {
+    const Real value = getRequiredReal(json, path, key, field);
+    if (!(value > 0.0)) {
+      throwConfigError(path, field, "be > 0", std::to_string(value));
+    }
+    return value;
+  }
+
+  // Form 2: an object selecting a model.
+  if (!node.is_object()) {
+    throwConfigError(path, field, "be a number (a constant) or an object (a property model)",
+                     node.type_name());
+  }
+  requireObject(node, path, field);
+  rejectUnknownKeys(node, path, field,
+                    {"model", "coefficients", "min_temperature", "max_temperature"});
+
+  if (!node.contains("model") || !node.at("model").is_string()) {
+    throwConfigError(path, field + ".model", "be a string naming a property model", "missing");
+  }
+  const std::string modelName = node.at("model").get<std::string>();
+  if (modelName != "polynomial") {
+    // Named explicitly rather than silently falling back to a constant: a case
+    // asking for a model this build does not have must fail, not quietly solve
+    // a different problem.
+    throwConfigError(path, field + ".model", "be \"polynomial\" (the only model implemented)",
+                     modelName);
+  }
+
+  if (!node.contains("coefficients") || !node.at("coefficients").is_array()) {
+    throwConfigError(path, field + ".coefficients", "be an array of numbers", "missing");
+  }
+  const nlohmann::json& coefficients = node.at("coefficients");
+  if (coefficients.empty()) {
+    throwConfigError(path, field + ".coefficients", "contain at least one coefficient", "[]");
+  }
+  TemperaturePolynomialConfig parsed;
+  parsed.coefficients.reserve(coefficients.size());
+  for (std::size_t i = 0; i < coefficients.size(); ++i) {
+    const nlohmann::json& entry = coefficients.at(i);
+    if (!entry.is_number()) {
+      throwConfigError(path, field + ".coefficients[" + std::to_string(i) + "]", "be a number",
+                       entry.type_name());
+    }
+    const Real value = entry.get<Real>();
+    if (!std::isfinite(value)) {
+      throwConfigError(path, field + ".coefficients[" + std::to_string(i) + "]", "be finite",
+                       std::to_string(value));
+    }
+    parsed.coefficients.push_back(value);
+  }
+
+  parsed.minimumTemperature =
+      getRequiredReal(node, path, "min_temperature", field + ".min_temperature");
+  parsed.maximumTemperature =
+      getRequiredReal(node, path, "max_temperature", field + ".max_temperature");
+  if (!(parsed.maximumTemperature > parsed.minimumTemperature)) {
+    throwConfigError(path, field + ".max_temperature", "exceed min_temperature",
+                     std::to_string(parsed.maximumTemperature));
+  }
+  if (initialTemperature < parsed.minimumTemperature ||
+      initialTemperature > parsed.maximumTemperature) {
+    // Caught here rather than at the first solve: a model whose range excludes
+    // the initial state cannot even be evaluated to start.
+    throwConfigError(path, field + ".min_temperature/max_temperature",
+                     "bracket initial_temperature (" + std::to_string(initialTemperature) + ")",
+                     "[" + std::to_string(parsed.minimumTemperature) + ", " +
+                         std::to_string(parsed.maximumTemperature) + "]");
+  }
+
+  // Evaluate the polynomial HERE by Horner rather than constructing a
+  // cfd::thermal::TemperatureDependentProperty.
+  //
+  // Two reasons, and the second is the important one:
+  //   * layering -- io/case must not depend on cfd::thermal. Every other
+  //     parser in this file validates structure only and leaves the physical
+  //     object to CaseBuilder;
+  //   * that IS the second layer. TemperatureDependentProperty re-validates
+  //     positivity over the whole range at construction and throws with its
+  //     own diagnostic, exactly as this file's header comment describes for
+  //     the pre-existing fields. Doing it twice here would not add a layer,
+  //     it would move one.
+  //
+  // Same operand order as TemperatureDependentProperty's own Horner, so the
+  // value a case reports and the value the model computes agree bit for bit.
+  Real value = parsed.coefficients.back();
+  for (std::size_t i = parsed.coefficients.size() - 1; i-- > 0;) {
+    value = value * initialTemperature + parsed.coefficients[i];
+  }
+  if (!std::isfinite(value) || !(value > 0.0)) {
+    throwConfigError(path, field + ".coefficients",
+                     "give a finite, positive value at initial_temperature", std::to_string(value));
+  }
+
+  model = parsed;
+  return value;
+}
+
 ThermalPhysicsConfig parseThermalPhysicsConfig(const nlohmann::json& json,
                                                const std::filesystem::path& path) {
   const std::string context = "physics.json thermal";
@@ -34,21 +143,23 @@ ThermalPhysicsConfig parseThermalPhysicsConfig(const nlohmann::json& json,
   rejectUnknownKeys(json, path, context, {"conductivity", "specific_heat", "initial_temperature"});
 
   ThermalPhysicsConfig thermal;
-  thermal.conductivity = getRequiredReal(json, path, "conductivity", context + ".conductivity");
-  if (!(thermal.conductivity > 0.0)) {
-    throwConfigError(path, context + ".conductivity", "be > 0",
-                     std::to_string(thermal.conductivity));
-  }
-  thermal.specificHeat = getRequiredReal(json, path, "specific_heat", context + ".specific_heat");
-  if (!(thermal.specificHeat > 0.0)) {
-    throwConfigError(path, context + ".specific_heat", "be > 0",
-                     std::to_string(thermal.specificHeat));
-  }
-  // Any finite value is physically acceptable here (a chosen reference
-  // scale, not a rho/cp/k-style quantity with a strict-positivity
-  // requirement) -- getRequiredReal already enforces finiteness.
+  // P15: each of these accepts EITHER a number (constant, the pre-existing
+  // form, byte-for-byte the same behaviour) OR an object selecting a
+  // temperature-dependent model. parseThermalProperty below decides which and
+  // rejects everything else with a field-naming diagnostic.
+  // Parsed FIRST now: a property model is validated against it and evaluated
+  // at it, so it has to be known before the properties are read.
   thermal.initialTemperature =
       getRequiredReal(json, path, "initial_temperature", context + ".initial_temperature");
+  thermal.conductivity = parseThermalProperty(
+      json, path, context, "conductivity", thermal.initialTemperature, thermal.conductivityModel);
+  thermal.specificHeat = parseThermalProperty(
+      json, path, context, "specific_heat", thermal.initialTemperature, thermal.specificHeatModel);
+  // initial_temperature is parsed above, before the properties, because a
+  // property model is range-checked and evaluated at it. Any finite value is
+  // physically acceptable (a chosen reference scale, not a rho/cp/k-style
+  // quantity with a strict-positivity requirement) -- getRequiredReal already
+  // enforces finiteness.
   return thermal;
 }
 
@@ -130,9 +241,10 @@ TurbulencePhysicsConfig parseTurbulencePhysicsConfig(const nlohmann::json& json,
                                                      const std::filesystem::path& path) {
   const std::string context = "physics.json turbulence";
   requireObject(json, path, context);
-  rejectUnknownKeys(json, path, context,
-                    {"model", "initial_k", "initial_epsilon", "initial_omega", "k_relaxation",
-                     "epsilon_relaxation", "omega_relaxation"});
+  rejectUnknownKeys(
+      json, path, context,
+      {"model", "wall_functions", "wall_treatment", "initial_k", "initial_epsilon", "initial_omega",
+       "k_relaxation", "epsilon_relaxation", "omega_relaxation", "turbulent_prandtl"});
 
   TurbulencePhysicsConfig turbulence;
   turbulence.model = getRequiredString(json, path, "model", context + ".model");
@@ -152,6 +264,82 @@ TurbulencePhysicsConfig parseTurbulencePhysicsConfig(const nlohmann::json& json,
     throwConfigError(path, context, "have exactly one of initial_epsilon/initial_omega",
                      hasEpsilon ? "both present" : "neither present");
   }
+  // P16: wall functions, k_epsilon only.
+  if (json.contains("wall_functions")) {
+    if (!json.at("wall_functions").is_boolean()) {
+      throwConfigError(path, context + ".wall_functions", "be a boolean",
+                       describeJsonValue(json.at("wall_functions")));
+    }
+    const bool requested = json.at("wall_functions").get<bool>();
+    if (requested && turbulence.model != "k_epsilon" && turbulence.model != "sst") {
+      // Rejected rather than ignored: a case asking for a near-wall treatment
+      // this model does not have would otherwise run with a different wall
+      // treatment than the one it asked for, and report success.
+      throwConfigError(path, context + ".wall_functions",
+                       "be true only for model \"k_epsilon\" or \"sst\" (k_omega keeps its own "
+                       "near-wall treatment; its wall functions are not implemented)",
+                       turbulence.model);
+    }
+    turbulence.wallFunctions = requested;
+  }
+
+  // P16b: which near-wall treatment. Absent means the validated high-Re
+  // path, so no existing case changes behaviour.
+  if (json.contains("wall_treatment")) {
+    const std::string requested =
+        getRequiredString(json, path, "wall_treatment", context + ".wall_treatment");
+    if (requested != "high_re" && requested != "automatic" && requested != "automatic_spalding" &&
+        requested != "automatic_momentum_flux") {
+      throwConfigError(path, context + ".wall_treatment",
+                       "be one of: high_re, automatic, automatic_spalding, automatic_momentum_flux",
+                       requested);
+    }
+    if (requested != "high_re" && turbulence.model != "sst") {
+      // Rejected, not ignored. The blend sublayer omega branch is
+      // 6 nu/(beta1 y^2), built on SST own beta1; no equivalent is
+      // implemented for k_epsilon or k_omega, so a case asking for it
+      // there would silently run a different treatment and report success.
+      throwConfigError(path, context + ".wall_treatment",
+                       "be \"automatic\" only for model \"sst\" (the blended treatment is "
+                       "not implemented for the other models)",
+                       turbulence.model);
+    }
+    if (!turbulence.wallFunctions.value_or(false)) {
+      // A treatment selector with no treatment to select is dead
+      // configuration -- the same reason wall_functions itself is rejected
+      // rather than ignored on a model that has none.
+      throwConfigError(path, context + ".wall_treatment", "be accompanied by wall_functions = true",
+                       turbulence.wallFunctions.has_value() ? "wall_functions = false"
+                                                            : "wall_functions absent");
+    }
+    turbulence.wallTreatment = requested;
+  }
+
+  // P16: the turbulent Prandtl number, Pr_t, for k_t = mu_t c_p / Pr_t.
+  //
+  // Rejected -- not ignored, and not silently replaced by the default -- when
+  // it is non-positive or when the model is laminar. A laminar case has no
+  // mu_t, so a Pr_t there scales nothing and can only mislead the reader of
+  // the case file into thinking turbulent heat transfer is active.
+  //
+  // Absent leaves the optional empty; the DEFAULT is applied in CaseBuilder
+  // from cfd::turbulence::kDefaultTurbulentPrandtl, so there is exactly one
+  // place that decides it.
+  if (json.contains("turbulent_prandtl")) {
+    if (turbulence.model == "laminar") {
+      throwConfigError(path, context + ".turbulent_prandtl",
+                       "be given only for a turbulence model that provides mu_t (laminar flow "
+                       "has no turbulent heat flux to close)",
+                       turbulence.model);
+    }
+    const Real value =
+        getRequiredReal(json, path, "turbulent_prandtl", context + ".turbulent_prandtl");
+    if (!(value > 0.0)) {
+      throwConfigError(path, context + ".turbulent_prandtl", "be > 0", std::to_string(value));
+    }
+    turbulence.turbulentPrandtl = value;
+  }
+
   if (turbulence.model == "k_epsilon" && !hasEpsilon) {
     throwConfigError(path, context, "have initial_epsilon (model is k_epsilon)",
                      "initial_omega instead");
@@ -228,6 +416,276 @@ SpeciesConfig parseSpeciesConfig(const nlohmann::json& json, const std::filesyst
   species.initialConcentration =
       getRequiredReal(json, path, "initial_concentration", context + ".initial_concentration");
   return species;
+}
+
+// G8: one entry of physics.json's "reacting".species array.
+//
+// Two independent, consistent validation layers, the same precedent as every other physics
+// block in this file: the parse-time check names the exact array index, and the production
+// constructors (SpeciesRegistry, SpeciesThermodynamics, FormationEnthalpy) check again.
+ReactingSpeciesConfig parseReactingSpeciesConfig(const nlohmann::json& json,
+                                                 const std::filesystem::path& path,
+                                                 std::size_t index) {
+  const std::string context = "physics.json reacting.species[" + std::to_string(index) + "]";
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context,
+                    {"name", "molecular_weight", "specific_heat", "formation_enthalpy",
+                     "initial_mass_fraction", "diffusivity"});
+
+  ReactingSpeciesConfig species;
+  species.name = getRequiredString(json, path, "name", context + ".name");
+  if (species.name.empty()) {
+    throwConfigError(path, context + ".name", "be non-empty", "\"\"");
+  }
+  species.molecularWeight =
+      getRequiredReal(json, path, "molecular_weight", context + ".molecular_weight");
+  if (!(species.molecularWeight > 0.0)) {
+    throwConfigError(path, context + ".molecular_weight", "be > 0",
+                     std::to_string(species.molecularWeight));
+  }
+  species.specificHeat = getRequiredReal(json, path, "specific_heat", context + ".specific_heat");
+  if (!(species.specificHeat > 0.0)) {
+    throwConfigError(path, context + ".specific_heat", "be > 0",
+                     std::to_string(species.specificHeat));
+  }
+  // h_f may be any finite sign: 0 for an element in its reference state, negative for most
+  // stable products, positive for an endothermic former. getRequiredReal enforces finiteness.
+  species.formationEnthalpy =
+      getRequiredReal(json, path, "formation_enthalpy", context + ".formation_enthalpy");
+  species.initialMassFraction =
+      getRequiredReal(json, path, "initial_mass_fraction", context + ".initial_mass_fraction");
+  if (!(species.initialMassFraction >= 0.0) || !(species.initialMassFraction <= 1.0)) {
+    throwConfigError(path, context + ".initial_mass_fraction", "be within [0, 1]",
+                     std::to_string(species.initialMassFraction));
+  }
+  species.diffusivity = getRequiredReal(json, path, "diffusivity", context + ".diffusivity");
+  if (!(species.diffusivity >= 0.0)) {
+    throwConfigError(path, context + ".diffusivity", "be >= 0",
+                     std::to_string(species.diffusivity));
+  }
+  return species;
+}
+
+// G8: one entry of a reaction's "reactants"/"products" array.
+ReactionTermConfig parseReactionTermConfig(const nlohmann::json& json,
+                                           const std::filesystem::path& path,
+                                           const std::string& context) {
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context, {"species", "coefficient"});
+  ReactionTermConfig term;
+  term.species = getRequiredString(json, path, "species", context + ".species");
+  if (term.species.empty()) {
+    throwConfigError(path, context + ".species", "be non-empty", "\"\"");
+  }
+  term.coefficient = getRequiredReal(json, path, "coefficient", context + ".coefficient");
+  if (!(term.coefficient >= 0.0)) {
+    throwConfigError(path, context + ".coefficient", "be >= 0", std::to_string(term.coefficient));
+  }
+  return term;
+}
+
+// G8: one entry of a reaction's optional "orders" array.
+//
+// A negative order is refused HERE as well as in Reaction's constructor, because the
+// parse-time message can name the file and the array index. The reason is physical, not
+// stylistic: a negative order makes the rate diverge as that species is consumed, and the
+// usual remedy is to floor the concentration -- which this codebase forbids.
+ReactionOrderConfig parseReactionOrderConfig(const nlohmann::json& json,
+                                             const std::filesystem::path& path,
+                                             const std::string& context) {
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context, {"species", "order"});
+  ReactionOrderConfig order;
+  order.species = getRequiredString(json, path, "species", context + ".species");
+  if (order.species.empty()) {
+    throwConfigError(path, context + ".species", "be non-empty", "\"\"");
+  }
+  order.order = getRequiredReal(json, path, "order", context + ".order");
+  if (!(order.order >= 0.0)) {
+    throwConfigError(path, context + ".order",
+                     "be >= 0 (a negative order makes the rate diverge as the species is consumed, "
+                     "and this codebase does not clip concentrations)",
+                     std::to_string(order.order));
+  }
+  return order;
+}
+
+// G8: one entry of physics.json's "reacting".reactions array.
+ReactingReactionConfig parseReactingReactionConfig(const nlohmann::json& json,
+                                                   const std::filesystem::path& path,
+                                                   std::size_t index) {
+  const std::string context = "physics.json reacting.reactions[" + std::to_string(index) + "]";
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context,
+                    {"name", "reactants", "products", "orders", "reversible", "pre_exponential",
+                     "temperature_exponent", "activation_energy"});
+
+  ReactingReactionConfig reaction;
+  reaction.name = getRequiredString(json, path, "name", context + ".name");
+  if (reaction.name.empty()) {
+    throwConfigError(path, context + ".name", "be non-empty", "\"\"");
+  }
+
+  for (const char* side : {"reactants", "products"}) {
+    const std::string sideContext = context + "." + side;
+    if (!json.contains(side)) {
+      throwConfigError(path, sideContext, "be present", "absent");
+    }
+    if (!json.at(side).is_array() || json.at(side).empty()) {
+      throwConfigError(path, sideContext, "be a non-empty array", json.at(side).type_name());
+    }
+    std::size_t i = 0;
+    for (const auto& entry : json.at(side)) {
+      ReactionTermConfig term =
+          parseReactionTermConfig(entry, path, sideContext + "[" + std::to_string(i) + "]");
+      if (std::string(side) == "reactants") {
+        reaction.reactants.push_back(std::move(term));
+      } else {
+        reaction.products.push_back(std::move(term));
+      }
+      ++i;
+    }
+  }
+
+  if (json.contains("orders")) {
+    const std::string ordersContext = context + ".orders";
+    if (!json.at("orders").is_array() || json.at("orders").empty()) {
+      throwConfigError(path, ordersContext, "be a non-empty array when present",
+                       json.at("orders").type_name());
+    }
+    std::size_t i = 0;
+    for (const auto& entry : json.at("orders")) {
+      reaction.orders.push_back(
+          parseReactionOrderConfig(entry, path, ordersContext + "[" + std::to_string(i) + "]"));
+      ++i;
+    }
+  }
+
+  if (json.contains("reversible")) {
+    if (!json.at("reversible").is_boolean()) {
+      throwConfigError(path, context + ".reversible", "be a boolean",
+                       describeJsonValue(json.at("reversible")));
+    }
+    reaction.reversible = json.at("reversible").get<bool>();
+  }
+  // Reaction's constructor refuses explicit orders on a reversible reaction because the reverse
+  // order is not modelled. Caught here too so the message can name the file.
+  if (reaction.reversible && !reaction.orders.empty()) {
+    throwConfigError(path, context,
+                     "not combine \"reversible\": true with explicit \"orders\" (the reverse "
+                     "reaction order is not modelled, so the reverse side would silently use "
+                     "product stoichiometry)",
+                     "both present");
+  }
+
+  reaction.preExponential =
+      getRequiredReal(json, path, "pre_exponential", context + ".pre_exponential");
+  if (!(reaction.preExponential >= 0.0)) {
+    throwConfigError(path, context + ".pre_exponential", "be >= 0",
+                     std::to_string(reaction.preExponential));
+  }
+  reaction.temperatureExponent =
+      getRequiredReal(json, path, "temperature_exponent", context + ".temperature_exponent");
+  reaction.activationEnergy =
+      getRequiredReal(json, path, "activation_energy", context + ".activation_energy");
+  if (!(reaction.activationEnergy >= 0.0)) {
+    throwConfigError(path, context + ".activation_energy",
+                     "be >= 0 J/mol (MOLE based, never kmol -- a kmol value is wrong by exactly "
+                     "1000)",
+                     std::to_string(reaction.activationEnergy));
+  }
+  return reaction;
+}
+
+// G8: physics.json's optional "reacting" object.
+ReactingPhysicsConfig parseReactingPhysicsConfig(const nlohmann::json& json,
+                                                 const std::filesystem::path& path) {
+  const std::string context = "physics.json reacting";
+  requireObject(json, path, context);
+  rejectUnknownKeys(json, path, context,
+                    {"species", "reactions", "initial_temperature", "time_step", "steps"});
+
+  ReactingPhysicsConfig reacting;
+
+  if (!json.contains("species") || !json.at("species").is_array() ||
+      json.at("species").size() < 2) {
+    throwConfigError(path, context + ".species",
+                     "be an array of at least 2 species (a reacting mixture of one species has "
+                     "nothing to react)",
+                     json.contains("species") ? json.at("species").type_name() : "absent");
+  }
+  for (std::size_t i = 0; i < json.at("species").size(); ++i) {
+    reacting.species.push_back(parseReactingSpeciesConfig(json.at("species").at(i), path, i));
+  }
+
+  if (!json.contains("reactions") || !json.at("reactions").is_array() ||
+      json.at("reactions").empty()) {
+    throwConfigError(path, context + ".reactions",
+                     "be a non-empty array (a reacting case with no reactions is a passive "
+                     "species case -- use the \"species\" block instead)",
+                     json.contains("reactions") ? json.at("reactions").type_name() : "absent");
+  }
+  for (std::size_t i = 0; i < json.at("reactions").size(); ++i) {
+    reacting.reactions.push_back(parseReactingReactionConfig(json.at("reactions").at(i), path, i));
+  }
+
+  // TD-001 amendment A1: the reacting advance is an operator-split TIME STEP, so the case must say
+  // how far. See ReactingPhysicsConfig::timeStep for why a steady pass was abandoned -- measured,
+  // in both source treatments. Required rather than defaulted: a silently chosen dt would make the
+  // reported composition depend on a number the case never stated.
+  reacting.timeStep = getRequiredReal(json, path, "time_step", context + ".time_step");
+  if (!std::isfinite(reacting.timeStep) || !(reacting.timeStep > 0.0)) {
+    throwConfigError(path, context + ".time_step", "be finite and > 0 s",
+                     std::to_string(reacting.timeStep));
+  }
+
+  // TD-002: the number of operator-split steps. Required for the reason stated on
+  // ReactingPhysicsConfig::steps -- the integration extent is a physics input, not a default.
+  const Real stepsReal = getRequiredReal(json, path, "steps", context + ".steps");
+  if (!std::isfinite(stepsReal) || !(stepsReal >= 1.0) || stepsReal != std::floor(stepsReal) ||
+      stepsReal > 1.0e6) {
+    throwConfigError(path, context + ".steps",
+                     "be a whole number >= 1 and <= 1000000 (a fractional step count is not a "
+                     "smaller step -- reacting.time_step is what sets the step size)",
+                     std::to_string(stepsReal));
+  }
+  reacting.steps = static_cast<Index>(stepsReal);
+
+  reacting.initialTemperature =
+      getRequiredReal(json, path, "initial_temperature", context + ".initial_temperature");
+  if (!(reacting.initialTemperature > 0.0)) {
+    throwConfigError(path, context + ".initial_temperature", "be > 0 K",
+                     std::to_string(reacting.initialTemperature));
+  }
+
+  // Duplicate species names: the registry refuses them, but the parse-time message can say which
+  // index collided.
+  for (std::size_t i = 0; i < reacting.species.size(); ++i) {
+    for (std::size_t j = i + 1; j < reacting.species.size(); ++j) {
+      if (reacting.species[i].name == reacting.species[j].name) {
+        throwConfigError(
+            path, context + ".species[" + std::to_string(j) + "].name",
+            "be unique among the reacting species",
+            "\"" + reacting.species[j].name + "\" duplicates index " + std::to_string(i));
+      }
+    }
+  }
+
+  // sum(Y) = 1 on the declared initial state. P18.1 REFUSES a state that does not sum to one and
+  // never normalises, so a case file that does not sum to one would construct and then be
+  // rejected deeper in; rejected here instead, where the message can name the file.
+  Real sum = 0.0;
+  for (const ReactingSpeciesConfig& species : reacting.species) {
+    sum += species.initialMassFraction;
+  }
+  if (std::abs(sum - 1.0) > 1.0e-12) {
+    throwConfigError(path, context + ".species",
+                     "have initial_mass_fraction summing to 1 (this codebase refuses an "
+                     "out-of-bounds composition and never normalises one)",
+                     std::to_string(sum));
+  }
+
+  return reacting;
 }
 
 // P6-PHYS-002: one phase entry ("phase1"/"phase2") of physics.json's
@@ -508,9 +966,10 @@ void validatePhysicsCompatibility(const PhysicsConfig& config, const std::filesy
 
 PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesystem::path& path) {
   requireObject(json, path);
-  rejectUnknownKeys(json, path, "physics.json",
-                    {"model", "density", "dynamic_viscosity", "reynolds_number", "thermal",
-                     "turbulence", "buoyancy", "species", "multiphase", "compressible"});
+  rejectUnknownKeys(
+      json, path, "physics.json",
+      {"model", "density", "dynamic_viscosity", "reynolds_number", "thermal", "turbulence",
+       "buoyancy", "species", "reacting", "multiphase", "compressible"});
 
   PhysicsConfig config;
   config.model = getRequiredString(json, path, "model");
@@ -561,6 +1020,39 @@ PhysicsConfig parsePhysicsConfig(const nlohmann::json& json, const std::filesyst
   // An absent key parses to the same empty vector requireObject/default-
   // construction already gives every pre-P6 case, so every existing
   // nonspecies case continues to parse identically.
+  // G8: "reacting" and "species" are two different species representations. Allowing both would
+  // give one solve two sources of truth for the same field.
+  if (json.contains("reacting") && json.contains("species")) {
+    throwConfigError(path, "physics.json",
+                     "declare either \"species\" (passive, P6-PHYS-001) or \"reacting\" (the "
+                     "reacting mixture), never both",
+                     "both present");
+  }
+  if (json.contains("reacting")) {
+    config.reacting = parseReactingPhysicsConfig(json.at("reacting"), path);
+
+    // TD-001: a reacting case REQUIRES "thermal", and that is a design decision rather than an
+    // oversight.
+    //
+    // Heat release is coupled to the P15 thermal path only -- P18.6 recorded exactly that. The
+    // energy equation it feeds needs a CONDUCTIVITY, which the reacting block deliberately does
+    // not carry: inventing a "reacting.conductivity" key would create a second, competing source of
+    // truth for a property "thermal" already owns, and the per-patch "temperature" boundary
+    // vocabulary (fixed_temperature / heat_flux / adiabatic) is thermal's too.
+    //
+    // So the reacting block supplies the CHEMISTRY and the thermal block supplies the TRANSPORT
+    // PROPERTIES, each where it already belongs. Refused here rather than later because a reacting
+    // case without conductivity cannot couple its heat release at all, and the user should learn
+    // that from the file, not from an absent temperature field in the output.
+    if (!json.contains("thermal")) {
+      throwConfigError(path, "physics.json",
+                       "declare a \"thermal\" block alongside \"reacting\" (heat release is "
+                       "coupled through the thermal energy equation, which needs the conductivity "
+                       "and specific heat that \"thermal\" owns)",
+                       "\"reacting\" present, \"thermal\" absent");
+    }
+  }
+
   if (json.contains("species")) {
     const auto& speciesJson = json.at("species");
     if (!speciesJson.is_array()) {

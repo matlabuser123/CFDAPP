@@ -1,0 +1,74 @@
+=== ENVIRONMENT
+date        2026-10-12T23:42:24+10:00
+nproc       32   load 16.81 16.84 17.65 17/992 1854
+mem         31Gi total, 26Gi available
+CFDAPP_ENABLE_CUDA:BOOL=OFF
+CMAKE_BUILD_TYPE:STRING=Release
+c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+
+=== NOTHING HEAVY MAY RUN ALONGSIDE (hardware policy)
+competing heavy processes: 0
+0
+
+=== PROVENANCE (recorded, per METHOD_library_hash_gates.md)
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/run_a4_dryrun.sh: line 23: [: 0
+0: integer expression expected
+19db4b6b3b5279055899d1051763b6f5ae85926aa1f4fe2d4d0c5038b405fe9d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+8fcc1553617bdaa36658805855edcb0d6ba34142ef23e96d3f28cd5d2d5ec937  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+  NOTE: PremixedFlame.cpp is 19db4b6b... after the TD-049 comment fix (commit a4b0b0e),
+        not the fa815c97... recorded in earlier TD-027 logs. The change was COMMENT ONLY
+        and proven BIT-IDENTICAL at object level; see TD049/verification_comment_fix.md.
+c127923f28acb0a2be5a4ca393a3300dbc1b6a7360ff95b3fd8ecfbc4ed2a050  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+019a1d7a7fee59ea3fc107c84c66778af40a8695070d0db1055d7ac7cf00bf4a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/c3a4_probe.cpp
+
+=== STALENESS GUARD (CLAUDE.md §8): library newer than every production source?
+  newest source mtime: 1791809155
+  libcfdcore.a  mtime: 1791809702
+  OK: library is not stale.
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/c3a4_probe.cpp -o /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/td027_c3a4 /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+566ca84cc5d8c7bd2dafe0d9f0ec2e127c3e70c717cc96cbd6c56068968392a4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/td027_c3a4
+
+=== RUN. Four ladder levels plus three single-level B measurements; ~5 h expected.
+    Started 2026-10-12T23:42:40+10:00
+TD-027 AMENDMENT A4 -- DRY-RUN of C3-A4 on the unchanged baseline
+
+  C3-A4:  E / massFluxResidual <= 2.0     (threshold UNCHANGED from C3)
+  E measured on a 4-level dt ladder at tol_meas = 1e-04 (q = 8.461627e-05),
+  so E ~ 2.03e-03 is resolved to ~24 quanta instead of C3's 3.
+
+=== PART 1: the dt ladder at tol_meas, which measures E
+
+ level             dt   trial cap     S_L cm/s    published B  bisect    wall s
+     0   9.424300e-06       80000     4.954284   8.461627e-05      13      2848
+     1   4.712150e-06      160000     4.958058   8.461627e-05      13      5462
+     2   2.356075e-06      320000     4.960156   8.461627e-05      13      7991
+     3   1.178038e-06      640000     4.960996   8.461627e-05      13     17866
+
+  E = measured 0.135289 % + tail 0.016921 % = 0.152210 %
+  C2-A2 recorded 0.1353 % + 0.0677 % = 0.203139 % at tol 1e-3.
+  AGREEMENT CHECK (proposal §6): |E - 0.203139| = 0.050929 % -- *** DEVIATION, see §6
+
+=== PART 2: B, the bracket each configuration PUBLISHES at the default dt
+
+configuration               tolerance    published B     ratio  verdict
+PRODUCTION  (hpp:196)           1e-04   8.461627e-05    17.988     FAIL
+gated fixture (:188)            1e-03   6.771307e-04     2.248     FAIL
+loose -- the PASS control       5e-03   2.711275e-03     0.561     PASS
+
+=== PART 3: NON-VACUITY
+
+  the instrument returned 1 PASS and 2 FAIL in this run.  NON-VACUOUS: it spans both verdicts
+
+  cross-check against the two caps C3 was DERIVED on, using their recorded
+  errors and the fixture's published bracket 6.771307e-04:
+    cap 20.0  E =  3.9900 %   ratio   58.925   FAIL
+    cap 10.0  E =  0.4220 %   ratio    6.232   FAIL
+    cap 5.0   E =  0.2031 %   ratio    3.000   FAIL
+
+  C3-A4 must still reject cap 20 and cap 10 -- the rejections C3 was built to
+  make. If either passes above, A4 is NOT a replacement for C3 and is withdrawn.
+
+=== DONE 2026-10-13T10:52:09+10:00

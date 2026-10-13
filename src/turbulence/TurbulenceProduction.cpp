@@ -1,5 +1,7 @@
 #include "cfd/turbulence/TurbulenceProduction.hpp"
 
+#include <algorithm>
+
 #include "cfd/core/Exception.hpp"
 
 namespace cfd::turbulence {
@@ -44,6 +46,19 @@ ScalarField computeTurbulentProduction(const Mesh& mesh, const ScalarField& turb
     production[i] = turbulentViscosity[i] * s2[i];
   }
   return production;
+}
+
+ScalarField computeTurbulentViscosityField(const Mesh& mesh, Real density, Real cMu,
+                                           const ScalarField& k, const ScalarField& epsilon,
+                                           Real kFloor, Real epsilonFloor) {
+  const Index n = mesh.numberOfCells();
+  ScalarField muT(n);
+  for (Index i = 0; i < n; ++i) {
+    const Real kSafe = std::max(k[i], kFloor);
+    const Real epsSafe = std::max(epsilon[i], epsilonFloor);
+    muT[i] = density * cMu * kSafe * kSafe / epsSafe;
+  }
+  return muT;
 }
 
 }  // namespace cfd::turbulence

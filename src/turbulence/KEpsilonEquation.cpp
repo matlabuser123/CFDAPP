@@ -12,6 +12,7 @@
 #include "cfd/mesh/MeshGeometry.hpp"
 #include "cfd/pressure_velocity/UnderRelaxation.hpp"
 #include "cfd/thermal/EnergyEquation.hpp"
+#include "cfd/transport/ScalarTransport.hpp"
 
 namespace cfd::turbulence {
 
@@ -70,144 +71,30 @@ ScalarField computeEffectiveDiffusivity(Real molecularViscosity,
   return gamma;
 }
 
-void assembleScalarDiffusionContribution(
-    const Mesh& mesh, const ScalarField& diffusivity, const ScalarField& phi,
-    const BoundaryConditionSet& boundaries, SparseMatrixBuilder& builder, Vector& rhs,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
-  const Index n = mesh.numberOfCells();
-  if (phi.size() != n) {
-    throw InvalidArgumentError(
-        "assembleScalarDiffusionContribution: phi size does not match mesh cell count");
-  }
-  if (diffusivity.size() != n) {
-    throw InvalidArgumentError(
-        "assembleScalarDiffusionContribution: diffusivity size does not match mesh cell count");
-  }
+KSourceTerms computeKSourceTerms(Real density, const ScalarField& k, const ScalarField& epsilon,
+                                 const ScalarField& production, Real kFloor) {
+  const Index n = k.size();
+  KSourceTerms terms{ScalarField(n), ScalarField(n)};
   for (Index i = 0; i < n; ++i) {
-    if (!std::isfinite(diffusivity[i]) || !(diffusivity[i] > 0.0)) {
-      throw InvalidArgumentError(
-          "assembleScalarDiffusionContribution: diffusivity must be finite and > 0 in every "
-          "cell");
-    }
+    const Real kSafe = std::max(k[i], kFloor);
+    terms.Su[i] = production[i];
+    terms.Sp[i] = -density * epsilon[i] / kSafe;
   }
-
-  // P12-NUM-003: grad(phi) for the explicit non-orthogonal term, only when
-  // enabled.
-  // P12-DIFF-002 A2: always built -- the Dirichlet wall-flux scheme must not depend on the
-  // iterative non-orthogonal control (a2/activation_architecture.md). `enabled` now gates only
-  // the INTERNAL-face correction.
-  const cfd::fields::VectorField gradPhi =
-      cfd::discretization::gradient(mesh, phi, boundaries, nonOrthogonal.gradientScheme);
-  const cfd::fields::VectorField* gradPhiPtr = &gradPhi;
-  const cfd::fields::VectorField* internalGradPhi = nonOrthogonal.enabled ? &gradPhi : nullptr;
-
-  for (Index faceId = 0; faceId < mesh.numberOfFaces(); ++faceId) {
-    const Face& face = mesh.face(faceId);
-
-    if (face.isBoundary()) {
-      const Index ownerId = face.owner();
-      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
-      const Real gammaFace = diffusivity[ownerId];
-
-      const auto& bc = cfd::boundary::boundaryConditionForFace(mesh, face.id(), boundaries);
-      const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc);
-      if (scalarBc == nullptr) {
-        throw InvalidArgumentError(
-            "assembleScalarDiffusionContribution: boundary condition is not scalar-valued");
-      }
-      const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
-          mesh, face, gammaFace, distance, gradPhiPtr,
-          cfd::discretization::prescribesBoundaryValue(bc.type()));
-      const Real diffusionCoefficient = terms.coefficient;
-      const Real phiB = scalarBc->boundaryValue(phi[ownerId], distance);
-      // A2: always applied -- the transfer term is exactly 0 on an orthogonal face.
-      rhs[ownerId] += terms.explicitFlux;
-
-      // P12-DIFF-002: the prescribed value carries its own coefficient, and the
-      // second-order reconstruction adds one implicit far-cell entry.
-      builder.add(ownerId, ownerId, diffusionCoefficient);
-      rhs[ownerId] += terms.boundaryValueCoefficient * phiB;
-      if (terms.farCellCoefficient != 0.0) {
-        builder.add(ownerId, terms.farCell, -terms.farCellCoefficient);
-      }
-      continue;
-    }
-
-    const Index ownerId = face.owner();
-    const Index neighborId = *face.neighbor();
-    const Real dPN = MeshGeometry::ownerNeighborDistance(mesh, face);
-    const Real gammaFace = cfd::discretization::interpolateInternalFace(mesh, face, diffusivity);
-    const auto terms = cfd::discretization::internalFaceDiffusionTerms(mesh, face, gammaFace, dPN,
-                                                                       internalGradPhi);
-    const Real diffusionCoefficient = terms.coefficient;
-    if (internalGradPhi != nullptr) {
-      rhs[ownerId] += terms.explicitFlux;
-      rhs[neighborId] -= terms.explicitFlux;
-    }
-
-    builder.add(ownerId, ownerId, diffusionCoefficient);
-    builder.add(ownerId, neighborId, -diffusionCoefficient);
-    builder.add(neighborId, neighborId, diffusionCoefficient);
-    builder.add(neighborId, ownerId, -diffusionCoefficient);
-  }
+  return terms;
 }
 
-void applyImplicitScalarSource(const Mesh& mesh, SparseMatrixBuilder& builder, Vector& rhs,
-                               const ScalarField& Su, const ScalarField& Sp) {
-  const Index n = mesh.numberOfCells();
-  if (Su.size() != n || Sp.size() != n) {
-    throw InvalidArgumentError(
-        "applyImplicitScalarSource: Su/Sp size does not match mesh cell count");
+EpsilonSourceTerms computeEpsilonSourceTerms(Real density, Real c1Epsilon, Real c2Epsilon,
+                                             const ScalarField& k, const ScalarField& epsilon,
+                                             const ScalarField& production, Real kFloor) {
+  const Index n = k.size();
+  EpsilonSourceTerms terms{ScalarField(n), ScalarField(n)};
+  for (Index i = 0; i < n; ++i) {
+    const Real kSafe = std::max(k[i], kFloor);
+    const Real epsOverK = epsilon[i] / kSafe;
+    terms.Su[i] = c1Epsilon * epsOverK * production[i];
+    terms.Sp[i] = -c2Epsilon * density * epsOverK;
   }
-  for (const auto& cell : mesh.cells()) {
-    const Index id = cell.id();
-    if (!std::isfinite(Su[id]) || !std::isfinite(Sp[id])) {
-      throw InvalidArgumentError("applyImplicitScalarSource: Su/Sp must be finite in every cell");
-    }
-    builder.add(id, id, -Sp[id] * cell.volume());
-    rhs[id] += Su[id] * cell.volume();
-  }
-}
-
-ScalarTransportAssembly assembleScalarTransportEquation(
-    const Mesh& mesh, const ScalarField& phi, const SurfaceField& massFlux,
-    const ScalarField& diffusivity, const BoundaryConditionSet& boundaries, const ScalarField& Su,
-    const ScalarField& Sp,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
-  const Index n = mesh.numberOfCells();
-  if (phi.size() != n) {
-    throw InvalidArgumentError(
-        "assembleScalarTransportEquation: phi size does not match mesh cell count");
-  }
-  if (massFlux.size() != mesh.numberOfFaces()) {
-    throw InvalidArgumentError(
-        "assembleScalarTransportEquation: massFlux size does not match mesh face count");
-  }
-
-  SparseMatrixBuilder builder(n, n);
-  Vector rhs(n, 0.0);
-
-  assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder, rhs,
-                                      nonOrthogonal);
-  // specificHeat = 1.0: see this file's own header comment on why this
-  // reuse is exact for a bare (non-cp-weighted) transported scalar.
-  cfd::thermal::assembleThermalConvectionContribution(mesh, /*specificHeat=*/1.0, massFlux, phi,
-                                                      boundaries, builder, rhs);
-  applyImplicitScalarSource(mesh, builder, rhs, Su, Sp);
-
-  SparseMatrix matrix = builder.build();
-  Vector diagonal(n);
-  for (Index row = 0; row < n; ++row) {
-    diagonal[row] = matrix.diagonal(row);
-  }
-
-  if (!matrix.allFinite() || !rhs.allFinite()) {
-    throw NumericalError(
-        "assembleScalarTransportEquation: assembled system contains a non-finite value");
-  }
-
-  return ScalarTransportAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs),
-                                 std::move(diagonal)};
+  return terms;
 }
 
 ScalarField solveRelaxedScalarTransport(
@@ -215,21 +102,47 @@ ScalarField solveRelaxedScalarTransport(
     const ScalarField& diffusivity, const BoundaryConditionSet& boundaries, const ScalarField& Su,
     const ScalarField& Sp, Real alpha, Real floorValue,
     const cfd::algebra::LinearSolverSettings& solverSettings,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    const std::vector<ImposedCell>& imposedCells) {
   const Index n = mesh.numberOfCells();
   SparseMatrixBuilder builder(n, n);
   Vector rhs(n, 0.0);
 
-  assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder, rhs,
-                                      nonOrthogonal);
-  // specificHeat = 1.0: see this file's own header comment on why this
-  // reuse is exact for a bare (non-cp-weighted) transported scalar.
-  cfd::thermal::assembleThermalConvectionContribution(mesh, /*specificHeat=*/1.0, massFlux, phi,
-                                                      boundaries, builder, rhs);
-  applyImplicitScalarSource(mesh, builder, rhs, Su, Sp);
+  // P14: one scalar-transport assembly for the whole codebase. The duplicated
+  // turbulence diffusion and source loops that used to live in this file were
+  // deleted once all six production equations had been migrated and their
+  // output frozen -- see tests/unit/transport/test_transport_characterization.cpp.
+  //
+  // Convection was never duplicated: both layers always called the same
+  // cfd::thermal assembler with a unit specific heat.
+  cfd::transport::assembleScalarDiffusionContribution(mesh, diffusivity, phi, boundaries, builder,
+                                                      rhs, nonOrthogonal);
+  cfd::transport::assembleScalarConvectionContribution(mesh, massFlux, phi, boundaries, builder,
+                                                       rhs);
+  cfd::transport::applyImplicitScalarSource(mesh, builder, rhs, Su, Sp);
 
   const Vector phiOld = toVector(phi);
   cfd::pressure_velocity::applyImplicitUnderRelaxation(builder, rhs, phiOld, alpha);
+
+  // P16: imposed cells are applied LAST, after under-relaxation.
+  //
+  // Order matters and is load-bearing. fixRow discards every triplet in the row
+  // whenever it was added, so the relaxation's diagonal contribution goes with
+  // it -- but relaxation also writes to `rhs`, which fixRow does not own. Both
+  // halves of the row therefore have to be settled here, at the end: the
+  // right-hand side is OVERWRITTEN (not accumulated) so whatever assembly and
+  // relaxation put there is discarded along with the matrix row.
+  for (const ImposedCell& imposed : imposedCells) {
+    if (imposed.cell >= n) {
+      throw InvalidArgumentError(
+          "solveRelaxedScalarTransport: imposed cell index is outside the mesh");
+    }
+    if (!std::isfinite(imposed.value)) {
+      throw InvalidArgumentError("solveRelaxedScalarTransport: imposed value must be finite");
+    }
+    builder.fixRow(imposed.cell);
+    rhs[imposed.cell] = imposed.value;
+  }
 
   SparseMatrix matrix = builder.build();
   if (!matrix.allFinite() || !rhs.allFinite()) {
@@ -248,6 +161,13 @@ ScalarField solveRelaxedScalarTransport(
   }
   for (Index i = 0; i < n; ++i) {
     solved[i] = std::max(solved[i], floorValue);
+  }
+  // An imposed value is a boundary condition, not a solver output, so the floor
+  // must not move it. Re-asserted rather than assumed: a wall epsilon below the
+  // floor would otherwise be silently replaced by the floor, and the cell would
+  // stop satisfying the wall function that put it there.
+  for (const ImposedCell& imposed : imposedCells) {
+    solved[imposed.cell] = imposed.value;
   }
   return solved;
 }

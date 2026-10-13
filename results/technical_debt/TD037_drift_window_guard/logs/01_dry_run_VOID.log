@@ -1,0 +1,65 @@
+*** INVALID AS AUTHORITATIVE -- DO NOT USE. Recorded, not deleted (CLAUDE.md section 4).
+***
+*** THIS RUN MEASURED THE WRONG LIBRARY. The provenance block below records
+***   libcfdcore.a        3b94eb849f9c8277...   the PRE-TD-032 library
+***   PremixedFlame.cpp   dac2992006a51cce...   the PRE-TD-032 source
+*** TD-037's baseline must be the CURRENT tree, f9f554bf... / a9b01668..., which is the tree
+*** with TD-032's fix in it.
+***
+*** CAUSE: this run was launched while TD-032's pre-fix trial-record probe
+*** (TD032_lagged_time_level/logs/09) was still executing. That probe SWAPS the source tree to
+*** the pre-fix form, builds it, and restores afterwards -- so for most of this run the tree was
+*** pre-fix, and its EXIT trap then restored the tree to post-fix at 17:30:18, MID-RUN. The probe
+*** binary was linked against the pre-fix library while the later test targets would have relinked
+*** against whatever existed at that moment, so this log is a mixture of two libraries.
+***
+*** This is an operator error, not a tool failure: the hardware policy (CLAUDE.md, Local Hardware)
+*** says an evidence-producing run gets the machine, and a job that MUTATES the source tree must
+*** never overlap another. Re-run as logs/01_dry_run.log on a verified-clean tree.
+***
+=== ENVIRONMENT
+date        2026-10-07T17:19:06+10:00
+nproc       32
+build type  CMAKE_BUILD_TYPE:STRING=Release
+mem                        total        used        free      shared  buff/cache   available
+mem         Mem:            31Gi       612Mi        28Gi       4.0Mi       1.9Gi        30Gi
+mem         Swap:          8.0Gi          0B       8.0Gi
+
+=== PROVENANCE -- this is C8's negative-control library, the one WITH the defect
+3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+65910edc818f819f4fb9be58bb03c70178ff64a9f30cdb09d0beca66930b1412  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/GATE.md
+d311d49f3eb49b27c98c79ae5a8a279adef60f53a3b2f5e4d06b90d440748122  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/tools/ladder_probe.cpp
+
+=== COMPILE the probe
+ada1fa5d147e83a23faaeb13434b9bac463980d09d43123176244224fc6a782d  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD037_drift_window_guard/tools/td037_ladder
+
+=== C0 / C1 / C3 / C4 -- the driftWindow ladder
+TD-037 -- the driftWindow LADDER
+
+  fixture: the test's makeSettings(), production cap and march length
+  ladder STRADDLES the measured 40-step trial: 16, 32 below it; 64, 128 above
+
+=============== driftWindow 16
+  status 0 Converged   S_L 4.671937 cm/s   final mdot 0.0550371757
+  trials 15   bracketSteps 4
+  RECORD -- C4 compares this VERBATIM at window 32
+     #               mdot              drift     steps  meas  set  ext  big
+     0        0.696488454        0.993101056       128   yes    y    n    y
+     1        0.348244227        0.483543083       128   yes    y    n    y
+     2        0.174122113        0.179823882       528   yes    y    n    y
+     3       0.0870610567       0.0919228865        71   yes    n    y    y
+     4       0.0435305284      -0.0213165043       518   yes    n    y    n
+     5       0.0615614636          0.0236115       155   yes    n    y    y
+     6        0.051766814     -0.00588277296      2260   yes    n    y    n
+     7        0.056452111      0.00556514461       340   yes    n    y    y
+     8       0.0540587267     -0.00414597162      4500   yes    n    y    n
+     9       0.0552424587      0.00171996265       688   yes    n    y    y
+    10       0.0546473876     -0.00361299473      5232   yes    y    n    n
+    11       0.0549441175     -0.00327427024      5184   yes    y    n    n
+    12       0.0550930862     0.000941351841       855   yes    n    y    y
+    13       0.0550185514       -0.003207272      5168   yes    y    n    n
+    14       0.0550558062     0.000649573174       935   yes    n    y    y
+  unmeasured trials: 0
+  C3  13 sided trials checked, 2 skipped inside the bracket, 0 WRONG -> PASS
+

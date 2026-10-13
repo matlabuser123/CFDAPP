@@ -1,0 +1,40 @@
+=== rebuild every target against the RESTORED production source ===
+The restore rewrote src/app/ProjectRunner.cpp, so its mtime moved even though its content is
+byte-identical to the freeze record (f14aa151...). CLAUDE.md section 8 wants a demonstrable
+rebuild, not an argument about mtimes, so everything is relinked before anything is measured.
+BUILD OK
+f14aa151d743190777d242e101cef6b19fb7ed77005bb9c65ead090292d8bc9a  src/app/ProjectRunner.cpp
+
+=== staleness check against the restored production source ===
+  c58b32eeea5a64fc6409bafc5dec50496e4a6a09237ca674377bbc09fbf984d3  build/release/apps/cli/cfdapp
+  9448c1293c86c9dbf3d5e2ab25d7270f7be98e55ca314927d8b6bacae5a88833  build/release/tests/unit/io/CFDIoTests
+  50f0ce5e4c10f243c0ee37c810d82b51b169d7fabc21edca5cec585e325f93ac  build/release/tests/unit/app/CFDAppLayerTests
+  faaf7f5e564ce07fc7d9dd2bd1a445b2fd4f8d000412a0eaf1ef2231b9a7e175  build/release/tests/unit/species/CFDSpeciesTests
+
+=== the P18 library sources, hashed -- TD-001 changed none of them ===
+  md5 of the 9 src/species hashes: cbe646b4999b94981b739a11d65785e3  -
+  md5 of the 9 include hashes:   75f9a0e59f5a92c20250a20b017dd3e6  -
+
+################ CFDIoTests  (gate baseline 325) ################
+
+[----------] Global test environment tear-down
+[==========] 328 tests from 24 test suites ran. (229 ms total)
+[  PASSED  ] 328 tests.
+
+################ CFDAppLayerTests  (gate baseline 32) ################
+
+[----------] Global test environment tear-down
+[==========] 32 tests from 5 test suites ran. (2705 ms total)
+[  PASSED  ] 32 tests.
+
+################ CFDSpeciesTests, baseline conditions (gate baseline 339) ################
+[       OK ] P188InvalidStateTest.N11_SilentlyAcceptingAnInvalidStateIsDetected (0 ms)
+[----------] 2 tests from P188InvalidStateTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 339 tests from 56 test suites ran. (6041 ms total)
+[  PASSED  ] 339 tests.
+
+################ G8PremixedFlameTest, reported separately (TD-004 territory) ################
+Not part of any TD-001 baseline. Recorded state: '13 tests written; most currently FAIL'.
+  tests declared: 17

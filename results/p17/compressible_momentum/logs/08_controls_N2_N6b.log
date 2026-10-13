@@ -1,0 +1,81 @@
+P17.4 GROUP N -- SECOND PASS (after the N2/N6 fixes)
+date: 2026-09-26T23:00:56Z
+baseline src/compressible/DilatationalStress.cpp sha256: fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3
+baseline src/compressible/CompressibleMomentum.cpp sha256: 2e5fd838dbfb678ebfd84fd561b831b4c20f50032f614b442c6aa119f477f4d0
+baseline include/cfd/compressible/CompressibleRelaxedMomentum.hpp sha256: ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510
+test file TESTs: 21
+
+=== N1 -- RE-RUN: drop the -(2/3) factor, on the NEW 20x20 mesh ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED
+  per-test rows:
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 2
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N2b -- drop the V_P factor (V = 4 now, so this is a 4x error) ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED
+  per-test rows:
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N3 -- RE-RUN: use div U instead of grad(div U), on the NEW mesh ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED
+  per-test rows:
+      DilatationalStressTest.ScalesLinearlyWithViscosityAndVanishesAtZeroViscosity     Passed
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 1
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N5 -- RE-RUN (harness control): flip the transient source sign ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (3 tests)
+  DETECTION          DETECTED
+  per-test rows:
+      CompressibleMomentumTimeDerivativeTest.MismatchedSizeThrows     Passed
+      CompressibleMomentumTimeDerivativeTest.RejectsNonPositiveDt     Passed
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== N6b -- default the option to ENABLED ===
+  PLANTED DEFECT     yes (compiled)
+  CRITERION          FAILED as expected (2 tests)
+  DETECTION          DETECTED
+  per-test rows:
+      CompressibleMomentumComponentTest.ConstantDensityReproducesTransientMomentumExactly     Passed
+      CompressibleMomentumComponentTest.MismatchedVelocitySizeThrows     Passed
+      CompressibleMomentumComponentTest.NonUniformDensityChangesTheAssembledDiagonal     Passed
+      CompressibleMomentumConservationTest.ConvectiveAssemblyIsGloballyConservative     Passed
+      CompressibleMomentumConservationTest.NonFiniteAssembledSystemThrowsNumericalError     Passed
+      CompressibleMomentumConservationTest.UniformFlowResidualIsAtRoundOff     Passed
+      CompressibleMomentumTermsTest.BodyForceScalesLinearlyWithDensity     Passed
+      CompressibleMomentumTermsTest.PressureForceMatchesMinusVolumeTimesAnalyticalGradient     Passed
+      CompressibleMomentumTermsTest.TransientTermDistinguishesDRhoUDtFromRhoDUDt     Passed
+      CompressibleMomentumTimeDerivativeTest.ConstantDensityMatchesIncompressibleFormula     Passed
+      CompressibleMomentumTimeDerivativeTest.HandDerivedDiagonalAndSource     Passed
+      CompressibleMomentumTimeDerivativeTest.MismatchedSizeThrows     Passed
+      CompressibleMomentumTimeDerivativeTest.RejectsNonPositiveDt     Passed
+      DilatationalStressTest.IsExactlyZeroForADivergenceFreeField     Passed
+      DilatationalStressTest.IsWiredIntoTheRelaxedMomentumAssembly     Passed
+      DilatationalStressTest.MatchesMinusTwoThirdsMuGradDivergenceTimesVolume     Passed
+      DilatationalStressTest.RejectsInvalidInputs     Passed
+      DilatationalStressTest.RepeatedAssemblyIsBitwiseIdentical     Passed
+      DilatationalStressTest.ScalesLinearlyWithViscosityAndVanishesAtZeroViscosity     Passed
+      DilatationalStressTest.UniformVelocityContributesNothing     Passed
+  MUST STILL PASS    -> 100% tests passed, 0 tests failed out of 10
+  RESTORE            VERIFIED by SHA-256 (all three files)
+
+=== restored, and proved back at baseline ===
+  fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3  src/compressible/DilatationalStress.cpp
+  2e5fd838dbfb678ebfd84fd561b831b4c20f50032f614b442c6aa119f477f4d0  src/compressible/CompressibleMomentum.cpp
+  ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510  include/cfd/compressible/CompressibleRelaxedMomentum.hpp
+  expected: fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3
+            2e5fd838dbfb678ebfd84fd561b831b4c20f50032f614b442c6aa119f477f4d0
+            ea354e005d00bbe240e2776ccc4bef6541c05897884f7be9c5dbe26d0c097510
+  N-markers left: 0  (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 22
+
+done: 2026-09-26T23:08:35Z

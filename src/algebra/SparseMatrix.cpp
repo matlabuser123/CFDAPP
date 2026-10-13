@@ -140,8 +140,36 @@ void SparseMatrixBuilder::add(Index row, Index column, Real value) {
   triplets_.push_back(Triplet{row, column, value});
 }
 
+void SparseMatrixBuilder::fixRow(Index row) {
+  // Index is unsigned, so a negative argument arrives as a huge value and is
+  // caught by the upper bound; a `row < 0` test would be dead code.
+  if (row >= rows_) {
+    throw InvalidArgumentError("SparseMatrixBuilder::fixRow: row index out of range");
+  }
+  // Idempotent: marking the same row twice must not write two diagonals.
+  if (std::find(fixedRows_.begin(), fixedRows_.end(), row) == fixedRows_.end()) {
+    fixedRows_.push_back(row);
+  }
+}
+
 SparseMatrix SparseMatrixBuilder::build() const {
   std::vector<Triplet> sorted = triplets_;
+  // P16: a fixed row's own contributions are dropped and replaced by a unit
+  // diagonal. Done HERE rather than at add() time so the order of fixRow() and
+  // add() calls cannot matter -- an assembly that fixes a row and then keeps
+  // adding to it (which is exactly what happens when a face loop runs after the
+  // wall cells are identified) still produces the same matrix.
+  if (!fixedRows_.empty()) {
+    sorted.erase(std::remove_if(sorted.begin(), sorted.end(),
+                                [this](const Triplet& t) {
+                                  return std::find(fixedRows_.begin(), fixedRows_.end(), t.row) !=
+                                         fixedRows_.end();
+                                }),
+                 sorted.end());
+    for (const Index row : fixedRows_) {
+      sorted.push_back(Triplet{row, row, 1.0});
+    }
+  }
   std::stable_sort(sorted.begin(), sorted.end(), [](const Triplet& a, const Triplet& b) {
     if (a.row != b.row) {
       return a.row < b.row;

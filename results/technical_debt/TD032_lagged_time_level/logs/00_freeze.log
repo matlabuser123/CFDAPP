@@ -1,0 +1,48 @@
+=== TD-032 GATE FREEZE
+date   2026-10-06T21:01:33+10:00
+
+The gate is frozen at the hashes below. Any change to GATE.md after this point is an
+AMENDMENT and needs its own file, its own dry-run and its own authorization (CLAUDE.md 5.3).
+
+--- THE GATE
+52bc82554574e7b76220082da0b7e0af0dda2c8c025184bf89a22fe9bd3ed5c0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/GATE.md
+a417541c4bdb3828291056cc92dc47a8577c00a03d598cab546aef8cebc2a850  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/dry_run.md
+5de0a2c286c9d444b031187f5960a8ea544deb85846081124eaf1f4c0889958e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/audit.md
+
+--- PRODUCTION FILES IN SCOPE (the pre-fix state, which the fix will change)
+dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+
+--- TEST FILES (must be UNCHANGED by this item; recorded so that is checkable)
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+da3566e1125d078612c70e6f1278e1d64a4d68c3fd80abc32da41f1578bff8ba  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_thermal_transient.cpp
+8a08f9f733967b598eafa35455165317e79e4b0641bbbbda00e1fe84ad1878a4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/transport/test_scalar_transport.cpp
+
+--- THE LAGGED LIBRARY AND BINARIES THE DRY RUN MEASURED (C8's negative control)
+3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+646a71a12886502f843514fac91cb36770972883d3836c016a4884e7796ad0b9  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/io/CFDIoTests
+f195a2f9b4472cb4580bd3224e736879019f6e397995f458955cfc03ff14125e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/app/CFDAppLayerTests
+732f6049fc09a18d1990686f4eb25c7a5e507ff0fff39bee71720910d0680538  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+
+--- PROBES
+6bf33900f7d56a4016e247b638ea0e8701f229347746c9c4ac5697d9b13cac82  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/alternation_probe.cpp
+7c9e58ef1f19c9b7a240827c6594823b3ec6f0356a0c802e8e47c6f06eecb658  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/residual_vs_length_probe.cpp
+6b7d2007798a07d499accde284a1ff077daacc5b13fc8f0090a89fe93d0ea115  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_alternation
+772bab1678092578b3f6cdeb04d32b0570e7e521c0fcfc97495b72bac66e223b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_residual
+
+--- THE FROZEN THRESHOLDS, restated so the log stands alone
+C0     instrument self-test: (a) R <= 1 with a meaningful ratio, (b) R > 1, (c) vacuous+FAIL,
+       (d) vacuous+PASS
+C1     R = across/within <= 1.0   500 cells, cap 5, relaxT 18, budgets 30945..30949
+C2     R <= 1.0                   250 cells, cap 5, relaxT 18, budgets 7256..7260
+       vacuity branch for both: within <= 1e-9 K -> R not evaluated, require across <= 1e-9 K
+C3(a)  temperatureResidual <= 1.0e-2   at the gated fixture
+C3(b)  temperatureResidual(relaxT 26) <= 0.5 * temperatureResidual(relaxT 18)
+C4     maxCompositionSumDeviation <= 2.0e-06   (EMPIRICAL, from the worst baseline branch)
+C5     |S_L - 4.671937| / 4.671937 <= 3.99 %
+C6     CFDIoTests 331 / CFDAppLayerTests 32 / CFDSpeciesTests 343 under
+       --gtest_filter=-G8PremixedFlameTest.*
+C7     median of 4 post-warm-up gated-fixture solves <= 695.1 s; no test breaches 7200 s
+C8     the lagged library fails C1 and C2 -- SATISFIED by logs/01, hash recorded above
+
+FROZEN 2026-10-06T21:01:34+10:00

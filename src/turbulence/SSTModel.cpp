@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <utility>
+#include <vector>
 
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/Gradient.hpp"
@@ -14,6 +15,7 @@
 #include "cfd/turbulence/SSTEquation.hpp"
 #include "cfd/turbulence/TurbulenceProduction.hpp"
 #include "cfd/turbulence/WallDistance.hpp"
+#include "cfd/turbulence/WallTreatment.hpp"
 
 namespace cfd::turbulence {
 
@@ -89,6 +91,26 @@ SSTModel::SSTModel(const Mesh& mesh, const FluidProperties& fluid,
         computeSSTTurbulentViscosity(rho, c.a1, k_[i], omega_[i], /*strainMagnitude=*/0.0, f2_[i]);
   }
   validateTurbulentViscosityField(mesh_, turbulentViscosity_);
+
+  // P16. Wall faces are geometry, collected once -- the same reasoning that
+  // already applies to wallDistance_ above.
+  wallViscosity_ = cfd::fields::SurfaceField(mesh.numberOfFaces(), 0.0);
+  yPlus_ = ScalarField(n, 0.0);
+  wallShearStress_ = ScalarField(n, 0.0);
+  if (config_.wallFunctions) {
+    if (config_.wallFunctionCoefficients.cMu != c.betaStar) {
+      // In SST the role C_mu plays in k-epsilon is played by beta*, and both
+      // are 0.09. The wall function forms u_tau* = C_mu^(1/4) sqrt(k) and SST
+      // forms its own near-wall scales from beta*; two different values would
+      // describe two different near-wall states, so they are tied rather than
+      // left to agree by luck.
+      throw InvalidArgumentError(
+          "SSTModel: wallFunctionCoefficients.cMu must equal coefficients.betaStar -- the wall "
+          "function's C_mu and SST's beta* are the same constant playing the same role, and a "
+          "mismatch would put the imposed omega on a different equilibrium than the model's");
+    }
+    wallFaces_ = collectWallFaces(mesh, velocityBoundaries);
+  }
 }
 
 std::string_view SSTModel::name() const noexcept { return "SST"; }
@@ -181,16 +203,83 @@ void SSTModel::correct(const Mesh& mesh, const VectorField& velocity,
     strainMagnitude[i] = std::sqrt(s2[i]);
   }
 
+  // P16 -- the wall treatment, from this iteration's velocity and the
+  // pre-update k (the same lagged state everything else here reads).
+  //
+  // Identical in structure to the k-epsilon path and using the SAME
+  // WallTreatment: production replaced in the wall cell, omega imposed there,
+  // wall shear handed to momentum. What differs is only which variable is
+  // imposed -- omega rather than epsilon -- and the two are the same physical
+  // state (WallFunctions proves omega_P = epsilon_P/(C_mu k_P)).
+  //
+  // The wall production is still passed through limitProduction, so the wall
+  // cell uses the same k source as every other cell. At equilibrium
+  // P_k = beta* rho k omega, an order of magnitude below the 10 beta* rho k
+  // omega limit, so the limiter does not fire there -- but routing it through
+  // the same call means there is one production path, not two.
+  std::vector<ImposedCell> imposedOmega;
+  if (config_.wallFunctions) {
+    // beta1 comes from this call SST coefficients, so the sublayer omega
+    // branch stays consistent with the omega equation being solved rather
+    // than with a default carried by the wall-treatment layer.
+    const WallTreatmentOptions wallOptions{config_.wallTreatmentMode, c.beta1};
+    const auto treatment = computeWallTreatment(mesh, wallFaces_, velocity, k_, rho, mu,
+                                                config_.wallFunctionCoefficients, wallOptions);
+
+    for (std::size_t i = 0; i < treatment.wallCells.size(); ++i) {
+      const Index cell = treatment.wallCells[i];
+      // P16b: blend the imposed equilibrium production with the RESOLVED
+      // mu_t S^2 that suK[cell] already holds, using the weight the omega
+      // blend already defines. No new constant enters here.
+      //
+      // The equilibrium expression tau_w u_tau*/(kappa y) does not vanish as
+      // the wall cell is resolved -- with k ~ y^2 it tends to a constant of
+      // order rho u_tau^4/nu, while true near-wall production goes to zero.
+      // Imposing it on a resolved cell would therefore inject production
+      // that is not there, which is precisely the kind of near-wall error
+      // this mode exists to remove.
+      //
+      // In HighReWallFunction mode the weight is exactly 1, so this reduces
+      // to the previous line and every preserved result is unchanged.
+      const Real equilibrium =
+          limitProduction(treatment.wallCellProduction[i], c.productionLimiterFactor, c.betaStar,
+                          rho, k_[cell], omega_[cell]);
+      const Real weight = treatment.wallCellLogLayerWeight[i];
+      // Both terms are already at or below the limiter ceiling, so their
+      // convex combination is too -- no second limiting pass is needed.
+      suK[cell] = (weight * equilibrium) + ((1.0 - weight) * suK[cell]);
+      imposedOmega.push_back(ImposedCell{cell, treatment.wallCellSpecificDissipation[i]});
+    }
+
+    wallViscosity_ = treatment.wallViscosity;
+    yPlus_ = treatment.yPlus;
+    wallShearStress_ = treatment.wallShearStress;
+    wallFacesOutsideValidBand_ = treatment.facesOutsideValidBand;
+    wallFacesWithFlooredViscosity_ = treatment.facesWithFlooredViscosity;
+    minimumWallYPlus_ = treatment.minimumYPlus;
+    maximumWallYPlus_ = treatment.maximumYPlus;
+    wallViscousSublayerFaces_ = treatment.viscousSublayerFaces;
+    wallBlendedFaces_ = treatment.blendedFaces;
+    wallLogLayerFaces_ = treatment.logLayerFaces;
+  }
+
   // Both solves are attempted before any member field is touched -- if
   // either throws, every member stays exactly as it was on entry (see
   // this class's own header comment). Not `const`: both are moved from
   // below once the whole update has succeeded.
+  // P14 MIGRATION. Assembly only: relaxation, fixRow, the solve, the floor
+  // and the imposed-value re-assertion all stay in
+  // solveRelaxedScalarTransport. Bitwise equivalence of the two routes is
+  // gated by test_p14_migration_equivalence.cpp.
   ScalarField newK = solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
                                                  config_.kRelaxation, config_.kFloor,
                                                  config_.kSolver, config_.nonOrthogonal);
-  ScalarField newOmega = solveRelaxedScalarTransport(
-      mesh, omega_, massFlux, gammaOmega, omegaBoundaries_, suOmega, spOmega,
-      config_.omegaRelaxation, config_.omegaFloor, config_.omegaSolver, config_.nonOrthogonal);
+  // Only omega is imposed. k keeps its own boundary condition and responds to
+  // the modified production -- imposing both over-constrains the wall cell.
+  ScalarField newOmega =
+      solveRelaxedScalarTransport(mesh, omega_, massFlux, gammaOmega, omegaBoundaries_, suOmega,
+                                  spOmega, config_.omegaRelaxation, config_.omegaFloor,
+                                  config_.omegaSolver, config_.nonOrthogonal, imposedOmega);
 
   // New mu_t from the freshly-solved k/omega, reusing *this call's*
   // strain/F2 (computed above from the pre-update state/current
@@ -221,5 +310,9 @@ void SSTModel::correct(const Mesh& mesh, const VectorField& velocity,
 }
 
 std::optional<Real> SSTModel::convergenceResidual() const { return lastConvergenceResidual_; }
+
+const cfd::fields::SurfaceField* SSTModel::wallViscosity() const {
+  return config_.wallFunctions ? &wallViscosity_ : nullptr;
+}
 
 }  // namespace cfd::turbulence

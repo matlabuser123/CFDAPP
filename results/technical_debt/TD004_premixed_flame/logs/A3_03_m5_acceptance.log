@@ -1,0 +1,56 @@
+=== ENVIRONMENT
+date   2026-10-09T02:24:11+10:00
+nproc  32   load 0.00 0.00 0.00 2/557 750
+
+=== PROVENANCE
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+0034b3e16862d032d46064d96d12d61a2ff9c670cc39389d0a525a8804a8d055  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/c5_amended_probe.cpp
+8a11ad39a147830ce5e2d1e91310c85212a881222ba143bde177a2771e6fb113  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A3.md
+
+=== the constant being varied, BEFORE the patch
+662:  const Real residualAcceptanceFraction = 1.0e-9;
+
+############################################################ M5  acceptance 1e-9 -> 1e-6
+patched 'acceptance': 1 site, source sha256 31911e0f29a26e28
+662:  const Real residualAcceptanceFraction = 1.0e-6;
+library  4c3a63409b58edca7dfdd8325a98a38cfd889bc49486f7263d98c80ca7d6125e
+  OK: differs from both uncorrupted libraries.
+=== GATE_A3  C5a..C5d   label=M5_acceptance1e6  deadBand=3.0
+
+  T_ad from the case constants   1800.000000000000000 K  (bitwise 1800.0? YES)
+  THRESHOLDS, each computed from its derivation:
+    C5a  (T_ad - T_u) * 1.2e-06        = 1.800000e-03 K
+    C5b  1.0e-09 * Y_F,u              = 5.000000e-11
+    C5c  (deadBand + 1) * dx        = 8.000000e-05 m = 0.0800 mm
+    C5d  the frozen band            = 1.200000e-06
+
+=== MEASURED
+  finalMarchSteps            15366
+  peakTemperature            1798.230545956625974 K
+  minMassFraction            -1.231139802111120e-08
+  flamePosition              3.502788369385 mm  (0.139 cells off anchor)
+  maxCompositionSumDeviation 1.285983031209081e-03
+  flameSpeed                 4.941933087 cm/s
+  fuelBalanceResidual        7.893614004e-03
+  recentrings                221 (final march 3)
+  wall                       666 s
+
+=== VERDICTS  (each clause reported; the gate's stop rule is applied by the harness)
+  C5a  |T_ad - T_peak|  1.769454e+00 <= 1.800000e-03 K     FAIL
+  C5b  |min Y_i|        1.231140e-08 <= 5.000000e-11       FAIL
+  C5c  |x_front - x_a|  2.788369e-06 <= 8.000000e-05 m     PASS
+  C5d  |sum Y - 1|      1.285983e-03 <= 1.200000e-06       FAIL
+
+  MACHINE-READABLE: label=M5_acceptance1e6 C5a=FAIL C5b=FAIL C5c=PASS C5d=FAIL
+
+############################################################ HOW TO READ THIS
+  REF (post-fix, acceptance 1e-9) measured |min Y| = 1.889798e-11.
+  If min Y is acceptance-limited, 1000x the acceptance gives ~1.9e-08 and C5b FAILS by ~378x.
+  If it is unmoved, C5b's DERIVATION is wrong -- not merely its control -- and GATE_A3.md
+  may NOT be frozen. Either way the verdict goes in dry_run_A3.md, not here.
+
+DONE 2026-10-09T02:35:28+10:00
+
+=== EXIT TRAP
+post-fix source restored and hash-verified
+library rebuilt: 852555cfda54f8da013bde93f9c205c1

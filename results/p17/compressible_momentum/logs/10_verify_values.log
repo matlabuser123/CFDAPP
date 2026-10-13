@@ -1,0 +1,48 @@
+P17.4 measured values -- post-implementation
+date: 2026-09-26T22:37:51Z
+src/compressible/DilatationalStress.cpp sha256: fc00192ddb9d024fa1c61fcf6d7911fb7b862ec811ddc503b10e18370bc0c5e3
+
+  P17.4 measured values -- the IMPLEMENTED operator
+  mesh 10x10 over 20.0 x 20.0  =>  h = 2   cell volume = 4
+  
+  ### A. U = (x^2/2, 0)  =>  div U = x,  grad(div U) = (1, 0) analytically
+    worst |div U - x|, ALL cells                 10
+    worst |div U - x|, boundary-adjacent cells    10
+    worst |div U - x|, interior cells             0
+    deep-interior cells (2+ cells from any wall) 36
+    worst |grad(div U).x - 1|, deep interior     0
+    expected contribution -(2/3)*mu*1*V          -0.26666666666666666
+    worst |rhs - expected|, deep interior        0
+    V_P sensitivity: with V=1 the expected value would be -0.066666666666666666
+      => dropping the V_P factor is a factor-4 error, which is what makes
+         control N2b non-vacuous (it was a no-op when V was exactly 1).
+  
+  ### B. a divergence-free field must give EXACTLY zero
+    worst |rhs|                 0
+    cells with rhs != 0         0  (0 = bitwise zero everywhere)
+  
+  ### C. linear in mu, and exactly zero at mu = 0
+    probe cell 22 at (5, 5), deep interior
+    mu 0.00   -> rhs[22] = 0                        expected -(2/3)*mu*1*V = -0
+    mu 0.05   -> rhs[22] = -0.13333333333333333     expected -(2/3)*mu*1*V = -0.13333333333333333
+    mu 0.10   -> rhs[22] = -0.26666666666666666     expected -(2/3)*mu*1*V = -0.26666666666666666
+    mu 0.20   -> rhs[22] = -0.53333333333333333     expected -(2/3)*mu*1*V = -0.53333333333333333
+  
+  ### D. through assembleRelaxedCompressibleMomentumComponent (the wired path)
+    cells where on != off                        100 of 100
+    worst |(on - off) - standalone operator|      1.4432899320127035e-15
+      => the wiring is not merely present, it delivers exactly the operator
+    cells where DEFAULT == off (bitwise)         100 of 100  (n = default off)
+    divergence-free field: cells where on != off 0  (0 = incompressible
+                                                    limit is undisturbed)
+  
+  ### E. the boundary limitation -- why the claim is deep-interior only
+    worst |grad(div U).x - 1|, ALL cells          2.5
+    worst, ONE cell in from the boundary          2.5
+    worst, TWO cells in (the deep interior)       0
+      => the artificial zero-gradient BC on the derived scalar div U pollutes
+         one layer, and a Green-Gauss gradient of that spreads it one further.
+  
+  done
+
+done: 2026-09-26T22:37:56Z

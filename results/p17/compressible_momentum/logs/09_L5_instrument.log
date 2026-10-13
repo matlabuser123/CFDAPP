@@ -1,0 +1,27 @@
+P17.4 -- L5 replacement instrument, non-vacuity proof
+date: 2026-09-26T23:11:57Z
+
+frozen expectations (logs/00_freeze.log, '### NOT to be touched ###')
+  e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59  src/physics/MomentumEquation.cpp
+  7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af  include/cfd/physics/MomentumEquation.hpp
+
+=== L5a -- the untouched baseline: the probe must be SILENT ===
+  measured now:
+    e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59  src/physics/MomentumEquation.cpp
+    7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af  include/cfd/physics/MomentumEquation.hpp
+  probe verdict: UNTOUCHED   (must be UNTOUCHED)
+  the ORIGINAL probe, for comparison, on this SAME untouched tree:
+    git diff --numstat HEAD -> '14	1	include/cfd/physics/MomentumEquation.hpp 13	2	src/physics/MomentumEquation.cpp '
+    i.e. the original called an UNTOUCHED file touched. That is the disqualification.
+
+=== L5b -- a real touch: the probe must FIRE ===
+  planted: one comment line appended to src/physics/MomentumEquation.cpp
+  probe verdict: *** TOUCHED ***   (must be *** TOUCHED ***)
+  restored; probe verdict: UNTOUCHED   (must be UNTOUCHED again)
+
+=== final state, proved back at the freeze ===
+  e46d49fcda78e0271538bc69117e249b0ea50dd2265c5f603d64d4206dc7bb59  src/physics/MomentumEquation.cpp
+  7feca5c4a3a22943c442d1fa162b4e860ab037b69a3c6a6ce0e6c413bb0e37af  include/cfd/physics/MomentumEquation.hpp
+  L5b markers left: 0  (0 required)
+
+done: 2026-09-26T23:11:57Z

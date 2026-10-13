@@ -1,0 +1,520 @@
+#pragma once
+
+#include <cmath>
+
+#include "cfd/core/Types.hpp"
+#include "cfd/core/Vector3.hpp"
+
+// P17.7 -- the HLLC numerical flux for the inviscid Euler equations.
+//
+// THIS HEADER IS COMPILED BY BOTH gcc AND nvcc, from ONE source.
+// ------------------------------------------------------------
+// The flux is pointwise: it touches no mesh, no field and no solver state. That makes a single
+// host/device implementation the obvious design rather than the project's usual pattern of a .cpp
+// and a .cu that re-express the same algebra, and it is what the authorization's section 28 asks
+// for ("avoid copy-pasted mathematical logic ... if a common host/device-compatible implementation
+// is practical"). It also makes CPU/GPU equivalence BITWISE rather than a tolerance, which is what
+// P17_GATES.md G8 demands where the operation order is identical.
+//
+// Consequences that shaped the interface:
+//   * NO EXCEPTIONS in the shared core. Device code cannot throw, so validation returns a typed
+//     StateValidity and the HOST-ONLY wrappers in HllcFlux.cpp translate it into the project's
+//     cfd::InvalidArgumentError. Failure semantics are therefore explicit on both sides.
+//   * NO cfd::Vector3 OPERATORS. Vector3's operators, dot, cross and magnitude are plain `inline`,
+//     not __host__ __device__, so device code cannot call them. Vector3 is a POD aggregate, so it
+//     is still used to HOLD data; all arithmetic here is on .x/.y/.z through the shims below.
+//     Vector3 is a P12 core type and is NOT modified.
+//   * NO THERMODYNAMICS. There is no equation of state in this file and no sound-speed formula.
+//     PrimitiveState arrives already carrying p, T, a and rhoE, all produced by P17.2's
+//     ThermodynamicProperties and P17.5's TotalEnergyState via makePrimitiveState() in the .cpp.
+//     Section 3's prohibition on a second ad-hoc EOS is satisfied structurally, not by discipline.
+//
+// THE WAVE-SPEED ESTIMATOR WAS CHOSEN BY MEASUREMENT, NOT BY CITATION
+// ------------------------------------------------------------------
+// The authorization names Davis's direct bounds as an admissible baseline. Measured against an
+// independent 60-digit exact Riemann solver BEFORE this file existed
+// (results/p17/hllc/tools/exact_riemann.py), Davis FAILS to bound the true signal speeds in 8 of 14
+// reference cases -- for Sod it gives S_R = 1.1831 while the right shock actually travels
+// at 1.7521, so signal escapes the control volume. Toro's pressure-based estimate passes 14 of 14.
+// ToroPressureBased is therefore the default; Davis is retained ONLY so the non-vacuity control for
+// the bounding criterion can be a real defect rather than a hypothetical one.
+//
+// Evidence: results/p17/hllc/{acceptance_gate.md, wave_speeds.md, analytic_tests.md}.
+
+#if defined(__CUDACC__)
+#define CFD_HLLC_HOST_DEVICE __host__ __device__
+#else
+#define CFD_HLLC_HOST_DEVICE
+#endif
+
+namespace cfd::compressible {
+
+namespace hllc_detail {
+
+// Host/device shims. Explicit rather than relying on std:: being available in device code.
+CFD_HLLC_HOST_DEVICE inline Real absR(Real v) {
+#if defined(__CUDA_ARCH__)
+  return ::fabs(v);
+#else
+  return std::abs(v);
+#endif
+}
+
+CFD_HLLC_HOST_DEVICE inline Real sqrtR(Real v) {
+#if defined(__CUDA_ARCH__)
+  return ::sqrt(v);
+#else
+  return std::sqrt(v);
+#endif
+}
+
+CFD_HLLC_HOST_DEVICE inline bool finiteR(Real v) {
+#if defined(__CUDA_ARCH__)
+  return ::isfinite(v);
+#else
+  return std::isfinite(v);
+#endif
+}
+
+CFD_HLLC_HOST_DEVICE inline Real minR(Real a, Real b) { return a < b ? a : b; }
+CFD_HLLC_HOST_DEVICE inline Real maxR(Real a, Real b) { return a > b ? a : b; }
+
+// Bit-for-bit identical to cfd::dot, INCLUDING its deliberate treatment of an exactly-zero z
+// product (see Vector3.hpp): a 2D dot product must stay bitwise equal to the two-term formula,
+// down to the sign of a zero. Reproduced rather than called because cfd::dot is host-only.
+CFD_HLLC_HOST_DEVICE inline Real dotHD(const Vector3& a, const Vector3& b) {
+  const Real inPlane = (a.x * b.x) + (a.y * b.y);
+  const Real normal = a.z * b.z;
+  return normal == 0.0 ? inPlane : inPlane + normal;
+}
+
+CFD_HLLC_HOST_DEVICE inline bool finiteVec(const Vector3& v) {
+  return finiteR(v.x) && finiteR(v.y) && finiteR(v.z);
+}
+
+}  // namespace hllc_detail
+
+// ---------------------------------------------------------------------------------------------
+// The conserved state vector, Q = [rho, rho u, rho v, rho w, rho e_t]^T
+// ---------------------------------------------------------------------------------------------
+//
+// NAMING. P17.5 already fixed the collision that `E` causes and this file follows it exactly:
+// `rhoE` / totalEnergyDensity is the CONSERVED total-energy DENSITY [J/m^3], never the specific
+// total energy [J/kg]. A bare `E` appears nowhere.
+struct ConservedState {
+  Real density{};             // rho                      [kg/m^3]
+  Vector3 momentumDensity{};  // rho U = (rho u, rho v, rho w)   [kg/(m^2 s)]
+  Real totalEnergyDensity{};  // rhoE = rho e_t           [J/m^3]
+};
+
+// ---------------------------------------------------------------------------------------------
+// The face state the Riemann solver consumes.
+// ---------------------------------------------------------------------------------------------
+//
+// It carries rhoE alongside the primitives deliberately: the physical flux needs it, and having it
+// here means the flux layer needs NO equation of state to reconstruct it. Every field is produced
+// by makePrimitiveState() through P17.2/P17.5, which is the only authoritative path.
+struct PrimitiveState {
+  Real density{};             // rho   [kg/m^3]
+  Vector3 velocity{};         // U     [m/s]
+  Real pressure{};            // p     [Pa]     ABSOLUTE, from P17.2's EOS
+  Real temperature{};         // T     [K]
+  Real speedOfSound{};        // a     [m/s]    from ThermodynamicProperties::speedOfSound
+  Real totalEnergyDensity{};  // rhoE  [J/m^3]  from TotalEnergyState::conservedTotalEnergy
+};
+
+// The numerical flux, PER UNIT AREA. Units differ from ConservedState, so it is a distinct type:
+// passing one where the other is expected is a compile error rather than a silent unit bug.
+struct FluxVector {
+  Real mass{};         // rho u_n                  [kg/(m^2 s)]
+  Vector3 momentum{};  // rho U u_n + p n          [N/m^2]
+  Real energy{};       // u_n (rhoE + p)           [W/m^2]
+};
+
+enum class HllcBranch { LeftSupersonic, LeftStar, RightStar, RightSupersonic };
+
+enum class WaveSpeedEstimator {
+  ToroPressureBased,  // Toro 3rd ed. 10.59-10.61. THE DEFAULT -- bounds the signal speeds.
+  Davis               // Toro 3rd ed. 10.48. Fails to bound a strong shock; control use only.
+};
+
+enum class StateValidity {
+  Valid,
+  NonFiniteDensity,
+  NonPositiveDensity,
+  NonFinitePressure,
+  NonPositivePressure,
+  NonFiniteVelocity,
+  NonFiniteTotalEnergy,
+  NonFiniteSoundSpeed,
+  NonPositiveSoundSpeed,
+  NonFiniteNormal,
+  NonUnitNormal
+};
+
+struct HllcWaveSpeeds {
+  Real left{};                 // S_L
+  Real contact{};              // S*
+  Real right{};                // S_R
+  Real normalVelocityLeft{};   // u_n,L
+  Real normalVelocityRight{};  // u_n,R
+  Real denominator{};          // rho_L(S_L - u_nL) - rho_R(S_R - u_nR)
+  Real denominatorBound{};     // -(rho_L a_L + rho_R a_R), the PROVEN bound on the above
+};
+
+struct HllcResult {
+  FluxVector flux{};
+  HllcWaveSpeeds speeds{};
+  HllcBranch branch{HllcBranch::LeftStar};
+  Real starDensityLeft{};
+  Real starDensityRight{};
+  Real starInternalEnergyLeft{};  // e*_L = rhoE*_L/rho*_L - 0.5|U*_L|^2, admissibility check
+  Real starInternalEnergyRight{};
+  bool valid{false};  // false only if an input was inadmissible
+  StateValidity validity{StateValidity::Valid};
+};
+
+// ---------------------------------------------------------------------------------------------
+// Validation (section 8 / section 31). No clamping, no floors -- a refusal, never a repair.
+// ---------------------------------------------------------------------------------------------
+
+CFD_HLLC_HOST_DEVICE inline StateValidity validateState(const PrimitiveState& s) {
+  using namespace hllc_detail;
+  if (!finiteR(s.density)) return StateValidity::NonFiniteDensity;
+  if (s.density <= 0.0) return StateValidity::NonPositiveDensity;
+  if (!finiteR(s.pressure)) return StateValidity::NonFinitePressure;
+  if (s.pressure <= 0.0) return StateValidity::NonPositivePressure;
+  if (!finiteVec(s.velocity)) return StateValidity::NonFiniteVelocity;
+  if (!finiteR(s.totalEnergyDensity)) return StateValidity::NonFiniteTotalEnergy;
+  if (!finiteR(s.speedOfSound)) return StateValidity::NonFiniteSoundSpeed;
+  if (s.speedOfSound <= 0.0) return StateValidity::NonPositiveSoundSpeed;
+  return StateValidity::Valid;
+}
+
+// The interface takes a UNIT normal and a SEPARATE scalar area (section 20). This checks the unit
+// property rather than assuming it: folding an area into the normal would silently scale the wave
+// speeds, which is the exact confusion section 20 warns about, so control V6 plants it.
+// The tolerance is on |n|^2 - 1, which for a normal assembled from doubles is a few eps.
+CFD_HLLC_HOST_DEVICE inline StateValidity validateUnitNormal(const Vector3& n) {
+  using namespace hllc_detail;
+  if (!finiteVec(n)) return StateValidity::NonFiniteNormal;
+  const Real lengthSquared = dotHD(n, n);
+  // 16 eps: |n|^2 is three products and two sums, so ~5 eps of representation error, doubled for
+  // the squaring and with headroom. A normal built by dividing by an inexact magnitude sits here.
+  constexpr Real kUnitTolerance = 16.0 * 2.2204460492503131e-16;
+  if (absR(lengthSquared - 1.0) > kUnitTolerance) return StateValidity::NonUnitNormal;
+  return StateValidity::Valid;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The directional physical flux (section 4). The 1D x-formula is the n = (1,0,0) special case.
+// ---------------------------------------------------------------------------------------------
+
+CFD_HLLC_HOST_DEVICE inline FluxVector eulerFlux(const PrimitiveState& s, const Vector3& n) {
+  const Real un = hllc_detail::dotHD(s.velocity, n);
+  FluxVector f{};
+  f.mass = s.density * un;
+  const Real rhoUn = s.density * un;
+  f.momentum.x = rhoUn * s.velocity.x + s.pressure * n.x;
+  f.momentum.y = rhoUn * s.velocity.y + s.pressure * n.y;
+  f.momentum.z = rhoUn * s.velocity.z + s.pressure * n.z;
+  f.energy = un * (s.totalEnergyDensity + s.pressure);
+  return f;
+}
+
+CFD_HLLC_HOST_DEVICE inline ConservedState toConserved(const PrimitiveState& s) {
+  ConservedState q{};
+  q.density = s.density;
+  q.momentumDensity.x = s.density * s.velocity.x;
+  q.momentumDensity.y = s.density * s.velocity.y;
+  q.momentumDensity.z = s.density * s.velocity.z;
+  q.totalEnergyDensity = s.totalEnergyDensity;
+  return q;
+}
+
+// Integrate a per-unit-area flux over a face (section 20). Kept separate from hllcFlux so that
+// scaling the area provably cannot reach the wave speeds.
+CFD_HLLC_HOST_DEVICE inline FluxVector integrateOverArea(const FluxVector& f, Real area) {
+  FluxVector o{};
+  o.mass = f.mass * area;
+  o.momentum.x = f.momentum.x * area;
+  o.momentum.y = f.momentum.y * area;
+  o.momentum.z = f.momentum.z * area;
+  o.energy = f.energy * area;
+  return o;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Wave speeds (section 9)
+// ---------------------------------------------------------------------------------------------
+
+// Toro eq. 10.60: the shock factor. q_K >= 1 always, which is what preserves the denominator bound.
+CFD_HLLC_HOST_DEVICE inline Real hllcShockFactor(Real pStar, Real pK, Real gamma) {
+  if (pStar <= pK) return 1.0;
+  return hllc_detail::sqrtR(1.0 + (gamma + 1.0) / (2.0 * gamma) * (pStar / pK - 1.0));
+}
+
+CFD_HLLC_HOST_DEVICE inline void hllcOuterSpeeds(const PrimitiveState& l, const PrimitiveState& r,
+                                                 Real unL, Real unR, WaveSpeedEstimator estimator,
+                                                 Real gamma, Real& sL, Real& sR) {
+  using namespace hllc_detail;
+  if (estimator == WaveSpeedEstimator::Davis) {
+    // Toro eq. 10.48. Retained for control V1 only -- measured NOT to bound a strong shock.
+    sL = minR(unL - l.speedOfSound, unR - r.speedOfSound);
+    sR = maxR(unL + l.speedOfSound, unR + r.speedOfSound);
+    return;
+  }
+  // Toro eqs. 10.59-10.61, via the PVRS pressure estimate (eq. 9.28).
+  const Real pPvrs = 0.5 * (l.pressure + r.pressure) - 0.125 * (unR - unL) *
+                                                           (l.density + r.density) *
+                                                           (l.speedOfSound + r.speedOfSound);
+  const Real pStar = pPvrs > 0.0 ? pPvrs : 0.0;
+  sL = unL - l.speedOfSound * hllcShockFactor(pStar, l.pressure, gamma);
+  sR = unR + r.speedOfSound * hllcShockFactor(pStar, r.pressure, gamma);
+}
+
+// ---------------------------------------------------------------------------------------------
+// The HLLC flux (sections 9-14). Never throws. `valid` is false iff an input was inadmissible.
+// ---------------------------------------------------------------------------------------------
+
+CFD_HLLC_HOST_DEVICE inline HllcResult hllcFlux(
+    const PrimitiveState& l, const PrimitiveState& r, const Vector3& unitNormal, Real gamma,
+    WaveSpeedEstimator estimator = WaveSpeedEstimator::ToroPressureBased) {
+  using namespace hllc_detail;
+  HllcResult out{};
+
+  const StateValidity vl = validateState(l);
+  if (vl != StateValidity::Valid) {
+    out.validity = vl;
+    return out;
+  }
+  const StateValidity vr = validateState(r);
+  if (vr != StateValidity::Valid) {
+    out.validity = vr;
+    return out;
+  }
+  const StateValidity vn = validateUnitNormal(unitNormal);
+  if (vn != StateValidity::Valid) {
+    out.validity = vn;
+    return out;
+  }
+  if (!finiteR(gamma) || gamma <= 1.0) {
+    out.validity = StateValidity::NonFiniteSoundSpeed;  // gamma <= 1 makes cv <= 0
+    return out;
+  }
+  out.valid = true;
+
+  const Real unL = dotHD(l.velocity, unitNormal);
+  const Real unR = dotHD(r.velocity, unitNormal);
+
+  Real sL = 0.0;
+  Real sR = 0.0;
+  hllcOuterSpeeds(l, r, unL, unR, estimator, gamma, sL, sR);
+
+  // Toro eq. 10.37. qK = rho_K (S_K - u_nK); the denominator is qL - qR and is PROVABLY negative
+  // and bounded by -(rho_L a_L + rho_R a_R), so no epsilon guard is introduced (section 10).
+  const Real qL = l.density * (sL - unL);
+  const Real qR = r.density * (sR - unR);
+  const Real denominator = qL - qR;
+  const Real sStar = (r.pressure - l.pressure + qL * unL - qR * unR) / denominator;
+
+  out.speeds.left = sL;
+  out.speeds.contact = sStar;
+  out.speeds.right = sR;
+  out.speeds.normalVelocityLeft = unL;
+  out.speeds.normalVelocityRight = unR;
+  out.speeds.denominator = denominator;
+  out.speeds.denominatorBound = -(l.density * l.speedOfSound + r.density * r.speedOfSound);
+
+  const FluxVector fL = eulerFlux(l, unitNormal);
+  const FluxVector fR = eulerFlux(r, unitNormal);
+
+  // Star states, Toro eq. 10.39 in normal/tangential form. The tangential velocity is carried
+  // across the contact UNCHANGED, which is what U_K + (S* - u_nK) n expresses: the normal component
+  // is replaced by S*, everything orthogonal to n is preserved exactly.
+  const Real rhoStarL = l.density * (sL - unL) / (sL - sStar);
+  const Real rhoStarR = r.density * (sR - unR) / (sR - sStar);
+  out.starDensityLeft = rhoStarL;
+  out.starDensityRight = rhoStarR;
+
+  // Toro eq. 10.39's energy component. THE SIGN OF THE PRESSURE TERM IS A PLUS, and it matters:
+  //     e_t,K + (S* - u_nK) * (S* + p_K / (rho_K (S_K - u_nK)))
+  // It follows from the energy Rankine-Hugoniot condition across S_K. Writing X for the bracket and
+  // using rho*_K = rho_K(S_K-u_nK)/(S_K-S*), the RH condition S_K(Q*-Q) = F* - F with
+  // F*_energy = S*(rhoE*_K + p*) and p* = p_K + rho_K(S_K-u_nK)(S* - u_nK) rearranges to
+  //     X = e_t,K + p_K(S*-u_nK)/(rho_K(S_K-u_nK)) + S*(S*-u_nK)
+  //       = e_t,K + (S*-u_nK)[ S* + p_K/(rho_K(S_K-u_nK)) ]
+  // i.e. a PLUS. THIS WAS A MINUS IN P17.7 AND IT WAS A REAL BUG -- see
+  // results/p17/hllc/AMENDMENT_star_energy_sign.md. It survived P17.7's gate because every case where
+  // HLLC is algebraically exact has S* = u_nK, which multiplies the whole term by exactly zero, so
+  // the criterion that would have caught it (X1) had a coverage blind spot aligned with the defect.
+  // P17.8's inviscid-wall test found it: a wall must carry ZERO energy flux and the minus form gave
+  // 2.65e+07 W/m^2. The defining property F*_K,energy == S*(rhoE*_K + p*) is now asserted directly.
+  const Real eTotalStarL =
+      l.totalEnergyDensity / l.density + (sStar - unL) * (sStar + l.pressure / qL);
+  const Real eTotalStarR =
+      r.totalEnergyDensity / r.density + (sStar - unR) * (sStar + r.pressure / qR);
+
+  const Real vStarLx = l.velocity.x + (sStar - unL) * unitNormal.x;
+  const Real vStarLy = l.velocity.y + (sStar - unL) * unitNormal.y;
+  const Real vStarLz = l.velocity.z + (sStar - unL) * unitNormal.z;
+  const Real vStarRx = r.velocity.x + (sStar - unR) * unitNormal.x;
+  const Real vStarRy = r.velocity.y + (sStar - unR) * unitNormal.y;
+  const Real vStarRz = r.velocity.z + (sStar - unR) * unitNormal.z;
+
+  // Reported so positivity is measured, not assumed (section 14 / criterion S3).
+  out.starInternalEnergyLeft =
+      eTotalStarL - 0.5 * (vStarLx * vStarLx + vStarLy * vStarLy + vStarLz * vStarLz);
+  out.starInternalEnergyRight =
+      eTotalStarR - 0.5 * (vStarRx * vStarRx + vStarRy * vStarRy + vStarRz * vStarRz);
+
+  if (sL >= 0.0) {
+    out.branch = HllcBranch::LeftSupersonic;
+    out.flux = fL;  // returned UNMODIFIED, so criterion B1 is bitwise by construction
+    return out;
+  }
+  if (sR <= 0.0) {
+    out.branch = HllcBranch::RightSupersonic;
+    out.flux = fR;
+    return out;
+  }
+
+  // F*_K = F_K + S_K (Q*_K - Q_K)
+  if (sStar >= 0.0) {
+    out.branch = HllcBranch::LeftStar;
+    const ConservedState q = toConserved(l);
+    out.flux.mass = fL.mass + sL * (rhoStarL - q.density);
+    out.flux.momentum.x = fL.momentum.x + sL * (rhoStarL * vStarLx - q.momentumDensity.x);
+    out.flux.momentum.y = fL.momentum.y + sL * (rhoStarL * vStarLy - q.momentumDensity.y);
+    out.flux.momentum.z = fL.momentum.z + sL * (rhoStarL * vStarLz - q.momentumDensity.z);
+    out.flux.energy = fL.energy + sL * (rhoStarL * eTotalStarL - q.totalEnergyDensity);
+    return out;
+  }
+
+  out.branch = HllcBranch::RightStar;
+  const ConservedState q = toConserved(r);
+  out.flux.mass = fR.mass + sR * (rhoStarR - q.density);
+  out.flux.momentum.x = fR.momentum.x + sR * (rhoStarR * vStarRx - q.momentumDensity.x);
+  out.flux.momentum.y = fR.momentum.y + sR * (rhoStarR * vStarRy - q.momentumDensity.y);
+  out.flux.momentum.z = fR.momentum.z + sR * (rhoStarR * vStarRz - q.momentumDensity.z);
+  out.flux.energy = fR.energy + sR * (rhoStarR * eTotalStarR - q.totalEnergyDensity);
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The HLL flux -- HLLC with the contact wave DELETED.
+// ---------------------------------------------------------------------------------------------
+//
+// This exists for ONE reason: the frozen G6 criterion names "a deliberately dropped contact-wave
+// term must break (f) while still passing (a)" as the non-vacuity backbone, and a control needs
+// something real to compare against. Measured at 60 digits, deleting the contact produces a
+// SPURIOUS MASS FLUX of 243.46 kg/(m^2 s) across a stationary contact whose true flux is exactly
+// zero, while the uniform-state consistency test still passes perfectly.
+//
+// It is NOT a fallback and is NOT reachable from hllcFlux(). Section 15 permits a fallback only if
+// justified by an actual failure mode; the denominator is provably non-degenerate (see
+// HllcWaveSpeeds::denominatorBound), so there is no failure to fall back from and introducing a
+// silent switch between solver types would be exactly what section 10 forbids.
+CFD_HLLC_HOST_DEVICE inline HllcResult hllFluxForControlOnly(
+    const PrimitiveState& l, const PrimitiveState& r, const Vector3& unitNormal, Real gamma,
+    WaveSpeedEstimator estimator = WaveSpeedEstimator::ToroPressureBased) {
+  HllcResult out = hllcFlux(l, r, unitNormal, gamma, estimator);
+  if (!out.valid) return out;
+  const Real sL = out.speeds.left;
+  const Real sR = out.speeds.right;
+  if (sL >= 0.0 || sR <= 0.0) return out;  // the supersonic branches are identical
+
+  const FluxVector fL = eulerFlux(l, unitNormal);
+  const FluxVector fR = eulerFlux(r, unitNormal);
+  const ConservedState qL = toConserved(l);
+  const ConservedState qR = toConserved(r);
+  const Real inv = 1.0 / (sR - sL);
+  out.flux.mass = (sR * fL.mass - sL * fR.mass + sL * sR * (qR.density - qL.density)) * inv;
+  out.flux.momentum.x = (sR * fL.momentum.x - sL * fR.momentum.x +
+                         sL * sR * (qR.momentumDensity.x - qL.momentumDensity.x)) *
+                        inv;
+  out.flux.momentum.y = (sR * fL.momentum.y - sL * fR.momentum.y +
+                         sL * sR * (qR.momentumDensity.y - qL.momentumDensity.y)) *
+                        inv;
+  out.flux.momentum.z = (sR * fL.momentum.z - sL * fR.momentum.z +
+                         sL * sR * (qR.momentumDensity.z - qL.momentumDensity.z)) *
+                        inv;
+  out.flux.energy = (sR * fL.energy - sL * fR.energy +
+                     sL * sR * (qR.totalEnergyDensity - qL.totalEnergyDensity)) *
+                    inv;
+  return out;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The reconstruction interface (sections 6, 7, 22, 23)
+// ---------------------------------------------------------------------------------------------
+//
+// The point of this boundary is that hllcFlux() above never learns where its two states came from.
+// P17.8 or a later higher-order phase supplies MUSCL, limited-linear or WENO states by filling a
+// ReconstructedFaceState; nothing inside the HLLC core changes. Responsibilities stay split as
+//     reconstruction  ->  Riemann solver  ->  numerical flux
+// and this file deliberately contains no mesh access at all, so it CANNOT reconstruct cells itself.
+struct ReconstructedFaceState {
+  PrimitiveState left{};
+  PrimitiveState right{};
+};
+
+enum class ReconstructionMode {
+  FirstOrder  // piecewise constant: QL = owner, QR = neighbour. The robust baseline (section 7).
+              // Higher-order modes are added here WITHOUT touching hllcFlux().
+};
+
+// The first-order robust mode. Maximum robustness, no reconstruction assumptions, and the reference
+// against which any future higher-order scheme is compared.
+CFD_HLLC_HOST_DEVICE inline ReconstructedFaceState reconstructFirstOrder(
+    const PrimitiveState& owner, const PrimitiveState& neighbour) {
+  ReconstructedFaceState s{};
+  s.left = owner;
+  s.right = neighbour;
+  return s;
+}
+
+// A boundary face's face state (section 24). The EXTERIOR state is supplied by the caller -- a
+// boundary condition, in P17.8 -- and is not computed here. HLLC stays a physics/numerics function
+// and no boundary condition is hard-wired into it.
+CFD_HLLC_HOST_DEVICE inline ReconstructedFaceState reconstructFirstOrderBoundary(
+    const PrimitiveState& interior, const PrimitiveState& exterior) {
+  ReconstructedFaceState s{};
+  s.left = interior;
+  s.right = exterior;
+  return s;
+}
+
+// ---------------------------------------------------------------------------------------------
+// HOST-ONLY entry points, defined in HllcFlux.cpp
+// ---------------------------------------------------------------------------------------------
+//
+// These are declared here but deliberately do NOT drag TotalEnergy.hpp into this header, so the
+// .cu can include this file without pulling in host-only thermodynamics. TotalEnergyState is
+// forward-declared instead.
+class TotalEnergyState;
+
+// THE ONLY way a PrimitiveState acquires its pressure, sound speed and rhoE. Pressure comes from
+// P17.2's IdealGasEOS, the sound speed from ThermodynamicProperties::speedOfSound, and rhoE from
+// P17.5's TotalEnergyState::conservedTotalEnergy. There is no second thermodynamic path.
+// Throws InvalidArgumentError via those models for an inadmissible density, temperature or
+// velocity.
+[[nodiscard]] PrimitiveState makePrimitiveState(const TotalEnergyState& thermodynamics,
+                                                Real density, Vector3 velocity, Real temperature);
+
+// conserved -> primitive, through P17.5's recover(). Nothing is clamped and no energy floor is
+// applied; an inadmissible conserved state is refused, which is P17.5's policy inherited verbatim.
+[[nodiscard]] PrimitiveState makePrimitiveStateFromConserved(const TotalEnergyState& thermodynamics,
+                                                             const ConservedState& q);
+
+// hllcFlux() with the header's StateValidity translated into cfd::InvalidArgumentError, and with
+// the star-state admissibility proof actually checked. Use this from host code; use hllcFlux()
+// where a return code is wanted instead of an exception, and inside device kernels.
+[[nodiscard]] HllcResult hllcFluxChecked(
+    const PrimitiveState& left, const PrimitiveState& right, const Vector3& unitNormal, Real gamma,
+    WaveSpeedEstimator estimator = WaveSpeedEstimator::ToroPressureBased);
+
+// A human-readable reason for a StateValidity code. Used in error messages and in test diagnostics.
+[[nodiscard]] const char* describeValidity(StateValidity v);
+
+}  // namespace cfd::compressible

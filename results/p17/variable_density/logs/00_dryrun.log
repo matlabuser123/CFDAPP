@@ -1,0 +1,62 @@
+P17.1 dry-run -- the UNCHANGED tree
+date: 2026-09-26T05:52:18Z
+HEAD: 3bd32f918656
+P17_CODE_FINGERPRINT (P17.0 baseline): 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+
+### the validators as they stand -- density VALUES are unchecked ###
+  validateFaceDensityInputs checks:
+    22:  if (density.size() != mesh.numberOfCells()) {
+    26:  if (pressureGauge.size() != mesh.numberOfCells()) {
+    30:  if (temperature.size() != mesh.numberOfCells()) {
+    85:  if (velocity.size() != mesh.numberOfCells()) {
+
+  density-VALUE checks per compressible module (0 everywhere is the baseline):
+    CompressibleMassFlux.cpp               0
+    CompressibleRelaxedMomentum.cpp        0
+    CompressiblePressureCorrection.cpp     0
+    CompressibleMomentum.cpp               0
+    CompressibleContinuity.cpp             0
+
+### existing negative tests for a bad density VALUE (0 = the gap) ###
+    non-positive/non-finite DENSITY tests: 0
+    size-mismatch tests (present):         4
+
+### measured behaviour ###
+  P17.1 dry-run -- variable density on the UNCHANGED tree
+  
+  mesh: createCartesian2D(2,1,2.0,1.0)  cells=2 faces=7
+  
+  ### A. EOS reference values, %.17g (for bit-for-bit comparison later)
+    R=287.05000000000001  cp=1005  cv=717.95000000000005  gamma=1.3998189288947698
+    reference              p=172230               T=300                  rho=2
+    2p, same T             p=344460               T=300                  rho=4
+    same p, 2T             p=172230               T=600                  rho=1
+    sea-level standard     p=101325               T=288.14999999999998   rho=1.2250122659906946
+  
+  ### B. p/T coupling signs -- dRho/dp > 0 and dRho/dT < 0 must hold
+    dRho/dp = 1.161237879579632e-05   sign POSITIVE (expected)
+    dRho/dT = -0.0066666666666666671   sign NEGATIVE (expected)
+    rho(2p,T)/rho(p,T) = 2   (expect exactly 2)
+    rho(p,2T)/rho(p,T) = 0.5   (expect exactly 0.5)
+  
+  ### C. spatially varying density -- the internal face must see the MEAN
+    rho = {1.0, 3.0} nonuniform        RETURNED   internal rho_f=2                        mdot_f=2                        non-positive/non-finite face rho: 0   non-finite mdot: 0
+    expected internal rho_f = 2 (arithmetic mean on a uniform mesh)
+  
+  ### D. valid uniform density -- the reference the change must not move
+    rho = 2.0 uniform (VALID)          RETURNED   internal rho_f=2                        mdot_f=2                        non-positive/non-finite face rho: 0   non-finite mdot: 0
+  
+  ### E. THE GAP: invalid CELL density values. Each SHOULD be rejected.
+  ###    'RETURNED' below means the gap is REAL and the gate is non-vacuous.
+    rho[0] = -2.0  (negative)          RETURNED   internal rho_f=0                        mdot_f=0                        non-positive/non-finite face rho: 1   non-finite mdot: 0
+    rho[0] =  0.0  (zero)              RETURNED   internal rho_f=1                        mdot_f=1                        non-positive/non-finite face rho: 0   non-finite mdot: 0
+    rho[0] =  NaN                      RETURNED   internal rho_f=nan                      mdot_f=nan                      non-positive/non-finite face rho: 1   non-finite mdot: 1
+    rho[0] = +Inf                      RETURNED   internal rho_f=inf                      mdot_f=inf                      non-positive/non-finite face rho: 1   non-finite mdot: 1
+    rho[0] = -Inf                      RETURNED   internal rho_f=-inf                     mdot_f=-inf                     non-positive/non-finite face rho: 1   non-finite mdot: 1
+  
+  ### F. constant-density limit: compressible uniform rho vs incompressible
+    faces where compressible != incompressible: 0  (expect 0, BITWISE)
+  
+  done
+
+done: 2026-09-26T05:52:21Z

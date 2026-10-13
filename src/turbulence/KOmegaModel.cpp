@@ -154,6 +154,10 @@ void KOmegaModel::correct(const Mesh& mesh, const VectorField& velocity,
   // they were on entry (see this class's own header comment). Not
   // `const`: both are moved from below once the whole update has
   // succeeded.
+  // P14 MIGRATION. Assembly only: relaxation, fixRow, the solve, the floor
+  // and the imposed-value re-assertion all stay in
+  // solveRelaxedScalarTransport. Bitwise equivalence of the two routes is
+  // gated by test_p14_migration_equivalence.cpp.
   ScalarField newK = solveRelaxedScalarTransport(mesh, k_, massFlux, gammaK, kBoundaries_, suK, spK,
                                                  config_.kRelaxation, config_.kFloor,
                                                  config_.kSolver, config_.nonOrthogonal);

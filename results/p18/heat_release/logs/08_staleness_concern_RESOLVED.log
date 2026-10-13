@@ -1,0 +1,26 @@
+=== P18.6 -- RESOLVING the open regression-integrity concern ===
+date: 2026-10-01T09:28:07Z
+
+THE CONCERN (logs/08_staleness_concern_OPEN.log): include/cfd/species/HeatRelease.hpp was
+edited AFTER release_cuda had built and passed its staleness check. The edit was a COMMENT
+BLOCK only, but the source hash changed, so the claim that the counts still stand needs
+PROVING rather than asserting.
+
+THE TEST: rebuild build/qual-final and compare libcfdcore.a's sha256 against the value the
+regression recorded at its start. The host toolchain is bit-reproducible (established in
+earlier phases), so an IDENTICAL hash proves the edit reached no object code.
+
+--- hash recorded by the regression at release_cuda build time ---
+  a82a7c3c913fafbc1d6f5f90d656fe3e08ee1fb29fa08edd14d16e1319c1aba5
+
+--- rebuilding build/qual-final against the CURRENT source ---
+  build exit: 0
+  translation units recompiled: 2
+  hash now : a82a7c3c913fafbc1d6f5f90d656fe3e08ee1fb29fa08edd14d16e1319c1aba5
+
+  IDENTICAL. The comment-only edit changed no object code, so the release_cuda counts
+  (3009 selected / 2958 Passed / 0 FAILED) stand for the tree's final source.
+  RESOLVED -- no re-run required.
+
+--- the sixth DriverSeegmiller.MeshSequence measurement ---
+Test #3000: DriverSeegmiller.MeshSequence     Passed  7168.06 sec

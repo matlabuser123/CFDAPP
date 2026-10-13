@@ -1,0 +1,105 @@
+P17.8 REPOSITORY INTEGRITY
+date: 2026-09-27T23:12:17Z
+
+### 1. nothing was committed, pushed, reset or stashed ###
+  HEAD                      : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD at the P17.8 freeze  : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD unchanged            : YES
+  branch                    : main
+  stash entries             : 0   (expected 0)
+
+### 2. the frozen documents are unchanged ###
+  a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e  acceptance_gate.md
+  b4afbd8f2bc97244aa99809abd8173e5faa3a4b2336abe74fa6c74c505c17e56  architecture.md
+  bd3e7212a3fa1594ccd61b3e9d3286a5d1d25efc2a21a9258303a9f6b65e8073  audit.md
+  6158471f2f46280b4766183870e8707d25b9b638e30ecd9020ab077e2217391d  tools/audit.sh
+  expected, from logs/02_freeze.log:
+    a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e  acceptance_gate.md
+    b4afbd8f2bc97244aa99809abd8173e5faa3a4b2336abe74fa6c74c505c17e56  architecture.md
+    bd3e7212a3fa1594ccd61b3e9d3286a5d1d25efc2a21a9258303a9f6b65e8073  audit.md
+    6158471f2f46280b4766183870e8707d25b9b638e30ecd9020ab077e2217391d  tools/audit.sh
+
+### 3. the P17.8 delta, enumerated ###
+  PRODUCTION SOURCES ADDED (2):
+    include/cfd/compressible/DensityBasedSolver.hpp            e5efb0ad67fef38510e30b0bed11bb50f40d71024f3e98b40783e3936c807bdc
+    src/compressible/DensityBasedSolver.cpp                    53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  TEST SOURCES ADDED (2):
+    tests/unit/compressible/test_density_based_solver.cpp      ac32d34439c75848bfaa6d98cf1ed0cb27515ce2d73b89421b426856a40d471f
+    tests/integration/compressible/test_density_based_canonical.cpp 3dce716af20e886b072784e0db349df3507d2f3688c1aa8b797f432bcd213743
+  BUILD FILES EDITED (3) -- registration only, no target removed.
+  The git diff --stat in section 6 is against a 2026-09-21 HEAD and therefore includes
+  EARLIER PHASES' uncommitted additions. P17.8's OWN lines in those three files are:
+    src/CMakeLists.txt                                1 line  (compressible/DensityBasedSolver.cpp)
+    tests/unit/compressible/CMakeLists.txt            1 line  (test_density_based_solver.cpp)
+    tests/integration/compressible/CMakeLists.txt     4 lines (the new test target)
+    src/CMakeLists.txt                                         d469627724cca4346afce2b9547e91ce188294a2d6ad940d94a0693f0458ea5a
+    tests/unit/compressible/CMakeLists.txt                     00174b28d45693db10ccdc4c33eaabc8017c24394e56b4c5d662bb9abc32255c
+    tests/integration/compressible/CMakeLists.txt              b3b4ed6034b0c3fee0b672cf826536893753e827a269781b3040b77a2af6f8f6
+  P17.7 FILES EDITED BY THE STAR-ENERGY AMENDMENT (3) -- see AMENDMENT_A6_upstream_exception.md:
+    include/cfd/compressible/HllcFlux.hpp                      fc4a8db5f98568923ffe320b6adb3b6574f855cf538bb238ba9385bd046b61f0
+    tests/unit/compressible/hllc_reference_data.hpp            1492b1dbfedc9eb11206b8952dac64b7375bdb121fb4cd2e3de296accbbe334c
+    results/p17/hllc/tools/exact_riemann.py                    a50242580f620c42280df042a3bd4802739c87d6dfcaa163b70236a54609d95c
+  CUDA FILES: 0 edited. cuda/kernels/DeviceHllcFluxKernel.cu contains 0 formulas and was not
+              touched; it compiles the shared CFD_HLLC_HOST_DEVICE header.
+    cuda/kernels/DeviceHllcFluxKernel.cu                       f878245aef500747227baffc78fc258d0cb9516bc9712ce4504506c71191f9bf
+  CASE / CONFIG FILES: 0. No case-format key was added -- the solver is library-level.
+
+### 4. the §46 hazards, each checked by name ###
+-- threshold weakening: no numeric literal in an existing test was relaxed
+   P17.8 edits exactly ONE pre-existing assertion, and it is a STRENGTHENING:
+   U1_UpdateIsExactlyQMinusDtOverVTimesR moved from a unit-volume mesh (where dt/V == dt, so
+   the test could not fail) to a graded mesh, and GAINED a 1/V ratio assertion. No threshold
+   anywhere was made looser. Every bound P17.8 introduces is derived in acceptance_gate.md.
+   the frozen gate's own hash, unmoved: a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e
+-- removed tests: none
+   density-based unit TESTs   : 32
+   canonical integration TESTs: 4
+   P17.7 HLLC TESTs, untouched: 35
+   test targets removed from any CMakeLists: 0   (must be 0)
+-- changed SIMPLE defaults: none
+   density-based references in the dispatch or the case format: 0   (must be 0)
+-- duplicated EOS logic: none
+   EOS / gamma arithmetic in the solver: 0   (must be 0; sanity: IdealGasEOS.cpp has 8)
+-- duplicated HLLC logic: none
+   hllcFlux call sites in the solver: 1   (must be 1 -- one evaluation per face)
+   Riemann-solver formulas restated in the solver: 0 (sStar/qL/qR/shockFactor occurrences: 0)
+-- hidden fallback behaviour: none
+   fallback flux occurrences : 0   (P17.7 proved no epsilon guard is needed)
+   clamp / floor idioms      : 0   (must be 0)
+   silent catch-and-continue : 0   (must be 0)
+-- unexpected generated files
+   control scratch files left : 1
+   pre-format references kept : 3   (deliberate -- they ARE the proof)
+   (DensityBasedSolver.cpp.pristine is KEPT deliberately: it is the pre-format reference that
+    logs/20_format_verified.log's proof is computed against.)
+   stray binaries under results/ : 0   (must be 0)
+
+### 5. no planted control survived ###
+  marker "N1 dropped"             occurrences: 0
+  marker "// N2"                  occurrences: 0
+  marker "// N3"                  occurrences: 0
+  marker "// N4"                  occurrences: 0
+  marker "N5 re-capture"          occurrences: 0
+  marker "G1 NON-VACUITY PLANT"   occurrences: 0
+  marker "// N7"                  occurrences: 0
+  SANITY -- the marker search must be able to find something:
+    a synthetic line matches: 1   (must be 1)
+  AUTHORITATIVE, beyond the greps -- the SHA-256 of both planted files:
+    src/compressible/DensityBasedSolver.cpp        53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+    src/pressure_velocity/SIMPLE.cpp               34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1
+    SIMPLE.cpp must equal its freeze value 34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1
+
+### 6. git status / diff --stat / diff --check ###
+  tracked files modified in total      : 129
+  untracked paths in total             : 126
+  (both dominated by ~286 pre-existing uncommitted files from earlier phases against a
+   2026-09-21 HEAD; section 3 above is the P17.8 delta.)
+  git diff --stat, P17.8's edited TRACKED files only:
+     src/CMakeLists.txt                            | 45 +++++++++++++++++++++++++++
+     tests/integration/compressible/CMakeLists.txt | 37 ++++++++++++++++++++++
+     tests/unit/compressible/CMakeLists.txt        | 11 +++++++
+     3 files changed, 93 insertions(+)
+  git diff --check (whitespace errors):
+    CLEAN
+
+INTEGRITY FAILURES: 0   (must be 0)

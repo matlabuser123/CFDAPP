@@ -1,0 +1,21 @@
+TD-027 -- STAGE D CAP-20 CONTROL
+started 2026-10-06T02:26:13+10:00
+control cap 1800s (NOT the repository's 7200 s -- see the header note)
+at cap 5 this case measured: PASS, 51 s (logs/06)
+
+=== STEP 1  reconstruct the pre-fix header and PROVE it against logs/00_freeze.log
+RECONSTRUCTED the pre-fix header.
+  sha256   49080be42bd552def11de5eeda5facd7434afb0fe207755d17ca2bfcf681f9fc
+  frozen   c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf
+  *** MISMATCH ***
+
+*** REFUSING: restoring the post-fix header. A control built from a tree that does
+    not reproduce the frozen hash proves nothing about the frozen tree.
+*** ABORT: reconstruction failed its hash proof.
+
+=== RESTORING the post-fix tree (runs even on failure)
+RESTORED the post-fix header.
+  sha256   882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1
+  expected 882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1
+  matches logs/03
+rebuilt; CFDSpeciesTests 489180ece9c683b8...

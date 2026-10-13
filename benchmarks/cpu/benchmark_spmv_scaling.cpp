@@ -49,7 +49,7 @@ using cfd::physics::VelocityComponent;
 int main() {
 #ifndef _OPENMP
   std::cout << "cfd_benchmark_spmv_scaling: built without OpenMP "
-              "(-DCFDAPP_ENABLE_OPENMP=OFF) -- nothing to scale, exiting.\n";
+               "(-DCFDAPP_ENABLE_OPENMP=OFF) -- nothing to scale, exiting.\n";
   return 0;
 #else
   // A genuinely large representative CSR matrix: one U-momentum

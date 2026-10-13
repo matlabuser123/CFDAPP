@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "cfd/algebra/LinearSolver.hpp"
 #include "cfd/algebra/LinearSystem.hpp"
 #include "cfd/algebra/SparseMatrix.hpp"
@@ -23,10 +25,6 @@ namespace cfd::turbulence {
 // assembly layer too -- keeping it reusable for a future k-omega/SST
 // model exactly the way MomentumEquation's contribution assemblers are
 // reused by both SIMPLE and PISO).
-struct ScalarTransportAssembly {
-  cfd::algebra::LinearSystem system;
-  cfd::algebra::Vector diagonal;
-};
 
 // Gamma = mu + mu_t/sigma -- per cell, NOT (mu+mu_t)/sigma (P2-TURB-004
 // sections 13-14: only the eddy part is divided by the Prandtl-like
@@ -44,89 +42,64 @@ struct ScalarTransportAssembly {
 [[nodiscard]] cfd::fields::ScalarField computeEffectiveDiffusivity(
     Real molecularViscosity, const cfd::fields::ScalarField& turbulentViscosity, Real sigma);
 
-// Gamma*Af/d diffusion contribution with a *per-cell* diffusivity field
-// (Gamma_k = mu + mu_t/sigma_k or Gamma_epsilon = mu + mu_t/sigma_epsilon
-// -- computed by the caller, not here). Same structure as
-// physics::MomentumEquation's P2-TURB-003 field-based
-// assembleDiffusionContribution overload and
-// thermal::assembleThermalDiffusionContribution: internal faces face-
-// interpolate `diffusivity` via
-// discretization::interpolateInternalFace's established distance-
-// weighted convention; boundary faces use the owner cell's own value (no
-// neighbor to interpolate against). Rejects a mismatched-size, non-
-// finite, or non-positive diffusivity field at the point it enters
-// assembly, same reasoning as the P2-TURB-003 momentum overload.
+// P16-GPU-TURB PROMOTION. The k equation's Patankar source pair.
 //
-// Throws InvalidArgumentError if phi.size()/diffusivity.size() !=
-// mesh.numberOfCells(), or if any diffusivity entry is not finite or not
-// > 0.
+//   Su[i] = production[i]
+//   Sp[i] = -density * epsilon[i] / max(k[i], kFloor)
 //
-// P12-NUM-003: `nonOrthogonal` (default disabled -- exactly the
-// pre-existing operator) applies the shared non-orthogonal correction
-// (cfd::discretization::NonOrthogonalDiffusion.hpp, the one
-// implementation): every internal face, and every boundary face whose
-// condition prescribes the value (FixedValue, WallOmega); zero-gradient
-// faces never. grad(phi) from cfd::discretization::gradient with
-// nonOrthogonal.gradientScheme, lagged at the phi passed in. This is the
-// diffusion operator of k, epsilon and omega in every turbulence model
-// (KEpsilonModel/KOmegaModel/SSTModel all reach it through
-// solveRelaxedScalarTransport), so the correction is wired once here.
-void assembleScalarDiffusionContribution(
-    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& diffusivity,
-    const cfd::fields::ScalarField& phi, const cfd::boundary::BoundaryConditionSet& boundaries,
-    cfd::algebra::SparseMatrixBuilder& builder, cfd::algebra::Vector& rhs,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
+// WHY THIS MOVED. These two lines were inline in KEpsilonModel::correct, so the
+// only way to check a device port against them was to re-type them into a test
+// -- and a re-typed copy agrees with a wrong port for the same reason it agrees
+// with a right one. Moved verbatim so the differential compares against the
+// expression production actually evaluates. Same reasoning, and the same shape,
+// as computeTurbulentViscosityField's promotion.
+//
+// `production` is taken AS GIVEN. When wall functions are active the caller has
+// already replaced the wall cells' entries with the equilibrium expression;
+// that replacement is the wall treatment's job, not this function's.
+//
+// kFloor guards a DENOMINATOR, nothing else. Sp*k_new -> -rho*epsilon_old at
+// self-consistency (P2-TURB-004 section 12), and the floor only stops that
+// ratio blowing up in a cell whose k has collapsed. It is not a limiter on Sp
+// and not a positivity clip.
+struct KSourceTerms {
+  cfd::fields::ScalarField Su;
+  cfd::fields::ScalarField Sp;
+};
 
-// Patankar-style implicit linearized source S = Su + Sp*phi, added into
-// an *already assembled* (diffusion + convection present, not yet
-// finalized) equation (TODO.md P2-TURB-004 section 12):
-//   a_P -= Sp_P * V_P   (added to the diagonal via builder.add; Sp <= 0
-//                        for a physically stiff destruction term keeps
-//                        this a *positive* addition, i.e. stabilizing)
-//   b_P += Su_P * V_P
-// Su/Sp are per-cell (already volume-unintegrated source densities --
-// this function multiplies by cell.volume() itself, once, the same
-// convention as assembleThermalSourceContribution). No sign/positivity
-// requirement is enforced on Sp here (the caller -- KEpsilonModel -- is
-// responsible for supplying a physically stiff, non-positive Sp for the
-// destruction terms this exists to stabilize; a badly-behaved Sp is
-// still caught downstream by this equation's own allFinite() check, same
-// as any other assembled coefficient). Throws InvalidArgumentError if
-// Su.size()/Sp.size() != mesh.numberOfCells() or either contains a
-// non-finite value.
-void applyImplicitScalarSource(const cfd::mesh::Mesh& mesh,
-                               cfd::algebra::SparseMatrixBuilder& builder,
-                               cfd::algebra::Vector& rhs, const cfd::fields::ScalarField& Su,
-                               const cfd::fields::ScalarField& Sp);
+[[nodiscard]] KSourceTerms computeKSourceTerms(Real density, const cfd::fields::ScalarField& k,
+                                               const cfd::fields::ScalarField& epsilon,
+                                               const cfd::fields::ScalarField& production,
+                                               Real kFloor);
 
-// Combines diffusion (above) + convection + the implicit source (above)
-// into one complete scalar transport system:
-//   div(massFlux * phi) - div(diffusivity * grad(phi)) = Su + Sp*phi
-// Convection reuses thermal::assembleThermalConvectionContribution with
-// specificHeat = 1.0 -- exact, not approximate: that function computes
-// `effectiveFlux = specificHeat * massFlux`, and specificHeat=1.0 leaves
-// massFlux bit-for-bit unchanged (x*1.0 == x in IEEE754), so this is
-// genuinely "the transported quantity is bare phi, not cp*phi", not a
-// coincidental reuse. Deliberately not reimplemented here: this project's
-// EnergyEquation.cpp already established and validated exactly this
-// upwind-at-matrix-assembly convection scheme (distinct from
-// discretization::convection's own ghost-value evaluate-style operator,
-// which uses a different boundary treatment -- see Convection.hpp -- and
-// is not what MomentumEquation/EnergyEquation actually solve with), and
-// this task's own instruction is "do not write a second scalar-equation
-// framework if EnergyEquation already provides suitable reusable
-// patterns."
+// P16-GPU-TURB PROMOTION. The epsilon equation's Patankar source pair.
 //
-// Throws InvalidArgumentError on any size mismatch (phi/diffusivity/Su/
-// Sp vs. mesh cell count, massFlux vs. mesh face count) or a non-finite/
-// non-positive diffusivity entry. Throws NumericalError if the final
-// assembled system is non-finite.
-[[nodiscard]] ScalarTransportAssembly assembleScalarTransportEquation(
-    const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phi,
-    const cfd::fields::SurfaceField& massFlux, const cfd::fields::ScalarField& diffusivity,
-    const cfd::boundary::BoundaryConditionSet& boundaries, const cfd::fields::ScalarField& Su,
-    const cfd::fields::ScalarField& Sp,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
+//   epsOverK = epsilon[i] / max(k[i], kFloor)
+//   Su[i]    = c1Epsilon * epsOverK * production[i]
+//   Sp[i]    = -c2Epsilon * density * epsOverK
+//
+// Moved verbatim from KEpsilonModel::correct for the same reason the k pair
+// was: a device port compared against a re-typed copy of these lines proves
+// nothing about the formula that ships.
+//
+// `epsOverK` IS COMPUTED ONCE and reused by both terms. That is not a
+// micro-optimisation to preserve out of politeness -- recomputing
+// `epsilon[i]/kSafe` for Sp gives the same double here, but writing Su as
+// `c1Epsilon * epsilon[i] * production[i] / kSafe` does NOT: it reassociates
+// the division past two multiplications.
+//
+// Sp*epsilon_new -> -c2Epsilon*rho*epsilon_old^2/k_old at self-consistency
+// (P2-TURB-004 sections 13-14), which is the destruction term. kFloor guards
+// that denominator and nothing else.
+struct EpsilonSourceTerms {
+  cfd::fields::ScalarField Su;
+  cfd::fields::ScalarField Sp;
+};
+
+[[nodiscard]] EpsilonSourceTerms computeEpsilonSourceTerms(
+    Real density, Real c1Epsilon, Real c2Epsilon, const cfd::fields::ScalarField& k,
+    const cfd::fields::ScalarField& epsilon, const cfd::fields::ScalarField& production,
+    Real kFloor);
 
 // One relaxed scalar-transport solve: assemble (diffusion + convection +
 // implicit source, the three pieces above), apply Patankar implicit
@@ -152,12 +125,28 @@ void applyImplicitScalarSource(const cfd::mesh::Mesh& mesh,
 // the solution is non-finite -- the caller (KEpsilonModel::correct(),
 // KOmegaModel::correct()) lets this propagate to its own caller
 // (SIMPLE/PISO), per those classes' own header comments.
+// P16: one cell whose transported value is IMPOSED rather than solved.
+//
+// A wall function fixes epsilon in the wall-adjacent cell because the epsilon
+// transport equation is not valid in a cell that spans the log layer. The row
+// is replaced by `phi_cell = value` (SparseMatrixBuilder::fixRow), which is
+// exact and well-conditioned -- unlike a large-coefficient Patankar source,
+// which only approaches the value and needs an arbitrary magnitude.
+struct ImposedCell {
+  Index cell{};
+  Real value{};
+};
+
 [[nodiscard]] cfd::fields::ScalarField solveRelaxedScalarTransport(
     const cfd::mesh::Mesh& mesh, const cfd::fields::ScalarField& phi,
     const cfd::fields::SurfaceField& massFlux, const cfd::fields::ScalarField& diffusivity,
     const cfd::boundary::BoundaryConditionSet& boundaries, const cfd::fields::ScalarField& Su,
     const cfd::fields::ScalarField& Sp, Real alpha, Real floorValue,
     const cfd::algebra::LinearSolverSettings& solverSettings,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {});
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal = {},
+    // Empty (the default) leaves the assembled system byte-for-byte what it was
+    // before P16, which is what keeps every existing turbulence result
+    // unchanged when no wall treatment is active.
+    const std::vector<ImposedCell>& imposedCells = {});
 
 }  // namespace cfd::turbulence

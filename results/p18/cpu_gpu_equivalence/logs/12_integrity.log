@@ -1,0 +1,85 @@
+P18.8 EVIDENCE INTEGRITY
+date (WSL): 2026-10-02T11:25:49Z
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+--- 1. frozen documents, recomputed against their recorded values ---
+  OK    results/p18/gates/P18_GATES.md  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  OK    results/p18/cpu_gpu_equivalence/acceptance_gate.md  3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03
+  OK    results/p18/cpu_gpu_equivalence/audit.md  d98c57d87e40658a38f04162c03b48d992a3c704077e81532b4d6a4e5ecba9e9
+  OK    results/p18/cpu_gpu_equivalence/libm_divergence.md  3d6f83ff0cc4b9d71a6808271ccf2e71cc3e79718d0149229dfd6e8ff2d4fae9
+  OK    results/p18/cpu_gpu_equivalence/acceptance_gate_A2.md  f0973e34068930d119aed6a485646e05e3947945ec898c8d1346181f454d11fe
+  OK    results/p18/cpu_gpu_equivalence/regression_prediction.md  ab941cf5f7cc08766ccd1c96a68e0618a90b712ee21364455cbf59b09dc1dc69
+  OK    results/p18/heat_release/energy_accounting.md  20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe
+
+--- 2. the evidence set required by the authorization (§63) ---
+  OK    present: results/p18/cpu_gpu_equivalence/kernel_inventory.md
+  OK    present: results/p18/cpu_gpu_equivalence/mixture_properties.md
+  OK    present: results/p18/cpu_gpu_equivalence/arrhenius.md
+  OK    present: results/p18/cpu_gpu_equivalence/reaction_sources.md
+  OK    present: results/p18/cpu_gpu_equivalence/heat_release.md
+  OK    present: results/p18/cpu_gpu_equivalence/energy.md
+  OK    present: results/p18/cpu_gpu_equivalence/batch_reactor.md
+  OK    present: results/p18/cpu_gpu_equivalence/conservation.md
+  OK    present: results/p18/cpu_gpu_equivalence/invalid_states.md
+  OK    present: results/p18/cpu_gpu_equivalence/determinism.md
+  OK    present: results/p18/cpu_gpu_equivalence/cuda_diagnostics.md
+  OK    present: results/p18/cpu_gpu_equivalence/transfer_residency.md
+  OK    present: results/p18/cpu_gpu_equivalence/negative_controls.md
+  OK    present: results/p18/cpu_gpu_equivalence/regression.md
+  OK    present: results/p18/cpu_gpu_equivalence/coverage_map.md
+  OK    present: results/p18/cpu_gpu_equivalence/summary.md
+
+--- 3. the preserved failures must still be present and non-empty ---
+  OK    preserved: logs/02_first_failure_PRESERVED.log (37 lines)
+  OK    preserved: logs/03_second_failure_PRESERVED.log (19865 lines)
+  OK    assertion failures in 03_second_failure_PRESERVED.log = 2478
+
+--- 4. --use_fast_math must not appear anywhere in the build (authorization §6) ---
+  OK    use_fast_math occurrences = 0
+
+--- 5. the two --fmad flags, read from NINJA's own command lines ---
+  OK    DeviceSpeciesKernel.cu flag = fmad=false
+  OK    DeviceSpeciesFmadControl.cu flag = fmad=true
+
+--- 6. the CPU reference is byte-identical to P18.8's recorded baseline ---
+  OK    include/cfd/species/MassFractionState.hpp  34a70761f2debb6da62bc97e5a0905997c6fdb7df8d736506f1856e8472b0159
+  OK    include/cfd/species/SpeciesTransport.hpp  850f5a5e03a5ea701988d2cb260230a46e9ac30ae8d0392c2fd0c27611852a95
+  OK    include/cfd/species/MixtureThermodynamics.hpp  58d9cf18b8b298664be50b6d9d75b132db1fa62e88b054a86d932361194ca540
+  OK    include/cfd/species/ReactionMechanism.hpp  0e0b8829ab4a14389c145392055921c8d4bb79c3eafbc48dbb450c27db46a5d2
+  OK    include/cfd/species/ArrheniusKinetics.hpp  44d6561f14bf23c1d81a4013cb641e281c65464da0c880bf39db517ffc7e5e58
+  OK    include/cfd/species/HeatRelease.hpp  3b8efc2d4778f106cff7f4fcb653e77ced57130b9a5d3029ccc499b50590e65c
+  OK    src/species/MassFractionState.cpp  429321301b079cd80b26b8a2dcef4929fbf85ece08f28cbe7ff08179cffa1f4f
+  OK    src/species/SpeciesTransport.cpp  69cc3141ea92d286fbf5c55fc8e40bb3913a78edfe659503b9dd8f7572cbf508
+  OK    src/species/MixtureThermodynamics.cpp  313928eb1d175532da4da14036e045eff75bc58bb6092438d70b680c9e783f8f
+  OK    src/species/ReactionMechanism.cpp  0145fab31061a97ceb7eb72e752e7fe17057a97370e6d30365d7d649205de236
+  OK    src/species/ArrheniusKinetics.cpp  ba095f0e5ec785bf89f70834bf9359455bd3a901600372890ceceae6722af795
+  OK    src/species/HeatRelease.cpp  3adfd95b3438f7c59fd22f4fa23281680f17220936364ede2faa35150ac31e65
+
+--- 7. the fmad control must not be CALLED from production ---
+  OK    production files referencing the fmad control = 0
+  OK    other CUDA files referencing the fmad control = 0
+  OK    the only callers of the fmad control are under tests/: tests/unit/gpu/test_device_species_a2_dryrun.cpp 
+
+--- 8. claimed test counts must match the logs they come from ---
+  OK    08_A2_rerun_FRESH.log records 34 passing tests (>= 34: 17 link one + 17 link two)
+  OK    09_E13_cuda_diagnostics.log records E13: PASS
+
+--- 9. clang-format over every P18.8 source ---
+  OK    clang-format violations = 0
+
+--- 10. SELF-TEST: the fail path must actually fail ---
+    (this is here because a previous phase's integrity script printed PASS while
+     printing three failures, having set its flag inside a subshell)
+  injecting a wrong hash:
+  FAIL  /tmp/tmp.vUjAGlVBPd
+          expected 0000000000000000000000000000000000000000000000000000000000000000
+          actual   3dff7d61038895144c0eca9d06ac8d067919785a5ba2604db7aef154899a494d
+  injecting a missing file:
+  FAIL  MISSING: results/p18/cpu_gpu_equivalence/this_file_does_not_exist.md
+  injecting a count mismatch:
+  FAIL  a deliberately wrong count: expected 1, got 2
+  SELF-TEST OK: three injected corruptions all set FAIL in this shell.
+
+==============================================
+checks run: 50
+INTEGRITY: PASS

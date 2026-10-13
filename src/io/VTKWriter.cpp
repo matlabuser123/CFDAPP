@@ -167,6 +167,9 @@ void VTKWriter::writeSolution(const std::filesystem::path& path, const Mesh& mes
     out << "SCALARS " << name << " double 1\nLOOKUP_TABLE default\n";
     for (Index id = 0; id < n; ++id) out << field[id] << '\n';
   }
+  // P13-004: opening the file proved nothing about whether the bytes
+  // reached it. See DeterministicOstream.hpp.
+  detail::requireDeterministicOutputWritten(out, path);
 }
 
 namespace {
@@ -269,6 +272,9 @@ void VTKWriter::writeCellFields(const std::filesystem::path& path, const Mesh& m
       out << field[id].x << ' ' << field[id].y << ' ' << field[id].z << '\n';
     }
   }
+  // P13-004: opening the file proved nothing about whether the bytes
+  // reached it. See DeterministicOstream.hpp.
+  detail::requireDeterministicOutputWritten(out, path);
 }
 
 }  // namespace cfd::io

@@ -1,0 +1,52 @@
+=== tool ===
+NVIDIA (R) Compute Sanitizer
+Copyright (c) 2020-2025 NVIDIA Corporation
+Version 2025.2.1.0 (build 35969825) (public-release)
+binary: build/qual-final/tests/unit/gpu/CFDGpuTests
+
+=== memcheck  (filter: DensityBasedGpuEquivalence*) ===
+exit status: 0
+banner:      ========= COMPUTE-SANITIZER
+summary:     ========= ERROR SUMMARY: 0 errors 
+gtest:       [  PASSED  ] 15 tests. 
+our kernels named in the log: 0
+
+=== racecheck  (filter: DensityBasedGpuEquivalence.B2_B4*:DensityBasedGpuEquivalence.C3_D1_D2*) ===
+exit status: 0
+banner:      ========= COMPUTE-SANITIZER
+summary:     ========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings) 
+gtest:       [  PASSED  ] 2 tests. 
+our kernels named in the log: 0
+
+=== initcheck  (filter: DensityBasedGpuEquivalence.B2_B4*:DensityBasedGpuEquivalence.C3_D1_D2*) ===
+exit status: 0
+banner:      ========= COMPUTE-SANITIZER
+summary:     ========= ERROR SUMMARY: 0 errors 
+gtest:       [  PASSED  ] 2 tests. 
+our kernels named in the log: 0
+
+=== synccheck  (filter: DensityBasedGpuEquivalence*) ===
+exit status: 0
+banner:      ========= COMPUTE-SANITIZER
+summary:     ========= ERROR SUMMARY: 0 errors 
+gtest:       [  PASSED  ] 15 tests. 
+our kernels named in the log: 0
+
+############################################################################
+# THE CONTROLS. Everything above reports 0 errors. These prove that 0 means
+# 'nothing wrong' and not 'nothing instrumented'.
+############################################################################
+
+=== CONTROL: memcheck on DensityBasedGpuSanitizerControl.N1* ===
+exit status: 0
+summary:     ========= ERROR SUMMARY: 68 errors 
+log lines naming 'sanitizerOobKernel': 64
+CONTROL OK: memcheck reported the deliberate fault.
+
+=== CONTROL: racecheck on DensityBasedGpuSanitizerControl.N2* ===
+exit status: 0
+summary:     ========= RACECHECK SUMMARY: 1 hazard displayed (0 errors, 1 warning) 
+log lines naming 'sanitizerRaceKernel': 2
+CONTROL OK: racecheck reported the deliberate fault.
+
+=== done ===

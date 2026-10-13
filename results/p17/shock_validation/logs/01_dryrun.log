@@ -1,0 +1,66 @@
+====================================================================================================
+P17.9 GATE DRY-RUN -- the measurement apparatus, before the gate is frozen
+====================================================================================================
+exact positions at t = 0.2, x0 = 0.5:
+    rarefaction_head   0.26337211247237
+    rarefaction_tail   0.48596010218381
+    contact            0.68550398701451
+    shock              0.85041856284399
+
+nx = 200, dx = 0.005
+
+A. the detectors on the EXACT (sharp) profile -- must return the analytical positions
+  
+    rarefaction_head   err 0.001113 = 0.2225 dx  (limit 2 dx)      OK   
+    rarefaction_tail   err  0.00309 =  0.618 dx  (limit 4 dx)      OK   
+    contact            err 0.000504 = 0.1008 dx  (limit 2 dx)      OK   
+    shock              err 0.0004186 = 0.08371 dx  (limit 2 dx)    OK   
+    W2: the fan spans >= 3 cells                                   OK   measured 45 cells
+
+B. the detectors on a SMEARED profile -- can a CORRECT first-order result meet 2 dx?
+  smearing passes = 2
+  
+    rarefaction_head   err 0.0008073 = 0.1615 dx  (limit 2 dx)     OK   
+    rarefaction_tail   err 0.001587 = 0.3174 dx  (limit 4 dx)      OK   
+    contact            err 0.000504 = 0.1008 dx  (limit 2 dx)      OK   
+    shock              err 0.0004186 = 0.08371 dx  (limit 2 dx)    OK   
+  smearing passes = 5
+  
+    rarefaction_head   err 0.004091 = 0.8182 dx  (limit 2 dx)      OK   
+    rarefaction_tail   err 0.0003101 = 0.06202 dx  (limit 4 dx)    OK   
+    contact            err 0.000504 = 0.1008 dx  (limit 2 dx)      OK   
+    shock              err 0.0004186 = 0.08371 dx  (limit 2 dx)    OK   
+  smearing passes = 10
+  
+    rarefaction_head   err 0.007912 =  1.582 dx  (limit 2 dx)      OK   
+    rarefaction_tail   err 0.003241 = 0.6482 dx  (limit 4 dx)      OK   
+    contact            err 0.000504 = 0.1008 dx  (limit 2 dx)      OK   
+    shock              err 0.0004186 = 0.08371 dx  (limit 2 dx)    OK   
+
+C. CONTROL V3 -- the profile shifted by +3 dx. The position criteria MUST break.
+    contact            err 0.0145 = 2.899 dx  -> DETECTED (criterion breaks)
+    shock              err 0.01458 = 2.916 dx  -> DETECTED (criterion breaks)
+    V3: a 3 dx shift breaks the position criteria                  OK   2 of 2 waves
+
+D. CONTROL V4 -- a monotone ramp with NO jump. The shock detector must report NO SHOCK.
+  
+    shock detector reports NO SHOCK on a jumpless profile          OK   got None
+
+E. the plateau SAMPLING POLICY on the exact profile -- must recover the star states
+    rho_star_left    0.426279898 vs 0.426279898  rel 7.837e-51  (30 cells) OK   
+    rho_star_right   0.2656061184 vs 0.2656061184  rel 2.516e-51  (23 cells) OK   
+    p_star           0.3031376267 vs 0.3031376267  rel 2.204e-51  (30 cells) OK   
+    u_star           0.9275199351 vs 0.9275199351  rel 1.441e-51  (30 cells) OK   
+    pre-shock rho    0.125 vs 0.125  rel 0.0  (20 cells)           OK   
+
+F. window widths at the finest mesh -- the 5-cell exclusion must leave a usable window
+    nx=200  star-left  29.9 cells   star-right  23.0 cells   pre-shock  24.9 cells
+    nx=200 windows all >= 5 cells                                  OK   
+    nx=400  star-left  69.8 cells   star-right  56.0 cells   pre-shock  54.8 cells
+    nx=400 windows all >= 5 cells                                  OK   
+    nx=800  star-left 149.6 cells   star-right 121.9 cells   pre-shock 114.7 cells
+    nx=800 windows all >= 5 cells                                  OK   
+
+====================================================================================================
+DRY-RUN FAILURES: 0
+====================================================================================================

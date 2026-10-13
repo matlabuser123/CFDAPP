@@ -1,0 +1,46 @@
+=== ENVIRONMENT
+date  2026-10-09T22:35:28+10:00
+nproc 32  load 0.00 0.00 0.00 1/564 755
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATES: the tree and library must be the A3-verified post-fix pair
+  source  fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  library 852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8
+  OK: both match.
+
+=== the cap and ceiling this ladder depends on
+267:  Real maximumCellDiffusionNumber{5.0};
+359:  Index finalMarchSteps{200000};     // ceiling; the derived bound normally stops the march
+632:  Index finalMarchSteps{};     // steps the final steady march actually took
+  the finest level needs ~122 000 march steps, inside the 200 000 ceiling.
+
+13899c2ff786f625c55253009267390c25c389c49c4fea932b09ac6ae4a3344f  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD040_recentre_conservation/tools/dt_ladder_probe.cpp
+
+TD-040 §5b -- THE dt LADDER ON THE FIXED TREE. Which eigenvalue is correct?
+
+  in contention:  post-fix 4.955332   pre-fix 4.671937
+  TD-027 C2 gates against a Richardson limit of 4.67589, extrapolated PRE-fix.
+
+  500 cells (dx FIXED). The trial cap scales as 1/dt so the trials' physical
+  duration is held constant -- an unscaled cap would truncate the fine levels and
+  the ladder would measure the cap rather than the physics.
+
+ level             dt   trial cap     S_L cm/s   marchSteps     fuel bal     wall s
+     0   9.424300e-06       80000     4.955332        15283   6.3028e-03        936
+     1   4.712150e-06      160000     4.958687        30526   2.0261e-03       2187
+     2   2.356075e-06      320000     4.958687        61053   6.3963e-03       4442
+     3   1.178038e-06      640000     4.962045       121940   7.9020e-03       6763
+
+=== SUCCESSIVE DIFFERENCES AND OBSERVED ORDER
+
+               triplet      coarse diff        fine diff    order p
+             {0, 1, 2}    +3.355407e-03    +0.000000e+00      0.000   <- SIGN CHANGE: order undefined
+             {1, 2, 3}    +0.000000e+00    +3.357679e-03      0.000   <- SIGN CHANGE: order undefined
+
+=== IS THE FAMILY ASYMPTOTIC? This gates whether a limit may be claimed at all.
+
+  fewer than TWO order estimates -- the asymptotic range is NOT demonstrated.
+  CLAUDE.md §6 admits an observed order only on a demonstrably asymptotic family,
+  so NO Richardson limit is claimed below, whatever the numbers suggest.
+
+DONE 2026-10-10T02:34:22+10:00

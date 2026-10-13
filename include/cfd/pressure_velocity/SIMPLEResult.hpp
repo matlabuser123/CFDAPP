@@ -134,6 +134,14 @@ struct SIMPLEResult {
   // controlled comparison asserts BOTH so it can prove which one it varied.
   bool residentSimpleLoop{false};
 
+  // P13-001: whether this solve continued from a SIMPLEContinuation rather
+  // than starting fresh -- reported, not logged, for the same reason
+  // gpuDiscretization above is: the restart equivalence gate compares a
+  // continuous arm against a resumed one, and a comparison of two arms that
+  // both did the same thing passes for free. Asserting the DISPATCH is what
+  // makes that comparison non-vacuous.
+  bool resumedFromContinuation{false};
+
   Index momentumPredictorPasses{0};
   Index pressureCorrectionPasses{0};
 
@@ -151,6 +159,22 @@ struct SIMPLEResult {
   std::vector<Real> continuityHistory;
   // P12-MESH-006: one entry per completed iteration of a 3D solve; EMPTY in 2D.
   std::vector<Real> wResidualHistory;
+
+  // P13-001: the two remaining components of the OuterResidualSample the
+  // convergence monitor consumes. Both already existed as inputs to
+  // OuterIterationMonitor::record -- globalImbalance feeds the convergence
+  // distance and the absolute continuity gate, the turbulence residual feeds
+  // both when the active model reports one -- but only their FINAL values were
+  // kept. A restart has to replay the whole sample sequence to reconstruct the
+  // monitor's state, so the sequence has to be reported.
+  //
+  // globalMassImbalanceHistory has one entry per completed outer iteration,
+  // like every other history here. turbulenceResidualHistory has either zero
+  // entries (the active model reports no convergence residual -- laminar, and
+  // the mixture-viscosity adapter) or exactly `iterations` entries: whether a
+  // model reports one is a property of the model, not of the iteration.
+  std::vector<Real> globalMassImbalanceHistory;
+  std::vector<Real> turbulenceResidualHistory;
 
   // P12-NUM-004: normalized residual histories and references, the
   // relaxation factors used each iteration, linear-solver fallback events,

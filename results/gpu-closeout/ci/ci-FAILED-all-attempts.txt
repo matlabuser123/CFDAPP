@@ -1,0 +1,46 @@
+# CI run 35579942600 -- FAILED, preserved
+date       : 2026-09-21T08:51:38Z
+head_sha   : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+event      : push   branch: main   attempt: 1
+created    : 2026-09-21T08:49:49Z
+updated    : 2026-09-21T08:49:55Z   (SIX SECONDS for the whole run)
+conclusion : failure
+
+## every one of the 17 jobs failed in 1-3 seconds
+
+## classification: INFRASTRUCTURE, not this lineage
+#
+# Evidence for that classification, from the API:
+#   - runner_name is EMPTY on the failed jobs -- no runner was ever assigned
+#   - the jobs' 'steps' array is EMPTY -- not one step, not even actions/checkout, ran
+#   - job logs return HTTP 404 BlobNotFound -- no log was ever produced
+#   - the whole run, all 17 jobs, finished 6 seconds after it was created
+#   - repo Actions permissions: enabled=true, allowed_actions=all
+#
+# A source, test or formatting defect cannot produce this: those require a
+# runner to start, check out the code and run a step. Nothing ran.
+#
+# The previous run on 548401a (2026-09-18) took 100.6 minutes and succeeded.
+
+## attempt 2 (gh run rerun --failed, 08:51:42Z)
+   identical: 17/17 failed in 1-3 s, runner_name empty, steps 0, no logs
+
+## attempt 3 (gh run rerun --failed, after a 3-minute pause)
+   identical again: 17/17 failed
+
+## further diagnostics
+   repository          : matlabuser123/CFDAPP, PUBLIC, not archived, not disabled
+                         -> GitHub-hosted Actions minutes are free and unmetered for it,
+                            so an exhausted spending limit does not explain this
+   repo Actions perms  : enabled=true, allowed_actions=all
+   githubstatus.com    : All Systems Operational; Actions component operational
+   check-run output    : title None, summary empty, no annotations on any of the 17
+   workflow file       : .github/workflows/ci.yml is UNCHANGED by this lineage
+                         (the run built the correct 17-job graph, so the YAML parsed)
+
+## conclusion
+   Persistent, account- or repository-scoped, and not diagnosable through the
+   REST API. It is NOT caused by this lineage: no runner is ever assigned, so no
+   code, test, formatting or platform-specific defect in the pushed tree can be
+   reached. Resolving it needs the GitHub account's own Actions usage/billing
+   view, which this session cannot read (the billing API needs the 'user' scope).

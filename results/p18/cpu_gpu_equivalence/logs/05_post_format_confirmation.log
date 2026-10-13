@@ -1,0 +1,59 @@
+P18.8 -- confirmation run AFTER clang-format-18 -i on the five P18.8 files.
+date (WSL): 2026-10-02T02:41:01Z
+
+=== current hashes of the P18.8 sources ===
+NOTE: logs/01_freeze.log recorded these at FREEZE time. They have changed twice since:
+  (1) the setStatusOnce fix for the N11 failure (logs/02_first_failure_PRESERVED.log)
+  (2) speciesDeviceAvailable() + the clang-format pass recorded here.
+The freeze log is a record of that moment and is NOT edited.
+9e182e4d8e9568e1b8a5e01379fef328066934e365657987444abd1eb2595ae7  include/cfd/gpu/DeviceSpeciesThermochemistry.hpp
+e96f437415752e57bc4d8b8e03ce230b000483e946b4876ab94d43407e7f6180  include/cfd/gpu/DeviceSpeciesLaunch.hpp
+22af529ebed026f927e5e3657d1eeb9248a7b358458771ec488c055b98c43078  cuda/kernels/DeviceSpeciesKernel.cu
+1ddd7044219c98c2cf401e3cbc7380218975de5b218e62b849700d065b703a74  tests/unit/species/test_device_species_equivalence.cpp
+1dd3fc6bc24e85e3e293c95104aaa9f78beea6b0dccdf49091626aadffa295c9  tests/unit/gpu/test_device_species_gpu_equivalence.cpp
+
+=== rebuild, CUDA config ===
+[1/4] Building CUDA object cuda/CMakeFiles/cfdcuda.dir/kernels/DeviceSpeciesKernel.cu.o
+[2/4] Linking CXX static library cuda/libcfdcuda.a
+[3/4] Building CXX object tests/unit/gpu/CMakeFiles/CFDGpuTests.dir/test_device_species_gpu_equivalence.cpp.o
+[4/4] Linking CXX executable tests/unit/gpu/CFDGpuTests
+=== rebuild, CPU-only config ===
+[  0%] Built target gtest
+[  2%] Built target gtest_main
+[ 91%] Built target cfdcore
+[100%] Built target CFDSpeciesTests
+
+=== LINK ONE: host restatement vs production (CPU-only build) ===
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 9 test suites ran. (50 ms total)
+[  PASSED  ] 17 tests.
+
+=== LINK TWO: nvcc device vs nvcc host (CUDA build) ===
+[==========] Running 11 tests from 1 test suite.
+[       OK ] P188GpuEquivalence.MixturePropertiesAreBitwiseOnDevice (2225 ms)
+[       OK ] P188GpuEquivalence.EquationOfStateIsBitwiseOnDevice (0 ms)
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_CanHostAndDeviceTakeDifferentArrheniusBranches (0 ms)
+[  FAILED  ] P188GpuEquivalence.RateCoefficientsAndBranchesAreBitwiseOnDevice (8 ms)
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_WhichCallDivergesAndByHowManyUlp (1 ms)
+[  FAILED  ] P188GpuEquivalence.ReactionSourcesAndHeatReleaseAreBitwiseOnDevice (27 ms)
+[  FAILED  ] P188GpuEquivalence.TheCoupledStepIsBitwiseOnDeviceIncludingEveryIntermediate (6 ms)
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_HowTheDivergenceGrowsAlongATrajectory (23 ms)
+[       OK ] P188GpuEquivalence.RepeatsAndBlockSizesAreBitwise (11 ms)
+[       OK ] P188GpuEquivalence.E12_TheResidentLoopPerformsNoFullFieldTransfer (3 ms)
+[       OK ] P188GpuEquivalence.N12_AFullFieldTransferInTheResidentLoopIsDetected (0 ms)
+[==========] 11 tests from 1 test suite ran. (2309 ms total)
+[  PASSED  ] 8 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] P188GpuEquivalence.RateCoefficientsAndBranchesAreBitwiseOnDevice
+[  FAILED  ] P188GpuEquivalence.ReactionSourcesAndHeatReleaseAreBitwiseOnDevice
+[  FAILED  ] P188GpuEquivalence.TheCoupledStepIsBitwiseOnDeviceIncludingEveryIntermediate
+
+=== clang-format over the five P18.8 files ===
+violations: 0
+
+=== whitespace accounting (git diff --check WARNING count) ===
+  pre-phase baseline                                     259
+  after +14 CRLF lines in cuda/CMakeLists.txt            273
+  after +5  CRLF lines in tests/unit/gpu/CMakeLists.txt  278
+  These add to the PRE-EXISTING push blocker; they are not new in kind.

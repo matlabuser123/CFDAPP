@@ -1,0 +1,63 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T05:40:05+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/period_probe.cpp -o /tmp/td005_period /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- IS IT PERIODIC, AND WHAT IS THE PERIOD?
+
+  driftWindow 32 (the admissible mdot), 500 cells / 10 mm, anchor cell 175
+  known points: relaxT 10 -> +1.17 cells, 20 -> -163.08, 30 -> -162.24, 40 -> +1.21
+  TD-004 cross-check: its worst rejected crossing landed at 0.1969 mm = cell 9
+
+  relaxT  marchStp  frontCel  offset cell  front mm    fuel bal   S_c cm/s  delta mm  S_L cm/s   wall s
+      10      3968       176         1.17    3.5233   1.531e-02    4.90004    1.2289   4.86230      377
+      14      5556       178         2.76    3.5553   1.061e-02    4.88630    1.2238   4.86230      375
+      18      7143        12      -162.81    0.2439   6.751e-01    1.77831    0.4111   4.86230      467
+      22      8730       176         1.30    3.5260   1.045e-02    4.88498    1.2231   4.86230      491
+      26     10318       176         0.62    3.5125   1.093e-02    4.88500    1.2231   4.86230      511
+      30     11905        13      -162.24    0.2553   6.022e-01    1.79459    0.4188   4.86230      524
+      34     13493        12      -162.62    0.2476   6.510e-01    1.78364    0.4136   4.86230      608
+      38     15080       177         1.55    3.5310   1.036e-02    4.88500    1.2231   4.86230      645
+      42     16668       176         0.87    3.5175   1.069e-02    4.88500    1.2235   4.86230      614
+      46     18255        10      -164.96    0.2008   1.273e+00    1.78827    0.3808   4.86230      640
+
+  march steps 3968 -> 18255, strictly increasing: YES
+
+  OFFSET (cells) against relaxT:
+    +1 +3 -163 +1 +1 -162 -163 +2 +1 -165
+  sign changes in the offset: 5      peak |offset|: 165.0 cells
+  peak |offset| early half 162.8 cells   late half 165.0 cells
+  => AMPLITUDE SUSTAINED over this ladder: consistent with a LIMIT CYCLE, in
+     which case NO march length converges and 'march until steady' is unsound.
+     A longer ladder is needed to call it a limit cycle rather than a slow decay.
+
+  FUEL BALANCE against relaxT:
+    2e-02 1e-02 7e-01 1e-02 1e-02 6e-01 7e-01 1e-02 1e-02 1e+00
+
+HOW TO READ THIS
+  A smooth curve with regular sign changes confirms section H and gives the period.
+  An IRREGULAR, non-repeating pattern REFUTES section H: it would not be a simple
+  oscillation, and the phase-at-stop explanation for C3, TD-004's C2 and sweeps
+  A and C would collapse with it.
+
+probe exit: 0

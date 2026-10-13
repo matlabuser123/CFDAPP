@@ -1,0 +1,471 @@
+################################################################################
+# F0 -- FROZEN HASHES, recomputed at the start of this run
+################################################################################
+0749efbf1120db1fa6689a5b86be2e5045a20722413e6c2770e4605d5c7c319b  results/technical_debt/TD001_reacting_production/GATE.md
+53aee7afa7b38193fee1d045d43f35720d038fb8b0b6d7851809c0b9969f43b3  results/technical_debt/TD001_reacting_production/GATE_A1.md
+6b1d97e541b555b94524d9e95b44161646b95c13ebaeacab9da5d540f2da42f2  results/technical_debt/TD001_reacting_production/GATE_A2.md
+921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+
+production source hashes:
+f14aa151d743190777d242e101cef6b19fb7ed77005bb9c65ead090292d8bc9a  src/app/ProjectRunner.cpp
+599db1b5799043c913f4cb18ffc20f4eafeceb63a0d62f80aaaaba48c47fb3dc  include/cfd/app/ProjectRunner.hpp
+d827b3a5869362f619ee7583c56bc0d1afa2919684cee68e33b11f033ee6a6ee  src/io/CaseBuilder.cpp
+1b10e0b83684f9b3c5993d8d15d5eecd4ab4c73c3b4416bdf07fb720ee2a10b9  src/io/CaseReader.cpp
+64a966cf889d09297e9b4d1b37ba1e83f8ad162651ba615ac2be8aa0a8c4775e  src/io/case/PhysicsConfigParser.cpp
+943df50d8345f9961c63450b192b85ba5cdd6f1eb66f9363a26f6d07efc4c11d  src/io/case/BoundaryConfigParser.cpp
+db7ea463ba0ad6d2ed59b71ca8d4e549742ebbff8d046760ca7a801b54b2abe9  src/io/case/Parsers.hpp
+366299f6c2f533c24beea7b1275d68f2bcece72ad1a72113b75897dd91c37f6a  include/cfd/io/SimulationSetup.hpp
+d6a2cd10360aba249778800f76e687a30ede6b63b20670442e683692be5a7e73  include/cfd/io/case/PhysicsConfig.hpp
+df638e93948f0f3dc378e82f537f2e55f1eb6c106230c549121fed8dddefd1a5  tests/unit/io/test_reacting_case.cpp
+d58551f4ff16fd44896c5644229ff57d1bf27b0c399e8c7f40651d33a05b8bae  cases/reacting_plug_flow/physics.json
+
+################################################################################
+# F1 -- clean-first build of every target
+################################################################################
+BUILD OK
+  c58b32eeea5a64fc6409bafc5dec50496e4a6a09237ca674377bbc09fbf984d3  build/release/apps/cli/cfdapp
+  9448c1293c86c9dbf3d5e2ab25d7270f7be98e55ca314927d8b6bacae5a88833  build/release/tests/unit/io/CFDIoTests
+  50f0ce5e4c10f243c0ee37c810d82b51b169d7fabc21edca5cec585e325f93ac  build/release/tests/unit/app/CFDAppLayerTests
+  faaf7f5e564ce07fc7d9dd2bd1a445b2fd4f8d000412a0eaf1ef2231b9a7e175  build/release/tests/unit/species/CFDSpeciesTests
+
+################################################################################
+# F2 -- C1, C2, C3, C4a, C11 : the case/parser/builder layer
+################################################################################
+[       OK ] G8ReactingCaseTest.ACaseWithNoReactingBlockStillBuildsAndCarriesNoReactingSetup (0 ms)
+[ RUN      ] G8ReactingCaseTest.ThePassiveSpeciesPathIsUntouchedByTheReactingAddition
+[       OK ] G8ReactingCaseTest.ThePassiveSpeciesPathIsUntouchedByTheReactingAddition (0 ms)
+[----------] 12 tests from G8ReactingCaseTest (12 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 1 test suite ran. (12 ms total)
+[  PASSED  ] 12 tests.
+
+################################################################################
+# F3 -- C5 : the dispatch is in the production file
+################################################################################
+grep -c 'setup.reacting' src/app/ProjectRunner.cpp = 3
+
+################################################################################
+# F4 -- the PRODUCTION run : C4b-iii/iv, C5, C6a/C6b, C7a/C7b/C7c, C8, C12
+################################################################################
+cli exit 0
+{
+  "label": "PRODUCTION dt=0.1",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 5.718197704229766e-08,
+    "min_mass_fraction": 0.0012307413645062176,
+    "max_abs_dY": 0.001355074611440965,
+    "max_abs_dT": 2.7101938457000188,
+    "min_dT": 2.4524336944894003,
+    "max_dT": 2.7101938457000188,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "PASS",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "PASS (exothermic, no cell cooled)"
+  }
+}
+
+---- C8 : exported artefacts ----
+cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,temperature,mass_fraction_A,mass_fraction_B,mass_fraction_N2,temperature_reacting,heat_release
+metadata species:
+   A    status=Converged  converged=True iterations=4   final_residual=2.257219e-13
+   B    status=Converged  converged=True iterations=4   final_residual=1.777521e-13
+   N2   status=Converged  converged=True iterations=2   final_residual=6.854282e-13
+
+################################################################################
+# F5 -- C4b-i : dt SCALING (the pair the criterion requires)
+################################################################################
+cli exit 0
+{
+  "label": "production dt=0.01",
+  "dt": 0.01,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.0001354796940551183,
+    "dT_pred": 0.2709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 100.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 7.078766461887653e-09,
+    "min_mass_fraction": 0.00013415114769011163,
+    "max_abs_dY": 0.000135507604046875,
+    "max_abs_dT": 0.2710207284887929,
+    "min_dT": 0.2681899617715544,
+    "max_dT": 0.2710207284887929,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      6.773984702755915e-05,
+      0.0002709593881102366
+    ],
+    "C7a_predicted_dT_band": "PASS",
+    "C7a_band": [
+      0.1354796940551183,
+      0.5419187762204732
+    ],
+    "C7b_sign": "PASS (exothermic, no cell cooled)"
+  }
+}
+
+################################################################################
+# F6 -- C4b-ii : CONTINUITY SCALING (a tighter flow must reduce D)
+################################################################################
+  note: cli exit 3 -- Converged: no (max iterations reached), results still written
+cli exit 0
+{
+  "label": "production, flow tolerances 1e-10",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 6.808347219333655e-10,
+    "min_mass_fraction": 0.0012307413595766335,
+    "max_abs_dY": 0.001355068988835001,
+    "max_abs_dT": 2.71013862234895,
+    "min_dT": 2.4524297228955447,
+    "max_dT": 2.71013862234895,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 5.534321080840482e-10,
+    "flow_continuity_residual": 1.117725221666298e-11,
+    "flow_pressure_residual_ACHIEVED": 9.997238303247453e-11,
+    "flow_converged": false,
+    "flow_iterations": 400000
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "PASS",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "PASS (exothermic, no cell cooled)"
+  }
+}
+
+################################################################################
+# F7 -- C9 : an invalid mechanism fails clearly
+################################################################################
+  unknown_key    exit 2  no results/    Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f
+  bad_species    exit 2  no results/    Case configuration error: Reaction "A->B": unknown species "Kr" among the reactants; reactions refer to the authoritative species registry and cannot 
+  neg_arrhenius  exit 2  no results/    Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f
+  bad_ea         exit 2  no results/    Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f
+  no_timestep    exit 2  no results/    Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f
+  dup_species    exit 2  no results/    Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f
+
+################################################################################
+# F8 -- C10 : a chemistry-off case is BITWISE unchanged
+################################################################################
+species_diffusion              cli exit 0
+    013becca0aa4cbbbf9292434f92c73d4c3b7a6bf8d292fffca746d9a5515c2b7  cases/species_diffusion/results/fields.csv
+    0a3e6d7fb8660a3d582d6b3e919220d2b5231a0971d1f62311c98db8771b1ff6  cases/species_diffusion/results/solution.vtk
+    142ea6389e42ffdeb36cc82937c2ead32adcf3a675fc73da8372d726817aa2c0  cases/species_diffusion/results/residuals.csv
+heated_species_diffusion       cli exit 0
+    db72e08d36c4e71f91c300ae79ce2dfc4186487e98d22eb6acb36979c0176dfe  cases/heated_species_diffusion/results/fields.csv
+    5c3c3ad8078ed973a3c44bf3057f3d8b3efdd39090e05238a0cd9fd7b97b85dc  cases/heated_species_diffusion/results/solution.vtk
+    142ea6389e42ffdeb36cc82937c2ead32adcf3a675fc73da8372d726817aa2c0  cases/heated_species_diffusion/results/residuals.csv
+lid_driven_cavity_40x40        cli exit 0
+    731ac20e5fb15cad59e358a1afc11ecb1090fe2d0fabb395ea988296dc420190  cases/lid_driven_cavity_40x40/results/fields.csv
+    42a899703789e24e458abbc9f60ac3d7abf78eec800afe9bfc764de98d611f88  cases/lid_driven_cavity_40x40/results/solution.vtk
+    42bdba94f83aab31e1bf97d00ab9f7cc9fadd99f8561926650200552123ac7dd  cases/lid_driven_cavity_40x40/results/residuals.csv
+C10: BITWISE IDENTICAL to the pre-change baseline on all three cases
+
+################################################################################
+# F9 -- CONTROLS N2, N3, N4, N5 (case-file, no rebuild)
+################################################################################
+---- N2 : pre_exponential = 0 -- must FAIL C6a and C6b ----
+{
+  "label": "N2 pre_exponential=0",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.0,
+    "dY_pred": 0.0,
+    "dT_pred": 0.0,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 5.718228723861074e-08,
+    "min_mass_fraction": 0.0,
+    "max_abs_dY": 5.146405857026082e-08,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 0.0,
+    "max_SE": 0.0,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "FAIL",
+    "C6b_predicted_dY_band": "FAIL (prediction 0.000000e+00, measured 5.146406e-08)",
+    "C6b_band": [
+      0.0,
+      0.0
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 0.000000e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      0.0,
+      0.0
+    ],
+    "C7b_sign": "FAIL (inadmissible instrument: max|S_E| = 0, thermally neutral, and dT = 5.688378e-05 != 0)"
+  }
+}
+
+---- N3 : formation_enthalpy = 0 -- must FAIL C7a and C7b ----
+{
+  "label": "N3 formation_enthalpy=0",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 0.0,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 5.718197704229766e-08,
+    "min_mass_fraction": 0.0012307413645062176,
+    "max_abs_dY": 0.001355074611440965,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 0.0,
+    "max_SE": 0.0,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "PASS",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 0.000000e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      0.0,
+      0.0
+    ],
+    "C7b_sign": "FAIL (inadmissible instrument: max|S_E| = 0, thermally neutral, and dT = 5.688378e-05 != 0)"
+  }
+}
+
+---- N4 : a patch summing to 0.9 -- must be REFUSED ----
+  exit 2  no results/
+Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f/n4/boundaries.json: field "boundaries.json patch "left".species" must
+
+---- N5 : initial_mass_fraction summing to 0.9 -- must be REFUSED with the sum ----
+  exit 2  no results/
+Case configuration error: /mnt/c/Users/Hasib/AppData/Local/Temp/claude/C--Users-Hasib-Desktop-CFDAPP/ee8e90df-238e-4c69-ad45-fe3ef00cba5d/scratchpad/f/n5/physics.json: field "physics.json reacting.species" must satisfy h
+
+################################################################################
+# F10 -- CONTROL N1 : the dispatch removed (the pre-fix state)
+################################################################################
+cli exit 0
+  fields.csv header: cell_id,x,y,velocity_x,velocity_y,velocity_magnitude,pressure,temperature
+  metadata species: []
+
+################################################################################
+# F11 -- CONTROLS A1-N1 / A2-N1 : the Patankar STEADY pass at two dt
+################################################################################
+  variant applied: patankar
+{
+  "label": "A1-N1/A2-N1 Patankar steady dt=0.1",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 0.30026183572609555,
+    "min_mass_fraction": 0.0028388456441326283,
+    "max_abs_dY": 0.3974230704969976,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "FAIL (prediction 1.354797e-03, measured 3.974231e-01)",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 2.709594e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "FAIL (exothermic, a cell cooled: min dT = -5.688378e-05)"
+  }
+}
+{
+  "label": "A1-N1/A2-N1 Patankar steady dt=0.01",
+  "dt": 0.01,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.0001354796940551183,
+    "dT_pred": 0.2709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 100.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 0.30026183572609555,
+    "min_mass_fraction": 0.0028388456441326283,
+    "max_abs_dY": 0.3974230704969976,
+    "max_abs_dT": 7.074405402818229e-06,
+    "min_dT": -7.074405402818229e-06,
+    "max_dT": 6.9324089508882025e-06,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "PASS",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "FAIL (prediction 1.354797e-04, measured 3.974231e-01)",
+    "C6b_band": [
+      6.773984702755915e-05,
+      0.0002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 2.709594e-01, measured 7.074405e-06)",
+    "C7a_band": [
+      0.1354796940551183,
+      0.5419187762204732
+    ],
+    "C7b_sign": "FAIL (exothermic, a cell cooled: min dT = -7.074405e-06)"
+  }
+}
+
+################################################################################
+# F12 -- CONTROL A1-N2 : the fully explicit STEADY pass -- must FAIL C4b-iii
+################################################################################
+  variant applied: explicit
+{
+  "label": "A1-N2 explicit steady",
+  "dt": 0.1,
+  "derived_from_case_file": {
+    "k_at_T0": 0.13547969405511828,
+    "dY_pred": 0.001354796940551183,
+    "dT_pred": 2.709593881102366,
+    "C4b_i_precondition_rhoV_over_dt_div_max_mdot": 10.0,
+    "precondition_met_ge_10": true
+  },
+  "measured": {
+    "D_max_abs_sumY_minus_1": 4.91933273893963e-07,
+    "min_mass_fraction": -0.29742307761030073,
+    "max_abs_dY": 0.3974230776103007,
+    "max_abs_dT": 5.6883779393501754e-05,
+    "min_dT": -5.6883779393501754e-05,
+    "max_dT": 5.5752594334990135e-05,
+    "max_abs_SE": 27101.379420084206,
+    "max_SE": 27101.379420084206,
+    "flow_global_mass_imbalance": 6.443302334822182e-10,
+    "flow_continuity_residual": 1.0990995285985644e-11,
+    "flow_pressure_residual_ACHIEVED": 9.998796944248795e-09,
+    "flow_converged": true,
+    "flow_iterations": 13439
+  },
+  "A2_verdicts": {
+    "C4b_iii_positivity": "FAIL",
+    "C6a_omega_nonzero": "PASS",
+    "C6b_predicted_dY_band": "FAIL (prediction 1.354797e-03, measured 3.974231e-01)",
+    "C6b_band": [
+      0.0006773984702755915,
+      0.002709593881102366
+    ],
+    "C7a_predicted_dT_band": "FAIL (prediction 2.709594e+00, measured 5.688378e-05)",
+    "C7a_band": [
+      1.354796940551183,
+      5.419187762204732
+    ],
+    "C7b_sign": "FAIL (exothermic, a cell cooled: min dT = -5.688378e-05)"
+  }
+}
+
+################################################################################
+# F13 -- production source restored, rebuilt, and the C4b-i / C4b-ii verdicts
+################################################################################
+f14aa151d743190777d242e101cef6b19fb7ed77005bb9c65ead090292d8bc9a  src/app/ProjectRunner.cpp
+  cfdapp c58b32eeea5a64fc6409bafc5dec50496e4a6a09237ca674377bbc09fbf984d3  build/release/apps/cli/cfdapp
+
+C4b-i  dt SCALING -- required 0.5 <= [D(dt)/D(dt/10)]/10 <= 2.0
+  production               D(0.1)=5.718198e-08  D(0.01)=7.078766e-09  ratio=  8.0780  /10=0.8078   PASS
+  A2-N1 Patankar steady    D(0.1)=3.002618e-01  D(0.01)=3.002618e-01  ratio=  1.0000  /10=0.1000   FAIL
+
+C4b-ii CONTINUITY SCALING -- required: D falls as the ACHIEVED p residual falls
+  baseline  D=5.718197704e-08  p_res_achieved=9.998797e-09  imbalance=6.443302e-10  converged=True  iters=13439
+  tightened D=6.808347219e-10  p_res_achieved=9.997238e-11  imbalance=5.534321e-10  converged=False  iters=400000
+  p_res fell 100.0156x   D fell 83.9880x   PASS (D fell)

@@ -65,19 +65,19 @@ bool DeviceBoundaryConditions::build(const Mesh& mesh,
     hostType_[f] = static_cast<Index>(bc.type());
     hostPrescribes_[f] = cfd::discretization::prescribesBoundaryValue(bc.type()) ? 1 : 0;
 
-    if (const auto* scalarBc =
-            dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc)) {
+    if (const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc)) {
       hasScalar_ = true;
       if (!encodeBoundaryCondition(*scalarBc, d, scalarA[f], scalarB[f], scalarKind[f])) {
-        unsupportedReason_ = "face " + std::to_string(f) + ": scalar condition '" +
-                             std::string(bc.name()) +
-                             "' is not bitwise-reproducible as a constant, a shift or an affine "
-                             "function of phi_P";
+        unsupportedReason_ =
+            cfd::gpu::unsupportedEncodingReason(f, bc, "scalar condition", nullptr);
         return false;
       }
-      if (scalarKind[f] == kBoundaryEncodingConstant) ++scalarConstant_;
-      else if (scalarKind[f] == kBoundaryEncodingShift) ++scalarShift_;
-      else ++scalarAffine_;
+      if (scalarKind[f] == kBoundaryEncodingConstant)
+        ++scalarConstant_;
+      else if (scalarKind[f] == kBoundaryEncodingShift)
+        ++scalarShift_;
+      else
+        ++scalarAffine_;
 
       // The alternative encoding: a second distance on the same face, for the
       // gradient's oblique-Neumann re-evaluation. Defaults to the primary.
@@ -96,8 +96,7 @@ bool DeviceBoundaryConditions::build(const Mesh& mesh,
       }
     }
 
-    if (const auto* vectorBc =
-            dynamic_cast<const cfd::boundary::VectorBoundaryCondition*>(&bc)) {
+    if (const auto* vectorBc = dynamic_cast<const cfd::boundary::VectorBoundaryCondition*>(&bc)) {
       hasVector_ = true;
       Vector2 constantValue{0.0, 0.0, 0.0};
       if (!encodeVectorBoundaryCondition(*vectorBc, d, normal, constantValue, vectorKind[f])) {
@@ -110,14 +109,17 @@ bool DeviceBoundaryConditions::build(const Mesh& mesh,
       constX[f] = constantValue.x;
       constY[f] = constantValue.y;
       constZ[f] = constantValue.z;
-      if (vectorKind[f] == kVectorBoundaryConstant) ++vectorConstant_;
-      else if (vectorKind[f] == kVectorBoundaryIdentity) ++vectorIdentity_;
-      else ++vectorSymmetry_;
+      if (vectorKind[f] == kVectorBoundaryConstant)
+        ++vectorConstant_;
+      else if (vectorKind[f] == kVectorBoundaryIdentity)
+        ++vectorIdentity_;
+      else
+        ++vectorSymmetry_;
     }
 
     if (!hasScalar_ && !hasVector_) {
-      unsupportedReason_ = "face " + std::to_string(f) + ": condition '" +
-                           std::string(bc.name()) + "' is neither scalar- nor vector-valued";
+      unsupportedReason_ = "face " + std::to_string(f) + ": condition '" + std::string(bc.name()) +
+                           "' is neither scalar- nor vector-valued";
       return false;
     }
   }

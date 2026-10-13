@@ -8,8 +8,8 @@ Manufactured solution: mms::velocity / mms::pressure (as momentum_mms)
 |---|---|---|---|---|---|---|
 | 16x16 | 256 | 0.0625 | Converged | 14 | 1.54e-33 | 0.2 |
 | 32x32 | 1024 | 0.03125 | Converged | 10 | 7.7e-34 | 0.7 |
-| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 3.2 |
-| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 17.7 |
+| 64x64 | 4096 | 0.015625 | Converged | 9 | 7.7e-34 | 3.3 |
+| 128x128 | 16384 | 0.0078125 | Converged | 7 | 9.63e-34 | 18.2 |
 
 **u_cartesian**
 

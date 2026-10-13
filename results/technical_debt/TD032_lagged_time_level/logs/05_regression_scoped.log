@@ -1,0 +1,177 @@
+=== ENVIRONMENT
+date        2026-10-06T23:18:08+10:00
+nproc       32
+mem                        total        used        free      shared  buff/cache   available
+mem         Mem:            31Gi       734Mi        29Gi       4.0Mi       1.2Gi        30Gi
+mem         Swap:          8.0Gi          0B       8.0Gi
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+cmake       cmake version 3.22.1
+
+=== PRE-FLIGHT: nothing heavy may be running alongside an evidence run
+        PID ELAPSED %CPU COMMAND
+        121       2 55.5 snapfuse
+        258       2 17.5 snapd
+          1       2 17.0 systemd
+        332       1 15.0 dockerd
+        267       1  7.0 containerd
+    (a leaked CFDSpeciesTests has previously turned a 12-minute estimate into 3 hours --
+     if one appears above that is NOT this script's, the timings below are void)
+
+=== STAGE 1  CLEAN-FIRST Release build of every target (CLAUDE.md 8, step 2)
+[518/522] Building CXX object benchmarks/cpu/CMakeFiles/cfd_benchmark_cpu.dir/benchmark_runner.cpp.o
+[519/522] Linking CXX executable benchmarks/cpu/cfd_benchmark_cpu
+[520/522] Linking CXX executable tests/integration/mms/CFDMMSValidationTests
+[521/522] Linking CXX executable tests/integration/backward_facing_step/CFDBackwardFacingStepTests
+[522/522] Linking CXX executable tests/integration/case/CFDCaseIntegrationTests
+    build took 203 s
+
+    library after a CLEAN rebuild  a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf
+    library from the incremental   a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf
+    IDENTICAL -- the host toolchain reproduced the verified library bit for bit, so the
+    verification in logs/03 was not measuring an incremental-build artefact.
+
+=== STAGE 2  FULL Release ctest, -j16, at the repository cap --timeout 7200
+	2633 - MeshQualityCampaign.ManufacturedSolutionCartesian (Disabled)
+	2634 - MeshQualityCampaign.ManufacturedSolutionSmoothCorrected (Disabled)
+	2635 - MeshQualityCampaign.ManufacturedSolutionSmoothUncorrected (Disabled)
+	2636 - MeshQualityCampaign.GridConvergenceIrregularFamily (Disabled)
+	2639 - Duct3DProductionCase.DuctLevel8 (Disabled)
+	2640 - Duct3DProductionCase.DuctLevel16 (Disabled)
+	2641 - Duct3DProductionCase.DuctLevel24 (Disabled)
+	2642 - Duct3DProductionCase.DuctGate (Disabled)
+	2643 - Duct3DProductionCase.DirectionalSymmetry (Disabled)
+	2646 - LidDrivenCube3DProductionCase.CubeLevel32 (Disabled)
+	2647 - LidDrivenCube3DProductionCase.CubeLevel48 (Disabled)
+	2648 - LidDrivenCube3DProductionCase.CubeLevel64 (Disabled)
+	2649 - LidDrivenCube3DProductionCase.CubeGate (Disabled)
+	2762 - ChannelFlowValidation.KEpsilonFineConvergesAndMatchesLogLaw (Disabled)
+	2765 - ChannelFlowValidation.KOmegaFineConvergesAndMatchesLogLaw (Disabled)
+	2768 - ChannelFlowValidation.SSTFineConvergesAndMatchesLogLaw (Disabled)
+	2769 - ChannelFlowValidation.KEpsilonGridRefinementReducesReTauError (Disabled)
+	2776 - TurbulentChannelValidation.Study (Disabled)
+	2863 - SIMPLEMMS.FineGridStudy (Disabled)
+	2867 - MMS3DTest.OperatorRefinementStudy (Disabled)
+	2870 - MMSSimple3DTest.RefinementStudy (Disabled)
+	2873 - BackwardFacingStep.Converges (Disabled)
+	2874 - BackwardFacingStep.MassConservation (Disabled)
+	2875 - BackwardFacingStep.ReattachmentLength (Disabled)
+	2884 - DriverSeegmiller.ConvergenceBudgetDiagnostic (Disabled)
+
+The following tests FAILED:
+	1858 - G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature (Failed)
+	1860 - G8PremixedFlameTest.TheEigenvalueIsIndependentOfTheInitialMassFluxGuess (Failed)
+	1861 - G8PremixedFlameTest.TheEigenvaluePlateausInTheAnchorPositionAndTheDomainLength (Failed)
+	1862 - G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue (Failed)
+	1863 - G8PremixedFlameTest.TheFlameSpeedConvergesUnderMeshRefinement (Failed)
+	1866 - G8PremixedFlameTest.AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue (Failed)
+	1869 - G8PremixedFlameTest.TheAnswerIsInsensitiveToTheStepsPerTrial (Failed)
+	2750 - SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate (Failed)
+	2754 - SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects (Failed)
+	2757 - SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590 (Failed)
+	2759 - SSTMomentumFluxChannel.FourWayComparisonAtReTau590 (Failed)
+	2886 - DriverSeegmiller.CorrectedMeshSequence (Failed)
+Errors while running CTest
+    ctest took 2296 s
+
+--- runtime noise in tracked validation reports (CLAUDE.md 7): classify, do not commit
+ M results/validation/grid_convergence/natural_convection_ra1e3.json
+ M results/validation/grid_convergence/natural_convection_ra1e3.md
+ M results/validation/grid_convergence/poiseuille_flow.json
+ M results/validation/grid_convergence/poiseuille_flow.md
+ M results/validation/mms/compressible_simple_mms.json
+ M results/validation/mms/compressible_simple_mms.md
+ M results/validation/mms/distorted_mesh_mms.json
+ M results/validation/mms/distorted_mesh_mms.md
+ M results/validation/mms/distorted_mesh_momentum_mms.json
+ M results/validation/mms/distorted_mesh_momentum_mms.md
+ M results/validation/mms/distorted_mesh_simple_mms.json
+ M results/validation/mms/distorted_mesh_simple_mms.md
+ M results/validation/mms/momentum_mms.json
+ M results/validation/mms/momentum_mms.md
+ M results/validation/mms/momentum_mms_linear_upwind.json
+ M results/validation/mms/momentum_mms_linear_upwind.md
+ M results/validation/mms/momentum_mms_upwind.json
+ M results/validation/mms/momentum_mms_upwind.md
+ M results/validation/mms/scalar_advection_diffusion_mms.json
+ M results/validation/mms/scalar_advection_diffusion_mms.md
+    (restored below so the working tree carries only TD-032's own change)
+    validation reports restored
+
+=== STAGE 3  ASan + UBSan at CI settings, on the three suites covering the changed path
+    asan build took 161 s
+
+    ASAN_OPTIONS=detect_leaks=1:halt_on_error=0
+    UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+
+--- CFDSpeciesTests under ASan+UBSan, EXCLUDING G8 (the 343)
+    [==========] 343 tests from 56 test suites ran. (102038 ms total)
+    [  PASSED  ] 343 tests.
+    elapsed 102 s
+
+--- CFDSpeciesTests under ASan+UBSan, the TWO NAMED G8 tests (see the note above)
+    [  FAILED  ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature (11611691 ms)
+    [==========] 2 tests from 1 test suite ran. (11612051 ms total)
+    [  PASSED  ] 1 test.
+    [  FAILED  ] 1 test, listed below:
+    [  FAILED  ] G8PremixedFlameTest.ItConvergesAndReachesTheIndependentlyDerivedAdiabaticTemperature
+     1 FAILED TEST
+    elapsed 11612 s
+    SCOPE: 2 of 12 G8 tests. The other 10 are deferred to the overnight full pass.
+
+--- CFDThermalTests under ASan+UBSan (full suite)
+    [==========] 163 tests from 25 test suites ran. (3755 ms total)
+    [  PASSED  ] 163 tests.
+    elapsed 4 s
+
+--- CFDTransportTests under ASan+UBSan (full suite)
+    [==========] 22 tests from 6 test suites ran. (14 ms total)
+    [  PASSED  ] 22 tests.
+    elapsed 0 s
+
+=== STAGE 4  clang-format
+    741 files
+apps/gui/tests/test_cli_gui_equivalence.cpp:154:25: error: code should be clang-formatted [-Wclang-format-violations]
+    case ClientArm::Gui: return "GUI";
+                        ^
+apps/gui/tests/test_cli_gui_equivalence.cpp:155:25: error: code should be clang-formatted [-Wclang-format-violations]
+    case ClientArm::Cli: return "CLI";
+                        ^
+apps/gui/tests/test_cli_gui_equivalence.cpp:156:27: error: code should be clang-formatted [-Wclang-format-violations]
+    case ClientArm::Unset: break;
+                          ^
+include/cfd/app/ProjectRunner.hpp:141:90: error: code should be clang-formatted [-Wclang-format-violations]
+// `arrheniusProgressRatesFromFields`. That entry point belongs to TD-002, which owns the integrator;
+                                                                                         ^
+include/cfd/app/ProjectRunner.hpp:141:102: error: code should be clang-formatted [-Wclang-format-violations]
+// `arrheniusProgressRatesFromFields`. That entry point belongs to TD-002, which owns the integrator;
+                                                                                                     ^
+include/cfd/app/ProjectRunner.hpp:142:1: error: code should be clang-formatted [-Wclang-format-violations]
+// normalising the composition to fit the constructor instead would be exactly the silent
+^
+include/cfd/app/ProjectRunner.hpp:142:83: error: code should be clang-formatted [-Wclang-format-violations]
+// normalising the composition to fit the constructor instead would be exactly the silent
+    *** clang-format reported issues above
+
+=== WORKING TREE, so the diff this item owns is visible
+ M include/cfd/algebra/SparseMatrix.hpp
+ M include/cfd/app/ProjectRunner.hpp
+ M include/cfd/boundary/BoundaryCondition.hpp
+ M include/cfd/compressible/CompressibleContinuity.hpp
+ M include/cfd/compressible/CompressibleMassFlux.hpp
+ M include/cfd/compressible/CompressibleRelaxedMomentum.hpp
+ M include/cfd/compressible/EquationOfState.hpp
+ M include/cfd/compressible/IdealGasEOS.hpp
+ M include/cfd/core/Exception.hpp
+ M include/cfd/core/Logger.hpp
+ M include/cfd/core/Version.hpp.in
+ M include/cfd/discretization/NonOrthogonalDiffusion.hpp
+ M include/cfd/discretization/TimeDerivative.hpp
+ M include/cfd/gpu/BoundaryEncoding.hpp
+ M include/cfd/gpu/DeviceBuffer.hpp
+ M include/cfd/gpu/DeviceDiffusion.hpp
+ M include/cfd/gpu/DeviceDiffusionTerms.hpp
+ M include/cfd/gpu/DeviceMomentumAssembly.hpp
+ M include/cfd/gpu/DeviceVectorOps.hpp
+ M include/cfd/gpu/GPUExecutionStats.hpp
+
+DONE 2026-10-07T03:18:20+10:00

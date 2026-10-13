@@ -1,0 +1,162 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T00:56:50+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+[1/2] Building CXX object src/CMakeFiles/cfdcore.dir/species/PremixedFlame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp: In function ‘cfd::species::PremixedFlameResult cfd::species::solvePremixedFlame(const cfd::species::PremixedFlameChemistry&, const cfd::species::PremixedFlameConditions&, const cfd::species::PremixedFlameSettings&)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp:708:14: warning: unused variable ‘seedSpeed’ [-Wunused-variable]
+  708 |   const Real seedSpeed = massFluxEstimate / rhoUnburnt;
+      |              ^~~~~~~~~
+[2/2] Linking CXX static library src/libcfdcore.a
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 00:57:03.190429600
+  src  2026-10-05 00:55:20.510808600
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/field_dump_probe.cpp -o /tmp/td005_field_dump /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 -- the two final states, side by side, as FIELDS
+both runs differ ONLY in driftWindow; everything else is identical
+  window 32 -> logs/01 measured fuel balance 1.531e-02, delta 1.2289 mm  (GOOD)
+  window 16 -> logs/01 measured fuel balance 3.647e-01, delta 0.7365 mm  (BAD)
+
+================================================================ GOOD MODE -- driftWindow 32
+  status 0   S_L 4.86230 cm/s   S_c 4.90004 cm/s   fuel balance 1.5314e-02   delta 1.2289 mm
+
+  BITWISE-COMPANION QUANTITIES (the fix is read-only on the state)
+      flameSpeed            4.86229685763685318e-02
+      massFlux              5.72796876160792182e-02
+      consumptionSpeed      4.90004497995438146e-02
+      fuelBalanceResidual   1.53143548753620941e-02
+      energyBalanceResidual 1.53148254302936417e-02
+      massFluxResidual      6.77130693066291495e-04
+      peakTemperature       1.79999932998291320e+03
+      flamePosition         3.52333179239811781e-03   <- THIS one MUST change
+
+  C1  flameSpeed          4.86229685763685318e-02
+      massFlux/rho_u      4.86229685763685318e-02
+      massFlux 5.72796876160792182e-02   unburntDensity 1.17803764955474111e+00
+      BITWISE EQUAL: YES
+
+  DISCRIMINATORS
+      inlet  (T[0]-T_u)/(T_ad-T_u)   1.038037e-04   <- FLASHBACK if order 1
+      outlet Y_F[nc-1]/Y_F,u        3.984806e-16   <- BREAKTHROUGH if order 1
+      recentring fuel ledger        -2.471500e-05 kg/m2  (TD-004's, for completeness)
+      T_peak 1800.00 K   T_ad 1800.00 K   x_front 3.52333 mm
+
+  FUEL INVENTORY by fifth of the domain (fraction of the total Y_F present)
+      cells   0- 99  x  0.01- 1.99 mm    0.72612
+      cells 100-199  x  2.01- 3.99 mm    0.27188
+      cells 200-299  x  4.01- 5.99 mm    0.00200
+      cells 300-399  x  6.01- 7.99 mm    0.00000
+      cells 400-499  x  8.01- 9.99 mm    0.00000
+
+  PROFILE (every 20th cell)
+       cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          0    0.0100     300.16 4.999481e-02     0.04865    8.3305e-08
+         20    0.4100     307.99 4.973355e-02     0.04992    2.7455e-07
+         40    0.8100     319.92 4.933606e-02     0.05185    1.5039e-06
+         60    1.2100     338.83 4.870576e-02     0.05492    1.7382e-05
+         80    1.6100     368.96 4.770133e-02     0.05980    5.0685e-04
+        100    2.0100     416.44 4.611856e-02     0.06750    3.7556e-02
+        120    2.4100     491.15 4.362820e-02     0.07960    5.8669e+00
+        140    2.8100     610.99 3.963355e-02     0.09903    1.3645e+03
+        160    3.2100     808.22 3.305931e-02     0.13099    2.7423e+05
+        180    3.6100    1135.32 2.215603e-02     0.18401    2.2446e+07
+        200    4.0100    1593.17 6.894475e-03     0.25821    1.9214e+08
+        220    4.4100    1776.98 7.674035e-04     0.28801    4.8943e+07
+        240    4.8100    1797.66 7.797487e-05     0.29136    5.3973e+06
+        260    5.2100    1799.76 7.966803e-06     0.29170    5.5599e+05
+        280    5.6100    1799.97 8.146027e-07     0.29173    5.6898e+04
+        300    6.0100    1800.00 8.328483e-08     0.29174    5.8177e+03
+        320    6.4100    1800.00 8.514754e-09     0.29174    5.9479e+02
+        340    6.8100    1800.00 8.705216e-10     0.29174    6.0809e+01
+        360    7.2100    1800.00 8.899987e-11     0.29174    6.2170e+00
+        380    7.6100    1800.00 9.099126e-12     0.29174    6.3561e-01
+        400    8.0100    1800.00 9.302720e-13     0.29174    6.4983e-02
+        420    8.4100    1800.00 9.510836e-14     0.29174    6.6437e-03
+        440    8.8100    1800.00 9.723554e-15     0.29174    6.7923e-04
+        460    9.2100    1800.00 9.941294e-16     0.29174    6.9444e-05
+        480    9.6100    1800.00 1.021982e-16     0.29174    7.1389e-06
+        499    9.9900    1800.00 1.992403e-17     0.29174    1.3918e-06   <- outlet
+
+================================================================ BAD MODE -- driftWindow 16
+  status 0   S_L 4.85901 cm/s   S_c 3.04347 cm/s   fuel balance 3.6467e-01   delta 0.7365 mm
+
+  BITWISE-COMPANION QUANTITIES (the fix is read-only on the state)
+      flameSpeed            4.85900667507934217e-02
+      massFlux              5.72409280268126597e-02
+      consumptionSpeed      3.04347265544987929e-02
+      fuelBalanceResidual   3.64668567618637918e-01
+      energyBalanceResidual 3.64668827372247650e-01
+      massFluxResidual      6.77130693066397313e-04
+      peakTemperature       1.80000056855784283e+03
+      flamePosition         2.56838254764858026e-03   <- THIS one MUST change
+
+  C1  flameSpeed          4.85900667507934217e-02
+      massFlux/rho_u      4.85900667507934217e-02
+      massFlux 5.72409280268126597e-02   unburntDensity 1.17803764955474111e+00
+      BITWISE EQUAL: YES
+
+  DISCRIMINATORS
+      inlet  (T[0]-T_u)/(T_ad-T_u)   1.232900e-04   <- FLASHBACK if order 1
+      outlet Y_F[nc-1]/Y_F,u        3.071104e-18   <- BREAKTHROUGH if order 1
+      recentring fuel ledger        -2.471478e-05 kg/m2  (TD-004's, for completeness)
+      T_peak 1800.00 K   T_ad 1800.00 K   x_front 2.56838 mm
+
+  FUEL INVENTORY by fifth of the domain (fraction of the total Y_F present)
+      cells   0- 99  x  0.01- 1.99 mm    0.89277
+      cells 100-199  x  2.01- 3.99 mm    0.10723
+      cells 200-299  x  4.01- 5.99 mm    0.00000
+      cells 300-399  x  6.01- 7.99 mm    0.00000
+      cells 400-499  x  8.01- 9.99 mm    0.00000
+
+  PROFILE (every 20th cell)
+       cell      x mm        T K          Y_F       u m/s      S_E W/m3
+          0    0.0100     300.18 4.999384e-02     0.04862    8.3687e-08
+         20    0.4100     309.35 4.968821e-02     0.05011    3.3558e-07
+         40    0.8100     324.28 4.919052e-02     0.05252    2.7154e-06
+         60    1.2100     352.46 4.825142e-02     0.05709    8.5960e-05
+         80    1.6100     410.48 4.631721e-02     0.06648    2.3136e-02
+        100    2.0100     539.04 4.203207e-02     0.08731    7.0061e+01
+        120    2.4100     838.66 3.204472e-02     0.13583    4.8977e+05
+        140    2.8100    1506.19 9.793752e-03     0.24395    1.7110e+08
+        160    3.2100    1790.00 3.332287e-04     0.28992    2.2382e+07
+        180    3.6100    1799.52 1.612301e-05     0.29146    1.1241e+06
+        200    4.0100    1799.96 1.333286e-06     0.29153    9.3121e+04
+        220    4.4100    1800.00 1.411876e-07     0.29154    9.8623e+03
+        240    4.8100    1800.00 1.570763e-08     0.29154    1.0972e+03
+        260    5.2100    1800.00 2.034318e-09     0.29154    1.4211e+02
+        280    5.6100    1800.00 4.777109e-10     0.29154    3.3370e+01
+        300    6.0100    1800.00 1.021127e-10     0.29154    7.1330e+00
+        320    6.4100    1800.00 1.627767e-11     0.29154    1.1371e+00
+        340    6.8100    1800.00 2.262812e-12     0.29154    1.5807e-01
+        360    7.2100    1800.00 2.910766e-13     0.29154    2.0333e-02
+        380    7.6100    1800.00 3.566688e-14     0.29154    2.4915e-03
+        400    8.0100    1800.00 4.236739e-15     0.29154    2.9595e-04
+        420    8.4100    1800.00 4.932356e-16     0.29154    3.4454e-05
+        440    8.8100    1800.00 5.663008e-17     0.29154    3.9558e-06
+        460    9.2100    1800.00 6.432711e-18     0.29154    4.4935e-07
+        480    9.6100    1800.00 7.285873e-19     0.29154    5.0895e-08
+        499    9.9900    1800.00 1.535552e-19     0.29154    1.0726e-08   <- outlet
+
+HOW TO READ THIS
+  inlet rise ~ 1 and outlet fuel ~ 0   -> FLASHBACK: the front is at the boundary
+  inlet rise ~ 0 and outlet fuel ~ 1   -> BREAKTHROUGH: unburnt fuel is leaving
+  both ~ 0                             -> neither; the loss is interior, and the
+                                          fuel-inventory blocks say where
+
+probe exit: 0

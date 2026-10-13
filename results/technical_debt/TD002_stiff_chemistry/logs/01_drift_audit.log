@@ -1,0 +1,95 @@
+library: 0a29fd9821bc84c0b107e52bf4c50c9ee9947a7046c6efbd529d8fc6c443a7ce  build/release/src/libcfdcore.a
+probe:   60b2fd42419b96a451285d1338e45822f2b46d16c45df61c579f98199b2eb3a9  results/technical_debt/TD002_stiff_chemistry/tools/drift_audit.cpp
+
+compiled OK
+
+eps = 2.2204460492503131e-16
+4*eps*2 (2 species) = 1.7763568394002505e-15  (= 8 eps)
+4*eps*3 (3 species) = 2.6645352591003757e-15  (= 12 eps)
+
+============================================================================================
+M1 -- the 2-species P18.7 problem through the real integrateChemistry
+============================================================================================
+  Each sub-step constructs a ReactorState, so MassFractionState validates
+  4*eps*N on every one. Reaching N sub-steps without throwing IS the evidence
+  that the drift stayed inside the invariant for all N.
+
+     dt       sub-steps   sum(Y)-1              in eps    Y_A
+      1.0           7   -1.11022302462515654e-16     -0.50   0.83614372093169864
+      5.0          59   +0.00000000000000000e+00      0.00   0.007215383863182722
+     20.0         284   +4.44089209850062616e-16      2.00   3.5718426284623131e-13
+    100.0        1485   +0.00000000000000000e+00      0.00   3.7586492492114892e-68
+    500.0        7521   +0.00000000000000000e+00      0.00   2.4703282292062327e-323
+
+============================================================================================
+M2 -- the SAME physical time at different sub-step counts: does subdividing aggravate?
+============================================================================================
+  maximumFractionalChange is the knob. A tenth of the value means roughly ten
+  times the sub-steps for the same dt. If the drift is per-STEP, it must rise
+  with the sub-step count; if it does not accumulate, it must not.
+
+    control    sub-steps   sum(Y)-1              in eps
+   0.400000         64   +0.00000000000000000e+00      0.00
+   0.200000        136   +4.44089209850062616e-16      2.00
+   0.100000        284   +4.44089209850062616e-16      2.00
+   0.050000        584   +1.11022302462515654e-15      5.00
+   0.012500  THREW: mass fractions at cell 0 sum to 1.000000000000002; must be within 1.7763568394002505e-15 of 1 (deviation 1.9984014443252818e-15)
+   0.003125  THREW: mass fractions at cell 0 sum to 1.000000000000002; must be within 1.7763568394002505e-15 of 1 (deviation 1.9984014443252818e-15)
+
+============================================================================================
+M3 -- 3 species with an INERT CARRIER at O(1), the shape the production case uses
+============================================================================================
+  A = 0.25, B = 0, N2 = 0.75. N2 never reacts, so its increment is exactly 0 and
+  its stored value should never move. This is the shape 04_drift_probe.log
+  modelled when it reported ~0.17 eps/step and a ~72-step budget.
+
+     dt       sub-steps   sum(Y)-1              in eps    Y_A          Y_N2
+      1.0           5   +0.00000000000000000e+00      0.00   0.21544786   0.75
+      5.0          23   +0.00000000000000000e+00      0.00   0.075187082  0.75
+     20.0          88   +0.00000000000000000e+00      0.00   8.0359593e-05 0.75
+    100.0         449   +0.00000000000000000e+00      0.00   2.4620815e-21 0.75
+    500.0        2254   +0.00000000000000000e+00      0.00   6.6270932e-104 0.75
+   2000.0        8797   +0.00000000000000000e+00      0.00   2.4703282e-323 0.75
+
+============================================================================================
+M4 -- the arithmetic in isolation, no CFDApp code
+============================================================================================
+  The question P18.6's comment answers for ONE step and leaves open for many:
+  when the increments cancel EXACTLY, does sum(Y) move at all?
+
+  delta = 3.333333333333333e-07 (not representable as a short dyadic)
+
+  2 species, plain
+        steps     sum(Y)-1              in eps
+           72     -3.33066907387546962e-15      -15.00
+          100     -4.66293670342565747e-15      -21.00
+         1000     -4.66293670342565747e-14     -210.00
+        10000     -4.65294469620403106e-13    -2095.50
+       100000     -4.60942395363872492e-12   -20759.00
+
+  2 species, compensated (Kahan per species)
+        steps     sum(Y)-1              in eps
+           72     +0.00000000000000000e+00        0.00
+          100     +0.00000000000000000e+00        0.00
+         1000     +0.00000000000000000e+00        0.00
+        10000     +0.00000000000000000e+00        0.00
+       100000     +0.00000000000000000e+00        0.00
+
+  3 species + inert carrier, plain
+        steps     sum(Y)-1              in eps
+           72     +6.66133814775093924e-16        3.00
+          100     +8.88178419700125232e-16        4.00
+         1000     +8.88178419700125232e-15       40.00
+        10000     +8.99280649946376798e-14      405.00
+       100000     +9.41691169487057778e-13     4241.00
+
+  3 species + inert carrier, compensated
+        steps     sum(Y)-1              in eps
+           72     +0.00000000000000000e+00        0.00
+          100     +0.00000000000000000e+00        0.00
+         1000     +0.00000000000000000e+00        0.00
+        10000     +0.00000000000000000e+00        0.00
+       100000     +0.00000000000000000e+00        0.00
+
+
+(probe complete -- measurements only, no production code touched)

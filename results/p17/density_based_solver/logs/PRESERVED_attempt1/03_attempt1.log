@@ -1,0 +1,181 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DensityBased*
+[==========] Running 25 tests from 10 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from DensityBasedStateTest
+[ RUN      ] DensityBasedStateTest.Q1_PrimitiveConservedRoundTripIsExact
+
+  Q1 round trip: rho and rhoE BITWISE; worst relative T error 0.000e+00, p error 0.000e+00
+[       OK ] DensityBasedStateTest.Q1_PrimitiveConservedRoundTripIsExact (1 ms)
+[----------] 1 test from DensityBasedStateTest (2 ms total)
+
+[----------] 3 tests from DensityBasedResidualTest
+[ RUN      ] DensityBasedResidualTest.R1_OwnerAndNeighbourContributionsCancelExactly
+
+  R1 two-cell closed box: sum of mass residual -5.684342e-14, energy residual -2.491594e+07
+  R1 12-cell closed box: sum of mass residual 9.947598e-14, energy residual 4.415977e+07
+  R1 bound 2.854e-11
+[       OK ] DensityBasedResidualTest.R1_OwnerAndNeighbourContributionsCancelExactly (0 ms)
+[ RUN      ] DensityBasedResidualTest.R4_UniformStateGivesZeroResidual
+
+  R4 uniform state: worst |R_rho| 0.000e+00, worst |R_E| 0.000e+00  (bound 2.203e-07)
+[       OK ] DensityBasedResidualTest.R4_UniformStateGivesZeroResidual (0 ms)
+[ RUN      ] DensityBasedResidualTest.M2_NormDoesNotScaleWithMeshSize
+
+  M2 max residual norm: 8x8 0.000e+00, 32x32 0.000e+00   (uniform state; rate scale 3.333e+03)
+[       OK ] DensityBasedResidualTest.M2_NormDoesNotScaleWithMeshSize (0 ms)
+[----------] 3 tests from DensityBasedResidualTest (5 ms total)
+
+[----------] 5 tests from DensityBasedCflTest
+[ RUN      ] DensityBasedCflTest.K1_TimeStepIsExactlyLinearInCfl
+
+  K1 dt(CFL=0.2) = 1.291334e-04   dt(CFL=0.4) = 2.582668e-04   ratio exactly 2: yes
+[       OK ] DensityBasedCflTest.K1_TimeStepIsExactlyLinearInCfl (0 ms)
+[ RUN      ] DensityBasedCflTest.K2_TimeStepFallsWithSpeedSoundSpeedAndCellSize
+
+  K2 dt: base 2.6868e-04, 10x velocity 1.6745e-04, 4x temperature 1.3901e-04, 4x refinement 6.7169e-05
+[       OK ] DensityBasedCflTest.K2_TimeStepFallsWithSpeedSoundSpeedAndCellSize (0 ms)
+[ RUN      ] DensityBasedCflTest.K4_AgreesWithTheExistingCalculateCflInTheZeroSoundSpeedLimit
+
+  K4 the two CFL conventions, tied together:
+      P17.8 dt (CFL = 0.35)             2.382920340e-04
+      advective fraction of the speed   0.054466751
+      expected Co = (CFL/2) x fraction  9.531681361e-03
+      solver::calculateCFL reports      9.531681361e-03
+      relative difference               0.000e+00   (bound 1e-12)
+      (with a = 0 the fraction is 1 and Co would be exactly CFL/2 = 0.1750)
+[       OK ] DensityBasedCflTest.K4_AgreesWithTheExistingCalculateCflInTheZeroSoundSpeedLimit (0 ms)
+[ RUN      ] DensityBasedCflTest.K5_InvalidCflIsRefused
+
+  K5 4 invalid CFLs plus maxIterations/retryFactor/endTime each refused
+[       OK ] DensityBasedCflTest.K5_InvalidCflIsRefused (0 ms)
+[ RUN      ] DensityBasedCflTest.K6_EdgeCasesGiveFinitePositiveTimeSteps
+
+  case                           dt
+  zero velocity        7.200533e-05
+  Mach ~3              2.882853e-05
+  tiny cells           6.716882e-08
+  large cells          6.716882e-03
+  low pressure         7.098310e-05
+  cold                 5.017775e-04
+[       OK ] DensityBasedCflTest.K6_EdgeCasesGiveFinitePositiveTimeSteps (0 ms)
+[----------] 5 tests from DensityBasedCflTest (4 ms total)
+
+[----------] 3 tests from DensityBasedUpdateTest
+[ RUN      ] DensityBasedUpdateTest.U1_UpdateIsExactlyQMinusDtOverVTimesR
+
+  U1 update BITWISE equal to Q - (dt/V) R for all 5 components, 6 cells
+[       OK ] DensityBasedUpdateTest.U1_UpdateIsExactlyQMinusDtOverVTimesR (0 ms)
+[ RUN      ] DensityBasedUpdateTest.U2_GlobalModeUsesOneDtForEveryCell
+
+  U2 local dt range [2.1462e-04, 2.6424e-04]; global dt = the minimum, exactly: yes
+[       OK ] DensityBasedUpdateTest.U2_GlobalModeUsesOneDtForEveryCell (0 ms)
+[ RUN      ] DensityBasedUpdateTest.U3_LocalPseudoTimeRefusesToReportAPhysicalTime
+
+  U3 LocalPseudoTime refuses physicalTime(); GlobalPhysical reports 1.000000e-05 s
+[       OK ] DensityBasedUpdateTest.U3_LocalPseudoTimeRefusesToReportAPhysicalTime (0 ms)
+[----------] 3 tests from DensityBasedUpdateTest (1 ms total)
+
+[----------] 3 tests from DensityBasedCanonicalTest
+[ RUN      ] DensityBasedCanonicalTest.C1_UniformGridAlignedFlowIsPreserved
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/compressible/test_density_based_solver.cpp:496: Failure
+Expected: (r.iterations) > (5u), actual: 1 vs 5
+
+[  FAILED  ] DensityBasedCanonicalTest.C1_UniformGridAlignedFlowIsPreserved (0 ms)
+[ RUN      ] DensityBasedCanonicalTest.C2_UniformObliqueFlowIsPreserved
+
+  C2 uniform, OBLIQUE (u,v,w all non-zero), 1 steps: worst drift 0.000e+00 (bound 1.421e-14)
+[       OK ] DensityBasedCanonicalTest.C2_UniformObliqueFlowIsPreserved (0 ms)
+[ RUN      ] DensityBasedCanonicalTest.C3_AdvectedContactKeepsPressureAndVelocityUniform
+
+  C3 advected contact, 6 steps at Mach ~2:
+      pressure non-uniformity  5.745e-16   (detection bound 1e-9)
+      velocity non-uniformity  1.624e-16   (detection bound 1e-9)
+      density range [0.2500, 1.0000] -- the contact itself, which DOES smear
+[       OK ] DensityBasedCanonicalTest.C3_AdvectedContactKeepsPressureAndVelocityUniform (0 ms)
+[----------] 3 tests from DensityBasedCanonicalTest (2 ms total)
+
+[----------] 2 tests from DensityBasedConservationTest
+[ RUN      ] DensityBasedConservationTest.G1_ClosedDomainConservesMassMomentumAndEnergy
+
+  G1 closed domain, 80 cells, 8 steps:
+      mass    8.0161733969e-01 -> 8.0161733969e-01   relative error 1.385e-16
+      energy  1.7161788150e+05 -> 1.7168160818e+05   relative error 3.713e-04
+      x momentum 0.000000e+00 -> 4.874877e+00
+      bound 8 eps N = 1.421e-13
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/compressible/test_density_based_solver.cpp:644: Failure
+Expected: (energyErr) <= (bound), actual: 0.00037132886326916962 vs 1.4210854715202004e-13
+
+[  FAILED  ] DensityBasedConservationTest.G1_ClosedDomainConservesMassMomentumAndEnergy (0 ms)
+[ RUN      ] DensityBasedConservationTest.InviscidWallCarriesNoMassOrEnergy
+
+  wall: mass flux 2.842171e-14 (bound 6.115e-12), energy flux 2.645453e+07, momentum.x 1.713575e+05 vs p = 1.102272e+05
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/compressible/test_density_based_solver.cpp:672: Failure
+Expected: (std::abs(hllc.flux.energy)) <= (bound * interior.speedOfSound * interior.speedOfSound), actual: 26454528.000000015 vs 7.8626787654718904e-07
+
+[  FAILED  ] DensityBasedConservationTest.InviscidWallCarriesNoMassOrEnergy (0 ms)
+[----------] 2 tests from DensityBasedConservationTest (2 ms total)
+
+[----------] 2 tests from DensityBasedConvergenceTest
+[ RUN      ] DensityBasedConvergenceTest.M5_ReachingTheEndTimeIsTimeCompleteNotConverged
+
+  M5 a transient run that reached endTime reports TimeComplete, NOT Converged
+[       OK ] DensityBasedConvergenceTest.M5_ReachingTheEndTimeIsTimeCompleteNotConverged (0 ms)
+[ RUN      ] DensityBasedConvergenceTest.M4_ConvergenceNeedsAllThreeSignals
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/compressible/test_density_based_solver.cpp:730: Failure
+Expected equality of these values:
+  r.status
+    Which is: 4-byte object <00-00 00-00>
+  DensityBasedStatus::MaxIterations
+    Which is: 4-byte object <02-00 00-00>
+a single satisfied signal was enough to declare convergence
+
+
+  M4 an impossible mass criterion blocks convergence (1 iterations); with all three reachable it converges in 1
+[  FAILED  ] DensityBasedConvergenceTest.M4_ConvergenceNeedsAllThreeSignals (0 ms)
+[----------] 2 tests from DensityBasedConvergenceTest (1 ms total)
+
+[----------] 3 tests from DensityBasedRobustnessTest
+[ RUN      ] DensityBasedRobustnessTest.P1_P3_AnInadmissibleStateIsRefusedNamingTheCell
+
+  P3 the refusal names the cell: "DensityBasedSolver::toPrimitive: cell 1 is not a valid thermodynamic state: TotalEnergyState::recover: density"
+[       OK ] DensityBasedRobustnessTest.P1_P3_AnInadmissibleStateIsRefusedNamingTheCell (0 ms)
+[ RUN      ] DensityBasedRobustnessTest.P2_P6_RetriesAreDeterministicAndCounted
+
+  P2/P6 CFL = 50 (deliberately unstable): status 1, iterations 7, total retries 10, rejected steps 0
+  P2 the repeat made IDENTICAL control-flow decisions
+[       OK ] DensityBasedRobustnessTest.P2_P6_RetriesAreDeterministicAndCounted (0 ms)
+[ RUN      ] DensityBasedRobustnessTest.P4_NothingIsEverClamped
+
+  P4 an absurd-but-positive density is REFUSED; never silently replaced
+[       OK ] DensityBasedRobustnessTest.P4_NothingIsEverClamped (0 ms)
+[----------] 3 tests from DensityBasedRobustnessTest (2 ms total)
+
+[----------] 1 test from DensityBasedDeterminismTest
+[ RUN      ] DensityBasedDeterminismTest.D1_RepeatedSolveIsBitwiseIdentical
+
+  D1 determinism: 4 steps, dt/time/residual/state/retry histories all BITWISE identical
+[       OK ] DensityBasedDeterminismTest.D1_RepeatedSolveIsBitwiseIdentical (0 ms)
+[----------] 1 test from DensityBasedDeterminismTest (0 ms total)
+
+[----------] 2 tests from DensityBasedScopeTest
+[ RUN      ] DensityBasedScopeTest.S1_S2_RestartIsUnsupportedAndRefuses
+
+  S1/S2 restart refused, naming the missing conserved fields
+[       OK ] DensityBasedScopeTest.S1_S2_RestartIsUnsupportedAndRefuses (0 ms)
+[ RUN      ] DensityBasedScopeTest.AnUnmappedBoundaryPatchIsRefusedNotAssumedToBeAWall
+
+  an unmapped boundary patch is REFUSED -- it is not silently treated as a wall
+[       OK ] DensityBasedScopeTest.AnUnmappedBoundaryPatchIsRefusedNotAssumedToBeAWall (0 ms)
+[----------] 2 tests from DensityBasedScopeTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 25 tests from 10 test suites ran. (29 ms total)
+[  PASSED  ] 21 tests.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] DensityBasedCanonicalTest.C1_UniformGridAlignedFlowIsPreserved
+[  FAILED  ] DensityBasedConservationTest.G1_ClosedDomainConservesMassMomentumAndEnergy
+[  FAILED  ] DensityBasedConservationTest.InviscidWallCarriesNoMassOrEnergy
+[  FAILED  ] DensityBasedConvergenceTest.M4_ConvergenceNeedsAllThreeSignals
+
+ 4 FAILED TESTS

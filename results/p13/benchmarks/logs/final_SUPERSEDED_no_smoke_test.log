@@ -1,0 +1,37 @@
+date: 2026-09-21T22:48:59Z
+
+=== G: clang-format-18 at CI scope ===
+  violations: 0
+
+=== benchmarks/ format (not in the CI scope, checked anyway) ===
+  violations: 0
+
+=== P2: release_cuda (build/final) ===
+ninja: no work to do.
+  ctest exit status: 0
+  100% tests passed, 0 tests failed out of 2048
+
+=== P2: debug_gui (build/debug) ===
+[6/6] Linking CXX executable benchmarks/cpu/cfd_benchmark_cpu
+  ctest exit status: 0
+  100% tests passed, 0 tests failed out of 2042
+
+=== P2: cpu_only (build/cpuonly) ===
+[6/6] Linking CXX executable benchmarks/cpu/cfd_benchmark_cpu
+  ctest exit status: 0
+  100% tests passed, 0 tests failed out of 1982
+
+bench_done: 2026-09-21T23:47:19Z
+
+--- WHY THIS RUN IS SUPERSEDED ---
+This regression did NOT contain CFDAppBenchmarkSuiteSmoke. The test was
+registered in tests/CMakeLists.txt behind `if(TARGET cfd_benchmark_cpu)`, but
+the root CMakeLists adds tests/ (line ~114) BEFORE benchmarks/ (line ~137), so
+the target did not yet exist and the guard silently dropped the entry.
+
+The giveaway is in the numbers above: 2048 / 2042 / 1982 are IDENTICAL to
+P13-006's regression, when one more test should have appeared.
+
+The registration moved to benchmarks/CMakeLists.txt and the regression was
+re-run in full. This log is kept because a green run that did not cover what it
+claimed is worth keeping visible, not deleting.

@@ -1,0 +1,32 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ContactDiscontinuityTest
+[ RUN      ] ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly
+
+  STATIONARY CONTACT, 2D mesh 200x1, t = 0.20, 1339 steps
+      position 0.4960113165 vs 0.5 -> err 3.9887e-03 = 0.7977 dx
+      pressure variation 3.3307e-16, velocity variation 6.4871e-16, width 21 cells
+      mass 2.812500000000e-03 -> 2.812500000000e-03   relative 2.3130e-15
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/compressible/test_shock_validation.cpp:898: Failure
+Expected equality of these values:
+  width
+    Which is: 21
+  0
+A1: a stationary contact must be preserved EXACTLY; 21 smeared cells means the contact-restoring wave is absent or broken
+
+
+  MOVING CONTACT at u = 4.0 (Ma_L 3.38, Ma_R 1.20), t = 0.10, 1070 steps
+      position 0.6992930944 vs expected 0.7000000000 -> err 7.0691e-04 = 0.1414 dx
+      pressure variation 4.3521e-14, velocity variation 4.2188e-15, width 22 cells
+[  FAILED  ] ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly (187 ms)
+[----------] 1 test from ContactDiscontinuityTest (196 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (218 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly
+
+ 1 FAILED TEST

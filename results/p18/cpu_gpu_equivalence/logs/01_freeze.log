@@ -1,0 +1,47 @@
+=== P18.8 FREEZE: the gate is fixed BEFORE any CPU/GPU comparison ===
+date: 2026-10-02T00:27:03Z
+
+--- frozen P18.8 docs ---
+  audit.md                 d98c57d87e40658a38f04162c03b48d992a3c704077e81532b4d6a4e5ecba9e9
+  acceptance_gate.md       3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03
+
+--- the frozen gate (unchanged) ---
+  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+--- WHAT IS FROZEN ---
+  policy      BITWISE, inherited verbatim from G9
+  rests on    (1) one shared source compiles for both  -- DeviceSpeciesThermochemistry.hpp
+              (4) --fmad=false                          -- registered per source
+  vacuous     (2) accumulation order, (3) uploaded geometry, (5) order-independent reduction
+              -- the thermochemistry is CELL-LOCAL, one thread per cell, no atomics
+  12 controls N1..N12, each a FLAG on the device path, not a source edit
+  NOT in it   species transport on device, the canonical reacting flow (audit.md section 5)
+
+--- the new P18.8 files, hashed before measurement ---
+  include/cfd/gpu/DeviceSpeciesThermochemistry.hpp         ae3c7cd4254f1872cf80af575e937df94ee15ec6c7fb6dc4244a68e691e22476
+  include/cfd/gpu/DeviceSpeciesLaunch.hpp                  92fe8f8696b89d3971d5045d10627724078a4cad88117e3b0340dbac2d42d365
+  cuda/kernels/DeviceSpeciesKernel.cu                      b2dfe3451b4f143cb87b49f1d4f86ddc33a85f55eb1d0680a7d731af17f45e2b
+
+--- CPU production UNCHANGED (section 4: CPU is the reference) ---
+  MixtureThermodynamics.cpp                        313928eb1d175532da4da14036e045ef
+  ArrheniusKinetics.cpp                            ba095f0e5ec785bf89f70834bf935945
+  ReactionMechanism.cpp                            0145fab31061a97ceb7eb72e752e7fe1
+  HeatRelease.cpp                                  3adfd95b3438f7c59fd22f4fa2328168
+  MassFractionState.cpp                            429321301b079cd80b26b8a2dcef4929
+  SpeciesTransport.cpp                             69cc3141ea92d286fbf5c55fc8e40bb3
+  compared against baseline/00_start_state.log -- must be IDENTICAL
+
+--- the new kernels, in the built library ---
+  cfd::gpu::advanceReactorDevice
+  cfd::gpu::computeEquationOfStateDevice
+  cfd::gpu::computeMixturePropertiesDevice
+  cfd::gpu::computeRateCoefficientsDevice
+  cfd::gpu::computeReactionSourcesDevice
+
+--- whitespace delta, recorded honestly ---
+  tree total: 273   (259 at P18.7 close)
+  cuda/CMakeLists.txt is a CRLF file in which git flags EVERY line -- the pre-existing
+  152-warning push blocker. P18.8 added 14 lines to it (1 source entry + a 13-line
+  --fmad comment matching P17.7's and P17.10's own style), so the count rose by exactly 14.
+  The separate property is REQUIRED: G9 asks for --fmad=true's measured cost, which means
+  flipping this one translation unit.

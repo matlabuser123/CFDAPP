@@ -1,0 +1,70 @@
+P17.4 ACCEPTANCE GATE
+date: 2026-09-26T22:33:30Z
+gate sha256: ded6feaa03b53e9fd65018491e57c9c318383798bf13fbabc4b910cf4fd6b673
+
+### G6: clang-format on the files P17.4 changed ###
+  clang-format exit: 0  (0 = clean)
+
+### L5: physics::MomentumEquation must be UNTOUCHED ###
+  verdict: UNTOUCHED -- both files hash to the freeze
+  the DEFECTIVE original probe, on this same untouched tree, for the record:
+    git diff --numstat HEAD -> '14	1	include/cfd/physics/MomentumEquation.hpp 13	2	src/physics/MomentumEquation.cpp '
+
+### the P17.4 delta -- against the PRE-P17.4 sources, not against HEAD ###
+  PROVEN    include/cfd/compressible/CompressibleRelaxedMomentum.hpp
+      reconstructed 5d97510fbac1f38c2dd0b5051a3cdccd22b3d960e9b3187e9a14444cc22a0cc5
+      frozen        5d97510fbac1f38c2dd0b5051a3cdccd22b3d960e9b3187e9a14444cc22a0cc5
+  PROVEN    src/compressible/CompressibleRelaxedMomentum.cpp
+      reconstructed f44c8da4175f228f2b67bc225728e621d00534b2acc3f34cb028bccccbf57a4e
+      frozen        f44c8da4175f228f2b67bc225728e621d00534b2acc3f34cb028bccccbf57a4e
+  ALL RECONSTRUCTIONS PROVEN AGAINST THE FREEZE
+  include/cfd/compressible/CompressibleRelaxedMomentum.hpp   +19 -1   (vs HEAD: +19 -1)
+  src/compressible/CompressibleRelaxedMomentum.cpp           +11 -1   (vs HEAD: +11 -1)
+  include/cfd/compressible/DilatationalStress.hpp            +72 -0   NEW FILE (untracked)
+  src/compressible/DilatationalStress.cpp                    +65 -0   NEW FILE (untracked)
+  tests/unit/compressible/test_compressible_momentum.cpp     +447 -0   (the HEAD copy has 7 TEST( -- the freeze recorded 7, so clean)
+  src/CMakeLists.txt                                         +32 -0   of which P17.4: 1  (the rest is P13-001/thermal/P16/GPU)
+
+### D1: the dilatational option must DEFAULT to disabled ###
+  header default (source text): 1  (1 = default false)
+  BEHAVIOURAL probe            : DilatationalStressTest.DefaultIsDisabledBehaviourally
+    A grep is a string in a header, not a property of the assembly: control N6
+    flipped that default and NOTHING failed, because every test passed the flag
+    explicitly. The named test calls the assembly with the argument OMITTED.
+    See AMENDMENT_N2_N6_vacuous.md section 2.
+
+### build ###
+  build exit: 0  (30 s)
+
+### Groups D, F, V, G9: the momentum suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 19
+  the 11 P17.4 rows (9 planned at the freeze + 2 added after the vacuous controls):
+    MatchesMinusTwoThirdsMuGradDivergenceTimesVolume         Passed
+    IsExactlyZeroForADivergenceFreeField                     Passed
+    UniformVelocityContributesNothing                        Passed
+    ScalesLinearlyWithViscosityAndVanishesAtZeroViscosity    Passed
+    RejectsInvalidInputs                                     Passed
+    RepeatedAssemblyIsBitwiseIdentical                       Passed
+    PressureForceMatchesMinusVolumeTimesAnalyticalGradient   Passed
+    BodyForceScalesLinearlyWithDensity                       Passed
+    TransientTermDistinguishesDRhoUDtFromRhoDUDt             Passed
+    IsWiredIntoTheRelaxedMomentumAssembly                    Passed
+    DefaultIsDisabledBehaviourally                           Passed
+
+### Group L: low-Mach + MMS, and the whole compressible suite ###
+  low-Mach + MMS exit: 0   100% tests passed, 0 tests failed out of 10
+  compressible suite exit: 0   100% tests passed, 0 tests failed out of 172
+
+### Groups G1/G2: P14, P15, P16 preservation -- FROZEN narrow regexes ###
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P16_turbulence   exit=0  100% tests passed, 0 tests failed out of 315
+
+### G8: GPU compressible momentum -- must be NOT PRESENT ###
+    compressibleMomentum     0
+    CompressibleRelaxed      0
+    dilatational             0
+    DilatationalStress       0
+
+done: 2026-09-26T22:54:30Z

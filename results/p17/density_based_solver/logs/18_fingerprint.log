@@ -1,0 +1,40 @@
+P17.8 -- A3 / G1: the P13-001 SIMPLE fingerprint
+date: 2026-09-27T21:53:06Z
+probe    : results/p13/restart/tools/solve_fingerprint.cpp (unmodified)
+reference: results/p13/restart/logs/fingerprint-after-histories.log
+
+### 0. the library under test is rebuilt from the current source ###
+  cfdcore build exit: 0
+  libcfdcore.a sha256: 188e50397ed13718f449f369ef996768cc4011ac1048955dc312da92716390f6
+  (nvcc is not bit-reproducible, so libcfdcuda.a's hash is NOT used as an identity check --
+   the fingerprint OUTPUT is the instrument, not the archive hash.)
+
+### 1. the identity claim ###
+  cases: 10   (P13-001 records 10)
+  lines: 130   (P13-001 records 130)
+  BITWISE IDENTICAL -- P17.8 moved no bit of the incompressible solver
+  the diff file is EMPTY and is preserved as evidence (0 bytes)
+
+### 2. NON-VACUITY: the instrument must be able to FAIL (G1's own requirement) ###
+  pristine src/pressure_velocity/SIMPLE.cpp sha256: 34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1
+  planted  src/pressure_velocity/SIMPLE.cpp sha256: 1def49d5c49df5895bff5e2e9035d1ccfd190e437fe38b7646c360caa000fcb4
+  cfdcore rebuild exit: 0
+  DETECTED: the perturbed solver's fingerprint DIFFERS from the reference
+  differing lines: 112
+  first difference:
+    <   residual_u  3f70e484c99999e7
+    <   residual_v  3f6a6c7d9568a4c4
+    >   residual_u  3f70f0af08c48503
+    >   residual_v  3f6a7779b12399aa
+  restored src/pressure_velocity/SIMPLE.cpp sha256: 34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1
+  cfdcore rebuilt from the restored source, exit: 0
+
+### 3. the incompressible path must remain EOS-free and solver-free (structural) ###
+  EOS references under the pressure-velocity path      : 0   (must be 0)
+  DensityBasedSolver references from SIMPLE / dispatch : 0   (must be 0)
+
+### verdict ###
+  A3 identity        : BITWISE IDENTICAL
+  G1 non-vacuity     : INSTRUMENT DETECTS A PLANTED DEFECT
+  structural         : clean
+done: 2026-09-27T21:53:40Z

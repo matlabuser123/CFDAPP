@@ -1,0 +1,114 @@
+P13 G6 -- control half
+date: 2026-09-24T21:06:41Z
+
+### independent pre-control hashes (this wrapper's own record) ###
+  34c2c20b0b59cab04cf5d3cd60fd01fab8045dd06e2ad92bb931dd5e58aa29a7  src/core/Logger.cpp
+  708b0ca1a0ba0c7c832335eb41e75d4b6a570d1b0d006a93bdb6a42515e2e7e4  apps/cli/main.cpp
+  3f8214b4412f1877bbd2c98446ac08b00ea6c2662c98aea9e7b2970b7d714a4a  src/app/ProjectRunner.cpp
+  f309c80980cc9e8f340ba87267889b3634f399817bf723e900108d80a6899722  tests/cmake/RunCliStdoutOnly.cmake
+
+############ controls.sh -- N1 (C1), N2 (V4), N3, N4 ############
+  pre-control hashes recorded:
+  34c2c20b0b59cab04cf5d3cd60fd01fab8045dd06e2ad92bb931dd5e58aa29a7  src/core/Logger.cpp
+  708b0ca1a0ba0c7c832335eb41e75d4b6a570d1b0d006a93bdb6a42515e2e7e4  apps/cli/main.cpp
+  3f8214b4412f1877bbd2c98446ac08b00ea6c2662c98aea9e7b2970b7d714a4a  src/app/ProjectRunner.cpp
+  
+  ########## N1 -- route Info back to stdout; C1 and C2 must break
+    corpus at default: stdout differing=0 stderr differing=0
+    log lines on stdout at --log-level debug: 3
+    N1-C1: DETECTED (stdout log lines) -- the criterion failed, as it must
+    N1-C2: *** UNDETECTED *** (stdout files differing = 0) -- the criterion is VACUOUS
+    RESTORED (sha256 verified)
+  
+  ########## N2 -- drop the CLI's explicit default level; V4 must break
+    corpus at default: stdout differing=0 stderr differing=4
+    N2-V4: DETECTED (stderr files differing) -- the criterion failed, as it must
+    RESTORED (sha256 verified)
+  
+  ########## N3 -- the comparison instrument itself must be able to fail
+    one byte appended to one of 7 baseline files -> differing: 1
+    N3: DETECTED (files reported differing) -- the criterion failed, as it must
+  
+  ########## N4 -- delete one L point's emission; V3/L must break
+    --log-level debug stderr lines: 2  (intact run had 3)
+    N4: DETECTED (L3 missing from the debug run) -- the criterion failed, as it must
+    RESTORED (sha256 verified)
+  
+  ########## rebuild the restored tree
+    restored tree builds
+  src/core/Logger.cpp: OK
+  apps/cli/main.cpp: OK
+  src/app/ProjectRunner.cpp: OK
+   M apps/cli/main.cpp
+   M src/app/ProjectRunner.cpp
+   M src/core/Logger.cpp
+  controls.sh rc=0
+
+### wrapper restore check after controls.sh ###
+  src/core/Logger.cpp: OK
+  apps/cli/main.cpp: OK
+  src/app/ProjectRunner.cpp: OK
+  tests/cmake/RunCliStdoutOnly.cmake: OK
+
+############ controls2.sh -- N1b (C2b) ############
+  ########## C2b on the intact tree (must be 0)
+    --log-level error : stdout files differing from the default baseline = 0
+    --log-level warning : stdout files differing from the default baseline = 0
+    --log-level info : stdout files differing from the default baseline = 0
+    --log-level debug : stdout files differing from the default baseline = 0
+    --log-level trace : stdout files differing from the default baseline = 0
+  C2b total differing: 0
+  
+  ########## N1b -- route Info/Debug/Trace back to stdout; C2b must break
+    --log-level error : stdout files differing from the default baseline = 0
+    --log-level warning : stdout files differing from the default baseline = 0
+    --log-level info : stdout files differing from the default baseline = 4
+    --log-level debug : stdout files differing from the default baseline = 7
+    --log-level trace : stdout files differing from the default baseline = 7
+  C2b total differing: 18
+  RESTORED (sha256 verified)
+  restored tree builds
+    --log-level error : stdout files differing from the default baseline = 0
+    --log-level warning : stdout files differing from the default baseline = 0
+    --log-level info : stdout files differing from the default baseline = 0
+    --log-level debug : stdout files differing from the default baseline = 0
+    --log-level trace : stdout files differing from the default baseline = 0
+  C2b total differing: 0
+  controls2.sh rc=0
+
+### wrapper restore check after controls2.sh ###
+  src/core/Logger.cpp: OK
+  apps/cli/main.cpp: OK
+  src/app/ProjectRunner.cpp: OK
+  tests/cmake/RunCliStdoutOnly.cmake: OK
+
+############ control_N5.sh -- the CLI stdout-only ctest ############
+  --- with stderr echoed onto the matched stream (must FAIL) ---
+  
+  The following tests FAILED:
+  	 22 - CFDAppCliLogLinesNeverReachStdout (Failed)
+  Errors while running CTest
+  Output from these tests are in: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/Testing/Temporary/LastTest.log
+  Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+  RESTORED (sha256 verified)
+  --- restored (must PASS) ---
+  Label Time Summary:
+  integration    =   0.42 sec*proc (1 test)
+  
+  Total Test time (real) =   0.85 sec
+  control_N5.sh rc=0
+
+### FINAL wrapper restore check -- all four watched files ###
+  src/core/Logger.cpp: OK
+  apps/cli/main.cpp: OK
+  src/app/ProjectRunner.cpp: OK
+  tests/cmake/RunCliStdoutOnly.cmake: OK
+
+### control markers left in the tree? ###
+  none -- clean
+
+### the tree is back: C2/V4/C2b re-measured at baseline ###
+  C2 stdout differing: 0 / 7    V4 stderr differing: 0 / 7   (0 required)
+  C2b total differing: 0
+
+done: 2026-09-24T21:15:04Z

@@ -1,0 +1,83 @@
+=== §8 REGRESSION, Release configuration. The authoritative sequence (§8):
+    1 configure  2 clean-first build of EVERY target  3 verify binaries newer than source
+    4 record library and test-binary hashes  5 run and record exact counts
+
+date  2026-10-11T00:59:28+10:00
+nproc 32  load 0.08 0.02 0.01 3/569 763
+
+=== 1. configure
+CFDAPP_ENABLE_CUDA:BOOL=OFF
+CFDAPP_ENABLE_MPI:BOOL=OFF
+CFDAPP_ENABLE_OPENMP:BOOL=OFF
+CFDAPP_ENABLE_PACKAGING:BOOL=OFF
+CFDAPP_ENABLE_SANITIZERS:BOOL=OFF
+CMAKE_BUILD_TYPE:STRING=Release
+  configure OK
+
+=== 2. build EVERY target
+  build exit (unmasked): 0
+  warnings: 13
+  errors:   0
+
+=== 3/4. identity
+0d0dfaa96ac97d5fbcfe61c9b2cdef7382d9ec488e73452906ffd51566915605  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+kBuildIdentity = "458457542a2e-modified"
+  newest production source: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  library mtime:  2026-10-11 01:02:49
+  source  mtime:  2026-10-10 18:01:07
+  OK: library newer than source.
+
+=== 5. run. NOTE: the G8 premixed-flame cases take 40-70 min EACH on this tree, so the
+    full ladder is hours. ctest's own per-test cap is 7200 s (ci.yml:147).
+  ctest exit (unmasked): 8
+
+	2634 - MeshQualityCampaign.ManufacturedSolutionCartesian (Disabled)
+	2635 - MeshQualityCampaign.ManufacturedSolutionSmoothCorrected (Disabled)
+	2636 - MeshQualityCampaign.ManufacturedSolutionSmoothUncorrected (Disabled)
+	2637 - MeshQualityCampaign.GridConvergenceIrregularFamily (Disabled)
+	2640 - Duct3DProductionCase.DuctLevel8 (Disabled)
+	2641 - Duct3DProductionCase.DuctLevel16 (Disabled)
+	2642 - Duct3DProductionCase.DuctLevel24 (Disabled)
+	2643 - Duct3DProductionCase.DuctGate (Disabled)
+	2644 - Duct3DProductionCase.DirectionalSymmetry (Disabled)
+	2647 - LidDrivenCube3DProductionCase.CubeLevel32 (Disabled)
+	2648 - LidDrivenCube3DProductionCase.CubeLevel48 (Disabled)
+	2649 - LidDrivenCube3DProductionCase.CubeLevel64 (Disabled)
+	2650 - LidDrivenCube3DProductionCase.CubeGate (Disabled)
+	2763 - ChannelFlowValidation.KEpsilonFineConvergesAndMatchesLogLaw (Disabled)
+	2766 - ChannelFlowValidation.KOmegaFineConvergesAndMatchesLogLaw (Disabled)
+	2769 - ChannelFlowValidation.SSTFineConvergesAndMatchesLogLaw (Disabled)
+	2770 - ChannelFlowValidation.KEpsilonGridRefinementReducesReTauError (Disabled)
+	2777 - TurbulentChannelValidation.Study (Disabled)
+	2864 - SIMPLEMMS.FineGridStudy (Disabled)
+	2868 - MMS3DTest.OperatorRefinementStudy (Disabled)
+	2871 - MMSSimple3DTest.RefinementStudy (Disabled)
+	2874 - BackwardFacingStep.Converges (Disabled)
+	2875 - BackwardFacingStep.MassConservation (Disabled)
+	2876 - BackwardFacingStep.ReattachmentLength (Disabled)
+	2885 - DriverSeegmiller.ConvergenceBudgetDiagnostic (Disabled)
+
+The following tests FAILED:
+	1862 - G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue (Failed)
+	1866 - G8PremixedFlameTest.AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue (Failed)
+	2751 - SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate (Failed)
+	2755 - SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects (Failed)
+	2758 - SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590 (Failed)
+	2760 - SSTMomentumFluxChannel.FourWayComparisonAtReTau590 (Failed)
+	2887 - DriverSeegmiller.CorrectedMeshSequence (Failed)
+Errors while running CTest
+
+=== EXACT COUNTS
+  99% tests passed, 7 tests failed out of 2840
+  Total Test time (real) = 7144.02 sec
+
+=== FAILURES, if any
+  	1862 - G8PremixedFlameTest.TheConsumptionIntegralAgreesWithTheEigenvalue (Failed)
+  	1866 - G8PremixedFlameTest.AVariableConductivityChangesTheAnswerAndIsNotFrozenAtTheInletValue (Failed)
+  	2751 - SSTAutomaticWallChannel.DoesNotRegressTheAdoptedHighReGate (Failed)
+  	2755 - SSTAutomaticWallChannel.StaysWellBehavedOnMeshesTheHighRePathRejects (Failed)
+  	2758 - SSTCompositeWallChannel.DiscriminatingMeshesAtReTau590 (Failed)
+  	2760 - SSTMomentumFluxChannel.FourWayComparisonAtReTau590 (Failed)
+  	2887 - DriverSeegmiller.CorrectedMeshSequence (Failed)
+
+DONE 2026-10-11T03:03:07+10:00

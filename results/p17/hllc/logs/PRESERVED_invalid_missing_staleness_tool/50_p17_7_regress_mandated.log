@@ -1,0 +1,44 @@
+P17.7 -- regression   stage: mandated
+date: 2026-09-27T06:54:03Z
+gate: results/p17/hllc/acceptance_gate.md
+      frozen sha256 1f4ccd8af57f529e1654b2465df9e1c07124c22e0e8a500c56116372009a6465
+      live   sha256 1f4ccd8af57f529e1654b2465df9e1c07124c22e0e8a500c56116372009a6465
+      GATE INTEGRITY: MATCHES the freeze
+
+FROZEN exclusions (5 patterns, verbatim from G10_regress.sh):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200   (debug_gui: 14400)
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 1dbc248ee185c0de32cf14a06079ccf60ca3f999b18a95c49c1386b94f5b722f
+P17.6 close was          : cf4d53a2e6b090228f68d58bc9b452d324abd3dde03539a53a70f44542c70bdf (MOVES by the authorized P17.7 delta)
+
+newest PRODUCTION source: 2026-09-27T06:50:08Z  include/cfd/compressible/HllcFlux.hpp
+  (test sources are checked per-directory against their own binary, below)
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (53 s)
+
+--- section 8 step 3: every BUILT test binary newer than the sources it ACTUALLY COMPILES (FAIL CLOSED) ---
+python3: can't open file '/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p17/hllc/tools/staleness.py': [Errno 2] No such file or directory
+  *** STALE OR UNVERIFIABLE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---

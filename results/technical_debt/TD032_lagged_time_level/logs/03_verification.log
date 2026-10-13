@@ -1,0 +1,165 @@
+=== ENVIRONMENT
+date        2026-10-06T21:03:37+10:00
+nproc       32
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== STAGE A  rebuild, and prove the library CHANGED
+[1/2] Building CXX object src/CMakeFiles/cfdcore.dir/species/PremixedFlame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp: In function ‘cfd::species::PremixedFlameResult cfd::species::solvePremixedFlame(const cfd::species::PremixedFlameChemistry&, const cfd::species::PremixedFlameConditions&, const cfd::species::PremixedFlameSettings&)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp:708:14: warning: unused variable ‘seedSpeed’ [-Wunused-variable]
+  708 |   const Real seedSpeed = massFluxEstimate / rhoUnburnt;
+      |              ^~~~~~~~~
+[2/2] Linking CXX static library src/libcfdcore.a
+
+lagged library (frozen)  3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0
+fixed  library (now)     a9b01668be7ccb7f085f0dc65da0c7096d459c87797b0d650e05ba80974615cf
+the two libraries differ -- the comparison is between two real libraries
+
+f9f554bf9e1fe1fd29f6ce4c185e7d579fa5c5708958112bc83127e4a6717b6e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  (pre-fix was dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3)
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+  (pre-fix was d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e --
+   this one MUST be unchanged: the fix touches no header)
+
+--- the probe sources must be byte-identical to the frozen ones
+alternation_probe.cpp  6bf33900f7d56a4016e247b638ea0e8701f229347746c9c4ac5697d9b13cac82
+matches the frozen hash
+
+--- the test sources must be UNCHANGED by this item
+8c2be7e82efba3ec1e1de4b6486a614c22d625997f5735a0cf33588d9eabb9fd  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp
+da3566e1125d078612c70e6f1278e1d64a4d68c3fd80abc32da41f1578bff8ba  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/thermal/test_thermal_transient.cpp
+8a08f9f733967b598eafa35455165317e79e4b0641bbbbda00e1fe84ad1878a4  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/transport/test_scalar_transport.cpp
+  (compare against logs/00_freeze.log)
+
+=== STAGE B  C0, C1, C2  (and the raw numbers for C3(a), C4, C5, C7)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/alternation_probe.cpp -o /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_alternation_fixed /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+309c30cfc0561abd9dd51718d069ce31e621d0f02ca5a8324de11f3228b25b97  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_alternation_fixed
+
+TD-032 -- THE STEP-GAP ORDERING CRITERION
+
+  criterion   R = across/within <= 1.0, or (within <= 1e-09 K) -> across <= 1e-09 K
+  the exit code is NOT the verdict: on the unchanged tree C1 and C2 are EXPECTED
+  to FAIL, which is the gate's fail-direction non-vacuity and its C8 control.
+
+=== C0  INSTRUMENT SELF-TEST (no solver code at all)
+  (a) monotone relaxation, T_k = 300 + 1500 exp(-k/2)
+               across 5.902040e+02 K (cell 0)   within 9.481808e+02 K (cell 0)
+               R = across/within = 6.224593e-01   against the bound 1.0 -> PASS
+      must PASS with a MEANINGFUL ratio -> ok
+  (b) parity alternation with a within-branch drift of 0.001 K per step
+               across 1.500001e+03 K (cell 0)   within 2.000000e-03 K (cell 0)
+               R = across/within = 7.500005e+05   against the bound 1.0 -> FAIL
+      must FAIL on the RATIO -> ok
+  (c) a PURE alternation, within == 0 exactly
+               across 1.500000e+03 K (cell 0)   within 0.000000e+00 K (cell 0)
+               within <= 1e-09 K: THE RATIO IS VACUOUS and is NOT evaluated.
+               the gate's fallback applies: across <= 1e-09 K -> FAIL
+      must be VACUOUS and still FAIL via the fallback -> ok
+  (d) a STATIONARY field, across == within == 0
+               across 0.000000e+00 K (cell 0)   within 0.000000e+00 K (cell 0)
+               within <= 1e-09 K: THE RATIO IS VACUOUS and is NOT evaluated.
+               the gate's fallback applies: across <= 1e-09 K -> PASS
+      must be VACUOUS and PASS via the fallback -> ok
+
+  C0 VERDICT: PASS
+
+=== FIXTURE DETERMINATION for C2 (not a criterion)
+    250 cells, cap 5, relaxT 18, ceiling raised to 1e6 so the DERIVED budget wins
+    derived final march budget at 250 cells: 7260 steps  (65 s)
+    C2 will use 7256 .. 7260
+
+=== C1  500 cells / cap 5 / relaxT 18
+        budget   marchStp       S_L cm/s          T resid        sum dev       front mm     wall s
+         30945      30945        4.67194     1.841572e-05   3.947687e-07       1.940541        439
+         30946      30946        4.67194     1.841328e-05   3.947746e-07       1.940519        437
+         30947      30947        4.67194     1.841128e-05   3.947709e-07       1.940497        440
+         30948      30948        4.67194     1.840987e-05   3.947146e-07       1.940476        432
+         30949      30949        4.67194     1.840822e-05   3.945849e-07       1.940454        419
+
+               across 2.761992e-02 K (cell 108)   within 5.523685e-02 K (cell 108)
+               R = across/within = 5.000271e-01   against the bound 1.0 -> PASS
+
+    FOR C3/C4/C5/C7, at the last budget:
+      temperatureResidual  1.840822e-05   against C3's bound 1e-03 -> PASS
+      worstStateChange     5.105815e-02   (max over every judged step)
+      maxCompositionSumDeviation  3.945849e-07   <- C4's baseline, direction only
+      S_L                  4.671937 cm/s          <- C5's baseline
+      post-warm-up wall times 419 432 437 440 s, MEDIAN 434.8 s  <- C7
+
+=== C2  250 cells / cap 5 / relaxT 18
+        budget   marchStp       S_L cm/s          T resid        sum dev       front mm     wall s
+          7256       7256        4.82296     7.689498e-05   5.650393e-07       2.748260         60
+          7257       7257        4.82296     7.688393e-05   5.648730e-07       2.748173         59
+          7258       7258        4.82296     7.687288e-05   5.647938e-07       2.748086         59
+          7259       7259        4.82296     7.686184e-05   5.646771e-07       2.747998         59
+          7260       7260        4.82296     7.685079e-05   5.645223e-07       2.747911         59
+
+               across 1.153259e-01 K (cell 75)   within 2.306352e-01 K (cell 75)
+               R = across/within = 5.000359e-01   against the bound 1.0 -> PASS
+
+    FOR C3/C4/C5/C7, at the last budget:
+      temperatureResidual  7.685079e-05   against C3's bound 1e-03 -> PASS
+      worstStateChange     1.037193e-01   (max over every judged step)
+      maxCompositionSumDeviation  5.645223e-07   <- C4's baseline, direction only
+      S_L                  4.822961 cm/s          <- C5's baseline
+      post-warm-up wall times 59 59 59 59 s, MEDIAN 59.2 s  <- C7
+
+=== HOW TO READ THIS RUN
+  On the UNCHANGED tree, C1 and C2 FAILING is the REQUIRED result: it is the
+  fail-direction non-vacuity GATE.md section 2 demands and it is the C8 negative
+  control. C0 passing with a MEANINGFUL ratio in case (a) is what makes the pass
+  direction reachable. If C1 or C2 PASSED here, the gate would be vacuous and must
+  not be frozen.
+stage B exit: 0
+
+NOTE ON C2's FIXTURE. The frozen gate names budgets 7256..7260. The probe derives them from
+the fixture, and the derived budget scales as 1/S_L^2, so if S_L moved the derived budget
+moves too. The determination line above reports what was actually used. If it is not
+7256..7260 the run does NOT match the frozen fixture and that is a gate-execution deviation
+to be recorded and resolved, NOT papered over.
+
+=== STAGE C  C3(b)
+5ee7b6d8ab3cc8bfff2842b2f7c2dae7204bf4ae168abf9af2799837da31dc3e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_residual_fixed
+
+TD-032 -- C3(b) BASELINE: the per-step change against MARCH LENGTH
+
+  500 cells / cap 5, the gated fixture, with the step ceiling raised so the
+  DERIVED budget governs. A saturated quantity does not move; a converging
+  march's per-step change must FALL. C3(b) asks for a factor 2.0.
+
+  relaxT   marchStp            T resid      worstChange     S_L cm/s    wall s
+      18      30949   1.8408222791e-05     5.105815e-02      4.67194       413
+      26      44705   3.3041077386e-06     5.105815e-02      4.67194       535
+
+=== C3(b) ON THE LAGGED TREE
+    resid(26) / resid(18) = 0.179491   against the required <= 0.50
+    *** THE LAGGED TREE ALREADY HALVES THE RESIDUAL. C3(b) would be VACUOUS and
+        MUST NOT be frozen -- a criterion the defective tree already satisfies
+        discriminates nothing.
+stage C exit: 0
+
+NOTE ON READING STAGE C. That probe's own verdict text was written for the BASELINE, where
+'NO FALL' was the required result. Post-fix the required result is the OPPOSITE: the ratio
+must be <= 0.50. Read the RATIO, not the probe's commentary.
+
+=== STAGE D  C6  the three suites, rebuilt then run
+ok  tests/unit/io/CFDIoTests   646a71a12886502f...
+ok  tests/unit/app/CFDAppLayerTests   f195a2f9b4472cb4...
+ok  tests/unit/species/CFDSpeciesTests   6d96a2b82d382e1b...
+
+--- CFDIoTests                 (frozen expectation 331)
+    [----------] Global test environment tear-down
+    [==========] 331 tests from 24 test suites ran. (201 ms total)
+    [  PASSED  ] 331 tests.
+
+--- CFDAppLayerTests           (frozen expectation 32)
+    [----------] Global test environment tear-down
+    [==========] 32 tests from 5 test suites ran. (2487 ms total)
+    [  PASSED  ] 32 tests.
+
+--- CFDSpeciesTests, excluding G8PremixedFlameTest   (frozen expectation 343)
+    [----------] Global test environment tear-down
+    [==========] 343 tests from 56 test suites ran. (13597 ms total)
+    [  PASSED  ] 343 tests.
+
+DONE 2026-10-06T22:02:26+10:00

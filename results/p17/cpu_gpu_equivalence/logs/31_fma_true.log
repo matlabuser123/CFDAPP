@@ -1,0 +1,542 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DensityBasedGpuEquivalence*
+[==========] Running 15 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 15 tests from DensityBasedGpuEquivalence
+[ RUN      ] DensityBasedGpuEquivalence.A7_DeviceRecoveryMatchesProductionToPrimitiveBitwise
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:250: Failure
+Value of: r.bitwiseEqual()
+  Actual: false
+Expected: true
+133 of 1736 values differ; first 8:
+  p.pressure cell 0: cpu=110124.209815 gpu=110124.209815 (1 ulp)
+  p.temperature cell 0: cpu=310.955247 gpu=310.955247 (1 ulp)
+  p.pressure cell 7: cpu=120985.551357 gpu=120985.551357 (1 ulp)
+  p.temperature cell 7: cpu=281.489786 gpu=281.489786 (1 ulp)
+  p.speedOfSound cell 7: cpu=336.314837 gpu=336.314837 (1 ulp)
+  p.pressure cell 17: cpu=82488.578541 gpu=82488.578541 (1 ulp)
+  p.temperature cell 17: cpu=292.329944 gpu=292.329944 (1 ulp)
+  p.speedOfSound cell 17: cpu=342.729398 gpu=342.729398 (1 ulp)
+
+  A7 recovery: 1736 values compared, 133 differing
+[  FAILED  ] DensityBasedGpuEquivalence.A7_DeviceRecoveryMatchesProductionToPrimitiveBitwise (2102 ms)
+[ RUN      ] DensityBasedGpuEquivalence.B1_FaceFluxesAreBitwise
+  B1 face flux: 472 faces x 5 components, 713 differing
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:279: Failure
+Expected equality of these values:
+  differing
+    Which is: 713
+  0
+
+[  FAILED  ] DensityBasedGpuEquivalence.B1_FaceFluxesAreBitwise (2 ms)
+[ RUN      ] DensityBasedGpuEquivalence.B2_B4_ResidualIsBitwiseOnUniformAndGradedMeshes
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:317: Failure
+Value of: r.bitwiseEqual()
+  Actual: false
+Expected: true
+uniform_2d: 562 of 1085 values differ; first 8:
+  R.momentumX cell 0: cpu=3413.736243 gpu=3413.736243 (1 ulp)
+  R.totalEnergy cell 0: cpu=2756452.565010 gpu=2756452.565010 (2 ulp)
+  R.density cell 1: cpu=1.766165 gpu=1.766165 (8 ulp)
+  R.momentumX cell 1: cpu=1423.440639 gpu=1423.440639 (6 ulp)
+  R.totalEnergy cell 1: cpu=860105.301415 gpu=860105.301415 (20 ulp)
+  R.momentumX cell 2: cpu=1225.257910 gpu=1225.257910 (2 ulp)
+  R.totalEnergy cell 2: cpu=702680.728047 gpu=702680.728047 (1 ulp)
+  R.density cell 3: cpu=1.319838 gpu=1.319838 (12 ulp)
+
+  B2 uniform_2d     cells=217 volumeRatio=1.000 compared=1085 differing=562
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:317: Failure
+Value of: r.bitwiseEqual()
+  Actual: false
+Expected: true
+graded_2d: 232 of 510 values differ; first 8:
+  R.density cell 1: cpu=0.020239 gpu=0.020239 (12 ulp)
+  R.momentumX cell 1: cpu=16.795713 gpu=16.795713 (5 ulp)
+  R.totalEnergy cell 1: cpu=10555.707703 gpu=10555.707703 (5 ulp)
+  R.totalEnergy cell 2: cpu=16868.379815 gpu=16868.379815 (4 ulp)
+  R.momentumX cell 3: cpu=42.914356 gpu=42.914356 (2 ulp)
+  R.momentumY cell 3: cpu=-0.017693 gpu=-0.017693 (8192 ulp)
+  R.totalEnergy cell 3: cpu=26935.387706 gpu=26935.387706 (2 ulp)
+  R.momentumX cell 4: cpu=68.525983 gpu=68.525983 (3 ulp)
+
+  B2 graded_2d      cells=102 volumeRatio=6849.147 compared=510 differing=232
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:317: Failure
+Value of: r.bitwiseEqual()
+  Actual: false
+Expected: true
+cartesian_3d: 501 of 900 values differ; first 8:
+  R.density cell 0: cpu=1.372134 gpu=1.372134 (4 ulp)
+  R.momentumX cell 0: cpu=1454.519565 gpu=1454.519565 (1 ulp)
+  R.momentumY cell 0: cpu=19.638062 gpu=19.638062 (64 ulp)
+  R.totalEnergy cell 0: cpu=1075618.691322 gpu=1075618.691322 (1 ulp)
+  R.density cell 1: cpu=1.119718 gpu=1.119718 (4 ulp)
+  R.momentumX cell 1: cpu=776.299567 gpu=776.299567 (6 ulp)
+  R.totalEnergy cell 1: cpu=387584.105340 gpu=387584.105340 (5 ulp)
+  R.density cell 2: cpu=-0.158781 gpu=-0.158781 (12 ulp)
+
+  B2 cartesian_3d   cells=180 volumeRatio=1.000 compared=900 differing=501
+[  FAILED  ] DensityBasedGpuEquivalence.B2_B4_ResidualIsBitwiseOnUniformAndGradedMeshes (8 ms)
+[ RUN      ] DensityBasedGpuEquivalence.C1_C2_LocalAndGlobalTimeStepsAreBitwise
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:351: Failure
+Value of: r.bitwiseEqual()
+  Actual: false
+Expected: true
+27 of 102 values differ; first 8:
+  dt cell 2: cpu=0.000000 gpu=0.000000 (1 ulp)
+  dt cell 3: cpu=0.000000 gpu=0.000000 (1 ulp)
+  dt cell 4: cpu=0.000000 gpu=0.000000 (2 ulp)
+  dt cell 6: cpu=0.000001 gpu=0.000001 (3 ulp)
+  dt cell 9: cpu=0.000003 gpu=0.000003 (1 ulp)
+  dt cell 14: cpu=0.000013 gpu=0.000013 (1 ulp)
+  dt cell 17: cpu=0.000000 gpu=0.000000 (1 ulp)
+  dt cell 19: cpu=0.000000 gpu=0.000000 (1 ulp)
+
+  C1/C2: 102 local dt bitwise; global dt cpu=5.55587098248344881e-08 gpu=5.55587098248344881e-08
+[  FAILED  ] DensityBasedGpuEquivalence.C1_C2_LocalAndGlobalTimeStepsAreBitwise (3 ms)
+[ RUN      ] DensityBasedGpuEquivalence.C3_D1_D2_TrajectoryStaysBitwiseStepAfterStep
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:401: Failure
+Value of: cmp.bitwiseEqual()
+  Actual: false
+Expected: true
+step 1: 106 of 1025 values differ; first 8:
+  momentumY cell 0: cpu=0.660100 gpu=0.660100 (22 ulp)
+  totalEnergy cell 0: cpu=599300.159181 gpu=599300.159181 (1 ulp)
+  momentumY cell 1: cpu=0.764311 gpu=0.764311 (45 ulp)
+  momentumY cell 2: cpu=0.794951 gpu=0.794951 (46 ulp)
+  momentumY cell 3: cpu=0.823363 gpu=0.823363 (23 ulp)
+  momentumY cell 4: cpu=0.848723 gpu=0.848723 (46 ulp)
+  density cell 9: cpu=1.499855 gpu=1.499855 (1 ulp)
+  momentumY cell 12: cpu=0.880796 gpu=0.880796 (22 ulp)
+
+  D1 step   1: compared=1025 differing=106 dt=3.38038832493589418e-06
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525120443775724740
+  bitsOf(deviceDt)
+    Which is: 4525120443775724737
+dt differs at step 2
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:401: Failure
+Value of: cmp.bitwiseEqual()
+  Actual: false
+Expected: true
+step 2: 171 of 1025 values differ; first 8:
+  momentumY cell 0: cpu=0.592986 gpu=0.592986 (23 ulp)
+  momentumY cell 1: cpu=0.755185 gpu=0.755185 (22 ulp)
+  totalEnergy cell 1: cpu=624553.579091 gpu=624553.579091 (1 ulp)
+  momentumY cell 2: cpu=0.795399 gpu=0.795399 (46 ulp)
+  momentumX cell 3: cpu=1001.010159 gpu=1001.010159 (1 ulp)
+  momentumY cell 4: cpu=0.852497 gpu=0.852497 (46 ulp)
+  momentumY cell 5: cpu=0.875542 gpu=0.875542 (23 ulp)
+  momentumY cell 7: cpu=0.907350 gpu=0.907350 (23 ulp)
+
+  D1 step   2: compared=1025 differing=171 dt=3.39237437508229838e-06
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:401: Failure
+Value of: cmp.bitwiseEqual()
+  Actual: false
+Expected: true
+step 5: 319 of 1025 values differ; first 8:
+  momentumY cell 0: cpu=0.431005 gpu=0.431005 (91 ulp)
+  momentumX cell 1: cpu=911.717296 gpu=911.717296 (1 ulp)
+  momentumY cell 1: cpu=0.695471 gpu=0.695471 (136 ulp)
+  momentumY cell 2: cpu=0.787359 gpu=0.787359 (92 ulp)
+  density cell 3: cpu=1.345417 gpu=1.345417 (1 ulp)
+  momentumY cell 3: cpu=0.829425 gpu=0.829425 (45 ulp)
+  momentumY cell 4: cpu=0.861835 gpu=0.861835 (23 ulp)
+  momentumY cell 5: cpu=0.889527 gpu=0.889527 (68 ulp)
+
+  D1 step   5: compared=1025 differing=319 dt=3.40273577357818650e-06
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525154046460602355
+  bitsOf(deviceDt)
+    Which is: 4525154046460602353
+dt differs at step 7
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525160173226173847
+  bitsOf(deviceDt)
+    Which is: 4525160173226173845
+dt differs at step 8
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:401: Failure
+Value of: cmp.bitwiseEqual()
+  Actual: false
+Expected: true
+step 10: 463 of 1025 values differ; first 8:
+  momentumX cell 0: cpu=843.934875 gpu=843.934875 (1 ulp)
+  momentumY cell 0: cpu=0.254632 gpu=0.254632 (230 ulp)
+  momentumX cell 1: cpu=877.922770 gpu=877.922770 (1 ulp)
+  momentumY cell 1: cpu=0.551400 gpu=0.551400 (249 ulp)
+  density cell 2: cpu=1.263945 gpu=1.263945 (2 ulp)
+  momentumY cell 2: cpu=0.730892 gpu=0.730892 (229 ulp)
+  totalEnergy cell 2: cpu=616012.696435 gpu=616012.696435 (1 ulp)
+  density cell 3: cpu=1.317879 gpu=1.317879 (1 ulp)
+
+  D1 step  10: compared=1025 differing=463 dt=3.41482663654204133e-06
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525180389799333532
+  bitsOf(deviceDt)
+    Which is: 4525180389799333530
+dt differs at step 12
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525189867060519782
+  bitsOf(deviceDt)
+    Which is: 4525189867060519781
+dt differs at step 14
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525195434071336553
+  bitsOf(deviceDt)
+    Which is: 4525195434071336552
+dt differs at step 15
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525201389906140194
+  bitsOf(deviceDt)
+    Which is: 4525201389906140192
+dt differs at step 16
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525204265205083581
+  bitsOf(deviceDt)
+    Which is: 4525204265205083578
+dt differs at step 17
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525207613143143167
+  bitsOf(deviceDt)
+    Which is: 4525207613143143166
+dt differs at step 18
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525211408220759850
+  bitsOf(deviceDt)
+    Which is: 4525211408220759848
+dt differs at step 19
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525215619504067712
+  bitsOf(deviceDt)
+    Which is: 4525215619504067711
+dt differs at step 20
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525220211735690303
+  bitsOf(deviceDt)
+    Which is: 4525220211735690298
+dt differs at step 21
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525225146401781672
+  bitsOf(deviceDt)
+    Which is: 4525225146401781669
+dt differs at step 22
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525229211987072540
+  bitsOf(deviceDt)
+    Which is: 4525229211987072537
+dt differs at step 23
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525232135316637577
+  bitsOf(deviceDt)
+    Which is: 4525232135316637574
+dt differs at step 24
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525235402244775817
+  bitsOf(deviceDt)
+    Which is: 4525235402244775815
+dt differs at step 25
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:401: Failure
+Value of: cmp.bitwiseEqual()
+  Actual: false
+Expected: true
+step 25: 629 of 1025 values differ; first 8:
+  momentumX cell 0: cpu=835.961456 gpu=835.961456 (1 ulp)
+  momentumY cell 0: cpu=0.049555 gpu=0.049555 (2217 ulp)
+  density cell 1: cpu=1.178370 gpu=1.178370 (1 ulp)
+  momentumX cell 1: cpu=836.527820 gpu=836.527820 (1 ulp)
+  momentumY cell 1: cpu=0.190306 gpu=0.190306 (1642 ulp)
+  momentumX cell 2: cpu=852.219764 gpu=852.219764 (2 ulp)
+  momentumY cell 2: cpu=0.389992 gpu=0.389992 (920 ulp)
+  density cell 3: cpu=1.227462 gpu=1.227462 (1 ulp)
+
+  D1 step  25: compared=1025 differing=629 dt=3.44106118050838639e-06
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525238990322870025
+  bitsOf(deviceDt)
+    Which is: 4525238990322870023
+dt differs at step 26
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525242874446250080
+  bitsOf(deviceDt)
+    Which is: 4525242874446250076
+dt differs at step 27
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525247027400133920
+  bitsOf(deviceDt)
+    Which is: 4525247027400133917
+dt differs at step 28
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525251420391318101
+  bitsOf(deviceDt)
+    Which is: 4525251420391318096
+dt differs at step 29
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525254630735355342
+  bitsOf(deviceDt)
+    Which is: 4525254630735355340
+dt differs at step 30
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525257475544442334
+  bitsOf(deviceDt)
+    Which is: 4525257475544442333
+dt differs at step 31
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525260582198147646
+  bitsOf(deviceDt)
+    Which is: 4525260582198147645
+dt differs at step 32
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525263931361501019
+  bitsOf(deviceDt)
+    Which is: 4525263931361501014
+dt differs at step 33
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525267502232841626
+  bitsOf(deviceDt)
+    Which is: 4525267502232841624
+dt differs at step 34
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525271272863875173
+  bitsOf(deviceDt)
+    Which is: 4525271272863875172
+dt differs at step 35
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525277941055033065
+  bitsOf(deviceDt)
+    Which is: 4525277941055033062
+dt differs at step 37
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525283606463032320
+  bitsOf(deviceDt)
+    Which is: 4525283606463032319
+dt differs at step 39
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525286731312441794
+  bitsOf(deviceDt)
+    Which is: 4525286731312441792
+dt differs at step 40
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525290027736084046
+  bitsOf(deviceDt)
+    Which is: 4525290027736084044
+dt differs at step 41
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525293477466184856
+  bitsOf(deviceDt)
+    Which is: 4525293477466184854
+dt differs at step 42
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525299392851664931
+  bitsOf(deviceDt)
+    Which is: 4525299392851664929
+dt differs at step 44
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525302005037536243
+  bitsOf(deviceDt)
+    Which is: 4525302005037536241
+dt differs at step 45
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525307711102008564
+  bitsOf(deviceDt)
+    Which is: 4525307711102008565
+dt differs at step 47
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:394: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4525310775139820246
+  bitsOf(deviceDt)
+    Which is: 4525310775139820247
+dt differs at step 48
+
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:401: Failure
+Value of: cmp.bitwiseEqual()
+  Actual: false
+Expected: true
+step 50: 704 of 1025 values differ; first 8:
+  momentumY cell 0: cpu=-0.000120 gpu=-0.000120 (554564 ulp)
+  density cell 1: cpu=1.188159 gpu=1.188159 (1 ulp)
+  momentumX cell 1: cpu=835.690660 gpu=835.690660 (1 ulp)
+  momentumY cell 1: cpu=0.004080 gpu=0.004080 (8167 ulp)
+  density cell 2: cpu=1.179615 gpu=1.179615 (1 ulp)
+  momentumY cell 2: cpu=0.024023 gpu=0.024023 (6559 ulp)
+  totalEnergy cell 2: cpu=547033.855792 gpu=547033.855792 (1 ulp)
+  momentumX cell 3: cpu=833.964398 gpu=833.964398 (2 ulp)
+
+  D1 step  50: compared=1025 differing=704 dt=3.47554142476449206e-06
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:407: Failure
+Expected equality of these values:
+  firstDivergence
+    Which is: 1
+  0u
+    Which is: 0
+CPU and GPU first diverged at step 1
+
+  D2: no divergence through 50 steps
+[  FAILED  ] DensityBasedGpuEquivalence.C3_D1_D2_TrajectoryStaysBitwiseStepAfterStep (43 ms)
+[ RUN      ] DensityBasedGpuEquivalence.D3_SodShockTubeIsBitwiseThroughTheWholeRun
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:441: Failure
+Expected equality of these values:
+  bitsOf(dt)
+    Which is: 4518406206798352050
+  bitsOf(deviceDt)
+    Which is: 4518406206798352051
+dt differs at Sod step 5
+
+[  FAILED  ] DensityBasedGpuEquivalence.D3_SodShockTubeIsBitwiseThroughTheWholeRun (5 ms)
+[ RUN      ] DensityBasedGpuEquivalence.B5_InteriorFaceContributionsCancelExactlyInTheGather
+  B5: 510 values rebuilt from the device face fluxes, 0 differing; 362 interior cell-face references
+[       OK ] DensityBasedGpuEquivalence.B5_InteriorFaceContributionsCancelExactlyInTheGather (2 ms)
+[ RUN      ] DensityBasedGpuEquivalence.C4_InadmissibleStatesAreRefusedByBothNamingTheSameCell
+  C4 kinetic_exceeds_total  cpu cell=9  gpu first=9 of 2 offenders  status=5
+  C4 non_positive_density   cpu cell=9  gpu first=9 of 2 offenders  status=2
+  C4 non_finite_energy      cpu cell=9  gpu first=9 of 2 offenders  status=4
+[       OK ] DensityBasedGpuEquivalence.C4_InadmissibleStatesAreRefusedByBothNamingTheSameCell (3 ms)
+[ RUN      ] DensityBasedGpuEquivalence.D4_DetectedWavePositionsAgreeOnBothBackends
+  D4 profile: n=200  rho in [0.12500, 1.00000]  max adjacent jump 0.02330
+  D4 sample: 1.0000 1.0000 1.0000 0.9697 0.7062 0.4319 0.4038 0.2655 0.1251 0.1250
+  D4: shock cpu=0.7649115536763863 gpu=0.7649115536763863 bitwise=YES, transition width cpu=7 gpu=7, 200 centreline cells
+[       OK ] DensityBasedGpuEquivalence.D4_DetectedWavePositionsAgreeOnBothBackends (259 ms)
+[ RUN      ] DensityBasedGpuEquivalence.R2_R5_GpuIsBitwiseRepeatableAndBlockSizeIndependent
+  R2/R5: 30 steps; repeat bitwise=YES; 64 vs 128 threads bitwise=YES
+[       OK ] DensityBasedGpuEquivalence.R2_R5_GpuIsBitwiseRepeatableAndBlockSizeIndependent (39 ms)
+[ RUN      ] DensityBasedGpuEquivalence.T2_TheUploadDownloadPairIsExactlyInverse
+  T2: 460 values round-tripped unchanged
+[       OK ] DensityBasedGpuEquivalence.T2_TheUploadDownloadPairIsExactlyInverse (1 ms)
+[ RUN      ] DensityBasedGpuEquivalence.T1_AResidentRunDoesNotRoundTripTheStatePerStep
+  T1: 20 steps, 180 kernel launches, H2D=0, D2H=40 (a per-step state round trip would be 100 D2H), resident bytes=50488
+[       OK ] DensityBasedGpuEquivalence.T1_AResidentRunDoesNotRoundTripTheStatePerStep (9 ms)
+[ RUN      ] DensityBasedGpuEquivalence.V_NegativeControls_EachBreaksItsNamedCriterion
+  production (all controls off) 562 of 1085 residual values differ
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/gpu/test_density_based_gpu_equivalence.cpp:848: Failure
+Expected equality of these values:
+  residualDifferencesUnder(DeviceControls{}, "production (all controls off)")
+    Which is: 562
+  0u
+    Which is: 0
+
+  V1 HLL instead of HLLC       868 of 1085 residual values differ
+  V3 reversed gather order     832 of 1085 residual values differ
+  V4 neighbour's own normal    562 of 1085 residual values differ
+[  FAILED  ] DensityBasedGpuEquivalence.V_NegativeControls_EachBreaksItsNamedCriterion (6 ms)
+[ RUN      ] DensityBasedGpuEquivalence.V6_CflSoundSpeedFromTheMeanTemperatureBreaksC1
+  V6 sound from mean T: 217 of 217 dt values differ
+[       OK ] DensityBasedGpuEquivalence.V6_CflSoundSpeedFromTheMeanTemperatureBreaksC1 (1 ms)
+[ RUN      ] DensityBasedGpuEquivalence.Trap6_AnUnmappedBoundaryPatchIsRefusedByBothBackends
+  trap6: cpu refused=YES, device refused=YES (boundary patch "right" has no density-based boundary treatment; every patch must be given one explicitly (an unmapped patch is not assumed to be a wall))
+[       OK ] DensityBasedGpuEquivalence.Trap6_AnUnmappedBoundaryPatchIsRefusedByBothBackends (0 ms)
+[----------] 15 tests from DensityBasedGpuEquivalence (2502 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 1 test suite ran. (2504 ms total)
+[  PASSED  ] 8 tests.
+[  FAILED  ] 7 tests, listed below:
+[  FAILED  ] DensityBasedGpuEquivalence.A7_DeviceRecoveryMatchesProductionToPrimitiveBitwise
+[  FAILED  ] DensityBasedGpuEquivalence.B1_FaceFluxesAreBitwise
+[  FAILED  ] DensityBasedGpuEquivalence.B2_B4_ResidualIsBitwiseOnUniformAndGradedMeshes
+[  FAILED  ] DensityBasedGpuEquivalence.C1_C2_LocalAndGlobalTimeStepsAreBitwise
+[  FAILED  ] DensityBasedGpuEquivalence.C3_D1_D2_TrajectoryStaysBitwiseStepAfterStep
+[  FAILED  ] DensityBasedGpuEquivalence.D3_SodShockTubeIsBitwiseThroughTheWholeRun
+[  FAILED  ] DensityBasedGpuEquivalence.V_NegativeControls_EachBreaksItsNamedCriterion
+
+ 7 FAILED TESTS

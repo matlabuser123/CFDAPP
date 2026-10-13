@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <optional>
 #include <string_view>
 
 namespace cfd {
@@ -13,6 +14,15 @@ enum class LogLevel : int {
   Error = 4,
 };
 
+// P13-005: the one place a level name is parsed, so the CLI, the GUI and any
+// future client share a vocabulary instead of each inventing one. Returns
+// std::nullopt for an unrecognised name -- the caller decides whether that is
+// a usage error, and can name the valid values from levelNames() rather than
+// hardcoding a second copy of them.
+[[nodiscard]] std::optional<LogLevel> parseLogLevel(std::string_view name) noexcept;
+[[nodiscard]] std::string_view logLevelName(LogLevel level) noexcept;
+[[nodiscard]] std::string_view logLevelNames() noexcept;
+
 // Process-wide logger singleton. Deliberately dependency-free (no Qt, no
 // GUI, no JSON) so the numerical core stays usable headless -- from the
 // CLI, from validation scripts, or from a future GUI that only displays
@@ -20,6 +30,12 @@ enum class LogLevel : int {
 // interleaving output.
 //
 // Usage: cfd::Logger::instance().info("Starting SIMPLE solver");
+//
+// P13-005: EVERY level writes to stderr. stdout belongs to the program's
+// results -- the CLI's report is parsed by scripts and asserted on by tests --
+// and a diagnostic that lands there corrupts it. Keeping the two channels
+// apart is what makes `cfdapp --case x > report.txt 2> diagnostics.log` work,
+// and what let the diagnostics below be added at all.
 class Logger {
  public:
   static Logger& instance();

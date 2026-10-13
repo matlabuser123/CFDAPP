@@ -1,0 +1,76 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-06T17:26:28+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+[1/2] Building CXX object src/CMakeFiles/cfdcore.dir/species/PremixedFlame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp: In function ‘cfd::species::PremixedFlameResult cfd::species::solvePremixedFlame(const cfd::species::PremixedFlameChemistry&, const cfd::species::PremixedFlameConditions&, const cfd::species::PremixedFlameSettings&)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp:708:14: warning: unused variable ‘seedSpeed’ [-Wunused-variable]
+  708 |   const Real seedSpeed = massFluxEstimate / rhoUnburnt;
+      |              ^~~~~~~~~
+[2/2] Linking CXX static library src/libcfdcore.a
+build exit: 0
+
+=== PROVENANCE of what is being measured
+3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-06 17:27:04.163455000
+  src  2026-10-06 17:25:10.589062700
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD031_final_march_length/tools/localise_probe.cpp -o /tmp/td031_localise /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-031 -- LOCALISING the per-step state change
+
+  500 cells / cap 5. relaxT 18 is CONVERGED and relaxT 10 is a TRANSIENT, by three
+  independent measurements (front, balance, thickness) in logs/01, logs/02 and
+  TD-027 logs/01. Front region is cell ~175; the ends are cell 0 and 499.
+
+================= relaxT 18  (CONVERGED)   1054 s
+  S_L 4.67194 cm/s   balance 8.4699e-02   delta 1.2781 mm   front +1.76 cells
+
+  BITWISE NEUTRALITY of the diagnostic
+    temperatureResidual  9.89369596075139746e-01
+    pre-diagnostic       9.8937e-01   (logs/03)
+    agrees to the recorded precision: YES
+
+  LOCALISATION
+    worstStateChange              9.895679e-01   (max over EVERY judged step)
+    worstStateChangeCell          35   <- NEITHER an end nor the front: both suspicions were wrong
+    worstStateChangeWasRecentred  no
+    worstStateChangeNoRecentre    9.895679e-01   <- the FRAME-FOLLOWING steadiness
+    finalMarchRecentrings         7 of 30949 steps
+
+================= relaxT 10  (TRANSIENT)   805 s
+  S_L 4.67194 cm/s   balance 9.3590e-02   delta 0.9821 mm   front -34.73 cells
+
+  BITWISE NEUTRALITY of the diagnostic
+    temperatureResidual  3.52636792211228456e-01
+    pre-diagnostic       3.5264e-01   (logs/03)
+    agrees to the recorded precision: YES
+
+  LOCALISATION
+    worstStateChange              3.526368e-01   (max over EVERY judged step)
+    worstStateChangeCell          160   <- the FRONT region: implicates gradient x shift
+    worstStateChangeWasRecentred  no
+    worstStateChangeNoRecentre    3.526368e-01   <- the FRAME-FOLLOWING steadiness
+    finalMarchRecentrings         1 of 17194 steps
+
+=== READING
+  If worstStateChangeNoRecentre is ORDERS below worstStateChange, the saturation is
+  the frame translation and clause (a) should use the no-recentre quantity.
+  If the two are COMPARABLE, the translation is not the cause and the saturation is
+  in the physics or in the step itself -- which would need its own investigation
+  before any convergence criterion can rest on a per-step change at all.
+  And if the CONVERGED and TRANSIENT levels do not separate on the no-recentre
+  quantity either, clause (a) cannot be made to work and (b)+(c) must carry it.
+
+probe exit: 0

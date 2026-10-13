@@ -1,0 +1,80 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-07T22:55:33+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+be2520b7fb56293175112ca8726d7b53f2f3c23e03309c7f832b4292165717e5  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+8c85bc9f5f457bf22e1c19143db35a9e28db9ae957a1139f503d88da5e6eae2a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-07 18:39:08.482085800
+  src  2026-10-07 18:38:39.459989800
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/fuel_budget_probe.cpp -o /tmp/td005_budget /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 -- TERM-BY-TERM FUEL BUDGET on the CONVERGED dt/4 state
+
+  500 cells, dt = 9.4243e-06 s (D = 0.833). logs/19: the march converges by relaxT 18
+  and the steady residual is 8.48e-02, failing C3 (< 0.05) by 1.7x.
+  The solver's balance (PremixedFlame.cpp:1650) is a THREE-term budget:
+    |convection - reaction - inletDiffusion| / fuelThrough
+  so it omits the OUTLET diffusive flux and the ACCUMULATION term. Both are
+  measured here -- accumulation from the inventory difference between two marches.
+
+--- relaxT 22, 37827 march steps
+    S_L 4.67194 cm/s   S_c 4.85515 cm/s   mismatch 0.0392   reported balance 8.8870e-02
+    Y_F[0] 4.996720579e-02   Y_F[last] -4.2982e-12   inventory 6.348814e-05 kg/m2
+
+    TERM                      kg/(m^2 s)     as % of fuelThrough
+    fuelThrough (normaliser)   2.751859e-03      100.000 %
+    convection                -2.751859e-03     -100.000 %
+    reaction                  -2.859773e-03     -103.922 %
+    inlet diffusion           -1.366426e-04       -4.965 %
+    ---- in the solver's balance above this line ----
+    outlet diffusion OMITTED  -7.809495e-13       -0.000 %
+
+    gap = convection - reaction - inletDiff =   2.445568e-04  (8.887 %)
+    recomputed residual 8.886967e-02   reported 8.886967e-02   agree: YES
+
+--- relaxT 26, 44705 march steps
+    S_L 4.67194 cm/s   S_c 4.85311 cm/s   mismatch 0.0388   reported balance 9.2159e-02
+    Y_F[0] 4.996474542e-02   Y_F[last] -1.3214e-11   inventory 6.150235e-05 kg/m2
+
+    TERM                      kg/(m^2 s)     as % of fuelThrough
+    fuelThrough (normaliser)   2.751859e-03      100.000 %
+    convection                -2.751859e-03     -100.000 %
+    reaction                  -2.858573e-03     -103.878 %
+    inlet diffusion           -1.468941e-04       -5.338 %
+    ---- in the solver's balance above this line ----
+    outlet diffusion OMITTED  -3.307142e-11       -0.000 %
+
+    gap = convection - reaction - inletDiff =   2.536082e-04  (9.216 %)
+    recomputed residual 9.215889e-02   reported 9.215889e-02   agree: YES
+
+=== THE ACCUMULATION TERM, from the two snapshots
+    inventory  6.348814209e-05 -> 6.150235197e-05 kg/m2      change -1.985790e-06
+    elapsed    6878 steps = 6.482034e-02 s
+    d/dt(inventory) = -3.063530e-05 kg/(m^2 s)   = -1.1133 % of fuelThrough
+
+    the gap to explain          +2.445568e-04  (8.887 %)
+    accumulation                -3.063530e-05  (-1.113 %)
+    outlet diffusion (omitted)  -7.809495e-13  (-0.000 %)
+    UNEXPLAINED REMAINDER       +2.751921e-04  (10.000 %)
+
+=== READING
+    NEITHER omitted term explains the gap: the remainder is 10.000 % of
+    fuelThrough. That is a genuine flux imbalance among convection, reaction and
+    the inlet flux, and the table above says which of them carries it.
+
+probe exit: 0

@@ -1,0 +1,38 @@
+P13 G5 -- steps 7 (CLI/GUI export equivalence), 9 (hygiene), 10 (fingerprint)
+date: 2026-09-24T20:58:50Z
+
+### Step 7 -- the frozen CLI/GUI export criterion (P13-003 E8) ###
+  ctest rc=0
+  100% tests passed, 0 tests failed out of 9
+
+  how aliasing is excluded in that harness (read from the source):
+    164:  // The exported bytes, read while THIS arm's files were the ones on disk.
+    166:  // overwrites the first: each arm must snapshot its own bytes as it goes, or
+    222:  ASSERT_NE(static_cast<int>(gui.arm), static_cast<int>(cli.arm))
+    281:  EXPECT_EQ(gui.metadata, cli.metadata);
+
+### Step 9 -- filesystem hygiene ###
+  repo-root strays (x.ckpt, *.csv, *.vtk, *.ckpt, stray results dirs):
+    none
+  untracked engineering files vs the G5 baseline count:
+    122
+  control markers left in src/:
+    none -- clean
+  committed P13-004 evidence untouched?
+    00_partial_write_BASELINE.log                                  UNCHANGED
+    01_partial_write_AFTER.log                                     UNCHANGED
+    N1-after.log                                                   UNCHANGED
+    final.log                                                      UNCHANGED
+    partial_write_probe.cpp                                        UNCHANGED
+
+### Step 10 -- SOURCE_FINGERPRINT_V2 after G5 ###
+    tracked engineering files changed : 112
+    untracked engineering+output files: 122
+      of which solver-output files    : 8
+  SOURCE_FINGERPRINT_V2 = 8652dda040ac451e0fab8491fa90f495976513a91a30a45ef71cbf65eb0f292c
+    tracked diff sha256      : 2f71bb14e75e1b00d9ffd1d761e180e7a9d22b0c69b2c5cdeccfa3406bad8484
+    untracked contents sha256: 3e5e17a20baccdc8a5e166d6e69c2f22b81b81668fa5a44f04585e759744675b
+    untracked ENGINEERING source : 750012b4b74afcee75dee8291745dbbd0e9e4e5c90bbc7aecd4e1e809bcda377
+    untracked SOLVER OUTPUT      : 3bf622aa72e8e0d3b59c21ff7f57e27b2eef6366f73ad6be04e14d2009e45d74
+
+  V2 before G5: 8652dda040ac451e0fab8491fa90f495976513a91a30a45ef71cbf65eb0f292c

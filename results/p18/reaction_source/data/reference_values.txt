@@ -1,0 +1,33 @@
+=== P18.4 INDEPENDENT REFERENCE VALUES ===
+Plain IEEE double arithmetic, computed OUTSIDE CFDApp. No CFDApp code involved.
+
+--- section 36: a hand-verifiable reaction with DYADIC molecular weights ---
+A + 2B -> C, with M chosen as exact powers of two so M_A + 2 M_B = M_C is EXACT in binary.
+  M_A = 0.0625  M_B = 0.03125  M_C = 0.125
+  net nu: A=-1  B=-2  C=+1
+  mass residual sum_i M_i nu_i = 0.0   EXACTLY ZERO: True
+  with q = 3.0:
+    omega_A = M*nu*q = 0.0625 * -1 * 3.0 = -0.1875
+    omega_B = M*nu*q = 0.03125 * -2 * 3.0 = -0.1875
+    omega_C = M*nu*q = 0.125 * 1 * 3.0 = 0.375
+    sum omega = 0.0
+
+--- section 37: 2 H2 + O2 -> 2 H2O, recognizable ---
+  M_H2 = 0.002016  M_O2 = 0.031998
+  M_H2O DERIVED as (2 M_H2 + M_O2)/2 = 0.018015
+    (the physical value is 0.018015; the derived one is 0.018015, differing by 0.000e+00 -- using the derived value makes the balance exact so the test measures the SOURCE code, not the roundness of a handbook number)
+  mass residual = 0.0   EXACTLY ZERO: True
+  with q = 0.5:
+    omega_H2 = -0.002016
+    omega_O2 = -0.015999
+    omega_H2O = 0.018015
+    sum omega = 0.0
+
+  molar consumption ratio |n_H2|/|n_O2| = nu'_H2/nu'_O2 = 2/1 = 2
+  mass ratio |omega_H2|/|omega_O2| = 0.12600787549221826
+    = (2 M_H2)/(1 M_O2) = 0.12600787549221826   -- NOT 2, because mass != moles
+
+--- section 31: the mol/kmol control ---
+  M_O2 in kg/mol  = 0.031998          -> omega_O2 = -0.015999
+  M_O2 in kg/kmol = 31.997999999999998     -> omega_O2 = -15.998999999999999
+  ratio = 1000.0x  -- unmistakable

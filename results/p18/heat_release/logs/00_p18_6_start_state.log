@@ -1,0 +1,47 @@
+=== P18.6 START STATE ===
+date: 2026-10-01T05:07:38Z
+authorized: P18.6 Heat-Release Coupling. P18.7/P18.8/P18.9 NOT authorized.
+
+--- the frozen gate, re-verified at OPEN ---
+  actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+--- predecessor frozen docs, re-verified (none may be edited by P18.6) ---
+  species_transport/formulation.md                               11c2f0c05b050332
+  species_transport/audit.md                                     5033351ed35a3381
+  mixture_properties/formulation.md                              942f2ce79b716621
+  mixture_properties/audit.md                                    85b8c609c8f21b4c
+  reaction_source/audit.md                                       d4717b9938bfa76c
+  arrhenius_chemistry/formulation.md                             9362c7289979a849
+  arrhenius_chemistry/formulation_A1.md                          bb439f15376a0fb9
+  arrhenius_chemistry/audit.md                                   b65712699ce11ada
+
+--- the production files P18.6 may consume but MUST NOT duplicate ---
+  include/cfd/thermal/Enthalpy.hpp                     8aebd9d8c693ae2066b225331f5e04860095b43da5ca2a80ac050eca14b82666
+  include/cfd/thermal/EnergyEquation.hpp               6fa846217f09cafb982cbe01690e8e0aa6a61f35105babc3894f4d6e0ac5876e
+  include/cfd/species/MixtureThermodynamics.hpp        58d9cf18b8b298664be50b6d9d75b132db1fa62e88b054a86d932361194ca540
+  include/cfd/species/ReactionMechanism.hpp            0e0b8829ab4a14389c145392055921c8d4bb79c3eafbc48dbb450c27db46a5d2
+  include/cfd/species/ArrheniusKinetics.hpp            44d6561f14bf23c1d81a4013cb641e281c65464da0c880bf39db517ffc7e5e58
+  include/cfd/compressible/TotalEnergy.hpp             a15726f9ffce7f14871f18446ad70129df4c9b34de5d3e8fdaf855abbabe265d
+  src/thermal/Enthalpy.cpp                             9e7e758fba65f7c22e91f1624df8d4d71f8c4d818da4a295f5e43a0485fb1dee
+  src/thermal/EnergyEquation.cpp                       910214817717b6e8f95ff7c0f8c0294c875b9c316244320a4cdb04a24db2b3e5
+  src/species/MixtureThermodynamics.cpp                313928eb1d175532da4da14036e045eff75bc58bb6092438d70b680c9e783f8f
+  src/species/ReactionMechanism.cpp                    0145fab31061a97ceb7eb72e752e7fe17057a97370e6d30365d7d649205de236
+  src/species/ArrheniusKinetics.cpp                    ba095f0e5ec785bf89f70834bf9359455bd3a901600372890ceceae6722af795
+  src/compressible/TotalEnergy.cpp                     23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5
+
+--- baseline test counts (P18.5 close) ---
+  CFDSpeciesTests  241   (expect 241)
+  CFDThermalTests  163
+  CFDCompressibleTests  215
+  CFDTransportTests  22
+  CFDTurbulenceTests  247
+
+--- regression baseline (P18.5 close, to be the P18.6 prediction base) ---
+  release_cuda  2967 selected, 2916 Passed, 0 FAILED, 2 Skipped, 49 DISABLED
+  cpu_only      2744 selected, 2697 Passed, 0 FAILED, 0 Skipped, 47 DISABLED
+  debug_gui     3029 selected, 2974 Passed, 4 FAILED, 2 Skipped, 49 DISABLED
+
+--- git ---
+  HEAD 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  results/validation modified: 0  (must be 0)

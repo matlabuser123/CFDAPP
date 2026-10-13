@@ -1,0 +1,215 @@
+P18.8 AMENDMENT A2 -- THE FRESH RERUN.
+CLAUDE.md 5.3 step 6: rerun fresh, reuse no earlier result. Both links rebuilt and rerun
+from the post-amendment sources below; no figure here is carried over from before A2.
+date (WSL): 2026-10-02T03:24:50Z
+
+=== the frozen gate being executed ===
+f0973e34068930d119aed6a485646e05e3947945ec898c8d1346181f454d11fe  results/p18/cpu_gpu_equivalence/acceptance_gate_A2.md
+3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03  results/p18/cpu_gpu_equivalence/acceptance_gate.md
+921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+expected A2:       f0973e34068930d119aed6a485646e05e3947945ec898c8d1346181f454d11fe
+expected original: 3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03
+expected P18_GATES 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+=== clean-first rebuild of both test targets (CLAUDE.md 8) ===
+ninja: no work to do.
+[ 91%] Built target cfdcore
+Consolidate compiler generated dependencies of target CFDSpeciesTests
+[100%] Built target CFDSpeciesTests
+
+=== binaries newer than the newest production source? ===
+newest production source: cuda/kernels/DeviceSpeciesFmadControl.cu  (02:55:29)
+  OK   build/qual-final/tests/unit/gpu/CFDGpuTests is newer (03:18:09)
+  OK   build/final/tests/unit/species/CFDSpeciesTests is newer (03:24:41)
+
+sha256(CFDGpuTests):      5146e838ed1e83f61bb988941138397e73db2503ee1d81cd7241cfe0ff5f937a
+sha256(CFDSpeciesTests):  142d211d1e2ba98b91db2d6bafe59c0aa3a9aa02fc1d5586c7afd6d90976e917
+sha256(libcfdcuda.a):     55e2edcf879835f4c60d316d34cdfe67a1279e22ab1034a60355954bcb7cb10e
+
+=== LINK ONE: host restatement vs production (CPU-only build/final) ===
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = P188*
+[==========] Running 17 tests from 9 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from P188RestatementTest
+[ RUN      ] P188RestatementTest.TheUniversalGasConstantIsTheSameLiteral
+[       OK ] P188RestatementTest.TheUniversalGasConstantIsTheSameLiteral (0 ms)
+[ RUN      ] P188RestatementTest.TheTestMechanismsFitTheDeviceCapacity
+[       OK ] P188RestatementTest.TheTestMechanismsFitTheDeviceCapacity (0 ms)
+[----------] 2 tests from P188RestatementTest (1 ms total)
+
+[----------] 2 tests from P188MixturePropertyTest
+[ RUN      ] P188MixturePropertyTest.EveryMixturePropertyIsBitwise
+[       OK ] P188MixturePropertyTest.EveryMixturePropertyIsBitwise (0 ms)
+[ RUN      ] P188MixturePropertyTest.N1_N2_PermutingSpeciesOrCollapsingWeightsIsDetected
+[       OK ] P188MixturePropertyTest.N1_N2_PermutingSpeciesOrCollapsingWeightsIsDetected (0 ms)
+[----------] 2 tests from P188MixturePropertyTest (1 ms total)
+
+[----------] 1 test from P188EquationOfStateTest
+[ RUN      ] P188EquationOfStateTest.DensityPressureAndTemperatureAreBitwise
+[       OK ] P188EquationOfStateTest.DensityPressureAndTemperatureAreBitwise (0 ms)
+[----------] 1 test from P188EquationOfStateTest (0 ms total)
+
+[----------] 2 tests from P188ArrheniusTest
+[ RUN      ] P188ArrheniusTest.RateCoefficientAndBranchAreBitwise
+[       OK ] P188ArrheniusTest.RateCoefficientAndBranchAreBitwise (1 ms)
+[ RUN      ] P188ArrheniusTest.N4_FlippingTheExponentSignIsDetected
+[       OK ] P188ArrheniusTest.N4_FlippingTheExponentSignIsDetected (0 ms)
+[----------] 2 tests from P188ArrheniusTest (3 ms total)
+
+[----------] 2 tests from P188ReactionSourceTest
+[ RUN      ] P188ReactionSourceTest.ConcentrationsProgressAndOmegaAreBitwise
+[       OK ] P188ReactionSourceTest.ConcentrationsProgressAndOmegaAreBitwise (0 ms)
+[ RUN      ] P188ReactionSourceTest.N5_N8_OmittingTheWeightOrAReactionIsDetected
+[       OK ] P188ReactionSourceTest.N5_N8_OmittingTheWeightOrAReactionIsDetected (0 ms)
+[----------] 2 tests from P188ReactionSourceTest (1 ms total)
+
+[----------] 2 tests from P188HeatReleaseTest
+[ RUN      ] P188HeatReleaseTest.ReactionEnthalpyAndSourceAreBitwiseWithSignEquivalence
+[       OK ] P188HeatReleaseTest.ReactionEnthalpyAndSourceAreBitwiseWithSignEquivalence (0 ms)
+[ RUN      ] P188HeatReleaseTest.N6_FlippingTheHeatReleaseSignIsDetected
+[       OK ] P188HeatReleaseTest.N6_FlippingTheHeatReleaseSignIsDetected (0 ms)
+[----------] 2 tests from P188HeatReleaseTest (1 ms total)
+
+[----------] 1 test from P188EnergyTest
+[ RUN      ] P188EnergyTest.EnergyPoolsAndTemperatureRecoveryAreBitwise
+[       OK ] P188EnergyTest.EnergyPoolsAndTemperatureRecoveryAreBitwise (11 ms)
+[----------] 1 test from P188EnergyTest (12 ms total)
+
+[----------] 3 tests from P188CoupledStepTest
+[ RUN      ] P188CoupledStepTest.EveryIntermediateOfOneStepIsBitwise
+[       OK ] P188CoupledStepTest.EveryIntermediateOfOneStepIsBitwise (0 ms)
+[ RUN      ] P188CoupledStepTest.TheBatchReactorTrajectoryIsBitwiseAndDoesNotDiverge
+[       OK ] P188CoupledStepTest.TheBatchReactorTrajectoryIsBitwiseAndDoesNotDiverge (37 ms)
+[ RUN      ] P188CoupledStepTest.N7_N9_StaleTemperatureOrCompositionIsDetected
+[       OK ] P188CoupledStepTest.N7_N9_StaleTemperatureOrCompositionIsDetected (0 ms)
+[----------] 3 tests from P188CoupledStepTest (40 ms total)
+
+[----------] 2 tests from P188InvalidStateTest
+[ RUN      ] P188InvalidStateTest.TheDeviceRefusesWhatTheCpuRefusesAndSaysWhy
+[       OK ] P188InvalidStateTest.TheDeviceRefusesWhatTheCpuRefusesAndSaysWhy (0 ms)
+[ RUN      ] P188InvalidStateTest.N11_SilentlyAcceptingAnInvalidStateIsDetected
+[       OK ] P188InvalidStateTest.N11_SilentlyAcceptingAnInvalidStateIsDetected (0 ms)
+[----------] 2 tests from P188InvalidStateTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 9 test suites ran. (70 ms total)
+[  PASSED  ] 17 tests.
+
+=== LINK TWO + A2 DRY-RUN: nvcc device vs nvcc host (build/qual-final, CUDA 12.9) ===
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = P188*
+[==========] Running 17 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 11 tests from P188GpuEquivalence
+[ RUN      ] P188GpuEquivalence.MixturePropertiesAreBitwiseOnDevice
+[       OK ] P188GpuEquivalence.MixturePropertiesAreBitwiseOnDevice (2745 ms)
+[ RUN      ] P188GpuEquivalence.EquationOfStateIsBitwiseOnDevice
+[       OK ] P188GpuEquivalence.EquationOfStateIsBitwiseOnDevice (0 ms)
+[ RUN      ] P188GpuEquivalence.DIAGNOSTIC_CanHostAndDeviceTakeDifferentArrheniusBranches
+  T swept across 4096 consecutive doubles around 1196.12
+  host branch at the low end 1, at the high end 2  (1 = direct, 2 = log-space fallback)
+  BRANCH DISAGREEMENTS host vs device: 0 / 4096
+  worst relative difference where the branches DISAGREED: 0
+  worst ULP distance where the branches AGREED: 3
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_CanHostAndDeviceTakeDifferentArrheniusBranches (1 ms)
+[ RUN      ] P188GpuEquivalence.E3_RateCoefficientsWithinTheDerivedBoundAndBranchesIdentical
+    k: worst 3 ULP against the bound 8, 1564 of 2048 exactly bitwise
+[       OK ] P188GpuEquivalence.E3_RateCoefficientsWithinTheDerivedBoundAndBranchesIdentical (0 ms)
+[ RUN      ] P188GpuEquivalence.DIAGNOSTIC_WhichCallDivergesAndByHowManyUlp
+  case A  n=0 Ea=0  isolates: nothing -- pow(T,0) and exp(0) are exactly 1
+          differing cells 0 / 4096,  worst ULP distance 0 (cell none),  worst relative 0
+  case B  n=0 Ea=40000  isolates: exp() only
+          differing cells 218 / 4096,  worst ULP distance 2 (cell 9),  worst relative 2.8754e-16
+  case C  n=0.5 Ea=0  isolates: pow() only
+          differing cells 901 / 4096,  worst ULP distance 2 (cell 5),  worst relative 2.95339e-16
+  case D  n=0.5 Ea=40000  isolates: exp() and pow()
+          differing cells 1029 / 4096,  worst ULP distance 3 (cell 82),  worst relative 5.70791e-16
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_WhichCallDivergesAndByHowManyUlp (1 ms)
+[ RUN      ] P188GpuEquivalence.E4_E5_E6_ProgressRatesBoundedAndAccumulationsBitwise
+    q: worst 2.7411 against the bound 8 (2048 exercised)
+    accumulations from the device's own q, zero tolerance:
+    omega_i: 0 / 3072 differ,  worst ULP 0,  worst relative 0
+    S_E: 0 / 1024 differ,  worst ULP 0,  worst relative 0
+    S_E (mass route): 0 / 1024 differ,  worst ULP 0,  worst relative 0
+    omega end to end: worst 2.78851 against 8 (3072 exercised)
+[       OK ] P188GpuEquivalence.E4_E5_E6_ProgressRatesBoundedAndAccumulationsBitwise (1 ms)
+[ RUN      ] P188GpuEquivalence.E8_TheCoupledStepStateIsBitwiseAndTheRateIntermediatesAreBounded
+    state (Y, T, pools): 1024 of 1024 bitwise
+    S_E from the step's own q: 0 of 1024 differ (must be 0)
+    S_E end to end: worst 2.73713 against the bound 8 (1024 exercised)
+[       OK ] P188GpuEquivalence.E8_TheCoupledStepStateIsBitwiseAndTheRateIntermediatesAreBounded (2 ms)
+[ RUN      ] P188GpuEquivalence.DIAGNOSTIC_HowTheDivergenceGrowsAlongATrajectory
+  dt = 1e-05,  256 cells,  50 steps
+  step |   max |dT|/T    |   max |dY|      | worst T ULP | status
+  1 | 0 | 0 | 0 | 0
+  5 | 0 | 0 | 0 | 0
+  20 | 0 | 0 | 0 | 0
+  50 | 0 | 0 | 0 | 0
+  the state actually moved:  max |T - T_0| = 28.6389 K,   max |Y - Y_0| = 0.0075085
+[       OK ] P188GpuEquivalence.DIAGNOSTIC_HowTheDivergenceGrowsAlongATrajectory (20 ms)
+[ RUN      ] P188GpuEquivalence.RepeatsAndBlockSizesAreBitwise
+[       OK ] P188GpuEquivalence.RepeatsAndBlockSizesAreBitwise (9 ms)
+[ RUN      ] P188GpuEquivalence.E12_TheResidentLoopPerformsNoFullFieldTransfer
+[       OK ] P188GpuEquivalence.E12_TheResidentLoopPerformsNoFullFieldTransfer (3 ms)
+[ RUN      ] P188GpuEquivalence.N12_AFullFieldTransferInTheResidentLoopIsDetected
+[       OK ] P188GpuEquivalence.N12_AFullFieldTransferInTheResidentLoopIsDetected (0 ms)
+[----------] 11 tests from P188GpuEquivalence (2794 ms total)
+
+[----------] 6 tests from P188A2DryRun
+[ RUN      ] P188A2DryRun.DRYRUN_1_TheFmadControlIsReallyContracting
+[       OK ] P188A2DryRun.DRYRUN_1_TheFmadControlIsReallyContracting (1 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_1B_TheUlpInstrumentFailsClosed
+[       OK ] P188A2DryRun.DRYRUN_1B_TheUlpInstrumentFailsClosed (0 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_2_HowLargeIsTheFmadEffectOnEachQuantity
+  --fmad=true vs --fmad=false, MIXTURE PROPERTIES (4096 cells):
+    M_mix: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+    R_mix: 662 / 4096 differ,  worst ULP 2,  worst relative 3.47171e-16,  at index 1277
+    cp_mix: 543 / 4096 differ,  worst ULP 1,  worst relative 2.05604e-16,  at index 4
+  --fmad=true vs --fmad=false, REACTION SOURCES:
+    C_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    q: 1750 / 8192 differ,  worst ULP 44,  worst relative 6.91587e-15,  at index 4096
+    omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    S_E: 1 / 4096 differ,  worst ULP 1,  worst relative 1.30226e-16,  at index 256
+
+  FMA's effect on q, IN THE BOUND'S UNITS: worst |dq| / (eps * sum of term
+  magnitudes) = 0.843356,  against A2's derived bound of 8  (8192 of 8192 comparisons exercised)
+  the libm difference the bound must ADMIT, same units: 3.13865
+  => contraction (0.843356) is SMALLER than libm (3.13865), so no passing
+     threshold on q can reject contraction. Condition (4) is policed by the
+     BITWISE mixture-property criterion above, not by this bound.
+  the ACCUMULATION isolated (host --fmad=false vs control --fmad=true, SAME q):
+    omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    S_E: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+  host std::fma vs host multiply-then-add on the SAME omega accumulation: 0 / 12288 would change
+  => the products M_i*nu_i*q are exact for this mechanism, so NO contraction
+     could alter omega. The accumulation clause's control is N5/N8, not FMA.
+[       OK ] P188A2DryRun.DRYRUN_2_HowLargeIsTheFmadEffectOnEachQuantity (8 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_3_TheDerivedBoundsHoldWithMargin
+  CORRECT implementation against the DERIVED bounds:
+    k:  worst ULP distance 3  against the derived bound 8
+    q:  worst |dq| / (eps * sum of term magnitudes) = 3.13865  against the derived bound 8
+    branch disagreements: 0 / 8192
+[       OK ] P188A2DryRun.DRYRUN_3_TheDerivedBoundsHoldWithMargin (2 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_4_EachControlViolatesTheCriterionItControls
+  controls on the MIXTURE PROPERTY criterion (BITWISE, zero tolerance):
+    N1 permute species index:  3072 values differ,  worst ULP 3307299169210234,  worst relative 0.611746
+    N2 one weight for all species:  1024 values differ,  worst ULP 4213044812701433,  worst relative 0.483333
+  controls on the REACTION SOURCE criteria:
+    N4 flip Arrhenius exponent sign:  6144 values differ,  worst ULP 104379865643321639,  worst relative 9.21473e+06
+        in the q bound's units: 3.52252e+22  against 8
+    N5 omit M_i in omega:  3072 values differ,  worst ULP 18014398509481984,  worst relative 15
+    N6 flip the heat-release sign:  1024 values differ,  worst ULP 9442885321269542680,  worst relative 2
+    N8 omit the last reaction:  4096 values differ,  worst ULP 1735929406212,  worst relative 0.000201432
+[       OK ] P188A2DryRun.DRYRUN_4_EachControlViolatesTheCriterionItControls (9 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_5_OmegaAndHeatReleaseAreBitwiseFromTheDeviceOwnProgressRates
+  accumulations from the DEVICE's own q, under zero tolerance:
+    omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    S_E: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+    S_E (mass route): 0 / 4096 differ,  worst ULP 0,  worst relative 0
+[       OK ] P188A2DryRun.DRYRUN_5_OmegaAndHeatReleaseAreBitwiseFromTheDeviceOwnProgressRates (1 ms)
+[----------] 6 tests from P188A2DryRun (27 ms total)
+
+[----------] Global test environment tear-down
+[==========] 17 tests from 2 test suites ran. (2824 ms total)
+[  PASSED  ] 17 tests.

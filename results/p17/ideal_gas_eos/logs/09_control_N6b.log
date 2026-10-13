@@ -1,0 +1,29 @@
+P17.2 CONTROL N6b -- derived replacement for the vacuous N6
+date: 2026-09-26T09:27:35Z
+baseline src/compressible/ThermodynamicProperties.cpp sha256: 27d74d9e535f8e716421ce24e7f955f32dc8200c5ae5a3ddfd1c9cbdb4da3a88
+
+derivation (AMENDMENT_N6_vacuous.md section 3):
+  T1 bound   = 4*eps*R = 2.5495161537492096e-13  absolute on (cp-cv)-R
+  delta_min  = bound/cv = 3.5511054443195341e-16 = 1.60 eps
+  delta used = 1e-12                             = 2816x delta_min
+  predicted residual = -7.1810291046858765e-10   = 2816.6x the bound
+  gamma - cp/cv must stay EXACTLY 0 (T2 survives, demonstrating the asymmetry)
+
+  PLANTED DEFECT                          17:  specificHeatVolume_ = (specificHeatPressure_ - gasConstant) * (1.0 + 1.0e-12);  // N6b
+  build             exit 0
+  CRITERION T1      FAILED as expected (2 tests)
+  DETECTION         DETECTED -- T1 is PROVEN
+      ThermodynamicPropertiesTest.ClosureHoldsTogetherAcrossGases
+      ThermodynamicPropertiesTest.DerivesCvAndGammaFromRAndCp
+  the measured residual, from the failure output:
+          Which is: 717.95000000071809
+          Which is: 717.95000000000005
+          Which is: 1.3998189288933698
+          Which is: 1.3998189288947698
+  MUST STILL PASS   GammaExceedsOneForEveryAdmissibleCp -> 100% tests passed, 0 tests failed out of 1
+  RESTORE           VERIFIED by SHA-256
+  N6b markers left: 0  (0 required)
+  rebuild exit: 0
+  at baseline: 100% tests passed, 0 tests failed out of 50
+
+done: 2026-09-26T09:30:35Z

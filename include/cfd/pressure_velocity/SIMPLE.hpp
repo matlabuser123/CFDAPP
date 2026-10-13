@@ -5,6 +5,7 @@
 #include "cfd/fields/VectorField.hpp"
 #include "cfd/physics/BoussinesqBuoyancy.hpp"
 #include "cfd/pressure_velocity/PressureVelocitySolver.hpp"
+#include "cfd/pressure_velocity/SIMPLEContinuation.hpp"
 #include "cfd/pressure_velocity/SIMPLEProgress.hpp"
 #include "cfd/pressure_velocity/SIMPLESettings.hpp"
 #include "cfd/turbulence/TurbulenceModel.hpp"
@@ -91,6 +92,23 @@ class SIMPLE final : public PressureVelocitySolver {
   void setMomentumSource(const cfd::fields::VectorField* source) noexcept;
   [[nodiscard]] const cfd::fields::VectorField* momentumSource() const noexcept;
 
+  // P13-001 -- Restart / checkpointing. An optional, non-owning continuation:
+  // the state an earlier segment of this same solve left behind, and the
+  // budget this call may spend. Null (the default) makes solve() do exactly
+  // what it did before this existed -- structurally, not just numerically:
+  // the face mass flux is computed by calculateMassFlux, the monitor starts
+  // empty, the loop starts at iteration 0 and runs the configured budget.
+  // See SIMPLEContinuation.hpp for why F and the residual history are the
+  // state that has to travel, and why no monitor internals do.
+  //
+  // With a continuation set, `SIMPLESettings::maxIterations` is the TOTAL
+  // budget for the whole solve, not the budget for this call: a call that
+  // arrives with N1 iterations already completed can run at most
+  // maxIterations - N1 more. The caller keeps the continuation alive for the
+  // duration of the solve, the same convention momentumSource above uses.
+  void setContinuation(const SIMPLEContinuation* continuation) noexcept;
+  [[nodiscard]] const SIMPLEContinuation* continuation() const noexcept;
+
  private:
   SIMPLESettings settings_;
   Index referenceCell_;
@@ -100,6 +118,7 @@ class SIMPLE final : public PressureVelocitySolver {
   SIMPLEProgressCallback progressCallback_;
   SIMPLECancellationCheck cancellationCheck_;
   const cfd::fields::VectorField* momentumSource_{nullptr};
+  const SIMPLEContinuation* continuation_{nullptr};
 };
 
 }  // namespace cfd::pressure_velocity

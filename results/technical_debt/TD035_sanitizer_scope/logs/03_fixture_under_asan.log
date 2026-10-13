@@ -1,0 +1,37 @@
+=== ENVIRONMENT
+date 2026-10-10T17:39:53+10:00
+CFDAPP_ENABLE_SANITIZERS:BOOL=ON
+CMAKE_BUILD_TYPE:STRING=Debug
+  the asan preset is Debug + sanitizers; its cache is preserved, not reconfigured from scratch
+
+=== reconfigure the asan tree so it picks up the new target (cache preserved)
+CFDAPP_ENABLE_SANITIZERS:BOOL=ON
+
+=== build the fixture under the sanitizer
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/app/ProjectRunner.cpp:1250:76: warning: missing initializer for member ‘cfd::io::RunMetadata::linearSolverBackend’ [-Wmissing-field-initializers]
+[5/6] Linking CXX static library src/libcfdcore.a
+[6/6] Linking CXX executable tests/unit/species/CFDSpeciesSanitizerTests
+e882fa1304f931beb209b9087ff320fb18d227805beb330f6754c7008bddd886  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/tests/unit/species/CFDSpeciesSanitizerTests
+
+=== the asan preset listing: G8 excluded, the fixture PRESENT
+  G8PremixedFlameTest entries:        0
+  PremixedFlameSanitizerTest entries: 1
+      Test #1871: PremixedFlameSanitizerTest.TheReactingPathRunsCleanAtReducedResolution
+  Total Tests: 2860
+
+=== RUN the fixture under ASan+UBSan at CI settings (CLAUDE.md §7)
+  ASAN_OPTIONS=detect_leaks=1:halt_on_error=0
+  UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/asan/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] 1 test from 1 test suite ran. (348546 ms total)
+[  PASSED  ] 1 test.
+  wall 348.75 s   (cap 7200 s)
+  exit code (unmasked): 0
+
+=== SANITIZER DIAGNOSTICS
+  AddressSanitizer errors: 0
+  UBSan runtime errors:    0
+  LeakSanitizer reports:   0
+
+DONE 2026-10-10T17:48:08+10:00

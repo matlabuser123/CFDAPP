@@ -1,0 +1,59 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-06T18:01:09+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-06 17:27:04.163455000
+  src  2026-10-06 17:25:10.589062700
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD031_final_march_length/tools/cell35_history_probe.cpp -o /tmp/td031_cell35 /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-031 -- CELL 35 ACROSS CONSECUTIVE MARCH STEPS
+
+  500 cells / cap 5 / relaxT 18, the CONVERGED configuration.
+  cell 35 is x = 0.70 mm, in the cold preheat zone (~317 K).
+  logs/04 reported a per-step change of 0.9896 of the full rise THERE, on a step
+  with no recentring, at a state whose front/balance/thickness are all steady.
+  The march is stopped at successive budgets via finalMarchSteps, so no production
+  change is needed and these are genuinely consecutive states.
+
+    budget   marchStp            T[35] K   dT from prev  worstChange    wall s
+     30945      30945    312.99462225717     0.0000e+00   9.8957e-01       829
+     30946      30946   1796.61325275801     1.4836e+03   9.8957e-01       622
+     30947      30947    312.99215651739    -1.4836e+03   9.8957e-01       609
+     30948      30948   1796.60836183127     1.4836e+03   9.8957e-01       589
+     30949      30949    312.98969432633    -1.4836e+03   9.8957e-01       591
+
+=== THE NEIGHBOURHOOD, cells 25 to 45 at each budget
+    budget   T[ 25] K   T[ 30] K   T[ 35] K   T[ 40] K   T[ 45] K
+     30945   308.0932   310.3894   312.9946   315.9496   319.3004
+     30946  1728.1194  1784.0027  1796.6133  1799.2863  1799.8488
+     30947   308.0917   310.3874   312.9922   315.9466   319.2969
+     30948  1728.0302  1783.9806  1796.6084  1799.2852  1799.8485
+     30949   308.0901   310.3854   312.9897   315.9437   319.2933
+
+=== VERDICT
+    T[35] over five consecutive steps:  312.994622 1796.613253 312.992157 1796.608362 312.989694
+    largest consecutive change: 1.483621e+03 K  =  9.8908e-01 of the full rise
+    the reported worstStateChange is 9.8957e-01 of the rise, i.e. 1484 K
+
+    => THIS CELL REALLY DOES MOVE by order 1000 K per step. That is a real
+       instability in the march, localised to the cold preheat zone, and it is a
+       defect in its own right -- not an instrument artefact.
+
+probe exit: 0

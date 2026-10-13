@@ -1,0 +1,104 @@
+TD-027 -- STAGE D CAP-20 CONTROL
+started 2026-10-06T02:33:57+10:00
+control cap 1800s (NOT the repository's 7200 s -- see the header note)
+at cap 5 this case measured: PASS, 51 s (logs/06)
+
+=== STEP 1  reconstruct the pre-fix header and PROVE it against logs/00_freeze.log
+RECONSTRUCTED the pre-fix header.
+  sha256   c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf
+  frozen   c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf
+  MATCHES FROZEN -- this IS the tree the gate was frozen against
+
+=== STEP 2  rebuild at cap 20, fail-closed
+[1/55] Building CXX object src/CMakeFiles/cfdcore.dir/species/PremixedFlame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp: In function ‘cfd::species::PremixedFlameResult cfd::species::solvePremixedFlame(const cfd::species::PremixedFlameChemistry&, const cfd::species::PremixedFlameConditions&, const cfd::species::PremixedFlameSettings&)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp:708:14: warning: unused variable ‘seedSpeed’ [-Wunused-variable]
+  708 |   const Real seedSpeed = massFluxEstimate / rhoUnburnt;
+      |              ^~~~~~~~~
+[2/55] Building CXX object tests/unit/species/CMakeFiles/CFDSpeciesTests.dir/test_premixed_flame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp: In member function ‘virtual void G8PremixedFlameTest_DISABLED_PropagationHistory_Test::TestBody()’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:769:75: warning: conversion from ‘long unsigned int’ to ‘cfd::Real’ {aka ‘double’} may change value [-Wconversion]
+  769 |     std::cout << "    budget " << budget << ": dt = " << dt << " t = " << budget * dt
+      |                                                                           ^~~~~~
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp: In member function ‘virtual void G8PremixedFlameTest_DISABLED_BalanceVersusMarchLength_Test::TestBody()’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/unit/species/test_premixed_flame.cpp:927:25: warning: conversion from ‘cfd::Real’ {aka ‘double’} to ‘cfd::Index’ {aka ‘long unsigned int’} may change value [-Wfloat-conversion]
+  927 |     const Index march = relaxationTimes;  // reported below; the achieved length is what matters
+      |                         ^~~~~~~~~~~~~~~
+[3/55] Linking CXX static library src/libcfdcore.a
+[4/55] Linking CXX executable tests/unit/core/CFDCoreTests
+[5/55] Linking CXX executable tests/unit/viz/CFDVizTests
+[6/55] Linking CXX executable tests/unit/transport/CFDTransportTests
+[7/55] Linking CXX executable tests/unit/fields/CFDFieldTests
+[8/55] Linking CXX executable tests/unit/multiphase/CFDMultiphaseTests
+[9/55] Linking CXX executable tests/unit/boundary/CFDBoundaryTests
+[10/55] Linking CXX executable tests/unit/algebra/CFDAlgebraTests
+[11/55] Linking CXX executable tests/unit/physics/CFDPhysicsTests
+[12/55] Linking CXX executable tests/unit/solver/CFDSolverTests
+[13/55] Linking CXX executable tests/unit/mesh/CFDMeshTests
+[14/55] Linking CXX executable tests/unit/validation/CFDValidationUnitTests
+[15/55] Linking CXX executable apps/cli/cfdapp
+[16/55] Linking CXX executable tests/integration/thermal/CFDConjugateHeatTransferValidationTests
+[17/55] Linking CXX executable tests/integration/thermal/CFDHeatedCavityValidationTests
+[18/55] Linking CXX executable tests/solver/compressible_simple/CFDCompressibleSimpleTests
+[19/55] Linking CXX executable tests/unit/thermal/CFDThermalTests
+[20/55] Linking CXX executable tests/integration/poiseuille/CFDPoiseuilleValidationTests
+[21/55] Linking CXX executable tests/integration/cavity/CFDCavityValidationTests
+[22/55] Linking CXX executable tests/solver/piso/CFDPisoTests
+[23/55] Linking CXX executable tests/integration/thermal/CFDThermalValidationTests
+[24/55] Linking CXX executable tests/solver/simple/CFDSimpleTests
+[25/55] Linking CXX executable tests/integration/thermal/CFDBoussinesqCouplingTests
+[26/55] Linking CXX executable tests/unit/compressible/CFDCompressibleTests
+[27/55] Linking CXX executable tests/unit/app/CFDAppLayerTests
+[28/55] Linking CXX executable tests/unit/discretization/CFDDiscretizationTests
+[29/55] Linking CXX executable tests/integration/transport/CFDTransportVerificationTests
+[30/55] Linking CXX executable tests/integration/species/CFDSpeciesDiffusionValidationTests
+[31/55] Linking CXX executable tests/integration/thermal/CFDNaturalConvectionValidationTests
+[32/55] Linking CXX executable tests/integration/species/CFDSpeciesAdvectionDiffusionValidationTests
+[33/55] Linking CXX executable tests/unit/turbulence/CFDTurbulenceTests
+[34/55] Linking CXX executable tests/integration/multiphase/CFDMultiphaseUniformFieldTests
+[35/55] Linking CXX executable tests/integration/species/CFDSpeciesConservationValidationTests
+[36/55] Linking CXX executable tests/integration/multiphase/CFDMultiphaseAdvectionValidationTests
+[37/55] Linking CXX executable tests/integration/multiphase/CFDMultiphaseSinglePhaseEquivalenceTests
+[38/55] Linking CXX executable tests/integration/multiphase/CFDMultiphaseConservationValidationTests
+[39/55] Linking CXX executable benchmarks/cpu/cfd_benchmark_openmp_scaling
+[40/55] Linking CXX executable benchmarks/cpu/cfd_benchmark_spmv_scaling
+[41/55] Linking CXX executable tests/integration/compressible/CFDDensityBasedCanonicalTests
+[42/55] Linking CXX executable tests/integration/restart/CFDRestartIntegrationTests
+[43/55] Linking CXX executable tests/integration/species/CFDSpeciesCouplingValidationTests
+[44/55] Linking CXX executable tests/integration/compressible/CFDShockValidationTests
+[45/55] Linking CXX executable tests/integration/compressible/CFDP17_10DryRunTests
+[46/55] Linking CXX executable tests/integration/compressible/CFDLowMachRegressionTests
+[47/55] Linking CXX executable benchmarks/cpu/cfd_benchmark_cpu
+[48/55] Linking CXX executable tests/unit/species/CFDSpeciesTests
+[49/55] Linking CXX executable tests/integration/compressible/CFDLowMachFamilyTests
+[50/55] Linking CXX executable tests/integration/io/CFDResultExportIntegrationTests
+[51/55] Linking CXX executable tests/integration/turbulence_channel/CFDTurbulenceChannelValidationTests
+[52/55] Linking CXX executable tests/integration/backward_facing_step/CFDBackwardFacingStepTests
+[53/55] Linking CXX executable tests/integration/mms/CFDMMSValidationTests
+[54/55] Linking CXX executable tests/unit/io/CFDIoTests
+[55/55] Linking CXX executable tests/integration/case/CFDCaseIntegrationTests
+build exit: 0
+test binary NEWER than newest source: OK
+2d064494263996b68b3dcce4a1a82526cf008ad2dec88f93d21918f5cd1dce08  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+
+    cross-check: the cap in the built header
+219:  Real maximumCellDiffusionNumber{20.0};
+
+=== STEP 3  run the case at cap 20
+        reactions off: status 1, S_L = 0.0144343 cm/s, S_c = -0 cm/s, peak |S_E| = 0, brackets = 13
+    [       OK ] G8PremixedFlameTest.WithReactionsDisabledNoFlamePropagates (41858 ms)
+
+-> PASS (42s) at cap 20
+   So the case was ALWAYS exercisable and the 900 s TIMEOUT in TD-004's baseline was a
+   HARNESS artefact, like the other two that item recorded. TD-027 did NOT fix this, and
+   the 51 s is not its achievement -- but G8's negative control 1 is available either way,
+   which is the consequence that matters.
+finished 2026-10-06T02:35:32+10:00
+
+=== RESTORING the post-fix tree (runs even on failure)
+RESTORED the post-fix header.
+  sha256   882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1
+  expected 882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1
+  matches logs/03
+rebuilt; CFDSpeciesTests 489180ece9c683b8...

@@ -1,0 +1,57 @@
+============================================================
+P18.9 sections 6-31 -- QUANTITATIVE REVALIDATION
+============================================================
+date (WSL): 2026-10-02T12:05:17Z
+Numbers harvested from the qualification suites' own printed measurements on THIS tree,
+not copied from earlier phases' write-ups. Raw output: data/quantitative_raw.txt
+exit: 0
+
+tests run : 242
+failures  : 0
+
+=== every measured quantity the suites printed, verbatim ===
+            differing cells 0 / 4096,  worst ULP distance 0 (cell none),  worst relative 0
+            differing cells 1029 / 4096,  worst ULP distance 3 (cell 82),  worst relative 5.70791e-16
+            differing cells 218 / 4096,  worst ULP distance 2 (cell 9),  worst relative 2.8754e-16
+            differing cells 901 / 4096,  worst ULP distance 2 (cell 5),  worst relative 2.95339e-16
+           max |dT| = 0.0124043 K,  max |dY| = 3.26358e-06
+          in the q bound's units: 3.52252e+22  against 8
+       BITWISE mixture-property criterion above, not by this bound.
+      C_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+      M_mix: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+      N1 permute species index:  3072 values differ,  worst ULP 3307299169210234,  worst relative 0.611746
+      N10: dt = 1e-5 x 50 vs dt = 5e-6 x 100 over the same total time
+      N2 one weight for all species:  1024 values differ,  worst ULP 4213044812701433,  worst relative 0.483333
+      N4 flip Arrhenius exponent sign:  6144 values differ,  worst ULP 104379865643321639,  worst relative 9.21473e+06
+      N5 omit M_i in omega:  3072 values differ,  worst ULP 18014398509481984,  worst relative 15
+      N6 flip the heat-release sign:  1024 values differ,  worst ULP 9442885321269542680,  worst relative 2
+      N8 omit the last reaction:  4096 values differ,  worst ULP 1735929406212,  worst relative 0.000201432
+      R_mix: 662 / 4096 differ,  worst ULP 2,  worst relative 3.47171e-16,  at index 1277
+      S_E (mass route): 0 / 1024 differ,  worst ULP 0,  worst relative 0
+      S_E (mass route): 0 / 4096 differ,  worst ULP 0,  worst relative 0
+      S_E end to end: worst 2.73713 against the bound 8 (1024 exercised)
+      S_E: 0 / 1024 differ,  worst ULP 0,  worst relative 0
+      S_E: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+      S_E: 1 / 4096 differ,  worst ULP 1,  worst relative 1.30226e-16,  at index 256
+      cp_mix: 543 / 4096 differ,  worst ULP 1,  worst relative 2.05604e-16,  at index 4
+      k:  worst ULP distance 3  against the derived bound 8
+      k: worst 3 ULP against the bound 8, 1564 of 2048 exactly bitwise
+      omega end to end: worst 2.78851 against 8 (3072 exercised)
+      omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+      omega_i: 0 / 3072 differ,  worst ULP 0,  worst relative 0
+      q:  worst |dq| / (eps * sum of term magnitudes) = 3.13865  against the derived bound 8
+      q: 1750 / 8192 differ,  worst ULP 44,  worst relative 6.91587e-15,  at index 4096
+      q: worst 2.7411 against the bound 8 (2048 exercised)
+    CORRECT implementation against the DERIVED bounds:
+    FMA's effect on q, IN THE BOUND'S UNITS: worst |dq| / (eps * sum of term
+    case A  n=0 Ea=0  isolates: nothing -- pow(T,0) and exp(0) are exactly 1
+    case B  n=0 Ea=40000  isolates: exp() only
+    case C  n=0.5 Ea=0  isolates: pow() only
+    case D  n=0.5 Ea=40000  isolates: exp() and pow()
+    dt = 1e-05,  256 cells,  50 steps
+    magnitudes) = 0.843356,  against A2's derived bound of 8  (8192 of 8192 comparisons exercised)
+    step |   max |dT|/T    |   max |dY|      | worst T ULP | status
+    the libm difference the bound must ADMIT, same units: 3.13865
+    the state actually moved:  max |T - T_0| = 28.6389 K,   max |Y - Y_0| = 0.0075085
+    worst ULP distance where the branches AGREED: 3
+    worst relative difference where the branches DISAGREED: 0

@@ -1,0 +1,81 @@
+P17.5 ACCEPTANCE GATE
+date: 2026-09-27T01:29:47Z
+gate sha256: ca84e432a277a2724f0c94a8ccc46294ff405b5b8168b66327690a01ba72a04b
+TESTs in test_total_energy.cpp: 34
+
+### P7: clang-format on every changed file ###
+  clang-format exit after -i: 0  (0 = clean)
+
+### P8/P9: upstream files must be UNTOUCHED -- SHA-256, never git diff HEAD ###
+  UNTOUCHED: 15    TOUCHED: 0   (TOUCHED must be 0)
+
+### Z1: the energy path must never read the EOS block's cp ###
+  specificHeatPressure() call sites in the new sources: 2
+    (the ONLY legitimate uses are the dual-cp consistency CHECK in the constructor and the
+     closed-form inverse, which needs cp and cv together. Enthalpy itself always comes from
+     the P15 model -- see TotalEnergyContractTest.EnthalpyComesFromTheModelNotTheEosSpecificHeat)
+
+### build ###
+  build exit: 0  (74 s)
+
+### Groups T, C, E, G, V, D, Z: the total-energy suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 34
+  every row, by name:
+    TotalEnergyConservationTest.AdiabaticClosedDomainConservesTotalEnergy     Passed
+    TotalEnergyConservationTest.BalanceReportsEveryTermAndAUniformStateIsAtRoundOff     Passed
+    TotalEnergyConservationTest.InteriorConvectiveFacesTelescope     Passed
+    TotalEnergyConservationTest.UniformHeatingRaisesDomainEnergyByExactlySourceTimesVolumeDt     Passed
+    TotalEnergyContractTest.AcceptsConsistentSpecificHeatSources     Passed
+    TotalEnergyContractTest.EnthalpyComesFromTheModelNotTheEosSpecificHeat     Passed
+    TotalEnergyContractTest.RejectsAVariableSpecificHeatModel     Passed
+    TotalEnergyContractTest.RejectsDisagreeingSpecificHeatSources     Passed
+    TotalEnergyConversionTest.ConservedPrimitiveConservedRoundTrip     Passed
+    TotalEnergyConversionTest.ConservedToPrimitiveRecoversTheWholeState     Passed
+    TotalEnergyConversionTest.GammaPressureFormAgreesUnderTheZeroReference     Passed
+    TotalEnergyConversionTest.PrimitiveConservedPrimitiveRoundTrip     Passed
+    TotalEnergyConversionTest.PrimitiveToConservedMatchesHandComputedValue     Passed
+    TotalEnergyEquationTest.BodyForcePowerIsExactlyZeroForZeroVelocity     Passed
+    TotalEnergyEquationTest.ConductiveTermMatchesAnalyticalQuadraticTemperature     Passed
+    TotalEnergyEquationTest.ConvectiveFluxCarriesPressureWorkAndMatchesRhoEPlusP     Passed
+    TotalEnergyEquationTest.TransientTermUsesSeparateOldAndNewDensity     Passed
+    TotalEnergyEquationTest.ViscousWorkLimitationIsReportedNotHidden     Passed
+    TotalEnergyEquationTest.VolumetricSourceAdvancesEnergyExactly     Passed
+    TotalEnergyInvalidStateTest.FieldRecoveryNamesTheOffendingCellAndClampsNothing     Passed
+    TotalEnergyInvalidStateTest.RejectsKineticEnergyExceedingTotalEnergy     Passed
+    TotalEnergyInvalidStateTest.RejectsNonFiniteConductivityAndBadSizes     Passed
+    TotalEnergyInvalidStateTest.RejectsNonFiniteConservedEnergyOrMomentum     Passed
+    TotalEnergyInvalidStateTest.RejectsNonPositiveOrNonFiniteDensity     Passed
+    TotalEnergyInvalidStateTest.RejectsOutOfRangeRecoveredTemperature     Passed
+    TotalEnergyStateTest.CaloricallyPerfectShortcutsAreWrongUnderANonzeroReference     Passed
+    TotalEnergyStateTest.CaloricallyPerfectShortcutsHoldUnderTheZeroReference     Passed
+    TotalEnergyStateTest.DensityTimesTotalEnthalpyEqualsRhoEPlusPressure     Passed
+    TotalEnergyStateTest.EnthalpyMinusInternalEnergyIsExactlyRT     Passed
+    TotalEnergyStateTest.InternalEnergyInverseAgreesWithTheForwardModel     Passed
+    TotalEnergyStateTest.KineticEnergyIsHalfVelocityMagnitudeSquared     Passed
+    TotalEnergyStateTest.RepeatedEvaluationIsBitwiseIdentical     Passed
+    TotalEnergyStateTest.StateComponentsComposeExactly     Passed
+    TotalEnergyStateTest.StaticEnthalpyEqualsInternalEnergyPlusPOverRho     Passed
+
+### P1/P2/P3: preservation -- frozen narrow regexes ###
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+
+### P2: the compressible suite, deliberately INCLUDING the new tests ###
+  compressible exit=0   100% tests passed, 0 tests failed out of 210
+    176 at the P17.4 baseline, plus the P17.5 tests
+
+### X1: the GPU compressible/energy surface -- expected NOT PRESENT, never PASS ###
+    compressible             1
+    IdealGas                 0
+    EquationOfState          0
+    ThermodynamicProperties  0
+    Enthalpy                 0
+    rhoE                     0
+    totalEnergy              0
+    TotalEnergy              0
+    machNumber               0
+    the only nonzero hit is a COMMENT about the INCOMPRESSIBLE path:
+      include/cfd/gpu/DevicePressureCorrection.hpp:6:// (PressureCorrectionEquation.cpp:181), the body behind the incompressible
+
+done: 2026-09-27T01:33:03Z

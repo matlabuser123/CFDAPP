@@ -451,7 +451,7 @@ SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_, const LinearSolv
   result.backendUsed = LinearSolverBackend::GPU;
     spmv(deviceMatrix_, x_, v_);      // v_ temporarily holds A*x0
     waxpby(1.0, b_, -1.0, v_, r_);    // r_ := b - A*x0
-    deviceCopy(rHat_, r_);            // rHat_ fixed for the rest of this solve
+    deviceCopy(rHat_, r_);            // rHat_ fixed until a restart replaces it
 
     // GPU-PIPE-001 rho-carry: one reduction yields both the initial residual
     // norm and the first iteration's rho.
@@ -508,20 +508,97 @@ SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_, const LinearSolv
       if (std::abs(innerProduct) > epsilon * normX * normY) return false;
       return std::abs(innerProduct) <= epsilon * absDot(x, y);
     };
-    const Real rHatNorm = b0;  // rHat_ is fixed for this solve, so its norm is b0
+    // DEBT-GPU-001 / P16 BLOCKER: rHatNorm is no longer const, because a
+    // restart replaces rHat_ and therefore its norm. It is still fixed WITHIN
+    // a Krylov sequence.
+    Real rHatNorm = b0;
     Real rNorm = b0;
+    Real restartResidual = b0;  // |r| where the current Krylov sequence started
 
-    for (Index iter = 1; iter <= settings_.maxIterations; ++iter) {
-      // GPU-PIPE-001 rho-carry: rho was already computed -- either at setup
-      // (iteration 1) or fused into the previous iteration's residual-norm
-      // reduction, which read the very same r_. r_ is written in exactly two
-      // places, setup and the end of the loop body, and nothing between that
-      // write and here touches it: the waxpby calls below read r_ and write p_
-      // and s_. rHat_ is fixed for the whole solve. So this is the same value
-      // dot(rHat_, r_) would return here, bit for bit -- the reduction was
-      // moved, not replaced.
+    // DEBT-GPU-001 -- the bounded, deterministic Krylov restart this solver was
+    // missing, mirroring cfd::algebra::BiCGSTAB's `restart` lambda step for
+    // step.
+    //
+    // WHAT WAS WRONG. The CPU reference restarts on a qualifying breakdown --
+    // an inner product of the recurrence that has cancelled to the rounding
+    // level of its terms, i.e. a breakdown of the Lanczos biorthogonality, not
+    // of the iterate. This file returned Breakdown instead. On bit-identical
+    // turbulence transport systems the CPU converged and the GPU stopped
+    // mid-descent, from 224 cells upward, which is what blocked P16
+    // (results/p16/turbulence/gpu_equivalence/krylov_blocker/findings.md).
+    //
+    // BOUNDED WITHOUT A COUNTER, exactly as the CPU is. A restart is taken only
+    // if the residual has STRICTLY DECREASED since the current sequence
+    // started, so a breakdown in a sequence's first iteration -- the true
+    // breakdown a restart cannot cure -- still reports Breakdown. `rNorm`
+    // changes only when an iteration completes, so at most one restart can
+    // occur per completed iteration: this is not an unlimited retry loop.
+    //
+    // A restart NEVER declares success on its own. Only a residual meeting the
+    // tolerance does, which is why the converged() test below returns a
+    // distinct outcome rather than continuing.
+    enum class Restart { Restarted, Converged, Stop };
+    const auto restart = [&]() {
+      if (!(rNorm < restartResidual)) return Restart::Stop;
+
+      // The TRUE residual, recomputed rather than carried: the recurrence
+      // residual is what has just been shown to be untrustworthy. v_ is free
+      // here -- it is about to be zeroed -- so it serves as the spmv target,
+      // the same reuse setup performs at line 452.
+      spmv(deviceMatrix_, x_, v_);
+      waxpby(1.0, b_, -1.0, v_, r_);
+      rNorm = l2Norm(r_);
+      if (!std::isfinite(rNorm)) return Restart::Stop;
+      if (converged(rNorm)) return Restart::Converged;
+
+      deviceCopy(rHat_, r_);
+      rHatNorm = rNorm;
+      restartResidual = rNorm;
+      rhoOld = 1.0;
+      alpha = 1.0;
+      omega = 1.0;
+      fill(v_, n, 0.0);
+      fill(p_, n, 0.0);
+
+      // THE RHO-CARRY MUST BE INVALIDATED. `rhoNext` was computed against the
+      // OLD rHat_ and is now meaningless. Recomputed as the raw dot rather
+      // than as rNorm*rNorm for the reason setup states about b0: the square
+      // of a square root is not bitwise the reduction it came from.
+      rhoNext = dot(rHat_, r_);
+
+      ++result.restarts;
+      return Restart::Restarted;
+    };
+    Index completed = 0;  // completed iterations (a restart completes none)
+    const auto restartedConvergence = [&]() {
+      result.status = SolverStatus::Converged;
+      result.finalResidual = rNorm;
+      result.iterations = completed;
+      return result;
+    };
+
+    // Mirrors the CPU loop shape: a RESTART COMPLETES NO ITERATION, so it does
+    // not consume the iteration budget. A `for (iter = 1; iter <= max; ++iter)`
+    // with `continue` would charge the restart an iteration, which the
+    // reference does not.
+    while (completed < settings_.maxIterations) {
+      const Index iter = completed + 1;
+      // GPU-PIPE-001 rho-carry: rho was already computed -- at setup
+      // (iteration 1), fused into the previous iteration's residual-norm
+      // reduction, or recomputed by a restart. r_ is written in exactly three
+      // places, setup, the end of the loop body and restart(), and nothing
+      // between any of those writes and here touches it: the waxpby calls below
+      // read r_ and write p_ and s_. rHat_ is fixed WITHIN a Krylov sequence,
+      // and the only thing that replaces it -- restart() -- reassigns rhoNext
+      // against the new one before handing control back here. So this is the
+      // same value dot(rHat_, r_) would return here, bit for bit -- the
+      // reduction was moved, not replaced.
       const Real rho = rhoNext;
-      if (!std::isfinite(rho) || cancelledToRoundingLevel(rho, rHat_, r_, rHatNorm, rNorm)) {
+      if (!std::isfinite(rho)) return breakdown(iter - 1);
+      if (cancelledToRoundingLevel(rho, rHat_, r_, rHatNorm, rNorm)) {
+        const Restart outcome = restart();
+        if (outcome == Restart::Restarted) continue;
+        if (outcome == Restart::Converged) return restartedConvergence();
         return breakdown(iter - 1);
       }
 
@@ -545,8 +622,13 @@ SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_, const LinearSolv
       Real rHatDotV = 0.0;
       Real vDotV = 0.0;
       dot2(rHat_, v_, v_, v_, rHatDotV, vDotV);
-      if (!std::isfinite(rHatDotV) ||
-          cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, std::sqrt(vDotV))) {
+      if (!std::isfinite(rHatDotV)) return breakdown(iter - 1);
+      if (cancelledToRoundingLevel(rHatDotV, rHat_, v_, rHatNorm, std::sqrt(vDotV))) {
+        // restart() overwrites v_ (as its spmv target) and then zeroes it, so
+        // clobbering A*pHat here is safe: after a restart nothing reads it.
+        const Restart outcome = restart();
+        if (outcome == Restart::Restarted) continue;
+        if (outcome == Restart::Converged) return restartedConvergence();
         return breakdown(iter - 1);
       }
 
@@ -598,8 +680,14 @@ SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_, const LinearSolv
         return breakdown(iter - 1);
       }
 
-      if (!std::isfinite(tDotS) ||
-          cancelledToRoundingLevel(tDotS, t_, s_, std::sqrt(tDotT), sNorm)) {
+      if (!std::isfinite(tDotS)) return breakdown(iter - 1);
+      if (cancelledToRoundingLevel(tDotS, t_, s_, std::sqrt(tDotT), sNorm)) {
+        // x_ has not yet taken this iteration's alpha and omega steps, so the
+        // true residual restart() forms is the one for the same iterate the
+        // CPU restarts from.
+        const Restart outcome = restart();
+        if (outcome == Restart::Restarted) continue;
+        if (outcome == Restart::Converged) return restartedConvergence();
         return breakdown(iter - 1);
       }
       omega = tDotS / tDotT;
@@ -631,6 +719,10 @@ SolverResult bicgstabCore(const DeviceCsrMatrix& deviceMatrix_, const LinearSolv
         result.residualHistory.push_back(residualNorm);
         return result;
       }
+      // Mirrors BiCGSTAB.cpp:257 -- the iteration is banked HERE, at the end
+      // of a body that ran to completion. Nothing above this point advances
+      // `completed`, which is what makes a restart free of the budget.
+      completed = iter;
       result.residualHistory.push_back(residualNorm);
       result.iterations = iter;
 

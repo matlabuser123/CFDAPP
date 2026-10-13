@@ -88,6 +88,7 @@ using cfd::turbulence::LaminarModel;
 using cfd::turbulence::SSTConfig;
 using cfd::turbulence::SSTModel;
 using cfd::turbulence::TurbulenceModel;
+using cfd::validation::WallTreatmentKind;
 
 namespace {
 
@@ -341,12 +342,14 @@ cfd::validation::ChannelFlowValidationRecord runAndValidate(const std::string& m
 
   // Wall shear (both walls -- symmetry sanity check) at the primary
   // station.
-  record.wallShearBottom = computeWallShearStress(mesh, grid.nx, grid.ny, result.velocity,
-                                                  kStationB, kChannelHeight, kDynamicViscosity,
-                                                  /*bottomWall=*/true);
-  record.wallShearTop = computeWallShearStress(mesh, grid.nx, grid.ny, result.velocity, kStationB,
-                                               kChannelHeight, kDynamicViscosity,
-                                               /*bottomWall=*/false);
+  record.wallShearBottom = computeWallShearStress(
+      mesh, grid.nx, grid.ny, result.velocity, kStationB, kChannelHeight, kDynamicViscosity,
+      /*bottomWall=*/true, WallTreatmentKind::NoWallFunction,
+      /*modelWallShear=*/nullptr);
+  record.wallShearTop = computeWallShearStress(
+      mesh, grid.nx, grid.ny, result.velocity, kStationB, kChannelHeight, kDynamicViscosity,
+      /*bottomWall=*/false, WallTreatmentKind::NoWallFunction,
+      /*modelWallShear=*/nullptr);
   record.wallShearAsymmetry =
       std::abs(record.wallShearBottom - record.wallShearTop) / std::abs(record.wallShearBottom);
 

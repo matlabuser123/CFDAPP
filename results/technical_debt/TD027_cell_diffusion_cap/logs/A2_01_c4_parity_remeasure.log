@@ -1,0 +1,44 @@
+=== ENVIRONMENT
+date  2026-10-09T18:42:29+10:00
+nproc 32  load 0.00 0.00 0.00 4/570 750
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE -- the TD-032-fixed, A3-verified tree
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+44331433aee249beda8665031f554e401d581672bc17e97e98a15be805b80a2c  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/c4_parity_probe.cpp
+  expected source fa815c97..., library 852555cf...
+
+=== the cap under test must still be 5.0 (TD-027's shipped change)
+267:  Real maximumCellDiffusionNumber{5.0};
+
+TD-027 C4 RE-MEASURE -- the relaxT family on the TD-032-FIXED march
+
+  ORIGINAL ladder, INVALID: relaxT 18/22/26/30 -> budgets 30949/37827/44705/51583,
+  ALL ODD (consecutive levels differ by 6878, an even number). Parity preserved by
+  construction, so the statistic sampled one branch of TD-032's alternation.
+
+  CRITERION (GATE.md C4): max-min <= mean, over the family's fuel balance.
+
+  relaxT       budget   parity   fuel balance     S_L cm/s   front mm    wall s
+      18        27511      ODD   6.139263e-03     4.955332   3.468162      1060
+      22        33624     EVEN   6.061506e-03     4.955332   3.453799      1120
+      26        39738     EVEN   5.986308e-03     4.955332   3.440195      1196
+      30        45851      ODD   6.235249e-03     4.955332   3.485637      1276
+
+=== IS THE LADDER PARITY-CROSSING? This decides whether C4 is re-measured at all.
+
+  EVEN budgets 2    ODD budgets 2
+  -> PARITY-CROSSING: the family samples BOTH branches.
+
+=== C4's STATISTIC
+
+  max       6.235249e-03
+  min       5.986308e-03
+  max-min   2.489408e-04
+  mean      6.105582e-03
+  ratio     0.0408   (max-min / mean; the criterion is <= 1)
+
+  C4  max-min <= mean   PASS
+
+DONE 2026-10-09T20:00:07+10:00

@@ -1,0 +1,215 @@
+P17.10 -- regression
+date: 2026-09-28T09:41:41Z
+gate: results/p17/cpu_gpu_equivalence/acceptance_gate.md
+      frozen sha256 c5b86211dce2128152f5fe8d5a93b8ba739fc596da562f485af18d3ce6efbb51
+      live   sha256 c5b86211dce2128152f5fe8d5a93b8ba739fc596da562f485af18d3ce6efbb51
+      GATE INTEGRITY: MATCHES the freeze
+      tolerance_policy.md  e69d8ef2b8cb5f8c7bac320ab7b153dd0b914a7f658718f2f774845863b8d116
+      kernel_inventory.md  953efdeeaa91e67195a6472d206476d0fe5e5f946c435b9134c4a11fba1e7536
+      audit.md             478933fcc859d8f2f9a3d618dfce371690e272b5e1bd52370dc504f086c98fc9
+
+INHERITED frozen gates, which P17.10 must not have moved:
+      P17.8 a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e
+      P17.9 b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40
+      P17.9 amendments present:
+        A1_stationary_contact_width.md
+        A2_rarefaction_head_scaling.md
+        A3_plateau_contamination.md
+        coverage_map.md
+      (both must match logs/02_freeze.log; they are re-hashed at the START of every
+       evidence-producing step, because a frozen-doc check that only runs at phase end
+       hides a post-freeze edit for the whole phase.)
+
+FROZEN exclusions (5 patterns, verbatim):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200
+  build/qual-debug is NOT run -- deferred to P17.11 by standing decision
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 60cf951bde2a4eb2fc32d21470377090fa3453c6b5b435c130b2247164f89318
+
+### THE PREDICTION, declared before the run ###
+  P17.9 close: release_cuda 2745 registered / 2683 executed
+               cpu_only     2539 registered / 2479 executed
+  P17.10 adds THREE files and no others:
+    test_p17_10_dryrun.cpp                      8 TEST macros  (CPU, both configs)
+    test_device_thermodynamics_equivalence.cpp  6 TEST macros  (CPU, both configs)
+    test_density_based_gpu_equivalence.cpp     17 TEST macros  (CUDA ONLY)
+  The deltas DIFFER by configuration, because tests/unit/gpu is added only when
+  CFDAPP_ENABLE_CUDA=ON. That asymmetry IS the prediction, not an excuse for one:
+    release_cuda 2745 + 8 + 6 + 17 = 2776 registered   2683 + 31 = 2714 executed
+    cpu_only     2539 + 8 + 6      = 2553 registered   2479 + 14 = 2493 executed
+  TWO of the 17 GPU rows are the sanitizer controls, which SKIP unless
+  CFD_P17_10_SANITIZER_CONTROL=1 is set (only tools/sanitizers.sh sets it). A skipped
+  gtest exits 0, so they register and pass without running their deliberate faults.
+  A test count is an arithmetic consequence of the suite, not a tolerance.
+
+newest PRODUCTION source: 2026-09-28T08:57:11Z  cuda/CMakeLists.txt
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- configure + build (every target) ---
+  configure exit: 0
+  build exit: 0   (2 s)
+
+--- section 8 step 3: staleness, FAIL CLOSED (P17.7's staleness.py, unchanged) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries       : 50
+  external tools in registry: 1
+  objects inspected         : 308   mapped to a repo source: 308   generated: 0
+  oldest built binary       : 2026-09-28T08:57:38Z  tests/unit/gpu/CFDGpuTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 50 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+
+--- library hashes (section 8 step 4) ---
+  src/libcfdcore.a                               188e50397ed13718f449f369ef996768cc4011ac1048955dc312da92716390f6
+  cuda/libcfdcuda.a                              1e2e0f914afd40ef1f624f03cdb2bbee8aa141d46d780ad1bbcc3c29c404290a
+  (libcfdcuda.a's hash MOVES across identical rebuilds -- nvcc is not bit-reproducible.
+   It is recorded, never used as an identity check.)
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2776   PREDICTED 2776
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 30
+  P17.10 rows             : 31   PREDICTED 31
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status : 0
+  total tests       : 2714      PREDICTED 2714
+  passed            : 100% tests passed
+  failed            : 0           PREDICTED 0
+  Not Run           : 0
+  runtime           : 2271 s  [WSL wall clock, indicative only]
+  COUNT VERDICT     : MATCHES the frozen prediction
+
+--- the P17.10 tests EXECUTED, by name (registration is not execution) ---
+  P17.10 rows that Passed: 29   PREDICTED 31
+     225/2763 Test #1934: DensityBasedGpuEquivalence.D3_SodShockTubeIsBitwiseThroughTheWholeRun ....................................   Passed    0.99 sec
+     245/2763 Test #1932: DensityBasedGpuEquivalence.C1_C2_LocalAndGlobalTimeStepsAreBitwise .......................................   Passed    0.34 sec
+     246/2763 Test #1931: DensityBasedGpuEquivalence.B2_B4_ResidualIsBitwiseOnUniformAndGradedMeshes ...............................   Passed    0.37 sec
+     247/2763 Test #1933: DensityBasedGpuEquivalence.C3_D1_D2_TrajectoryStaysBitwiseStepAfterStep ..................................   Passed    0.38 sec
+     250/2763 Test #1930: DensityBasedGpuEquivalence.B1_FaceFluxesAreBitwise .......................................................   Passed    0.22 sec
+     252/2763 Test #1929: DensityBasedGpuEquivalence.A7_DeviceRecoveryMatchesProductionToPrimitiveBitwise ..........................   Passed    0.25 sec
+     254/2763 Test #1936: DensityBasedGpuEquivalence.C4_InadmissibleStatesAreRefusedByBothNamingTheSameCell ........................   Passed    0.23 sec
+     255/2763 Test #1935: DensityBasedGpuEquivalence.B5_InteriorFaceContributionsCancelExactlyInTheGather ..........................   Passed    0.23 sec
+     331/2763 Test #1942: DensityBasedGpuEquivalence.V6_CflSoundSpeedFromTheMeanTemperatureBreaksC1 ................................   Passed    0.34 sec
+     340/2763 Test #1941: DensityBasedGpuEquivalence.V_NegativeControls_EachBreaksItsNamedCriterion ................................   Passed    0.32 sec
+     341/2763 Test #1940: DensityBasedGpuEquivalence.T1_AResidentRunDoesNotRoundTripTheStatePerStep ................................   Passed    0.36 sec
+     342/2763 Test #1938: DensityBasedGpuEquivalence.R2_R5_GpuIsBitwiseRepeatableAndBlockSizeIndependent ...........................   Passed    0.61 sec
+     352/2763 Test #1937: DensityBasedGpuEquivalence.D4_DetectedWavePositionsAgreeOnBothBackends ...................................   Passed    1.47 sec
+     779/2763 Test #1943: DensityBasedGpuEquivalence.Trap6_AnUnmappedBoundaryPatchIsRefusedByBothBackends ..........................   Passed    0.21 sec
+     893/2763 Test #2717: P17_10_DryRun.D3_NonVacuity_OneUlpInAnyConservedComponentIsDetected ......................................   Passed    0.09 sec
+     907/2763 Test #2716: P17_10_DryRun.D2_ComparatorReportsEqualForIdenticalState .................................................   Passed    0.10 sec
+     936/2763 Test #2715: P17_10_DryRun.D1_NonVacuity_TheAscendingCheckDetectsADescendingList ......................................   Passed    0.07 sec
+     959/2763 Test #1939: DensityBasedGpuEquivalence.T2_TheUploadDownloadPairIsExactlyInverse ......................................   Passed    0.24 sec
+    1035/2763 Test #2718: P17_10_DryRun.D4_FailClosed_EveryWayAComparisonCanSilentlyNotHappen ......................................   Passed    0.11 sec
+    1361/2763 Test #2719: P17_10_DryRun.D5_MatchingNonFiniteValuesAreEqualButCounted ...............................................   Passed    0.13 sec
+    1395/2763 Test #2721: P17_10_Finding.DOCUMENTS_A_DEFECT_ToroWaveSpeedsDoNotBoundAHeadOnCollision ...............................   Passed    0.10 sec
+    1420/2763 Test #2720: P17_10_DryRun.D6_TheCpuBaselineIsItselfBitwiseRepeatable .................................................   Passed    0.14 sec
+    1495/2763 Test #2714: P17_10_DryRun.D1_EveryCellFaceListIsAscendingOnEveryMeshConstructionPath .................................   Passed    0.09 sec
+    2080/2763 Test #1813: DeviceThermodynamicsEquivalence.A1_RecoveryIsBitwiseIdenticalToProduction ................................   Passed    0.11 sec
+    2116/2763 Test #1818: DeviceThermodynamicsEquivalence.A6_NonVacuity_CarryingRhoEOverUnchangedIsDetected ........................   Passed    0.10 sec
+    2145/2763 Test #1814: DeviceThermodynamicsEquivalence.A1_NonVacuity_RegroupingTheProductsBreaksBitwiseEquality .................   Passed    0.08 sec
+    2153/2763 Test #1817: DeviceThermodynamicsEquivalence.A6_ExteriorStateIsBitwiseIdenticalForAllThreeKinds .......................   Passed    0.10 sec
+    2272/2763 Test #1815: DeviceThermodynamicsEquivalence.A2_RefusalsAgreeAndForTheSameReason ......................................   Passed    0.12 sec
+    2286/2763 Test #1816: DeviceThermodynamicsEquivalence.A2_TemperatureRangeIsEnforced_AndItsRemovalIsDetected ....................   Passed    0.08 sec
+
+--- preservation: P17.9 shock, P17.8 solver, P17.7 HLLC and P17.2 EOS rows EXECUTED ---
+  P17.9 shock rows Passed        : 13
+  P17.8 DensityBased rows Passed : 36
+  Hllc rows that Passed          : 39
+  IdealGasEOSTest rows Passed    : 30   PREDICTED 30
+  LowMach rows Passed            : 25
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+grep: build/qual-cpuonly/CMakeCache.txt: No such file or directory
+
+--- configure + build (every target) ---
+  configure exit: 0
+  build exit: 0   (429 s)
+
+--- section 8 step 3: staleness, FAIL CLOSED (P17.7's staleness.py, unchanged) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries       : 49
+  external tools in registry: 1
+  objects inspected         : 286   mapped to a repo source: 286   generated: 0
+  oldest built binary       : 2026-09-28T10:23:45Z  tests/unit/transport/CFDTransportTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 49 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+
+--- library hashes (section 8 step 4) ---
+  src/libcfdcore.a                               1f204a486770cf9d43d4bbf0cb24727ea55794da3bafda177877c2ad4a67f7ac
+  (libcfdcuda.a's hash MOVES across identical rebuilds -- nvcc is not bit-reproducible.
+   It is recorded, never used as an identity check.)
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2553   PREDICTED 2553
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 30
+  P17.10 rows             : 14   PREDICTED 14
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---
+  ctest exit status : 8
+  total tests       : 2493      PREDICTED 2493
+  passed            : 99% tests passed
+  failed            : 3           PREDICTED 0
+  Not Run           : 0
+  runtime           : 9657 s  [WSL wall clock, indicative only]
+  COUNT VERDICT     : MATCHES the frozen prediction
+  --- every non-passing test ---
+    	2536 - DriverSeegmiller.CorrectedSequenceIsDeterministic (Timeout)
+    	2538 - DriverSeegmillerInlet.MappedInletPreservesTheMassFlow (Timeout)
+    	2539 - DriverSeegmillerInlet.MediumGridAB (Timeout)
+
+--- the P17.10 tests EXECUTED, by name (registration is not execution) ---
+  P17.10 rows that Passed: 14   PREDICTED 14
+    1813/2540 Test #1813: DeviceThermodynamicsEquivalence.A1_RecoveryIsBitwiseIdenticalToProduction ................................   Passed    0.06 sec
+    1814/2540 Test #1814: DeviceThermodynamicsEquivalence.A1_NonVacuity_RegroupingTheProductsBreaksBitwiseEquality .................   Passed    0.06 sec
+    1815/2540 Test #1815: DeviceThermodynamicsEquivalence.A2_RefusalsAgreeAndForTheSameReason ......................................   Passed    0.06 sec
+    1816/2540 Test #1816: DeviceThermodynamicsEquivalence.A2_TemperatureRangeIsEnforced_AndItsRemovalIsDetected ....................   Passed    0.06 sec
+    1817/2540 Test #1817: DeviceThermodynamicsEquivalence.A6_ExteriorStateIsBitwiseIdenticalForAllThreeKinds .......................   Passed    0.06 sec
+    1818/2540 Test #1818: DeviceThermodynamicsEquivalence.A6_NonVacuity_CarryingRhoEOverUnchangedIsDetected ........................   Passed    0.08 sec
+    2484/2540 Test #2491: P17_10_DryRun.D1_EveryCellFaceListIsAscendingOnEveryMeshConstructionPath .................................   Passed    0.02 sec
+    2485/2540 Test #2492: P17_10_DryRun.D1_NonVacuity_TheAscendingCheckDetectsADescendingList ......................................   Passed    0.01 sec
+    2486/2540 Test #2493: P17_10_DryRun.D2_ComparatorReportsEqualForIdenticalState .................................................   Passed    0.01 sec
+    2488/2540 Test #2494: P17_10_DryRun.D3_NonVacuity_OneUlpInAnyConservedComponentIsDetected ......................................   Passed    0.02 sec
+    2489/2540 Test #2495: P17_10_DryRun.D4_FailClosed_EveryWayAComparisonCanSilentlyNotHappen ......................................   Passed    0.02 sec
+    2490/2540 Test #2496: P17_10_DryRun.D5_MatchingNonFiniteValuesAreEqualButCounted ...............................................   Passed    0.02 sec
+    2491/2540 Test #2498: P17_10_Finding.DOCUMENTS_A_DEFECT_ToroWaveSpeedsDoNotBoundAHeadOnCollision ...............................   Passed    0.00 sec
+    2492/2540 Test #2497: P17_10_DryRun.D6_TheCpuBaselineIsItselfBitwiseRepeatable .................................................   Passed    0.04 sec
+
+--- preservation: P17.9 shock, P17.8 solver, P17.7 HLLC and P17.2 EOS rows EXECUTED ---
+  P17.9 shock rows Passed        : 13
+  P17.8 DensityBased rows Passed : 36
+  Hllc rows that Passed          : 35
+  IdealGasEOSTest rows Passed    : 30   PREDICTED 30
+  LowMach rows Passed            : 25
+
+############################################################
+### CPU-only has no CUDA dependency
+############################################################
+  build log read                    : 50_cpu_only_build.log (777 lines)
+  nvcc invocations in the build log : 0
+  libcudart references              : 0
+  cuda/libcfdcuda.a present         : no
+
+P17_CODE_FINGERPRINT after  : 60cf951bde2a4eb2fc32d21470377090fa3453c6b5b435c130b2247164f89318
+  the code fingerprint must not have moved ACROSS the regression.
+
+done: 2026-09-28T13:09:48Z

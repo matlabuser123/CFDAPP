@@ -6,10 +6,10 @@ Reference: Ghia, Ghia & Shin (1982), J. Comput. Phys. 48, 387-411, Tables I/II (
 
 | run | Re | mesh | scheme | status | iterations | linear its (mom / p) | mass imbalance | runtime (s) | passed |
 |---|---|---|---|---|---|---|---|---|---|
-| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3312 | 40262 / 175647 | 0 | 23.2 | yes |
-| cavity_re100/20x20/central | 100 | 20x20 | central | Converged | 3208 | 41025 / 169072 | 0 | 22.7 | yes |
-| cavity_re100/20x20/linear_upwind | 100 | 20x20 | linear_upwind | Converged | 3359 | 42633 / 174236 | 0 | 25.3 | yes |
-| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3265 | 42117 / 171517 | 0 | 24.7 | yes |
+| cavity_re100/20x20/upwind | 100 | 20x20 | upwind | Converged | 3312 | 40262 / 175647 | 0 | 18.2 | yes |
+| cavity_re100/20x20/central | 100 | 20x20 | central | Converged | 3208 | 41025 / 169072 | 0 | 18.4 | yes |
+| cavity_re100/20x20/linear_upwind | 100 | 20x20 | linear_upwind | Converged | 3359 | 42633 / 174236 | 0 | 21.3 | yes |
+| cavity_re100/20x20/quick | 100 | 20x20 | quick | Converged | 3265 | 42117 / 171517 | 0 | 21.1 | yes |
 
 **u_centerline**
 

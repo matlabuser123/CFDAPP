@@ -1,0 +1,36 @@
+=== ENVIRONMENT
+date        2026-10-08T17:21:11+10:00
+build type  CMAKE_BUILD_TYPE:STRING=Release
+
+=== PROVENANCE
+43a2488314395ca5479c54adafd0aa2007e9aa80d029c7eb06713de07935e9db  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+3c2263cd34f3ae93e7605fa56b4c7823f077b567c5ed9cc8ebd3b95da30204a9  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+  (expect 3c2263cd... = with TD-004's locator fix; NO production change for this ladder)
+40855fdb8f56a06b8e2c30b74b9e0fd42a310323739fb3368206ea696d227c9a  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD040_recentre_conservation/tools/deadband_ladder_probe.cpp
+
+=== COMPILE
+compile exit: 0
+
+=== RUN  (5 solves)
+TD-040 -- S_L against the RECENTRING RATE, via the dead band
+
+  deadBand 1000 DISABLES recentring: |offset| cannot exceed 500 in 500 cells.
+  pre-fix reference   S_L 4.671937 cm/s  (1 final-march recentring, 121 total)
+  post-fix reference  S_L 4.955332 cm/s  (3 final-march recentrings, 223 total)
+
+ deadBand     S_L cm/s   recentr   final      ledgerRate   as % fuelT   front off     balance
+        1     4.955332       666      10   -8.183467e-05      -2.8037      -0.961   6.206e-03
+        3     4.955332       223       3   -7.364218e-05      -2.5230      -0.039   6.303e-03
+       10     4.955332        63       1   -8.168112e-05      -2.7985      -1.020   6.201e-03
+       20     4.955332        27       0    0.000000e+00       0.0000       8.335   7.066e-03
+     1000     4.955332         0       0    0.000000e+00       0.0000       8.335   7.066e-03
+
+=== HOW TO READ THIS
+  The deadBand-1000 row is the NEGATIVE CONTROL: recentring off, ledger exactly
+  zero, and whatever S_L it gives is the eigenvalue with no translation at all.
+  If rows 1..20 show a FLAT ledger rate, audit.md section 4.4 holds and the middle
+  of this ladder discriminates nothing -- read the control row against the two
+  reference eigenvalues instead, and say so rather than reading a flat line as a
+  result.
+probe exit: 0
+DONE 2026-10-08T18:54:08+10:00

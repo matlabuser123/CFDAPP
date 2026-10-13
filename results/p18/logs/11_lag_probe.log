@@ -1,0 +1,34 @@
+build exit: 0
+P18.0 -- species boundary-lag probe (INSTRUMENTATION ONLY, no physics added)
+
+mesh 12x8 uniform, rho = 1.0, D = 0.01, prescribed dY/dn = 0.0 on every wall
+convergence tolerance on the OUTER loop: 1e-8 (max |dY| between outer iterations)
+
+=== 1. SPECIES, pure Neumann (all walls dY/dn = 0), pure diffusion ===
+  maxOuter=1     outer used=1     status=1   maxChange=1.367e-02  BC residual=0.000e+00 over 40 faces
+  maxOuter=2     outer used=2     status=1   maxChange=1.121e-02  BC residual=0.000e+00 over 40 faces
+  maxOuter=5     outer used=5     status=1   maxChange=6.978e-03  BC residual=0.000e+00 over 40 faces
+  maxOuter=20    outer used=20    status=1   maxChange=3.353e-03  BC residual=0.000e+00 over 40 faces
+  maxOuter=2000  outer used=335   status=0   maxChange=9.934e-09  BC residual=0.000e+00 over 40 faces
+
+=== 2. THERMAL, the same pure-Neumann shape (the FIXED path, for contrast) ===
+  maxOuter=1     outer used=1     status=1   maxChange=1.833e+01  BC residual=0.000e+00 over 40 faces
+  maxOuter=2     outer used=2     status=0   maxChange=3.143e-11  BC residual=0.000e+00 over 40 faces
+  maxOuter=5     outer used=2     status=0   maxChange=3.143e-11  BC residual=0.000e+00 over 40 faces
+  maxOuter=20    outer used=2     status=0   maxChange=3.143e-11  BC residual=0.000e+00 over 40 faces
+  maxOuter=2000  outer used=2     status=0   maxChange=3.143e-11  BC residual=0.000e+00 over 40 faces
+
+=== 3. SPECIES, Dirichlet inlet + Neumann walls, WITH convection ===
+  outer used=31    status=0   maxChange=5.492e-09  BC residual=0.000e+00
+  outer change history (first 8): 3.89e-01 1.92e-01 1.18e-01 8.48e-02 5.60e-02 3.50e-02 2.10e-02 1.23e-02 
+  total outer iterations: 31
+
+HOW TO READ THIS:
+  * 'outer used' > 1 means the solver had to RE-ASSEMBLE to satisfy its own boundary
+    condition -- i.e. one assembly was not self-consistent. That is the lag.
+  * 'BC residual' is the boundary condition's own definition evaluated on the field
+    actually returned. It is 0 by construction for FixedGradient whenever the face
+    value is reconstructed FROM the owner, so it measures self-consistency of the
+    returned field, NOT whether the assembled flux used a stale value.
+  * the discriminating number is therefore 'outer used' at maxOuter=2000, compared
+    between species and thermal on the identical problem shape.

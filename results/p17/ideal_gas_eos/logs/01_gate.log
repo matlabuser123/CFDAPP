@@ -1,0 +1,60 @@
+P17.2 ACCEPTANCE GATE
+date: 2026-09-26T08:56:26Z
+gate sha256: 1a0aefe24b7e41c2c302dfc25f67bf91faf6af9622dffb98a52be2d4dfb25c12
+  frozen was: 1a0aefe24b7e41c2c302dfc25f67bf91faf6af9622dffb98a52be2d4dfb25c12
+
+### G9: clang-format on the files P17.2 changed ###
+  clang-format exit: 0  (0 = clean)
+
+### build ###
+  build exit: 0  (99 s)
+
+### Groups C, V, D: the EOS suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 30
+  the 9 P17.2 rows:
+    TemperatureMatchesPOverRhoR                          Passed
+    TemperatureToPressureRoundTripRecoversPressure       Passed
+    ThreeWayClosureHoldsAcrossGasesAndStateRanges        Passed
+    TemperatureIsReachableThroughTheAbstraction          Passed
+    TemperatureRejectsNonPositivePressureOrDensity       Passed
+    TemperatureRejectsNonFinitePressureOrDensity         Passed
+    TemperatureRejectsAnOverflowingQuotient              Passed
+    TemperatureMessageNamesTheOffendingField             Passed
+    EveryDirectionIsBitwiseDeterministic                 Passed
+
+### Groups T, A, I, D2: the thermodynamics suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 20
+  the 5 P17.2 rows:
+    ClosureHoldsTogetherAcrossGases                                Passed
+    GammaExceedsOneForEveryAdmissibleCp                            Passed
+    SoundSpeedFromTemperatureMatchesSoundSpeedFromPressureAndDensity Passed
+    EosDerivedDensityReachesTheAuthoritativeFieldWithTheExpectedValue Passed
+    RepeatedEvaluationIsBitwiseIdentical                           Passed
+
+### Group K: P15 constant-property compatibility -- EXISTING tests, not duplicated ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 13
+    ConstantCpGivesTheLinearForm                   Passed
+    RoundTripHoldsForConstantCpToo                 Passed
+    OutOfRangeEnthalpyIsRefusedNotClamped          Passed
+    ConstantIsTheSingleCoefficientCase             Passed
+  K4: e(T) must remain ABSENT -- internalEnergy hits: 0  (must be 0)
+  K3: P15 files untouched by P17.2:
+    include/cfd/thermal/Enthalpy.hpp                         
+    include/cfd/thermal/TemperatureDependentProperty.hpp     
+
+### Group I3: no duplicated EOS arithmetic on the production path ###
+  p/(R*T)-style arithmetic outside the EOS classes: 0   (must be 0)
+
+### Groups G1/G2: the whole compressible suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 149
+
+### Groups G3/G4/G5: P14, P15, P16 preservation -- FROZEN narrow regexes ###
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P16_turbulence   exit=0  100% tests passed, 0 tests failed out of 315
+
+done: 2026-09-26T09:14:48Z

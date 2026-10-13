@@ -1,0 +1,89 @@
+P17.10 AUDIT -- GPU coverage of the P17 capability set
+date: 2026-09-28T07:53:54Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### 1. does a GPU DENSITY-BASED SOLVER exist at all? ###
+  DensityBasedSolver         files under cuda/ or include/cfd/gpu/: 0
+  ConservedField             files under cuda/ or include/cfd/gpu/: 0
+  assembleResidual           files under cuda/ or include/cfd/gpu/: 0
+  localTimeSteps             files under cuda/ or include/cfd/gpu/: 0
+  applyUpdate                files under cuda/ or include/cfd/gpu/: 0
+  SANITY -- the same search DOES find the host implementation:
+    DensityBasedSolver under src/ + include/cfd/compressible/: 3 files   (must be > 0)
+
+### 2. what the GPU layer DOES have for P17 ###
+  HLLC on device:
+    cuda/kernels/DeviceHllcFluxKernel.cu
+    include/cfd/gpu/DeviceHllcFlux.hpp
+    entry points:
+      60:[[nodiscard]] bool hllcDeviceAvailable();
+      64:bool evaluateHllcOnDevice(const HllcDeviceInput* inputs, HllcDeviceOutput* outputs, int count,
+      70:bool evaluateHllOnDeviceForControlOnly(const HllcDeviceInput* inputs, HllcDeviceOutput* outputs,
+    formulas restated inside the .cu (must be 0 -- it compiles the shared header):
+      0 arithmetic lines
+    shared host/device marker in the flux header:
+      CFD_HLLC_HOST_DEVICE occurrences: 20
+
+  DeviceMesh -- what topology is already device-resident:
+    cellVolumes     cellCentroidX     cellCentroidY     cellCentroidZ     faceOwner     faceNeighbor     faceCentroidX     faceCentroidY     faceCentroidZ     faceAreaX     faceAreaY     faceAreaZ     faceArea     cellFaceOffsets     cellFaceIds     boundaryFaceIds 
+
+### 3. is each cell's face list ASCENDING? (decides whether bitwise residuals are possible) ###
+  MeshGeometry assigns face ids from a monotonically increasing counter and calls addFace as
+  each face is created, so a cell's list can only be ascending. Verified by construction:
+    456:      const Index faceId = nextFaceId++;
+    480:      const Index faceId = nextFaceId++;
+    827:    const Index faceId = nextFaceId++;
+    858:          const Index faceId = nextFaceId++;
+  addFace appends without sorting:
+    34:void Cell::addFace(Index faceId) { faceIds_.push_back(faceId); }
+  CONSEQUENCE: a per-cell GATHER over cellFaceIds visits faces in the same order the CPU's
+  face loop accumulates them, so the residual can be BITWISE rather than merely close --
+  and no atomics are needed, which is also what makes the GPU residual deterministic.
+
+### 4. the numerical policy already established for P17 GPU work ###
+  40:  # gcc and nvcc compile that same source. See the --fmad=false property set below.
+  93:  PROPERTIES COMPILE_OPTIONS "-fmad=false"
+  122:# block above already applies -fmad=false to the twenty-odd existing kernels for the same reason. A
+  127:#   --fmad=false   17 of 17 rows BITWISE, max |flux diff| exactly 0
+  128:#   --fmad=true     8 of 17 rows bitwise, max |flux diff| 1.52587890625e-04 absolute
+  134:  COMPILE_OPTIONS "--fmad=false")
+
+### 5. thermodynamics on device -- what blocks it ###
+  TotalEnergyState holds SensibleEnthalpy holds TemperatureDependentProperty, which is
+  std::vector-backed and therefore HOST ONLY. But the recovery this solver uses is a CLOSED
+  FORM, so only scalars are needed on device:
+    120:  const Real temperature = (specificInternalEnergy - hRef + cp * tRef) / cv;
+    171:  out.pressure = thermo_.equationOfState().pressure(density, out.temperature);
+  std::vector occurrences in TotalEnergy.hpp (why it cannot cross to device as-is):
+    0
+
+### 6. existing GPU test + diagnostic infrastructure to REUSE ###
+    CMakeLists.txt
+    KEpsilonModelTestAccess.hpp
+    test_boundary_encoding.cpp
+    test_cuda_spmv.cpp
+    test_device_buffer.cpp
+    test_device_effective_viscosity.cpp
+    test_device_epsilon_transport.cpp
+    test_device_k_transport.cpp
+    test_device_kepsilon_correction.cpp
+    test_device_max_abs_difference.cpp
+    test_device_scalar_transport_semantics.cpp
+    test_device_turbulence_algebra.cpp
+    test_device_wall_face_viscosity.cpp
+    test_gpu_linear_solver.cpp
+    test_gpu_residency_manager.cpp
+    test_hllc_gpu_equivalence.cpp
+    test_krylov_blocker_reproducer.cpp
+    test_production_kepsilon_backend.cpp
+    test_resident_channel_production.cpp
+    test_resident_kepsilon_entry.cpp
+  CUDA diagnostic tooling already in the repo:
+    results/cuda-qual-001/diagnostics.md
+    results/cuda-qual-001/logs/05_gpu_tests_and_sanitizer.log
+    results/cuda-qual-001/summary.md
+    results/gpu-closeout/commit/message.txt
+    results/gpu-disc-001/boundary-conditions/summary.md
+    results/gpu-disc-001/convection/audit.md
+
+done: 2026-09-28T07:53:57Z

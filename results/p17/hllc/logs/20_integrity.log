@@ -1,0 +1,119 @@
+P17.7 REPOSITORY INTEGRITY
+date: 2026-09-27T08:26:11Z
+
+### 1. nothing was committed, pushed, reset or stashed ###
+  HEAD                     : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD at the P17.7 freeze : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  HEAD unchanged           : YES
+  branch                   : main
+  stash entries            : 0   (expected 0)
+
+### 2. the frozen documents are unchanged ###
+  1f4ccd8af57f529e1654b2465df9e1c07124c22e0e8a500c56116372009a6465  acceptance_gate.md
+  bd2f77dc8adde786f287797ea98f2a219182dd738f147b27f64484f4fd5f7c4b  audit.md
+  cddf94e5cc227eb6a53906cefecb03670e3e6d9efb2156b378d86af24843d390  tools/exact_riemann.py
+  7cc938786ca73d5d65380302ef231941ac2ba65cd739d473208f5d934d00a399  tools/audit.sh
+  expected, from logs/02_freeze.log:
+    1f4ccd8af57f529e1654b2465df9e1c07124c22e0e8a500c56116372009a6465  acceptance_gate.md
+    bd2f77dc8adde786f287797ea98f2a219182dd738f147b27f64484f4fd5f7c4b  audit.md
+    cddf94e5cc227eb6a53906cefecb03670e3e6d9efb2156b378d86af24843d390  tools/exact_riemann.py
+    7cc938786ca73d5d65380302ef231941ac2ba65cd739d473208f5d934d00a399  tools/audit.sh
+  NOTE: exact_riemann.py is the INDEPENDENT reference G6(f) requires. It is frozen, and
+        tools/gen_reference_header.py IMPORTS it rather than editing it -- which is why the
+        hash above still matches after the reference header was generated.
+
+### 3. upstream files UNTOUCHED -- SHA-256, never git diff HEAD ###
+  P17.7 is ADDITIVE: it changes no P17.1-P17.6 production source and no core type.
+  UNTOUCHED: 22    TOUCHED: 0   (TOUCHED must be 0)
+
+### 4. no planted control marker survived ###
+  surviving // V<id> markers in the PLANTED file           : 0   (expected 0)
+  sanity -- the pattern matches a synthetic marker line    : 1   (must be 1, else the 0 is blind)
+  PRE-EXISTING // V<id> labels elsewhere in the tree       : 8
+    P17.5's own test annotations, present before P17.7 and NOT plants:
+      tests/unit/compressible/test_total_energy.cpp:780:               InvalidArgumentError);  // V1
+      tests/unit/compressible/test_total_energy.cpp:782:               InvalidArgumentError);                                                      // V1
+      tests/unit/compressible/test_total_energy.cpp:783:  EXPECT_THROW((void)state.recover(0.0, Vector2{0.0, 0.0}, 1.0e5), InvalidArgumentError);  // V1
+      tests/unit/compressible/test_total_energy.cpp:786:      InvalidArgumentError);  // V1
+      tests/unit/compressible/test_total_energy.cpp:792:               InvalidArgumentError);  // V2
+      tests/unit/compressible/test_total_energy.cpp:794:               InvalidArgumentError);  // V2
+      tests/unit/compressible/test_total_energy.cpp:797:      InvalidArgumentError);  // V2
+      tests/unit/compressible/test_total_energy.cpp:833:// V5
+  the planted file IS in the scanned set: include/cfd/compressible/HllcFlux.hpp (449 non-empty lines)
+  control scratch files left : 0   (expected 0)
+  HllcFlux.hpp sha256 now    : 98885f49b987d1ec09b93492aa12231277296b1cb6f34bb4a1e92cf08b5c0cdd
+  at the controls baseline   : db7d90f5f2e64e991d1327ab53899893e7f752c75674cb14e80f2fb60682ee01
+  expected NOW               : 98885f49b987d1ec09b93492aa12231277296b1cb6f34bb4a1e92cf08b5c0cdd
+    The hash MOVED after the controls, legitimately: criterion E5 (clang-format) FAILED on this
+    file, so clang-format -i was run afterwards. Formatting only -- the token multiset is
+    IDENTICAL before and after, and logs/08_postformat.log shows 39/39 passing with every measured
+    value byte-identical to logs/03_hllc_measured.log. logs/HllcFlux.hpp.preformat is kept so the
+    claim is checkable.
+
+### 5. clang-format on everything P17.7 added ###
+  exit: 0   (0 = clean)
+  NOTE: cuda/kernels/DeviceHllcFluxKernel.cu is CUDA. clang-format is not run on .cu files anywhere in this project.
+        tests/unit/compressible/hllc_reference_data.hpp is GENERATED and is not hand-formatted either.
+
+### 6. no duplicate EOS, sound speed, or primitive/conserved conversion (sections 2, 3, 41) ###
+  --- inside the flux layer, all of these MUST be 0 ---
+    p = rho R T style pressure formula             0
+    sqrt(gamma R T) sound-speed formula            0
+    (gamma-1) energy/pressure inversion            0
+  --- and these MUST be the authoritative calls ---
+    speedOfSound() call sites in the factory       2
+    equationOfState().pressure() call sites        1
+    conservedTotalEnergy() call sites              1
+    recover() call sites (P17.5's inverse)         1
+  --- the .cu contains NO physics (section 28 / criterion G1) ---
+    wave-speed / star-state formulas in the .cu    0
+    calls INTO the shared header                   2
+
+### 7. section 35 -- no SIMPLE path routes through HLLC ###
+  HLLC references from any SIMPLE source               0
+  HLLC refs in src/ CODE outside HllcFlux.cpp (CMake excluded) 0
+  (0 and 0 required: the two solver architectures coexist and are not wired together)
+
+### 8. the code fingerprint ###
+  P17_CODE_FINGERPRINT now              : c468f524e8a3fe1d4d44efde12fa7f9f86219fe6658b3aed1eda0ab2370408e6
+  at the P17.6 close (the P17.7 freeze) : cf4d53a2e6b090228f68d58bc9b452d324abd3dde03539a53a70f44542c70bdf
+  NOTE: this MUST differ -- P17.7 added code. It is an identifier, not a pass/fail; its
+        pass/fail use is that it must not move DURING a regression run (B8).
+
+### 9. what P17.7 introduced ###
+    include/cfd/compressible/HllcFlux.hpp                    untracked, as expected for a new file
+    src/compressible/HllcFlux.cpp                            untracked, as expected for a new file
+    include/cfd/gpu/DeviceHllcFlux.hpp                       untracked, as expected for a new file
+    cuda/kernels/DeviceHllcFluxKernel.cu                     untracked, as expected for a new file
+    tests/unit/compressible/test_hllc_flux.cpp               untracked, as expected for a new file
+    tests/unit/gpu/test_hllc_gpu_equivalence.cpp             untracked, as expected for a new file
+    tests/unit/compressible/hllc_reference_data.hpp          untracked, as expected for a new file
+  modified TRACKED files P17.7 edited:
+    CAUTION: git diff HEAD on these shows the union of EVERY uncommitted phase, because nothing
+    since P12 is committed. A first version of this probe printed those totals as 'attributable
+    to P17.7', which was WRONG -- src/CMakeLists.txt reads +42 while P17.7 added 3 lines to it.
+    The HLLC-attributable count is therefore measured BY CONTENT, not by diff size. This is the
+    same trap that makes git diff --numstat HEAD unusable as an 'untouched by this phase' test.
+    file                                       all uncommitted   of which P17.7
+    src/CMakeLists.txt                         +42               3
+    cuda/CMakeLists.txt                        +40               12
+    tests/unit/compressible/CMakeLists.txt     +8                4
+    tests/unit/gpu/CMakeLists.txt              +51               5
+  P17.7 new files                : 7
+  ALL untracked in the tree      : 137
+  attributable to EARLIER phases : 130
+  (explicit enumeration, not a listing: nothing since P12 is committed, so the untracked set is
+   the union of every uncommitted phase. That is also why git diff --numstat HEAD is NOT used as
+   an 'untouched by this phase' predicate above -- only as a line count on NAMED files whose
+   change is expected.)
+
+### 10. the suite size, derived ###
+  TESTs in test_hllc_flux.cpp            : 35   (derived)
+  TESTs in test_hllc_gpu_equivalence.cpp : 4   (derived)
+  total P17.7 TESTs                      : 39
+
+### 11. stray artefacts in the evidence tree ###
+  __pycache__ dirs under results/p17/hllc : 0   (expected 0)
+  leftover /tmp probe binaries            : 1
+
+done: 2026-09-27T08:26:31Z

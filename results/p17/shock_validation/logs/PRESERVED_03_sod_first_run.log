@@ -1,0 +1,46 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SodShockTubeTest.R_RefinementImprovesEveryError
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SodShockTubeTest
+[ RUN      ] SodShockTubeTest.R_RefinementImprovesEveryError
+
+  SOD REFINEMENT (CFL 0.4, t = 0.2, 2D mesh nx x 1)
+      nx     dx         head err    tail err    contact err shock err  
+      200    5.000e-03  5.8921e-02  1.3546e-02  5.7517e-03  4.0933e-03 
+      400    2.500e-03  3.8596e-02  6.7506e-03  3.2352e-03  2.1143e-03 
+      800    1.250e-03  2.4860e-02  2.5824e-03  1.8011e-03  1.0724e-03 
+      nx     dx         head/dx     tail/dx     contact/dx  shock/dx   
+      200    5.000e-03  11.7841     2.7091      1.1503      0.8187     
+      400    2.500e-03  15.4384     2.7002      1.2941      0.8457     
+      800    1.250e-03  19.8881     2.0659      1.4408      0.8580     
+      nx     L1 rho       L1 u         L1 p         Linf rho     shock w  cont w  
+      200    1.27769e-02  2.20461e-02  1.09023e-02  8.60857e-02  7        16      
+      400    8.09055e-03  1.24045e-02  6.48265e-03  8.47407e-02  7        23      
+      800    5.10495e-03  6.97039e-03  3.81260e-03  8.58707e-02  7        31      
+      observed L1 rates (REPORTED, not gated -- a discontinuous solution has no
+      single first-order rate; a contact converges ~dx^1/2, a fan ~dx):
+        nx 200 -> 400 : rho 0.6592   u 0.8297   p 0.7500
+        nx 400 -> 800 : rho 0.6643   u 0.8316   p 0.7658
+      nx     |dp*|        |du*|        |drho*_L|    |drho*_R|   
+      200    3.51241e-04  1.06622e-03  7.71782e-03  3.59405e-03 
+      400    1.71478e-04  5.28371e-04  5.68888e-03  3.74699e-03 
+      800    7.52235e-05  2.46821e-04  4.21735e-03  3.42003e-03 
+      head error / sqrt(dx) -- the DIFFUSIVE scaling a weak wave should follow:
+        nx 200    err/sqrt(dx) = 0.83326
+        nx 400    err/sqrt(dx) = 0.77192
+        nx 800    err/sqrt(dx) = 0.70315
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/compressible/test_shock_validation.cpp:592: Failure
+Expected: (rows[k].rhoStarR) < (rows[k - 1].rhoStarR), actual: 0.0037469886406341635 vs 0.0035940543992120655
+rho_star_right did not improve
+
+[  FAILED  ] SodShockTubeTest.R_RefinementImprovesEveryError (1149 ms)
+[----------] 1 test from SodShockTubeTest (1150 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1152 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SodShockTubeTest.R_RefinementImprovesEveryError
+
+ 1 FAILED TEST

@@ -29,6 +29,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "../BenchmarkOutput.hpp"
 #include "cfd/algebra/BiCGSTAB.hpp"
 #include "cfd/boundary/FixedGradient.hpp"
 #include "cfd/boundary/MovingWall.hpp"
@@ -103,7 +104,7 @@ SIMPLESettings makeCavitySettings(Index maxIterations) {
   settings.maxIterations = maxIterations;
   settings.velocityRelaxation = 0.7;
   settings.pressureRelaxation = 0.3;
-  settings.velocityTolerance = 1e-10;   // effectively unreachable -- always runs the full budget.
+  settings.velocityTolerance = 1e-10;  // effectively unreachable -- always runs the full budget.
   settings.pressureTolerance = 1e-10;
   settings.continuityTolerance = 1e-10;
   // Diagnosed (same class of finding as every P3-PHYS task's own
@@ -180,7 +181,7 @@ GridBenchmark runOnce(Index nx, Index ny) {
 
   cfd::Timer pressureTimer;
   const auto pressureAssembly = assemblePressureCorrection(mesh, massFlux0, uResponse, vResponse,
-                                                            fluid.density(), 0, pressureBoundaries);
+                                                           fluid.density(), 0, pressureBoundaries);
   result.pressureAssemblySeconds = pressureTimer.elapsedSeconds();
 
   cfd::Timer pressureSolveTimer;
@@ -214,8 +215,8 @@ GridBenchmark runOnce(Index nx, Index ny) {
   // NonFiniteState/InvalidConfiguration), not SIMPLEStatus::Converged
   // (which this benchmark's own settings never aim for -- see
   // makeCavitySettings's own comment).
-  result.converged = (flow.status == SIMPLEStatus::Converged ||
-                      flow.status == SIMPLEStatus::MaxIterations);
+  result.converged =
+      (flow.status == SIMPLEStatus::Converged || flow.status == SIMPLEStatus::MaxIterations);
   result.globalMassImbalance = std::abs(flow.globalMassImbalance);
 
   return result;
@@ -246,7 +247,11 @@ int main(int argc, char** argv) {
   }
   constexpr int kRepeats = 3;
 
-  std::filesystem::create_directories("results/performance/baseline");
+  // P13-007: --output-dir, defaulting to the historical path. Everything
+  // below writes under outDir rather than a literal, so a run can be sent
+  // somewhere other than the repository's committed evidence.
+  const std::string outDir =
+      cfd::benchmarks::benchmarkOutputDir(argc, argv, "results/performance/baseline").string();
 
   // Section 4: environment metadata -- written once per run, alongside
   // the per-grid benchmark files.
@@ -275,13 +280,13 @@ int main(int argc, char** argv) {
         "See results/performance/baseline/environment_hardware.txt (nproc/free/nvidia-smi "
         "captured alongside this run) for CPU/RAM/GPU details -- not embedded here to avoid "
         "duplicating shell-tool output inside C++.";
-    std::ofstream envOut("results/performance/baseline/environment.json");
+    std::ofstream envOut(outDir + "/environment.json");
     envOut << env.dump(2);
   }
 
   std::cout << "CFDApp P4 CPU benchmark -- cfdapp version " << cfd::core::versionString() << "\n";
   std::cout << "grid      | total(median,s) | per_iter(ms) | momentum_asm(s) | pressure_asm(s) | "
-              "linear_solve(s) | mass_flux(s) | residual(s) | iterations | converged\n";
+               "linear_solve(s) | mass_flux(s) | residual(s) | iterations | converged\n";
 
   for (const auto& [nx, ny] : grids) {
     std::vector<GridBenchmark> repeats;
@@ -295,8 +300,9 @@ int main(int argc, char** argv) {
     const auto& last = repeats.back();
 
     const double perIterationMs =
-        last.simpleIterations > 0 ? 1000.0 * medianTotal / static_cast<double>(last.simpleIterations)
-                                  : 0.0;
+        last.simpleIterations > 0
+            ? 1000.0 * medianTotal / static_cast<double>(last.simpleIterations)
+            : 0.0;
     std::cout << nx << "x" << ny << "   | " << medianTotal << " | " << perIterationMs << " | "
               << last.momentumAssemblySeconds << " | " << last.pressureAssemblySeconds << " | "
               << last.linearSolveSeconds << " | " << last.massFluxSeconds << " | "
@@ -321,8 +327,8 @@ int main(int argc, char** argv) {
     j["converged"] = last.converged;
     j["global_mass_imbalance"] = last.globalMassImbalance;
 
-    std::ofstream out("results/performance/baseline/benchmark_" + std::to_string(nx) + "x" +
-                      std::to_string(ny) + ".json");
+    std::ofstream out(outDir + "/benchmark_" + std::to_string(nx) + "x" + std::to_string(ny) +
+                      ".json");
     out << j.dump(2);
   }
 

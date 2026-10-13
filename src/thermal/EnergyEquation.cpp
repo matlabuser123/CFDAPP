@@ -4,6 +4,7 @@
 #include <optional>
 #include <utility>
 
+#include "cfd/boundary/ConvectiveHeatTransfer.hpp"
 #include "cfd/core/Exception.hpp"
 #include "cfd/discretization/Interpolation.hpp"
 #include "cfd/discretization/NonOrthogonalDiffusion.hpp"
@@ -114,9 +115,54 @@ void assembleThermalBoundaryFaceContribution(const Mesh& mesh, const Face& face,
                                              const ScalarField& temperature,
                                              const BoundaryConditionSet& temperatureBoundaries,
                                              const cfd::fields::VectorField& gradT,
-                                             SparseMatrixBuilder& builder, Vector& rhs) {
+                                             SparseMatrixBuilder& builder, Vector& rhs,
+                                             Real wallConductance) {
   const Index ownerId = face.owner();
+
+  // P16-TWF. A non-zero conductance REPLACES this face's diffusive treatment:
+  //
+  //   flux into owner = G_w (T_w - T_P)   =>   a_P += G_w ;  b_P += G_w T_w
+  //
+  // Returning early is the point -- the normal coefficient is never formed, so
+  // the turbulent wall transport cannot be counted twice.
+  if (wallConductance != 0.0) {
+    const Real wallTemperature =
+        boundaryTemperatureValue(mesh, face, temperature, temperatureBoundaries);
+    builder.add(ownerId, ownerId, wallConductance);
+    rhs[ownerId] += wallConductance * wallTemperature;
+    return;
+  }
   const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
+
+  // P15 -- the convective (Robin) wall, handled HERE rather than in
+  // boundaryDiffusionContribution because this is the one place with the local
+  // conductivity in scope. That is not an accident of layout: the Robin face
+  // value depends on k, which is exactly why ConvectiveHeatTransfer cannot
+  // express itself through ScalarBoundaryCondition::boundaryValue().
+  //
+  //   flux into the owner = G A (T_inf - T_P),   G = 1 / (d/k + 1/h_c)
+  //   a_P += G A ;  b_P += G A T_inf
+  //
+  // G is the wall-conduction and film resistances in SERIES. The pure
+  // diffusion coefficient k A / d is the h_c -> infinity limit of it, so this
+  // branch degenerates to the Dirichlet treatment rather than contradicting it.
+  {
+    const auto& bc =
+        cfd::boundary::boundaryConditionForFace(mesh, face.id(), temperatureBoundaries);
+    if (bc.type() == cfd::boundary::BoundaryConditionType::ConvectiveHeatTransfer) {
+      const auto* convective = dynamic_cast<const cfd::boundary::ConvectiveHeatTransfer*>(&bc);
+      if (convective == nullptr) {
+        throw InvalidArgumentError(
+            "EnergyEquation: a ConvectiveHeatTransfer-typed boundary condition is not a "
+            "ConvectiveHeatTransfer object");
+      }
+      const Real faceArea = face.area();
+      const Real conductance = convective->conductancePerArea(conductivity, distance) * faceArea;
+      builder.add(ownerId, ownerId, conductance);
+      rhs[ownerId] += conductance * convective->ambientTemperature();
+      return;
+    }
+  }
   const auto terms = cfd::discretization::boundaryFaceDiffusionTerms(
       mesh, face, conductivity, distance, &gradT,
       prescribesTemperature(mesh, face, temperatureBoundaries));
@@ -189,7 +235,8 @@ void assembleThermalDiffusionContribution(
 void assembleThermalDiffusionContribution(
     const Mesh& mesh, const ScalarField& conductivity, const ScalarField& temperature,
     const BoundaryConditionSet& temperatureBoundaries, SparseMatrixBuilder& builder, Vector& rhs,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    const cfd::fields::SurfaceField* wallConductance) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleThermalDiffusionContribution: temperature size does not match mesh cell count");
@@ -225,8 +272,13 @@ void assembleThermalDiffusionContribution(
       // the owner cell's own conductivity (see this overload's header
       // comment). One shared implementation, also used by the region-aware
       // conjugate assembly.
+      // P16-TWF: nullptr, or a zero entry, takes the identical pre-P16 branch
+      // inside the helper -- not an "equivalent" zero correction.
+      const Real faceWallConductance =
+          wallConductance != nullptr ? (*wallConductance)[face.id()] : 0.0;
       assembleThermalBoundaryFaceContribution(mesh, face, conductivity[ownerId], temperature,
-                                              temperatureBoundaries, gradT, builder, rhs);
+                                              temperatureBoundaries, gradT, builder, rhs,
+                                              faceWallConductance);
       continue;
     }
 
@@ -466,7 +518,8 @@ EnergyAssembly assembleEnergyEquation(
     const Mesh& mesh, const ScalarField& temperature, const SurfaceField& massFlux,
     const ScalarField& conductivity, const ScalarField& specificHeat,
     const BoundaryConditionSet& temperatureBoundaries, Real volumetricHeatSource,
-    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal) {
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    const cfd::fields::SurfaceField* wallConductance) {
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(
         "assembleEnergyEquation: temperature size does not match mesh cell count");
@@ -481,7 +534,7 @@ EnergyAssembly assembleEnergyEquation(
   Vector rhs(n, 0.0);
 
   assembleThermalDiffusionContribution(mesh, conductivity, temperature, temperatureBoundaries,
-                                       builder, rhs, nonOrthogonal);
+                                       builder, rhs, nonOrthogonal, wallConductance);
   assembleThermalConvectionContribution(mesh, specificHeat, massFlux, temperature,
                                         temperatureBoundaries, builder, rhs);
   assembleThermalSourceContribution(mesh, volumetricHeatSource, rhs);
@@ -497,6 +550,94 @@ EnergyAssembly assembleEnergyEquation(
     throw NumericalError("assembleEnergyEquation: assembled system contains a non-finite value");
   }
 
+  return EnergyAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs), std::move(diagonal)};
+}
+
+void assembleThermalTransientContribution(const Mesh& mesh, const ThermalTimeState& time,
+                                          SparseMatrixBuilder& builder, Vector& rhs) {
+  if (!time.transient) return;  // not a zero term -- no code runs at all
+
+  if (!std::isfinite(time.dt) || !(time.dt > 0.0)) {
+    throw InvalidArgumentError("assembleThermalTransientContribution: dt must be finite and > 0");
+  }
+  if (time.temperatureOld == nullptr || time.densityOld == nullptr ||
+      time.specificHeatOld == nullptr || time.densityNew == nullptr ||
+      time.specificHeatNew == nullptr) {
+    throw InvalidArgumentError(
+        "assembleThermalTransientContribution: a transient state needs temperatureOld, "
+        "densityOld, specificHeatOld, densityNew and specificHeatNew");
+  }
+  const Index n = mesh.numberOfCells();
+  for (const auto* field : {time.temperatureOld, time.densityOld, time.specificHeatOld,
+                            time.densityNew, time.specificHeatNew}) {
+    if (field->size() != n) {
+      throw InvalidArgumentError(
+          "assembleThermalTransientContribution: a state field size does not match the mesh cell "
+          "count");
+    }
+  }
+
+  // d(rho cp T)/dt, conservative:
+  //   a_P += rho^{n+1} cp^{n+1} V / dt
+  //   b_P += rho^n     cp^n     T^n V / dt
+  // The OLD level multiplies the OLD temperature. Mixing levels here is the
+  // same non-conservative slip P14 guards against for density, and it matters
+  // more in this equation because P15 makes cp vary with temperature.
+  for (const auto& cell : mesh.cells()) {
+    const Index id = cell.id();
+    const Real rhoNew = (*time.densityNew)[id];
+    const Real cpNew = (*time.specificHeatNew)[id];
+    const Real rhoOld = (*time.densityOld)[id];
+    const Real cpOld = (*time.specificHeatOld)[id];
+    for (const Real value : {rhoNew, cpNew, rhoOld, cpOld}) {
+      if (!std::isfinite(value) || !(value > 0.0)) {
+        throw InvalidArgumentError(
+            "assembleThermalTransientContribution: density and specific heat must be finite and "
+            "> 0 in every cell (cell " +
+            std::to_string(id) + ")");
+      }
+    }
+    builder.add(id, id, rhoNew * cpNew * cell.volume() / time.dt);
+    rhs[id] += rhoOld * cpOld * (*time.temperatureOld)[id] * cell.volume() / time.dt;
+  }
+}
+
+EnergyAssembly assembleEnergyEquation(
+    const Mesh& mesh, const ScalarField& temperature, const SurfaceField& massFlux,
+    const ScalarField& conductivity, const ScalarField& specificHeat,
+    const BoundaryConditionSet& temperatureBoundaries, Real volumetricHeatSource,
+    const cfd::discretization::NonOrthogonalCorrectionOptions& nonOrthogonal,
+    const ThermalTimeState& time) {
+  if (temperature.size() != mesh.numberOfCells()) {
+    throw InvalidArgumentError(
+        "assembleEnergyEquation: temperature size does not match mesh cell count");
+  }
+  if (massFlux.size() != mesh.numberOfFaces()) {
+    throw InvalidArgumentError(
+        "assembleEnergyEquation: massFlux size does not match mesh face count");
+  }
+
+  const Index n = mesh.numberOfCells();
+  SparseMatrixBuilder builder(n, n);
+  Vector rhs(n, 0.0);
+
+  // Identical order to the steady overload, so a steady ThermalTimeState
+  // reproduces it bitwise.
+  assembleThermalDiffusionContribution(mesh, conductivity, temperature, temperatureBoundaries,
+                                       builder, rhs, nonOrthogonal);
+  assembleThermalConvectionContribution(mesh, specificHeat, massFlux, temperature,
+                                        temperatureBoundaries, builder, rhs);
+  assembleThermalSourceContribution(mesh, volumetricHeatSource, rhs);
+  assembleThermalTransientContribution(mesh, time, builder, rhs);
+
+  SparseMatrix matrix = builder.build();
+  Vector diagonal(n);
+  for (Index row = 0; row < n; ++row) {
+    diagonal[row] = storedDiagonalOrZero(matrix, row);
+  }
+  if (!matrix.allFinite() || !rhs.allFinite()) {
+    throw NumericalError("assembleEnergyEquation: assembled system contains a non-finite value");
+  }
   return EnergyAssembly{cfd::algebra::LinearSystem(std::move(matrix), rhs), std::move(diagonal)};
 }
 

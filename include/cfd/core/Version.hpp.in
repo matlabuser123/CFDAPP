@@ -16,10 +16,18 @@ inline constexpr int kVersionMinor = @PROJECT_VERSION_MINOR@;
 inline constexpr int kVersionPatch = @PROJECT_VERSION_PATCH@;
 inline constexpr std::string_view kVersionSuffix = "@CFDAPP_VERSION_SUFFIX@";
 
+// P13-004: which build produced a result. "unknown" when the tree has no
+// git (an exported tarball), and "<sha>-modified" when the working tree
+// had uncommitted changes -- an honest answer beats a commit the binary
+// does not actually match. Fixed per configure, so it never makes two runs
+// of one binary differ.
+inline constexpr std::string_view kBuildIdentity = "@CFDAPP_BUILD_IDENTITY@";
+
 // Defined in src/core/Version.cpp (the cfdcore library) rather than
 // header-only, so that anything calling these must actually link against
 // cfdcore -- this is the "proof of linking" for the P0 build.
 [[nodiscard]] std::string_view projectName() noexcept;
 [[nodiscard]] std::string versionString();
+[[nodiscard]] std::string_view buildIdentity() noexcept;
 
 }  // namespace cfd::core

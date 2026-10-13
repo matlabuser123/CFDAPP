@@ -1,0 +1,19 @@
+=== comparator non-vacuity ===
+instrument : results/p18/arrhenius_chemistry/tools/compare_probe.py
+real log   : results/p18/arrhenius_chemistry/logs/04_probe.log
+
+  [ok]       0 the unmodified log (control)             expected PASS, got PASS
+  [ok]       1 one omega_H2 off by 100 eps              expected FAIL, got FAIL
+             reason: FAIL: 1 comparison(s) outside 32 eps
+             reason:   omega_H2 yH2=0.10000000000000001 p=50000 T=800: 90.77 eps > 32 eps
+  [ok]       2 an exactly-zero q made 1e-300            expected FAIL, got FAIL
+             reason: FAIL: 1 comparison(s) outside 32 eps
+             reason:   q yH2=0 p=50000 T=800: 1e-300 is not exactly 0
+  [ok]       3 a matrix row deleted, MATRIX_ROWS stale  expected FAIL, got FAIL
+             reason: FAIL: 1 comparison(s) outside 32 eps
+  [ok]       4 an empty log (measures nothing)          expected FAIL, got FAIL
+             reason: FAIL: unexpected unparsed rows: []
+  [ok]       5 no exactly-zero row present              expected FAIL, got FAIL
+             reason: FAIL: no exactly-zero row was found; the zero-concentration case is not covered
+
+NON-VACUITY: PASS -- the comparator accepts the real log and rejects all five corruptions

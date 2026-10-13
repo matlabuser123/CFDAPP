@@ -9,7 +9,7 @@ Manufactured solution: mms::scalar (as scalar_advection_diffusion_mms)
 | 16x16 | 256 | 0.0625 | Converged | 9 | 2.78e-17 | 0.0 |
 | 32x32 | 1024 | 0.03125 | Converged | 8 | 6.94e-17 | 0.1 |
 | 64x64 | 4096 | 0.015625 | Converged | 7 | 3.47e-17 | 0.6 |
-| 128x128 | 16384 | 0.0078125 | Converged | 6 | 3.82e-17 | 3.7 |
+| 128x128 | 16384 | 0.0078125 | Converged | 6 | 3.82e-17 | 3.3 |
 
 **phi_cartesian**
 

@@ -1,0 +1,111 @@
+=== files exist (before anything is grepped) ===
+  include/cfd/species/HeatRelease.hpp                      present, 278 lines
+  src/species/HeatRelease.cpp                              present, 539 lines
+  tests/unit/species/test_heat_release.cpp                 present, 1593 lines
+
+=== the code-only copies the exclusion checks run on ===
+  stripped header                              278 lines
+  stripped source                              539 lines
+  control: stripped source has statements      151  ok (control: the grep reads the file)
+  control: stripped header declares the class  1    ok (control: the grep reads the file)
+
+=== git status summary ===
+      130  M
+      157 ??
+
+=== git diff --check (whitespace errors) ===
+  total warnings in the tree : 259
+        152 cuda/CMakeLists.txt
+         75 tests/unit/gpu/CMakeLists.txt
+         32 tests/unit/compressible/CMakeLists.txt
+  (259 pre-existing, in three CMakeLists no P18 phase authored -- a PUSH BLOCKER recorded
+   in TODO.md, not a P18.5 regression. P18.5 fixed the TODO.md warning.)
+  in a P18.6 file                              0    ok
+  in TODO.md or ROADMAP.md                     0    ok
+
+=== clang-format, the three P18.5 files ===
+  CLEAN
+
+=== frozen gate, re-hashed at close ===
+  actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+=== the P18.5 frozen docs, re-hashed at close ===
+  frozen BEFORE the heat-release source was written (logs/01_freeze.log)
+  audit.md               263d57019af8e6a6f6e950d58ec985d3b4b0aa3d8ac27fe48ef33427b4caaa47
+sha256sum: results/p18/heat_release/units.md: No such file or directory
+  units.md               
+sha256sum: results/p18/heat_release/formulation.md: No such file or directory
+  formulation.md         
+sha256sum: results/p18/heat_release/formulation_A1.md: No such file or directory
+  formulation_A1.md      
+  expected formulation.md 9362c7289979a8494f2c9b3b4a76b83e6d3a109dd8448177c1b07c90a0ea1da5
+
+=== results/validation runtime noise ===
+  modified files under results/validation      0    ok
+
+=== NO P18.7 VALIDATION OR P18.8 CUDA WORK ADDED EARLY (section 62) ===
+  cudaMalloc                                   0    ok
+  __global__                                   0    ok
+  cudaMemcpy                                   0    ok
+  deviceHeatRelease                            0    ok
+  gridConvergence                              0    ok
+  richardson                                   0    ok
+  flameSpeed                                   0    ok
+  control: ScalarField appears in code         15   ok (control: the grep reads the file)
+
+=== NO SECOND ENERGY EQUATION (sections 1, 16) ===
+  new assembler defined here                   0    ok
+  a second total-energy state                  0    ok
+  rhoE formed here                             0    ok
+  control: the P15 source API IS the target    1    ok (control: the grep reads the file)
+
+=== NO PRESSURE-WORK DOUBLE COUNTING (section 44) ===
+  divergence                                   0    ok
+  pressureWork                                 0    ok
+  p \* div                                     0    ok
+  dilatation                                   0    ok
+
+=== NO DUPLICATED ENTHALPY OR MIXTURE IMPLEMENTATION (sections 3, 15) ===
+  a local integral of cp                       0    ok
+  control: P18.3 enthalpy IS called            1    ok (control: the grep reads the file)
+  control: P18.3 cp_mix IS called              4    ok (control: the grep reads the file)
+
+=== NO DUPLICATED CONSERVATION FORMULA (sections 7, 30) ===
+  massResidual recomputed here                 0    ok
+  sourceConservation recomputed                0    ok
+  control: P18.4 sources ARE consumed          1    ok (control: the grep reads the file)
+
+=== NOTHING IS CLAMPED, FLOORED OR RENORMALISED (sections 40, 41, 42) ===
+  clamp                                        0    ok
+  clip                                         0    ok
+  std::max(0                                   0    ok
+  std::min(1                                   0    ok
+  normali                                      0    ok
+  floor_                                       0    ok
+  temperatureFloor                             0    ok
+  control: throws instead                      38   ok (control: the grep reads the file)
+
+=== P18.1-P18.5 PRODUCTION UNTOUCHED (sections 53-57) ===
+  hashes recorded so a later phase can prove these did not move either:
+  src/species/SpeciesRegistry.cpp                  d55652da02e0a85f9d8fad7f87de6648
+  src/species/MassFractionState.cpp                429321301b079cd80b26b8a2dcef4929
+  src/species/SpeciesTransport.cpp                 69cc3141ea92d286fbf5c55fc8e40bb3
+  src/species/MixtureThermodynamics.cpp            313928eb1d175532da4da14036e045ef
+  src/species/ReactionMechanism.cpp                0145fab31061a97ceb7eb72e752e7fe1
+  src/transport/ScalarTransport.cpp                91766bc83bdad55dd2b56d5f9a47638d
+
+=== no test deleted or disabled ===
+  DISABLED_ added by P18.5                     0    ok
+  CFDSpeciesTests registered : 283   (P18.5 closed at 241; 241 + 42 = 283)
+
+=== the P18.5 changeset ===
+  include/cfd/species/HeatRelease.hpp                      3b8efc2d4778f106cff7f4fcb653e77ced57130b9a5d3029ccc499b50590e65c
+  src/species/HeatRelease.cpp                              3adfd95b3438f7c59fd22f4fa23281680f17220936364ede2faa35150ac31e65
+  tests/unit/species/test_heat_release.cpp                 5593139a3171297eb1b97aec74a18b417325615453c89f3ace1dda751ee553fb
+
+=== commit / push ===
+  HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  nothing committed, pushed, reset, cleaned or stashed by P18.6.
+
+INTEGRITY: PASS -- every exclusion holds AND every probe was proven to read its file

@@ -1,0 +1,77 @@
+P17.6 AUDIT -- existing low-Mach validation, unchanged tree
+date: 2026-09-27T03:41:16Z
+HEAD: 3bd32f918656
+
+### 1. the existing low-Mach test ###
+  tests/integration/compressible/test_low_mach_regression.cpp 338 lines, 7 TESTs
+  its TEST names:
+    MachNumberStaysWellBelowPointOne
+    DensityVariationIsSmallRelativeToReferenceDensity
+    EosConsistencyErrorIsAtFloatingPointTolerance
+    CompressibleMassFluxApproachesTheIncompressibleLimit
+    GlobalMassImbalanceIsSmall
+    GridRefinementKeepsAllMetricsSmall
+    RepeatedRunIsDeterministic
+
+### 2. THE DECISIVE QUESTION: does it run the COMPRESSIBLE solver? ###
+  CompressibleSIMPLE mentions in the low-Mach test : 0
+  incompressible SIMPLE solve calls               : 1
+  what it builds the compressible quantities FROM:
+    161:  const VectorField& velocity = flow.velocity;
+    177:    density[i] = thermo.density(pressureAbsolute[i], kTemperature);
+    193:    machMax = std::max(machMax, machNumber(speed, soundSpeed));
+  => the density, Mach number and compressible mass flux are all evaluated ON THE
+     INCOMPRESSIBLE SOLUTION. There is no compressible solve, so 'the compressible
+     solution approaches the incompressible one' is TRUE BY CONSTRUCTION and measures
+     nothing. Authorization section 20 names this exact degenerate case.
+
+### 3. where the compressible solver IS genuinely driven ###
+  tests/solver/compressible_simple/test_compressible_simple.cpp    solve() calls: 9
+  tests/integration/mms/test_mms_compressible.cpp                  solve() calls: 0
+  tests/integration/case/test_compressible_coupled_production_case.cpp solve() calls: 0
+
+### 4. the frozen G5 criterion (P17_GATES.md) ###
+  required     tests/integration/compressible/test_low_mach_regression.cpp, unchanged
+               plus a NEW energy criterion once P17.5 exists
+  measured     machMax, deltaRhoOverRho, maxEosError, maxRelativeMassFluxDifference,
+  acceptance   machMax < 0.1 AND > 1.25 * inletMach          INHERITED VERBATIM
+               deltaRhoOverRho < 1e-2                        INHERITED VERBATIM
+               maxEosError < 1e-9                            INHERITED VERBATIM
+               maxRelativeMassFluxDifference < 0.15          INHERITED VERBATIM
+               globalMassImbalance <= its computed bound      INHERITED VERBATIM
+               MMS order 1.0 in band [0.55, 1.3], L2, u and v INHERITED VERBATIM
+               all of the above across the nx family          INHERITED VERBATIM
+               NEW energy criterion: TOLERANCE REQUIRES JUSTIFICATION -- derive from
+
+### 5. does P17.6 need the energy equation WIRED into the solver? ###
+  CompressibleSIMPLE::solve temperature parameter is an INPUT:
+    144:// convention, never updated by this solver itself (no energy-equation
+  P17.5's TotalEnergyState holds no field (stateless converter):
+    ScalarField members in TotalEnergy.hpp: 0
+  => section 12 is answerable by EVALUATING the P17.5 state on the converged compressible
+     fields. No implicit coupling is required, so the P17.8 scope overlap P17.5 flagged
+     does NOT materialise for this phase.
+
+### 6. the incompressible SIMPLE reference and its settings ###
+  the low-Mach test's flow settings are inherited from the Poiseuille validation:
+    114:  // Same settings tests/integration/poiseuille/test_poiseuille_validation.cpp
+    117:  settings.maxIterations = 3000;
+    118:  settings.velocityRelaxation = 0.7;
+    119:  settings.pressureRelaxation = 0.3;
+    120:  settings.velocityTolerance = 2e-5;
+    121:  settings.pressureTolerance = 5e-4;
+    122:  settings.continuityTolerance = 1e-6;
+    123:  settings.momentumSolver.maxIterations = 500;
+    126:  settings.pressureSolver.maxIterations = 2000;
+
+### 7. SIMPLE reference cases that must stay preserved ###
+  tests/integration/poiseuille/test_poiseuille_validation.cpp    5 TESTs
+  tests/integration/cavity/test_cavity_ghia.cpp                  5 TESTs
+  P13-001 SIMPLE fingerprint probe: results/p13/restart/tools/solve_fingerprint.cpp
+
+### 8. baselines P17.6 must preserve ###
+  Release+CUDA 2642 registered / 2580 executed   (the P17.5 close)
+  CPU-only     2440 registered / 2380 executed
+  compressible 210 · P14 68 · P15 161 · P16 315
+
+done: 2026-09-27T03:41:16Z

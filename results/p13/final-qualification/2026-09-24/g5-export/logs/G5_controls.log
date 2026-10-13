@@ -1,0 +1,45 @@
+P13 G5 -- controls N1, N2, N3
+date: 2026-09-24T20:35:53Z
+baseline sha256:
+  e5f45f08e9cd15035ec9d1a14fd2e2f51ad6857f1b6a62acf79b364d6167b8af  src/io/CSVWriter.cpp
+  6f2454a6202c57b8a2e0855d8012de4157f083a1bbfbf623c68c33f65e60da81  src/io/JSONWriter.cpp
+
+=== N1 -- the write-failure check is removed from CSVWriter::writeResiduals ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected
+                     probe: 1 writer(s) silently succeeded (baseline 0)
+                     tests: 2 ExportWriteFailure test(s) failed
+  DETECTION          DETECTED
+  RESTORE            VERIFIED by SHA-256
+  RETURN CODE        probe=1 ctest=8, both expected non-clean
+
+=== N2 -- an added metadata field is made to vary per run ===
+  frozen definition: 'Make one added metadata field vary per run (e.g. a
+  timestamp)' -> M6 (metadata.json byte-identical across runs) must fail.
+  Never implemented before this gate.
+  PLANTED DEFECT     yes
+  run A metadata.json sha256 3006f03108987cf002185b8c
+  run B metadata.json sha256 3c9c73720c0a6d28fddf6c25
+  CRITERION          FAILED as expected -- M6 broken, the two runs differ
+  DETECTION          DETECTED
+  RESTORE            VERIFIED by SHA-256
+  RETURN CODE        n/a (a byte comparison, not an exit code)
+
+=== N3 -- the same probe pointed at a normal directory ===
+  frozen definition: 'Point the /dev/full probe at a normal file' -> it must
+  report 0, i.e. it must NOT fire on a healthy path. A check that threw
+  everywhere would satisfy W1 while breaking every real export.
+  PLANTED DEFECT     n/a (this control guards the INSTRUMENT, not the code)
+  CRITERION          0 writers threw on a healthy path, 6 non-empty files written
+  DETECTION          INSTRUMENT SOUND -- the probe does not fire on healthy paths
+  RESTORE            n/a (no source was mutated)
+  RETURN CODE        0, expected
+
+=== restored, and the tree proved back at baseline ===
+  e5f45f08e9cd15035ec9d1a14fd2e2f51ad6857f1b6a62acf79b364d6167b8af  src/io/CSVWriter.cpp  IDENTICAL
+  6f2454a6202c57b8a2e0855d8012de4157f083a1bbfbf623c68c33f65e60da81  src/io/JSONWriter.cpp  IDENTICAL
+  rebuilding at baseline and re-running the export suites
+  all export tests pass again: yes
+  W1 re-measured at baseline: 0 writer(s) silently succeeded (0 required)
+
+G5 GROUP N: ALL DETECTED / SOUND, ALL RESTORED

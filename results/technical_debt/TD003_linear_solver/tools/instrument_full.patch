@@ -1,0 +1,709 @@
+--- src/species/PremixedFlame.cpp
++++ src/species/PremixedFlame.cpp
+@@ -23,6 +23,369 @@
+ #include "cfd/species/SpeciesTransport.hpp"
+ #include "cfd/thermal/EnergyEquation.hpp"
+ 
++// ==================== TD-003 INSTRUMENTATION (not production) ====================
++// Added to a COPY OUTSIDE THE REPOSITORY (CLAUDE.md section 2). Purpose: decompose
++// |sum Y - 1| into the part the linear SOLVE is responsible for and the part the assembled
++// RIGHT-HAND SIDE is responsible for, by solving the SAME system exactly with Thomas.
++#include <cstdio>
++namespace td003 {
++
++struct Stats {
++  long long solves = 0;
++  double maxRatio = 0.0;
++  double sumRatio = 0.0;
++  double minRhs = 1e300;
++  double maxRhs = 0.0;
++  long long byConverged = 0;
++  long long byFallback = 0;
++  long long notAcceptable = 0;
++  double maxSumIter = 0.0;
++  double maxSumExact = 0.0;
++  double maxSolveDiff = 0.0;
++  double maxSpeciesDiff = 0.0;
++  bool sawNonTridiagonal = false;
++  long long decompCalls = 0;
++  std::vector<double> aW, aP, aE;
++  bool haveBands = false;
++  // --- closure test: does sum_i b_i equal A*1 ?
++  double maxBandDiff = 0.0;        // max |A_species_i - A_species_0| over all bands
++  double maxClosureAbs = 0.0;      // max_c |sum_i b_i - (A*1)_c|
++  double maxClosureFirst = 0.0;    // the same, restricted to cell 0
++  double maxClosureLast = 0.0;     // the same, restricted to the last cell
++  double maxClosureInterior = 0.0; // the same, interior cells only
++  double maxPredictedDev = 0.0;    // max |A^-1 (sum_i b_i - A*1)| -- must equal maxSumExact
++  long long worstCell = -1;        // argmax cell of |closure residual|
++  long long interiorNonzero = 0;   // interior cells whose residual exceeds 1e-14
++  long long cellCount = 0;
++  // AMENDMENT A1: the norms captured AT THE STEP WHERE maxSumExact occurs, so the derived
++  // bound is evaluated at the state it judges rather than at an unrelated one.
++  double worstAinf = 0.0;    // ||A||_inf  there
++  double worstBinf = 0.0;    // max_i max_c |b_i[c]|  there
++  double worstAinvInf = 0.0; // ||A^-1||_inf  there
++  long long nSpecies = 0;
++  long long worstStep = -1;
++  long long recomputes = 0;
++  // the worst step's per-cell residual and deviation, kept for the correlation test
++  std::vector<double> worstR;   // r[c] = sum_i b_i[c] - (A*1)[c]
++  std::vector<double> worstD;   // d[c] = sum_i y_exact[c] - 1
++  // the per-assembler attribution of r, measured at the worst step
++  double rDiffusion = 0.0;
++  double rClosure = 0.0;
++  double rConvection = 0.0;
++  double rTransient = 0.0;
++  double rSource = 0.0;
++  double rTotalMeasured = 0.0;
++  double rSumOfParts = 0.0;
++  bool attributionDone = false;
++  // SEED HUNT: the deviation's history, so the seeding step is OBSERVED not assumed.
++  double dSeeded = -1.0;        // the LAST seeded profile's own closure
++  long long seedCalls = 0;      // how many times seedProfile() ran
++  std::vector<double> histChem; // |sum Y - 1| after each chemistry half
++  std::vector<double> histTran; // ... and after each transport half
++  long long firstAbove1e15 = -1;
++  long long firstAbove1e12 = -1;
++  long long firstAbove1e09 = -1;
++  // GAIN + INJECTION, measured independently of the observed deviation
++  double spectralRadius = -1.0;     // rho(M), M = A^-1 diag(rho V/dt), power iteration
++  long long powerIters = 0;
++  std::vector<double> injectHist;   // max_c |s[c]| per sampled step
++  std::vector<double> prevDev;      // d_old[c], the previous step's per-cell deviation
++  std::vector<double> transCoef;    // rho_c V/dt at the worst step
++  std::string attributionError;
++};
++inline Stats stats;
++
++inline bool extractBands(const cfd::algebra::SparseMatrix& m, std::vector<double>& aW,
++                         std::vector<double>& aP, std::vector<double>& aE) {
++  const cfd::Index n = m.rows();
++  aW.assign(static_cast<std::size_t>(n), 0.0);
++  aP.assign(static_cast<std::size_t>(n), 0.0);
++  aE.assign(static_cast<std::size_t>(n), 0.0);
++  const cfd::Index* off = m.rowOffsetsData();
++  const cfd::Index* col = m.columnIndicesData();
++  const double* val = m.valuesData();
++  bool tri = true;
++  for (cfd::Index r = 0; r < n; ++r) {
++    for (cfd::Index k = off[r]; k < off[r + 1]; ++k) {
++      const cfd::Index c = col[k];
++      if (c == r - 1) {
++        aW[static_cast<std::size_t>(r)] = val[k];
++      } else if (c == r) {
++        aP[static_cast<std::size_t>(r)] = val[k];
++      } else if (c == r + 1) {
++        aE[static_cast<std::size_t>(r)] = val[k];
++      } else if (val[k] != 0.0) {
++        tri = false;
++      }
++    }
++  }
++  return tri;
++}
++
++inline std::vector<double> thomas(const std::vector<double>& aW, const std::vector<double>& aP,
++                                  const std::vector<double>& aE, const std::vector<double>& b) {
++  const std::size_t n = aP.size();
++  std::vector<double> c(n, 0.0), d(n, 0.0), x(n, 0.0);
++  c[0] = aE[0] / aP[0];
++  d[0] = b[0] / aP[0];
++  for (std::size_t i = 1; i < n; ++i) {
++    const double mm = aP[i] - aW[i] * c[i - 1];
++    c[i] = aE[i] / mm;
++    d[i] = (b[i] - aW[i] * d[i - 1]) / mm;
++  }
++  x[n - 1] = d[n - 1];
++  for (std::size_t i = n - 1; i-- > 0;) {
++    x[i] = d[i] - c[i] * x[i + 1];
++  }
++  return x;
++}
++
++// max_c |sum_i Y_i[c] - 1| for a raw field set. Read-only: no solve, no tolerance.
++inline double sumYDeviation(const std::vector<cfd::fields::ScalarField>& comp, cfd::Index ns,
++                            cfd::Index nc) {
++  double m = 0.0;
++  for (cfd::Index c = 0; c < nc; ++c) {
++    double s = 0.0;
++    for (cfd::Index i = 0; i < ns; ++i) s += comp[static_cast<std::size_t>(i)][c];
++    m = std::max(m, std::abs(s - 1.0));
++  }
++  return m;
++}
++
++// rho(M) for M = A^-1 diag(d), by power iteration. One Thomas solve per iteration, so this
++// is exact arithmetic on the assembled operator -- no fitting, no reference to the observed
++// deviation. Returns -1 if it does not settle.
++inline double spectralRadiusOf(const std::vector<double>& aW, const std::vector<double>& aP,
++                               const std::vector<double>& aE, const std::vector<double>& diag,
++                               long long* itersOut) {
++  const std::size_t n = aP.size();
++  if (n == 0) return -1.0;
++  std::vector<double> v(n, 0.0);
++  for (std::size_t i = 0; i < n; ++i) v[i] = 1.0 + 0.01 * static_cast<double>(i % 7);
++  double lam = 0.0;
++  double lamPrev = -1.0;
++  long long it = 0;
++  for (; it < 500; ++it) {
++    std::vector<double> w(n, 0.0);
++    for (std::size_t i = 0; i < n; ++i) w[i] = diag[i] * v[i];
++    const std::vector<double> z = thomas(aW, aP, aE, w);
++    double nz = 0.0;
++    for (std::size_t i = 0; i < n; ++i) nz = std::max(nz, std::abs(z[i]));
++    if (!(nz > 0.0) || !std::isfinite(nz)) return -1.0;
++    lam = nz;  // v is normalised to max-norm 1 below, so ||z||_inf IS the Rayleigh estimate
++    for (std::size_t i = 0; i < n; ++i) v[i] = z[i] / nz;
++    if (it > 10 && std::abs(lam - lamPrev) <= 1e-12 * std::abs(lam)) {
++      ++it;
++      break;
++    }
++    lamPrev = lam;
++  }
++  if (itersOut != nullptr) *itersOut = it;
++  return lam;
++}
++
++inline double normAInf(const std::vector<double>& aW, const std::vector<double>& aP,
++                       const std::vector<double>& aE) {
++  double m = 0.0;
++  for (std::size_t r = 0; r < aP.size(); ++r) {
++    m = std::max(m, std::abs(aW[r]) + std::abs(aP[r]) + std::abs(aE[r]));
++  }
++  return m;
++}
++
++// ||A^-1||_inf for an ARBITRARY band triple, not just the stored one.
++inline double normAinvInfOf(const std::vector<double>& aW, const std::vector<double>& aP,
++                            const std::vector<double>& aE) {
++  const std::size_t n = aP.size();
++  std::vector<double> rowSum(n, 0.0);
++  for (std::size_t j = 0; j < n; ++j) {
++    std::vector<double> e(n, 0.0);
++    e[j] = 1.0;
++    const std::vector<double> colv = thomas(aW, aP, aE, e);
++    for (std::size_t i2 = 0; i2 < n; ++i2) rowSum[i2] += std::abs(colv[i2]);
++  }
++  double m = 0.0;
++  for (std::size_t i2 = 0; i2 < n; ++i2) m = std::max(m, rowSum[i2]);
++  return m;
++}
++
++inline double normAinvInf() {
++  if (!stats.haveBands) return 0.0;
++  const std::size_t n = stats.aP.size();
++  std::vector<double> rowSum(n, 0.0);
++  for (std::size_t j = 0; j < n; ++j) {
++    std::vector<double> e(n, 0.0);
++    e[j] = 1.0;
++    const std::vector<double> colv = thomas(stats.aW, stats.aP, stats.aE, e);
++    for (std::size_t i = 0; i < n; ++i) rowSum[i] += std::abs(colv[i]);
++  }
++  double m = 0.0;
++  for (std::size_t i = 0; i < n; ++i) m = std::max(m, rowSum[i]);
++  return m;
++}
++
++inline void report() {
++  std::printf("\n========== TD-003 PER-SOLVE INSTRUMENTATION ==========\n");
++  std::printf("solves                      %lld\n", stats.solves);
++  std::printf("  accepted via converged()  %lld\n", stats.byConverged);
++  std::printf("  accepted via residual     %lld\n", stats.byFallback);
++  std::printf("  NOT acceptable            %lld\n", stats.notAcceptable);
++  std::printf("relative residual ||r||/||b||\n");
++  std::printf("  max                       %.6e\n", stats.maxRatio);
++  std::printf("  mean                      %.6e\n",
++              stats.solves ? stats.sumRatio / static_cast<double>(stats.solves) : 0.0);
++  std::printf("||b||_2   min %.6e   max %.6e\n", stats.minRhs, stats.maxRhs);
++  std::printf("\n--- THE DECOMPOSITION (transport steps measured: %lld)\n", stats.decompCalls);
++  std::printf("  max_c |sum_i y_iterative - 1|     %.6e   <- what the gate measures\n",
++              stats.maxSumIter);
++  std::printf("  max_c |sum_i y_EXACT - 1|         %.6e   <- the RHS's own inconsistency\n",
++              stats.maxSumExact);
++  std::printf("  max_c |sum_i (y_iter - y_exact)|  %.6e   <- the SOLVE's contribution\n",
++              stats.maxSolveDiff);
++  std::printf("  max |y_iter - y_exact| per species/cell  %.6e\n", stats.maxSpeciesDiff);
++  std::printf("  tridiagonal everywhere: %s\n",
++              stats.sawNonTridiagonal ? "NO -- Thomas INVALID" : "yes");
++  std::printf("  ||A^-1||_inf of the LAST assembled matrix  %.6f\n", normAinvInf());
++  std::printf("\n--- THE CLOSURE TEST: does sum_i b_i equal A*1 ?\n");
++  std::printf("  max |A_i - A_0| across species (all bands)  %.6e\n", stats.maxBandDiff);
++  std::printf("  max_c |sum_i b_i - (A*1)_c|                 %.6e   <- THE RAW DEFECT\n",
++              stats.maxClosureAbs);
++  std::printf("    at cell 0                                 %.6e\n", stats.maxClosureFirst);
++  std::printf("    at the last cell                          %.6e\n", stats.maxClosureLast);
++  std::printf("    interior cells only                       %.6e\n",
++              stats.maxClosureInterior);
++  std::printf("    interior cells with residual > 1e-14      %lld of %lld\n",
++              stats.interiorNonzero, stats.cellCount);
++  std::printf("  max |A^-1 (sum_i b_i - A*1)|                %.6e\n", stats.maxPredictedDev);
++  std::printf("    must equal max_c |sum_i y_EXACT - 1| =    %.6e\n", stats.maxSumExact);
++  std::printf("  worst cell index                            %lld\n", stats.worstCell);
++  std::printf("%s", "\n--- AMENDMENT A1: the DERIVED bound, evaluated at the WORST state\n");
++  const double eps = 2.220446049250313e-16;
++  const long long A = 5;  // rhs-writing assemblers for these options: diffusion, closure,
++                          // convection, source, transient (SpeciesTransport.cpp:300-345)
++  const long long Ns = stats.nSpecies;
++  const long long T = (Ns + 3) * (A - 1) + Ns + 2;
++  std::printf("  N_s %lld   A %lld   T = (N_s+3)(A-1)+N_s+2 = %lld      (T from the source, not fitted)\n", Ns, A, T);
++  std::printf("  at the worst step (%lld of %lld):\n", stats.worstStep, stats.decompCalls);
++  std::printf("    ||A||_inf      %.6e\n", stats.worstAinf);
++  std::printf("    ||b||_inf      %.6e\n", stats.worstBinf);
++  std::printf("    ||A^-1||_inf   %.6e   (recomputed %lld times)\n", stats.worstAinvInf, stats.recomputes);
++  const double scale = static_cast<double>(Ns) * stats.worstBinf + stats.worstAinf;
++  const double bound = static_cast<double>(T) * eps * stats.worstAinvInf * scale;
++  std::printf("    N_s*||b||+||A|| %.6e\n", scale);
++  std::printf("  DERIVED BOUND  T*eps*||A^-1||*(N_s||b||+||A||) = %.6e\n", bound);
++  std::printf("  MEASURED       max_c |sum_i y_EXACT - 1|       = %.6e\n", stats.maxSumExact);
++  std::printf("  D1 amended bound HOLDS: %s   (margin %.2fx)\n",
++              (stats.maxSumExact <= bound) ? "YES" : "*** NO ***",
++              (stats.maxSumExact > 0.0) ? bound / stats.maxSumExact : 0.0);
++  std::printf("  D2 original 1e-8 still FAILS: %s\n",
++              (stats.maxSumIter > 1.0e-8) ? "YES" : "*** NO -- it passes, amendment moot ***");
++  const double noAmp = static_cast<double>(T) * eps * 1.0 * scale;
++  std::printf("  NV2 bound with ||A^-1|| replaced by 1 = %.6e -> must FAIL: %s\n",
++              noAmp, (stats.maxSumExact > noAmp) ? "YES, it fails" : "*** NO ***");
++  std::printf("%s", "\n--- GAIN, INJECTION, AND THE PREDICTED FIXED POINT\n");
++  std::printf("  rho(M), M = A^-1 diag(rho V/dt)   %.6f   (power iteration, %lld iters)\n",
++              stats.spectralRadius, stats.powerIters);
++  double sMin = 1e300, sMax = 0.0, sLast = -1.0;
++  for (double v : stats.injectHist) { sMin = std::min(sMin, v); sMax = std::max(sMax, v); sLast = v; }
++  std::printf("  injection max|s| over %zu steps     %.6e .. %.6e  (spread %.2fx)\n",
++              stats.injectHist.size(), sMin, sMax, (sMin > 0.0) ? sMax / sMin : 0.0);
++    std::printf("    SECOND CHECK: s must be roughly CONSTANT if the recursion is real\n");
++  const double rho = stats.spectralRadius;
++  if (rho >= 1.0) {
++    std::printf("  rho >= 1 -> the model predicts UNBOUNDED GROWTH, which the step history\n");
++    std::printf("  contradicts. MODEL REFUTED.\n");
++  } else if (rho > 0.0 && sMax > 0.0) {
++    const double pred = sMax / (1.0 - rho);
++    const double meas = 8.822866e-07;
++    std::printf("  PREDICTED fixed point max|s|/(1-rho)  %.6e\n", pred);
++    std::printf("  MEASURED maxCompositionSumDeviation   %.6e\n", meas);
++    std::printf("  ratio predicted/measured              %.4f\n", pred / meas);
++    std::printf("  PRE-REGISTERED: PASS iff 1/3 <= ratio <= 3  ->  %s\n",
++                (pred / meas >= 1.0 / 3.0 && pred / meas <= 3.0) ? "PASS" : "*** FAIL ***");
++  } else {
++    std::printf("  *** not computable: rho=%.3e sMax=%.3e\n", rho, sMax);
++  }
++  std::printf("%s", "\n--- SEED HUNT: where does sum(Y) first depart from 1?\n");
++  std::printf("  seeded profile closure            %.6e\n", stats.dSeeded);
++  std::printf("  seedProfile() calls               %lld\n", stats.seedCalls);
++  std::printf("%s", "    (nonzero closure => the INITIAL CONDITION is the seed)\n");
++  std::printf("  first transport half > 1e-15      step %lld\n", stats.firstAbove1e15);
++  std::printf("  first transport half > 1e-12      step %lld\n", stats.firstAbove1e12);
++  std::printf("  first transport half > 1e-09      step %lld\n", stats.firstAbove1e09);
++  std::printf("%s", "  step |  after chemistry  |  after transport\n");
++  for (std::size_t k = 0; k < stats.histChem.size() && k < 40; ++k) {
++    const double tv = (k < stats.histTran.size()) ? stats.histTran[k] : -1.0;
++    std::printf("  %4zu |     %.6e |     %.6e\n", k + 1, stats.histChem[k], tv);
++  }
++  std::printf("%s", "\n--- ATTRIBUTION: which assembler produces r?\n");
++  if (!stats.attributionDone) {
++    std::printf("  *** NOT DONE: %s\n", stats.attributionError.c_str());
++  } else {
++    std::printf("  max_c |r[c]| with ONLY that assembler enabled:\n");
++    std::printf("    diffusion            %.6e\n", stats.rDiffusion);
++    std::printf("    closure correction   %.6e   (as (diff+clos) - diff)\n", stats.rClosure);
++    std::printf("    convection           %.6e\n", stats.rConvection);
++    std::printf("    transient            %.6e\n", stats.rTransient);
++    std::printf("    source (Su=Sp=0)     %.6e   exact by construction\n", stats.rSource);
++    std::printf("    ------------------------------------\n");
++    std::printf("    sum of parts         %.6e\n", stats.rSumOfParts);
++    std::printf("    PRODUCTION r_total   %.6e\n", stats.rTotalMeasured);
++    const double ratio = (stats.rTotalMeasured > 0.0)
++                             ? stats.rSumOfParts / stats.rTotalMeasured : 0.0;
++    std::printf("    sum/total            %.4f\n", ratio);
++    std::printf("%s", "    READ: ~1 means ONE assembler is responsible and is named above.\n");
++    std::printf("%s", "          <<1 means NO single assembler is -- r comes from the\n");
++    std::printf("%s", "          ACCUMULATION ORDER, a different defect.\n");
++  }
++  std::printf("%s", "\n--- FEEDBACK vs ROUND-OFF: the per-cell test\n");
++  if (stats.worstR.size() == stats.worstD.size() && !stats.worstR.empty()) {
++    const std::size_t n = stats.worstR.size();
++    std::size_t sameSign = 0;
++    std::size_t counted = 0;
++    double sx = 0.0, sy2 = 0.0, sxx = 0.0, syy = 0.0, sxy = 0.0;
++    double rmin = 1e300, rmax2 = 0.0;
++    for (std::size_t c = 0; c < n; ++c) {
++      const double R = stats.worstR[c];
++      const double D = stats.worstD[c];
++      if (D == 0.0 || R == 0.0) continue;
++      counted++;
++      if ((R > 0.0) == (D > 0.0)) sameSign++;
++      const double ratio = std::abs(R / D);
++      rmin = std::min(rmin, ratio);
++      rmax2 = std::max(rmax2, ratio);
++      sx += R; sy2 += D; sxx += R * R; syy += D * D; sxy += R * D;
++    }
++    const double nn = static_cast<double>(counted);
++    const double num = nn * sxy - sx * sy2;
++    const double den = std::sqrt((nn * sxx - sx * sx) * (nn * syy - sy2 * sy2));
++    const double corr = (den > 0.0) ? num / den : 0.0;
++    std::printf("  cells with both r and d nonzero   %zu of %zu\n", counted, n);
++    std::printf("  Pearson corr(r, d)                %.6f\n", corr);
++    std::printf("    FEEDBACK predicts |corr| -> 1; ROUND-OFF predicts ~0\n");
++    std::printf("  sign agreement                    %.1f %%  (round-off predicts ~50 %%)\n",
++                100.0 * static_cast<double>(sameSign) / (nn > 0.0 ? nn : 1.0));
++    std::printf("  |r/d| range                       %.4e .. %.4e  (spread %.1fx)\n",
++                rmin, rmax2, (rmin > 0.0) ? rmax2 / rmin : 0.0);
++    std::printf("    FEEDBACK predicts a NARROW spread near 1/||A^-1|| = %.4e\n",
++                (stats.worstAinvInf > 0.0) ? 1.0 / stats.worstAinvInf : 0.0);
++    std::printf("%s", "  sample cells (index, r, d, r/d):\n");
++    std::size_t shown = 0;
++    for (std::size_t c = 0; c < n && shown < 12; ++c) {
++      if (stats.worstD[c] == 0.0) continue;
++      if (c % (n / 12 + 1) != 0) continue;
++      std::printf("    %4zu  %13.6e  %13.6e  %13.6e\n", c, stats.worstR[c],
++                  stats.worstD[c], stats.worstR[c] / stats.worstD[c]);
++      shown++;
++    }
++  } else {
++    std::printf("%s", "  *** per-cell fields not captured\n");
++  }
++  std::printf("=====================================================\n");
++}
++
++}  // namespace td003
++
+ namespace cfd::species {
+ namespace {
+ 
+@@ -527,6 +890,11 @@
+                             (burnt[i] - conditions.unburntComposition[i]) * blend;
+       }
+     }
++    // SEED HUNT: read-only. Records the closure of the profile this lambda just wrote, at
++    // EVERY call site, so the seed's own deviation is observed without adding a call or
++    // changing any field.
++    td003::stats.dSeeded = td003::sumYDeviation(composition, ns, nc);
++    td003::stats.seedCalls++;
+   };
+ 
+   // A PROVISIONAL SEED, at the mesh-derived ramp, so that no field is ever read zero-initialised.
+@@ -698,6 +1066,21 @@
+         raw.converged() || raw.finalResidual <= residualAcceptanceFraction * rhsNorm;
+     worstLinearResidual =
+         std::max(worstLinearResidual, (rhsNorm > 0.0) ? raw.finalResidual / rhsNorm : 0.0);
++    {  // TD-003 instrumentation
++      td003::stats.solves++;
++      const double td003ratio = (rhsNorm > 0.0) ? raw.finalResidual / rhsNorm : 0.0;
++      td003::stats.maxRatio = std::max(td003::stats.maxRatio, td003ratio);
++      td003::stats.sumRatio += td003ratio;
++      td003::stats.minRhs = std::min(td003::stats.minRhs, rhsNorm);
++      td003::stats.maxRhs = std::max(td003::stats.maxRhs, rhsNorm);
++      if (raw.converged()) {
++        td003::stats.byConverged++;
++      } else if (outcome.acceptable) {
++        td003::stats.byFallback++;
++      } else {
++        td003::stats.notAcceptable++;
++      }
++    }
+     return outcome;
+   };
+ 
+@@ -1168,6 +1551,11 @@
+     speciesTime.rhoNew = &density;
+ 
+     std::vector<ScalarField> nextComposition = composition;
++    std::vector<ScalarField> td003exact = composition;  // TD-003 instrumentation
++    std::vector<std::vector<double>> td003bw(static_cast<std::size_t>(ns));
++    std::vector<std::vector<double>> td003bp(static_cast<std::size_t>(ns));
++    std::vector<std::vector<double>> td003be(static_cast<std::size_t>(ns));
++    std::vector<std::vector<double>> td003bb(static_cast<std::size_t>(ns));
+     for (Index i = 0; i < ns; ++i) {
+       // An EXPLICIT zero source: the reaction is not part of this equation at all. Stated as a
+       // zero field rather than omitted, so what the transport step solves is unambiguous.
+@@ -1200,6 +1588,272 @@
+       for (Index c = 0; c < nc; ++c) {
+         nextComposition[i][c] = solved.solution[c];
+       }
++      {  // TD-003: solve the SAME assembled system EXACTLY
++        std::vector<double> bw, bp, be;
++        if (!td003::extractBands(assembly->system.matrix(), bw, bp, be)) {
++          td003::stats.sawNonTridiagonal = true;
++        }
++        const Vector& td003rhs = assembly->system.rhs();
++        std::vector<double> bb(static_cast<std::size_t>(nc));
++        for (Index c = 0; c < nc; ++c) bb[static_cast<std::size_t>(c)] = td003rhs[c];
++        const std::vector<double> ex = td003::thomas(bw, bp, be, bb);
++        for (Index c = 0; c < nc; ++c) {
++          td003exact[i][c] = ex[static_cast<std::size_t>(c)];
++          td003::stats.maxSpeciesDiff =
++              std::max(td003::stats.maxSpeciesDiff,
++                       std::abs(solved.solution[c] - ex[static_cast<std::size_t>(c)]));
++        }
++        td003::stats.aW = bw;
++        td003::stats.aP = bp;
++        td003::stats.aE = be;
++        td003::stats.haveBands = true;
++        td003bw[static_cast<std::size_t>(i)] = bw;
++        td003bp[static_cast<std::size_t>(i)] = bp;
++        td003be[static_cast<std::size_t>(i)] = be;
++        td003bb[static_cast<std::size_t>(i)] = bb;
++      }
++    }
++    if (td003::stats.injectHist.size() < 40 && !td003::stats.prevDev.empty() &&
++        !td003::stats.transCoef.empty()) {
++      // s = d_new - A^-1 D d_old, per cell. MEASURED, not back-solved.
++      std::vector<double> Dd(static_cast<std::size_t>(nc), 0.0);
++      for (Index c7 = 0; c7 < nc; ++c7) {
++        Dd[static_cast<std::size_t>(c7)] =
++            td003::stats.transCoef[static_cast<std::size_t>(c7)] *
++            td003::stats.prevDev[static_cast<std::size_t>(c7)];
++      }
++      const std::vector<double> Md =
++          td003::thomas(td003bw[0], td003bp[0], td003be[0], Dd);
++      double ms = 0.0;
++      for (Index c7 = 0; c7 < nc; ++c7) {
++        double sy2 = 0.0;
++        for (Index i7 = 0; i7 < ns; ++i7) sy2 += nextComposition[i7][c7];
++        ms = std::max(ms, std::abs((sy2 - 1.0) - Md[static_cast<std::size_t>(c7)]));
++      }
++      td003::stats.injectHist.push_back(ms);
++    }
++    {  // remember d_old for the next step
++      td003::stats.prevDev.assign(static_cast<std::size_t>(nc), 0.0);
++      for (Index c8 = 0; c8 < nc; ++c8) {
++        double sy3 = 0.0;
++        for (Index i8 = 0; i8 < ns; ++i8) sy3 += nextComposition[i8][c8];
++        td003::stats.prevDev[static_cast<std::size_t>(c8)] = sy3 - 1.0;
++      }
++    }
++    if (td003::stats.histTran.size() < 40) {
++      const double dv = td003::sumYDeviation(nextComposition, ns, nc);
++      td003::stats.histTran.push_back(dv);
++      const long long st = static_cast<long long>(td003::stats.histTran.size());
++      if (td003::stats.firstAbove1e15 < 0 && dv > 1e-15) td003::stats.firstAbove1e15 = st;
++      if (td003::stats.firstAbove1e12 < 0 && dv > 1e-12) td003::stats.firstAbove1e12 = st;
++      if (td003::stats.firstAbove1e09 < 0 && dv > 1e-09) td003::stats.firstAbove1e09 = st;
++    }
++    {  // TD-003: per-cell sums, iterative vs exact
++      td003::stats.decompCalls++;
++      for (Index c = 0; c < nc; ++c) {
++        Real si = 0.0;
++        Real se = 0.0;
++        for (Index i = 0; i < ns; ++i) {
++          si += nextComposition[i][c];
++          se += td003exact[i][c];
++        }
++        td003::stats.maxSumIter = std::max(td003::stats.maxSumIter, std::abs(si - 1.0));
++        td003::stats.maxSumExact = std::max(td003::stats.maxSumExact, std::abs(se - 1.0));
++        if (std::abs(se - 1.0) >= td003::stats.maxSumExact) {
++          // AMENDMENT A1: a new worst state -- capture its norms. ||A^-1||_inf costs nc
++          // tridiagonal solves, so it is recomputed ONLY here, which happens rarely.
++          td003::stats.worstAinf = td003::normAInf(td003bw[0], td003bp[0], td003be[0]);
++          double bmax = 0.0;
++          for (Index i3 = 0; i3 < ns; ++i3) {
++            for (Index c3 = 0; c3 < nc; ++c3) {
++              bmax = std::max(bmax, std::abs(td003bb[static_cast<std::size_t>(i3)]
++                                                    [static_cast<std::size_t>(c3)]));
++            }
++          }
++          td003::stats.worstBinf = bmax;
++          td003::stats.worstAinvInf =
++              td003::normAinvInfOf(td003bw[0], td003bp[0], td003be[0]);
++          td003::stats.nSpecies = static_cast<long long>(ns);
++          td003::stats.worstR.assign(static_cast<std::size_t>(nc), 0.0);
++          td003::stats.worstD.assign(static_cast<std::size_t>(nc), 0.0);
++          for (Index c4 = 0; c4 < nc; ++c4) {
++            double sb = 0.0;
++            double sy = 0.0;
++            for (Index i4 = 0; i4 < ns; ++i4) {
++              sb += td003bb[static_cast<std::size_t>(i4)][static_cast<std::size_t>(c4)];
++              sy += td003exact[i4][c4];
++            }
++            const double rowSum = td003bw[0][static_cast<std::size_t>(c4)] +
++                                  td003bp[0][static_cast<std::size_t>(c4)] +
++                                  td003be[0][static_cast<std::size_t>(c4)];
++            td003::stats.worstR[static_cast<std::size_t>(c4)] = sb - rowSum;
++            td003::stats.worstD[static_cast<std::size_t>(c4)] = sy - 1.0;
++          }
++          {  // ATTRIBUTION: charge r to a specific assembler.
++            // A lambda that assembles under the given switches and returns max_c |r[c]|.
++            const auto shareOf = [&](bool diff, bool clos, bool conv,
++                                     bool trans) -> double {
++              std::vector<double> sumb(static_cast<std::size_t>(nc), 0.0);
++              std::vector<double> rowsum(static_cast<std::size_t>(nc), 0.0);
++              std::vector<double> xw, xp, xe;
++              cfd::species::SpeciesTransportOptions opt;
++              opt.diffusion = diff;
++              opt.closureCorrection = clos;
++              opt.convection = conv;
++              // `source` is scoped to the species loop, so build the same explicit zero
++              // here. Su = Sp = 0 is what production passes (PremixedFlame.cpp:1172).
++              cfd::transport::ScalarSourceFields zeroSrc;
++              zeroSrc.Su = ScalarField(nc);
++              zeroSrc.Sp = ScalarField(nc);
++              SpeciesTimeState ts;
++              ts.transient = trans;
++              if (trans) {
++                ts.dt = dt;
++                ts.fieldsOld = &compositionOld;
++                ts.rhoOld = &density;
++                ts.rhoNew = &density;
++              }
++              for (Index ii = 0; ii < ns; ++ii) {
++                const auto one = speciesTransportAssembly(
++                    mesh, ii, registry, composition, faceMassFlux, diffusivities,
++                    compositionBoundaries[ii], zeroSrc, ts, &closure, opt);
++                td003::extractBands(one.system.matrix(), xw, xp, xe);
++                const Vector& rr = one.system.rhs();
++                for (Index cc = 0; cc < nc; ++cc) {
++                  sumb[static_cast<std::size_t>(cc)] += rr[cc];
++                }
++                if (ii == 0) {
++                  for (Index cc = 0; cc < nc; ++cc) {
++                    rowsum[static_cast<std::size_t>(cc)] =
++                        xw[static_cast<std::size_t>(cc)] + xp[static_cast<std::size_t>(cc)] +
++                        xe[static_cast<std::size_t>(cc)];
++                  }
++                }
++              }
++              double m = 0.0;
++              for (Index cc = 0; cc < nc; ++cc) {
++                m = std::max(m, std::abs(sumb[static_cast<std::size_t>(cc)] -
++                                         rowsum[static_cast<std::size_t>(cc)]));
++              }
++              return m;
++            };
++            try {
++              const double dOnly = shareOf(true, false, false, false);
++              const double dPlusC = shareOf(true, true, false, false);
++              td003::stats.rDiffusion = dOnly;
++              td003::stats.rClosure = std::abs(dPlusC - dOnly);
++              td003::stats.rConvection = shareOf(false, false, true, false);
++              td003::stats.rTransient = shareOf(false, false, false, true);
++              // Su = Sp = 0 for the flame, so applyImplicitScalarSource adds exactly 0.0.
++              td003::stats.rSource = 0.0;
++              td003::stats.rSumOfParts = td003::stats.rDiffusion + td003::stats.rClosure +
++                                         td003::stats.rConvection + td003::stats.rTransient;
++              // r_total recomputed from the PRODUCTION arrays in scope here (td003bb/bw/bp/be),
++              // because `resid` is scoped to the closure-test block.
++              td003::stats.rTotalMeasured = 0.0;
++              for (Index cc = 0; cc < nc; ++cc) {
++                double sb2 = 0.0;
++                for (Index i5 = 0; i5 < ns; ++i5) {
++                  sb2 += td003bb[static_cast<std::size_t>(i5)][static_cast<std::size_t>(cc)];
++                }
++                const double rs2 = td003bw[0][static_cast<std::size_t>(cc)] +
++                                   td003bp[0][static_cast<std::size_t>(cc)] +
++                                   td003be[0][static_cast<std::size_t>(cc)];
++                td003::stats.rTotalMeasured =
++                    std::max(td003::stats.rTotalMeasured, std::abs(sb2 - rs2));
++              }
++              td003::stats.attributionDone = true;
++            } catch (const Error& e) {
++              td003::stats.attributionError = e.what();
++            }
++          }
++          {  // GAIN: rho(M) on THIS state's operator, and the transient diagonal it uses.
++            // The transient diagonal is taken FROM THE ASSEMBLER, by assembling with only the
++            // transient enabled and reading its a_P. Reconstructing rho*V/dt by hand is how I
++            // got the face area wrong by 1e4 earlier; this cannot repeat that error.
++            std::vector<double> dcoef(static_cast<std::size_t>(nc), 0.0);
++            {
++              cfd::species::SpeciesTransportOptions tOpt;
++              tOpt.diffusion = false;
++              tOpt.convection = false;
++              tOpt.closureCorrection = false;
++              SpeciesTimeState tTs;
++              tTs.transient = true;
++              tTs.dt = dt;
++              tTs.fieldsOld = &compositionOld;
++              tTs.rhoOld = &density;
++              tTs.rhoNew = &density;
++              cfd::transport::ScalarSourceFields zSrc;
++              zSrc.Su = ScalarField(nc);
++              zSrc.Sp = ScalarField(nc);
++              try {
++                const auto tOnly = speciesTransportAssembly(
++                    mesh, 0, registry, composition, faceMassFlux, diffusivities,
++                    compositionBoundaries[0], zSrc, tTs, &closure, tOpt);
++                std::vector<double> tw, tp, te;
++                td003::extractBands(tOnly.system.matrix(), tw, tp, te);
++                dcoef = tp;  // a_P of a transient-ONLY assembly IS rho V/dt
++              } catch (const Error&) {
++                dcoef.assign(static_cast<std::size_t>(nc), 0.0);
++              }
++            }
++            td003::stats.transCoef = dcoef;
++            long long pit = 0;
++            td003::stats.spectralRadius =
++                td003::spectralRadiusOf(td003bw[0], td003bp[0], td003be[0], dcoef, &pit);
++            td003::stats.powerIters = pit;
++          }
++          td003::stats.worstStep = td003::stats.decompCalls;
++          td003::stats.recomputes++;
++        }
++        td003::stats.maxSolveDiff = std::max(td003::stats.maxSolveDiff, std::abs(si - se));
++      }
++    }
++    {  // TD-003: THE CLOSURE TEST -- sum_i b_i against A*1
++      const std::size_t un = static_cast<std::size_t>(nc);
++      // (i) are the per-species matrices identical? If not, sum_i (A_i y_i) does not
++      //     telescope to A (sum_i y_i) and the constraint cannot close however exact
++      //     each solve is.
++      for (Index i = 1; i < ns; ++i) {
++        const std::size_t ui = static_cast<std::size_t>(i);
++        for (std::size_t c = 0; c < un; ++c) {
++          td003::stats.maxBandDiff = std::max(
++              td003::stats.maxBandDiff,
++              std::max(std::abs(td003bw[ui][c] - td003bw[0][c]),
++                       std::max(std::abs(td003bp[ui][c] - td003bp[0][c]),
++                                std::abs(td003be[ui][c] - td003be[0][c]))));
++        }
++      }
++      // (ii) the closure residual, per cell: sum_i b_i - (A*1)_c
++      std::vector<double> resid(un, 0.0);
++      for (std::size_t c = 0; c < un; ++c) {
++        double sb = 0.0;
++        for (Index i = 0; i < ns; ++i) sb += td003bb[static_cast<std::size_t>(i)][c];
++        const double rowSum = td003bw[0][c] + td003bp[0][c] + td003be[0][c];
++        resid[c] = sb - rowSum;
++        const double a = std::abs(resid[c]);
++        if (a > td003::stats.maxClosureAbs) {
++          td003::stats.maxClosureAbs = a;
++          td003::stats.worstCell = static_cast<long long>(c);
++        }
++        if (c == 0) {
++          td003::stats.maxClosureFirst = std::max(td003::stats.maxClosureFirst, a);
++        } else if (c + 1 == un) {
++          td003::stats.maxClosureLast = std::max(td003::stats.maxClosureLast, a);
++        } else {
++          td003::stats.maxClosureInterior = std::max(td003::stats.maxClosureInterior, a);
++          if (a > 1.0e-14) td003::stats.interiorNonzero++;
++        }
++      }
++      td003::stats.cellCount = static_cast<long long>(un);
++      // (iii) A^-1 resid must reproduce (sum_i y_exact - 1). If it does, the chain
++      //       b -> constraint -> deviation is understood; if not, something else acts.
++      const std::vector<double> pred =
++          td003::thomas(td003bw[0], td003bp[0], td003be[0], resid);
++      for (std::size_t c = 0; c < un; ++c) {
++        td003::stats.maxPredictedDev =
++            std::max(td003::stats.maxPredictedDev, std::abs(pred[c]));
++      }
+     }
+ 
+     // The field-property energy assembly carries lambda(T) and cp per cell but accepts only a
+@@ -1293,6 +1947,9 @@
+           mechanism, mixture, *chemistry.formation, *chemistry.kinetics, conditions.pressure, cp,
+           dt, settings.chemistryFractionalChange, settings.maximumChemistrySubSteps, composition,
+           temperature, density);
++      if (td003::stats.histChem.size() < 40) {
++        td003::stats.histChem.push_back(td003::sumYDeviation(composition, ns, nc));
++      }
+       result.chemistrySubSteps += chemistryOutcome.subSteps;
+       if (chemistryOutcome.failed) {
+         result.diagnostic =
+@@ -1764,6 +2421,7 @@
+     result.totalTimeSteps = totalSteps;
+     result.worstLinearResidual = worstLinearResidual;
+     result.worstDensityChange = worstDensityChange;
++      td003::report();  // TD-003 instrumentation
+     return result;
+   };
+ 

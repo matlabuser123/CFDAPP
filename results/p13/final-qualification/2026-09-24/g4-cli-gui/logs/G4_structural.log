@@ -1,0 +1,35 @@
+P13 G4 -- structural re-verification of the frozen P13-003 gate
+date:     2026-09-24T19:29:22Z
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+baseline: results/p13/cli-gui/logs/00_dryrun.log (2026-09-21)
+
+=== A: one execution path (PRESERVATION) ===
+  A1 solver constructions in apps/cli + apps/gui (excluding tests): 0   (must be 0; 2026-09-21: 0)
+  A2 solver entry points from the clients: 2   (2026-09-21: 2)
+       apps/cli/main.cpp:256:  const ProjectRunResult run = cfd::app::ProjectRunner::run(caseDirectory, options);
+       apps/gui/SimulationController.cpp:249:    const auto result = session_.run(options);
+  A3 options fields CaseSession rewrites: 1   (documented: cancellationCheck only; 2026-09-21: 1)
+
+=== P: capability parity (structural half) ===
+  P1 GUI references to checkpoint/resume: 60   (2026-09-21 baseline: 0; target >0)
+     CLI references to checkpoint/resume: 34   (2026-09-21: 34)
+  P2 GUI-side second checkpoint implementation (runner/restart symbols in apps/gui): 0   (must be 0)
+
+=== V: validation and error parity (structural half) ===
+  V2 validateDraft references to CaseReader/CaseBuilder: 11   (>0 = shared core; 2026-09-21: 11)
+     GUI calls into the private parsers directly: 0   (must be 0; 2026-09-21: 0)
+  V3 ctest entries covering the CLI checkpoint flags: 7   (2026-09-21 baseline: 0; target 5+)
+     (source-line count, dryrun.sh baseline instrument: 4 -- see the note in this script)
+
+=== E/P coverage present in the harness (counted, not judged here) ===
+  CliGuiEquivalenceTest: 3 tests
+  CliGuiCheckpointTest: 4 tests
+       163:TEST(CliGuiEquivalenceTest, TwoDimensionalCaseAgreesBitwise) {
+       169:TEST(CliGuiEquivalenceTest, ThreeDimensionalCaseAgreesBitwise) {
+       175:TEST(CliGuiEquivalenceTest, ACaseEditedInTheGuiStillAgrees) {
+       198:TEST(CliGuiCheckpointTest, TheGuiCanCheckpointAndTheFileMatchesTheClis) {
+       228:TEST(CliGuiCheckpointTest, ACheckpointCrossesBetweenTheClients) {
+       255:TEST(CliGuiCheckpointTest, AnIntervalWithoutAPathIsRejectedAsTheCliRejectsIt) {
+       265:TEST(CliGuiCheckpointTest, ARunWithoutCheckpointOptionsReportsNothing) {
+
+structural half complete. No source file was touched and nothing was built.

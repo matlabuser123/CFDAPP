@@ -1,0 +1,59 @@
+P18.8 AMENDMENT A2 -- FREEZE.
+date (WSL): 2026-10-02T03:10:49Z
+Authorized by the user 2026-10-02. Dry-run: logs/06_A2_dryrun_PRE_FREEZE.log, 6/6.
+
+=== THE AMENDMENT ===
+f0973e34068930d119aed6a485646e05e3947945ec898c8d1346181f454d11fe  results/p18/cpu_gpu_equivalence/acceptance_gate_A2.md
+
+=== THE ORIGINAL GATE AND P18_GATES.md -- UNCHANGED, re-verified at this freeze ===
+921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03  results/p18/cpu_gpu_equivalence/acceptance_gate.md
+d98c57d87e40658a38f04162c03b48d992a3c704077e81532b4d6a4e5ecba9e9  results/p18/cpu_gpu_equivalence/audit.md
+3d6f83ff0cc4b9d71a6808271ccf2e71cc3e79718d0149229dfd6e8ff2d4fae9  results/p18/cpu_gpu_equivalence/libm_divergence.md
+20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe  results/p18/heat_release/energy_accounting.md
+
+expected, from the phase record:
+  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  P18_GATES.md
+  3fc7a020c2e7f3a6a494dd677b6f63927b8ca7571378a44b57c0d1d369103d03  acceptance_gate.md
+  d98c57d87e40658a38f04162c03b48d992a3c704077e81532b4d6a4e5ecba9e9  audit.md
+  3d6f83ff0cc4b9d71a6808271ccf2e71cc3e79718d0149229dfd6e8ff2d4fae9  libm_divergence.md
+  20d882371cfba16f2423cf8ee5e13a939df0a677884dcb0e10fd2b710e480ebe  energy_accounting.md
+
+=== PRODUCTION SOURCES AT FREEZE ===
+9e182e4d8e9568e1b8a5e01379fef328066934e365657987444abd1eb2595ae7  include/cfd/gpu/DeviceSpeciesThermochemistry.hpp
+e96f437415752e57bc4d8b8e03ce230b000483e946b4876ab94d43407e7f6180  include/cfd/gpu/DeviceSpeciesLaunch.hpp
+95673237f0d3135eb1b3b83e19cf4e1c3fcddfab2aeb5970a9af8c8c0da13d8c  include/cfd/gpu/DeviceSpeciesFmadControl.hpp
+22af529ebed026f927e5e3657d1eeb9248a7b358458771ec488c055b98c43078  cuda/kernels/DeviceSpeciesKernel.cu
+e75ec3a8291e26d04e2108ee5a054fb1e6cf244cfa236bee8cc67f5934278fdd  cuda/kernels/DeviceSpeciesFmadControl.cu
+a2a24aaf43caa8bab252b9c468e85ec5925091b3d91c4c84333fc650f0ccdaaa  cuda/CMakeLists.txt
+
+=== INSTRUMENTS AT FREEZE ===
+1ddd7044219c98c2cf401e3cbc7380218975de5b218e62b849700d065b703a74  tests/unit/species/test_device_species_equivalence.cpp
+1dd3fc6bc24e85e3e293c95104aaa9f78beea6b0dccdf49091626aadffa295c9  tests/unit/gpu/test_device_species_gpu_equivalence.cpp
+d75316881015cab2db67ebcb2f63193700c2d5e6fdb3de9088ec4ce78a0bbc9d  tests/unit/gpu/test_device_species_a2_dryrun.cpp
+199f2dfd7eb9c733d5fea3f93611a52095d4b79f4f253a31a69d32daf62bb7c7  tests/unit/gpu/CMakeLists.txt
+037778267b10ceaf776520d451cac2b6fc65cd0cb729f1da9413915e2080790c  tests/unit/species/CMakeLists.txt
+
+=== LIBRARIES AND BINARIES AT FREEZE ===
+55e2edcf879835f4c60d316d34cdfe67a1279e22ab1034a60355954bcb7cb10e  build/qual-final/cuda/libcfdcuda.a
+2dee14b143601b194490239f86633ef9b178416628873142c19210236be17791  build/qual-final/tests/unit/gpu/CFDGpuTests
+142d211d1e2ba98b91db2d6bafe59c0aa3a9aa02fc1d5586c7afd6d90976e917  build/final/tests/unit/species/CFDSpeciesTests
+
+NOTE on libcfdcuda.a: nvcc is not bit-reproducible in this tree, so this hash is a record
+of this build and not a value a later rebuild must reproduce. The 33 CUDA SOURCES are the
+reproducible record; their hashes are above.
+
+=== THE TWO FLAGS, from Ninja's own command lines ===
+  DeviceSpeciesKernel.cu : fmad=false
+  DeviceSpeciesFmadControl.cu : fmad=true
+
+=== --use_fast_math occurrences (must be 0) ===
+0
+
+=== environment ===
+nvcc used by the build: /usr/local/cuda-12.9/bin/nvcc
+Cuda compilation tools, release 12.9, V12.9.86
+g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+ldd (Ubuntu GLIBC 2.35-0ubuntu3.15) 2.35
+NVIDIA RTX 5000 Ada Generation Laptop GPU, 8.9, 580.97
+git HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274

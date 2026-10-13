@@ -1,0 +1,176 @@
+P17.1 -- regression   stage: mandated
+date: 2026-09-26T06:53:26Z
+gate: results/p17/variable_density/acceptance_gate.md
+      sha256 876466e2c97fd8db93e1dd96ac834a18a0c1c99ee8d381ab45b324b6dedc39ff
+
+FROZEN exclusions (5 patterns, verbatim from G10_regress.sh):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200   (debug_gui: 14400)
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : eba3d7023f8c2516884e260ca946f4440b82e2557e5dbbaa3cce32f7c6432935
+P17.0 baseline was       : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2 (MOVES by the authorized P17.1 delta)
+
+newest production source: 2026-09-26T06:52:00Z  tests/unit/compressible/test_compressible_mass_flux.cpp
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (17 s)
+
+--- section 8 step 3: every BUILT test binary newer than the newest production source (FAIL CLOSED) ---
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/apps/cli/cfdapp
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/core/CFDCoreTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/mesh/CFDMeshTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/fields/CFDFieldTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/algebra/CFDAlgebraTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/boundary/CFDBoundaryTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/discretization/CFDDiscretizationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/physics/CFDPhysicsTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/io/CFDIoTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/solver/CFDSolverTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/thermal/CFDThermalTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/turbulence/CFDTurbulenceTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/transport/CFDTransportTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/species/CFDSpeciesTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/multiphase/CFDMultiphaseTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/app/CFDAppLayerTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/viz/CFDVizTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/validation/CFDValidationUnitTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/unit/gpu/CFDGpuTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/solver/simple/CFDSimpleTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/solver/piso/CFDPisoTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/solver/compressible_simple/CFDCompressibleSimpleTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/cavity/CFDCavityValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/poiseuille/CFDPoiseuilleValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/thermal/CFDHeatedCavityValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/thermal/CFDConjugateHeatTransferValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/thermal/CFDBoussinesqCouplingTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/thermal/CFDNaturalConvectionValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/thermal/CFDThermalValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/case/CFDCaseIntegrationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/io/CFDResultExportIntegrationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/restart/CFDRestartIntegrationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/transport/CFDTransportVerificationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/turbulence_channel/CFDTurbulenceChannelValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/species/CFDSpeciesDiffusionValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/species/CFDSpeciesAdvectionDiffusionValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/species/CFDSpeciesConservationValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/species/CFDSpeciesCouplingValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/multiphase/CFDMultiphaseUniformFieldTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/multiphase/CFDMultiphaseAdvectionValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/multiphase/CFDMultiphaseConservationValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/multiphase/CFDMultiphaseSinglePhaseEquivalenceTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/compressible/CFDLowMachRegressionTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/mms/CFDMMSValidationTests
+    STALE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/backward_facing_step/CFDBackwardFacingStepTests
+  built test binaries    : 46
+  external tools in registry: 1
+  oldest built binary    : 2026-09-26T06:46:26Z  tests/unit/core/CFDCoreTests
+  stale built binaries   : 45
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (54 s)
+
+--- section 8 step 3: every BUILT test binary newer than the newest production source (FAIL CLOSED) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries    : 45
+  external tools in registry: 1
+  oldest built binary    : 2026-09-26T06:54:12Z  tests/unit/core/CFDCoreTests
+  stale built binaries   : 0
+  VERDICT: all 45 built test binaries are newer than the newest production source
+
+--- library and test-binary hashes (section 8 step 4) ---
+  src/libcfdcore.a                               9c84b0cc929570c8b2e6e173daa41aeb2c2fe5cdb2f25228f718c5e4ee8827e9
+  cfdapp                                         035e8b8968f33b185b27a7e5267e0b59f0bc3bf8c11b154c97b33339e1ab7cf8
+  CFDBackwardFacingStepTests                     a7f526c4413d811409fd151c6b828257fad455ab4c5c346d2f69a77499fbb8e8
+  CFDCaseIntegrationTests                        a5912149fa7cf9bb9f2d5521ed33fc1c355e4477ecd7dc052251bf29340d2a1b
+  CFDCavityValidationTests                       b9d49a7dde242609155bc76468d7282bd4cc30bd53239a559f85eb1d07f2490d
+  CFDLowMachRegressionTests                      964527a30cd2197a505317349da0e26717b4b86fe96ad0094390b4c63065ba57
+  CFDResultExportIntegrationTests                0fc5547933d07da5d186435b67d7162372cd3581f89598f52d33dabab4c2538e
+  CFDMMSValidationTests                          2d26761726dc170566c63ba219afaeff4537343fda402602bd27a6437a1d3208
+  CFDMultiphaseAdvectionValidationTests          b0b275fcd0e3fa3c150db37950f53e1b321c5981deb0f58a32156c635115b5d1
+  CFDMultiphaseConservationValidationTests       2a2dbb3b1c14069d29dcc8a4a47ae0ee0641890b48e5be33d2a1d16fc7003fe3
+  CFDMultiphaseSinglePhaseEquivalenceTests       39386832ca4d625ddeaca4973572bafbbe2e84bd2ba3b53fcab635a199df9687
+  CFDMultiphaseUniformFieldTests                 d766fb619a9c2625f3938064981fc84f800a7f110f341a3733974f28acabe36f
+  CFDPoiseuilleValidationTests                   476c9bc9dc07b2b0aea880865626ed06dc382050885cfb26e478b44b1e99baa4
+  CFDRestartIntegrationTests                     c51222f59fa7aeb5ea386ad1c03a827e4e056f478e356cb51c1f2e72c2786cec
+  CFDSpeciesAdvectionDiffusionValidationTests    86716ca7890cd38931d89adb21b8228f51bcc3b086efb0138fdcc622e788bb17
+  CFDSpeciesConservationValidationTests          2b8e86a3cf160e1922eec0164a60f2efd33fdacb9fa819fc7a9683661590314d
+  CFDSpeciesCouplingValidationTests              e25d3a7c719b4bbdd2fcbba2c468e7bd8f27aa801ed1e34b08f288eba5cbdc20
+  CFDSpeciesDiffusionValidationTests             9fda77f3f3ac35f71ea024705aa0f49da70c12ce0e67be07dfc354db4617f2c6
+  CFDBoussinesqCouplingTests                     8fac325d79f02623389243ab0f3538029084d5fbf20b60a7a1ee1d855fcdb1d9
+  CFDConjugateHeatTransferValidationTests        c2abe9466d856da78527954bfe0d6884a1e4fd658690761a37efb7f1e5ce4e34
+  CFDHeatedCavityValidationTests                 1eb52636dbd1cdd7a768dc1d47782421d897fcc7ca924bf6ab768a8e1c40f9b3
+  CFDNaturalConvectionValidationTests            c92219c613874163a7600bf07aa57ff3277d4aae755e3e6a11ed2beeb129dd23
+  CFDThermalValidationTests                      3d051d005b6ac68fc8a3dc46db5317dd278151c05a423faa6c54a69149da637a
+  CFDTransportVerificationTests                  7617787421afb50622d19405824e200cd8f3be84fcc68beb81e92492eef6bf1c
+  CFDTurbulenceChannelValidationTests            d420d7a4fe90b31b42b940464671f0db62cf2f63d7a590f961399d413b0a34b8
+  CFDCompressibleSimpleTests                     a2d278a6c342112139e23ec22a8059523e505ed365b3b484bdeb7e11ff7f9f15
+  CFDPisoTests                                   ff359a617ecb1312190a23a89120a49f5080ce39eb85bde7787d5cdc2cba775a
+  CFDSimpleTests                                 6c2e7d1b3381d8df8d95f1b8d90f1b1548f2a2f37b52d9cbc19b7d482e02ce63
+  CFDAlgebraTests                                fa809e69b78fbb77bb06a0a7c0048605ea63b7639f09be01ec026d0754351258
+  CFDAppLayerTests                               c4baa17c9b9b327b9804255076bd7b25e491e8681c3b6701a4ee092ace2f0dec
+  CFDBoundaryTests                               feb659aecaab27917e8bb0756284ee6f81767f6608e38f354e24ab4e42ad6036
+  CFDCompressibleTests                           0850dcce31995917c4f08733b9b4a28fa5849d600e55e9efca893d0dcbc98e29
+  CFDCoreTests                                   44ba1bb96ca4c0bc0d253fb58d47d909723340b4df5e05abd46fecd5b51319da
+  CFDDiscretizationTests                         1119c62c1ea61919b3aee74ffd2fdb977efedfa2690c3f227292c0cc8610d4b2
+  CFDFieldTests                                  9c5b79c5f0a070a3c241b371abf9ad3ddfe603d86f67f53eedf7fca73fc23ad6
+  CFDIoTests                                     e976f7e2189e194e960d5a0bcb0d506504c0566225f5309b33e3835cda5e204f
+  CFDMeshTests                                   1d979ce44665200285c3a04257cd22293a93c9a0fd36979904998d7e492aa931
+  CFDMultiphaseTests                             2b1a7370a47a33c785ec553c5784f2411a8d7c3275ad893a159f0746513f9c44
+  CFDPhysicsTests                                b1584cb7132e1a3c332f05a9c8d8009f3e2293bcff6d2377013dea608e08d2c6
+  CFDSolverTests                                 e9dc979d8fb63a62111a47c4b2a0ceed8dca0f7dc8ac9b6753174fc306670722
+  CFDSpeciesTests                                a8865002edf63eeaec0ad6723e650576f8f7b3daf1fd843589825ecbfc05f1be
+  CFDThermalTests                                9ec2df7695eaa817db3135d4e0951c1094365b24e28f9d0dd1d0bc15f0d367f7
+  CFDTransportTests                              1d34e4c9ab981c5f3cd1a65018be1f2f3d99ad88aa4f5132519fe04c9c0d12c3
+  CFDTurbulenceTests                             415298c5aa24ce163905ed8f2f6ad06e66aece96339a995f03382fe968573862
+  CFDValidationUnitTests                         deebc4a9a6dc19a0e7bc0cb5fa0ee6f6e58e79f8323935a532eb9f2767e89912
+  CFDVizTests                                    4f84d99bce5c5a5fdcbcafdcdb4009900b1d0d0e43d42f34fce5d59e360f235d
+  cmake                                          fd22547781b64bb2db04370970b93db1f3fada1e41e60873b015ee0747009fc0
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2365   PREDICTED 2365
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 21   PREDICTED 21 = 12 existing + 9 from P17.2
+      Test #1604: IdealGasEOSTest.MatchesKnownStandardAtmosphereState
+      Test #1605: IdealGasEOSTest.DoublingPressureAtFixedTemperatureDoublesDensity
+      Test #1606: IdealGasEOSTest.DoublingTemperatureAtFixedPressureHalvesDensity
+      Test #1607: IdealGasEOSTest.RejectsNonPositivePressureOrTemperature
+      Test #1608: IdealGasEOSTest.RejectsNonFinitePressureOrTemperature
+      Test #1609: IdealGasEOSTest.RejectsNonPositiveGasConstant
+      Test #1610: IdealGasEOSTest.RejectsNonFiniteGasConstant
+      Test #1611: IdealGasEOSTest.DDensityDPressureMatchesAnalyticalFormula
+      Test #1612: IdealGasEOSTest.DDensityDPressureIsIndependentOfPressure
+      Test #1613: IdealGasEOSTest.DDensityDTemperatureMatchesAnalyticalFormula
+      Test #1614: IdealGasEOSTest.DDensityDTemperatureIsNegative
+      Test #1615: IdealGasEOSTest.PressureCorrectionGivesExpectedDensityCorrection
+      Test #1616: IdealGasEOSTest.PressureMatchesRhoRT
+      Test #1617: IdealGasEOSTest.PressureToDensityRoundTripRecoversDensity
+      Test #1618: IdealGasEOSTest.DensityToPressureRoundTripRecoversPressure
+      Test #1619: IdealGasEOSTest.PressureIsReachableThroughTheAbstraction
+      Test #1620: IdealGasEOSTest.PressureRejectsNonPositiveDensityOrTemperature
+      Test #1621: IdealGasEOSTest.PressureRejectsNonFiniteDensityOrTemperature
+      Test #1622: IdealGasEOSTest.PressureRejectsAnOverflowingProduct
+      Test #1623: IdealGasEOSTest.PressureIsDeterministic
+      Test #1624: IdealGasEOSTest.PressureScalesLinearlyInDensityAndTemperature
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---

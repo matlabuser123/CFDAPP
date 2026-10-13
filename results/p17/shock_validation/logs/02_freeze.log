@@ -1,0 +1,51 @@
+P17.9 GATE FREEZE
+date: 2026-09-28T05:19:50Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### the frozen documents ###
+b7185ceac2c0a79c103679218c14c1a17b70b7fc6acca626807dc2ade0910f40  acceptance_gate.md
+0b463149053b5523cc82ac4b0e0aaeb654860bc4a30453749cb414ba61178e2b  configuration.md
+f8c2388623ad6ec759267adb0a380609957115c08750a70d3faa0df8aaf1e898  tools/riemann_reference.py
+61f3f62cbec50dab894b2125d29af05655d39d37cf255da9e97ad789927c6b18  tools/dry_run_detectors.py
+ff7297a89b3f8da146f8603257e02601b15827c8c013cfac2baae277f188acba  tools/audit.sh
+
+### the dry-run that justified the freeze ###
+  logs/01_dryrun.log                 81a63a8bfb12a26a6081df96bc3a5ef1b075fb57a5b439839abd0cfe03b012a2
+  exit status recorded in the log; it passed with 0 failures.
+  PRESERVED_01_dryrun_detectors_broken.log holds the FAILING first attempt, which found
+  three detector defects. None of them was fixed by moving a threshold:
+    1. the fan detector swept in the star-right region      -> confined to x < contact
+    2. the shock detector reported a position on a slope    -> plateau discriminator added
+    3. the fan TAIL was fooled by the contact's smearing    -> first arrival, not last departure
+
+### proof that no benchmark implementation exists yet ###
+  tests/integration/compressible/test_shock_validation.cpp  absent, as required
+  tests/unit/compressible/test_wave_detectors.cpp  absent, as required
+  include/cfd/validation/ShockDetectors.hpp  absent, as required
+
+### the P17.1-P17.8 production sources that must stay UNTOUCHED (criterion A2) ###
+  include/cfd/compressible/DensityBasedSolver.hpp                e5efb0ad67fef38510e30b0bed11bb50f40d71024f3e98b40783e3936c807bdc
+  src/compressible/DensityBasedSolver.cpp                        53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  include/cfd/compressible/HllcFlux.hpp                          fc4a8db5f98568923ffe320b6adb3b6574f855cf538bb238ba9385bd046b61f0
+  src/compressible/HllcFlux.cpp                                  16889dd97925fa33de8e25f91789ddafc3fb90c599cb474928c7a31cc5ccb39d
+  include/cfd/compressible/TotalEnergy.hpp                       a15726f9ffce7f14871f18446ad70129df4c9b34de5d3e8fdaf855abbabe265d
+  src/compressible/TotalEnergy.cpp                               23bde46f7a94d7e24ed262ef3ae5f4cc5677bb9194e01399014b12d929df16c5
+  include/cfd/compressible/IdealGasEOS.hpp                       bdd096490437ee602de31695184035e2ce28f0ab4d2da6187e45c709e919324e
+  src/compressible/IdealGasEOS.cpp                               daa27c5fc7e296482fd29fd93a0b4b6185fc7f3d39bc72855aa6240aad3bfe24
+  include/cfd/compressible/ThermodynamicProperties.hpp           1dd39383f5d87eb77a5b69252737db0cd0640121ea6e19eb5ec3916377008335
+  src/compressible/ThermodynamicProperties.cpp                   27d74d9e535f8e716421ce24e7f955f32dc8200c5ae5a3ddfd1c9cbdb4da3a88
+  src/compressible/CompressibleSIMPLE.cpp                        f95f760bbe2abb284ec33161209bf33f25ec9a0fb4a02e170a2232bd17d6d8ed
+  include/cfd/compressible/CompressibleSIMPLE.hpp                102879c99bd54e89591bab34cdaa2ebd9da80fd8a6b1cddd927f195bfbb79898
+  src/pressure_velocity/SIMPLE.cpp                               34f4f99577a9e4f6c35614291f3ea4ab246809af34fb08c81ac5b3b8f7d6ecd1
+  include/cfd/pressure_velocity/SIMPLE.hpp                       325a7f380be58144794538cd64d0fd4f1324a46b1bc9fa2727d5fa899e2eb9da
+  src/app/ProjectRunner.cpp                                      3f8214b4412f1877bbd2c98446ac08b00ea6c2662c98aea9e7b2970b7d714a4a
+  include/cfd/app/ProjectRunner.hpp                              b0109552ffd6b8eedbba6a5ab274b3771fd89373a27bf21bf0619cc4e93f0ff7
+  include/cfd/solver/CFL.hpp                                     25f7e5a46bb6f2da447f29b5d23ac9fd1a8f5988627d755f5715e26913f73001
+  cuda/kernels/DeviceHllcFluxKernel.cu                           f878245aef500747227baffc78fc258d0cb9516bc9712ce4504506c71191f9bf
+
+### the P17.8 baseline this phase must not move ###
+  Release+CUDA  2732 registered / 2670 executed
+  CPU-only      2526 registered / 2466 executed
+  P13-001 SIMPLE fingerprint: BITWISE IDENTICAL, 0-byte diff
+
+done: 2026-09-28T05:19:50Z

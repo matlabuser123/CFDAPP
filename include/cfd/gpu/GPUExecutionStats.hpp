@@ -18,6 +18,31 @@ struct GPUExecutionStats {
   std::uint64_t deviceToHostBytes{};
   std::uint64_t hostToDeviceCalls{};
   std::uint64_t deviceToHostCalls{};
+  // P16 Step 4 -- the LARGEST single device-to-host copy since the last reset,
+  // in bytes. A high-water mark, not a sum.
+  //
+  // It exists because the totals above cannot answer "was a FIELD downloaded".
+  // A residency gate that bounds total D2H bytes charges legitimate Krylov
+  // scalar traffic -- hundreds of tiny fetches, growing with solver iterations
+  // and therefore with mesh size -- against a field-sized allowance, and two
+  // successive P16 attempts to write such a gate failed on exactly that. The
+  // size of the biggest transfer is the quantity that distinguishes "many
+  // scalars" from "one field", and it is scale-relative: compared against the
+  // field size for that mesh, it means the same thing on every mesh.
+  //
+  // Being a maximum it cannot be differenced between two runs, so a caller
+  // reads it after resetGpuExecutionStats() around the region of interest.
+  std::uint64_t largestDeviceToHostBytes{};
+  // How many device-to-host copies were of that largest size -- reset to 1
+  // whenever a new maximum is set.
+  //
+  // The size alone cannot separate two transfers that happen to be equal. In
+  // P16 the accepted publication of k, epsilon and mu_t to host ScalarFields
+  // is one cell field each, and a single velocity COMPONENT download would be
+  // exactly the same size. The count distinguishes them: three such copies per
+  // correction is the documented interface cost, and more than three is
+  // something new.
+  std::uint64_t deviceToHostCallsAtLargestSize{};
   std::uint64_t allocations{};
   // P6-GPU-001 -- Performance: the subset of `allocations` that grew an
   // already-once-allocated buffer (DeviceBuffer::resize() past its

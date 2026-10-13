@@ -1,0 +1,90 @@
+=== git status summary ===
+      130  M
+      148 ??
+
+=== git diff --check (whitespace errors) ===
+  total warnings in the tree : 260
+        152 cuda/CMakeLists.txt
+         75 tests/unit/gpu/CMakeLists.txt
+         32 tests/unit/compressible/CMakeLists.txt
+          1 TODO.md
+  in a P18.3 file (must be 0): 0
+
+=== git diff --stat for the two files P18.3 modified ===
+   src/CMakeLists.txt                | 70 +++++++++++++++++++++++++++++++++++++++
+   tests/unit/species/CMakeLists.txt |  3 ++
+   2 files changed, 73 insertions(+)
+  (both files were ALREADY modified by earlier phases; P18.3 added one target_sources
+   block and one test-source line. The fingerprint section below is what bounds the change.)
+
+=== frozen gate, re-hashed at close ===
+  921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3  results/p18/gates/P18_GATES.md
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+=== results/validation runtime noise ===
+  modified: 0   (must be 0)
+
+=== NO CHEMISTRY OR HEAT RELEASE ADDED EARLY (sections 23, 37) ===
+  Arrhenius            1
+  stoichiom            1
+  reactionRate         0
+  omega_i              0
+  heatRelease          0
+  heatOfFormation      0
+  formationEnthalpy    0
+
+=== NO DUPLICATED EOS OR P15 PROPERTY LOGIC (sections 1, 9, 37) ===
+  a second EOS class defined?        : 0
+  a density formula written here?   : 0
+  a polynomial cp evaluator here?   : 0
+  P17/P15 types REUSED:
+    SensibleEnthalpy
+    ThermodynamicProperties
+
+=== NO SILENT MASS-FRACTION NORMALIZATION (section 20) ===
+  normalise/normalize calls : 1
+  clamp/clip                : 0
+
+=== P18.2 TRANSPORT AND P17 SHOCK UNTOUCHED (sections 24, 32) ===
+  src/species/SpeciesTransport.cpp                 69cc3141ea92d286fbf5c55f
+  src/compressible/TotalEnergy.cpp                 23bde46f7a94d7e24ed262ef
+  src/compressible/HllcFlux.cpp                    16889dd97925fa33de8e25f9
+  src/compressible/IdealGasEOS.cpp                 daa27c5fc7e296482fd29fd9
+  src/compressible/ThermodynamicProperties.cpp     27d74d9e535f8e716421ce24
+  src/thermal/Enthalpy.cpp                         9e7e758fba65f7c22e91f162
+  (these are recorded so a later phase can prove they did not move either)
+
+=== no test deleted or disabled ===
+  DISABLED_ added by P18.3   : 0
+  CFDSpeciesTests registered : 165  (P18.2 closed at 131)
+
+=== the P18.3 changeset ===
+  include/cfd/species/MixtureThermodynamics.hpp            58d9cf18b8b298664be50b6d9d75b132
+  src/species/MixtureThermodynamics.cpp                    313928eb1d175532da4da14036e045ef
+  tests/unit/species/test_mixture_thermodynamics.cpp       4ac14bd966ce7e40b417ca87b2a949a3
+
+=== commit / push ===
+  HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  nothing committed, pushed, reset, cleaned or stashed by P18.3.
+
+=== CLARIFICATION of the three non-zero greps above ===
+Every one is a COMMENT DISCLAIMING the thing, not code implementing it. Verified by inspection:
+
+  MixtureThermodynamics.hpp:51  "NO CHEMISTRY. No reaction, no stoichiometry, no Arrhenius, no heat
+                                 release, and no formation enthalpy"
+                                 -> accounts for BOTH the Arrhenius and the stoichiom hit.
+  MixtureThermodynamics.cpp:107 "disagree. Nothing is renormalised."
+                                 -> the comment explaining WHY P18.1's validation is not duplicated.
+
+So: NO chemistry, NO stoichiometry, NO Arrhenius, NO heat release, NO formation enthalpy, and NO
+normalisation call anywhere in the new code.
+
+The greps are recorded AS RUN rather than tightened to exclude comments, because a grep that skips
+comments could also skip a real occurrence. Reporting the raw count and resolving it by inspection
+is the safer direction.
+
+=== CLARIFICATION of the src/CMakeLists.txt diffstat ===
+"70 insertions" is the ACCUMULATED diff against HEAD from every uncommitted phase (P13 checkpoints,
+P15 thermal, P18.1 state, P18.2 transport, P18.3 mixture), not P18.3's contribution. P18.3's own
+addition is lines 313-319: one three-line comment plus a five-line target_sources block naming one
+file. Shown verbatim in the log above.

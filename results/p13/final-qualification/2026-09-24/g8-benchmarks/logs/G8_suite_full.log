@@ -1,0 +1,93 @@
+P13 G8 -- the complete suite, against build/qual-final
+date: 2026-09-24T21:56:10Z
+
+### the build tree, and why this one ###
+  CFDAPP_BUILD_BENCHMARKS:BOOL=ON
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+  benchmarks/cpu/cfd_benchmark_cpu                     present
+  benchmarks/gpu/cfd_benchmark_cuda_end_to_end         present
+  benchmarks/gpu/cfd_benchmark_gpu_preconditioner      present
+  (build/final has CUDA OFF, which is why the first run failed -- correctly)
+
+### wait for the machine to settle below the guard limit ###
+  cores=32  guard limit=8.00  loadavg(1m) now=0.00
+  waited 0 s for the machine to settle
+
+### Step 10 (before) -- tracked evidence inventory ###
+  46 tracked files hashed
+
+### Step 2 -- the driver, COMPLETE suite ###
+  driver exit status: 0   (0 required)
+
+  per-benchmark result:
+    cfd_benchmark_cpu: ok (64 s)
+    cfd_benchmark_cuda_end_to_end: ok (514 s)
+    cfd_benchmark_gpu_preconditioner: ok (68 s)
+
+  the driver's own tail:
+      host    : Linux 6.18.33.2-microsoft-standard-WSL2 x86_64
+      cpu     : Intel(R) Core(TM) i9-14900HX
+      cores   : 32
+      memory  : 31Gi
+      compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+      cfdapp  : CFDApp 0.2.0-dev
+      nvidia  : NVIDIA RTX 5000 Ada Generation Laptop GPU, 580.97
+      loadavg : 0.00 0.00 0.00 1/561 811
+      loaded  : no
+    
+      cfd_benchmark_cpu: ok (64 s)
+      cfd_benchmark_cuda_end_to_end: ok (514 s)
+      cfd_benchmark_gpu_preconditioner: ok (68 s)
+    
+    no --baseline given: results recorded, nothing compared.
+      (that is not a pass -- pass --baseline <dir> for a regression verdict)
+    
+    suite complete: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/p13/final-qualification/2026-09-24/g8-benchmarks/data/suite_full
+
+  files produced:
+    benchmark_20x20.json
+    benchmark_40x40.json
+    benchmark_80x80.json
+    cfd_benchmark_cpu.log
+    cfd_benchmark_cuda_end_to_end.log
+    cfd_benchmark_gpu_preconditioner.log
+    environment.json
+    linear_systems.json
+    metadata.json
+    runs.csv
+    simple_40x40.json
+    simple_80x80.json
+    suite_environment.txt
+    summary.csv
+
+  environment captured (S2, incl. A1's load keys):
+    captured: 2026-09-24T21:56:10Z
+    host    : Linux 6.18.33.2-microsoft-standard-WSL2 x86_64
+    cpu     : Intel(R) Core(TM) i9-14900HX
+    cores   : 32
+    memory  : 31Gi
+    compiler: g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+    cfdapp  : CFDApp 0.2.0-dev
+    nvidia  : NVIDIA RTX 5000 Ada Generation Laptop GPU, 580.97
+    loadavg : 0.00 0.00 0.00 1/561 811
+    loaded  : no
+
+### Step 4 -- comparator: this run vs the committed baseline ###
+  comparator exit status: 1
+    threshold: 1.25x   (measured worst-case run-to-run spread on an admitted metric: 7.9%)
+    
+      benchmark_20x20        runtime_per_iteration_ms   baseline     1.9442  current     5.1992   2.67x  REGRESSION
+      benchmark_40x40        runtime_per_iteration_ms   baseline     9.0337  current    21.0391   2.33x  REGRESSION
+      benchmark_80x80        runtime_per_iteration_ms   baseline    38.1676  current    61.2405   1.60x  REGRESSION
+    
+    
+    FAIL: 3 severe regression(s) of 3 metrics compared
+      benchmark_20x20 runtime_per_iteration_ms: 1.9442 -> 5.1992  (2.67x)
+      benchmark_40x40 runtime_per_iteration_ms: 9.0337 -> 21.0391  (2.33x)
+      benchmark_80x80 runtime_per_iteration_ms: 38.1676 -> 61.2405  (1.60x)
+
+### Step 10 (after) ###
+  tracked evidence changed files = 0   -- all 46 byte-identical
+
+done: 2026-09-24T22:06:57Z

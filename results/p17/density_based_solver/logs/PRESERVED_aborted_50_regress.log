@@ -1,0 +1,91 @@
+*** ABORTED DELIBERATELY -- NOT A FAILURE, AND NOT AUTHORITATIVE ***
+This regression run was stopped by hand about 15 minutes in, with 1 of 2718 tests complete and no
+count produced. The reason is recorded because stopping an authoritative run needs one:
+
+  While it was running, a review of the frozen gate against the tests found THREE criteria that
+  named quantities nothing asserted --
+     C1 and C2 name "rho, rhoU, rhoE, p, T"; the tests asserted only the three conserved ones
+     Group G names sum_P rhoU V; the closed-box test computed the momentum and only printf'd it
+  A regression is authoritative only if the binaries were built from the exact source being
+  reported (CLAUDE.md section 8). Letting this run finish and THEN fixing the tests would have
+  produced a result describing source that no longer existed, and would have required running the
+  whole thing again anyway. Stopping early cost ~15 minutes; finishing first would have cost the
+  full run twice.
+
+  Its declared prediction (35 tests / 2731 / 2669) is superseded: a 36th test was added afterwards.
+  The authoritative run is 50_p17_8_regress.log, which declares 36 / 2732 / 2670.
+
+No test failed in this run. Nothing was hidden by stopping it.
+
+P17.8 -- regression
+date: 2026-09-27T21:32:38Z
+gate: results/p17/density_based_solver/acceptance_gate.md
+      frozen sha256 a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e
+      live   sha256 a88738e481b3964d2a962e9eb83d7dda92c0d9142f997547673dc3cddabe615e
+      GATE INTEGRITY: MATCHES the freeze
+      architecture.md  b4afbd8f2bc97244aa99809abd8173e5faa3a4b2336abe74fa6c74c505c17e56
+      audit.md         bd3e7212a3fa1594ccd61b3e9d3286a5d1d25efc2a21a9258303a9f6b65e8073
+      (both must match logs/02_freeze.log; they are re-hashed at the START of every
+       evidence-producing step, because a frozen-doc check that only runs at phase end
+       hides a post-freeze edit for the whole phase.)
+
+FROZEN exclusions (5 patterns, verbatim):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200
+  build/qual-debug is NOT run -- deferred to P17.11 by standing decision
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 85ae3e1c9567aaad6eecccd695fd25a2361407b66023cb65d6576d0f257844e6
+
+### THE PREDICTION, declared before the run ###
+  P17.7 close (its own logs/50_*): release_cuda 2696 registered / 2634 executed
+                                   cpu_only     2490 registered / 2430 executed
+  P17.8 adds 35 tests and no others:
+    tests/unit/compressible/test_density_based_solver.cpp        32 TEST macros
+    tests/integration/compressible/test_density_based_canonical.cpp  3 TEST macros
+  Both files are pure CPU, so the delta is IDENTICAL in both configurations:
+    release_cuda 2696+35 = 2731 registered   2634+35 = 2669 executed
+    cpu_only     2490+35 = 2525 registered   2430+35 = 2465 executed
+  A test count is an arithmetic consequence of the suite, not a tolerance.
+
+newest PRODUCTION source: 2026-09-27T21:30:19Z  include/cfd/compressible/HllcFlux.hpp
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- configure + build (every target) ---
+  configure exit: 0
+  build exit: 0   (48 s)
+
+--- section 8 step 3: staleness, FAIL CLOSED (P17.7's staleness.py, unchanged) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries       : 48
+  external tools in registry: 1
+  objects inspected         : 304   mapped to a repo source: 304   generated: 0
+  oldest built binary       : 2026-09-27T21:31:34Z  tests/unit/compressible/CFDCompressibleTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 48 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+
+--- library hashes (section 8 step 4) ---
+  src/libcfdcore.a                               c7997cfd2a0d07301c1773a8fe43491006c11fa46cffa02ae0427003bb779609
+  cuda/libcfdcuda.a                              fc97ea4e87aec23c385358f347e7589ec47dcf24698cd8afaa6391e3b8c125de
+  (libcfdcuda.a's hash MOVES across identical rebuilds -- nvcc is not bit-reproducible.
+   It is recorded, never used as an identity check.)
+
+--- registered tests (ctest -N, nothing executed) ---
+  registered              : 2731   PREDICTED 2731
+  matching the exclusions : 13   PREDICTED 13
+  IdealGasEOSTest rows    : 30   PREDICTED 30
+  DensityBased rows       : 35   PREDICTED 35
+
+--- OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200 -E <5 frozen exclusions> ---

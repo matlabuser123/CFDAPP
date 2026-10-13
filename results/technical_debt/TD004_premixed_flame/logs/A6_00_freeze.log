@@ -1,0 +1,41 @@
+=== TD-004 GATE_A6 FREEZE
+date 2026-10-10T16:06:53+10:00
+host Linux 6.18.33.2-microsoft-standard-WSL2
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== THE AMENDMENT, FROZEN AT THIS HASH. It must not be edited after this line.
+7bedb728db0332ab0a938188ef4055b722331251f98e2e3955ffaacd80b3f8fb  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A6.md
+
+=== the gate it amends, and the earlier amendments, all unchanged
+12ccc5dd5e3ec01358d3677d98be5c6c6906dcd8f39ebf155217d9dc851f2e73  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE.md
+e57bc758ca5610eb7431438537de3e3211a884a9ed8a33adcefe0d3694eed42e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A1.md
+8a11ad39a147830ce5e2d1e91310c85212a881222ba143bde177a2771e6fb113  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/GATE_A3.md
+
+=== production source and library under test
+fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+852555cfda54f8da013bde93f9c205c15daf2e5291d7920a3744b86e9853c7f8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+  verified: post-fix source, uncorrupted post-fix library
+
+=== the instrument the DRY-RUN's measurements came from (frozen, unmodified in both runs)
+e9d83b3a0740b2a599fc1225b7e84b56294e1d5a419e243553ab0598ff76b403  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/tools/fixture_probe.cpp
+  recorded in logs/00_freeze.log as e9d83b3a0740b2a5...
+
+=== the dry-run and its non-vacuity check
+c7ca9bb7aa11756874087f05ee89b53c052f81ff9d6a7354b3bee3a94298f7a0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/dry_run_A6.md
+5af7bb0f6d9c00e313b278f9049ca5384ea03847bc22e248e4dedb5f857b4c08  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/amendment_A6_proposal.md
+c7ba0cb9562d0e080d034849e98863f1f3805e17cec6bdf7241c09fc6d937347  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/logs/08_fixture_selection.log
+cd5f9635829230cdb660e096e6c49747f6c3a67f0b235d92b06bd99a5afdf70c  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/logs/A5_01_c6_c6a.log
+02adf931bb2c58aaa8f5eada6cab5d3dd5485fbd9c16d358df8e2f44f5b10972  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD004_premixed_flame/logs/A6_02_thousand_cell.log
+670c6912bebc76115cae9e38fe5ceafe0268b60da4bbc0ef98f1069f0f0ff7ea  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD043_eigenvalue_lattice/audit.md
+
+=== NON-VACUITY, as established in dry_run_A6.md §4
+  C6a-ord  PASS       pre-fix  {125,250,500}  p 2.057, interval (1.99, 2.12)
+           FAIL       pre-fix  {63,125,250}   p 0.523, interval (0.50, 0.54)  BELOW band
+           FAIL       post-fix {63,125,250}   p 3.176, interval (3.06, 3.30)  ABOVE band
+           UNRESOLVED post-fix {125,250,500}  n2 = 2.0 < the 4-quantum floor
+  C6a-bal  FAIL on the baseline at all three levels; PASS post-fix at all three
+
+=== WHAT REMAINS
+  The post-freeze verification has NOT been run. CLAUDE.md §5.3 step 6 requires a FRESH run
+  reusing no earlier result, so dry_run_A6.md's post-fix rows do NOT serve as it.
+FROZEN 2026-10-10T16:06:53+10:00

@@ -1,0 +1,34 @@
+=== 1. negative-control / temporary mutation markers in production code ===
+  PASS  no mutation markers (0)
+
+=== 2. debug prints in the files THIS LINEAGE adds or changes ===
+        lineage production sources scanned: 59
+  PASS  no stray std::cout/cerr/printf in lineage sources (0)
+
+=== 3. hardcoded local paths in production code ===
+  PASS  no hardcoded local path in src/include/cuda/apps (0)
+        (evidence harnesses under results/ use the absolute WSL path by
+         established convention: 282 scripts, unchanged by this closeout)
+
+=== 4. temporary build configuration ===
+  PASS  root CMakeLists/presets/cmake untouched (0 changed)
+        cuda/CMakeLists.txt and src/CMakeLists.txt changed -- registering new sources:
+           cuda/CMakeLists.txt | 66 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+           src/CMakeLists.txt  |  1 +
+           2 files changed, 67 insertions(+)
+  PASS  no debug/sanitizer flag added to a CMakeLists (0)
+
+=== 5. clang-format over the CI scope ===
+  PASS  0 violations across 590 files
+
+=== 6. TODO.md internal consistency ===
+  PASS  GPU-DISC-001 listed FINISHED
+  PASS  GPU-PIPE-001 listed FINISHED
+  PASS  P13 has no checked item (0) -- not started
+  PASS  P13 recorded as not started / not authorized
+
+=== 7. self-check: this script can fail ===
+  FAIL  deliberate failing check (must read FAIL)
+        aggregation works
+
+PHASE 3 HYGIENE: PASS

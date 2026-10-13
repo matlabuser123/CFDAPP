@@ -50,4 +50,36 @@ namespace cfd::turbulence {
     const cfd::mesh::Mesh& mesh,
     const cfd::discretization::VelocityGradientField& velocityGradient);
 
+// P16-GPU-TURB PROMOTION. The standard k-epsilon eddy viscosity
+//
+//     mu_t = rho C_mu k^2 / epsilon
+//
+// with k and epsilon floored where they appear in a DENOMINATOR or would
+// otherwise vanish.
+//
+// WHY THIS MOVED. The body below lived in an anonymous namespace inside
+// KEpsilonModel.cpp and was declared in no header, so the production formula
+// had no caller outside one translation unit. A CPU/GPU differential for mu_t
+// therefore had nothing to compare the device against except a re-typed copy
+// of the expression -- and a re-typed copy is exactly what a differential must
+// not use, because it agrees with the device for the same reason it would
+// agree with a wrong device: both came from the same fingers, not from the
+// code that ships.
+//
+// So this is a PROMOTION, not a new function: the body is moved verbatim,
+// KEpsilonModel keeps calling it by the same unqualified name (it is in this
+// namespace already), and the device port is compared against the function
+// production actually runs.
+//
+// The operand order is load-bearing and is preserved exactly:
+// `density * cMu * kSafe * kSafe / epsSafe` associates as
+// `(((density*cMu)*kSafe)*kSafe)/epsSafe`, which is not the same double as
+// `density*cMu*(kSafe*kSafe/epsSafe)`.
+//
+// No size validation is performed, matching the moved original. Adding one
+// here would change behaviour in a phase that is not authorized to.
+[[nodiscard]] cfd::fields::ScalarField computeTurbulentViscosityField(
+    const cfd::mesh::Mesh& mesh, Real density, Real cMu, const cfd::fields::ScalarField& k,
+    const cfd::fields::ScalarField& epsilon, Real kFloor, Real epsilonFloor);
+
 }  // namespace cfd::turbulence

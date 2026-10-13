@@ -29,6 +29,14 @@ class IdealGasEOS final : public EquationOfState {
   [[nodiscard]] Real dDensityDPressure(Real pressure, Real temperature) const override;
   [[nodiscard]] Real dDensityDTemperature(Real pressure, Real temperature) const override;
 
+  // P17.2: p = rho * R * T -- absolute thermodynamic pressure. The exact algebraic
+  // inverse of density(), not an iteration: for an ideal gas the relation is
+  // closed-form in both directions.
+  [[nodiscard]] Real pressure(Real density, Real temperature) const override;
+
+  // P17.2: T = p / (rho R). See EquationOfState::temperature for the argument-order rule.
+  [[nodiscard]] Real temperature(Real pressure, Real density) const override;
+
  private:
   Real gasConstant_{};
 };

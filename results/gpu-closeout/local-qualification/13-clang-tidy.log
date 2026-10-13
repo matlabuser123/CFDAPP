@@ -1,0 +1,21 @@
+# clang-tidy, replicating the CI job locally
+# date: 2026-09-21T08:42:20Z
+#
+# CI runs: run-clang-tidy -p build/debug -j$(nproc) '^(include|src)/.*\.(cpp|hpp)$'
+#
+# NOTE: CMake writes ABSOLUTE paths into compile_commands.json, so that
+# ^-anchored regex matches nothing and the CI job passes without analysing
+# anything. That is a pre-existing CI weakness, not introduced here and not
+# fixed here. The run below uses an unanchored regex so it actually runs.
+
+# exit code: 0   (WarningsAsErrors is empty in .clang-tidy)
+# warnings: 4
+
+src/pressure_velocity/SIMPLE.cpp:65   bugprone-suspicious-memory-comparison  pre-existing (GPU-PIPE persistent fields, sameField)
+src/pressure_velocity/SIMPLE.cpp:134  performance-move-const-arg             pre-existing (constructor)
+src/pressure_velocity/SIMPLE.cpp:487  modernize-use-auto                     NEW -- this lineage's resident branch
+src/pressure_velocity/SIMPLE.cpp:501  modernize-use-auto                     pre-existing (GPU branch)
+
+# 487 is a verbatim copy of the idiom on 501, fourteen lines below it.
+# Changing one and not the other would make the two branches inconsistent,
+# and clang-tidy warnings are not errors in this project. Left as-is.

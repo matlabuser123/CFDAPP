@@ -58,6 +58,9 @@ endif()
 add_executable(CFDGuiControllerTests
   tests/test_simulation_controller.cpp
   tests/test_case_editing.cpp
+  # P13-003: CLI/GUI numerical equivalence -- the criterion the pre-existing
+  # "round-trip gate" only gestured at (it compared status alone).
+  tests/test_cli_gui_equivalence.cpp
   SimulationController.hpp
   SimulationController.cpp
   SimulationControllerEditing.cpp

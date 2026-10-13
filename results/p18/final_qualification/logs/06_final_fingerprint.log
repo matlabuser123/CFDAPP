@@ -1,0 +1,52 @@
+============================================================
+P18.9 sections 54-55 -- FINAL P18 SOURCE FINGERPRINT
+============================================================
+date (WSL): 2026-10-02T16:57:44Z
+
+--- the fingerprint contract, stated explicitly (section 55) ---
+IN SCOPE  : every source file under include/ src/ cuda/ apps/ matching *.hpp *.h *.cpp
+            *.cu *.cuh *.in and every CMakeLists.txt. 'Source' means an input the compiler
+            or the build system reads.
+OUT OF    : results/** (evidence), TODO.md, ROADMAP.md, KNOWN_LIMITATIONS.md, build/**.
+SCOPE       Evidence is NOT fingerprinted: writing an evidence file must not invalidate the
+            fingerprint of the code that evidence describes, or no phase could ever record
+            its own result. Build outputs are excluded because nvcc is not bit-reproducible
+            in this tree -- P18.8 measured libcfdcuda.a hashes changing across rebuilds of
+            identical source -- so a library hash would be noise, not a fingerprint.
+
+--- regenerated now, after every qualification-affecting step ---
+  files              : 433
+  CANDIDATE (sec 2)  : 83d43668dfd4b19877831b55ab44e187726f774d34e5ac68b591f1e8b2c3384d
+  FINAL     (sec 54) : 83d43668dfd4b19877831b55ab44e187726f774d34e5ac68b591f1e8b2c3384d
+
+  STABLE -- IDENTICAL to the candidate fingerprint.
+  P18.9 changed NO source file. Everything it produced is evidence, probes under
+  results/p18/final_qualification/tools/, and documentation. So the three full
+  regressions run against this fingerprint are regressions of the final candidate.
+
+--- P18's own production files, individually ---
+  34a70761f2debb6d  include/cfd/species/MassFractionState.hpp
+  c68ab74c6b836344  include/cfd/species/SpeciesRegistry.hpp
+  850f5a5e03a5ea70  include/cfd/species/SpeciesTransport.hpp
+  58d9cf18b8b29866  include/cfd/species/MixtureThermodynamics.hpp
+  0e0b8829ab4a1438  include/cfd/species/ReactionMechanism.hpp
+  44d6561f14bf23c1  include/cfd/species/ArrheniusKinetics.hpp
+  3b8efc2d4778f106  include/cfd/species/HeatRelease.hpp
+  429321301b079cd8  src/species/MassFractionState.cpp
+  d55652da02e0a85f  src/species/SpeciesRegistry.cpp
+  69cc3141ea92d286  src/species/SpeciesTransport.cpp
+  313928eb1d175532  src/species/MixtureThermodynamics.cpp
+  0145fab31061a97c  src/species/ReactionMechanism.cpp
+  ba095f0e5ec785bf  src/species/ArrheniusKinetics.cpp
+  3adfd95b3438f7c5  src/species/HeatRelease.cpp
+  9e182e4d8e9568e1  include/cfd/gpu/DeviceSpeciesThermochemistry.hpp
+  e96f437415752e57  include/cfd/gpu/DeviceSpeciesLaunch.hpp
+  95673237f0d3135e  include/cfd/gpu/DeviceSpeciesFmadControl.hpp
+  22af529ebed026f9  cuda/kernels/DeviceSpeciesKernel.cu
+  e75ec3a8291e26d0  cuda/kernels/DeviceSpeciesFmadControl.cu
+
+--- git, at fingerprint time ---
+  HEAD         : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  branch       : main
+  working tree : 180 tracked modified, 168 untracked, DIRTY (uncommitted P13-P18 series)
+  describe     : v0.2.0-29-g3bd32f9-dirty

@@ -1,0 +1,44 @@
+=== rebuilding the affected suites (binaries deleted first) ===
+  build OK
+
+=== the FROZEN P14 ORACLES -- these encode the pre-P18.2 matrix, RHS and solved field ===
+
+--- tests/unit/transport/test_transport_characterization.cpp (matrix, sparsity, RHS) ---
+[       OK ] TransportFoundation.TheFrozenCharacterizationCanDetectAnAssemblyChange (0 ms)
+[----------] 3 tests from TransportFoundation (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 3 tests.
+
+--- the whole transport unit suite ---
+
+[----------] Global test environment tear-down
+[==========] 22 tests from 6 test suites ran. (2 ms total)
+[  PASSED  ] 22 tests.
+
+--- tests/unit/turbulence/test_p14_migration_equivalence.cpp (solved field, HAS 3 FixedGradient patches) ---
+[       OK ] P14Migration.TheFrozenSolvedFieldCanDetectAnAssemblyChange (0 ms)
+[----------] 3 tests from P14Migration (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (2 ms total)
+[  PASSED  ] 3 tests.
+
+--- the whole turbulence unit suite ---
+[  PASSED  ] 246 tests.
+
+  YOU HAVE 1 DISABLED TEST
+
+
+--- thermal (owns the EXACT treatment this copies; must be untouched) ---
+
+[----------] Global test environment tear-down
+[==========] 163 tests from 25 test suites ran. (175 ms total)
+[  PASSED  ] 163 tests.
+
+--- species (P18.1 state + the pre-P18 passive stack) ---
+
+[----------] Global test environment tear-down
+[==========] 97 tests from 11 test suites ran. (109 ms total)
+[  PASSED  ] 97 tests.

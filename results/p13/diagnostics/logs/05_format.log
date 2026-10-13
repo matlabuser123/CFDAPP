@@ -1,0 +1,26 @@
+P13-005 -- the format gate, and a note on which instrument measures it.
+
+final.sh scanned the WHOLE tree with the default `clang-format`, which in this
+WSL image is version 14. That is wrong twice over:
+
+  * scope   -- ci.yml runs `find include src apps tests`, so benchmarks/, cuda/
+               and the results/ evidence tools it flagged have never been
+               inside the gate
+  * version -- ci.yml pins clang-format-18 explicitly, and its own comment
+               records that 14/15 and 18 give genuinely different output
+
+Re-measured with the instrument CI actually uses (tools/format_ci18.sh):
+
+  Ubuntu clang-format version 18.1.8
+  clang-format-18 violations in the CI scope (include src apps tests): 0
+
+For completeness, clang-format-14 over the same scope disagrees on 4 files:
+
+  tests/solver/piso/test_ale_piso.cpp
+  tests/unit/discretization/test_divergence.cpp
+  tests/unit/mesh/test_mesh_quality_report.cpp
+  tests/unit/physics/test_continuity_equation.cpp
+
+None is touched by P13-005. They are a clang-format version disagreement on
+pre-existing files, not a defect introduced here, and the gate that governs the
+repository (18) accepts them.

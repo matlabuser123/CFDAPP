@@ -1,0 +1,21 @@
+P13 G5 -- W5, an unwritable destination is still rejected
+date: 2026-09-24T20:33:00Z
+id  : 0 (root)
+
+WHY NOT chmod: this shell is uid 0. chmod a-w on the results directory is
+ignored by root, so the first attempt exported successfully and told us
+nothing about the criterion. Preserved as G5_cli_failure_path.log.
+
+### variant A -- 'results' exists as a regular FILE, so it cannot be a directory ###
+    -rw-r--r-- 1 root root 0 Sep 25 06:33 /tmp/g5_w5.DlOnIz/a/results
+  exit=1   (non-zero required)
+  Results: block printed? 0   (0 required)
+    Run error: Could not create output directory: /tmp/g5_w5.DlOnIz/a/results: Not a directory
+
+### variant B -- an immutable output file (chattr +i); root respects this ###
+    ----i---------e------- /tmp/g5_w5.DlOnIz/b/results/metadata.json
+  exit=1   (non-zero required)
+  Results: block printed? 0   (0 required)
+    Run error: Could not open output file for writing: /tmp/g5_w5.DlOnIz/b/results/metadata.json
+
+workdir: /tmp/g5_w5.DlOnIz

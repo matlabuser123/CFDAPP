@@ -162,7 +162,20 @@ void assembleDiffusionContribution(const cfd::mesh::Mesh& mesh,
                                    bool applyNonOrthogonalCorrection = false,
                                    cfd::discretization::GradientScheme correctionGradientScheme =
                                        cfd::discretization::GradientScheme::GreenGauss,
-                                   const cfd::fields::VectorField* correctionVelocity = nullptr);
+                                   const cfd::fields::VectorField* correctionVelocity = nullptr,
+                                   // P16 -- wall functions.
+                                   //
+                                   // Per-FACE effective viscosity, consulted only at BOUNDARY
+                                   // faces and only where the entry is non-zero; every other
+                                   // face keeps using the owner cell's value exactly as before.
+                                   // nullptr (the default) is therefore bitwise the pre-P16
+                                   // assembly, which is what keeps every laminar result and the
+                                   // SIMPLE fingerprint unchanged.
+                                   //
+                                   // This is the ONLY way a wall function reaches momentum:
+                                   // the existing mu*U_P/y_P boundary term is kept and handed a
+                                   // different mu. There is no second momentum discretisation.
+                                   const cfd::fields::SurfaceField* wallViscosity = nullptr);
 
 // Convection contribution using the already-computed face mass flux (see
 // MassFlux.hpp) -- TODO.md section 11/25/53. `scheme` (default Upwind,

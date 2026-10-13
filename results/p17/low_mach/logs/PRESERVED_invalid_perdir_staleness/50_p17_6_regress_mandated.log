@@ -1,0 +1,75 @@
+P17.6 -- regression   stage: mandated
+date: 2026-09-27T04:29:11Z
+gate: results/p17/low_mach/acceptance_gate.md
+      frozen sha256 f275c4ac3fab31509b9f80036e1c8b4b6f4f3e8c9ec20cf8b8ae7a1d8b303c9a
+      live   sha256 f275c4ac3fab31509b9f80036e1c8b4b6f4f3e8c9ec20cf8b8ae7a1d8b303c9a
+      GATE INTEGRITY: MATCHES the freeze
+
+FROZEN exclusions (5 patterns, verbatim from G10_regress.sh):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200   (debug_gui: 14400)
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : cf4d53a2e6b090228f68d58bc9b452d324abd3dde03539a53a70f44542c70bdf
+P17.5 close was          : d2e65555534bde2208cb7affd9caac7c7b4406c3f1cd17dfd473d441b882364a (MOVES by the authorized P17.6 delta)
+
+newest PRODUCTION source: 2026-09-27T01:45:05Z  src/compressible/TotalEnergy.cpp
+  (test sources are checked per-directory against their own binary, below)
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (3 s)
+
+--- section 8 step 3: every BUILT test binary newer than the newest production source (FAIL CLOSED) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+    STALE vs OWN TEST SOURCE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/tests/integration/compressible/CFDLowMachRegressionTests
+  built test binaries    : 47
+  external tools in registry: 1
+  oldest built binary    : 2026-09-27T01:45:34Z  tests/unit/core/CFDCoreTests
+  stale vs production    : 0
+  stale vs own test src  : 1
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (53 s)
+
+--- section 8 step 3: every BUILT test binary newer than the newest production source (FAIL CLOSED) ---
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+    STALE vs OWN TEST SOURCE: /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-cpuonly/tests/integration/compressible/CFDLowMachRegressionTests
+  built test binaries    : 46
+  external tools in registry: 1
+  oldest built binary    : 2026-09-27T02:31:01Z  tests/unit/core/CFDCoreTests
+  stale vs production    : 0
+  stale vs own test src  : 1
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### B6: CPU-only has no CUDA dependency
+############################################################
+  build log read                    : 50_cpu_only_build.log (8 lines)
+  nvcc invocations in the build log : 0
+  libcudart references              : 0
+  cuda/libcfdcuda.a present         : no
+  build/qual-cpuonly/apps/cli/cfdapp           cudart refs in ldd: 0
+
+P17_CODE_FINGERPRINT after  : cf4d53a2e6b090228f68d58bc9b452d324abd3dde03539a53a70f44542c70bdf
+B8: the code fingerprint must not have moved across the regression.
+
+done: 2026-09-27T04:30:57Z

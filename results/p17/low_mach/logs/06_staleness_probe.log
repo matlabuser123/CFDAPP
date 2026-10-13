@@ -1,0 +1,40 @@
+=== S1: the replacement probe at the UNCHANGED tree (must PASS) ===
+  newest production source epoch: 1790473505
+    external tool, not staleness-checked: /usr/bin/cmake  (2024-02-03)
+  built test binaries       : 47
+  external tools in registry: 1
+  objects inspected         : 300   mapped to a repo source: 300   generated: 0
+  oldest built binary       : 2026-09-27T01:45:34Z  tests/unit/core/CFDCoreTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 47 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+  probe exit: 0   (0 required)
+
+=== S2: the OLD per-directory heuristic, same tree (documented to FAIL falsely) ===
+    OLD PROBE accuses: tests/integration/compressible/CFDLowMachRegressionTests
+  old heuristic verdict: FAILS -- the false positive, reproduced
+
+=== S3: NON-VACUITY -- move ONE compiled source's mtime forward, content untouched ===
+  tests/integration/compressible/test_low_mach_regression.cpp mtime 1789646169 -> 1790483724
+  sha256 unchanged: yes
+    STALE vs ITS OWN SOURCE: tests/integration/compressible/CFDLowMachRegressionTests
+  stale vs production       : 0
+  stale vs its own sources  : 1
+  unverifiable (fail closed): 0
+  probe exit: 1   (NONZERO required -- the probe must DETECT this)
+
+=== S4: restore the mtime and re-verify ===
+  mtime restored to 1789646169   expected 1789646169
+  sha256: 593165a1a2fff9ccbad8b3675ccbdff093bcf22c82b5daad90462fe228949acc
+  expected: 593165a1a2fff9ccbad8b3675ccbdff093bcf22c82b5daad90462fe228949acc
+  external tools in registry: 1
+  objects inspected         : 300   mapped to a repo source: 300   generated: 0
+  oldest built binary       : 2026-09-27T01:45:34Z  tests/unit/core/CFDCoreTests
+  stale vs production       : 0
+  stale vs its own sources  : 0
+  unverifiable (fail closed): 0
+  VERDICT: all 47 built test binaries postdate the newest production source AND every
+           source they actually compile, per CMake's own object lists
+  probe exit: 0   (0 required -- back at baseline)

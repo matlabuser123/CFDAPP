@@ -41,6 +41,26 @@ struct CompressibleContinuityResult {
   // only consistently with boundary mass flux").
   Real totalMassOld{};
   Real totalMassNew{};
+
+  // P17.3: the sum of BOUNDARY face mass flux only -- the domain's net mass in/outflow,
+  // outward-positive. The same quantity and the same convention as
+  // physics::ContinuityResult::globalNetFlux, which the steady evaluator has always
+  // exposed and this transient one did not.
+  //
+  // It exists because the integral conservation relation
+  //
+  //     M(t2) - M(t1) + integral over [t1,t2] of sum_boundary(mDot_f) dt  ==  0
+  //
+  // is the strongest statement of transient mass conservation, and totalMassOld/New
+  // already supply M(t1) and M(t2). Without this a caller had to re-loop the boundary
+  // patches and re-derive the sign convention by hand, OUTSIDE the function that owns
+  // that convention -- exactly the duplication this module's "one authoritative
+  // mass-flux path" invariant exists to prevent.
+  //
+  // Note it is a sum over boundary faces only, NOT over all faces: internal faces
+  // cancel pairwise and contribute nothing to the domain balance, so including them
+  // would give a number with no physical meaning.
+  Real globalNetFlux{};
 };
 
 // Throws InvalidArgumentError if densityOld/densityNew.size() !=

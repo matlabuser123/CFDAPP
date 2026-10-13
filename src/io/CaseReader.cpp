@@ -43,8 +43,24 @@ std::filesystem::path resolveCaseLocalFile(const std::filesystem::path& caseDire
   }
   std::error_code existsError;
   if (!std::filesystem::exists(candidate, existsError) || existsError) {
-    throw IOError("required " + std::string(referenceField) +
-                  " configuration not found: " + candidate.string());
+    // P13-002: this is the one rejection in the case pipeline that named
+    // neither the file to edit nor the key at fault -- it said only "required
+    // geometry configuration not found: <path>". A user with a typo in
+    // case.json saw a missing file and no indication of where the wrong
+    // reference lived. It was 60 of the 63 rows the mutation matrix flagged
+    // as vague, across all 12 case families.
+    //
+    // The TYPE stays IOError. It is still "the file could not be read", a
+    // caller catching IOError still catches it, and tests/data/cases/
+    // missing_mesh exercises this path -- changing it to
+    // CaseConfigurationError would be invisible (both are exit 2) and is
+    // exactly the kind of change that is easy to make by accident. Only the
+    // message gains the manifest and the key, and the diagnostic rides along.
+    throw IOError(manifestPath.string() + ": field \"" + std::string(referenceField) +
+                      "\" must satisfy reference a file that exists; received \"" + referenceValue +
+                      "\" (resolved to " + candidate.string() + ")",
+                  cfd::CaseDiagnostic{manifestPath.filename().string(), std::string(referenceField),
+                                      "reference a file that exists", referenceValue});
   }
   return candidate;
 }
@@ -101,9 +117,28 @@ CaseDefinition CaseReader::read(const std::filesystem::path& caseDirectory) cons
   std::vector<std::string> speciesNames;
   speciesNames.reserve(definition.physics.species.size());
   for (const auto& species : definition.physics.species) speciesNames.push_back(species.name);
+
+  // TD-001: a "reacting" block supplies the per-patch species key set the same way the passive
+  // "species" array does. It needs no special handling for "temperature", because a reacting case
+  // is required to declare a "thermal" block as well (PhysicsConfigParser enforces that, and its
+  // own comment says why) -- so `thermalEnabled` is already true by the existing rule.
+  //
+  // "species" and "reacting" are mutually exclusive, so appending cannot double up: a case is
+  // passive-tracer OR reacting, never both.
+  //
+  // The one DIFFERENCE from the passive path is the composition constraint: a reacting patch's
+  // fixed_value entries are a MIXTURE and must sum to one, where passive tracers are unrelated.
+  bool compositionSpecies = false;
+  if (definition.physics.reacting.has_value()) {
+    for (const auto& species : definition.physics.reacting->species) {
+      speciesNames.push_back(species.name);
+    }
+    compositionSpecies = true;
+  }
+
   definition.boundaries = detail::parseBoundaryConfig(
       readJsonFile(boundariesPath), boundariesPath, definition.physics.thermal.has_value(),
-      speciesNames, definition.physics.multiphase.has_value(), dimension);
+      speciesNames, definition.physics.multiphase.has_value(), dimension, compositionSpecies);
 
   const std::filesystem::path solverPath = loadReferenced("solver");
   definition.solver = detail::parseSolverConfig(readJsonFile(solverPath), solverPath);

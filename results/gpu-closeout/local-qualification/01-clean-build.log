@@ -1,0 +1,50 @@
+=== toolchain ===
+c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+Cuda compilation tools, release 12.9, V12.9.86
+Build cuda_12.9.r12.9/compiler.36037853_0
+cmake version 3.22.1
+1.10.1
+
+=== remove any previous fresh build (isolation, not reuse) ===
+  removed /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final
+
+=== configure command ===
+  cmake -S /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp -B /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final -G Ninja -DCMAKE_BUILD_TYPE=Release -DCFDAPP_ENABLE_CUDA=ON -DCMAKE_CUDA_COMPILER=/usr/local/cuda-12.9/bin/nvcc -DBUILD_TESTING=ON
+  configure rc=0
+  -- CFDApp: nvcc 12.9 -> CUDA architectures 80;89 (nvcc's own default is not used)
+  -- Found CUDAToolkit: /usr/local/cuda-12.9/include (found version "12.9.86") 
+  -- cfdcuda: CUDA 12.9.86, architectures 80;89
+
+=== build ===
+  ninja -C /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final
+  wall 182.92 s, max RSS 565784 KB
+  build rc=0
+
+=== warnings ===
+  warning lines: 0
+
+=== errors ===
+  none
+
+=== targets ===
+  build edges: 1280
+  phony targets: 235
+  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/cuda/libcfdcuda.a
+  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/src/libcfdcore.a
+
+=== CUDA architectures actually compiled ===
+  --generate-code=arch=compute_80,code=[compute_80,sm_80]
+  --generate-code=arch=compute_89,code=[compute_89,sm_89]
+
+=== freshness: an immediate rebuild must do no work ===
+  ninja: no work to do.
+
+=== build identity ===
+  cfacb5225b2f25c8b032645b1d3945180cf17d3292c9f598f09ce3db5e0eafea  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/cuda/libcfdcuda.a
+  829f34eefa23fb56ad668ecbc6e991cdd70688431a7ef4e853f5dee63f2d14c8  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/final/src/libcfdcore.a
+
+=== test discovery ===
+  
+  Total Tests: 2043
+
+CLEAN BUILD: PASS

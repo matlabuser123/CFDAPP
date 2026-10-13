@@ -1,0 +1,112 @@
+=== files exist (before anything is grepped) ===
+  include/cfd/species/ArrheniusKinetics.hpp                present, 174 lines
+  src/species/ArrheniusKinetics.cpp                        present, 379 lines
+  tests/unit/species/test_arrhenius_kinetics.cpp           present, 1185 lines
+
+=== the code-only copies the exclusion checks run on ===
+  stripped header                              174 lines
+  stripped source                              379 lines
+  control: stripped source has statements      101  ok (control: the grep reads the file)
+  control: stripped header declares the class  1    ok (control: the grep reads the file)
+
+=== git status summary ===
+      130  M
+      154 ??
+
+=== git diff --check (whitespace errors) ===
+  total warnings in the tree : 259
+        152 cuda/CMakeLists.txt
+         75 tests/unit/gpu/CMakeLists.txt
+         32 tests/unit/compressible/CMakeLists.txt
+  (259 pre-existing, in three CMakeLists no P18 phase authored -- a PUSH BLOCKER recorded
+   in TODO.md, not a P18.5 regression. P18.5 fixed the one TODO.md warning it found.)
+  in a P18.5 file                              0    ok
+  in TODO.md or ROADMAP.md                     0    ok
+
+=== clang-format, the three P18.5 files ===
+  CLEAN
+
+=== frozen gate, re-hashed at close ===
+  actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+=== the P18.5 frozen docs, re-hashed at close ===
+  formulation.md is AMENDED by A1 and must itself be UNCHANGED
+  audit.md               b65712699ce11adae46dcec65aaf6a8d23aab10d77e91d651ae2a34f4880abb8
+  units.md               481525f8f56d718da7ce348ea738add35676d6bf3c57ef0ffcecfe703a13812e
+  formulation.md         9362c7289979a8494f2c9b3b4a76b83e6d3a109dd8448177c1b07c90a0ea1da5
+  formulation_A1.md      bb439f15376a0fb951e086b66bbb0bae11812d88cb22a843bb072472036109d0
+  expected formulation.md 9362c7289979a8494f2c9b3b4a76b83e6d3a109dd8448177c1b07c90a0ea1da5
+
+=== results/validation runtime noise ===
+  modified files under results/validation      0    ok
+
+=== NO HEAT-RELEASE CODE ADDED EARLY (P18.6 is NOT AUTHORIZED) ===
+  heatRelease                                  0    ok
+  reactionEnthalpy                             0    ok
+  heatOfFormation                              0    ok
+  formationEnthalpy                            0    ok
+  energySource                                 0    ok
+  control: 'temperature' appears in code       40   ok (control: the grep reads the file)
+  P18.5 READS T and never writes it:
+  writes to a temperature field                0    ok
+  control: reads temperature[cell]             2    ok (control: the grep reads the file)
+
+=== NO EQUILIBRIUM CONSTANT INVENTED (section 20) ===
+  equilibrium                                  0    ok
+  gibbs                                        0    ok
+  keq                                          0    ok
+  entropy                                      0    ok
+  control: 'reverse' appears in code           12   ok (control: the grep reads the file)
+
+=== NO THIRD-BODY OR PRESSURE-DEPENDENT KINETICS (not in the gate) ===
+  thirdBody                                    0    ok
+  troe                                         0    ok
+  lindemann                                    0    ok
+  falloff                                      0    ok
+  chaperon                                     0    ok
+
+=== NO DUPLICATED CONSERVATION FORMULA (sections 25, 26) ===
+  omega computed in the kinetics layer         0    ok
+  massResidual recomputed here                 0    ok
+  netCoefficient used for an ORDER             0    ok
+  control: reactantCoefficient IS used         1    ok (control: the grep reads the file)
+  control: productCoefficient IS used          1    ok (control: the grep reads the file)
+
+=== NO DUPLICATED CONSTANTS OR WEIGHTS (section 16) ===
+  a local universal gas constant               0    ok
+  control: P18.3's R_u IS used                 2    ok (control: the grep reads the file)
+  molecular weights STORED here                0    ok
+  control: M_i READ from P18.3                 1    ok (control: the grep reads the file)
+
+=== NOTHING IS CLAMPED (sections 7, 30) ===
+  clamp                                        0    ok
+  clip                                         0    ok
+  std::max(0                                   0    ok
+  std::min(1                                   0    ok
+  normali                                      0    ok
+  control: throws instead                      24   ok (control: the grep reads the file)
+
+=== P18.1-P18.4 PRODUCTION UNTOUCHED (sections 43-46) ===
+  hashes recorded so a later phase can prove these did not move either:
+  src/species/SpeciesRegistry.cpp                  d55652da02e0a85f9d8fad7f87de6648
+  src/species/MassFractionState.cpp                429321301b079cd80b26b8a2dcef4929
+  src/species/SpeciesTransport.cpp                 69cc3141ea92d286fbf5c55fc8e40bb3
+  src/species/MixtureThermodynamics.cpp            313928eb1d175532da4da14036e045ef
+  src/species/ReactionMechanism.cpp                0145fab31061a97ceb7eb72e752e7fe1
+  src/transport/ScalarTransport.cpp                91766bc83bdad55dd2b56d5f9a47638d
+
+=== no test deleted or disabled ===
+  DISABLED_ added by P18.5                     0    ok
+  CFDSpeciesTests registered : 241   (P18.4 closed at 203; 203 + 38 = 241)
+
+=== the P18.5 changeset ===
+  include/cfd/species/ArrheniusKinetics.hpp                44d6561f14bf23c1d81a4013cb641e281c65464da0c880bf39db517ffc7e5e58
+  src/species/ArrheniusKinetics.cpp                        ba095f0e5ec785bf89f70834bf9359455bd3a901600372890ceceae6722af795
+  tests/unit/species/test_arrhenius_kinetics.cpp           f3788fb9b2dbbc9588a2484fb0ac9e8ec2c6cd978184cc44a8f0455ec6413747
+
+=== commit / push ===
+  HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  nothing committed, pushed, reset, cleaned or stashed by P18.5.
+
+INTEGRITY: PASS -- every exclusion holds AND every probe was proven to read its file

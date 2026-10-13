@@ -1,0 +1,35 @@
+============================================================
+P18.9 section 45 -- HOST SANITIZER LIVE CONTROL
+============================================================
+date (WSL): 2026-10-02T16:53:21Z
+options used here are IDENTICAL to the suite's:
+  ASAN_OPTIONS=detect_leaks=1:halt_on_error=0
+  UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=0
+
+--- 1. ASan RUNTIME banner from a real qualification binary ---
+    binary: build/asan/tests/unit/species/CFDSpeciesTests
+    sha256: a1b1e140beb8c360dfde8678f4682e87bc9cac92bfc054d4d96f725798571b6b
+    ASan option lines printed by the runtime: 5
+    => an ASan RUNTIME is linked and active in this binary.
+
+--- 2. sanitizer runtimes actually linked ---
+    	libasan.so.6 => /lib/x86_64-linux-gnu/libasan.so.6 (0x000070c345000000)
+    	libubsan.so.1 => /lib/x86_64-linux-gnu/libubsan.so.1 (0x000070c344400000)
+    __asan_/__ubsan_ dynamic symbols: 52
+
+--- 3. PLANTED DEFECTS, one program each ---
+    asan_overflow          exit 1    matches for "ERROR: AddressSanitizer: heap-buffer-overflow" : 1
+        ==811==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x50200000002c at pc 0x5aa961e6f32b bp 0x7ffec1e88170 sp 0x7ffec1e88160
+    ubsan_overflow         exit 0    matches for "runtime error:"             : 1
+        /tmp/tmp.f9E7rLvwfw/ubsan_overflow.cpp:5:17: runtime error: signed integer overflow: 2147483647 + 1 cannot be represented in type 'int'
+    ubsan_shift            exit 0    matches for "runtime error:"             : 1
+        /tmp/tmp.f9E7rLvwfw/ubsan_shift.cpp:5:13: runtime error: shift exponent 33 is too large for 32-bit type 'int'
+    lsan_leak              exit 0    matches for "Direct leak\|ERROR: LeakSanitizer" : 2
+
+============ VERDICT ============
+  LIVE. AddressSanitizer, UndefinedBehaviorSanitizer and LeakSanitizer each report a
+  planted defect under the SAME options the suite used, and the qualification binary
+  carries an active ASan runtime linked against libasan and libubsan.
+
+  So the suite's 0 ASan / 0 UBSan / 0 Leak findings over 2 768 passing tests is a
+  MEASUREMENT, not an absence of instrumentation.

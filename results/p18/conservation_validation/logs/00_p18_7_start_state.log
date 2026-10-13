@@ -1,0 +1,41 @@
+=== P18.7 START STATE ===
+date: 2026-10-01T09:49:50Z
+authorized: P18.7 Conservation & Validation. P18.8 and P18.9 NOT authorized.
+
+--- the frozen gate, re-verified at OPEN ---
+  actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+--- predecessor evidence, re-verified (P18.7 may not edit any of it) ---
+  species_transport/audit.md                               5033351ed35a3381
+  species_transport/formulation.md                         11c2f0c05b050332
+  mixture_properties/audit.md                              85b8c609c8f21b4c
+  mixture_properties/formulation.md                        942f2ce79b716621
+  reaction_source/audit.md                                 d4717b9938bfa76c
+  arrhenius_chemistry/audit.md                             b65712699ce11ada
+  arrhenius_chemistry/formulation.md                       9362c7289979a849
+  heat_release/audit.md                                    263d57019af8e6a6
+  heat_release/energy_accounting.md                        20d882371cfba16f
+
+--- REACHABILITY AUDIT (section 1): what drives the chemistry today? ---
+  files outside species/ referencing the chemistry layer:
+    0      <-- 0 means NOTHING outside species/ reaches it
+  case-file keys defining a mechanism / mixture / formation enthalpy:
+    0
+
+--- ELEMENTAL METADATA (section 9) ---
+  files carrying elemental composition: 0    <-- 0 means NOT MODELED
+
+--- baseline test counts ---
+  CFDSpeciesTests          283
+  CFDThermalTests          163
+  CFDCompressibleTests     215
+  CFDTransportTests        22
+  CFDTurbulenceTests       247
+
+--- regression baseline (P18.6 close) ---
+  release_cuda  3009 selected, 2958 Passed, 0 FAILED, 2 Skipped, 49 DISABLED
+  cpu_only      2786 selected, 2739 Passed, 0 FAILED, 0 Skipped, 47 DISABLED
+  debug_gui     3071 selected, 3017 Passed, 3 FAILED, 2 Skipped, 49 DISABLED
+
+  HEAD 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274

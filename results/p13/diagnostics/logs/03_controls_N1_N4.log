@@ -1,0 +1,36 @@
+pre-control hashes recorded:
+34c2c20b0b59cab04cf5d3cd60fd01fab8045dd06e2ad92bb931dd5e58aa29a7  src/core/Logger.cpp
+708b0ca1a0ba0c7c832335eb41e75d4b6a570d1b0d006a93bdb6a42515e2e7e4  apps/cli/main.cpp
+834395de203dc573db0e925f2e47bf2a1da0027808ab81d33a968a4b85868547  src/app/ProjectRunner.cpp
+
+########## N1 -- route Info back to stdout; C1 and C2 must break
+  corpus at default: stdout differing=0 stderr differing=0
+  log lines on stdout at --log-level debug: 3
+  N1-C1: DETECTED (stdout log lines) -- the criterion failed, as it must
+  N1-C2: *** UNDETECTED *** (stdout files differing = 0) -- the criterion is VACUOUS
+  RESTORED (sha256 verified)
+
+########## N2 -- drop the CLI's explicit default level; V4 must break
+  corpus at default: stdout differing=0 stderr differing=4
+  N2-V4: DETECTED (stderr files differing) -- the criterion failed, as it must
+  RESTORED (sha256 verified)
+
+########## N3 -- the comparison instrument itself must be able to fail
+  one byte appended to one of 7 baseline files -> differing: 1
+  N3: DETECTED (files reported differing) -- the criterion failed, as it must
+
+########## N4 -- delete one L point's emission; V3/L must break
+  --log-level debug stderr lines: 2  (intact run had 3)
+  N4: DETECTED (L3 missing from the debug run) -- the criterion failed, as it must
+  RESTORED (sha256 verified)
+
+########## rebuild the restored tree
+  restored tree builds
+src/core/Logger.cpp: OK
+apps/cli/main.cpp: OK
+src/app/ProjectRunner.cpp: OK
+ M apps/cli/main.cpp
+ M src/app/ProjectRunner.cpp
+ M src/core/Logger.cpp
+
+[exited with code 0]

@@ -46,6 +46,53 @@ CMakeFiles/
 !results/ci-perf-001/**/*.log
 !results/gpu-pipe-001/**/*.log
 !results/gpu-disc-001/**/*.log
+# Technical Debt Resolution Campaign. Same rule, same reason: results/technical_debt/
+# holds frozen gates, dry-runs and verification docs that cite their logs BY FILENAME,
+# and the logs carry the freeze hashes, the two-library attributions and the preserved
+# FAILED runs that CLAUDE.md §4 forbids deleting. Without this negation the bare *.log
+# above silently drops all of them and the committed evidence cannot be reproduced.
+!results/technical_debt/**/*.log
+# Phases P13-P18 and the GPU closeout. Same rule, same reason, and the omission was NOT
+# harmless: 1177 .log files across these seven trees were being swallowed by the bare *.log
+# above, including files explicitly named *_FAILURE_PRESERVED_* that CLAUDE.md §4 forbids
+# losing. Committing the trees without this negation would have committed the directories
+# MINUS their evidence.
+!results/p13/**/*.log
+!results/p14/**/*.log
+!results/p15/**/*.log
+!results/p16/**/*.log
+!results/p17/**/*.log
+!results/p18/**/*.log
+!results/gpu-closeout/**/*.log
+
+# Compiled probe artifacts anywhere under results/. kernel_tracer.so (an ELF shared object in
+# p16's CUDA diagnostics tools/) is the only one present, and §11.5 forbids committing it.
+results/**/*.so
+
+# THIRD-PARTY COPYRIGHTED SOURCE DOCUMENTS -- held back pending an explicit decision.
+# WestbrookDryerCST1981.pdf is a 10-page Combustion Science and Technology article, and the
+# _extracted.txt beside it is an 848-line full-text extraction of the same paper. Committing
+# either places a complete copy of a copyrighted article in the repository's permanent history.
+# g8_closure/g8_reference.md IS committed: it cites specific published values with attribution,
+# which is ordinary scientific citation rather than redistribution. Remove these two lines if
+# the licence or the repository's distribution makes carrying the source document appropriate.
+results/p18/g8_closure/data/WestbrookDryerCST1981.pdf
+results/p18/g8_closure/data/WestbrookDryerCST1981_extracted.txt
+
+# LEAKED TEST WORKING DIRECTORIES at the repository root. A CLI test writes its case and
+# results into the CWD instead of a temp dir, so running the suite from the repo root drops a
+# full case tree (case.json, mesh.json, results/solution.vtk, ...) beside CMakeLists.txt. It is
+# run OUTPUT, not a fixture: the real fixture lives in tests/data/cases/valid_cavity_cli_smoke.
+# Ignored so a blanket `git add` cannot commit it. The underlying test should write to a temp
+# directory -- registered as debt rather than fixed inside an unrelated commit.
+/cli_log_level_*/
+
+# ...but NOT the compiled probe executables sitting beside their sources in those same
+# tools/ directories. They are build artifacts (ELF, ~2 MB each) that §11.5 forbids
+# committing, and they re-staged twice during one `git add results/technical_debt`.
+# The binaries have no extension; their sources do, so the negation keeps the sources.
+results/technical_debt/*/tools/td0*
+!results/technical_debt/*/tools/td0*.*
 
 # Nsight Systems profiler output. Large binary databases (a .nsys-rep/.sqlite
 # pair is ~10 MB) that cannot be diffed or reviewed, and that git would carry
@@ -79,3 +126,13 @@ tidy_output.txt
 # aqtinstall (P5-J Windows packaging) writes its own log to the current
 # working directory by default -- never project content.
 aqtinstall.log
+
+# TD-048: a raw ctest add_test runs a real `cfdapp` process against its own permanent private
+# fixture directory (tests/CMakeLists.txt:21-28 explains why it cannot use CaseFixtureCopy), so
+# the CLI writes results/ INTO a git-tracked path and churns `build_identity` -- the configure-time
+# SHA from Version.hpp, written by JSONWriter.cpp:150 -- on every full regression. These outputs
+# are pure byproducts: measured, ZERO files in tests/, apps/ or src/ read them. They were first
+# committed in 3d26930 alongside the fixture directories themselves rather than curated, and have
+# needed "regeneration chores" (9dc2b50) since. Untracked here so they cannot churn again.
+# NOTE: cases/*/results/ stay TRACKED -- those are production-case deliverables under §9.
+tests/data/cases/*/results/

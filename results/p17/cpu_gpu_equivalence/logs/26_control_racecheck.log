@@ -1,0 +1,18 @@
+========= COMPUTE-SANITIZER
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = DensityBasedGpuSanitizerControl.N2*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DensityBasedGpuSanitizerControl
+[ RUN      ] DensityBasedGpuSanitizerControl.N2_DeliberateSharedMemoryRace
+========= Warning: Race reported between Write access at cfd::gpu::<unnamed>::sanitizerRaceKernel(double *)+0x40
+=========     and Read access at cfd::gpu::<unnamed>::sanitizerRaceKernel(double *)+0x60 [248 hazards]
+========= 
+  N2 control: launched a deliberate shared-memory race; racecheck must name it
+[       OK ] DensityBasedGpuSanitizerControl.N2_DeliberateSharedMemoryRace (342 ms)
+[----------] 1 test from DensityBasedGpuSanitizerControl (343 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (345 ms total)
+[  PASSED  ] 1 test.
+========= RACECHECK SUMMARY: 1 hazard displayed (0 errors, 1 warning)

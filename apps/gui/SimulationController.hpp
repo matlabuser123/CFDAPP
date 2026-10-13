@@ -22,10 +22,13 @@
 #include <QVariantList>
 #include <QVariantMap>
 #include <atomic>
+#include <filesystem>
 #include <mutex>
+#include <optional>
 #include <thread>
 
 #include "cfd/app/CaseSession.hpp"
+#include "cfd/app/ProjectRunner.hpp"
 #include "cfd/app/VisualizationSnapshot.hpp"
 #include "cfd/core/Version.hpp"
 
@@ -50,6 +53,11 @@ class SimulationController : public QObject {
   Q_PROPERTY(int iteration READ iteration NOTIFY progressChanged)
   Q_PROPERTY(int maxIterations READ maxIterations NOTIFY progressChanged)
   Q_PROPERTY(double continuityResidual READ continuityResidual NOTIFY progressChanged)
+  // P13-003: what the last run's checkpointing did. NOTIFY resultsChanged --
+  // they become meaningful at the same moment the results do.
+  Q_PROPERTY(int resumedFromIteration READ resumedFromIteration NOTIFY resultsChanged)
+  Q_PROPERTY(int checkpointsWritten READ checkpointsWritten NOTIFY resultsChanged)
+  Q_PROPERTY(QString lastCheckpointPath READ lastCheckpointPath NOTIFY resultsChanged)
   // P5 GUI visualization integration -- see VisualizationSnapshot.hpp.
   Q_PROPERTY(bool hasResults READ hasResults NOTIFY resultsChanged)
   Q_PROPERTY(QStringList availableFields READ availableFields NOTIFY resultsChanged)
@@ -135,6 +143,50 @@ class SimulationController : public QObject {
   Q_INVOKABLE bool validateCase();
   Q_INVOKABLE void run();
   Q_INVOKABLE void stop();
+
+  // P13-003 -- checkpoint / resume, reachable from the GUI.
+  //
+  // The capability has existed since P13-001 and the plumbing already carried
+  // it: SimulationController -> CaseSession -> ProjectRunner forwards
+  // ProjectRunOptions untouched. Only the surface was missing, so the CLI
+  // could checkpoint and the GUI could not -- the same backend, two unequal
+  // clients (results/p13/cli-gui/audit.md section 2).
+  //
+  // These set the SAME three ProjectRunOptions fields the CLI's --checkpoint,
+  // --checkpoint-every and --resume set. There is no second implementation
+  // and no GUI-side checkpoint logic; a checkpoint written by either client
+  // resumes in the other.
+  //
+  // Applied to the NEXT run(). Setting them mid-run changes nothing about the
+  // run in flight, the same way editing a case mid-run does not.
+  //
+  //   checkpointPath   empty disables checkpointing (the default)
+  //   interval         0 = write once when the run ends; n > 0 = also every n
+  //                    completed outer iterations
+  //   resumeFrom       empty starts fresh (the default)
+  //
+  // Returns false, with lastError() set, for a combination the CLI also
+  // rejects: a non-empty interval without a path. Rejecting it here rather
+  // than silently ignoring it is the point -- a user who asked for periodic
+  // checkpoints and got none would not find out until the run they needed to
+  // resume had already been lost.
+  Q_INVOKABLE bool setCheckpoint(const QString& checkpointPath, int interval);
+  Q_INVOKABLE bool setResumeFrom(const QString& checkpointPath);
+  Q_INVOKABLE void clearCheckpoint();
+
+  // What the last run actually did, reported as data rather than logged, so a
+  // QML view or a test can assert it. Both 0 for a run that neither resumed
+  // nor checkpointed.
+  // P13-003: the last run's full ProjectRunResult -- the same value the CLI
+  // holds after its own ProjectRunner::run(). Not Q_INVOKABLE: it is a C++
+  // type QML has no use for. It exists so equivalence can be MEASURED against
+  // the CLI rather than asserted, which the pre-existing round-trip check did
+  // not do (results/p13/cli-gui/audit.md section 3).
+  [[nodiscard]] std::optional<cfd::app::ProjectRunResult> lastRunResult() const;
+
+  [[nodiscard]] int resumedFromIteration() const;
+  [[nodiscard]] int checkpointsWritten() const;
+  [[nodiscard]] QString lastCheckpointPath() const;
 
   // --- P7-GUI -- Case Editing ----------------------------------------------
   [[nodiscard]] QVariantMap caseMetadata() const;
@@ -298,6 +350,17 @@ class SimulationController : public QObject {
   cfd::app::CaseSession session_;
   std::thread worker_;
   std::atomic<bool> running_{false};
+  // P13-003: the checkpoint options the next run() will pass through, and
+  // what the last one reported back. Guarded by the same convention as the
+  // rest of this controller's case state -- written only from the UI thread
+  // (the setters are Q_INVOKABLE) and read by the worker at run() entry,
+  // before the thread starts.
+  cfd::app::ProjectRunOptions checkpointOptions_;
+  std::atomic<int> resumedFromIteration_{0};
+  std::atomic<int> checkpointsWritten_{0};
+  QString lastCheckpointPath_;
+  // An argument error that never reached CaseSession -- see lastError().
+  QString controllerError_;
 
   // Written once per completed run (or by loadCompletedResults()), read
   // by every Q_INVOKABLE above -- see this class's own header comment on

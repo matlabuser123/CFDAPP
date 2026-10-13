@@ -1,0 +1,26 @@
+P17.9 NON-VACUITY CONTROLS
+date: 2026-09-28T06:21:48Z
+pristine src/compressible/DensityBasedSolver.cpp sha256: 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+
+--- V1: Rusanov / local Lax-Friedrichs -- NO Riemann solver
+    planted sha256: 874e362f7d5877459b577f992af5310548584f787eaefbbbc3666bd792a07846
+    MUST BREAK  ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly FAIL   detected
+    MUST BREAK  SodShockTubeTest.S_PlateauStatesMatchTheExactSolution FAIL   detected
+    must pass   ShockConservationTest.C_ClosedShockTubeConservesMassAndEnergy PASS
+    restored, sha256 verified
+
+--- V2: HLL -- HLLC with the contact wave DELETED
+    planted sha256: 2b2be4124ac04317b82dd867535ee4cb4dc631131a84e9d980566b7d7a2b1746
+    MUST BREAK  ContactDiscontinuityTest.C_StationaryAndMovingContactsBehaveCorrectly FAIL   detected
+    must pass   NormalShockTest.N_JumpRelationsAndRankineHugoniot    PASS
+    must pass   SodShockTubeTest.S_PlateauStatesMatchTheExactSolution PASS
+    restored, sha256 verified
+
+### final restore verification ###
+  src/compressible/DensityBasedSolver.cpp sha256 : 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  pristine     : 53e84ac7b5f53c6d6704e8a7a77281dd678ae18f450d74862abcce60d8421326
+  RESTORED: yes
+  rebuilding from the pristine source so no planted binary survives
+  rebuild exit: 0
+
+CONTROLS WITH AN UNEXPECTED RESULT: 0   (must be 0)

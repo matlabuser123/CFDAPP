@@ -1,0 +1,64 @@
+=== P18.6 -- the results/validation magnitude, and what it does and does not mean ===
+date: 2026-10-01T09:35:38Z
+
+MEASURED by the key-by-key comparator over all 35 modified JSON reports
+(logs/09_validation_noise.log):
+    max relative change, NON-TIMING : 5.609e-02
+      at results/validation/mms/distorted_mesh_simple_mms.json
+         levels[2].errors.continuity.l1
+
+THAT LOOKS LIKE A FIVE-ORDER VIOLATION of KNOWN_LIMITATIONS L36's recorded 4.1e-07 bound
+for raw norms. IT IS NOT, and the reason is the DENOMINATOR.
+
+--- the tracked (Release-generated) magnitudes in that file, level[2], 1024 cells ---
+           u.l1 = 2.073257e-04
+           v.l1 = 1.592094e-04
+           p.l1 = 2.781167e-03
+    face_flux.l1 = 3.519885e-04
+   continuity.l1 = 5.741112e-10     <-- SIX ORDERS OF MAGNITUDE SMALLER
+
+continuity.l1 IS A CONVERGENCE RESIDUAL, not a solution error. Its magnitude IS the floor the
+iterative solve reached. A 5.609e-02 relative change on 5.741112e-10 is an ABSOLUTE move of
+about 3.2e-11 -- precisely what an iterative solve stopping at a slightly different point
+under different optimisation produces, and exactly the effect L36 describes.
+
+SO L36 IS NOT CONTRADICTED. Its 4.1e-07 bound is about SOLUTION error norms; dividing by a
+number that is itself the convergence floor manufactures a large relative error out of a
+negligible absolute one.
+
+THE INSTRUMENT WAS FIXED RATHER THAN THE NUMBER EXPLAINED AWAY.
+tools/compare_validation_json.py now judges each key against the scale of its own file:
+  - a key below 1e-6 of that scale is reported SEPARATELY, by ABSOLUTE change;
+  - metadata leaves (cells, volume, grid, ...) are excluded from the scale, because a cell
+    COUNT of 1024 setting the scale would make every real error norm look like a floor value.
+
+--- the comparator re-run against a Debug-regenerated report ---
+    files compared     : 1
+    numeric keys compared : 197
+    keys absent from the new file : 0  (a structural change, not drift)
+    
+    non-timing keys: NONE CHANGED (max relative change = 0)
+    keys at the convergence floor (< 1e-06 x the file scale) : 22
+      none of them changed
+    max relative change, TIMING     : 1.161e+00  (expected, meaningless)
+      at results/validation/mms/compressible_simple_mms.json :: runtime.levels[0].seconds
+    
+    KNOWN_LIMITATIONS L36 records raw norms moving <= 4.1e-07 relative and
+    Richardson-extrapolated quantities <= 1.1e-05, between Release and Debug builds.
+
+WHAT IS NOT ESTABLISHED, stated rather than implied: the distorted_mesh_simple_mms report
+itself was NOT regenerated and re-measured here -- its ctest row was not identified cheaply,
+and re-running the full regression to re-measure a PRE-EXISTING, already-documented
+limitation is not warranted. The conclusion above rests on the TRACKED MAGNITUDES, which are
+sufficient: a quantity of 5.74e-10 among norms of 1e-4 is a residual by inspection.
+Recorded as technical debt so a later phase can close it.
+
+AND THE RESTORE DECISION DOES NOT DEPEND ON ANY OF THIS. It rests on the CLASSIFICATION at
+logs/09_validation_noise.log, which is independent of the magnitude:
+    37 distinct changed keys, every one in the timing / iteratively-converged allow-list
+    10 physics fields checked, every one with 0 changed lines
+    1074 changed lines inspected (the positive control against a blind verdict)
+    restored: 50 modified before, 0 after
+
+--- final state ---
+  results/validation modified: 0  (must be 0)

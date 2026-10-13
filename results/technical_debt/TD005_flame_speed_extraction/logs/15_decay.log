@@ -1,0 +1,60 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T13:01:16+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+c962020a2254e721037840a70a0d2ab30f48c6e4f24ae131313b71e266743fdf  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 01:16:27.996255800
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD005_flame_speed_extraction/tools/decay_probe.cpp -o /tmp/td005_decay /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-005 C3 -- LIMIT CYCLE OR SLOW DECAY?
+
+  driftWindow 32 (the admissible mdot), 500 cells / 10 mm, anchor cell 175
+  sampling AT the period-14 model's predicted BAD centres: 60 74 88 102 116
+  (cycles 4..8). logs/14 measured amplitude ~163 cells with no decay over 10..46.
+  ALL FIVE are predicted BAD. A single GOOD row refutes the period-14 model.
+
+  relaxT  marchStp  frontCel  offset cell  front mm    fuel bal   S_c cm/s  delta mm  S_L cm/s   wall s
+      60     23811        11      -163.99    0.2201   8.657e-01    1.75252    0.3970   4.86230      515
+      74     29367        12      -163.35    0.2330   7.532e-01    1.76237    0.4037   4.86230      838
+      88     34923        12      -162.84    0.2432   6.795e-01    1.77735    0.4107   4.86230      793
+     102     40479        13      -162.45    0.2509   6.296e-01    1.78845    0.4161   4.86230      731
+     116     46035        10      -165.04    0.1991   1.405e+00    1.79167    0.3586   4.86230      808
+
+  march steps 23811 -> 46035, strictly increasing: YES
+
+  OFFSET (cells) against relaxT:
+    -164 -163 -163 -162 -165
+  sign changes in the offset: 0      peak |offset|: 165.0 cells
+  rows in the GOOD phase (|offset| < 20 cells): 0 of 5
+  amplitude at cycle 4: 164.0 cells    at cycle 8: 165.0 cells   ratio 1.006
+  => LIMIT CYCLE. The amplitude is undiminished at 8 periods, so NO march
+     length converges, 'march until steady' is unsound as a design, and C3
+     CANNOT be fixed by marching longer.
+
+  FUEL BALANCE against relaxT:
+    9e-01 8e-01 7e-01 6e-01 1e+00
+
+HOW TO READ THIS
+  A smooth curve with regular sign changes confirms section H and gives the period.
+  An IRREGULAR, non-repeating pattern REFUTES section H: it would not be a simple
+  oscillation, and the phase-at-stop explanation for C3, TD-004's C2 and sweeps
+  A and C would collapse with it.
+
+probe exit: 0

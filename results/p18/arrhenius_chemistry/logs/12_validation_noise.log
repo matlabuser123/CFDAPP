@@ -1,0 +1,71 @@
+=== P18.5: results/validation noise classification ===
+date  : 2026-10-01T04:52:38Z
+files modified by the P18.5 regression : 50
+
+--- by directory ---
+        4 results/validation/grid_convergence
+       20 results/validation/mms
+        1 results/validation/natural_convection/Ra1e3/10x10
+        1 results/validation/natural_convection/Ra1e3/10x10_det_a
+        1 results/validation/natural_convection/Ra1e3/10x10_det_b
+        1 results/validation/natural_convection/Ra1e3/10x10_refinement_pair
+        1 results/validation/natural_convection/Ra1e3/10x10_sign_check
+        1 results/validation/natural_convection/Ra1e3/10x10_variable_property_regression
+        1 results/validation/natural_convection/Ra1e3/10x10_zero_beta
+        1 results/validation/natural_convection/Ra1e3/15x15
+        1 results/validation/natural_convection/Ra1e3/20x20
+        1 results/validation/natural_convection/Ra1e3/20x20_variable_property_regression
+        9 results/validation/production
+        1 results/validation/production/cavity_re100/20x20_quick
+        1 results/validation/turbulence/channel_flow/k_epsilon/coarse
+        1 results/validation/turbulence/channel_flow/k_epsilon/medium
+        1 results/validation/turbulence/channel_flow/k_omega/coarse
+        1 results/validation/turbulence/channel_flow/k_omega/medium
+        1 results/validation/turbulence/channel_flow/sst/coarse
+        1 results/validation/turbulence/channel_flow/sst/medium
+
+--- every distinct changed key, against the allow-list ---
+  distinct keys : 37
+  all keys are timing or iteratively-converged quantities (L36)  ok
+
+--- physics fields that MUST NOT change (each must be 0) ---
+  wall_shear               0    ok
+  u_tau                    0    ok
+  y_plus                   0    ok
+  nusselt                  0    ok
+  reattachment             0    ok
+  cf_                      0    ok
+  pressure_coefficient     0    ok
+  mass_flow                0    ok
+  max_divergence           0    ok
+  mass_imbalance           0    ok
+
+--- POSITIVE CONTROL: the classification actually read a diff ---
+  changed lines inspected : 1076
+  ok (a zero here would make every check above vacuous)
+
+--- magnitude, for the record: the largest relative change in an l2 norm ---
+  max relative |delta l2| = 4.632e-02   (L36 records <= 4.1e-07)
+
+restored.  modified before: 50   after: 0
+results/validation is back to its tracked, Release-generated state.
+
+================================================================================
+ONE LINE OF THIS LOG IS **INVALID AS AUTHORITATIVE**, marked in place and not deleted:
+
+    "max relative |delta l2| = 4.632e-02   (L36 records <= 4.1e-07)"
+
+The measurement paired diff lines with `paste - -`, which mis-pairs a grouped hunk and reports
+the refinement ratio between DIFFERENT GRIDS as if it were drift. Proven on a synthetic diff:
+true answer 1.0e-09, reported 3.0e+00. L36 is NOT contradicted.
+
+Superseded by logs/13_noise_measurement_CORRECTED.log and
+tools/compare_validation_json.py, which compares by key path.
+
+EVERYTHING ELSE IN THIS LOG STANDS, and it is what the restore decision rested on:
+  - 37 distinct changed keys, all inside the timing / iteratively-converged allow-list
+  - 10 physics fields, each with 0 changed lines
+  - 1076 changed lines inspected (the positive control)
+  - restored: 50 modified before, 0 after
+These checks do not depend on the magnitude figure.
+================================================================================

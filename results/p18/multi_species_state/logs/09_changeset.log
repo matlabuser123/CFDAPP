@@ -1,0 +1,80 @@
+=== the P18.1 changeset ===
+  ?? include/cfd/species/SpeciesRegistry.hpp                 c68ab74c6b836344758327714da3161b5bdf444765d49a752d963251369c94fe
+  ?? include/cfd/species/MassFractionState.hpp               20462909c405e0099c6023084f36d8136a4251f3a864c65d7ed3652ced9a9cf2
+  ?? src/species/SpeciesRegistry.cpp                         d55652da02e0a85f9d8fad7f87de664804057edbf82f4f3d3282eb2e9320e8dd
+  ?? src/species/MassFractionState.cpp                       3f7a6bc7f8576cb0d7791eaf66ace0994e0d7b0dcb7ea8c6ef6df7247e1b700c
+  ?? tests/unit/species/test_mass_fraction_state.cpp         c2971b3e3347272df9e8df2586909815db89d0dcbfa6fb6df4ee45b110e97586
+  M  src/CMakeLists.txt                                      c9171a9cf9c73b6e32f61e5c800d0d7c98e0bd734b191fbe3cdf86451887977c
+  M  tests/unit/species/CMakeLists.txt                       b6b04922ec1324ee7b3ace8b53c2a5fbb596cd35d0275c2be96da3435be6cbb4
+
+  ?? = new file added by P18.1     M = pre-existing file modified by P18.1
+
+=== P18.1's OWN edits to the two CMakeLists ===
+
+NOTE, so this is not misread: both files were ALREADY modified against HEAD before P18.1
+began -- they carry the uncommitted P13/P15/P16/P17 working tree that P18.0 froze as the
+P18 start state. 'git diff' on them therefore shows that accumulated history too, which is
+NOT P18.1's. Only the P18.1 hunks are shown here; the fingerprint section is what proves
+nothing else moved.
+
+--- src/CMakeLists.txt ---
+  293-    species/SpeciesSolver.cpp
+  294-)
+  295-
+  296:# P18.1: the multi-species mass-fraction state -- identity (SpeciesRegistry)
+  297-# and the bounded, sum-to-one composition (MassFractionState). Additive: the
+  298-# passive stack above is unchanged and does not depend on either.
+  299-target_sources(cfdcore
+  300-  PRIVATE
+  301-    species/SpeciesRegistry.cpp
+  302-    species/MassFractionState.cpp
+
+--- tests/unit/species/CMakeLists.txt ---
+  6:  test_mass_fraction_state.cpp
+
+=== proof that P18.1 modified no other PRE-EXISTING production or test file ===
+  Tracked files modified in the whole tree : 130
+  ...of which P18.1 touched                : 2 (the two CMakeLists above)
+
+  The other modified files are the P14-P17 working tree that P18.0 audited and froze as
+  the P18 start state. P18.1 did not touch them; the fingerprint check below proves it.
+
+=== clang-format offenders, and whether any is a P18.1 file ===
+  total offending files: 28
+  NONE of the P18.1 files is an offender.
+
+  clang-format's verdict on a file depends only on THAT FILE's content, and P18.1
+  changed none of the offending files. The violations are therefore inherited from the
+  uncommitted P14-P17 working tree, not introduced here. Recorded as pre-existing
+  technical debt; NOT fixed, because CLAUDE.md section 2 forbids repairing unrelated
+  defects inside another phase.
+
+  offenders:
+    apps/gui/tests/test_cli_gui_equivalence.cpp
+    include/cfd/gpu/DeviceMomentumAssembly.hpp
+    include/cfd/gpu/DeviceThermodynamics.hpp
+    include/cfd/gpu/GpuKEpsilonCorrection.hpp
+    include/cfd/thermal/ThermalSolver.hpp
+    include/cfd/turbulence/KEpsilonModel.hpp
+    src/io/case/PhysicsConfigParser.cpp
+    src/pressure_velocity/SIMPLE.cpp
+    src/thermal/ThermalSolver.cpp
+    src/turbulence/KEpsilonModel.cpp
+    tests/integration/backward_facing_step/DriverSeegmillerPrecursor.cpp
+    tests/integration/backward_facing_step/test_driver_seegmiller.cpp
+    tests/integration/compressible/EquivalenceCompare.hpp
+    tests/integration/compressible/shock_reference_data.hpp
+    tests/integration/compressible/test_p17_10_dryrun.cpp
+    tests/integration/turbulence_channel/ChannelFlowValidationUtils.cpp
+    tests/integration/turbulence_channel/test_channel_flow_validation.cpp
+    tests/integration/turbulence_channel/test_wall_function_channel.cpp
+    tests/unit/compressible/test_device_thermodynamics_equivalence.cpp
+    tests/unit/gpu/KEpsilonModelTestAccess.hpp
+    tests/unit/gpu/test_density_based_gpu_equivalence.cpp
+    tests/unit/gpu/test_device_effective_viscosity.cpp
+    tests/unit/gpu/test_device_max_abs_difference.cpp
+    tests/unit/gpu/test_device_wall_face_viscosity.cpp
+    tests/unit/gpu/test_resident_channel_production.cpp
+    tests/unit/gpu/test_resident_kepsilon_entry.cpp
+    tests/unit/gpu/test_resident_turbulent_simple.cpp
+    tests/unit/gpu/test_resident_wall_exchange.cpp

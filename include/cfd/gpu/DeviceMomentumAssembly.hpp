@@ -91,13 +91,11 @@ class DeviceMomentumAssemblyPlan {
 
  private:
   friend void fillMomentumAssemblyView(const DeviceMomentumAssemblyPlan&, MomentumAssemblyView&);
-  friend void assembleRelaxedMomentumDevice(const DeviceMomentumAssemblyPlan&,
-                                            const DeviceVelocity&, const DeviceBuffer<cfd::Real>&,
-                                            const DeviceBuffer<cfd::Real>&,
-                                            const DeviceBuffer<cfd::Real>&,
-                                            const DeviceBuffer<cfd::Real>&,
-                                            const DeviceBuffer<cfd::Real>*,
-                                            const MomentumAssemblyOptions&, DeviceMomentumSystem&);
+  friend void assembleRelaxedMomentumDevice(
+      const DeviceMomentumAssemblyPlan&, const DeviceVelocity&, const DeviceBuffer<cfd::Real>&,
+      const DeviceBuffer<cfd::Real>&, const DeviceBuffer<cfd::Real>&,
+      const DeviceBuffer<cfd::Real>&, const DeviceBuffer<cfd::Real>*,
+      const DeviceBuffer<cfd::Real>*, const MomentumAssemblyOptions&, DeviceMomentumSystem&);
 
   // The convection plan owns the device mesh, the vector boundary encoding, the
   // velocity gradient and the CSR pattern -- all of which the momentum assembly
@@ -140,7 +138,14 @@ void assembleRelaxedMomentumDevice(
     const DeviceMomentumAssemblyPlan& plan, const DeviceVelocity& velocity,
     const DeviceBuffer<cfd::Real>& pressure, const DeviceBuffer<cfd::Real>& effectiveViscosity,
     const DeviceBuffer<cfd::Real>& massFlux, const DeviceBuffer<cfd::Real>& previousComponent,
-    const DeviceBuffer<cfd::Real>* momentumSource, const MomentumAssemblyOptions& options,
+    const DeviceBuffer<cfd::Real>* momentumSource,
+    // P16 Phase 2 -- the FACE-LOCAL wall viscosity override, face-length and
+    // zero away from wall faces, or nullptr when no wall treatment is active.
+    // The device port of MomentumEquation.cpp:232-235. It is NOT folded into
+    // `effectiveViscosity`: doing that would apply the wall value to every face
+    // of a wall-adjacent cell rather than to the wall face alone, which is a
+    // different operator. See DeviceDiffusionTerms.hpp.
+    const DeviceBuffer<cfd::Real>* wallFaceViscosity, const MomentumAssemblyOptions& options,
     DeviceMomentumSystem& system);
 
 }  // namespace cfd::gpu

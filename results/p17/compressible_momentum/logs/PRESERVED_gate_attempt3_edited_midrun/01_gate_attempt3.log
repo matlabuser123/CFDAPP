@@ -1,0 +1,64 @@
+P17.4 ACCEPTANCE GATE
+date: 2026-09-26T22:10:33Z
+gate sha256: ded6feaa03b53e9fd65018491e57c9c318383798bf13fbabc4b910cf4fd6b673
+
+### G6: clang-format on the files P17.4 changed ###
+tests/unit/compressible/test_compressible_momentum.cpp:521:26: error: code should be clang-formatted [-Wclang-format-violations]
+  const Real alpha = 1.0;          // no relaxation, so the comparison is of raw assemblies
+                         ^
+tests/unit/compressible/test_compressible_momentum.cpp:539:76: error: code should be clang-formatted [-Wclang-format-violations]
+        mesh, velocity, pressure, massFlux, density, density, mu, vbc, pbc,
+                                                                           ^
+tests/unit/compressible/test_compressible_momentum.cpp:540:30: error: code should be clang-formatted [-Wclang-format-violations]
+        VelocityComponent::U, previousComponent, alpha, pseudoTimeStep, {},
+                             ^
+tests/unit/compressible/test_compressible_momentum.cpp:572:78: error: code should be clang-formatted [-Wclang-format-violations]
+  clang-format exit: 74  (0 = clean)
+
+### L5: physics::MomentumEquation must be UNTOUCHED ###
+  delta: '14	1	include/cfd/physics/MomentumEquation.hpp 13	2	src/physics/MomentumEquation.cpp '  (empty = unchanged)
+
+### the P17.4 delta ###
+  include/cfd/compressible/DilatationalStress.hpp            
+  src/compressible/DilatationalStress.cpp                    
+  include/cfd/compressible/CompressibleRelaxedMomentum.hpp   +19 -1
+  src/compressible/CompressibleRelaxedMomentum.cpp           +11 -1
+  tests/unit/compressible/test_compressible_momentum.cpp     +376 -0
+  src/CMakeLists.txt                                         +32 -0
+
+### D1: the dilatational option must DEFAULT to disabled ###
+  header default: 1  (1 = default false)
+
+### build ###
+  build exit: 0  (28 s)
+
+### Groups D, F, V, G9: the momentum suite ###
+  ctest exit: 0
+  100% tests passed, 0 tests failed out of 18
+  the 9 P17.4 rows:
+    MatchesMinusTwoThirdsMuGradDivergenceTimesVolume         Passed
+    IsExactlyZeroForADivergenceFreeField                     Passed
+    UniformVelocityContributesNothing                        Passed
+    ScalesLinearlyWithViscosityAndVanishesAtZeroViscosity    Passed
+    RejectsInvalidInputs                                     Passed
+    RepeatedAssemblyIsBitwiseIdentical                       Passed
+    PressureForceMatchesMinusVolumeTimesAnalyticalGradient   Passed
+    BodyForceScalesLinearlyWithDensity                       Passed
+    TransientTermDistinguishesDRhoUDtFromRhoDUDt             Passed
+
+### Group L: low-Mach + MMS, and the whole compressible suite ###
+  low-Mach + MMS exit: 0   100% tests passed, 0 tests failed out of 10
+  compressible suite exit: 0   100% tests passed, 0 tests failed out of 171
+
+### Groups G1/G2: P14, P15, P16 preservation -- FROZEN narrow regexes ###
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P16_turbulence   exit=0  100% tests passed, 0 tests failed out of 315
+
+### G8: GPU compressible momentum -- must be NOT PRESENT ###
+    compressibleMomentum     0
+    CompressibleRelaxed      0
+    dilatational             0
+    DilatationalStress       0
+
+done: 2026-09-26T22:29:44Z

@@ -1,0 +1,41 @@
+=== ENVIRONMENT
+date 2026-10-10T13:31:53+10:00
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== NOT A GATE VERDICT
+  The frozen order is C6 -> C6a -> C6b -> C7 and it STOPS at C6a (verification_A5.md).
+  C7 is therefore NOT evaluated as a criterion. This run answers the independent question
+  'did the locator fix change anything else in CFDSpeciesTests?', which C7's 343-test
+  baseline is the reference for.
+
+=== GATES
+  source fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+4786e9a44873e58e2a8b29c189d9ef5e6a4f96894ce69b59f1690fcfe23f29ed  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/tests/unit/species/CFDSpeciesTests
+  OK: binary newer than source.
+
+=== RUN: CFDSpeciesTests EXCLUDING G8PremixedFlameTest (C7's stated scope)
+  C7's recorded baseline: 343 tests
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/googletest-src/googletest/src/gtest_main.cc
+
+Species balance sum(A c - b), distorted 0.45h n=8: uncorrected 4.42e-10, corrected 2.18e-10
+Species balance sum(A c - b), distorted 0.45h n=16: uncorrected -9.34e-10, corrected 3.81e-10
+Species balance sum(A c - b), distorted 0.45h n=32: uncorrected 5.82e-10, corrected 1.5e-09
+Species diffusion, distorted 0.45h, L2: uncorrected 0.08597 0.04671 0.02396 (p 0.880 0.963), corrected 0.001932 0.0002969 5.825e-05 (p 2.702 2.349)
+    dt = 20 integrated in 284 sub-steps, 0 refusals, smallest 0.0234711 s, worst fractional change 0.1
+    control 0.2 -> worst relative error: Y_A 0.0114401, T 0.0125672
+    control 0.05 -> worst relative error: Y_A 0.00345274, T 0.00379293
+    control 0.0125 -> worst relative error: Y_A 0.00119409, T 0.00131174
+    one call: Y_A = 0.935782 in 188 sub-steps
+    two calls: Y_A = 0.935782 in 109 + 80 sub-steps
+    control 1.0: 2 sub-steps, 0 refusals, worst fractional change 1
+    85472 sub-steps, worst |sum Y - 1| = 0 (0 eps)
+    deviation in 5.7182e-08, out 5.7182e-08, ratio 1
+    tau = 7.3797 s (cell 0, species 0)
+    tabulated residual      : 1e-06
+    element-derived residual: 0
+    G6 bound (4*eps*scale)  : 5.68399e-17
+[==========] 343 tests from 56 test suites ran. (14863 ms total)
+[  PASSED  ] 343 tests.
+  gtest exit: 0
+
+DONE 2026-10-10T13:32:10+10:00

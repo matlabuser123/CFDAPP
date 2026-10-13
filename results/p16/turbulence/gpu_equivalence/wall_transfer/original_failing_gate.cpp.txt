@@ -1,0 +1,90 @@
+// =============================================================================
+// 3J -- the transfer gate, measured on two grids.
+// =============================================================================
+
+TEST(ResidentWallExchange, WallTrafficScalesWithWallFacesNotCellCount) {
+  if (deviceUnavailable()) GTEST_SKIP() << "no usable CUDA device at runtime";
+
+  struct Measurement {
+    Index cells{};
+    Index wallFaces{};
+    std::uint64_t downloadBytes{};
+    std::uint64_t downloadCalls{};
+  };
+  std::vector<Measurement> measurements;
+
+  for (const auto shape : {std::pair<Index, Index>{16, 8}, std::pair<Index, Index>{64, 8}}) {
+    Fixture f(shape.first, shape.second);
+    ASSERT_TRUE(f.buildPlan());
+
+    // A DIVERGENCE-FREE velocity, so calculateMassFlux yields a CONSERVATIVE
+    // face flux. This is not a convenience -- see the Step 3 evidence.
+    //
+    // MEASURED: the sheared profile the other tests use is not
+    // divergence-free, so its mass flux does not close cell by cell. On the
+    // 64-cell-long mesh the k convection operator built from it loses
+    // diagonal dominance and BiCGSTAB fails to converge -- on BOTH backends,
+    // at both the strict and the default tolerance. In a real SIMPLE loop the
+    // flux this path receives is the PRESSURE-CORRECTED one, conservative by
+    // construction, so an arbitrary non-conservative flux is an unrealistic
+    // stress that fails for reasons unrelated to what this test measures.
+    for (Index i = 0; i < f.cellCount(); ++i) f.velocity[i] = {1.5, 0.0, 0.0};
+
+    // Production-default solver settings: this test counts TRANSFERS, and the
+    // strict equivalence tolerance is an instrument for the FIELD gate.
+    KEpsilonConfig cfg;
+    cfg.initialK = 0.05;
+    cfg.initialEpsilon = 0.8;
+    cfg.wallFunctions = true;
+    KEpsilonModel seed(f.mesh, f.fluid, f.velocityBoundaries, f.kBoundaries, f.epsilonBoundaries,
+                       cfg);
+    ResidentState resident;
+    resident.upload(f);
+    cfd::gpu::GpuKEpsilonCorrection correction;
+    ASSERT_TRUE(correction.prepare(f.mesh, f.kBoundaries, f.epsilonBoundaries, seed.k(),
+                                   seed.epsilon(), seed.turbulentViscosity()));
+
+    cfd::turbulence::WallTreatment compact;
+    cfd::gpu::GpuKEpsilonResult result;
+    // Measure ONLY the correction, with setup already done.
+    cfd::gpu::resetGpuExecutionStats();
+    correction.correctResidentWithWallTreatment(resident.view(f), f.mesh, f.fluid, cfg, f.wallFaces,
+                                                compact, result);
+    const auto& stats = cfd::gpu::gpuExecutionStats();
+
+    Measurement m;
+    m.cells = f.cellCount();
+    m.wallFaces = static_cast<Index>(f.wallFaces.size());
+    m.downloadBytes = stats.deviceToHostBytes;
+    m.downloadCalls = stats.deviceToHostCalls;
+    measurements.push_back(m);
+
+    std::printf("  %lld cells, %lld wall faces: D2H %llu bytes in %llu calls\n",
+                static_cast<long long>(m.cells), static_cast<long long>(m.wallFaces),
+                static_cast<unsigned long long>(m.downloadBytes),
+                static_cast<unsigned long long>(m.downloadCalls));
+  }
+
+  ASSERT_EQ(measurements.size(), 2u);
+  const Measurement& small = measurements[0];
+  const Measurement& large = measurements[1];
+
+  // The cell count QUADRUPLES (16x8 -> 64x8) while the wall-face count also
+  // scales with nx. What must NOT happen is the download growing with the
+  // FIELD size in the way a full-field D2H would: three full fields would be
+  // 3 * 8 * cells bytes. The measured download must stay far below that.
+  const std::uint64_t fullFieldBytes = 3ull * 8ull * static_cast<std::uint64_t>(large.cells);
+  EXPECT_LT(large.downloadBytes, fullFieldBytes)
+      << "the correction downloaded as much as whole fields would cost (" << fullFieldBytes
+      << " bytes), so the compact exchange is not compact";
+
+  // And the wall-owner gather itself must be O(wall faces): the three gathered
+  // buffers are 8 bytes per wall face each.
+  const std::uint64_t gatherBytes = 3ull * 8ull * static_cast<std::uint64_t>(large.wallFaces);
+  std::printf("  wall gather accounts for %llu bytes of the %llu downloaded\n",
+              static_cast<unsigned long long>(gatherBytes),
+              static_cast<unsigned long long>(large.downloadBytes));
+  EXPECT_GT(large.wallFaces, small.wallFaces) << "the two grids have the same wall-face count, "
+                                                 "so this comparison shows nothing about scaling";
+}
+

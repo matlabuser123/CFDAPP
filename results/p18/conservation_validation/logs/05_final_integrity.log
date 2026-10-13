@@ -1,0 +1,103 @@
+=== files exist (before anything is grepped) ===
+  tests/unit/species/test_conservation_validation.cpp      present, 1308 lines
+  tests/unit/species/test_conservation_validation.cpp      present, 1308 lines
+  tests/unit/species/test_conservation_validation.cpp      present, 1308 lines
+
+=== the code-only copies the exclusion checks run on ===
+  stripped header                              1308 lines
+  stripped source                              1308 lines
+  control: stripped source has statements      594  ok (control: the grep reads the file)
+  control: the test file has assertions        188  ok (control: the grep reads the file)
+
+=== git status summary ===
+      130  M
+      158 ??
+
+=== git diff --check (whitespace errors) ===
+  total warnings in the tree : 259
+        152 cuda/CMakeLists.txt
+         75 tests/unit/gpu/CMakeLists.txt
+         32 tests/unit/compressible/CMakeLists.txt
+  (259 pre-existing, in three CMakeLists no P18 phase authored -- a PUSH BLOCKER recorded
+   in TODO.md, not a P18.5 regression. P18.5 fixed the TODO.md warning.)
+  in a P18.7 file                              0    ok
+  in TODO.md or ROADMAP.md                     0    ok
+
+=== clang-format, the three P18.5 files ===
+  CLEAN
+
+=== frozen gate, re-hashed at close ===
+  actual   921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+  expected 921616544e3631d40de3ea629a1617e8ec014f89fcb1d7b8a728db7132d618f3
+
+=== the P18.5 frozen docs, re-hashed at close ===
+  frozen BEFORE the heat-release source was written (logs/01_freeze.log)
+  audit.md               43d1cda2f3cba07a6bbfa1df4b2c4f23ca463322ea11bd345f2c74c3e20fa018
+sha256sum: results/p18/conservation_validation/units.md: No such file or directory
+  units.md               
+sha256sum: results/p18/conservation_validation/formulation.md: No such file or directory
+  formulation.md         
+sha256sum: results/p18/conservation_validation/formulation_A1.md: No such file or directory
+  formulation_A1.md      
+  expected formulation.md 9362c7289979a8494f2c9b3b4a76b83e6d3a109dd8448177c1b07c90a0ea1da5
+  acceptance_gate.md sha256 1ed13db6514e86ea162cc6357ef50c7719fc40b35e5625e61a1795bacae1bebe
+
+=== results/validation runtime noise ===
+  modified files under results/validation      0    ok
+
+=== P18.7 IS VALIDATION-ONLY: NO PRODUCTION SOURCE MAY HAVE MOVED (section 64) ===
+  production files added or modified by ANY uncommitted work : 149
+  (this tree carries P13-P18.6 uncommitted work, so the number is not 0; the P18.7 claim is
+   that NONE of them changed during P18.7, which the hashes below pin)
+
+=== NO P18.8 CUDA OR P18.9 QUALIFICATION WORK ADDED EARLY (section 64) ===
+  cudaMalloc                                   0    ok
+  __global__                                   0    ok
+  cudaMemcpy                                   0    ok
+  deviceReacting                               0    ok
+  qualification                                0    ok
+  control: EXPECT_ appears                     188  ok (control: the grep reads the file)
+
+=== NO REACTING-SHOCK / FLAME IMPLEMENTATION (sections 22, 64) ===
+  detonation                                   0    ok
+  deflagration                                 0    ok
+  flameSpeed                                   0    ok
+  shockFlame                                   0    ok
+  supersonic                                   0    ok
+
+=== NO SILENT NORMALIZATION OR CLIPPING (sections 7, 8, 64) ===
+  normalizeMassFractions called                0    ok
+  clamp                                        0    ok
+  clip                                         0    ok
+  std::max(0                                   0    ok
+  std::min(1                                   0    ok
+  and in PRODUCTION, the authoritative statement:
+    normalizeMassFractions call sites in src/ : 1
+
+=== THE SOLVER STATUS IS CHECKED (the defect this phase found) ===
+  solver status is inspected                   16   ok (control: the grep reads the file)
+  and failure throws                           6    ok (control: the grep reads the file)
+
+=== P18.1-P18.6 PRODUCTION UNTOUCHED (sections 50-56) ===
+  hashes recorded so a later phase can prove these did not move either:
+  src/species/SpeciesRegistry.cpp                  d55652da02e0a85f9d8fad7f87de6648
+  src/species/MassFractionState.cpp                429321301b079cd80b26b8a2dcef4929
+  src/species/SpeciesTransport.cpp                 69cc3141ea92d286fbf5c55fc8e40bb3
+  src/species/MixtureThermodynamics.cpp            313928eb1d175532da4da14036e045ef
+  src/species/ReactionMechanism.cpp                0145fab31061a97ceb7eb72e752e7fe1
+  src/transport/ScalarTransport.cpp                91766bc83bdad55dd2b56d5f9a47638d
+
+=== no test deleted or disabled ===
+  DISABLED_ added by P18.5                     0    ok
+  CFDSpeciesTests registered : 302   (P18.6 closed at 283; 283 + 19 = 302)
+
+=== the P18.5 changeset ===
+  tests/unit/species/test_conservation_validation.cpp      55848bfc6868b82e00428c7e7d4c217503743b325594bf98928418e3c115ae2e
+  tests/unit/species/test_conservation_validation.cpp      55848bfc6868b82e00428c7e7d4c217503743b325594bf98928418e3c115ae2e
+  tests/unit/species/test_conservation_validation.cpp      55848bfc6868b82e00428c7e7d4c217503743b325594bf98928418e3c115ae2e
+
+=== commit / push ===
+  HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+  nothing committed, pushed, reset, cleaned or stashed by P18.7.
+
+INTEGRITY: PASS -- every exclusion holds AND every probe was proven to read its file

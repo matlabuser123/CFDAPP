@@ -10,6 +10,7 @@
 #include "cfd/core/Exception.hpp"
 #include "cfd/io/CaseBuilder.hpp"
 #include "cfd/io/CaseReader.hpp"
+#include "cfd/turbulence/WallFunctions.hpp"
 
 using cfd::CaseConfigurationError;
 using cfd::boundary::BoundaryConditionType;
@@ -471,4 +472,116 @@ TEST(TurbulenceCaseTest, NonOrthogonalCorrectionReachesEveryTurbulenceModel) {
       EXPECT_EQ(options.gradientScheme, cfd::discretization::GradientScheme::LeastSquares);
     }
   }
+}
+
+// --- P16b: wall_treatment, the near-wall treatment selector -----------------
+//
+// Every one of these is a REJECTION test except the first two. That is the
+// point: a treatment selector that is silently ignored is worse than one that
+// does not exist, because the run reports success while solving different
+// physics from the one the case asked for.
+
+TEST(TurbulenceCaseTest, AbsentWallTreatmentLeavesTheHighRePathSelected) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_functions": true}})");
+  const auto definition = CaseReader{}.read(fixture.directory());
+  EXPECT_FALSE(definition.physics.turbulence->wallTreatment.has_value());
+
+  const auto setup = CaseBuilder{}.build(definition);
+  ASSERT_TRUE(setup.sstConfig.has_value());
+  EXPECT_EQ(setup.sstConfig->wallTreatmentMode,
+            cfd::turbulence::WallTreatmentMode::HighReWallFunction);
+}
+
+TEST(TurbulenceCaseTest, AutomaticWallTreatmentReachesTheSSTConfig) {
+  // The reachability check P15 taught: a mode the case file cannot select is
+  // not a feature. This is the only test that proves the string actually
+  // arrives at the model.
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_functions": true, "wall_treatment": "automatic"}})");
+  const auto definition = CaseReader{}.read(fixture.directory());
+  ASSERT_TRUE(definition.physics.turbulence->wallTreatment.has_value());
+  EXPECT_EQ(*definition.physics.turbulence->wallTreatment, "automatic");
+
+  const auto setup = CaseBuilder{}.build(definition);
+  ASSERT_TRUE(setup.sstConfig.has_value());
+  EXPECT_EQ(setup.sstConfig->wallTreatmentMode, cfd::turbulence::WallTreatmentMode::Automatic);
+  EXPECT_TRUE(setup.sstConfig->wallFunctions);
+}
+
+TEST(TurbulenceCaseTest, ExplicitHighReWallTreatmentIsAccepted) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_functions": true, "wall_treatment": "high_re"}})");
+  const auto definition = CaseReader{}.read(fixture.directory());
+  const auto setup = CaseBuilder{}.build(definition);
+  ASSERT_TRUE(setup.sstConfig.has_value());
+  EXPECT_EQ(setup.sstConfig->wallTreatmentMode,
+            cfd::turbulence::WallTreatmentMode::HighReWallFunction);
+}
+
+TEST(TurbulenceCaseTest, RejectsAutomaticWallTreatmentOnKEpsilon) {
+  // The blend's sublayer omega branch is built on SST's beta1 and no equivalent
+  // is implemented for k-epsilon, so this must be refused rather than ignored.
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "k_epsilon", "initial_k": 0.02,
+                                   "initial_epsilon": 0.005, "wall_functions": true,
+                                   "wall_treatment": "automatic"}})");
+  expectRejected(fixture);
+}
+
+TEST(TurbulenceCaseTest, RejectsAutomaticWallTreatmentOnKOmega) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "k_omega", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_treatment": "automatic"}})");
+  expectRejected(fixture);
+}
+
+TEST(TurbulenceCaseTest, RejectsWallTreatmentWithoutWallFunctions) {
+  // Dead configuration: a selector with no treatment to select.
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_treatment": "automatic"}})");
+  expectRejected(fixture);
+}
+
+TEST(TurbulenceCaseTest, RejectsWallTreatmentWithWallFunctionsExplicitlyOff) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_functions": false, "wall_treatment": "high_re"}})");
+  expectRejected(fixture);
+}
+
+TEST(TurbulenceCaseTest, RejectsUnknownWallTreatmentName) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_functions": true, "wall_treatment": "blended"}})");
+  expectRejected(fixture);
+}
+
+TEST(TurbulenceCaseTest, RejectsNonStringWallTreatment) {
+  CaseFixture fixture;
+  fixture.write("physics.json",
+                R"({"model": "incompressible_laminar", "density": 1.0, "dynamic_viscosity": 0.01,
+                    "turbulence": {"model": "sst", "initial_k": 0.02, "initial_omega": 12.0,
+                                   "wall_functions": true, "wall_treatment": true}})");
+  expectRejected(fixture);
 }

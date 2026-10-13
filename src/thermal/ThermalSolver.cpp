@@ -1,6 +1,10 @@
 #include "cfd/thermal/ThermalSolver.hpp"
+#include "cfd/mesh/MeshGeometry.hpp"
+#include "cfd/thermal/ThermalWallFunction.hpp"
+#include "cfd/thermal/TurbulentConductivity.hpp"
 
 #include <cmath>
+#include <cstdio>
 #include <functional>
 #include <optional>
 #include <string>
@@ -322,6 +326,176 @@ ThermalResult ThermalSolver::solve(const Mesh& mesh, const ScalarField& initialT
                                   settings_.nonOrthogonal);
   };
   return runPicardLoop(settings_, *linearSolver, initialTemperature, assemble);
+}
+
+ThermalResult ThermalSolver::solve(const Mesh& mesh, const ScalarField& initialTemperature,
+                                   const SurfaceField& massFlux,
+                                   const cfd::physics::TemperatureProperty& conductivityModel,
+                                   const cfd::physics::TemperatureProperty& specificHeatModel,
+                                   const BoundaryConditionSet& temperatureBoundaries,
+                                   const TurbulentThermalCoupling& turbulence,
+                                   Real volumetricHeatSource) const {
+  ThermalResult result;
+  result.temperature = initialTemperature;
+
+  bool configurationValid = true;
+  std::optional<BiCGSTAB> linearSolver;
+  try {
+    if (settings_.maxIterations == 0) {
+      throw InvalidArgumentError("ThermalSolver::solve (turbulent): maxIterations must be >= 1");
+    }
+    if (!std::isfinite(settings_.tolerance) || !(settings_.tolerance > 0.0)) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve (turbulent): tolerance must be finite and > 0");
+    }
+    if (initialTemperature.size() != mesh.numberOfCells()) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve (turbulent): initialTemperature size does not match mesh cell "
+          "count");
+    }
+    if (massFlux.size() != mesh.numberOfFaces()) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve (turbulent): massFlux size does not match mesh face count");
+    }
+    // The coupling is validated HERE rather than per outer iteration: a null
+    // or mis-sized mu_t field is a configuration error, not a numerical
+    // excursion, and reporting it as InvalidConfiguration keeps it
+    // distinguishable from a mid-solve property failure.
+    if (turbulence.turbulentViscosity == nullptr) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve (turbulent): turbulentViscosity is null -- a laminar case must "
+          "use the overload without a coupling rather than passing an empty one");
+    }
+    if (turbulence.turbulentViscosity->size() != mesh.numberOfCells()) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve (turbulent): turbulentViscosity size does not match mesh cell "
+          "count");
+    }
+    if (!std::isfinite(turbulence.turbulentPrandtl) || !(turbulence.turbulentPrandtl > 0.0)) {
+      throw InvalidArgumentError(
+          "ThermalSolver::solve (turbulent): turbulentPrandtl must be finite and > 0");
+    }
+    linearSolver.emplace(settings_.linearSolver);
+  } catch (const InvalidArgumentError&) {
+    configurationValid = false;
+  }
+  if (!configurationValid) {
+    result.status = ThermalStatus::InvalidConfiguration;
+    return result;
+  }
+
+  if (!allFinite(initialTemperature) || !allFinite(massFlux) ||
+      !allFinite(*turbulence.turbulentViscosity)) {
+    result.status = ThermalStatus::NonFiniteState;
+    return result;
+  }
+
+  // The SAME assemble lambda mechanism and the SAME outer Picard loop as the
+  // variable-property overload above. The only difference is one line: the
+  // conductivity handed to the assembler is k_eff rather than k_mol.
+  //
+  // k_mol and cp are re-evaluated from the current iterate first, so the
+  // turbulent part is formed against THIS iterate's cp -- k_t = mu_t cp(T)/Pr_t
+  // -- rather than a reference value. That is the whole reason the coupling
+  // lives inside the lambda and not outside the loop.
+  // ONE definition of the wall-law evaluation, used by the assembly below AND
+  // by the post-solve diagnostic. There is deliberately no second formula.
+  struct WallFields {
+    cfd::fields::SurfaceField conductance;
+    cfd::fields::SurfaceField heatFlux;
+  };
+  const auto evaluateWallFaces = [&](const ScalarField& temperature,
+                                     const ScalarField& specificHeat,
+                                     const ScalarField& molecularConductivity) -> WallFields {
+    WallFields fields{cfd::fields::SurfaceField(mesh.numberOfFaces(), 0.0),
+                      cfd::fields::SurfaceField(mesh.numberOfFaces(), 0.0)};
+    for (const Index faceId : *turbulence.wallFaceIds) {
+      const auto& face = mesh.face(faceId);
+      const Index owner = face.owner();
+      const Real frictionVelocity =
+          std::sqrt(std::max((*turbulence.wallShearStress)[owner], 0.0) / turbulence.density);
+      // Molecular Prandtl from the CURRENT iterate's properties, not a
+      // reference pair, and from k_mol rather than k_eff.
+      const Real molecularPrandtl =
+          turbulence.dynamicViscosity * specificHeat[owner] / molecularConductivity[owner];
+      // The same route the assembler takes to the boundary value, including
+      // its scalar-BC check.
+      const auto& bc = cfd::boundary::boundaryConditionForFace(mesh, faceId, temperatureBoundaries);
+      const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc);
+      if (scalarBc == nullptr) {
+        throw InvalidArgumentError(
+            "ThermalSolver::solve (thermal wall function): wall boundary condition is not "
+            "scalar-valued");
+      }
+      const Real distance =
+          cfd::mesh::MeshGeometry::distance(mesh.cell(owner).centroid(), face.centroid());
+      const Real wallTemperature = scalarBc->boundaryValue(temperature[owner], distance);
+
+      const auto wall = cfd::thermal::computeThermalWallFace(
+          turbulence.density, specificHeat[owner], frictionVelocity, (*turbulence.yPlus)[owner],
+          face.area(), temperature[owner], wallTemperature, molecularPrandtl,
+          turbulence.turbulentPrandtl, turbulence.wallFunctionCoefficients);
+      fields.conductance[faceId] = wall.conductance;
+      fields.heatFlux[faceId] = wall.heatFlux;
+    }
+    return fields;
+  };
+
+  const auto assemble = [&](const ScalarField& temperature) -> EnergyAssembly {
+    ScalarField conductivity;
+    ScalarField specificHeat;
+    ScalarField molecularConductivity;
+    try {
+      conductivity = cfd::physics::evaluatePropertyField(mesh, temperature, conductivityModel);
+      specificHeat = cfd::physics::evaluatePropertyField(mesh, temperature, specificHeatModel);
+      // Kept before k_eff overwrites it: the wall law needs the MOLECULAR
+      // Prandtl number, which is mu cp / k_mol, not mu cp / k_eff.
+      molecularConductivity = conductivity;
+      conductivity = cfd::thermal::effectiveConductivityField(
+          mesh, conductivity, *turbulence.turbulentViscosity, specificHeat,
+          turbulence.turbulentPrandtl);
+    } catch (const InvalidArgumentError& e) {
+      throw NumericalError(std::string("ThermalSolver::solve (turbulent): ") + e.what());
+    }
+
+    cfd::fields::SurfaceField wallConductance;
+    if (turbulence.thermalWallFunctionActive()) {
+      try {
+        wallConductance =
+            evaluateWallFaces(temperature, specificHeat, molecularConductivity).conductance;
+      } catch (const InvalidArgumentError& e) {
+        throw NumericalError(std::string("ThermalSolver::solve (thermal wall function): ") +
+                             e.what());
+      }
+    }
+
+    return assembleEnergyEquation(
+        mesh, temperature, massFlux, conductivity, specificHeat, temperatureBoundaries,
+        volumetricHeatSource, settings_.nonOrthogonal,
+        // nullptr when inactive: the identical pre-P16 branch, not a zero field.
+        turbulence.thermalWallFunctionActive() ? &wallConductance : nullptr);
+  };
+  result = runPicardLoop(settings_, *linearSolver, initialTemperature, assemble);
+
+  // P16-TWF -- the production wall result at the CONVERGED temperature, from
+  // the same lambda the assembly used. Diagnostics read this; nothing
+  // downstream re-derives the wall heat flux.
+  if (turbulence.thermalWallFunctionActive()) {
+    try {
+      const ScalarField finalConductivity =
+          cfd::physics::evaluatePropertyField(mesh, result.temperature, conductivityModel);
+      const ScalarField finalSpecificHeat =
+          cfd::physics::evaluatePropertyField(mesh, result.temperature, specificHeatModel);
+      auto fields = evaluateWallFaces(result.temperature, finalSpecificHeat, finalConductivity);
+      result.wallConductance = std::move(fields.conductance);
+      result.wallHeatFlux = std::move(fields.heatFlux);
+    } catch (const InvalidArgumentError&) {
+      // A property excursion at the converged state is already reported through
+      // `status` by the loop above; leaving the diagnostic empty is preferable
+      // to failing a solve that succeeded.
+    }
+  }
+  return result;
 }
 
 ThermalResult ThermalSolver::solveConjugateConduction(

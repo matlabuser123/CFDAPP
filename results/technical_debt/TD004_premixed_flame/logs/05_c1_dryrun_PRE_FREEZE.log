@@ -1,0 +1,28 @@
+TD-004 C1 dry-run -- the recentring ledger, on the unchanged operator
+
+  cells            500 over 0.0100 m, cell 2.000000e-05 m
+  Y_F,u            0.0500      front thickness 1.228910e-03 m (logs/01)
+  max|integrand|   1.000000e-06   (rho * Y_F,u * cellSize)
+  C1 bound         8.881784e-19   = 8 * eps * nc * max|integrand|
+
+  shift  integral before   integral after    actual change   baseline rpt         C1
+      1  1.751022389e-04  1.741056673e-04 -9.965716032e-07            0.0       FAIL
+     -1  1.751022389e-04  1.761022130e-04  9.999741250e-07            0.0       FAIL
+      4  1.751022389e-04  1.711166404e-04 -3.985598499e-06            0.0       FAIL
+     -4  1.751022389e-04  1.791021302e-04  3.999891249e-06            0.0       FAIL
+    164  1.751022389e-04  2.728821938e-05 -1.478140195e-04            0.0       FAIL
+   -164  1.751022389e-04  3.389406871e-04  1.638384482e-04            0.0       FAIL
+
+  => the baseline FAILS C1 at every shift, by the full size of the change it
+     makes and does not report. C1 is a real instrument, not a formality.
+
+NON-VACUITY -- a WRONG ledger must also fail C1
+
+  shift    actual change      correct rpt     N2 sign flip N3 upstream only    C1 ok       N2       N3
+      4 -3.985598499e-06 -3.985598499e-06  3.985598499e-06  0.000000000e+00     pass     FAIL     FAIL
+     -4  3.999891249e-06  3.999891249e-06 -3.999891249e-06  3.999891249e-06     pass     FAIL     pass
+
+  => the correct ledger passes; N2 fails at both signs; N3 passes for the sign it
+     happens to cover and FAILS for the other. So C1 discriminates a right ledger
+     from two plausible wrong ones, and N3 shows why both fill paths must be
+     exercised -- a one-sided test would have reported success.

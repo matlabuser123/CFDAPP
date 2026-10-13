@@ -1,0 +1,65 @@
+P17.0 -- baseline regression   stage: mandated
+date: 2026-09-26T04:17:59Z
+gate: results/p17/baseline/baseline_gate.md
+      sha256 a147f79c4dc2aac21bae6a39f5afa135cf15921545c32c4537938c3f08c7dfbd
+
+FROZEN exclusions (5 patterns, verbatim from G10_regress.sh):
+  SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+FROZEN invocation: OMP_NUM_THREADS=1 ctest -j 8 --timeout 7200   (debug_gui: 14400)
+nvcc on PATH: /usr/local/cuda-12.9/bin/nvcc
+  Cuda compilation tools, release 12.9, V12.9.86
+  Build cuda_12.9.r12.9/compiler.36037853_0
+
+P17_CODE_FINGERPRINT before : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+expected at gate freeze     : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+
+newest production source: 2026-09-26T03:44:26Z  src/compressible/IdealGasEOS.cpp
+
+############################################################
+### release_cuda  (build/qual-final)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=ON
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (5 s)
+
+--- section 8 step 3: every test binary newer than the newest production source (FAIL CLOSED) ---
+    STALE: /usr/bin/cmake
+  test binaries found : 47
+  oldest binary       : 2024-02-03T23:33:56Z  /usr/bin/cmake
+  stale binaries      : 1
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### cpu_only  (build/qual-cpuonly)   --timeout 7200
+############################################################
+  CFDAPP_BUILD_GUI:BOOL=OFF
+  CFDAPP_ENABLE_CUDA:BOOL=OFF
+  CFDAPP_ENABLE_OPENMP:BOOL=ON
+  CMAKE_BUILD_TYPE:STRING=Release
+
+--- build (every target) ---
+  build exit: 0   (5 s)
+
+--- section 8 step 3: every test binary newer than the newest production source (FAIL CLOSED) ---
+    STALE: /usr/bin/cmake
+  test binaries found : 46
+  oldest binary       : 2024-02-03T23:33:56Z  /usr/bin/cmake
+  stale binaries      : 1
+  *** STALE BINARIES -- FAIL CLOSED, results would not be authoritative ***
+
+############################################################
+### B6: CPU-only has no CUDA dependency
+############################################################
+  nvcc invocations in the build log : 0
+  libcudart references              : 0
+  cuda/libcfdcuda.a present         : no
+  build/qual-cpuonly/apps/cli/cfdapp           cudart refs in ldd: 0
+
+P17_CODE_FINGERPRINT after  : 1e307fcd7c70104d02da8adfb226dfd5641a6c8e880fc8169ce43b6ca070c5d2
+B8: the code fingerprint must not have moved across the regression.
+
+done: 2026-09-26T04:18:52Z

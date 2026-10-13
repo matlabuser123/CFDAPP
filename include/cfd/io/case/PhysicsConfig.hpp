@@ -15,10 +15,28 @@ namespace cfd::io {
 // matching InitialConditions's own "defaults to zero when absent"
 // precedent; a present-but-disabled block would be a redundant third
 // state with no clear meaning).
+// P15: a temperature-dependent property as configured in physics.json.
+// Mirrors cfd::thermal::TemperatureDependentProperty, which validates it
+// again at construction -- two independent layers, the same deliberate
+// redundancy this file's other parsers already use.
+struct TemperaturePolynomialConfig {
+  std::vector<Real> coefficients;  // ascending: a0, a1, a2, ...
+  Real minimumTemperature{};
+  Real maximumTemperature{};
+};
+
 struct ThermalPhysicsConfig {
+  // Always populated. When the corresponding model below is present, this
+  // holds the model evaluated at initialTemperature, so a consumer that does
+  // not know about models still receives a valid in-range value rather than a
+  // zero. Consumers that do know read the model instead.
   Real conductivity{};
   Real specificHeat{};
   Real initialTemperature{};
+
+  // Present only when physics.json gave the object form.
+  std::optional<TemperaturePolynomialConfig> conductivityModel;
+  std::optional<TemperaturePolynomialConfig> specificHeatModel;
 };
 
 // P2-TURB-004 (extended by P2-TURB-005 and P2-TURB-006): physics.json's
@@ -47,6 +65,41 @@ struct TurbulencePhysicsConfig {
   std::optional<Real> kRelaxation;
   std::optional<Real> epsilonRelaxation;
   std::optional<Real> omegaRelaxation;
+
+  // P16: high-Re wall functions for the k-epsilon model.
+  //
+  // Absent means OFF, which is the pre-P16 behaviour byte for byte -- every
+  // existing case keeps the near-wall treatment it had. A case opts in with
+  // "wall_functions": true.
+  //
+  // k_epsilon ONLY for now. k_omega and SST have their own near-wall
+  // treatments and their wall-function work is deliberately not part of this
+  // step, so asking for it there is rejected rather than silently ignored.
+  std::optional<bool> wallFunctions;
+
+  // P16b: WHICH near-wall treatment, when wallFunctions is on.
+  // "high_re" (the default when absent, so every existing case is
+  // unchanged) or "automatic" -- Menter blended treatment, which stays
+  // defined at tau_w = 0 and is therefore the only one of the two usable
+  // in separated flow. SST only: the blend sublayer omega branch is built
+  // on SST own beta1, and no equivalent is implemented for the other
+  // models, so asking for it there is rejected rather than ignored.
+  std::optional<std::string> wallTreatment;
+
+  // P16: the turbulent Prandtl number, Pr_t, closing the turbulent heat flux
+  // by the Reynolds analogy:  k_t = mu_t c_p / Pr_t.
+  //
+  // It lives in the TURBULENCE block, not the thermal one, and deliberately:
+  // Pr_t means nothing without a mu_t to scale, so a laminar case carrying one
+  // is dead configuration. Putting it here makes that rejection structural
+  // rather than a cross-block check -- the same reasoning that keeps
+  // wall_functions here and refuses it on a model that has none.
+  //
+  // Absent means kDefaultTurbulentPrandtl. The default is resolved HERE, in the
+  // configuration, and the thermal solver receives a resolved value: a solver
+  // that supplied its own default could silently disagree with the configured
+  // one.
+  std::optional<Real> turbulentPrandtl;
 };
 
 // P3-PHYS-001: physics.json's optional "buoyancy" object -- same
@@ -84,6 +137,117 @@ struct SpeciesConfig {
   std::string name;
   Real diffusivity{};
   Real initialConcentration{};
+};
+
+// ===================================================================
+// G8 -- physics.json's optional "reacting" object.
+//
+// WHY A SEPARATE BLOCK FROM "species" ABOVE. P6-PHYS-001's "species" array drives
+// `cfd::species::SpeciesSolver`: independent, passive, non-reacting scalars with no
+// `sum(Y)=1`, no bounds enforcement and no mixture thermodynamics. The P18 stack is a
+// different thing -- `MassFractionState` (bounds + `sum(Y)=1`, REFUSING rather than
+// normalising), `MixtureThermodynamics`, `ReactionMechanism`, `ArrheniusKinetics`,
+// `HeatRelease` -- and it was never reachable from a case file.
+//
+// Extending "species" in place would have meant bolting conditionals onto a working
+// production path and reproving every passive-species case bitwise. CLAUDE.md section 6
+// prefers a dedicated new path, so this is one: "reacting" is parsed, built and
+// dispatched separately, and "species" is untouched. A case may use either, never both
+// (PhysicsConfigParser rejects the combination) -- two species representations in one
+// solve would be two sources of truth for the same field.
+//
+// ENABLE BY PRESENCE, like thermal/turbulence/buoyancy/multiphase/compressible.
+// ===================================================================
+
+// One species of the reacting mixture. Mirrors what `cfd::species::SpeciesRegistry` plus
+// `cfd::species::SpeciesThermodynamics` plus `cfd::species::FormationEnthalpy` need, so a
+// reader can see the whole per-species input in one place.
+//
+// ON molecular_weight: these must be MUTUALLY CONSISTENT, not independently rounded table
+// values. G6 requires `sum_i M_i nu_i = 0` to `4*eps*max|M_i nu_i|` for every reaction, and
+// that is a statement about the weights. Independently rounded values miss it by ~1e-6
+// kg/mol -- about 1.8e10 times the bound, measured in
+// tests/unit/species/test_reaction_orders.cpp. Derive each weight from one atomic mass per
+// element and the balance closes exactly; the parser cannot check this per species, so the
+// MECHANISM-level closure check is where a wrong set is caught.
+struct ReactingSpeciesConfig {
+  std::string name;
+  Real molecularWeight{};      // kg/mol, element-derived (see above)
+  Real specificHeat{};         // cp, J/(kg K), constant
+  Real formationEnthalpy{};    // h_f, J/kg, any sign
+  Real initialMassFraction{};  // Y_i at t=0; the set must sum to 1
+  Real diffusivity{};          // m^2/s, may be 0
+};
+
+// One side's entry, or one reaction order. Both are "a species name and a number", but they
+// are DIFFERENT numbers and keeping one struct for both would invite writing an order into a
+// coefficient -- which destroys `sum_i M_i nu_i = 0`. Named distinctly for that reason.
+struct ReactionTermConfig {
+  std::string species;
+  Real coefficient{};
+};
+struct ReactionOrderConfig {
+  std::string species;
+  Real order{};
+};
+
+// One reaction: topology, optional explicit orders, and its Arrhenius parameters.
+//
+// `orders` is OPTIONAL. Omit it and the orders are the reactant stoichiometry, which is mass
+// action. Supply it for a fitted GLOBAL mechanism whose exponents are not its stoichiometry --
+// Westbrook & Dryer (1981) Table II Set 3 for methane is `CH4 + 2 O2 -> CO2 + 2 H2O` with
+// exponents 0.2 and 1.3. A NEGATIVE order is refused: the rate would diverge as that species
+// is consumed and the remedy is a concentration floor this codebase forbids.
+//
+// Arrhenius is `A * T^n * exp(-Ea/(R_u T))` with Ea in J/mol -- MOLE based, never kmol. A
+// kmol activation energy is wrong by exactly 1000 and is the error
+// `ArrheniusTest.N4_AKmolGasConstantIsWrongByOrdersOfMagnitude` exists to catch.
+struct ReactingReactionConfig {
+  std::string name;
+  std::vector<ReactionTermConfig> reactants;
+  std::vector<ReactionTermConfig> products;
+  std::vector<ReactionOrderConfig> orders;  // empty => mass action
+  bool reversible{false};
+  Real preExponential{};       // A
+  Real temperatureExponent{};  // n
+  Real activationEnergy{};     // Ea, J/mol
+};
+
+// physics.json's optional "reacting" object.
+struct ReactingPhysicsConfig {
+  std::vector<ReactingSpeciesConfig> species;
+  std::vector<ReactingReactionConfig> reactions;
+  Real initialTemperature{};  // K, the unburnt state
+
+  // TD-001 / amendment A1: the single dt the reacting advance takes, s.
+  //
+  // WHY A TIME STEP IS REQUIRED RATHER THAN A STEADY PASS. A steady solve with the reaction source
+  // frozen at the initial state has NO source treatment that is both conservative and bounded, and
+  // that was measured both ways: splitting the source Patankar-style keeps every Y_i positive but
+  // loses sum(Y_i) = 1 by 0.300, because consumption self-limits while production runs at the
+  // initial rate; treating it fully explicitly conserves to the solver tolerance but drives Y_A to
+  // -0.297. The asymmetry is structural, not a tuning problem.
+  //
+  // An operator-split TIME STEP has neither failure: the transport half carries no reaction at all
+  // (so its operator is an M-matrix and every Y_i stays bounded) and the chemistry half applies
+  // sum_i omega_i = 0 locally and consistently (so mass is conserved by construction).
+  //
+  // The precedent is multiphase's `transport_time_step`, which exists for the same reason: a single
+  // implicit-Euler advance needs the caller to say how far.
+  Real timeStep{};
+
+  // TD-002: how many operator-split steps the march takes. Straight from physics.json's
+  // reacting.steps.
+  //
+  // REQUIRED, not defaulted, for the same reason `time_step` is: the integration EXTENT decides the
+  // reported composition, so a silently chosen value would make two runs of the "same" case differ
+  // by a build. `steps: 1` is the TD-001 single advance and reproduces its figures bitwise -- which
+  // is gate criterion C11, measured rather than asserted.
+  //
+  // dt and steps rather than an end time: the march is first-order Lie splitting, so the answer
+  // depends on dt itself and not only on dt*steps. Two numbers that each mean one thing beat one
+  // number that hides the step size.
+  Index steps{};
 };
 
 // P6-PHYS-002: one phase of physics.json's optional "multiphase" block,
@@ -174,6 +338,10 @@ struct PhysicsConfig {
   // vector (PhysicsConfigParser.cpp accepts both; there is no meaningful
   // difference between them worth rejecting).
   std::vector<SpeciesConfig> species;
+
+  // G8: the REACTING mixture, a separate path from `species` above. A case may declare one or
+  // the other, never both.
+  std::optional<ReactingPhysicsConfig> reacting;
   // P10-APP-004: see PhysicsConfigParser.cpp's validatePhysicsCompatibility
   // (the one authoritative compatibility matrix) for exactly which
   // combinations of thermal/turbulence/buoyancy/species/multiphase/

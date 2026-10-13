@@ -1,0 +1,33 @@
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SodShockTubeTest
+[ RUN      ] SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly
+
+  SOD, 2D mesh 200x1, dx = 5.0000e-03, CFL 0.4, t = 0.200, 669 steps
+      W1 rarefaction -> contact -> shock, in order: yes
+      W2 fan spans 69 cells (exact 44.5, floor 3)
+      wave               numerical      exact          err          err/dx     limit
+      rarefaction head   0.1998946606   0.2633721125   6.3477e-02   12.6955    A2: scaling gated in the
+                         refinement test, not by a C*dx bound
+      rarefaction tail   0.5419894145   0.4859601022   5.6029e-02   11.2059    4 dx
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/tests/integration/compressible/test_shock_validation.cpp:416: Failure
+Expected: (err) <= (row.limitCells * r.dx), actual: 0.056029312336747294 vs 0.019999999999999997
+rarefaction tail
+
+      contact            0.6759404108   0.6855039870   9.5636e-03   1.9127     2 dx
+      shock              0.8539648174   0.8504185628   3.5463e-03   0.7093     2 dx
+      W3 contact: |dp|/p* 5.1318e-03, |du|/u* 7.5907e-04, drho 0.130192 vs exact 0.160674
+      W4 shock jumps in rho, p and u, all in the correct direction
+      §23 smeared width: shock 7 cells, contact 26 cells
+[  FAILED  ] SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly (37 ms)
+[----------] 1 test from SodShockTubeTest (37 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (39 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SodShockTubeTest.WX_ThreeStructuresAreIdentifiedByMeasurementAndPositionedCorrectly
+
+ 1 FAILED TEST

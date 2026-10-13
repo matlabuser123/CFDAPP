@@ -16,7 +16,7 @@ namespace cfd::discretization {
 // conduction (thermal::assembleThermalDiffusionContribution), species
 // diffusion (species::assembleSpeciesDiffusionContribution) and the k /
 // epsilon / omega diffusion of every turbulence model
-// (turbulence::assembleScalarDiffusionContribution). Each of those keeps
+// (transport::assembleScalarDiffusionContribution). Each of those keeps
 // its own diffusivity and boundary-VALUE evaluation (they legitimately
 // differ); only the face geometry below is shared, so the correction
 // formula itself exists exactly once. (cfd::discretization::diffusion, an

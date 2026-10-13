@@ -1,0 +1,86 @@
+P17.6 dry-run -- the Mach family, UNCHANGED tree
+channel 8.0 x 1.0   mu 0.1   T 300.0 K   p_ref 101325 Pa
+rho_ref = p_ref/(R T) = 1.17662428   (DERIVED, so both formulations are the same gas)
+a = sqrt(gamma R T) = 347.196 m/s   gamma = 1.399818929
+
+mesh 32x6, matching the existing low-Mach test's default
+
+### the family, as achieved ###
+U0      inletMa     machMax     drho/rho     maxEosErr   relL2(|U|)  itComp    itInc    
+1       0.0028802   0.0041552   0.00011192   0           7.9159e-05  1959      2031     
+0.5     0.0014401   0.002079    5.4856e-05   0           3.1193e-05  2261      2450     
+0.25    0.00072005  0.0010397   2.713e-05    0           1.6984e-05  2403      2626     
+0.125   0.00036003  0.00051994  1.3482e-05   0           1.2574e-05  2439      2680     
+
+### velocity and pressure differences vs the incompressible reference ###
+U0      Linf(u)      relL2(u)     Linf(v)      Linf(p')     relL2(p')    dropRelDiff 
+1       0.00014731   7.9199e-05   3.5613e-06   0.0076873    0.000716     0.00072955  
+0.5     3.6587e-05   3.1192e-05   1.3494e-06   0.00051494   7.6267e-05   4.6683e-05  
+0.25    9.2471e-06   1.6986e-05   8.1854e-07   0.00020917   7.382e-05    6.1513e-05  
+0.125   2.8053e-06   1.2584e-05   4.736e-07    0.000103     8.1806e-05   7.5329e-05  
+
+### density, mass flux and conservation ###
+U0      rhoMin      rhoMax      max|rho-ref| fluxRelDiff  massImbComp  massImbInc  
+1       1.176625    1.176757    0.00013259   2.4723e-05   1.7767e-08   1.9166e-08  
+0.5     1.176625    1.176689    6.4836e-05   1.2296e-05   8.2266e-09   7.2566e-08  
+0.25    1.176624    1.176656    3.2025e-05   6.2113e-06   3.7795e-09   3.4993e-08  
+0.125   1.176624    1.17664     1.5907e-05   3.2851e-06   1.7959e-09   5.6572e-08  
+
+### mass flow balance (compressible) ###
+U0      inletFlow      outletFlow     sum            inletInc    
+1       -1.176747      1.176747       -1.777e-08     -1.176624   
+0.5     -0.5883422     0.5883422      -8.227e-09     -0.5883121  
+0.25    -0.2941635     0.2941635      -3.779e-09     -0.2941561  
+0.125   -0.1470799     0.1470799      -1.796e-09     -0.147078   
+
+### energy: P17.5 on the converged compressible fields ###
+U0      e [J/kg]      ke_max       ke/e         T recov err   E imbalance    predicted      ratio   
+1       215385        1.04065      4.832e-06    0             0.246232       0.251589       0.97871 
+0.5     215385        0.260517     1.21e-06     0             0.0275335      0.0300139      0.91736 
+0.25    215385        0.0651572    3.025e-07    0             0.00248665     0.00362617     0.68575 
+0.125   215385        0.0162943    7.565e-08    0             -9.75411e-05   0.000443923    -0.21973
+  The balance CANNOT close on an ISOTHERMAL solve: T is an INPUT, so the isothermal
+  constraint is itself an unmodelled heat sink, and P17.4 supplies no stress tensor
+  for the viscous-work term. 'predicted' is the INDEPENDENTLY computed mass-weighted
+  kinetic-energy gain from inlet to outlet; its agreement with 'E imbalance' is the
+  real check, and turns an unclosable balance into a measurement.
+
+### G5's ACTUAL energy criterion: the KINETIC contribution, relative to itself ###
+U0      ke_comp [J]     ke_inc [J]      relDiff        noise floor    signal/noise
+1       5.4589667       5.4580807       0.00016233     0.0053567      46.97       
+0.5     1.3670556       1.3669489       7.8081e-05     0.0024803      12.1        
+0.25    0.34205592      0.34204276      3.8465e-05     0.0011395      3.182       
+0.125   0.085550747     0.085549087     1.9409e-05     0.00054146     0.8199      
+  relDiff is the domain kinetic energy of the COMPRESSIBLE solution against the
+  INCOMPRESSIBLE one, normalised by the latter -- the kinetic contribution measured
+  against its OWN magnitude, exactly as the frozen G5 clause requires.
+  'noise floor' is |massImbalance| * h, the enthalpy-flux error the residual mass
+  imbalance implies. Where signal/noise falls below ~1 the BALANCE cannot reveal the
+  kinetic term at all -- which is why the criterion is placed on ke directly.
+
+### x-momentum budget (compressible), with an ANALYTICAL cross-check ###
+U0      netMomFlux     pressureForce  viscousImplied  viscousPoiseuille ratio     
+1       0.204194       10.489         -10.2848        -9.6            1.0713    
+0.5     0.0510543      5.15415        -5.1031         -4.8            1.0631    
+0.25    0.0127593      2.55356        -2.5408         -2.4            1.0587    
+0.125   0.00318935     1.27032        -1.26713        -1.2            1.0559    
+
+### observed TREND exponents, error ~ C Ma^n (measured, not assumed) ###
+  over Ma 0.0028802 -> 0.00036003  (a factor of 8)
+  drho/rho               n = 1.0178
+  relL2(|U|)             n = 0.8848
+  relL2(p')              n = 1.0432
+  fluxRelDiff            n = 0.9706
+  theory for THIS case: the pressure drop is viscous-dominated,
+    dp ~ 12 mu U L / H^2, so drho/rho = dp/p ~ Ma^1. A quadratic expectation
+    (dp ~ rho U^2) would be wrong here.
+
+### section 20: is the COMPRESSIBLE path genuinely active? ###
+  U0 1      density varies over 0.000131692  (uniform would mean NO EOS coupling)
+  U0 0.5    density varies over 6.4547e-05  (uniform would mean NO EOS coupling)
+  U0 0.25   density varies over 3.19221e-05  (uniform would mean NO EOS coupling)
+  U0 0.125  density varies over 1.58638e-05  (uniform would mean NO EOS coupling)
+  maxEosError above is |rho_solver - p_abs/(R T)|: if the solver had fallen back to
+  a constant density this would be O(drho), not O(eps).
+
+done

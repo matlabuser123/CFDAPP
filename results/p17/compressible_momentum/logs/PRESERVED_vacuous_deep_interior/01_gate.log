@@ -1,0 +1,54 @@
+P17.4 ACCEPTANCE GATE
+date: 2026-09-26T21:17:10Z
+gate sha256: ded6feaa03b53e9fd65018491e57c9c318383798bf13fbabc4b910cf4fd6b673
+
+### G6: clang-format on the files P17.4 changed ###
+  clang-format exit: 0  (0 = clean)
+
+### L5: physics::MomentumEquation must be UNTOUCHED ###
+  delta: '14	1	include/cfd/physics/MomentumEquation.hpp 13	2	src/physics/MomentumEquation.cpp '  (empty = unchanged)
+
+### the P17.4 delta ###
+  include/cfd/compressible/DilatationalStress.hpp            
+  src/compressible/DilatationalStress.cpp                    
+  include/cfd/compressible/CompressibleRelaxedMomentum.hpp   +19 -1
+  src/compressible/CompressibleRelaxedMomentum.cpp           +11 -1
+  tests/unit/compressible/test_compressible_momentum.cpp     +286 -0
+  src/CMakeLists.txt                                         +32 -0
+
+### D1: the dilatational option must DEFAULT to disabled ###
+  header default: 1  (1 = default false)
+
+### build ###
+  build exit: 0  (173 s)
+
+### Groups D, F, V, G9: the momentum suite ###
+  ctest exit: 8
+  88% tests passed, 2 tests failed out of 17
+  the 9 P17.4 rows:
+    MatchesMinusTwoThirdsMuGradDivergenceTimesVolume         Failed
+    IsExactlyZeroForADivergenceFreeField                     Passed
+    UniformVelocityContributesNothing                        Passed
+    ScalesLinearlyWithViscosityAndVanishesAtZeroViscosity    Passed
+    RejectsInvalidInputs                                     Passed
+    RepeatedAssemblyIsBitwiseIdentical                       Passed
+    PressureForceMatchesMinusVolumeTimesAnalyticalGradient   Failed
+    BodyForceScalesLinearlyWithDensity                       Passed
+    TransientTermDistinguishesDRhoUDtFromRhoDUDt             Passed
+
+### Group L: low-Mach + MMS, and the whole compressible suite ###
+  low-Mach + MMS exit: 0   100% tests passed, 0 tests failed out of 10
+  compressible suite exit: 8   99% tests passed, 2 tests failed out of 170
+
+### Groups G1/G2: P14, P15, P16 preservation -- FROZEN narrow regexes ###
+  P14_transport    exit=0  100% tests passed, 0 tests failed out of 68
+  P15_thermal      exit=0  100% tests passed, 0 tests failed out of 161
+  P16_turbulence   exit=0  100% tests passed, 0 tests failed out of 315
+
+### G8: GPU compressible momentum -- must be NOT PRESENT ###
+    compressibleMomentum     0
+    CompressibleRelaxed      0
+    dilatational             0
+    DilatationalStress       0
+
+done: 2026-09-26T21:37:40Z

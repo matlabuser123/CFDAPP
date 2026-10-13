@@ -1,0 +1,281 @@
+P17.8 AUDIT -- existing density-based / explicit-solver infrastructure
+date: 2026-09-27T08:58:32Z
+HEAD: 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+
+### 1a. the section 1 term list -- FILES then LINES ###
+  TERM                             FILES   LINES
+  DensityBased                         0       0
+  density_based                        0       0
+  EulerSolver                          0       0
+  CompressibleSolver                   0       0
+  explicit update                      0       0
+  conserved update                     0       0
+  finite-volume residual               0       0
+  finite volume residual               0       0
+  CFL                                 31     273
+  cfl                                 31     273
+  local time stepping                  0       0
+  localTimeStep                        0       0
+  global time stepping                 0       0
+  pseudo-time                          3       3
+  pseudoTime                          12      53
+  Runge-Kutta                          0       0
+  RungeKutta                           0       0
+  rungeKutta                           0       0
+  forward Euler                        0       0
+  residual norm                        7       8
+  residualNorm                         6      48
+  shock solver                         0       0
+  HLLC                                11     300
+  timeStep                            50     174
+  deltaTime                            0       0
+  restart                             53     491
+  checkpoint                          29     598
+
+### 1b. the DECISIVE terms, in full ###
+  --- DensityBased (0) ---
+  --- EulerSolver (0) ---
+  --- CompressibleSolver (0) ---
+  --- Runge-Kutta (0) ---
+  --- RungeKutta (0) ---
+  --- pseudoTime (53) ---
+      include/cfd/compressible/CompressiblePressureCorrection.hpp:28://      V_P/pseudoTimeStep * dDensityDPressure(p_abs_P, T_P), using
+      include/cfd/compressible/CompressiblePressureCorrection.hpp:63:// pseudoTimeStep is not finite and > 0, or referenceCell >=
+      include/cfd/compressible/CompressiblePressureCorrection.hpp:74:    const ThermodynamicProperties& thermodynamics, Real pseudoTimeStep, Index referenceCell,
+      include/cfd/compressible/CompressibleRelaxedMomentum.hpp:38:// literally constant. `pseudoTimeStep` is a numerical stabilization
+      include/cfd/compressible/CompressibleRelaxedMomentum.hpp:44:// face count) or if pseudoTimeStep is not finite and > 0; NumericalError
+      include/cfd/compressible/CompressibleRelaxedMomentum.hpp:53:    const cfd::fields::ScalarField& previousComponentValue, Real alpha, Real pseudoTimeStep,
+      include/cfd/compressible/CompressibleSIMPLE.hpp:26:// pseudoTimeStep is a numerical stabilization parameter, not a physical
+      include/cfd/compressible/CompressibleSIMPLE.hpp:38:  Real pseudoTimeStep{1.0};
+      include/cfd/compressible/CompressibleSIMPLE.hpp:65:// or pressureRelaxation is not finite or not in (0, 1]; pseudoTimeStep is
+      src/app/ProjectRunner.cpp:817:        // compressibleSettings.pseudoTimeStep is left at its own default
+      src/compressible/CompressiblePressureCorrection.cpp:25:    const ThermodynamicProperties& thermodynamics, Real pseudoTimeStep, Index referenceCell,
+      src/compressible/CompressiblePressureCorrection.cpp:41:  if (!std::isfinite(pseudoTimeStep) || !(pseudoTimeStep > 0.0)) {
+      src/compressible/CompressiblePressureCorrection.cpp:43:        "assembleCompressiblePressureCorrection: pseudoTimeStep must be finite and > 0");
+      src/compressible/CompressiblePressureCorrection.cpp:57:  // compressibility term can be numerically tiny (large pseudoTimeStep or
+  --- residualNorm (48) ---
+      include/cfd/solver/SolverRobustness.hpp:43:struct ResidualNormalizationSettings {
+      include/cfd/solver/SolverRobustness.hpp:56:  bool operator==(const ResidualNormalizationSettings&) const = default;
+      include/cfd/solver/SolverRobustness.hpp:102:  ResidualNormalizationSettings normalization;
+      src/algebra/BiCGSTAB.cpp:247:    const Real residualNorm = l2Norm(r);
+      src/algebra/BiCGSTAB.cpp:248:    rNorm = residualNorm;
+      src/algebra/BiCGSTAB.cpp:249:    if (!std::isfinite(residualNorm)) {
+      src/algebra/BiCGSTAB.cpp:252:      result.finalResidual = residualNorm;
+      src/algebra/BiCGSTAB.cpp:254:      result.residualHistory.push_back(residualNorm);
+      src/algebra/BiCGSTAB.cpp:258:    result.residualHistory.push_back(residualNorm);
+      src/algebra/BiCGSTAB.cpp:261:    if (converged(residualNorm)) {
+      src/algebra/BiCGSTAB.cpp:264:      result.finalResidual = residualNorm;
+      src/algebra/CG.cpp:100:    const Real residualNorm = l2Norm(rNew);
+      src/algebra/CG.cpp:102:    if (!std::isfinite(residualNorm)) {
+      src/algebra/CG.cpp:105:      result.finalResidual = residualNorm;
+  --- localTimeStep (0) ---
+
+### 1c. CFL as a WHOLE WORD, and where it lives ###
+  word-boundary CFL/cfl: 41
+    include/cfd/pressure_velocity/AlePISO.hpp:62:// relativeMassFlux) in the momentum predictor and the CFL number. The
+    include/cfd/pressure_velocity/AlePISO.hpp:80:// step, e.g. for CFL) reverts the mesh as well.
+    include/cfd/solver/CFL.hpp:24:                     // deterministic id order -- see CFL.cpp).
+    include/cfd/solver/CFL.hpp:29:// 25: "a finite-volume CFL can be estimated from face volumetric
+    include/cfd/solver/CFL.hpp:40:// Co = U*dt/dx for a uniform flow (see CFL.cpp's derivation and
+    include/cfd/solver/TransientSolver.hpp:46:// before advancing -- section 15's "calculate pre-step CFL").
+    include/cfd/solver/TransientSolver.hpp:73:  // solver just returned (a non-Converged status, a non-finite state or a CFL
+    include/cfd/solver/TransientSolver.hpp:119:// CFL, and records history -- deliberately does *not* contain any
+    include/cfd/solver/TransientSolver.hpp:131:  // pre-step CFL exceeds cflFailAbove -- whichever comes first. Both
+    src/CMakeLists.txt:153:# P2 -- Transient CFD: TimeController (P2-001), CFL (P2-003), and
+    src/CMakeLists.txt:160:    solver/CFL.cpp
+    src/pressure_velocity/PISO.cpp:15:#include "cfd/solver/CFL.hpp"
+    src/pressure_velocity/PISO.cpp:135:  // `ale` branches: the pre-step CFL and the momentum predictor.)
+    src/pressure_velocity/PISO.cpp:181:  // Pre-step CFL, from the previous state's flux and this step's dt,
+    src/pressure_velocity/PisoStep.hpp:23:// predictor's convection and in the CFL number. Both must outlive the call.
+    src/pressure_velocity/PisoStep.hpp:32:// with *ale, and the pre-step CFL is computed from ale->convectingMassFlux.
+    src/solver/CFL.cpp:1:#include "cfd/solver/CFL.hpp"
+    src/solver/CFL.cpp:33:    // See CFL.hpp for the 1/2 factor's derivation.
+    src/solver/TransientSolver.cpp:78:      // applies equally to a numerically successful step whose CFL is
+    tests/solver/piso/test_ale_piso.cpp:221:        "G1.2 %s: AlePISO(STAT) vs PISO, 10 steps -- velocity, pressure, flux, CFL, continuity, "
+
+  files that mention courant:
+    include/cfd/pressure_velocity/PISO.hpp
+    include/cfd/solver/CFL.hpp
+    include/cfd/solver/TransientSolver.hpp
+    tests/solver/piso/test_ale_piso.cpp
+    tests/unit/multiphase/test_volume_fraction_solver.cpp
+
+### 1d. EXISTING SOLVER INTERFACES and dispatch ###
+  --- classes named *SIMPLE / *Solver in include/ ---
+    include/cfd/algebra/LinearSolver.hpp:67:struct LinearSolverAttempt {
+    include/cfd/algebra/LinearSolver.hpp:79:struct LinearSolverFallbackReport {
+    include/cfd/algebra/LinearSolver.hpp:103:struct SolverResult {
+    include/cfd/algebra/LinearSolver.hpp:136:struct LinearSolverSettings {
+    include/cfd/algebra/LinearSolver.hpp:171:class LinearSolver {
+    include/cfd/algebra/LinearSolverFallback.hpp:57:struct LinearSolverFallbackSettings {
+    include/cfd/algebra/LinearSolverFallback.hpp:121:class FallbackLinearSolver final : public LinearSolver {
+    include/cfd/compressible/CompressibleSIMPLE.hpp:33:struct CompressibleSIMPLESettings {
+    include/cfd/compressible/CompressibleSIMPLE.hpp:92:struct CompressibleSIMPLEResult {
+    include/cfd/compressible/CompressibleSIMPLE.hpp:148:class CompressibleSIMPLE final {
+    include/cfd/io/case/SolverConfig.hpp:23:struct LinearSolverSpec {
+    include/cfd/io/case/SolverConfig.hpp:33:struct SolverConfig {
+    include/cfd/multiphase/VolumeFractionSolver.hpp:36:struct VolumeFractionSolverSettings {
+    include/cfd/multiphase/VolumeFractionSolver.hpp:54:class VolumeFractionSolver {
+    include/cfd/pressure_velocity/PressureVelocitySolver.hpp:15:class PressureVelocitySolver {
+    include/cfd/pressure_velocity/SIMPLE.hpp:21:class SIMPLE final : public PressureVelocitySolver {
+    include/cfd/pressure_velocity/SIMPLECheckpoint.hpp:68:struct SIMPLECheckpoint {
+    include/cfd/pressure_velocity/SIMPLEContinuation.hpp:61:struct SIMPLEIterationRecord {
+    include/cfd/pressure_velocity/SIMPLEContinuation.hpp:74:struct SIMPLEContinuation {
+    include/cfd/pressure_velocity/SIMPLEProgress.hpp:25:struct SIMPLEIterationProgress {
+
+  --- how a solver is SELECTED (the dispatch surface) ---
+    compressible.method          0
+    solver_type                  0
+    solverType                   2
+    method =                     1
+    SolverKind                   0
+    SolverBackend                20
+    useCompressible              0
+    compressible.enabled         2
+    runCompressible              0
+
+  --- ProjectRunner: what it can dispatch to ---
+    6:// the exact orchestration apps/cli/main.cpp's own runCase() used to
+    8:// construction -> SIMPLE::solve() -> optional thermal solve ->
+    10:// behavior (tests/integration/case/test_project_runner_cli_equivalence.cpp
+    13:// the CLI calls -- never a second, GUI-only solve path (section 9's
+    17:// Steady-incompressible-SIMPLE(+thermal+species+multiphase+compressible)
+    20:// best-available, run only when the SIMPLE result is fully finite (see
+    21:// this file's own "same one-way, best-available ... solve" comment in
+    27:// configured *initial* alpha and held fixed for the entire SIMPLE solve
+    28:// (the same "held fixed across this entire solve() call" one-way
+    30:// established), is fed into SIMPLE's momentum assembly through its
+    38:// scope disclosure: "evaluated and validated standalone only") -- SIMPLE
+    39:// still solves with the case's single, constant, top-level physics.json
+    40:// density. After SIMPLE converges, alpha is advanced exactly one
+    42:// which is not an outer-iterated solve by its own design -- see its own
+    49:// Compressible (P6-PHYS-003, extended by P12-COMP-002): two modes,
+    53://   already-converged incompressible SIMPLE result -- exactly
+    57://   never a second, parallel flow solve. Energy coupling is either
+    63://   coupled=true: dispatches to cfd::compressible::CompressibleSIMPLE, a
+    64://   genuinely coupled compressible pressure-velocity solver (density is
+    67://   warm-started from the incompressible SIMPLE result computed above.
+    68://   This solve's own status becomes the run's authoritative status (see
+    81:#include "cfd/compressible/CompressibleSIMPLE.hpp"
+    90:#include "cfd/pressure_velocity/SIMPLEProgress.hpp"
+    91:#include "cfd/pressure_velocity/SIMPLEResult.hpp"
+
+### 1e. the CASE FORMAT -- what keys the compressible block already has ###
+         11 compressible.has_value
+          8 compressible.coupled
+          4 compressible.gas
+          3 compressible.specific_heat_pressure
+          3 compressible.specific
+          3 compressible.reference
+          2 compressible.enabled
+          1 compressible.thermal_coupled
+          1 compressible.thermal
+          1 compressible.temperature
+
+### 1f. TIME-STEP infrastructure that already exists ###
+    TimeControl              31
+    timeControl              10
+    transient                75
+    time.transient           3
+    deltaT                   35
+    dt_                      0
+    nTimeSteps               0
+    endTime                  24
+    currentTime              8
+
+  the transient/time struct, if any:
+    include/cfd/compressible/CompressibleMomentum.hpp
+    include/cfd/core/Profiler.hpp
+    include/cfd/core/Timer.hpp
+    include/cfd/discretization/TimeDerivative.hpp
+    include/cfd/gpu/DeviceScalarTransport.hpp
+    include/cfd/solver/TimeController.hpp
+    include/cfd/solver/TransientSolver.hpp
+    include/cfd/thermal/EnergyEquation.hpp
+    include/cfd/transport/ScalarTransport.hpp
+
+### 1g. RESTART / CHECKPOINT infrastructure ###
+    include/cfd/algebra/BiCGSTAB.hpp
+    include/cfd/algebra/GMRES.hpp
+    include/cfd/algebra/LinearSolver.hpp
+    include/cfd/app/ProjectRunner.hpp
+    include/cfd/gpu/GpuSimpleDiscretization.hpp
+    include/cfd/io/case/CaseFingerprint.hpp
+    include/cfd/io/CheckpointReader.hpp
+    include/cfd/io/CheckpointWriter.hpp
+    include/cfd/io/RestartReader.hpp
+    include/cfd/io/RestartWriter.hpp
+    include/cfd/mesh/Mesh.hpp
+    include/cfd/mesh/MeshFingerprint.hpp
+    include/cfd/pressure_velocity/SIMPLE.hpp
+    include/cfd/pressure_velocity/SIMPLECheckpoint.hpp
+    include/cfd/pressure_velocity/SIMPLEContinuation.hpp
+    include/cfd/pressure_velocity/SIMPLEResult.hpp
+    include/cfd/solver/RestartSnapshot.hpp
+    include/cfd/solver/TimeController.hpp
+    include/cfd/turbulence/KEpsilonModel.hpp
+    src/algebra/BiCGSTAB.cpp
+
+  what is serialized today (field names in the restart writer):
+
+### 1h. MESH LOOP conventions -- owner/neighbour and face areas ###
+    owner(                 1
+    neighbour(             0
+    isBoundaryFace         0
+    faceArea               1
+    areaVector             5
+    faceNormal             0
+    cellVolume             1
+    volume(                3
+    faceCount              1
+    cellCount              2
+
+  the Mesh accessors P17.8 will loop over:
+
+### 1i. what P17.7 left for P17.8 to consume ###
+    29://     ThermodynamicProperties and P17.5's TotalEnergyState via makePrimitiveState() in the .cpp.
+    104:struct ConservedState {
+    116:// by makePrimitiveState() through P17.2/P17.5, which is the only authoritative path.
+    126:// The numerical flux, PER UNIT AREA. Units differ from ConservedState, so it is a distinct type:
+    128:struct FluxVector {
+    166:  FluxVector flux{};
+    213:CFD_HLLC_HOST_DEVICE inline FluxVector eulerFlux(const PrimitiveState& s, const Vector3& n) {
+    215:  FluxVector f{};
+    225:CFD_HLLC_HOST_DEVICE inline ConservedState toConserved(const PrimitiveState& s) {
+    226:  ConservedState q{};
+    235:// Integrate a per-unit-area flux over a face (section 20). Kept separate from hllcFlux so that
+    237:CFD_HLLC_HOST_DEVICE inline FluxVector integrateOverArea(const FluxVector& f, Real area) {
+    238:  FluxVector o{};
+    280:CFD_HLLC_HOST_DEVICE inline HllcResult hllcFlux(
+    329:  const FluxVector fL = eulerFlux(l, unitNormal);
+    330:  const FluxVector fR = eulerFlux(r, unitNormal);
+    372:    const ConservedState q = toConserved(l);
+    382:  const ConservedState q = toConserved(r);
+    401:// It is NOT a fallback and is NOT reachable from hllcFlux(). Section 15 permits a fallback only if
+    408:  HllcResult out = hllcFlux(l, r, unitNormal, gamma, estimator);
+    414:  const FluxVector fL = eulerFlux(l, unitNormal);
+    415:  const FluxVector fR = eulerFlux(r, unitNormal);
+    416:  const ConservedState qL = toConserved(l);
+    417:  const ConservedState qR = toConserved(r);
+    439:// The point of this boundary is that hllcFlux() above never learns where its two states came from.
+    441:// ReconstructedFaceState; nothing inside the HLLC core changes. Responsibilities stay split as
+    444:struct ReconstructedFaceState {
+    451:              // Higher-order modes are added here WITHOUT touching hllcFlux().
+    456:CFD_HLLC_HOST_DEVICE inline ReconstructedFaceState reconstructFirstOrder(
+    458:  ReconstructedFaceState s{};
+    467:CFD_HLLC_HOST_DEVICE inline ReconstructedFaceState reconstructFirstOrderBoundary(
+    469:  ReconstructedFaceState s{};
+    489:[[nodiscard]] PrimitiveState makePrimitiveState(const TotalEnergyState& thermodynamics,
+    494:[[nodiscard]] PrimitiveState makePrimitiveStateFromConserved(const TotalEnergyState& thermodynamics,
+    495:                                                             const ConservedState& q);
+    497:// hllcFlux() with the header's StateValidity translated into cfd::InvalidArgumentError, and with
+    498:// the star-state admissibility proof actually checked. Use this from host code; use hllcFlux()
+    500:[[nodiscard]] HllcResult hllcFluxChecked(
+
+### 1j. the GPU solver surface -- is there a resident solve to extend? ###
+    GpuResidentSolve         files: 6
+    ResidentSimple           files: 0
+    DeviceHllc               files: 2
+    residentSolve            files: 6
+
+done: 2026-09-27T09:02:39Z

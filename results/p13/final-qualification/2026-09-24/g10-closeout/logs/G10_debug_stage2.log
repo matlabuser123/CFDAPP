@@ -1,0 +1,43 @@
+P13 G10 -- Debug+GUI, FULL suite at the amended timeout
+date: 2026-09-25T22:57:02Z
+
+### policy, stated before the run ###
+  OMP_NUM_THREADS : 1              unchanged
+  -j              : 8              unchanged
+  --timeout       : 14400          AMENDED from 7200 (Debug+GUI only)
+  exclusions      : the same 5, verbatim
+    SSTAutomaticWallChannel|SSTCompositeWallChannel|SSTMomentumFluxChannel|WallArchitectureDiagnostic|DriverSeegmiller\.CorrectedMeshSequence
+  rebuild         : NONE -- the binaries under test are the ones the 7200 s run used
+  machine         : cores=32  loadavg=1.03
+
+### pre-run integrity: no rebuild, no source change ###
+  qual-debug GUI test binary mtime : 2026-09-25 21:14:12
+  registered tests in this tree    : 2612
+  SOURCE_FINGERPRINT_V2 before     : 8652dda040ac451e0fab8491fa90f495976513a91a30a45ef71cbf65eb0f292c
+
+############ FULL Debug+GUI suite, --timeout 14400 ############
+  ctest exit status : 0
+  total tests       : 2550
+  passed            : 100% tests passed
+  failed            : 0
+  Not Run           : 0
+  Disabled          : 98
+  runtime           : 11850 s (197.5 min)
+
+### the three previously timed-out tests -- must PASS ###
+  DriverSeegmillerInlet.MappedInletPreservesTheMassFlow      Passed  9390.87 sec
+  DriverSeegmiller.CorrectedSequenceIsDeterministic          Passed  11622.20 sec
+  DriverSeegmillerInlet.MediumGridAB                         Passed  11849.28 sec
+
+### the two G4-added rows ###
+  CliGuiEquivalenceTest.AThermalCaseAgreesBitwise                Passed    0.29 sec
+  CliGuiCheckpointTest.ACheckpointWrittenByTheGuiResumesInTheCli Passed    0.24 sec
+
+VERDICT: Debug+GUI PASS -- 2550 / 2550, 0 failed, all three amended tests PASS
+
+### SOURCE_FINGERPRINT_V2 after -- nothing may have changed to obtain this ###
+  after    : 8652dda040ac451e0fab8491fa90f495976513a91a30a45ef71cbf65eb0f292c
+  required : 8652dda040ac451e0fab8491fa90f495976513a91a30a45ef71cbf65eb0f292c
+  MATCH
+
+done: 2026-09-26T02:15:06Z

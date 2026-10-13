@@ -1,0 +1,1151 @@
+label     : G3_midrun_probe
+date      : 2026-09-24T19:08:18Z
+HEAD      : 3bd32f918656f471e72b5f6ac7cb6c2cbf75a274
+HEAD short: 3bd32f918656
+branch    : main
+dirty     : YES
+
+=== tracked changes, stat ===
+ CMakeLists.txt                                     |  38 ++
+ ROADMAP.md                                         |   8 +-
+ TODO.md                                            | 667 ++++++++++++++++++++-
+ apps/cli/main.cpp                                  | 139 ++++-
+ apps/gui/CMakeLists.txt                            |   3 +
+ apps/gui/SimulationController.cpp                  |  88 ++-
+ apps/gui/SimulationController.hpp                  |  63 ++
+ apps/gui/SimulationControllerEditing.cpp           |  64 +-
+ apps/gui/tests/test_case_editing.cpp               |  38 ++
+ benchmarks/CMakeLists.txt                          |  29 +
+ benchmarks/cpu/benchmark_openmp_scaling.cpp        |  71 ++-
+ benchmarks/cpu/benchmark_runner.cpp                |  28 +-
+ benchmarks/cpu/benchmark_spmv_scaling.cpp          |   2 +-
+ benchmarks/gpu/benchmark_cuda_end_to_end.cpp       | 178 +++---
+ benchmarks/gpu/benchmark_gpu_preconditioner.cpp    |  60 +-
+ benchmarks/gpu/benchmark_gpu_spmv.cpp              |  18 +-
+ benchmarks/gpu/benchmark_large_grid_stress.cpp     | 109 ++--
+ cases/heated_cavity/results/metadata.json          |  15 +-
+ cmake/Packaging.cmake                              |  93 ++-
+ cuda/CMakeLists.txt                                |  13 +
+ cuda/kernels/DeviceBoundaryConditions.cpp          |  34 +-
+ cuda/kernels/DeviceConvectionPlan.cpp              |  15 +-
+ cuda/kernels/DeviceDiffusionPlan.cpp               |  12 +-
+ cuda/kernels/DeviceGradientPlan.cpp                |  26 +-
+ cuda/kernels/DeviceMomentumAssemblyKernel.cu       |  22 +-
+ cuda/kernels/DeviceVectorOpsKernel.cu              | 109 +++-
+ cuda/kernels/GpuLinearSolverCuda.cpp               | 124 +++-
+ cuda/kernels/GpuResidentSolveKernel.cu             |   6 +
+ cuda/kernels/GpuSimpleDiscretizationCuda.cpp       | 197 ++++--
+ docs/user_guide/cli.md                             | 146 +++++
+ include/cfd/algebra/SparseMatrix.hpp               |  24 +
+ include/cfd/app/ProjectRunner.hpp                  |  76 +++
+ include/cfd/boundary/BoundaryCondition.hpp         |   6 +
+ include/cfd/core/Exception.hpp                     |  78 +++
+ include/cfd/core/Logger.hpp                        |  16 +
+ include/cfd/core/Version.hpp.in                    |   8 +
+ .../cfd/discretization/NonOrthogonalDiffusion.hpp  |   2 +-
+ include/cfd/discretization/TimeDerivative.hpp      |  27 +
+ include/cfd/gpu/BoundaryEncoding.hpp               |  55 ++
+ include/cfd/gpu/DeviceBuffer.hpp                   |   9 +-
+ include/cfd/gpu/DeviceDiffusion.hpp                |   2 +-
+ include/cfd/gpu/DeviceDiffusionTerms.hpp           |  25 +-
+ include/cfd/gpu/DeviceMomentumAssembly.hpp         |  10 +-
+ include/cfd/gpu/DeviceVectorOps.hpp                |  20 +
+ include/cfd/gpu/GPUExecutionStats.hpp              |  25 +
+ include/cfd/gpu/GpuSimpleDiscretization.hpp        |  71 +++
+ include/cfd/io/JSONWriter.hpp                      |  22 +
+ include/cfd/io/SimulationSetup.hpp                 |  31 +
+ include/cfd/io/case/PhysicsConfig.hpp              |  53 ++
+ include/cfd/physics/MomentumEquation.hpp           |  15 +-
+ include/cfd/pressure_velocity/RelaxedMomentum.hpp  |   6 +-
+ include/cfd/pressure_velocity/SIMPLE.hpp           |  19 +
+ include/cfd/pressure_velocity/SIMPLEResult.hpp     |  24 +
+ include/cfd/thermal/EnergyEquation.hpp             |  82 ++-
+ include/cfd/thermal/ThermalSolver.hpp              |  87 +++
+ include/cfd/turbulence/KEpsilonEquation.hpp        | 155 +++--
+ include/cfd/turbulence/KEpsilonModel.hpp           | 149 ++++-
+ include/cfd/turbulence/KOmegaEquation.hpp          |   6 +-
+ include/cfd/turbulence/KOmegaModel.hpp             |   2 +-
+ include/cfd/turbulence/SSTEquation.hpp             |   2 +-
+ include/cfd/turbulence/SSTModel.hpp                |  82 ++-
+ include/cfd/turbulence/TurbulenceModel.hpp         |  85 +++
+ include/cfd/turbulence/TurbulenceProduction.hpp    |  32 +
+ .../grid_convergence/natural_convection_ra1e3.json |   6 +-
+ .../grid_convergence/natural_convection_ra1e3.md   |   6 +-
+ .../grid_convergence/poiseuille_flow.json          |   6 +-
+ .../validation/grid_convergence/poiseuille_flow.md |   6 +-
+ .../validation/mms/compressible_simple_mms.json    |   6 +-
+ results/validation/mms/compressible_simple_mms.md  |   6 +-
+ results/validation/mms/distorted_mesh_mms.json     |   8 +-
+ results/validation/mms/distorted_mesh_mms.md       |   4 +-
+ .../mms/distorted_mesh_momentum_mms.json           |   8 +-
+ .../validation/mms/distorted_mesh_momentum_mms.md  |   8 +-
+ .../validation/mms/distorted_mesh_simple_mms.json  |   6 +-
+ .../validation/mms/distorted_mesh_simple_mms.md    |   6 +-
+ results/validation/mms/momentum_mms.json           |   8 +-
+ results/validation/mms/momentum_mms.md             |   4 +-
+ .../validation/mms/momentum_mms_linear_upwind.json |   8 +-
+ .../validation/mms/momentum_mms_linear_upwind.md   |   6 +-
+ results/validation/mms/momentum_mms_upwind.json    |   8 +-
+ results/validation/mms/momentum_mms_upwind.md      |   4 +-
+ .../mms/scalar_advection_diffusion_mms.json        |  10 +-
+ .../mms/scalar_advection_diffusion_mms.md          |   4 +-
+ results/validation/mms/simple_mms.json             |   6 +-
+ results/validation/mms/simple_mms.md               |   6 +-
+ results/validation/mms/simple_mms_upwind.json      |   6 +-
+ results/validation/mms/simple_mms_upwind.md        |   4 +-
+ .../natural_convection/Ra1e3/10x10/validation.json |   2 +-
+ .../Ra1e3/10x10_det_a/validation.json              |   2 +-
+ .../Ra1e3/10x10_det_b/validation.json              |   2 +-
+ .../Ra1e3/10x10_refinement_pair/validation.json    |   2 +-
+ .../Ra1e3/10x10_sign_check/validation.json         |   2 +-
+ .../validation.json                                |   2 +-
+ .../Ra1e3/10x10_zero_beta/validation.json          |   2 +-
+ .../natural_convection/Ra1e3/15x15/validation.json |   2 +-
+ .../natural_convection/Ra1e3/20x20/validation.json |   2 +-
+ .../validation.json                                |   2 +-
+ .../cavity_re100/20x20_quick/validation.json       |   2 +-
+ ...nnel_transpiration_graded_grid_convergence.json |   6 +-
+ ...curved_channel_multiblock_grid_convergence.json |   6 +-
+ results/validation/production/poiseuille.json      |  20 +-
+ results/validation/production/poiseuille.md        |  20 +-
+ .../poiseuille_distorted_grid_convergence.json     |   6 +-
+ .../production/scheme_comparison_20x20.json        |   8 +-
+ .../production/scheme_comparison_20x20.md          |   8 +-
+ .../production/turbulent_channel_ci.json           |   2 +-
+ .../validation/production/turbulent_channel_ci.md  |   2 +-
+ .../channel_flow/k_epsilon/coarse/validation.json  |   2 +-
+ .../channel_flow/k_epsilon/medium/validation.json  |   2 +-
+ .../channel_flow/k_omega/coarse/validation.json    |   2 +-
+ .../channel_flow/k_omega/medium/validation.json    |   2 +-
+ .../channel_flow/sst/coarse/validation.json        |   2 +-
+ .../channel_flow/sst/medium/validation.json        |   2 +-
+ src/CMakeLists.txt                                 |  31 +
+ src/algebra/SparseMatrix.cpp                       |  28 +
+ src/app/ProjectRunner.cpp                          | 369 +++++++++++-
+ src/core/Logger.cpp                                |  43 +-
+ src/core/Version.cpp                               |   2 +
+ src/discretization/NonOrthogonalDiffusion.cpp      |   5 +
+ src/discretization/TimeDerivative.cpp              |  36 ++
+ src/gpu/GpuSimpleDiscretization.cpp                |  11 +
+ src/io/CSVWriter.cpp                               |   9 +
+ src/io/CaseBuilder.cpp                             | 133 +++-
+ src/io/CaseReader.cpp                              |  20 +-
+ src/io/DeterministicOstream.hpp                    |  31 +
+ src/io/JSONWriter.cpp                              |  30 +
+ src/io/VTKWriter.cpp                               |   6 +
+ src/io/case/JsonUtil.cpp                           |  15 +-
+ src/io/case/PhysicsConfigParser.cpp                | 218 ++++++-
+ src/physics/MomentumEquation.cpp                   |  15 +-
+ src/pressure_velocity/RelaxedMomentum.cpp          |   5 +-
+ src/pressure_velocity/SIMPLE.cpp                   | 196 +++++-
+ src/thermal/EnergyEquation.cpp                     | 151 ++++-
+ src/thermal/ThermalSolver.cpp                      | 174 ++++++
+ src/turbulence/KEpsilonEquation.cpp                | 202 ++-----
+ src/turbulence/KEpsilonModel.cpp                   | 247 +++++++-
+ src/turbulence/KOmegaModel.cpp                     |   4 +
+ src/turbulence/SSTModel.cpp                        |  99 ++-
+ src/turbulence/TurbulenceProduction.cpp            |  15 +
+ tests/CMakeLists.txt                               | 129 ++++
+ .../cases/does_not_converge/results/metadata.json  |  15 +-
+ .../mesh_quality_warning_cli/results/metadata.json |  15 +-
+ .../valid_cavity_cli_smoke/results/metadata.json   |  15 +-
+ tests/integration/CMakeLists.txt                   |   1 +
+ .../backward_facing_step/CMakeLists.txt            |  10 +
+ tests/integration/case/CMakeLists.txt              |  11 +
+ tests/integration/io/CMakeLists.txt                |   3 +
+ tests/integration/restart/CMakeLists.txt           |   4 +
+ tests/integration/thermal/CMakeLists.txt           |  19 +
+ .../integration/turbulence_channel/CMakeLists.txt  |  16 +
+ .../ChannelFlowValidationUtils.cpp                 |  49 +-
+ .../ChannelFlowValidationUtils.hpp                 |  47 +-
+ .../test_channel_flow_validation.cpp               |   9 +-
+ tests/unit/CMakeLists.txt                          |   1 +
+ tests/unit/core/test_logger.cpp                    | 111 +++-
+ tests/unit/gpu/CMakeLists.txt                      |  41 ++
+ tests/unit/gpu/test_gpu_linear_solver.cpp          | 225 +++++++
+ tests/unit/io/CMakeLists.txt                       |   4 +
+ tests/unit/io/test_turbulence_case.cpp             | 113 ++++
+ tests/unit/thermal/CMakeLists.txt                  |   9 +
+ tests/unit/turbulence/CMakeLists.txt               |  14 +
+ tests/unit/turbulence/test_kepsilon_equation.cpp   |   7 +-
+ .../turbulence/test_turbulence_non_orthogonal.cpp  |   8 +-
+ 163 files changed, 6078 insertions(+), 876 deletions(-)
+
+=== status (short) ===
+ M CMakeLists.txt
+ M ROADMAP.md
+ M TODO.md
+ M apps/cli/main.cpp
+ M apps/gui/CMakeLists.txt
+ M apps/gui/SimulationController.cpp
+ M apps/gui/SimulationController.hpp
+ M apps/gui/SimulationControllerEditing.cpp
+ M apps/gui/tests/test_case_editing.cpp
+ M benchmarks/CMakeLists.txt
+ M benchmarks/cpu/benchmark_openmp_scaling.cpp
+ M benchmarks/cpu/benchmark_runner.cpp
+ M benchmarks/cpu/benchmark_spmv_scaling.cpp
+ M benchmarks/gpu/benchmark_cuda_end_to_end.cpp
+ M benchmarks/gpu/benchmark_gpu_preconditioner.cpp
+ M benchmarks/gpu/benchmark_gpu_spmv.cpp
+ M benchmarks/gpu/benchmark_large_grid_stress.cpp
+ M cases/heated_cavity/results/metadata.json
+ M cmake/Packaging.cmake
+ M cuda/CMakeLists.txt
+ M cuda/kernels/DeviceBoundaryConditions.cpp
+ M cuda/kernels/DeviceConvectionPlan.cpp
+ M cuda/kernels/DeviceDiffusionPlan.cpp
+ M cuda/kernels/DeviceGradientPlan.cpp
+ M cuda/kernels/DeviceMomentumAssemblyKernel.cu
+ M cuda/kernels/DeviceVectorOpsKernel.cu
+ M cuda/kernels/GpuLinearSolverCuda.cpp
+ M cuda/kernels/GpuResidentSolveKernel.cu
+ M cuda/kernels/GpuSimpleDiscretizationCuda.cpp
+ M docs/user_guide/cli.md
+ M include/cfd/algebra/SparseMatrix.hpp
+ M include/cfd/app/ProjectRunner.hpp
+ M include/cfd/boundary/BoundaryCondition.hpp
+ M include/cfd/core/Exception.hpp
+ M include/cfd/core/Logger.hpp
+ M include/cfd/core/Version.hpp.in
+ M include/cfd/discretization/NonOrthogonalDiffusion.hpp
+ M include/cfd/discretization/TimeDerivative.hpp
+ M include/cfd/gpu/BoundaryEncoding.hpp
+ M include/cfd/gpu/DeviceBuffer.hpp
+ M include/cfd/gpu/DeviceDiffusion.hpp
+ M include/cfd/gpu/DeviceDiffusionTerms.hpp
+ M include/cfd/gpu/DeviceMomentumAssembly.hpp
+ M include/cfd/gpu/DeviceVectorOps.hpp
+ M include/cfd/gpu/GPUExecutionStats.hpp
+ M include/cfd/gpu/GpuSimpleDiscretization.hpp
+ M include/cfd/io/JSONWriter.hpp
+ M include/cfd/io/SimulationSetup.hpp
+ M include/cfd/io/case/PhysicsConfig.hpp
+ M include/cfd/physics/MomentumEquation.hpp
+ M include/cfd/pressure_velocity/RelaxedMomentum.hpp
+ M include/cfd/pressure_velocity/SIMPLE.hpp
+ M include/cfd/pressure_velocity/SIMPLEResult.hpp
+ M include/cfd/thermal/EnergyEquation.hpp
+ M include/cfd/thermal/ThermalSolver.hpp
+ M include/cfd/turbulence/KEpsilonEquation.hpp
+ M include/cfd/turbulence/KEpsilonModel.hpp
+ M include/cfd/turbulence/KOmegaEquation.hpp
+ M include/cfd/turbulence/KOmegaModel.hpp
+ M include/cfd/turbulence/SSTEquation.hpp
+ M include/cfd/turbulence/SSTModel.hpp
+ M include/cfd/turbulence/TurbulenceModel.hpp
+ M include/cfd/turbulence/TurbulenceProduction.hpp
+ M results/validation/grid_convergence/natural_convection_ra1e3.json
+ M results/validation/grid_convergence/natural_convection_ra1e3.md
+ M results/validation/grid_convergence/poiseuille_flow.json
+ M results/validation/grid_convergence/poiseuille_flow.md
+ M results/validation/mms/compressible_simple_mms.json
+ M results/validation/mms/compressible_simple_mms.md
+ M results/validation/mms/distorted_mesh_mms.json
+ M results/validation/mms/distorted_mesh_mms.md
+ M results/validation/mms/distorted_mesh_momentum_mms.json
+ M results/validation/mms/distorted_mesh_momentum_mms.md
+ M results/validation/mms/distorted_mesh_simple_mms.json
+ M results/validation/mms/distorted_mesh_simple_mms.md
+ M results/validation/mms/momentum_mms.json
+ M results/validation/mms/momentum_mms.md
+ M results/validation/mms/momentum_mms_linear_upwind.json
+ M results/validation/mms/momentum_mms_linear_upwind.md
+ M results/validation/mms/momentum_mms_upwind.json
+ M results/validation/mms/momentum_mms_upwind.md
+ M results/validation/mms/scalar_advection_diffusion_mms.json
+ M results/validation/mms/scalar_advection_diffusion_mms.md
+ M results/validation/mms/simple_mms.json
+ M results/validation/mms/simple_mms.md
+ M results/validation/mms/simple_mms_upwind.json
+ M results/validation/mms/simple_mms_upwind.md
+ M results/validation/natural_convection/Ra1e3/10x10/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_det_a/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_det_b/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_refinement_pair/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_sign_check/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_variable_property_regression/validation.json
+ M results/validation/natural_convection/Ra1e3/10x10_zero_beta/validation.json
+ M results/validation/natural_convection/Ra1e3/15x15/validation.json
+ M results/validation/natural_convection/Ra1e3/20x20/validation.json
+ M results/validation/natural_convection/Ra1e3/20x20_variable_property_regression/validation.json
+ M results/validation/production/cavity_re100/20x20_quick/validation.json
+ M results/validation/production/channel_transpiration_graded_grid_convergence.json
+ M results/validation/production/curved_channel_multiblock_grid_convergence.json
+ M results/validation/production/poiseuille.json
+ M results/validation/production/poiseuille.md
+ M results/validation/production/poiseuille_distorted_grid_convergence.json
+ M results/validation/production/scheme_comparison_20x20.json
+ M results/validation/production/scheme_comparison_20x20.md
+ M results/validation/production/turbulent_channel_ci.json
+ M results/validation/production/turbulent_channel_ci.md
+ M results/validation/turbulence/channel_flow/k_epsilon/coarse/validation.json
+ M results/validation/turbulence/channel_flow/k_epsilon/medium/validation.json
+ M results/validation/turbulence/channel_flow/k_omega/coarse/validation.json
+ M results/validation/turbulence/channel_flow/k_omega/medium/validation.json
+ M results/validation/turbulence/channel_flow/sst/coarse/validation.json
+ M results/validation/turbulence/channel_flow/sst/medium/validation.json
+ M src/CMakeLists.txt
+ M src/algebra/SparseMatrix.cpp
+ M src/app/ProjectRunner.cpp
+ M src/core/Logger.cpp
+ M src/core/Version.cpp
+ M src/discretization/NonOrthogonalDiffusion.cpp
+ M src/discretization/TimeDerivative.cpp
+ M src/gpu/GpuSimpleDiscretization.cpp
+ M src/io/CSVWriter.cpp
+ M src/io/CaseBuilder.cpp
+ M src/io/CaseReader.cpp
+ M src/io/DeterministicOstream.hpp
+ M src/io/JSONWriter.cpp
+ M src/io/VTKWriter.cpp
+ M src/io/case/JsonUtil.cpp
+ M src/io/case/PhysicsConfigParser.cpp
+ M src/physics/MomentumEquation.cpp
+ M src/pressure_velocity/RelaxedMomentum.cpp
+ M src/pressure_velocity/SIMPLE.cpp
+ M src/thermal/EnergyEquation.cpp
+ M src/thermal/ThermalSolver.cpp
+ M src/turbulence/KEpsilonEquation.cpp
+ M src/turbulence/KEpsilonModel.cpp
+ M src/turbulence/KOmegaModel.cpp
+ M src/turbulence/SSTModel.cpp
+ M src/turbulence/TurbulenceProduction.cpp
+ M tests/CMakeLists.txt
+ M tests/data/cases/does_not_converge/results/metadata.json
+ M tests/data/cases/mesh_quality_warning_cli/results/metadata.json
+ M tests/data/cases/valid_cavity_cli_smoke/results/metadata.json
+ M tests/integration/CMakeLists.txt
+ M tests/integration/backward_facing_step/CMakeLists.txt
+ M tests/integration/case/CMakeLists.txt
+ M tests/integration/io/CMakeLists.txt
+ M tests/integration/restart/CMakeLists.txt
+ M tests/integration/thermal/CMakeLists.txt
+ M tests/integration/turbulence_channel/CMakeLists.txt
+ M tests/integration/turbulence_channel/ChannelFlowValidationUtils.cpp
+ M tests/integration/turbulence_channel/ChannelFlowValidationUtils.hpp
+ M tests/integration/turbulence_channel/test_channel_flow_validation.cpp
+ M tests/unit/CMakeLists.txt
+ M tests/unit/core/test_logger.cpp
+ M tests/unit/gpu/CMakeLists.txt
+ M tests/unit/gpu/test_gpu_linear_solver.cpp
+ M tests/unit/io/CMakeLists.txt
+ M tests/unit/io/test_turbulence_case.cpp
+ M tests/unit/thermal/CMakeLists.txt
+ M tests/unit/turbulence/CMakeLists.txt
+ M tests/unit/turbulence/test_kepsilon_equation.cpp
+ M tests/unit/turbulence/test_turbulence_non_orthogonal.cpp
+?? apps/gui/tests/test_cli_gui_equivalence.cpp
+?? benchmarks/BenchmarkOutput.hpp
+?? cases/turbulent_heated_channel/
+?? cli_log_level_valid_cavity_cli_smoke/
+?? cmake/PackageNaming.cmake
+?? cuda/kernels/DeviceKEpsilonCuda.cpp
+?? cuda/kernels/DeviceScalarTransportKernel.cu
+?? cuda/kernels/DeviceTurbulenceKernel.cu
+?? cuda/kernels/GpuKEpsilonCorrectionCuda.cpp
+?? docs/developer_guide/transport.md
+?? include/cfd/boundary/ConvectiveHeatTransfer.hpp
+?? include/cfd/gpu/DeviceKEpsilon.hpp
+?? include/cfd/gpu/DeviceScalarTransport.hpp
+?? include/cfd/gpu/DeviceTurbulence.hpp
+?? include/cfd/gpu/GpuKEpsilonCorrection.hpp
+?? include/cfd/gpu/GpuSimpleResidentTurbulence.hpp
+?? include/cfd/gpu/TurbulenceBackendTrace.hpp
+?? include/cfd/io/CheckpointReader.hpp
+?? include/cfd/io/CheckpointWriter.hpp
+?? include/cfd/io/case/CaseFingerprint.hpp
+?? include/cfd/pressure_velocity/SIMPLECheckpoint.hpp
+?? include/cfd/pressure_velocity/SIMPLEContinuation.hpp
+?? include/cfd/thermal/Enthalpy.hpp
+?? include/cfd/thermal/TemperatureDependentProperty.hpp
+?? include/cfd/thermal/ThermalWallFunction.hpp
+?? include/cfd/thermal/TurbulentConductivity.hpp
+?? include/cfd/transport/
+?? include/cfd/turbulence/WallFunctions.hpp
+?? include/cfd/turbulence/WallTreatment.hpp
+?? results/gpu-closeout/RESUME.md
+?? results/gpu-closeout/ci/
+?? results/gpu-closeout/commit/commit-record.txt
+?? results/gpu-closeout/push/
+?? results/gpu-closeout/summary.md
+?? results/p13/
+?? results/p14/
+?? results/p15/
+?? results/p16/
+?? scripts/benchmarks/
+?? src/boundary/ConvectiveHeatTransfer.cpp
+?? src/gpu/GpuKEpsilonCorrection.cpp
+?? src/gpu/TurbulenceBackendTrace.cpp
+?? src/io/CheckpointReader.cpp
+?? src/io/CheckpointWriter.cpp
+?? src/io/case/CaseFingerprint.cpp
+?? src/pressure_velocity/SIMPLECheckpoint.cpp
+?? src/pressure_velocity/SIMPLEContinuation.cpp
+?? src/thermal/Enthalpy.cpp
+?? src/thermal/TemperatureDependentProperty.cpp
+?? src/thermal/ThermalWallFunction.cpp
+?? src/thermal/TurbulentConductivity.cpp
+?? src/transport/
+?? src/turbulence/WallFunctions.cpp
+?? src/turbulence/WallTreatment.cpp
+?? tests/cmake/
+?? tests/integration/backward_facing_step/DriverSeegmillerCase.cpp
+?? tests/integration/backward_facing_step/DriverSeegmillerCase.hpp
+?? tests/integration/backward_facing_step/DriverSeegmillerPrecursor.cpp
+?? tests/integration/backward_facing_step/test_driver_seegmiller.cpp
+?? tests/integration/backward_facing_step/test_driver_seegmiller_inlet.cpp
+?? tests/integration/backward_facing_step/test_sst_separation.cpp
+?? tests/integration/case/test_checkpoint_production_case.cpp
+?? tests/integration/case/test_turbulent_heat_transfer_benchmark.cpp
+?? tests/integration/case/test_turbulent_thermal_conservation.cpp
+?? tests/integration/case/test_turbulent_thermal_production_case.cpp
+?? tests/integration/case/test_variable_property_production_case.cpp
+?? tests/integration/io/test_export_write_failure.cpp
+?? tests/integration/restart/test_simple_checkpoint.cpp
+?? tests/integration/thermal/test_thermal_validation.cpp
+?? tests/integration/transport/
+?? tests/integration/turbulence_channel/ChannelReTau590.hpp
+?? tests/integration/turbulence_channel/test_wall_function_channel.cpp
+?? tests/unit/gpu/KEpsilonModelTestAccess.hpp
+?? tests/unit/gpu/test_boundary_encoding.cpp
+?? tests/unit/gpu/test_device_effective_viscosity.cpp
+?? tests/unit/gpu/test_device_epsilon_transport.cpp
+?? tests/unit/gpu/test_device_k_transport.cpp
+?? tests/unit/gpu/test_device_kepsilon_correction.cpp
+?? tests/unit/gpu/test_device_max_abs_difference.cpp
+?? tests/unit/gpu/test_device_scalar_transport_semantics.cpp
+?? tests/unit/gpu/test_device_turbulence_algebra.cpp
+?? tests/unit/gpu/test_device_wall_face_viscosity.cpp
+?? tests/unit/gpu/test_krylov_blocker_reproducer.cpp
+?? tests/unit/gpu/test_production_kepsilon_backend.cpp
+?? tests/unit/gpu/test_resident_channel_production.cpp
+?? tests/unit/gpu/test_resident_kepsilon_entry.cpp
+?? tests/unit/gpu/test_resident_turbulent_simple.cpp
+?? tests/unit/gpu/test_resident_wall_exchange.cpp
+?? tests/unit/gpu/test_turbulence_backend_trace.cpp
+?? tests/unit/io/test_case_diagnostic.cpp
+?? tests/unit/io/test_thermal_property_case.cpp
+?? tests/unit/thermal/test_convective_boundary.cpp
+?? tests/unit/thermal/test_enthalpy_properties.cpp
+?? tests/unit/thermal/test_thermal_transient.cpp
+?? tests/unit/thermal/test_thermal_wall_function.cpp
+?? tests/unit/thermal/test_turbulent_conductivity.cpp
+?? tests/unit/thermal/test_turbulent_thermal_coupling.cpp
+?? tests/unit/transport/
+?? tests/unit/turbulence/test_automatic_wall_treatment.cpp
+?? tests/unit/turbulence/test_momentum_wall_flux.cpp
+?? tests/unit/turbulence/test_p14_migration_equivalence.cpp
+?? tests/unit/turbulence/test_spalding_wall_law.cpp
+?? tests/unit/turbulence/test_sst_wall_functions.cpp
+?? tests/unit/turbulence/test_wall_function_wiring.cpp
+?? tests/unit/turbulence/test_wall_functions.cpp
+?? tests/unit/turbulence/test_wall_treatment.cpp
+
+=== untracked files (excluding ignored) ===
+apps/gui/tests/test_cli_gui_equivalence.cpp
+benchmarks/BenchmarkOutput.hpp
+cases/turbulent_heated_channel/boundaries.json
+cases/turbulent_heated_channel/case.json
+cases/turbulent_heated_channel/geometry.json
+cases/turbulent_heated_channel/mesh.json
+cases/turbulent_heated_channel/physics.json
+cases/turbulent_heated_channel/results/fields.csv
+cases/turbulent_heated_channel/results/metadata.json
+cases/turbulent_heated_channel/results/residuals.csv
+cases/turbulent_heated_channel/results/solution.vtk
+cases/turbulent_heated_channel/solver.json
+cli_log_level_valid_cavity_cli_smoke/boundaries.json
+cli_log_level_valid_cavity_cli_smoke/case.json
+cli_log_level_valid_cavity_cli_smoke/geometry.json
+cli_log_level_valid_cavity_cli_smoke/mesh.json
+cli_log_level_valid_cavity_cli_smoke/physics.json
+cli_log_level_valid_cavity_cli_smoke/results/fields.csv
+cli_log_level_valid_cavity_cli_smoke/results/metadata.json
+cli_log_level_valid_cavity_cli_smoke/results/residuals.csv
+cli_log_level_valid_cavity_cli_smoke/results/solution.vtk
+cli_log_level_valid_cavity_cli_smoke/solver.json
+cmake/PackageNaming.cmake
+cuda/kernels/DeviceKEpsilonCuda.cpp
+cuda/kernels/DeviceScalarTransportKernel.cu
+cuda/kernels/DeviceTurbulenceKernel.cu
+cuda/kernels/GpuKEpsilonCorrectionCuda.cpp
+docs/developer_guide/transport.md
+include/cfd/boundary/ConvectiveHeatTransfer.hpp
+include/cfd/gpu/DeviceKEpsilon.hpp
+include/cfd/gpu/DeviceScalarTransport.hpp
+include/cfd/gpu/DeviceTurbulence.hpp
+include/cfd/gpu/GpuKEpsilonCorrection.hpp
+include/cfd/gpu/GpuSimpleResidentTurbulence.hpp
+include/cfd/gpu/TurbulenceBackendTrace.hpp
+include/cfd/io/CheckpointReader.hpp
+include/cfd/io/CheckpointWriter.hpp
+include/cfd/io/case/CaseFingerprint.hpp
+include/cfd/pressure_velocity/SIMPLECheckpoint.hpp
+include/cfd/pressure_velocity/SIMPLEContinuation.hpp
+include/cfd/thermal/Enthalpy.hpp
+include/cfd/thermal/TemperatureDependentProperty.hpp
+include/cfd/thermal/ThermalWallFunction.hpp
+include/cfd/thermal/TurbulentConductivity.hpp
+include/cfd/transport/ScalarTransport.hpp
+include/cfd/turbulence/WallFunctions.hpp
+include/cfd/turbulence/WallTreatment.hpp
+results/gpu-closeout/RESUME.md
+results/gpu-closeout/ci/ci-FAILED-all-attempts.txt
+results/gpu-closeout/ci/reprobe-2.txt
+results/gpu-closeout/ci/run-35579942600.json
+results/gpu-closeout/commit/commit-record.txt
+results/gpu-closeout/push/push-record.txt
+results/gpu-closeout/summary.md
+results/p13/benchmarks/acceptance_gate.md
+results/p13/benchmarks/acceptance_gate_A1.md
+results/p13/benchmarks/audit.md
+results/p13/benchmarks/data/baseline-linux-x64/benchmark_20x20.json
+results/p13/benchmarks/data/baseline-linux-x64/benchmark_40x40.json
+results/p13/benchmarks/data/baseline-linux-x64/benchmark_80x80.json
+results/p13/benchmarks/data/baseline-linux-x64/environment.json
+results/p13/benchmarks/data/baseline-linux-x64/suite_environment.txt
+results/p13/benchmarks/summary.md
+results/p13/benchmarks/tools/build_check.sh
+results/p13/benchmarks/tools/check_exit.sh
+results/p13/benchmarks/tools/controls.sh
+results/p13/benchmarks/tools/controls_rerun.sh
+results/p13/benchmarks/tools/final.sh
+results/p13/benchmarks/tools/load_check.sh
+results/p13/benchmarks/tools/measure_noise.sh
+results/p13/benchmarks/tools/record_and_drive.sh
+results/p13/benchmarks/tools/try_compare.sh
+results/p13/benchmarks/tools/verify_smoke.sh
+results/p13/case-validation/acceptance_gate.md
+results/p13/case-validation/acceptance_gate_A1.md
+results/p13/case-validation/acceptance_gate_A2.md
+results/p13/case-validation/acceptance_gate_A3.md
+results/p13/case-validation/audit.md
+results/p13/case-validation/data/baseline-messages/matrix-cavity-2d.csv
+results/p13/case-validation/data/baseline-messages/matrix-compressible-coupled.csv
+results/p13/case-validation/data/baseline-messages/matrix-compressible.csv
+results/p13/case-validation/data/baseline-messages/matrix-duct-3d.csv
+results/p13/case-validation/data/baseline-messages/matrix-graded.csv
+results/p13/case-validation/data/baseline-messages/matrix-multiblock.csv
+results/p13/case-validation/data/baseline-messages/matrix-multiphase.csv
+results/p13/case-validation/data/baseline-messages/matrix-quad-2d.csv
+results/p13/case-validation/data/baseline-messages/matrix-species.csv
+results/p13/case-validation/data/baseline-messages/matrix-thermal-species.csv
+results/p13/case-validation/data/baseline-messages/matrix-thermal.csv
+results/p13/case-validation/data/baseline-messages/matrix-turbulence.csv
+results/p13/case-validation/data/baseline_case/boundaries.json
+results/p13/case-validation/data/baseline_case/case.json
+results/p13/case-validation/data/baseline_case/geometry.json
+results/p13/case-validation/data/baseline_case/mesh.json
+results/p13/case-validation/data/baseline_case/physics.json
+results/p13/case-validation/data/baseline_case/solver.json
+results/p13/case-validation/data/post-change-messages/matrix-cavity-2d.csv
+results/p13/case-validation/data/post-change-messages/matrix-compressible-coupled.csv
+results/p13/case-validation/data/post-change-messages/matrix-compressible.csv
+results/p13/case-validation/data/post-change-messages/matrix-duct-3d.csv
+results/p13/case-validation/data/post-change-messages/matrix-graded.csv
+results/p13/case-validation/data/post-change-messages/matrix-multiblock.csv
+results/p13/case-validation/data/post-change-messages/matrix-multiphase.csv
+results/p13/case-validation/data/post-change-messages/matrix-quad-2d.csv
+results/p13/case-validation/data/post-change-messages/matrix-species.csv
+results/p13/case-validation/data/post-change-messages/matrix-thermal-species.csv
+results/p13/case-validation/data/post-change-messages/matrix-thermal.csv
+results/p13/case-validation/data/post-change-messages/matrix-turbulence.csv
+results/p13/case-validation/logs/matrix-cavity-2d.csv
+results/p13/case-validation/logs/matrix-compressible-coupled.csv
+results/p13/case-validation/logs/matrix-compressible.csv
+results/p13/case-validation/logs/matrix-duct-3d.csv
+results/p13/case-validation/logs/matrix-graded.csv
+results/p13/case-validation/logs/matrix-multiblock.csv
+results/p13/case-validation/logs/matrix-multiphase.csv
+results/p13/case-validation/logs/matrix-quad-2d.csv
+results/p13/case-validation/logs/matrix-species.csv
+results/p13/case-validation/logs/matrix-thermal-species.csv
+results/p13/case-validation/logs/matrix-thermal.csv
+results/p13/case-validation/logs/matrix-turbulence.csv
+results/p13/case-validation/logs/matrix.csv
+results/p13/case-validation/summary.md
+results/p13/case-validation/tools/control_n1.sh
+results/p13/case-validation/tools/control_n1b.sh
+results/p13/case-validation/tools/control_n4.sh
+results/p13/case-validation/tools/controls_n2_n3.sh
+results/p13/case-validation/tools/cpu_only.sh
+results/p13/case-validation/tools/mutation_matrix.py
+results/p13/case-validation/tools/patch_field_marker.py
+results/p13/case-validation/tools/regression_marker_rename.sh
+results/p13/case-validation/tools/sweep.sh
+results/p13/cli-gui/acceptance_gate.md
+results/p13/cli-gui/audit.md
+results/p13/cli-gui/summary.md
+results/p13/cli-gui/tools/controls.sh
+results/p13/cli-gui/tools/dryrun.sh
+results/p13/diagnostics/acceptance_gate.md
+results/p13/diagnostics/acceptance_gate_A1.md
+results/p13/diagnostics/acceptance_gate_A2.md
+results/p13/diagnostics/audit.md
+results/p13/diagnostics/data/baseline-output/bad_physics.stderr
+results/p13/diagnostics/data/baseline-output/bad_physics.stdout
+results/p13/diagnostics/data/baseline-output/does_not_converge.stderr
+results/p13/diagnostics/data/baseline-output/does_not_converge.stdout
+results/p13/diagnostics/data/baseline-output/malformed_json.stderr
+results/p13/diagnostics/data/baseline-output/malformed_json.stdout
+results/p13/diagnostics/data/baseline-output/mesh_quality_warning_cli.stderr
+results/p13/diagnostics/data/baseline-output/mesh_quality_warning_cli.stdout
+results/p13/diagnostics/data/baseline-output/missing_mesh.stderr
+results/p13/diagnostics/data/baseline-output/missing_mesh.stdout
+results/p13/diagnostics/data/baseline-output/valid_cavity.stderr
+results/p13/diagnostics/data/baseline-output/valid_cavity.stdout
+results/p13/diagnostics/data/baseline-output/valid_duct3d_cli_smoke.stderr
+results/p13/diagnostics/data/baseline-output/valid_duct3d_cli_smoke.stdout
+results/p13/diagnostics/summary.md
+results/p13/diagnostics/tools/build_check.sh
+results/p13/diagnostics/tools/cli_output_corpus.sh
+results/p13/diagnostics/tools/control_N5.sh
+results/p13/diagnostics/tools/controls.sh
+results/p13/diagnostics/tools/controls2.sh
+results/p13/diagnostics/tools/final.sh
+results/p13/diagnostics/tools/final_ctest.sh
+results/p13/diagnostics/tools/fmt.sh
+results/p13/diagnostics/tools/format_ci18.sh
+results/p13/diagnostics/tools/format_ci_scope.sh
+results/p13/diagnostics/tools/format_files.sh
+results/p13/diagnostics/tools/refmt_verify.sh
+results/p13/diagnostics/tools/run_core_tests.sh
+results/p13/diagnostics/tools/run_new_tests.sh
+results/p13/diagnostics/tools/run_vl.sh
+results/p13/diagnostics/tools/show_stderr_diff.sh
+results/p13/diagnostics/tools/verify_V_L.sh
+results/p13/diagnostics/tools/verify_c2_v4.sh
+results/p13/diagnostics/tools/verify_c2b.sh
+results/p13/diagnostics/tools/verify_ctest_results.sh
+results/p13/diagnostics/tools/which_fmt.sh
+results/p13/export/acceptance_gate.md
+results/p13/export/data/partial_write_probe.cpp
+results/p13/export/summary.md
+results/p13/export/tools/partial_write_probe.cpp
+results/p13/final-qualification/2026-09-24/AMENDMENT_G3.md
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-cavity-2d.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-compressible-coupled.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-compressible.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-duct-3d.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-graded.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-multiblock.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-multiphase.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-quad-2d.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-species.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-thermal-species.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-thermal.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix-turbulence.csv
+results/p13/final-qualification/2026-09-24/case_validation_logs/matrix.csv
+results/p13/final-qualification/2026-09-24/fingerprint_G1_baseline.txt
+results/p13/final-qualification/2026-09-24/fingerprint_G3_case_validation_before.txt
+results/p13/final-qualification/2026-09-24/fingerprint_G3_midrun_probe.txt
+results/p13/final-qualification/2026-09-24/restart_logs/equivalence.log.build
+results/p13/final-qualification/2026-09-24/restart_logs/fingerprint-after-continuation.log.build
+results/p13/final-qualification/2026-09-24/restart_logs/fingerprint-after-histories.log.build
+results/p13/final-qualification/2026-09-24/restart_logs/fingerprint-baseline.log.build
+results/p13/final-qualification/2026-09-24/restart_logs/fingerprint-final.log.build
+results/p13/final-qualification/2026-09-24/restart_logs/fingerprint-probe.log.build
+results/p13/final-qualification/2026-09-24/restart_logs/negative.log.build
+results/p13/final-qualification/2026-09-24/tools/G1_clean_builds.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/control_n1.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/control_n1b.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/control_n4.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/controls_n2_n3.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/cpu_only.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/mutation_matrix.py
+results/p13/final-qualification/2026-09-24/tools/case-validation/patch_field_marker.py
+results/p13/final-qualification/2026-09-24/tools/case-validation/regression_marker_rename.sh
+results/p13/final-qualification/2026-09-24/tools/case-validation/sweep.sh
+results/p13/final-qualification/2026-09-24/tools/derive_case_validation.sh
+results/p13/final-qualification/2026-09-24/tools/derive_restart_gate.sh
+results/p13/final-qualification/2026-09-24/tools/restart/G6_superseded.sh
+results/p13/final-qualification/2026-09-24/tools/restart/cli_checkpoint.sh
+results/p13/final-qualification/2026-09-24/tools/restart/controls_d456.sh
+results/p13/final-qualification/2026-09-24/tools/restart/cpu_only.sh
+results/p13/final-qualification/2026-09-24/tools/restart/gate.sh
+results/p13/final-qualification/2026-09-24/tools/restart/known_debt.sh
+results/p13/final-qualification/2026-09-24/tools/restart/restart_equivalence.cpp
+results/p13/final-qualification/2026-09-24/tools/restart/restart_negative.cpp
+results/p13/final-qualification/2026-09-24/tools/restart/run.sh
+results/p13/final-qualification/2026-09-24/tools/restart/solve_fingerprint.cpp
+results/p13/final-qualification/2026-09-24/tools/tree_fingerprint.sh
+results/p13/final-qualification/PLAN_2026-09-24.md
+results/p13/final-qualification/tools/01_clean_builds.sh
+results/p13/packaging/acceptance_gate.md
+results/p13/packaging/audit.md
+results/p13/packaging/summary.md
+results/p13/packaging/tools/audit_probe.sh
+results/p13/packaging/tools/audit_probe2.sh
+results/p13/packaging/tools/audit_probe3.sh
+results/p13/packaging/tools/controls.sh
+results/p13/packaging/tools/final.sh
+results/p13/packaging/tools/run_naming_tests.sh
+results/p13/packaging/tools/verify_packages.sh
+results/p13/restart/acceptance_gate.md
+results/p13/restart/audit.md
+results/p13/restart/logs/equivalence.log.build
+results/p13/restart/logs/fingerprint-after-continuation.log.build
+results/p13/restart/logs/fingerprint-after-histories.log.build
+results/p13/restart/logs/fingerprint-baseline.log.build
+results/p13/restart/logs/fingerprint-final.log.build
+results/p13/restart/logs/fingerprint-probe.log.build
+results/p13/restart/logs/negative.log.build
+results/p13/restart/summary.md
+results/p13/restart/tools/cli_checkpoint.sh
+results/p13/restart/tools/controls_d456.sh
+results/p13/restart/tools/cpu_only.sh
+results/p13/restart/tools/gate.sh
+results/p13/restart/tools/known_debt.sh
+results/p13/restart/tools/restart_equivalence.cpp
+results/p13/restart/tools/restart_negative.cpp
+results/p13/restart/tools/run.sh
+results/p13/restart/tools/solve_fingerprint.cpp
+results/p14/transport-foundation/audit.md
+results/p14/transport-foundation/logs/REGRESSION_DEFERRED.md
+results/p14/transport-foundation/logs/fingerprint-diff.txt
+results/p14/transport-foundation/summary.md
+results/p14/transport-foundation/tools/audit.sh
+results/p14/transport-foundation/tools/audit2.sh
+results/p14/transport-foundation/tools/audit3.sh
+results/p14/transport-foundation/tools/audit4.sh
+results/p14/transport-foundation/tools/audit5.sh
+results/p14/transport-foundation/tools/build.sh
+results/p14/transport-foundation/tools/build_cuda.sh
+results/p14/transport-foundation/tools/build_cuda2.sh
+results/p14/transport-foundation/tools/build_tests.sh
+results/p14/transport-foundation/tools/diag.sh
+results/p14/transport-foundation/tools/final.sh
+results/p14/transport-foundation/tools/fingerprint.sh
+results/p14/transport-foundation/tools/fmt_gpu.sh
+results/p14/transport-foundation/tools/harmonic_test_add.py
+results/p14/transport-foundation/tools/perf_residency.cpp
+results/p14/transport-foundation/tools/reconf.sh
+results/p14/transport-foundation/tools/run_equivalence.sh
+results/p14/transport-foundation/tools/run_harmonic.sh
+results/p14/transport-foundation/tools/run_one.sh
+results/p14/transport-foundation/tools/run_perf.sh
+results/p14/transport-foundation/tools/run_tests.sh
+results/p14/transport-foundation/tools/run_unit.sh
+results/p14/transport-foundation/tools/run_verification.sh
+results/p14/transport-foundation/tools/transport_equivalence.cpp
+results/p15/thermal-energy/audit.md
+results/p15/thermal-energy/conservation.md
+results/p15/thermal-energy/cpu_gpu_equivalence.md
+results/p15/thermal-energy/equations.md
+results/p15/thermal-energy/implementation.md
+results/p15/thermal-energy/known_limitations.md
+results/p15/thermal-energy/mesh_convergence.md
+results/p15/thermal-energy/negative_controls.md
+results/p15/thermal-energy/p14_classification.md
+results/p15/thermal-energy/parallelism.md
+results/p15/thermal-energy/regression.md
+results/p15/thermal-energy/robin_architecture_decision.md
+results/p15/thermal-energy/summary.md
+results/p15/thermal-energy/time_convergence.md
+results/p15/thermal-energy/tools/add_case_e.py
+results/p15/thermal-energy/tools/add_case_properties.py
+results/p15/thermal-energy/tools/audit.sh
+results/p15/thermal-energy/tools/audit2.sh
+results/p15/thermal-energy/tools/bc_audit.sh
+results/p15/thermal-energy/tools/build_and_target.sh
+results/p15/thermal-energy/tools/build_case_integration.sh
+results/p15/thermal-energy/tools/build_case_tests.sh
+results/p15/thermal-energy/tools/build_core.sh
+results/p15/thermal-energy/tools/build_core_only.sh
+results/p15/thermal-energy/tools/build_test.sh
+results/p15/thermal-energy/tools/build_test2.sh
+results/p15/thermal-energy/tools/build_wiring.sh
+results/p15/thermal-energy/tools/cuda_health.sh
+results/p15/thermal-energy/tools/diag_a_d.sh
+results/p15/thermal-energy/tools/final_regression.sh
+results/p15/thermal-energy/tools/fix_encoder.py
+results/p15/thermal-energy/tools/fix_encoding_reason.py
+results/p15/thermal-energy/tools/fix_robin_gradient.py
+results/p15/thermal-energy/tools/fix_validation_round1.py
+results/p15/thermal-energy/tools/gpu_gate_rerun.sh
+results/p15/thermal-energy/tools/gpu_gates.sh
+results/p15/thermal-energy/tools/gpu_health2.sh
+results/p15/thermal-energy/tools/migration_feasibility.sh
+results/p15/thermal-energy/tools/negative_controls.sh
+results/p15/thermal-energy/tools/parallel_audit.sh
+results/p15/thermal-energy/tools/parallel_audit2.sh
+results/p15/thermal-energy/tools/perf_probe.sh
+results/p15/thermal-energy/tools/plan_reason.sh
+results/p15/thermal-energy/tools/register_validation.py
+results/p15/thermal-energy/tools/regression.sh
+results/p15/thermal-energy/tools/regression_rest.sh
+results/p15/thermal-energy/tools/rerun_thermal_unit.sh
+results/p15/thermal-energy/tools/run_convergence.sh
+results/p15/thermal-energy/tools/run_targeted.sh
+results/p15/thermal-energy/tools/run_thermal.sh
+results/p15/thermal-energy/tools/run_time_convergence.sh
+results/p15/thermal-energy/tools/run_varprop.sh
+results/p15/thermal-energy/tools/util.sh
+results/p15/thermal-energy/tools/verify_restored.sh
+results/p15/thermal-energy/tools/wire_property_models.py
+results/p15/thermal-energy/tools/wire_robin.py
+results/p15/thermal-energy/validation.md
+results/p16/turbulence/acceptance/adopted_gate.md
+results/p16/turbulence/acceptance/methodology.md
+results/p16/turbulence/acceptance/separated_flow_methodology.md
+results/p16/turbulence/acceptance/threshold_derivation.md
+results/p16/turbulence/audit/audit.md
+results/p16/turbulence/audit/sst_near_wall_audit.md
+results/p16/turbulence/automatic_wall/SUMMARY.md
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny02_yplus90/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny03_yplus60/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny04_yplus45/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny05_yplus36/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny06_yplus30/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny08_yplus22/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/ny12_yplus15/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_180_sweep/sweep.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny06/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny08/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny12/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny16/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny20/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny24/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/ny32/profiles.csv
+results/p16/turbulence/automatic_wall/attempt1_equilibrium_log_branch/re_tau_590_sweep/sweep.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny02_yplus90/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny03_yplus60/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny04_yplus45/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny05_yplus36/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny06_yplus30/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny08_yplus22/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/ny12_yplus15/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_180_sweep/sweep.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny06/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny08/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny12/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny16/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny20/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny24/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/ny32/profiles.csv
+results/p16/turbulence/automatic_wall/attempt2_launder_spalding_log_branch/re_tau_590_sweep/sweep.csv
+results/p16/turbulence/automatic_wall/attempt3_architecture_diagnostic/ny16_decision.txt
+results/p16/turbulence/automatic_wall/attempt3_architecture_diagnostic/one_cell_table.txt
+results/p16/turbulence/automatic_wall/attempt4_spalding_composite/channel_result.txt
+results/p16/turbulence/eddy_viscosity/audit.md
+results/p16/turbulence/eddy_viscosity/benchmark.md
+results/p16/turbulence/eddy_viscosity/conservation.md
+results/p16/turbulence/eddy_viscosity/summary.md
+results/p16/turbulence/eddy_viscosity/thermal_wall_function.md
+results/p16/turbulence/gpu_equivalence/audit.md
+results/p16/turbulence/gpu_equivalence/device_transport_semantics.md
+results/p16/turbulence/gpu_equivalence/epsilon_transport.md
+results/p16/turbulence/gpu_equivalence/k_transport.md
+results/p16/turbulence/gpu_equivalence/krylov_blocker/before_after.md
+results/p16/turbulence/gpu_equivalence/krylov_blocker/findings.md
+results/p16/turbulence/gpu_equivalence/krylov_blocker/fix/prior_run/README.md
+results/p16/turbulence/gpu_equivalence/krylov_blocker/restart_contract.md
+results/p16/turbulence/gpu_equivalence/production_integration.md
+results/p16/turbulence/gpu_equivalence/resident_simple_integration.md
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/AMENDMENT.md
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/RESULT.md
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/coverage_matrix.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceEffectiveViscosity.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceEpsilonTransport.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceKEpsilonCorrection.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceKTransport.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceMaxAbsDifference.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceScalarTransportSemantics.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceTurbulenceAlgebra.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/DeviceWallFaceViscosity.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/GpuBiCGSTABRestartTest.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/GpuJacobiTest.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/KrylovRestartParity.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/ProductionKEpsilonBackend.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/ResidentKEpsilonEntry.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/ResidentTurbulentSimple.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/ResidentWallExchange.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/per_suite/TurbulenceBackendTrace.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/scope_filter.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/tools/coverage_matrix.sh
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/tools/kernel_tracer.c
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/tools/kernel_tracer.so
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/trace_channelprod.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/trace_full.txt
+results/p16/turbulence/gpu_equivalence/step5_cuda_diagnostics/trace_scoped.txt
+results/p16/turbulence/gpu_equivalence/step5_gate.md
+results/p16/turbulence/gpu_equivalence/step5_results.md
+results/p16/turbulence/gpu_equivalence/strain_production_viscosity.md
+results/p16/turbulence/gpu_equivalence/tools/step5_sanitizer.sh
+results/p16/turbulence/gpu_equivalence/viscosity_path/allocations.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/audit.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/continuation_root_cause.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/phase1.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/phase2.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/same_state_map.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/step4.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/step4_channel.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/step4_gates.md
+results/p16/turbulence/gpu_equivalence/viscosity_path/step4_status.md
+results/p16/turbulence/gpu_equivalence/wall_state_integration.md
+results/p16/turbulence/gpu_equivalence/wall_transfer/README.md
+results/p16/turbulence/gpu_equivalence/wall_transfer/convergence_reduction.md
+results/p16/turbulence/gpu_equivalence/wall_transfer/original_failing_gate.cpp.txt
+results/p16/turbulence/gpu_equivalence/wall_transfer/publication_audit.md
+results/p16/turbulence/known_limitations.md
+results/p16/turbulence/mesh_refinement/ny02_yplus90/profiles.csv
+results/p16/turbulence/mesh_refinement/ny03_yplus60/profiles.csv
+results/p16/turbulence/mesh_refinement/ny04_yplus45/profiles.csv
+results/p16/turbulence/mesh_refinement/ny05_yplus36/profiles.csv
+results/p16/turbulence/mesh_refinement/ny06_yplus30/profiles.csv
+results/p16/turbulence/mesh_refinement/ny08_yplus22/profiles.csv
+results/p16/turbulence/mesh_refinement/ny12_yplus15/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny02_yplus90/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny03_yplus60/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny04_yplus45/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny05_yplus36/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny06_yplus30/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny08_yplus22/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/ny12_yplus15/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/k_epsilon/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny02_yplus90/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny03_yplus60/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny04_yplus45/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny05_yplus36/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny06_yplus30/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny08_yplus22/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/ny12_yplus15/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny02_yplus90/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny03_yplus60/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny04_yplus45/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny05_yplus36/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny06_yplus30/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny08_yplus22/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/ny12_yplus15/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny02_yplus90/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny03_yplus60/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny04_yplus45/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny05_yplus36/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny06_yplus30/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny08_yplus22/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/ny12_yplus15/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sst_automatic/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_180/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny06/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny08/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny12/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny16/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny20/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny24/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/ny32/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny06/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny08/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny12/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny16/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny20/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny24/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/ny32/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/k_epsilon_gpu/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny06/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny08/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny12/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny16/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny20/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny24/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/ny32/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny06/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny08/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny12/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny16/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny20/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny24/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/ny32/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny06/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny08/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny12/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny16/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny20/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny24/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/ny32/profiles.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sst_automatic/sweep.csv
+results/p16/turbulence/mesh_refinement/re_tau_590/sweep.csv
+results/p16/turbulence/mesh_refinement/sweep.csv
+results/p16/turbulence/p14_migration_audit/MIGRATION_CLOSEOUT.md
+results/p16/turbulence/p14_migration_audit/audit.md
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_epsilon/coarse/validation.json
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_epsilon/coarse/velocity_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_epsilon/coarse/wall_units_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_epsilon/medium/validation.json
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_epsilon/medium/velocity_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_epsilon/medium/wall_units_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_omega/coarse/validation.json
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_omega/coarse/velocity_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_omega/coarse/wall_units_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_omega/medium/validation.json
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_omega/medium/velocity_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/k_omega/medium/wall_units_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/laminar_control/laminar_vs_kepsilon.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/sst/coarse/validation.json
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/sst/coarse/velocity_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/sst/coarse/wall_units_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/sst/medium/validation.json
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/sst/medium/velocity_profile.csv
+results/p16/turbulence/pre_p16_baseline/channel_flow_verbatim/sst/medium/wall_units_profile.csv
+results/p16/turbulence/pre_p16_baseline/turbulent_channel.json
+results/p16/turbulence/pre_p16_baseline/turbulent_channel_production.json
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/coarse/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/coarse/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/fine/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/fine/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/medium/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/medium/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/analytic_inlet/sweep.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/coarse/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/coarse/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/fine/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/fine/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/medium/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/medium/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/coarse/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/coarse/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/fine/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/fine/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/medium/outlet_profile.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/medium/wall.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/sweep.csv
+results/p16/turbulence/separated_flow/driver_seegmiller/precursor_inlet/sweep_MISALIGNED_COLUMNS.csv.bak
+results/p16/turbulence/separated_flow/driver_seegmiller/sweep.csv
+results/p16/turbulence/separated_flow/driver_seegmiller_results.md
+results/p16/turbulence/separated_flow/inlet_ab_result.md
+results/p16/turbulence/separated_flow/reference_specification.md
+results/p16/turbulence/sst/sst_wall_treatment.md
+results/p16/turbulence/tools/build_automatic.sh
+results/p16/turbulence/tools/build_case_wf.sh
+results/p16/turbulence/tools/build_core16.sh
+results/p16/turbulence/tools/build_corrected.sh
+results/p16/turbulence/tools/build_gpu_semantics.sh
+results/p16/turbulence/tools/build_gpu_turb.sh
+results/p16/turbulence/tools/build_p16b.sh
+results/p16/turbulence/tools/build_precursor.sh
+results/p16/turbulence/tools/build_sst.sh
+results/p16/turbulence/tools/build_wall_functions.sh
+results/p16/turbulence/tools/build_wiring.sh
+results/p16/turbulence/tools/p14_deletion_sweep.sh
+results/p16/turbulence/tools/regress_both.sh
+results/p16/turbulence/tools/run_ab.sh
+results/p16/turbulence/tools/run_arch_diag.sh
+results/p16/turbulence/tools/run_channel_all.sh
+results/p16/turbulence/tools/run_channel_automatic.sh
+results/p16/turbulence/tools/run_channel_final.sh
+results/p16/turbulence/tools/run_corrected.sh
+results/p16/turbulence/tools/run_ds.sh
+results/p16/turbulence/tools/run_ds_diag.sh
+results/p16/turbulence/tools/run_full_sweep.sh
+results/p16/turbulence/tools/run_gpu_semantics.sh
+results/p16/turbulence/tools/run_highre.sh
+results/p16/turbulence/tools/run_inlet.sh
+results/p16/turbulence/tools/run_p14_baseline.sh
+results/p16/turbulence/tools/run_p14_closeout.sh
+results/p16/turbulence/tools/run_p14_regression.sh
+results/p16/turbulence/tools/run_p14_unit_scope.sh
+results/p16/turbulence/tools/run_p16_deferred.sh
+results/p16/turbulence/tools/run_p16_twf_regression.sh
+results/p16/turbulence/tools/run_p20_known_failures.sh
+results/p16/turbulence/tools/run_sst_separation.sh
+results/p16/turbulence/tools/run_sst_sweep.sh
+results/p16/turbulence/tools/run_sst_tests.sh
+results/p16/turbulence/tools/run_sweep.sh
+results/p16/turbulence/tools/run_turbulence_unit.sh
+results/p16/turbulence/tools/run_wiring_tests.sh
+results/p16/turbulence/tools/run_wt.sh
+results/p16/turbulence/tools/verify_closeout.sh
+results/p16/turbulence/tools/verify_final_scope.sh
+results/p16/turbulence/tools/verify_guards.sh
+results/p16/turbulence/tools/verify_promotion.sh
+results/p16/turbulence/tools/verify_sst_scope.sh
+results/p16/turbulence/tools/verify_wiring.sh
+scripts/benchmarks/compare_benchmarks.py
+scripts/benchmarks/run_suite.sh
+src/boundary/ConvectiveHeatTransfer.cpp
+src/gpu/GpuKEpsilonCorrection.cpp
+src/gpu/TurbulenceBackendTrace.cpp
+src/io/CheckpointReader.cpp
+src/io/CheckpointWriter.cpp
+src/io/case/CaseFingerprint.cpp
+src/pressure_velocity/SIMPLECheckpoint.cpp
+src/pressure_velocity/SIMPLEContinuation.cpp
+src/thermal/Enthalpy.cpp
+src/thermal/TemperatureDependentProperty.cpp
+src/thermal/ThermalWallFunction.cpp
+src/thermal/TurbulentConductivity.cpp
+src/transport/ScalarTransport.cpp
+src/turbulence/WallFunctions.cpp
+src/turbulence/WallTreatment.cpp
+tests/cmake/RunBenchmarkSmoke.cmake
+tests/cmake/RunCliStdoutOnly.cmake
+tests/cmake/test_package_naming.cmake
+tests/cmake/test_package_naming_refuses.cmake
+tests/integration/backward_facing_step/DriverSeegmillerCase.cpp
+tests/integration/backward_facing_step/DriverSeegmillerCase.hpp
+tests/integration/backward_facing_step/DriverSeegmillerPrecursor.cpp
+tests/integration/backward_facing_step/test_driver_seegmiller.cpp
+tests/integration/backward_facing_step/test_driver_seegmiller_inlet.cpp
+tests/integration/backward_facing_step/test_sst_separation.cpp
+tests/integration/case/test_checkpoint_production_case.cpp
+tests/integration/case/test_turbulent_heat_transfer_benchmark.cpp
+tests/integration/case/test_turbulent_thermal_conservation.cpp
+tests/integration/case/test_turbulent_thermal_production_case.cpp
+tests/integration/case/test_variable_property_production_case.cpp
+tests/integration/io/test_export_write_failure.cpp
+tests/integration/restart/test_simple_checkpoint.cpp
+tests/integration/thermal/test_thermal_validation.cpp
+tests/integration/transport/CMakeLists.txt
+tests/integration/transport/test_transport_verification.cpp
+tests/integration/turbulence_channel/ChannelReTau590.hpp
+tests/integration/turbulence_channel/test_wall_function_channel.cpp
+tests/unit/gpu/KEpsilonModelTestAccess.hpp
+tests/unit/gpu/test_boundary_encoding.cpp
+tests/unit/gpu/test_device_effective_viscosity.cpp
+tests/unit/gpu/test_device_epsilon_transport.cpp
+tests/unit/gpu/test_device_k_transport.cpp
+tests/unit/gpu/test_device_kepsilon_correction.cpp
+tests/unit/gpu/test_device_max_abs_difference.cpp
+tests/unit/gpu/test_device_scalar_transport_semantics.cpp
+tests/unit/gpu/test_device_turbulence_algebra.cpp
+tests/unit/gpu/test_device_wall_face_viscosity.cpp
+tests/unit/gpu/test_krylov_blocker_reproducer.cpp
+tests/unit/gpu/test_production_kepsilon_backend.cpp
+tests/unit/gpu/test_resident_channel_production.cpp
+tests/unit/gpu/test_resident_kepsilon_entry.cpp
+tests/unit/gpu/test_resident_turbulent_simple.cpp
+tests/unit/gpu/test_resident_wall_exchange.cpp
+tests/unit/gpu/test_turbulence_backend_trace.cpp
+tests/unit/io/test_case_diagnostic.cpp
+tests/unit/io/test_thermal_property_case.cpp
+tests/unit/thermal/test_convective_boundary.cpp
+tests/unit/thermal/test_enthalpy_properties.cpp
+tests/unit/thermal/test_thermal_transient.cpp
+tests/unit/thermal/test_thermal_wall_function.cpp
+tests/unit/thermal/test_turbulent_conductivity.cpp
+tests/unit/thermal/test_turbulent_thermal_coupling.cpp
+tests/unit/transport/CMakeLists.txt
+tests/unit/transport/test_scalar_transport.cpp
+tests/unit/transport/test_transport_characterization.cpp
+tests/unit/turbulence/test_automatic_wall_treatment.cpp
+tests/unit/turbulence/test_momentum_wall_flux.cpp
+tests/unit/turbulence/test_p14_migration_equivalence.cpp
+tests/unit/turbulence/test_spalding_wall_law.cpp
+tests/unit/turbulence/test_sst_wall_functions.cpp
+tests/unit/turbulence/test_wall_function_wiring.cpp
+tests/unit/turbulence/test_wall_functions.cpp
+tests/unit/turbulence/test_wall_treatment.cpp
+
+=== FINGERPRINT ===
+full: tracked diff sha256      : 9e9448bfe78b07640d0ca03f37be41863f7d1de338ec42d9b03770e39e93bd04
+full: untracked files sha256   : 98110b1d369e193f3723358dbc57ddcbdfb75d461feba4ae5175c4ec802f65b9
+FULL COMBINED                  : 2586671cf6413c843dc04057db10dff8b0ec232cb5e5c08dfa81a5890ad831e6
+   (EXPECTED to change -- qualification writes evidence under results/)
+
+source: tracked diff sha256    : d365033e76ef5de01263e991d4c577efb1758193b6253da6308fd7a071b620bd
+source: untracked files sha256 : ffafc653a4e1b0021e4530571cd51fd0ef3f55082acb70a657e009b5466a6fd2
+SOURCE FINGERPRINT             : 13084c32340ed28c1a4914fffe6d5f347fd74f7ed7b77721f04307058fb3ef9a
+   (must NOT change between G1 and G10 without a named authorized fix)

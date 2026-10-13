@@ -1,0 +1,55 @@
+=== ENVIRONMENT
+date  2026-10-10T18:04:23+10:00
+nproc 32  load 0.00 0.00 0.00 1/576 768
+CMAKE_BUILD_TYPE:STRING=Release
+
+=== GATE 1: is the frozen amendment still the frozen amendment?
+  GATE_A3.md 532e9bf1f59e34ad45d495c4ecf2a3c91342c802dc433c13c3517cb1a410e162
+  OK: matches logs/A3_00_freeze.log.
+
+=== GATE 2: the SOURCE hash -- the stable identity (METHOD_library_hash_gates.md)
+  PremixedFlame.cpp fa815c97216584485e1c94842669fbf71976b9fb06863096868972d88448e3a2
+  OK.
+267:  Real maximumCellDiffusionNumber{5.0};
+
+=== the library is RECORDED, not gated -- it embeds the commit via Version.hpp
+1c4d85026e0ab75960ef1a6c36176717344122bd78db4d5cfffe86f83e558b76  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+kBuildIdentity = "4b37d1107dee-modified"
+
+4bc58a0e573d11bcd201b8ccaf6f7522e239440acd32b1303efea3bf224ab102  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/c2a2_probe.cpp
+
+=== FRESH RUN (reuses no earlier result, §5.3 step 6). Four levels, about 4 h.
+TD-027 GATE_A3 -- POST-FREEZE VERIFICATION of C2-A2
+
+  500 cells (dx FIXED), base dt 9.424300e-06 = cell diffusion number 5.0 (the shipped cap)
+  the trial cap scales as 1/dt so the trials' physical duration is constant; an
+  unscaled cap would truncate the fine levels and measure the cap, not the physics
+
+ level             dt   trial cap     S_L cm/s   marchSteps    fuel bal    wall s
+     0   9.424300e-06       80000     4.955332        15283  6.3028e-03       788
+     1   4.712150e-06      160000     4.958687        30526  2.0261e-03      2504
+     2   2.356075e-06      320000     4.958687        61053  6.3963e-03      3871
+     3   1.178038e-06      640000     4.962045       121940  7.9020e-03      6496
+
+=== C2-A2, in the frozen form
+
+  S_L(default dt)      4.955332 cm/s
+  S_L(dt/8, finest)    4.962045 cm/s
+  last increment       +3.357679e-03 cm/s   (dt/4 -> dt/8)
+  halvings in ladder   3            (the frozen minimum)
+
+  measured term        0.1353 %
+  tail term  (p >= 1)  0.0677 %
+  TOTAL                0.2030 %   <=  0.28 %   PASS
+  margin               1.38x
+
+=== REPRODUCTION CONTROL against the dry-run (TD-040 logs/03)
+
+  level 0  4.955332 vs 4.955332   MATCH
+  level 1  4.958687 vs 4.958687   MATCH
+  level 2  4.958687 vs 4.958687   MATCH
+  level 3  4.962045 vs 4.962045   MATCH
+
+  The ladder is reproducible; the verdict above stands on a fresh run.
+
+DONE 2026-10-10T21:52:06+10:00

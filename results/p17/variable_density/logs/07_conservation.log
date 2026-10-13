@@ -1,0 +1,43 @@
+P17.1 conservation measurement
+date: 2026-09-26T06:50:05Z
+source under test: 2864c6ebb8b85b35ffd32c88544bb427fa3d87cd573569c60b6b53a808d95ca7
+
+P17.1 conservation measurement
+eps = 2.2204460492503131e-16   kAccum = 8 (EMPIRICAL)
+
+mesh 3x2, 6 cells, 17 faces
+rho_bottom = 2   rho_top = 1   ratio = 2
+
+### (a) VARIABLE density -- rho varies by row, ratio exactly 2:1
+  row-varying rho
+    max cell imbalance        0
+    total |imbalance|         0
+    global net boundary flux  0
+    mdot_in                   -6
+    mdot_out                  6
+    mdot_in + mdot_out        0
+    max |mdot_f|              4
+    derived bound             1.2079226507921703e-13   (8 * eps * N_f faces * max|mdot|)
+    verdict                   WITHIN BOUND
+
+### (b) CONSTANT density -- the comparison case
+  uniform rho
+    max cell imbalance        0
+    total |imbalance|         0
+    global net boundary flux  0
+    mdot_in                   -8
+    mdot_out                  8
+    mdot_in + mdot_out        0
+    max |mdot_f|              4
+    derived bound             1.2079226507921703e-13   (8 * eps * N_f faces * max|mdot|)
+    verdict                   WITHIN BOUND
+
+### (c) the discriminator -- per-row flux magnitude
+    |mdot| on a bottom-row x-face   4
+    |mdot| on a top-row x-face      2
+    ratio                           2   (expect exactly 2)
+    a collapsed constant face density would give ratio 1 -- see control N4/N5
+
+done
+
+done: 2026-09-26T06:50:10Z

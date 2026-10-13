@@ -1,0 +1,29 @@
+=== V1 -- --log-level sets the level ===
+  error    exit=3 stdout=803 B stderr=0 B
+  warning  exit=3 stdout=803 B stderr=0 B
+  info     exit=3 stdout=803 B stderr=178 B
+  debug    exit=3 stdout=803 B stderr=314 B
+  trace    exit=3 stdout=803 B stderr=314 B
+  V1: PASS
+=== V2 -- an unknown level is rejected, naming the valid ones ===
+  exit=1
+Error: --log-level must be one of trace, debug, info, warning, error, got "shout"
+  V2: PASS
+=== V3 -- strictly increasing verbosity ===
+  stderr lines: error=0 warning=0 info=1 debug=3
+  V3: PASS
+=== C1 -- stdout is untouched at EVERY level ===
+  C1: PASS
+=== L -- the log points, observed at --log-level debug ===
+  L1a OBSERVED: [DEBUG] loading case: /tmp/p13_diag_vl/valid_cavity
+  L1b OBSERVED: [DEBUG] case rejected: /tmp/p13_diag_vl/bad_physics/physics.json: field "density" must satisfy b
+  L2 OBSERVED: [DEBUG] solver start: Test Cavity 4x4 (SIMPLE, 16 cells, linear solver backend CPU)
+  L3 OBSERVED: [DEBUG] solver start: Test Cavity 4x4 (SIMPLE, 16 cells, linear solver backend CPU)
+  L4a OBSERVED: [INFO] checkpoint written at iteration 2: /tmp/p13_diag_vl/cp2.bin
+  L4b OBSERVED: [INFO] resumed from iteration 6: /tmp/p13_diag_vl/cp.bin
+  L7 OBSERVED: [DEBUG] export failed: Could not create output directory: /tmp/p13_diag_vl/valid_cavity/results:
+  L8 OBSERVED: [INFO] solve finished: MaxIterations, 6 outer iterations, residuals u=0.002896 v=0.003570 p=0.04
+  L5/L6 (linear-solve failure, non-finite) are exercised by the N4 control below;
+  no shipped case reaches them, which is why they are not asserted from a case here.
+
+FAILURES: 0

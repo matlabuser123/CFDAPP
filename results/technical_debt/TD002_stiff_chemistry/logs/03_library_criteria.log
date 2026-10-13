@@ -1,0 +1,85 @@
+results/technical_debt/TD002_stiff_chemistry/tools/verify.cpp:120:12: warning: ‘{anonymous}::LocalMarch {anonymous}::localMarch(const {anonymous}::Problem&, cfd::Real, std::size_t, bool)’ defined but not used [-Wunused-function]
+  120 | LocalMarch localMarch(const Problem& p, Real dt, std::size_t stepCount, bool compensated) {
+      |            ^~~~~~~~~~
+eps = 2.2204460492503131e-16
+4*eps*2 = 1.7763568394002505e-15  (= 8 eps)
+
+==============================================================================================
+C1 -- the reproducer: dt=20, control=0.0125. The baseline THREW here.
+==============================================================================================
+  COMPLETED: 2445 sub-steps, deviation 0.000000e+00 (0.00 eps)  bound 1.776357e-15  ->  C1 PASS
+
+==============================================================================================
+C2 -- the control ladder. Every rung must complete, with a monotone sub-step rise.
+==============================================================================================
+    control      sub-steps   deviation        in eps   verdict
+  0.40000000          64   0.000000e+00      0.00   ok
+  0.20000000         136   0.000000e+00      0.00   ok
+  0.10000000         284   0.000000e+00      0.00   ok
+  0.05000000         584   0.000000e+00      0.00   ok
+  0.01250000        2445   0.000000e+00      0.00   ok
+  0.00312500       10217   0.000000e+00      0.00   ok
+  0.00078125       42632   0.000000e+00      0.00   ok
+
+==============================================================================================
+C3 -- the long march: >= 30 000 accepted sub-steps with sum(Y) inside 4*eps*N
+==============================================================================================
+  TWO things have to hold at once, and finding a problem where both do is the instrument:
+
+    (1) the march must actually DEMAND 30 000 sub-steps. The limiter is adaptive, so the
+        count is roughly (total fractional traversal) / maximumFractionalChange -- it cannot
+        be dialled up by asking for a longer dt, because once the chemistry stops changing
+        the whole remaining time goes in ONE step. A first attempt at dt = 600 took 59.
+    (2) the problem must EXERCISE round-off. A reversible mechanism holds both species at
+        O(1) indefinitely; the irreversible one decays to ~1e-323 where every addition is
+        exact and the plain march drifts 0.00 eps over 7 521 sub-steps (audit 2.1).
+
+  So the control is swept until the count clears 30 000, on the reversible problem.
+
+    control sweep, compensated (finding the rung that reaches 30 000):
+      control        sub-steps   worst sum dev    in eps
+      1.000e-02         437   0.000000e+00      0.00
+      3.000e-03        1788   0.000000e+00      0.00
+      1.000e-03        6574   0.000000e+00      0.00
+      3.000e-04       25144   0.000000e+00      0.00
+      1.000e-04       85472   0.000000e+00      0.00   <- clears 30 000
+      3.000e-05      324430   0.000000e+00      0.00   <- clears 30 000
+
+    C3 verdict at control 1.000e-04, compensated vs plain (N1):
+      variant        sub-steps   worst sum dev    in eps   x bound   min Y    verdict
+    compensated        85472   0.000000e+00      0.00      0.00   +5.00e-01   C3 PASS
+    plain (N1)     THREW -- mass fractions at cell 0 sum to 0.99999999999999811; must be within 1.
+                     ^ N1 fails by REFUSAL, as the gate predicts
+
+==============================================================================================
+C5 -- refinement must still improve accuracy, and be no worse than the baseline level
+==============================================================================================
+    control     Y_A error        T error
+   0.200000   1.009672366e-01   1.109150770e-01
+   0.050000   2.140920033e-02   2.351855100e-02
+   0.012500   2.143575509e-03   2.354772208e-03
+
+==============================================================================================
+C6 -- the zero limits
+==============================================================================================
+  C6a pre_exponential=0 : 1 sub-step(s), Y_A = 1, T = 1000
+  C6b formation=0       : 4 sub-steps, Y_A = 0.86842014905921683, T = 1000  (T0 = 1000.0)
+
+==============================================================================================
+C7 -- determinism
+==============================================================================================
+  3 identical calls bitwise identical: YES   (Y_A = 0.0072153838631827264)
+
+==============================================================================================
+C9 -- the raw-fields entry point must CARRY the transport closure, not erase it
+==============================================================================================
+  input deviation  5.71819770422976603e-08
+  4*eps*2          1.77635683940025046e-15  -- MassFractionState would refuse the input outright
+  COMPLETED: 5 sub-steps
+  deviation in     5.71819769312753579e-08
+  deviation out    5.71819771533199628e-08
+  out / in         1.000000
+  C9 requires out >= 0.5 * in  ->  PASS
+  min Y            +3.780011460e-01
+
+(verification complete)

@@ -1,0 +1,35 @@
+{
+  "model": "incompressible_laminar",
+  "density": 1.0,
+  "dynamic_viscosity": 0.01,
+
+  "thermal": {
+    "conductivity": 0.05,
+    "specific_heat": 1000.0,
+    "initial_temperature": 1000.0
+  },
+
+  "reacting": {
+    "initial_temperature": 1000.0,
+    "time_step": 0.1,
+    "steps": 1,
+    "species": [
+      {"name": "A",  "molecular_weight": 0.028, "specific_heat": 1000.0,
+       "formation_enthalpy": 0.0,     "initial_mass_fraction": 0.1, "diffusivity": 1.0e-5},
+      {"name": "B",  "molecular_weight": 0.028, "specific_heat": 1000.0,
+       "formation_enthalpy": -2.0e6,  "initial_mass_fraction": 0.0, "diffusivity": 1.0e-5},
+      {"name": "N2", "molecular_weight": 0.028, "specific_heat": 1000.0,
+       "formation_enthalpy": 0.0,     "initial_mass_fraction": 0.9, "diffusivity": 1.0e-5}
+    ],
+    "reactions": [
+      {
+        "name": "A->B",
+        "reactants": [{"species": "A", "coefficient": 1.0}],
+        "products":  [{"species": "B", "coefficient": 1.0}],
+        "pre_exponential": 5.0,
+        "temperature_exponent": 0.0,
+        "activation_energy": 30000.0
+      }
+    ]
+  }
+}

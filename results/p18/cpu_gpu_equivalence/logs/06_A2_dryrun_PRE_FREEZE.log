@@ -1,0 +1,113 @@
+P18.8 AMENDMENT A2 -- THE PRE-FREEZE DRY-RUN.
+Ran BEFORE acceptance_gate_A2.md existed. Its numbers were CHECKED against the derivation
+in libm_divergence.md section 7; the thresholds were not taken from them.
+date (WSL): 2026-10-02T03:09:01Z
+
+=== the two translation units and their flags, read from NINJA's own command lines ===
+(not from cuda/CMakeLists.txt -- a grep of the CMake text would pass even if the property
+ never reached the compiler)
+  DeviceSpeciesKernel.cu : fmad=false
+  DeviceSpeciesFmadControl.cu : fmad=true
+
+=== sha256 of the instrument and the library under test ===
+2dee14b143601b194490239f86633ef9b178416628873142c19210236be17791  build/qual-final/tests/unit/gpu/CFDGpuTests
+55e2edcf879835f4c60d316d34cdfe67a1279e22ab1034a60355954bcb7cb10e  build/qual-final/cuda/libcfdcuda.a
+d75316881015cab2db67ebcb2f63193700c2d5e6fdb3de9088ec4ce78a0bbc9d  tests/unit/gpu/test_device_species_a2_dryrun.cpp
+e75ec3a8291e26d04e2108ee5a054fb1e6cf244cfa236bee8cc67f5934278fdd  cuda/kernels/DeviceSpeciesFmadControl.cu
+95673237f0d3135eb1b3b83e19cf4e1c3fcddfab2aeb5970a9af8c8c0da13d8c  include/cfd/gpu/DeviceSpeciesFmadControl.hpp
+
+=== dry-run output, verbatim ===
+Running main() from /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/qual-final/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = P188A2DryRun.*
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from P188A2DryRun
+[ RUN      ] P188A2DryRun.DRYRUN_1_TheFmadControlIsReallyContracting
+[       OK ] P188A2DryRun.DRYRUN_1_TheFmadControlIsReallyContracting (2241 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_1B_TheUlpInstrumentFailsClosed
+[       OK ] P188A2DryRun.DRYRUN_1B_TheUlpInstrumentFailsClosed (0 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_2_HowLargeIsTheFmadEffectOnEachQuantity
+  --fmad=true vs --fmad=false, MIXTURE PROPERTIES (4096 cells):
+    M_mix: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+    R_mix: 662 / 4096 differ,  worst ULP 2,  worst relative 3.47171e-16
+    cp_mix: 543 / 4096 differ,  worst ULP 1,  worst relative 2.05604e-16
+  --fmad=true vs --fmad=false, REACTION SOURCES:
+    C_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    q: 1750 / 8192 differ,  worst ULP 44,  worst relative 6.91587e-15
+    omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    S_E: 1 / 4096 differ,  worst ULP 1,  worst relative 1.30226e-16
+
+  FMA's effect on q, IN THE BOUND'S UNITS: worst |dq| / (eps * sum of term
+  magnitudes) = 0.843356,  against A2's derived bound of 8  (8192 of 8192 comparisons exercised)
+  the libm difference the bound must ADMIT, same units: 3.13865
+  => contraction (0.843356) is SMALLER than libm (3.13865), so no passing
+     threshold on q can reject contraction. Condition (4) is policed by the
+     BITWISE mixture-property criterion above, not by this bound.
+  the ACCUMULATION isolated (host --fmad=false vs control --fmad=true, SAME q):
+    omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    S_E: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+  host std::fma vs host multiply-then-add on the SAME omega accumulation: 0 / 12288 would change
+  => the products M_i*nu_i*q are exact for this mechanism, so NO contraction
+     could alter omega. The accumulation clause's control is N5/N8, not FMA.
+[       OK ] P188A2DryRun.DRYRUN_2_HowLargeIsTheFmadEffectOnEachQuantity (12 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_3_TheDerivedBoundsHoldWithMargin
+  CORRECT implementation against the DERIVED bounds:
+    k:  worst ULP distance 3  against the derived bound 8
+    q:  worst |dq| / (eps * sum of term magnitudes) = 3.13865  against the derived bound 8
+    branch disagreements: 0 / 8192
+[       OK ] P188A2DryRun.DRYRUN_3_TheDerivedBoundsHoldWithMargin (3 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_4_EachControlViolatesTheCriterionItControls
+  controls on the MIXTURE PROPERTY criterion (BITWISE, zero tolerance):
+    N1 permute species index:  3072 values differ,  worst ULP 3307299169210234,  worst relative 0.611746
+    N2 one weight for all species:  1024 values differ,  worst ULP 4213044812701433,  worst relative 0.483333
+  controls on the REACTION SOURCE criteria:
+    N4 flip Arrhenius exponent sign:  6144 values differ,  worst ULP 104379865643321639,  worst relative 9.21473e+06
+        in the q bound's units: 3.52252e+22  against 8
+    N5 omit M_i in omega:  3072 values differ,  worst ULP 18014398509481984,  worst relative 15
+    N6 flip the heat-release sign:  1024 values differ,  worst ULP 9442885321269542680,  worst relative 2
+    N8 omit the last reaction:  4096 values differ,  worst ULP 1735929406212,  worst relative 0.000201432
+[       OK ] P188A2DryRun.DRYRUN_4_EachControlViolatesTheCriterionItControls (10 ms)
+[ RUN      ] P188A2DryRun.DRYRUN_5_OmegaAndHeatReleaseAreBitwiseFromTheDeviceOwnProgressRates
+  accumulations from the DEVICE's own q, under zero tolerance:
+    omega_i: 0 / 12288 differ,  worst ULP 0,  worst relative 0
+    S_E: 0 / 4096 differ,  worst ULP 0,  worst relative 0
+    S_E (mass route): 0 / 4096 differ,  worst ULP 0,  worst relative 0
+[       OK ] P188A2DryRun.DRYRUN_5_OmegaAndHeatReleaseAreBitwiseFromTheDeviceOwnProgressRates (1 ms)
+[----------] 6 tests from P188A2DryRun (2276 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (2279 ms total)
+[  PASSED  ] 6 tests.
+EXIT=0
+
+=== WHAT THE FIRST TWO PASSES OF THIS DRY-RUN REJECTED, before anything was frozen ===
+  1. ulpDistance() wrapped to 0 on opposite-sign operands, so control N6 (flip the S_E sign) --
+     the largest error the suite can inject -- was scored as a PERFECT MATCH. Reinterpreting two
+     doubles as signed integers and subtracting overflows when the signs differ. Fixed with a
+     monotonic key; the instrument is now self-tested on planted disagreements (DRYRUN_1B), and a
+     non-finite pair poisons the worst-case figures instead of being skipped.
+  2. N1 and N2 were run against the reaction sources, which never consult them -- they perturb the
+     species index inside the MIXTURE PROPERTY functions only. They looked like dead controls.
+     Each control now runs against the criterion it actually controls.
+  3. N8 was classified as a control for the BOUNDED q criterion. Omitting the last reaction leaves
+     the progress rates untouched (measured 0 in the q bound's units) and changes the
+     ACCUMULATION, so it controls the zero-tolerance clause. Same class of error as (2).
+  4. THE SUBSTANTIVE ONE. A2's first draft claimed a bounded criterion on q could still reject FMA
+     contraction. Measured: contraction moves q by 0.843356 bound-units; the libm difference the
+     bound must ADMIT is 3.13865. The contraction effect is SMALLER than the effect the bound has
+     to tolerate, so no threshold that lets the correct implementation pass can reject contraction
+     on q. That is arithmetic, not a judgement call.
+
+     G9 condition (4) was therefore reallocated to the BITWISE mixture-property criterion, where
+     contraction IS visible: 662 of 4096 cells for R_mix and 543 of 4096 for cp_mix. That is
+     airtight rather than a consolation, because R_mix, cp_mix and every rate quantity are compiled
+     from ONE translation unit carrying ONE --fmad=false property -- the flag cannot be lost for
+     the rate path alone without the zero-tolerance criterion failing. DRYRUN_2 asserts both the
+     ordering (contraction < libm, the fact that forces the allocation) and the liveness of the
+     criterion that now carries the duty.
+
+  5. Recorded, not a defect: FMA cannot reach the omega / S_E accumulation at all. The host's own
+     std::fma agrees with multiply-then-add on 12288 of 12288 values, so the products M_i*nu_i*q
+     are exactly representable for this mechanism and there is no rounding for a fusion to remove.
+     The device control found the same. The accumulation clause's controls are N5, N6 and N8, which
+     fire at 3072, 9.4e18 ULP and 4096 values respectively.

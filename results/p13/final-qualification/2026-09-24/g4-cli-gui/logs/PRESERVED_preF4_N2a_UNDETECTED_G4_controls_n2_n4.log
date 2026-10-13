@@ -1,0 +1,58 @@
+P13 G4 -- controls N2a, N2b, N4, N5
+date: 2026-09-24T19:52:43Z
+baseline sha256:
+  bb1a3cfab468be601d25fee37b3ab5d5b5060180229db4f12b9e86cddaf3c0a5  apps/gui/tests/test_cli_gui_equivalence.cpp
+  3e28d817fdd34d0ee85147f20d6d07348cde0705940c8b581bf61ffd7f55532b  apps/gui/SimulationController.cpp
+  708b0ca1a0ba0c7c832335eb41e75d4b6a570d1b0d006a93bdb6a42515e2e7e4  apps/cli/main.cpp
+
+=== N2a -- the CLI arm is replaced by the GUI arm (frozen definition) ===
+  PLANTED DEFECT     yes
+  CRITERION          PASSED -- the harness did NOT refuse
+  DETECTION          UNDETECTED
+  RESTORE            VERIFIED by SHA-256
+  RETURN CODE        0 -- NOT expected
+
+  N2a IS A CRITERION DEFECT, PRESERVED, NOT REDEFINED.
+  The frozen gate requires the harness to 'declare the comparison
+  vacuous and fail'. It does not. The harness header claims 'Every case
+  asserts the two results came from different clients before comparing
+  a single value' -- the assertions present (hasResults(), the
+  completed() signal) prove the GUI arm RAN, not that the second arm is
+  a DIFFERENT client. Comparing the GUI arm with itself therefore
+  satisfies every E row for free. Reported as UNDETECTED.
+
+=== N2b -- the GUI produces no results (the protection must fire) ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (4 tests)
+  DETECTION          DETECTED (guard message not matched by name)
+  RESTORE            VERIFIED by SHA-256
+  RETURN CODE        nonzero (8), expected
+
+=== N4 -- the CLI binary loses its --checkpoint-every validation ===
+  frozen definition: 'point the CLI-flag ctests at a binary without the
+  flags'. The ctests resolve their binary through $<TARGET_FILE:cfdapp> at
+  configure time, so they cannot be repointed at another file without
+  reconfiguring the project. The equivalent, and the failure mode V3's own
+  comment names, is to build cfdapp WITHOUT the flag's validation so a bad
+  interval becomes a silent 0. Recorded here rather than done silently.
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (2 tests)
+  DETECTION          DETECTED
+  RESTORE            VERIFIED by SHA-256
+  RETURN CODE        nonzero (8), expected
+
+=== N5 -- the new E-thermal row is pointed at a case with no thermal block ===
+  PLANTED DEFECT     yes
+  CRITERION          FAILED as expected (1 tests)
+  DETECTION          DETECTED -- MustHaveRun fired
+  RESTORE            VERIFIED by SHA-256
+  RETURN CODE        nonzero (8), expected
+
+=== restored, and the tree proved back at baseline ===
+  bb1a3cfab468be601d25fee37b3ab5d5b5060180229db4f12b9e86cddaf3c0a5  apps/gui/tests/test_cli_gui_equivalence.cpp  IDENTICAL
+  3e28d817fdd34d0ee85147f20d6d07348cde0705940c8b581bf61ffd7f55532b  apps/gui/SimulationController.cpp  IDENTICAL
+  708b0ca1a0ba0c7c832335eb41e75d4b6a570d1b0d006a93bdb6a42515e2e7e4  apps/cli/main.cpp  IDENTICAL
+  rebuilding at baseline and re-running the whole G4 harness
+  all G4 tests pass again: yes
+
+G4 GROUP N: SEE ABOVE -- at least one control did not behave as the gate requires

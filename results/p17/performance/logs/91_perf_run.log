@@ -1,0 +1,33 @@
+build exit: 0
+libcfdcore.a sha256: 188e50397ed13718f449f369ef996768cc4011ac1048955dc312da92716390f6
+
+P17.11 -- performance CHARACTERIZATION (no gate, no speedup claim)
+backend CPU: single-threaded host, production pieces in the solver's own order
+backend GPU: DeviceDensityBasedSolver::advance(), resident, --fmad=false
+
+case                cells mesh              steps   CFL cpu wall(s) gpu wall(s)     ratio equivalence
+----------------------------------------------------------------------------------------------------------------------
+sod_200x3             600 200x3 uniform       200  0.40      0.0302      0.0674     0.45x BITWISE
+sod_800x3            2400 800x3 uniform       200  0.40      0.1186      0.0780     1.52x BITWISE
+smooth_100x40        4000 100x40 uniform      200  0.40      0.1900      0.0773     2.46x BITWISE
+smooth_200x80       16000 200x80 uniform      200  0.40      0.7636      0.0842     9.07x BITWISE
+smooth_400x160      64000 400x160 uniform     100  0.40      1.5457      0.0630    24.54x BITWISE
+
+physical final time reached, per case (all steps CFL-limited):
+  sod_200x3        t_final = 1.955322e-04 s over 200 steps
+  sod_800x3        t_final = 4.888305e-05 s over 200 steps
+  smooth_100x40    t_final = 2.780849e-04 s over 200 steps
+  smooth_200x80    t_final = 1.380033e-04 s over 200 steps
+  smooth_400x160   t_final = 3.430951e-05 s over 100 steps
+
+READING THIS TABLE:
+  * 'ratio' is cpu/gpu wall time. It is a measurement, not a claim, and no gate
+    depends on it. §31: qualification does not require GPU speedup.
+  * a row is only comparable at all if its equivalence column says BITWISE.
+  * the CPU side is SINGLE-THREADED. Against a multi-core CPU implementation the
+    ratio would be smaller, and no multi-core CPU density-based path exists to
+    measure, so this is not a CPU-vs-GPU hardware comparison.
+  * one warm-up GPU step is excluded; context and module load are not charged to
+    the timed loop. Host<->device transfer of the initial and final state IS
+    excluded from the GPU loop, because advance() is resident by design -- so the
+    ratio describes the STEP LOOP, not an end-to-end solve.

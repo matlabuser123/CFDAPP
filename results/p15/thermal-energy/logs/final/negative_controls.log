@@ -1,0 +1,53 @@
+pre-control hashes recorded:
+  e6b961b4587f85f864a4e03288cbe3a9164ae06f9ef08bbd1bb022db853309b3  src/thermal/EnergyEquation.cpp
+  9e7e758fba65f7c22e91f1624df8d4d71f8c4d818da4a295f5e43a0485fb1dee  src/thermal/Enthalpy.cpp
+  c571a9682843576d1a8ff21c4a785dc4372f0e2b0673a12d3727cd6674121bae  src/thermal/TemperatureDependentProperty.cpp
+  43297dbaee9ecb69e4b5216b07e36447286b70ce6f448816d7f3e53935c3fd10  src/boundary/ConvectiveHeatTransfer.cpp
+  025fe9607994d266a419fcd3062963ac0f3bb5730ef495bb155553a4e7bbe51b  tests/integration/thermal/test_thermal_validation.cpp
+
+########## NC1 -- reverse the Robin conductance sign; Case E must fail
+  NC1: DETECTED -- Robin analytical case fails (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC2 -- disable the volumetric heat source; Case B must fail
+  NC2: DETECTED -- heat-generation case fails (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC3 -- k(T) collapsed to a constant; Case F must fail
+  NC3: DETECTED -- variable-conductivity case fails (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC4 -- corrupt a cp(T) coefficient; enthalpy tests must fail
+  NC4: DETECTED -- enthalpy tests fail (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC5 -- break the enthalpy INTEGRAL (use cp*T); the naive-form guard must fail
+  NC5: DETECTED -- closed-form integral test fails (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC6 -- break the enthalpy INVERSION; round-trip must fail
+  NC6: DETECTED -- round-trip fails (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC7 -- transient uses the NEW density on the RHS; conservation trap must fire
+  NC7: DETECTED -- the level-mix-up trap fires (exit 1)
+  RESTORED (sha256 verified)
+
+########## NC8 -- perturb conservation accounting; the balance gate must fail
+  NC8: DETECTED -- the conservation gate fails (exit 1)
+  RESTORED (sha256 verified)
+
+########## restored tree rebuilds and the gates pass again
+  *** restored tree does NOT pass -- investigate before trusting any control above ***
+src/thermal/EnergyEquation.cpp: OK
+src/thermal/Enthalpy.cpp: OK
+src/thermal/TemperatureDependentProperty.cpp: OK
+src/boundary/ConvectiveHeatTransfer.cpp: OK
+tests/integration/thermal/test_thermal_validation.cpp: OK
+ M src/thermal/EnergyEquation.cpp
+?? src/boundary/ConvectiveHeatTransfer.cpp
+?? src/thermal/Enthalpy.cpp
+?? src/thermal/TemperatureDependentProperty.cpp
+?? tests/integration/thermal/test_thermal_validation.cpp
+
+UNDETECTED CONTROLS: 0

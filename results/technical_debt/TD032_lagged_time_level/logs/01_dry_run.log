@@ -1,0 +1,109 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-06T19:33:44+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+mem                        total        used        free      shared  buff/cache   available
+mem         Mem:            31Gi       816Mi        28Gi       4.0Mi       1.5Gi        30Gi
+mem         Swap:          8.0Gi          0B       8.0Gi
+
+=== REBUILD cfdcore against the current source (regression integrity, CLAUDE.md 8)
+ninja: no work to do.
+build exit: 0
+
+=== PROVENANCE -- this is the C8 negative-control library, the one WITH the lag
+3b94eb849f9c8277beded611db68c259b1b8d24e99f888af09a721f65da6e4b0  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+dac2992006a51cce6ea9e9f497dc44aceac76026c8d1cc4405882cc38642e5a3  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+d140cb6cafc9dac6889614fb8dcbbf70aa8b83ea1d564370c6aacd447fea728e  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+51f4a4107437b4da4a7e858e7d5ee9a4ed02cb7e6c2ca0b9d009b3a510e7fe1b  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/GATE.md
+6bf33900f7d56a4016e247b638ea0e8701f229347746c9c4ac5697d9b13cac82  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/alternation_probe.cpp
+newest production source vs library:
+  lib  2026-10-06 17:27:04.163455000 +1000
+  src  2026-10-06 17:25:10.589062700 +1000
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/alternation_probe.cpp -o /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_alternation /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+6b7d2007798a07d499accde284a1ff077daacc5b13fc8f0090a89fe93d0ea115  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD032_lagged_time_level/tools/td032_alternation
+
+=== RUN  (expect roughly 1 hour: 5 solves at ~600 s plus the 250-cell fixture)
+TD-032 -- THE STEP-GAP ORDERING CRITERION
+
+  criterion   R = across/within <= 1.0, or (within <= 1e-09 K) -> across <= 1e-09 K
+  the exit code is NOT the verdict: on the unchanged tree C1 and C2 are EXPECTED
+  to FAIL, which is the gate's fail-direction non-vacuity and its C8 control.
+
+=== C0  INSTRUMENT SELF-TEST (no solver code at all)
+  (a) monotone relaxation, T_k = 300 + 1500 exp(-k/2)
+               across 5.902040e+02 K (cell 0)   within 9.481808e+02 K (cell 0)
+               R = across/within = 6.224593e-01   against the bound 1.0 -> PASS
+      must PASS with a MEANINGFUL ratio -> ok
+  (b) parity alternation with a within-branch drift of 0.001 K per step
+               across 1.500001e+03 K (cell 0)   within 2.000000e-03 K (cell 0)
+               R = across/within = 7.500005e+05   against the bound 1.0 -> FAIL
+      must FAIL on the RATIO -> ok
+  (c) a PURE alternation, within == 0 exactly
+               across 1.500000e+03 K (cell 0)   within 0.000000e+00 K (cell 0)
+               within <= 1e-09 K: THE RATIO IS VACUOUS and is NOT evaluated.
+               the gate's fallback applies: across <= 1e-09 K -> FAIL
+      must be VACUOUS and still FAIL via the fallback -> ok
+  (d) a STATIONARY field, across == within == 0
+               across 0.000000e+00 K (cell 0)   within 0.000000e+00 K (cell 0)
+               within <= 1e-09 K: THE RATIO IS VACUOUS and is NOT evaluated.
+               the gate's fallback applies: across <= 1e-09 K -> PASS
+      must be VACUOUS and PASS via the fallback -> ok
+
+  C0 VERDICT: PASS
+
+=== FIXTURE DETERMINATION for C2 (not a criterion)
+    250 cells, cap 5, relaxT 18, ceiling raised to 1e6 so the DERIVED budget wins
+    derived final march budget at 250 cells: 7260 steps  (70 s)
+    C2 will use 7256 .. 7260
+
+=== C1  500 cells / cap 5 / relaxT 18
+        budget   marchStp       S_L cm/s          T resid        sum dev       front mm     wall s
+         30945      30945        4.67194     9.893696e-01   8.692478e-07       3.535059        542
+         30946      30946        4.67194     9.893678e-01   1.627901e-06       0.260973        547
+         30947      30947        4.67194     9.893696e-01   8.690573e-07       3.535166        556
+         30948      30948        4.67194     9.893678e-01   1.627046e-06       0.261041        556
+         30949      30949        4.67194     9.893696e-01   8.688710e-07       3.535273        562
+
+               across 1.484054e+03 K (cell 37)   within 2.645849e-01 K (cell 17)
+               R = across/within = 5.608991e+03   against the bound 1.0 -> FAIL
+
+    FOR C3/C4/C5/C7, at the last budget:
+      temperatureResidual  9.893696e-01   against C3's bound 1e-03 -> FAIL
+      worstStateChange     9.895679e-01   (max over every judged step)
+      maxCompositionSumDeviation  8.688710e-07   <- C4's baseline, direction only
+      S_L                  4.671937 cm/s          <- C5's baseline
+      post-warm-up wall times 547 556 556 562 s, MEDIAN 556.1 s  <- C7
+
+=== C2  250 cells / cap 5 / relaxT 18
+        budget   marchStp       S_L cm/s          T resid        sum dev       front mm     wall s
+          7256       7256        4.82296     9.895072e-01   3.640977e-07       3.542157         71
+          7257       7257        4.82296     9.894931e-01   6.132233e-07       0.241575         71
+          7258       7258        4.82296     9.895075e-01   3.643558e-07       3.542876         71
+          7259       7259        4.82296     9.894934e-01   6.131453e-07       0.242251         71
+          7260       7260        4.82296     9.895077e-01   3.644692e-07       3.543596         72
+
+               across 1.484262e+03 K (cell 18)   within 2.858500e+00 K (cell 8)
+               R = across/within = 5.192449e+02   against the bound 1.0 -> FAIL
+
+    FOR C3/C4/C5/C7, at the last budget:
+      temperatureResidual  9.895077e-01   against C3's bound 1e-03 -> FAIL
+      worstStateChange     9.899607e-01   (max over every judged step)
+      maxCompositionSumDeviation  3.644692e-07   <- C4's baseline, direction only
+      S_L                  4.822961 cm/s          <- C5's baseline
+      post-warm-up wall times 71 71 71 72 s, MEDIAN 71.1 s  <- C7
+
+=== HOW TO READ THIS RUN
+  On the UNCHANGED tree, C1 and C2 FAILING is the REQUIRED result: it is the
+  fail-direction non-vacuity GATE.md section 2 demands and it is the C8 negative
+  control. C0 passing with a MEANINGFUL ratio in case (a) is what makes the pass
+  direction reachable. If C1 or C2 PASSED here, the gate would be vacuous and must
+  not be frozen.
+probe exit: 0
+
+DONE 2026-10-06T20:26:57+10:00

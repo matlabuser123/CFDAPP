@@ -1,0 +1,85 @@
+=== ENVIRONMENT (CLAUDE.md hardware policy: record what was actually used)
+date        2026-10-05T22:00:10+10:00
+nproc       32
+compiler    c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+build type  CMAKE_BUILD_TYPE:STRING=Release
+openmp      CFDAPP_ENABLE_OPENMP:BOOL=OFF
+cuda        CFDAPP_ENABLE_CUDA:BOOL=OFF
+
+=== REBUILD cfdcore against the current source
+[1/2] Building CXX object src/CMakeFiles/cfdcore.dir/species/PremixedFlame.cpp.o
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp: In function ‘cfd::species::PremixedFlameResult cfd::species::solvePremixedFlame(const cfd::species::PremixedFlameChemistry&, const cfd::species::PremixedFlameConditions&, const cfd::species::PremixedFlameSettings&)’:
+/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp:708:14: warning: unused variable ‘seedSpeed’ [-Wunused-variable]
+  708 |   const Real seedSpeed = massFluxEstimate / rhoUnburnt;
+      |              ^~~~~~~~~
+[2/2] Linking CXX static library src/libcfdcore.a
+build exit: 0
+
+=== PROVENANCE of what is being measured
+4bf518fa72a294748af9858e15e2d2c1b95d088f63c01c9c3d2dac41ecd34dd2  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+aead57e6c39aa7c893ae1d9c2bca8928c31321b4192a4eb7015a14c3797b6278  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/src/species/PremixedFlame.cpp
+882e5024b438cb86744ced813a35871f48aad3cca87e92b933c570b3f39aa4f1  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include/cfd/species/PremixedFlame.hpp
+newest production source vs library:
+  lib  2026-10-05 22:00:23.747834900
+  src  2026-10-05 01:16:17.830358100
+
+=== COMPILE the probe (this command is the reproducibility record)
+/usr/bin/c++ -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/generated/include -I/mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/_deps/nlohmann_json-src/include -O3 -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/tools/verify_probe.cpp -o /tmp/td027_verify /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/build/release/src/libcfdcore.a
+compile exit: 0
+
+=== RUN
+TD-027 -- VERIFICATION, C1 to C4
+GATE.md sha256 56080f7ff3a0ad53655e05f13530bfb8f6ed898f5dc722d9f96cb351284b0e75
+
+  500 cells over 10 mm, dx = 20.0 um
+  alpha_max (burnt) = 2.1221e-04 m2/s   rho_burnt = 0.19635 kg/m3
+  converged reference S_L = 4.67589 cm/s (GATE.md section 2)
+  maximumCellDiffusionNumber is left at its DEFAULT -- the change under test
+
+=== the reference solve
+    status 0   S_L 4.67194 cm/s   T_ad 1800.00 K   bracket 6.7713e-04   trials 15
+
+=== C1  the cap IS the realized cell diffusion number
+    trial dt history (the Courant branch binds early, the diffusion branch at the
+    eigenvalue -- the crossover is shown, not assumed):
+      trial  0  mdot 0.696488  dt 9.424301e-06  D = 4.999722
+      trial  1  mdot 0.348244  dt 9.424301e-06  D = 4.999722
+      trial  2  mdot 0.174122  dt 9.424301e-06  D = 4.999722
+      ...
+      trial 12  mdot 0.055093  dt 9.424301e-06  D = 4.999722
+      trial 13  mdot 0.055019  dt 9.424301e-06  D = 4.999722
+      trial 14  mdot 0.055056  dt 9.424301e-06  D = 4.999722
+    D at the eigenvalue = 4.999721799126122   expected cap 5.0   rel diff 5.564e-05
+    C1 -> *** FAIL ***
+    (if D equals 20 the fix did not take; if it is neither, the Courant branch
+     binds at the eigenvalue and the audit's section 1 reading is wrong)
+
+=== C2  S_L within the temporal-error budget
+    S_L 4.67194 cm/s   reference 4.67589   error 0.0845 %   budget 0.28 %
+    for scale: the OLD default gave 4.86230, i.e. +3.99 %, against G8's +-2.80 %
+    C2 -> PASS
+
+=== C3  the reported precision is coherent with the discretisation
+    reported bracket precision sqrt(1+1e-03)-1 = 0.0500 %
+    temporal error 0.0845 %   ratio 1.691   limit 2.0
+    for scale: cap 20 gave 80x, cap 10 gives 8.4x
+    C3 -> PASS
+
+=== C4  the limit cycle is suppressed: the march converges
+    relaxT {18, 22, 26, 30}; the family starts at 18 because relaxT 10 and 14 were
+    measured as a startup transient at this resolution (GATE.md section 4.4)
+
+    relaxT    marchStp     fuel bal   delta mm   S_L cm/s    wall s
+        18       30949   8.4699e-02     1.2781    4.67194      1035
+        22       37827   8.4583e-02     1.2779    4.67194      1008
+        26       44705   8.4482e-02     1.2780    4.67194      1285
+        30       51583   8.5289e-02     1.2780    4.67194      1476
+
+    max 8.5289e-02  min 8.4482e-02  mean 8.4763e-02   max-min 8.0710e-04 <= mean
+    for scale: at cap 20 this family gave max-min 6.647e-01 against mean 2.208e-01
+    C4 -> PASS
+
+=== C1-C4 SUMMARY: FAILURES PRESENT
+    C5 (343/331/32) and C6 (the 7200 s per-test cap) are measured by ctest runs.
+
+probe exit: 1

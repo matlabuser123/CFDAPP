@@ -1,5 +1,6 @@
 #include "cfd/compressible/CompressibleMassFlux.hpp"
 
+#include <cmath>
 #include <string>
 
 #include "cfd/core/Exception.hpp"
@@ -30,6 +31,39 @@ void validateFaceDensityInputs(const Mesh& mesh, const ScalarField& density,
   if (temperature.size() != mesh.numberOfCells()) {
     throw InvalidArgumentError(std::string(callerName) +
                                ": temperature size does not match mesh cell count");
+  }
+  // P17.1: the density VALUES, not only the array length. Both functions below reach
+  // this validator, so checking here covers the canonical face-density and mass-flux
+  // path in one place.
+  //
+  // Why this is input validation and not a downstream finiteness sweep: an internal
+  // face takes interpolateInternalFace of this field, which is a plain weighted mean
+  // with no validation of its own, so a bad cell value reaches mDot_f unexamined. The
+  // dangerous cases are the FINITE ones. Measured on the pre-P17.1 tree
+  // (results/p17/variable_density/logs/00_dryrun.log): rho[0] = -2 against a valid
+  // rho[1] = 2 gave face rho_f = 0 and mDot_f = 0 -- a face silently carrying no mass
+  // -- and rho[0] = 0 gave rho_f = 1, a plausible-looking flux from an impossible
+  // state. Neither is non-finite, so CompressibleSIMPLE's own allFinite() sweep (the
+  // only protection downstream) cannot see either one.
+  //
+  // Rejected, never clamped: a clamped density produces a mass flux that no
+  // thermodynamic state corresponds to, and lets a diverging solve look plausible --
+  // the same reasoning thermal/Enthalpy.hpp records for an out-of-range enthalpy
+  // ("an ERROR, not a clamp"). A positivity LIMITER is a conserved-state concern and
+  // belongs with a density-based solver, not here.
+  //
+  // Only `density` is value-checked here. `temperature` and `pressureGauge` reach the
+  // EOS at every boundary face and it already validates them, proven by
+  // CompressibleMassFluxTest.ThrowsOnNonPositiveBoundaryTemperature -- and that test
+  // relies on reaching the boundary EOS, so an up-front temperature check would leave
+  // it passing while no longer exercising the path it was written for. Note also that
+  // `pressureGauge` is GAUGE pressure and is legitimately negative below the reference,
+  // so positivity would be the wrong rule for it in any case.
+  for (Index i = 0; i < mesh.numberOfCells(); ++i) {
+    if (!std::isfinite(density[i]) || !(density[i] > 0.0)) {
+      throw InvalidArgumentError(std::string(callerName) + ": cell " + std::to_string(i) +
+                                 ": density must be finite and > 0");
+    }
   }
 }
 

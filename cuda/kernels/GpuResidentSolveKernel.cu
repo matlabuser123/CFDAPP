@@ -136,6 +136,12 @@ ResidentSystemCheck checkSystemAndBuildJacobi(const DeviceCsrMatrix& matrix,
   auto& stats = gpuExecutionStats();
   ++stats.deviceToHostCalls;
   stats.deviceToHostBytes += 2 * sizeof(unsigned int);
+  if (2 * sizeof(unsigned int) > stats.largestDeviceToHostBytes) {
+    stats.largestDeviceToHostBytes = 2 * sizeof(unsigned int);
+    stats.deviceToHostCallsAtLargestSize = 1;
+  } else if (2 * sizeof(unsigned int) == stats.largestDeviceToHostBytes) {
+    ++stats.deviceToHostCallsAtLargestSize;
+  }
 
   return ResidentSystemCheck{host[0] == 0, host[1] == 0};
 }

@@ -119,11 +119,32 @@ __device__ inline DeviceFaceDiffusionTerms deviceInternalFaceDiffusionTerms(
 // NonOrthogonalDiffusion.cpp:64. The gradient is ALWAYS available here
 // (P12-DIFF-002 A2), so the only gate is whether the condition prescribes the
 // value. `gammaFace` is the OWNER's value, not interpolated.
+// P16 Phase 2 -- `wallGamma` is the optional FACE-LOCAL override, the device
+// port of MomentumEquation.cpp:232-235:
+//
+//     Real muFace = effectiveViscosity[ownerId];
+//     if (wallViscosity != nullptr && (*wallViscosity)[faceId] != 0.0) {
+//       muFace = (*wallViscosity)[faceId];
+//     }
+//
+// It is how the high-Re wall function imposes tau_w on momentum -- not a
+// correction to the diffusion, the mechanism of it.
+//
+// FACE-LOCAL IS LOAD-BEARING. Folding the wall value into the owner cell's
+// gamma instead would hand it to EVERY face of that cell: a cell with one wall
+// face and three interior faces would use the wall viscosity on all four. That
+// is a different finite-volume operator, not a different spelling.
+//
+// nullptr, and a stored 0.0, both mean "no override" -- the same two escapes
+// the host has, so the scalar-transport caller that passes nothing is bitwise
+// unchanged.
 __device__ inline DeviceFaceDiffusionTerms deviceBoundaryFaceDiffusionTerms(
     const DeviceDiffusionGeometry& g, const cfd::Index* faceOwner, const cfd::Real* gamma,
-    const cfd::Real* gx, const cfd::Real* gy, const cfd::Real* gz, cfd::Index f) {
+    const cfd::Real* gx, const cfd::Real* gy, const cfd::Real* gz, cfd::Index f,
+    const cfd::Real* wallGamma = nullptr) {
   const cfd::Index o = faceOwner[f];
-  const cfd::Real gammaFace = gamma[o];
+  cfd::Real gammaFace = gamma[o];
+  if (wallGamma != nullptr && wallGamma[f] != 0.0) gammaFace = wallGamma[f];
   const cfd::Real distance = g.bDistance[f];
   DeviceFaceDiffusionTerms terms;
 

@@ -10,6 +10,16 @@
 add_executable(CFDBackwardFacingStepTests
   BackwardFacingStepCase.cpp
   test_backward_facing_step.cpp
+  # P16: the SST-discriminating separated-flow benchmark.
+  test_sst_separation.cpp
+  # P16: the NAMED separated-flow reference (Driver & Seegmiller 1985 /
+  # NASA TMR 2D BFS) -- the quantitative counterpart to the internal case.
+  DriverSeegmillerCase.cpp
+  DriverSeegmillerPrecursor.cpp
+  test_driver_seegmiller.cpp
+  # P16: inflow verification + the controlled A/B that can refute the
+  # undeveloped-inlet root-cause hypothesis.
+  test_driver_seegmiller_inlet.cpp
 )
 
 target_link_libraries(CFDBackwardFacingStepTests

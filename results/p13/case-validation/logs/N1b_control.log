@@ -1,0 +1,19 @@
+P13-002 control N1b -- the corrected control (N1 was mis-designed)
+date:     2026-09-21T10:45:53Z
+tree:     UNCHANGED (this runs before any P13-002 production change)
+file:     src/io/case/JsonUtil.cpp
+sha256:   0893f1b890c624eb9e4a396ffff2e4adfd1502022bac405794fd483e9a34cfa7
+edit:     fieldLabel  field "<name>"  ->  key "<name>"
+
+--- 1. the test passes on the unchanged tree ---
+  PASS -- the GUI recovers field=nx today
+--- 2. rename the marker the scraper reads, change nothing else ---
+  patched sha256 7d46932cc57921c62afe9ff26a9e9b24a0fb881459f3ecbef5d27812a1da0c19
+  the test FAILS after the rename -- the GUI lost the field
+
+N1b: FRAGILITY DEMONSTRATED -- an ordinary wording change to one token
+     silently breaks the GUI's field extraction, with no test of the
+     coupling itself. Carrying the diagnostic as data removes the coupling.
+--- 3. restored ---
+  sha256 0893f1b890c624eb9e4a396ffff2e4adfd1502022bac405794fd483e9a34cfa7 IDENTICAL
+  the test passes again: yes

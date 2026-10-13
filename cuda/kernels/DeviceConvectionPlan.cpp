@@ -44,12 +44,10 @@ struct FarUpstream {
 };
 
 FarUpstream farUpstreamFor(const Mesh& mesh, const Face& face, Index upwindCellId) {
-  const auto farFaceId =
-      MeshGeometry::oppositeInteriorFace(mesh, mesh.cell(upwindCellId), face);
+  const auto farFaceId = MeshGeometry::oppositeInteriorFace(mesh, mesh.cell(upwindCellId), face);
   if (!farFaceId.has_value()) return {};
   const Face& farFace = mesh.face(*farFaceId);
-  const Index farCellId =
-      (farFace.owner() == upwindCellId) ? *farFace.neighbor() : farFace.owner();
+  const Index farCellId = (farFace.owner() == upwindCellId) ? *farFace.neighbor() : farFace.owner();
   return {true, farCellId, MeshGeometry::ownerNeighborDistance(mesh, farFace)};
 }
 
@@ -87,8 +85,7 @@ bool DeviceConvectionPlan::build(const Mesh& mesh,
     const Face& face = mesh.face(f);
     if (face.isBoundary()) {
       const Index ownerId = face.owner();
-      const Real distance =
-          MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
+      const Real distance = MeshGeometry::distance(mesh.cell(ownerId).centroid(), face.centroid());
       bDistance[f] = distance;
       const auto& bc = cfd::boundary::boundaryConditionForFace(mesh, face.id(), boundaries);
       const auto* scalarBc = dynamic_cast<const cfd::boundary::ScalarBoundaryCondition*>(&bc);
@@ -98,10 +95,8 @@ bool DeviceConvectionPlan::build(const Mesh& mesh,
         return false;
       }
       if (!encodeBoundaryCondition(*scalarBc, distance, bA[f], bB[f], bKind[f])) {
-        unsupportedReason_ = "face " + std::to_string(f) + ": boundary condition '" +
-                             std::string(bc.name()) +
-                             "' is not bitwise-reproducible as a constant, a shift or an affine "
-                             "function of phi_P; mesh rejected for the device convection path";
+        unsupportedReason_ =
+            cfd::gpu::unsupportedEncodingReason(f, bc, "boundary condition", "convection");
         return false;
       }
       continue;
