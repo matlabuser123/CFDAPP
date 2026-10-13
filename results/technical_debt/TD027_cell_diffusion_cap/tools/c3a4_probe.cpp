@@ -236,8 +236,12 @@ int main() {
     const char* name;
     Real tol;
   };
-  const Cfg cfgs[] = {{"PRODUCTION  (hpp:196)", 1.0e-4},
-                      {"gated fixture (:188)", 1.0e-3},
+  // Labels corrected before the freeze: commit 7c2056a changed the shipped default from 1.0e-4 to
+  // 1.0e-3, so the SHIPPED configuration and the gated fixture are now the SAME tolerance and the
+  // gate's verdict is unambiguous. 1.0e-4 is retained as the FORMER default, because it is also
+  // tol_meas and its bracket is what E is resolved against.
+  const Cfg cfgs[] = {{"former default (pre-7c2056a)", 1.0e-4},
+                      {"SHIPPED default + fixture", 1.0e-3},
                       {"loose -- the PASS control", 5.0e-3}};
 
   int passes = 0;

@@ -93,6 +93,23 @@ after a caller sets other fields      1.000000e-03   <- the default IS live
 after a caller assigns 1.0e-3         1.000000e-03   <- and is dead-written when assigned
 ```
 
+### 4.1 STRENGTHENED 2026-10-13, after this document was committed
+
+The library was rebuilt against the changed header before GATE_A4's fresh run (57 ninja actions,
+`PremixedFlame.cpp` recompiled). **`libcfdcore.a` came out BIT-IDENTICAL** at
+`c127923f28acb0a2be5a4ca393a3300dbc1b6a7360ff95b3fd8ecfbc4ed2a050`, the same hash as before the
+tolerance change.
+
+That is an **empirical, bitwise** demonstration of what T1 argued statically: the default never
+appears in library codegen, because `PremixedFlame.cpp` never constructs a `PremixedFlameSettings`.
+It is stronger evidence than the enumeration and it cost nothing, since the rebuild was needed
+anyway for the staleness guard.
+
+It does not extend to the test binaries, which DO construct settings, so their object code carries
+the new constant -- immediately overwritten at `test_premixed_flame.cpp:188` with `1.0e-3`, the same
+value the default now holds, hence identical behaviour by inspection. §4's judgement therefore
+stands, but it now rests on a measurement for the library half rather than on enumeration alone.
+
 **This is a labelled proportionality judgement, not a proof by absence.** If T1's enumeration is
 incomplete then T1 is wrong and so is this limit, which is why T1 enumerates all 51 sites and its
 full output is committed in `logs/TOL_02_verification.log`. The A4 ladder alone cost 9.5 h, and

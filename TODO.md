@@ -32,7 +32,7 @@ its own authorization before work starts (CLAUDE.md §2).
       criterion scores best (0) on a ladder that resolved nothing. *Deliverable:* a §5.3 amendment
       measuring the temporal error at a research tolerance while judging the bracket the shipped
       configuration publishes — **authorized; dry-run DONE 2026-10-13 (9.5 h), see `dry_run_A4.md`.
-      Awaiting a decision on freezing — a pre-registered deviation fired.**
+      **GATE_A4 FROZEN 2026-10-13 (`33dc8c94…`); fresh §5.3 step-6 run IN PROGRESS (~9.5 h).**
       *Verification:* the replacement must still reject cap 20 at 80× and cap 10 at 8.4× while
       returning a resolved value at cap 5. The threshold 2 does **not** move.
 - [ ] **TD-004 C6a — the observed-order clause:** reports UNRESOLVED, 2.00 quanta against a derived
