@@ -75,8 +75,9 @@ These block progress and are not mine to make.
 1  TD-027 C3        A4 DRY-RUN DONE. Freeze GATE_A4 and run the fresh post-freeze verification
                     (~9.5 h)? The instrument works and is non-vacuous; C3-A4 still FAILS at
                     17.988 production / 2.248 fixture, as predicted. SEPARATELY: the shipped
-                    tolerance 1e-4 is why production reads 18 where the fixture reads 2.2 --
-                    a production change with its own gate, outside A4's scope.
+                    tolerance default was FIXED 2026-10-13 (1e-4 -> 1e-3) under GATE_TOL, all 5
+                    criteria PASS; coherence improved 8x to 2.248, still a FAIL, and NOT tuned
+                    to pass. Correction recorded: 1e-4 was DEAD-WRITTEN, not "shipped".
                     (earlier) AUDITED: the criterion cannot express its own threshold.
                     Authorize the derived §5.3 instrument amendment? It needs a design choice:
                     the finest ladder level would breach ctest --timeout 7200 at the required

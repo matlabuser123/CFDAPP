@@ -1,0 +1,129 @@
+=== PROVENANCE (unchanged tree)
+8fcc1553617bdaa36658805855edcb0d6ba34142ef23e96d3f28cd5d2d5ec937  include/cfd/species/PremixedFlame.hpp
+19db4b6b3b5279055899d1051763b6f5ae85926aa1f4fe2d4d0c5038b405fe9d  src/species/PremixedFlame.cpp
+
+=== C1 DRY-RUN: enumerate every PremixedFlameSettings OBJECT construction
+    (a declaration/parameter is not a construction; those are filtered)
+    tests/unit/species/test_premixed_flame.cpp:172:  PremixedFlameSettings settings;
+    tests/unit/species/test_premixed_flame_sanitizer.cpp:116:  PremixedFlameSettings settings;
+    results/technical_debt/TD004_premixed_flame/tools/balance_probe.cpp:144:  PremixedFlameSettings settings;
+    results/technical_debt/TD004_premixed_flame/tools/c2a1_probe.cpp:112:    PremixedFlameSettings s;  // GATE.md's fixture, verbatim
+    results/technical_debt/TD004_premixed_flame/tools/c5_amended_probe.cpp:135:  PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/c5_precision_probe.cpp:142:  PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/c6a_amended_probe.cpp:149:    PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/fixture_probe.cpp:125:    PremixedFlameSettings settings;
+    results/technical_debt/TD004_premixed_flame/tools/gate_c3_to_c6b_probe.cpp:145:    PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/ledger_probe_A2.cpp:116:  PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/locator_trace_probe.cpp:128:    PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/recentre_counters_probe.cpp:126:    PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/thousand_cell_probe.cpp:153:  PremixedFlameSettings s;
+    results/technical_debt/TD004_premixed_flame/tools/upstream_probe.cpp:115:    PremixedFlameSettings settings;
+    results/technical_debt/TD005_flame_speed_extraction/tools/chemistry_limiter_probe.cpp:143:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/controls_probe.cpp:118:  PremixedFlameSettings settings;
+    results/technical_debt/TD005_flame_speed_extraction/tools/cycle_at_dt4_probe.cpp:156:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/decay_probe.cpp:141:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/dt_dx_separation_probe.cpp:181:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/dt_ladder_probe.cpp:153:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/falsification_probe.cpp:151:  PremixedFlameSettings settings;
+    results/technical_debt/TD005_flame_speed_extraction/tools/field_dump_probe.cpp:102:  PremixedFlameSettings settings;
+    results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp:98:  PremixedFlameSettings settings;
+    results/technical_debt/TD005_flame_speed_extraction/tools/fuel_budget_probe.cpp:138:  PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/numerical_origin_probe.cpp:217:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/numerical_origin_probe.cpp:257:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/period_probe.cpp:134:    PremixedFlameSettings s;
+    results/technical_debt/TD005_flame_speed_extraction/tools/reproducibility_probe.cpp:141:  PremixedFlameSettings settings;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/c1_probe.cpp:119:  PremixedFlameSettings s;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/c2a2_probe.cpp:138:    PremixedFlameSettings s;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/c3a4_probe.cpp:129:  PremixedFlameSettings s;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/c4_parity_probe.cpp:136:    PremixedFlameSettings s;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/tol_probe.cpp:40:  const PremixedFlameSettings fresh;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/tol_probe.cpp:45:  PremixedFlameSettings omitted;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/tol_probe.cpp:51:  PremixedFlameSettings assigned;
+    results/technical_debt/TD027_cell_diffusion_cap/tools/verify_probe.cpp:92:  PremixedFlameSettings s;  // GATE.md's fixture; maximumCellDiffusionNumber left at its DEFAULT
+    results/technical_debt/TD028_period2_alternation/tools/cell35_remeasure_probe.cpp:166:    PremixedFlameSettings s;
+    results/technical_debt/TD029_error_cancellation/tools/dt_dx_separation_probe.cpp:163:    PremixedFlameSettings s;
+    results/technical_debt/TD030_split_order/tools/front_inlet_probe.cpp:141:    PremixedFlameSettings s;
+    results/technical_debt/TD031_final_march_length/tools/cell35_history_probe.cpp:141:    PremixedFlameSettings s;
+    results/technical_debt/TD031_final_march_length/tools/convergence_point_probe.cpp:119:    PremixedFlameSettings s;
+    results/technical_debt/TD031_final_march_length/tools/kmargin_probe.cpp:147:      PremixedFlameSettings s;
+    results/technical_debt/TD031_final_march_length/tools/localise_probe.cpp:126:    PremixedFlameSettings s;
+    results/technical_debt/TD032_lagged_time_level/tools/alternation_probe.cpp:187:  PremixedFlameSettings s;
+    results/technical_debt/TD032_lagged_time_level/tools/residual_vs_length_probe.cpp:120:    PremixedFlameSettings s;
+    results/technical_debt/TD032_lagged_time_level/tools/why_noflame_probe.cpp:46:    PremixedFlameSettings s; s.cells=500; s.domainLength=0.010; s.anchorFraction=0.35;
+    results/technical_debt/TD032_lagged_time_level/tools/window64_probe.cpp:113:  PremixedFlameSettings settings;
+    results/technical_debt/TD035_sanitizer_scope/tools/cost_ladder_probe.cpp:136:    PremixedFlameSettings s;
+    results/technical_debt/TD037_drift_window_guard/tools/ladder_probe.cpp:80:  PremixedFlameSettings settings;
+    results/technical_debt/TD040_recentre_conservation/tools/deadband_ladder_probe.cpp:133:    PremixedFlameSettings s;
+    results/technical_debt/TD040_recentre_conservation/tools/dt_ladder_probe.cpp:161:    PremixedFlameSettings s;
+    constructions found: 51
+
+    of those, how many assign .tolerance in the same function?
+      tests/unit/species/test_premixed_flame.cpp                       tolerance assignments: 2
+      tests/unit/species/test_premixed_flame_sanitizer.cpp             tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/balance_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/c2a1_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/c5_amended_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/c5_precision_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/c6a_amended_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/fixture_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/gate_c3_to_c6b_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/ledger_probe_A2.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/locator_trace_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/recentre_counters_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/thousand_cell_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD004_premixed_flame/tools/upstream_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/chemistry_limiter_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/controls_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/cycle_at_dt4_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/decay_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/dt_dx_separation_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/dt_ladder_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/falsification_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/field_dump_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/front_trajectory_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/fuel_budget_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/numerical_origin_probe.cpp tolerance assignments: 2
+      results/technical_debt/TD005_flame_speed_extraction/tools/period_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD005_flame_speed_extraction/tools/reproducibility_probe.cpp tolerance assignments: 2
+      results/technical_debt/TD027_cell_diffusion_cap/tools/c1_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD027_cell_diffusion_cap/tools/c2a2_probe.cpp tolerance assignments: 2
+      results/technical_debt/TD027_cell_diffusion_cap/tools/c3a4_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD027_cell_diffusion_cap/tools/c4_parity_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD027_cell_diffusion_cap/tools/tol_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD027_cell_diffusion_cap/tools/verify_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD028_period2_alternation/tools/cell35_remeasure_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD029_error_cancellation/tools/dt_dx_separation_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD030_split_order/tools/front_inlet_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD031_final_march_length/tools/cell35_history_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD031_final_march_length/tools/convergence_point_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD031_final_march_length/tools/kmargin_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD031_final_march_length/tools/localise_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD032_lagged_time_level/tools/alternation_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD032_lagged_time_level/tools/residual_vs_length_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD032_lagged_time_level/tools/why_noflame_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD032_lagged_time_level/tools/window64_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD035_sanitizer_scope/tools/cost_ladder_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD037_drift_window_guard/tools/ladder_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD040_recentre_conservation/tools/deadband_ladder_probe.cpp tolerance assignments: 1
+      results/technical_debt/TD040_recentre_conservation/tools/dt_ladder_probe.cpp tolerance assignments: 1
+
+=== C3 DRY-RUN: does the cap comment cite the DECLARED default?
+    declared: Real tolerance{1.0e-4}
+    cited in the cap's justification: at tolerance 1e-3.
+    C3 DRY-RUN: *** FAILS on the unchanged tree -- declared 1.0e-4, cited 1e-3.
+    Good: C3 is the criterion that discriminates, and it is not vacuous.
+
+=== BUILD the probe and take the BASELINE measurement
+    compile exit: 0
+
+    declared default tolerance            1.000000e-04
+    after a caller sets other fields      1.000000e-04   <- the default IS live
+    after a caller assigns 1.0e-3         1.000000e-03   <- the default is dead-written
+
+      tolerance -> terminal published bracket (the precision the solver claims)
+        1.0e-04  ->  k = 13 bisections,  q = 8.461627e-05  (0.0085 %)
+        1.0e-03  ->  k = 10 bisections,  q = 6.771307e-04  (0.0677 %)
+
+      measured temporal error at cap 5 (A4 dry-run)   1.522100e-03  (0.152210 %)
+        E / q at tolerance 1.0e-04  =   17.988
+        E / q at tolerance 1.0e-03  =    2.248

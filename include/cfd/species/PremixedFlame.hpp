@@ -193,7 +193,7 @@ struct PremixedFlameSettings {
   // The width of the final bracket on mdot, relative: (high - low)/low. Because the eigenvalue is
   // BRACKETED rather than approached, this is a bound on the answer and not merely the size of the
   // last step.
-  Real tolerance{1.0e-4};
+  Real tolerance{1.0e-3};
 
   // THE IMPLICIT-EULER TIME STEP, set per trial from scales that do NOT involve S_L.
   //

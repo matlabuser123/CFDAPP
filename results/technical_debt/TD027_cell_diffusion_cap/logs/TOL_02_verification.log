@@ -1,0 +1,46 @@
+=== GATE IDENTITY: is the frozen gate still the frozen gate?
+1185af1d993fef11dba14cd60267473ead80ec7ab6a0ce03d62c2e8f0aebbc7c  /mnt/c/Users/Hasib/Desktop/CFDAPP/CFDApp/results/technical_debt/TD027_cell_diffusion_cap/GATE_TOL.md
+  frozen: 1185af1d993fef11dba14cd60267473ead80ec7ab6a0ce03d62c2e8f0aebbc7c
+  OK: matches.
+
+=== PRODUCTION AFTER THE CHANGE
+71429f0649889442b81604c4ee8fb74b41705e7d70ebde7966d0f2ee4385cd40  include/cfd/species/PremixedFlame.hpp
+19db4b6b3b5279055899d1051763b6f5ae85926aa1f4fe2d4d0c5038b405fe9d  src/species/PremixedFlame.cpp
+
+=== T1  no caller reads the default
+  constructions enumerated: 51
+  constructions in files that never assign .tolerance (excluding tol_probe): 0
+  T1 PASS
+
+=== T2  the compiled default is 1.0e-3
+    declared default tolerance            1.000000e-03
+    after a caller sets other fields      1.000000e-03   <- the default IS live
+    after a caller assigns 1.0e-3         1.000000e-03   <- the default is dead-written
+
+      tolerance -> terminal published bracket (the precision the solver claims)
+        1.0e-04  ->  k = 13 bisections,  q = 8.461627e-05  (0.0085 %)
+        1.0e-03  ->  k = 10 bisections,  q = 6.771307e-04  (0.0677 %)
+
+      measured temporal error at cap 5 (A4 dry-run)   1.522100e-03  (0.152210 %)
+        E / q at tolerance 1.0e-04  =   17.988
+        E / q at tolerance 1.0e-03  =    2.248
+  T2 PASS
+
+=== T3  the cap's justification cites the declared default
+  declared: 1.0e-3    cited: 1e-3
+  numerically equal: True
+  T3 PASS
+
+=== T4  nothing else changed
+  production/test diff:
+     include/cfd/species/PremixedFlame.hpp | 2 +-
+     1 file changed, 1 insertion(+), 1 deletion(-)
+  other production/test files touched: 0    lines in the header: 1+1
+  T4 PASS
+
+=== T5  clang-format
+  files in scope: 742
+  exit: 0    output lines: 0
+  T5 PASS
+
+=== ALL FIVE CRITERIA PASS
