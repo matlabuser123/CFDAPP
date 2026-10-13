@@ -31,7 +31,8 @@ its own authorization before work starts (CLAUDE.md §2).
       `m × (q/B)` with `q/B ∈ (1,2]`; the threshold 2 is unreachable as a boundary and the
       criterion scores best (0) on a ladder that resolved nothing. *Deliverable:* a §5.3 amendment
       measuring the temporal error at a research tolerance while judging the bracket the shipped
-      configuration publishes — **derived in `audit_C3.md` §6, NOT authorized.**
+      configuration publishes — **authorized; dry-run DONE 2026-10-13 (9.5 h), see `dry_run_A4.md`.
+      Awaiting a decision on freezing — a pre-registered deviation fired.**
       *Verification:* the replacement must still reject cap 20 at 80× and cap 10 at 8.4× while
       returning a resolved value at cap 5. The threshold 2 does **not** move.
 - [ ] **TD-004 C6a — the observed-order clause:** reports UNRESOLVED, 2.00 quanta against a derived
@@ -71,7 +72,12 @@ its own authorization before work starts (CLAUDE.md §2).
 These block progress and are not mine to make.
 
 ```text
-1  TD-027 C3        AUDITED: the criterion cannot express its own threshold (see audit_C3.md).
+1  TD-027 C3        A4 DRY-RUN DONE. Freeze GATE_A4 and run the fresh post-freeze verification
+                    (~9.5 h)? The instrument works and is non-vacuous; C3-A4 still FAILS at
+                    17.988 production / 2.248 fixture, as predicted. SEPARATELY: the shipped
+                    tolerance 1e-4 is why production reads 18 where the fixture reads 2.2 --
+                    a production change with its own gate, outside A4's scope.
+                    (earlier) AUDITED: the criterion cannot express its own threshold.
                     Authorize the derived §5.3 instrument amendment? It needs a design choice:
                     the finest ladder level would breach ctest --timeout 7200 at the required
                     tolerance, so fewer levels, a coarser starting dt, or a DISABLED_ run.
